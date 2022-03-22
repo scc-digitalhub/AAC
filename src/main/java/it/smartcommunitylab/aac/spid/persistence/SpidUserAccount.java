@@ -37,7 +37,7 @@ public class SpidUserAccount extends AbstractAccount {
     // subject identifier from external provider
     @Id
     @NotBlank
-    @Column(name = "subject_id")
+    @Column(name = "subject")
     private String subjectId;
 
     // reference to user

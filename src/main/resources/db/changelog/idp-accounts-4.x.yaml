@@ -1,0 +1,156 @@
+databaseChangeLog:
+  - changeSet:
+      id: update-internal-account-table
+      author: matteos
+      preConditions:
+        - onFail: MARK_RAN
+          columnExists:
+            tableName: internal_users
+            columnName: id
+      changes:
+        - addColumn:
+            tableName: internal_users
+            columns:
+            - column:
+                name: provider_id
+                type: varchar(255)    
+        - sql:
+            sql: delete from internal_users where realm is null or realm = ""
+        - sql:
+            sql: update internal_users as u inner join (select provider_id as pid,realm from identity_providers where authority = 'internal') as p on p.realm = u.realm set u.provider_id=pid          
+        - sql:
+            sql: update internal_users set provider_id = "internal" where realm = "system"         
+        - renameColumn:
+            tableName: internal_users
+            newColumnName:  user_id  
+            oldColumnName:  subject_id    
+            columnDataType: varchar(255)
+        - dropPrimaryKey:   
+           dropIndex: true  
+           tableName: internal_users                
+        -  addPrimaryKey:  
+            columnNames:  provider_id, username  
+            tableName:  internal_users  
+            validate:  false              
+        -  dropColumn:  
+            tableName: internal_users
+            columnName:  id  
+  - changeSet:
+      id: update-oidc-account-table
+      author: matteos
+      preConditions:
+        - onFail: MARK_RAN
+          columnExists:
+            tableName: oidc_users
+            columnName: subject_id
+      changes:   
+        - renameColumn:
+            tableName: oidc_users
+            newColumnName:  subject
+            oldColumnName:  user_id     
+            columnDataType: varchar(255)
+        - renameColumn:
+            tableName: oidc_users
+            newColumnName:  user_id  
+            oldColumnName:  subject_id  
+            columnDataType: varchar(255)                                                
+        -  dropColumn:  
+            tableName: oidc_users
+            columnName:  profile_uri              
+  - changeSet:
+      id: update-oidc-account-table-key
+      author: matteos
+      preConditions:
+        - onFail: MARK_RAN
+          primaryKeyExists:
+            tableName: oidc_users
+      changes:                               
+        - dropPrimaryKey:   
+           dropIndex: true  
+           tableName: oidc_users                
+        -  addPrimaryKey:  
+            columnNames:  provider_id, subject  
+            tableName:  oidc_users  
+            validate:  false                             
+  - changeSet:
+      id: update-saml-account-table
+      author: matteos
+      preConditions:
+        - onFail: MARK_RAN
+          columnExists:
+            tableName: saml_users
+            columnName: subject_id
+      changes:   
+        - renameColumn:
+            tableName: saml_users
+            newColumnName:  subject
+            oldColumnName:  user_id   
+            columnDataType: varchar(255)               
+        - renameColumn:
+            tableName: saml_users
+            newColumnName:  user_id  
+            oldColumnName:  subject_id     
+            columnDataType: varchar(255)                         
+  - changeSet:
+      id: update-saml-account-table-key
+      author: matteos
+      preConditions:
+        - onFail: MARK_RAN
+          primaryKeyExists:
+            tableName: saml_users
+      changes:                     
+        - dropPrimaryKey:   
+           dropIndex: true  
+           tableName: saml_users                
+        -  addPrimaryKey:  
+            columnNames:  provider_id, subject
+            tableName:  saml_users  
+            validate:  false                       
+  - changeSet:
+      id: update-spid-account-table
+      author: matteos
+      preConditions:
+        - onFail: MARK_RAN
+          columnExists:
+            tableName: spid_users
+            columnName: subject_id
+      changes:   
+        - renameColumn:
+            tableName: spid_users
+            newColumnName:  subject
+            oldColumnName:  user_id     
+            columnDataType: varchar(255)             
+        - renameColumn:
+            tableName: spid_users
+            newColumnName:  user_id  
+            oldColumnName:  subject_id     
+            columnDataType: varchar(255)                         
+        - dropPrimaryKey:   
+           dropIndex: true  
+           tableName: spid_users                
+        -  addPrimaryKey:  
+            columnNames:  provider_id, subject
+            tableName:  spid_users  
+            validate:  false        
+        -  dropColumn:  
+            tableName: spid_users
+            columnName:  id              
+  - changeSet:
+      id: update-users-table
+      author: matteos
+      preConditions:
+        - onFail: MARK_RAN
+          columnExists:
+            tableName: users
+            columnName: is_blocked
+      changes:   
+        -  dropColumn:  
+            tableName: users
+            columnName:  is_blocked       
+        -  dropColumn:  
+            tableName: users
+            columnName:  is_locked              
+                        
+            
+            
+            

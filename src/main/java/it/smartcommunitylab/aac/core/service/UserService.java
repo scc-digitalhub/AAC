@@ -40,6 +40,7 @@ import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.model.UserStatus;
 import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
 import it.smartcommunitylab.aac.roles.service.SubjectRoleService;
 
@@ -316,10 +317,8 @@ public class UserService {
         u.setEmailVerified(emailVerified);
 
         // status
-        boolean locked = ue.getLocked() != null ? ue.getLocked().booleanValue() : false;
-        boolean blocked = ue.getBlocked() != null ? ue.getBlocked().booleanValue() : false;
-        u.setLocked(locked);
-        u.setBlocked(blocked);
+        UserStatus status = UserStatus.parse(ue.getStatus());
+        u.setStatus(status);
 
         // fetch attributes
         u.setExpirationDate(ue.getExpirationDate());

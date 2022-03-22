@@ -126,7 +126,7 @@ public class ExtendedAuthenticationToken extends AbstractAuthenticationToken {
 
     @Override
     public String getName() {
-        return token.getName();
+        return principal.getName();
     }
 
     @Override

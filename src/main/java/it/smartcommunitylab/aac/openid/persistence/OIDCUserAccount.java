@@ -37,7 +37,7 @@ public class OIDCUserAccount extends AbstractAccount {
     // subject identifier from external provider
     @Id
     @NotBlank
-    @Column(name = "sub")
+    @Column(name = "subject")
     private String subject;
 
     // reference to user
@@ -72,6 +72,8 @@ public class OIDCUserAccount extends AbstractAccount {
     private String familyName;
 
     private String lang;
+    
+    @Column(name = "picture_uri")
     private String picture;
 
     // audit

@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.core.service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,6 +19,7 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.persistence.UserEntityRepository;
 import it.smartcommunitylab.aac.model.Subject;
+import it.smartcommunitylab.aac.model.UserStatus;
 
 /*
  * Manage persistence for user entities and authorities (roles) 
@@ -64,11 +66,10 @@ public class UserEntityService {
         u.setUsername(username);
         u.setEmailAddress(emailAddress);
         // ensure user is active
-        u.setLocked(false);
-        u.setBlocked(false);
+        u.setStatus(UserStatus.ACTIVE.getValue());
 
         u = userRepository.save(u);
-        return u;
+        return userRepository.detach(u);
     }
 
     @Transactional(readOnly = true)
@@ -83,7 +84,7 @@ public class UserEntityService {
             throw new NoSuchUserException("no user for subject " + String.valueOf(uuid));
         }
 
-        return u;
+        return userRepository.detach(u);
     }
 
     @Transactional(readOnly = true)
@@ -92,23 +93,22 @@ public class UserEntityService {
     }
 
     @Transactional(readOnly = true)
-    public List<UserEntity> listUsers() {
-        return userRepository.findAll();
-    }
-
-    @Transactional(readOnly = true)
     public List<UserEntity> listUsers(String realm) {
-        return userRepository.findByRealm(realm);
+        return userRepository.findByRealm(realm).stream().map(u -> userRepository.detach(u))
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public List<UserEntity> findUsersByUsername(String realm, String username) {
-        return userRepository.findByRealmAndUsername(realm, username);
+        return userRepository.findByRealmAndUsername(realm, username).stream().map(u -> userRepository.detach(u))
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public List<UserEntity> findUsersByEmailAddress(String realm, String emailAddress) {
-        return userRepository.findByRealmAndEmailAddress(realm, emailAddress);
+        return userRepository.findByRealmAndEmailAddress(realm, emailAddress).stream()
+                .map(u -> userRepository.detach(u))
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -122,7 +122,7 @@ public class UserEntityService {
                 : userRepository.findByRealm(realm.toLowerCase(), pageRequest);
         return page;
     }
-    
+
     @Transactional(readOnly = true)
     public Page<UserEntity> searchUsersWithSpec(Specification<UserEntity> spec, Pageable pageRequest) {
         Page<UserEntity> page = userRepository.findAll(spec, pageRequest);
@@ -150,83 +150,9 @@ public class UserEntityService {
             }
         }
 
-        return u;
+        return userRepository.detach(u);
 
     }
-
-//    @Transactional(readOnly = true)
-//    public List<UserRoleEntity> getRoles(String uuid) throws NoSuchUserException {
-//        UserEntity u = getUser(uuid);
-//        return userRoleRepository.findBySubject(u.getUuid());
-//    }
-//
-//    @Transactional(readOnly = true)
-//    public List<UserRoleEntity> getRoles(String uuid, String realm) throws NoSuchUserException {
-//        UserEntity u = getUser(uuid);
-//        return userRoleRepository.findBySubjectAndRealm(u.getUuid(), realm);
-//    }
-//
-
-//
-//    public List<UserRoleEntity> updateRoles(String uuid, String realm, Collection<String> roles)
-//            throws NoSuchUserException {
-//
-//        UserEntity u = userRepository.findByUuid(uuid);
-//        if (u == null) {
-//            throw new NoSuchUserException("no user for subject " + uuid);
-//        }
-//
-//        // fetch current roles
-//        List<UserRoleEntity> oldRoles = userRoleRepository.findBySubjectAndRealm(uuid, realm);
-//
-//        // unpack roles
-//        Set<UserRoleEntity> newRoles = roles.stream().map(r -> {
-//            UserRoleEntity re = new UserRoleEntity(uuid);
-//            re.setRealm(realm);
-//            re.setRole(r);
-//            return re;
-//        }).collect(Collectors.toSet());
-//
-//        // update
-//        Set<UserRoleEntity> toDelete = oldRoles.stream().filter(r -> !newRoles.contains(r)).collect(Collectors.toSet());
-//        Set<UserRoleEntity> toAdd = newRoles.stream().filter(r -> !oldRoles.contains(r)).collect(Collectors.toSet());
-//
-//        userRoleRepository.deleteAll(toDelete);
-//        userRoleRepository.saveAll(toAdd);
-//
-//        return userRoleRepository.findBySubjectAndRealm(uuid, realm);
-//
-//    }
-//
-//    public List<UserRoleEntity> updateRoles(String uuid, Collection<Map.Entry<String, String>> roles)
-//            throws NoSuchUserException {
-//
-//        UserEntity u = userRepository.findByUuid(uuid);
-//        if (u == null) {
-//            throw new NoSuchUserException("no user for subject " + uuid);
-//        }
-//
-//        // fetch current roles
-//        List<UserRoleEntity> oldRoles = userRoleRepository.findBySubject(uuid);
-//
-//        // unpack roles
-//        Set<UserRoleEntity> newRoles = roles.stream().map(e -> {
-//            UserRoleEntity re = new UserRoleEntity(uuid);
-//            re.setRealm(e.getKey());
-//            re.setRole(e.getValue());
-//            return re;
-//        }).collect(Collectors.toSet());
-//
-//        // update
-//        Set<UserRoleEntity> toDelete = oldRoles.stream().filter(r -> !newRoles.contains(r)).collect(Collectors.toSet());
-//        Set<UserRoleEntity> toAdd = newRoles.stream().filter(r -> !oldRoles.contains(r)).collect(Collectors.toSet());
-//
-//        userRoleRepository.deleteAll(toDelete);
-//        userRoleRepository.saveAll(toAdd);
-//
-//        return userRoleRepository.findBySubject(uuid);
-//
-//    }
 
     public UserEntity updateLogin(String uuid, String provider, Date loginDate, String loginIp)
             throws NoSuchUserException {
@@ -240,40 +166,38 @@ public class UserEntityService {
         u.setLoginDate(loginDate);
         u.setLoginIp(loginIp);
         u = userRepository.save(u);
-        return u;
+        return userRepository.detach(u);
 
+    }
+
+    public UserEntity activateUser(String uuid) throws NoSuchUserException {
+        return updateStatus(uuid, UserStatus.ACTIVE);
+    }
+
+    public UserEntity inactivateUser(String uuid) throws NoSuchUserException {
+        return updateStatus(uuid, UserStatus.INACTIVE);
     }
 
     public UserEntity blockUser(String uuid) throws NoSuchUserException {
-        UserEntity u = getUser(uuid);
-
-        u.setBlocked(true);
-        u = userRepository.save(u);
-        return u;
+        return updateStatus(uuid, UserStatus.BLOCKED);
     }
 
     public UserEntity unblockUser(String uuid) throws NoSuchUserException {
-        UserEntity u = getUser(uuid);
-
-        u.setBlocked(false);
-        u = userRepository.save(u);
-        return u;
+        return updateStatus(uuid, UserStatus.ACTIVE);
     }
 
-    public UserEntity lockUser(String uuid) throws NoSuchUserException {
+    public UserEntity updateStatus(String uuid, UserStatus newStatus) throws NoSuchUserException {
         UserEntity u = getUser(uuid);
 
-        u.setLocked(true);
-        u = userRepository.save(u);
-        return u;
-    }
+        // check if active, inactive users can not be changed except for activation
+        UserStatus curStatus = UserStatus.parse(u.getStatus());
+        if (UserStatus.INACTIVE == curStatus && UserStatus.ACTIVE != newStatus) {
+            throw new IllegalArgumentException("user is inactive, activate first to update status");
+        }
 
-    public UserEntity unlockUser(String uuid) throws NoSuchUserException {
-        UserEntity u = getUser(uuid);
-
-        u.setLocked(false);
+        u.setStatus(newStatus.getValue());
         u = userRepository.save(u);
-        return u;
+        return userRepository.detach(u);
     }
 
     public UserEntity updateExpiration(String uuid, Date exp) throws NoSuchUserException {
@@ -281,7 +205,7 @@ public class UserEntityService {
 
         u.setExpirationDate(exp);
         u = userRepository.save(u);
-        return u;
+        return userRepository.detach(u);
 
     }
 
@@ -302,17 +226,17 @@ public class UserEntityService {
 
         u.setEmailVerified(true);
         u = userRepository.save(u);
-        return u;
+        return userRepository.detach(u);
     }
 
     public UserEntity unverifyEmail(String uuid) throws NoSuchUserException {
         UserEntity u = getUser(uuid);
         u.setEmailVerified(false);
         u = userRepository.save(u);
-        return u;
+        return userRepository.detach(u);
     }
 
-    public UserEntity deleteUser(String uuid) {
+    public void deleteUser(String uuid) {
         UserEntity u = userRepository.findByUuid(uuid);
         if (u != null) {
 
@@ -323,8 +247,6 @@ public class UserEntityService {
             subjectService.deleteSubject(uuid);
 
         }
-
-        return u;
     }
 
 }

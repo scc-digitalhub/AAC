@@ -374,10 +374,10 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
 
         // check user status
         if (user.isBlocked()) {
-            throw new DisabledException("subject is blocked");
+            throw new LockedException("subject is blocked");
         }
-        if (user.isLocked()) {
-            throw new LockedException("subject is locked");
+        if (user.isInactive()) {
+            throw new DisabledException("subject is inactive");
         }
         if (user.isExpired()) {
             throw new AccountExpiredException("subject account is expired");

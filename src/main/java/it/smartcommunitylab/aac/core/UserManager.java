@@ -89,8 +89,8 @@ public class UserManager {
     @Autowired
     private UserService userService;
 
-    @Autowired
-    private UserEntityService userEntityService;
+//    @Autowired
+//    private UserEntityService userEntityService;
 
     @Autowired
     private AuthorityManager authorityManager;
@@ -307,14 +307,14 @@ public class UserManager {
     public User blockUser(String realm, String subjectId) throws NoSuchUserException, NoSuchRealmException {
         logger.debug("block user {} from realm {}", String.valueOf(subjectId), realm);
 
-        Realm r = realmService.getRealm(realm);
-
-        // get user source realm
-        String source = userService.getUserRealm(subjectId);
-        if (source.equals(r.getSlug())) {
-            // lock account
-            userEntityService.blockUser(subjectId);
-        }
+//        Realm r = realmService.getRealm(realm);
+//
+//        // get user source realm
+//        String source = userService.getUserRealm(subjectId);
+//        if (source.equals(r.getSlug())) {
+//            // lock account
+//            userEntityService.blockUser(subjectId);
+//        }
 
         return userService.getUser(subjectId, realm);
     }
@@ -323,14 +323,14 @@ public class UserManager {
     public User unblockUser(String realm, String subjectId) throws NoSuchUserException, NoSuchRealmException {
         logger.debug("unblock user {} from realm {}", String.valueOf(subjectId), realm);
 
-        Realm r = realmService.getRealm(realm);
-
-        // get user source realm
-        String source = userService.getUserRealm(subjectId);
-        if (source.equals(r.getSlug())) {
-            // lock account
-            userEntityService.unblockUser(subjectId);
-        }
+//        Realm r = realmService.getRealm(realm);
+//
+//        // get user source realm
+//        String source = userService.getUserRealm(subjectId);
+//        if (source.equals(r.getSlug())) {
+//            // lock account
+//            userEntityService.unblockUser(subjectId);
+//        }
 
         return userService.getUser(subjectId, realm);
     }
@@ -339,14 +339,14 @@ public class UserManager {
     public User lockUser(String realm, String subjectId) throws NoSuchUserException, NoSuchRealmException {
         logger.debug("lock user {} from realm {}", String.valueOf(subjectId), realm);
 
-        Realm r = realmService.getRealm(realm);
-
-        // get user source realm
-        String source = userService.getUserRealm(subjectId);
-        if (source.equals(r.getSlug())) {
-            // lock account
-            userEntityService.lockUser(subjectId);
-        }
+//        Realm r = realmService.getRealm(realm);
+//
+//        // get user source realm
+//        String source = userService.getUserRealm(subjectId);
+//        if (source.equals(r.getSlug())) {
+//            // lock account
+//            userEntityService.lockUser(subjectId);
+//        }
 
         return userService.getUser(subjectId, realm);
     }
@@ -354,15 +354,15 @@ public class UserManager {
     @Transactional(readOnly = false)
     public User unlockUser(String realm, String subjectId) throws NoSuchUserException, NoSuchRealmException {
         logger.debug("unlock user {} from realm {}", realm);
-
-        Realm r = realmService.getRealm(realm);
-
-        // get user source realm
-        String source = userService.getUserRealm(subjectId);
-        if (source.equals(r.getSlug())) {
-            // lock account
-            userEntityService.unlockUser(subjectId);
-        }
+//
+//        Realm r = realmService.getRealm(realm);
+//
+//        // get user source realm
+//        String source = userService.getUserRealm(subjectId);
+//        if (source.equals(r.getSlug())) {
+//            // lock account
+//            userEntityService.unlockUser(subjectId);
+//        }
 
         return userService.getUser(subjectId, realm);
     }
@@ -372,31 +372,31 @@ public class UserManager {
             throws NoSuchUserException, NoSuchRealmException {
         logger.debug("verify email user {} from realm {}", String.valueOf(subjectId), realm);
 
-        Realm r = realmService.getRealm(realm);
-
-        // get user source realm
-        String source = userService.getUserRealm(subjectId);
-        if (source.equals(r.getSlug())) {
-            // fetch user
-            UserEntity user = userEntityService.getUser(subjectId);
-
-            // verify account email
-            user = userEntityService.verifyEmail(subjectId, user.getEmailAddress());
-
-            // update all provider accounts via service
-            // use get to also update offline providersF
-            Collection<IdentityService> idss = authorityManager.getIdentityServices(realm);
-            for (IdentityService ids : idss) {
-                AccountService as = ids.getAccountService();
-                Collection<? extends UserAccount> accounts = as.listAccounts(subjectId);
-                accounts.forEach(ua -> {
-                    try {
-                        as.verifyAccount(ua.getUserId());
-                    } catch (RegistrationException | NoSuchUserException e) {
-                    }
-                });
-            }
-        }
+//        Realm r = realmService.getRealm(realm);
+//
+//        // get user source realm
+//        String source = userService.getUserRealm(subjectId);
+//        if (source.equals(r.getSlug())) {
+//            // fetch user
+//            UserEntity user = userEntityService.getUser(subjectId);
+//
+//            // verify account email
+//            user = userEntityService.verifyEmail(subjectId, user.getEmailAddress());
+//
+//            // update all provider accounts via service
+//            // use get to also update offline providersF
+//            Collection<IdentityService> idss = authorityManager.getIdentityServices(realm);
+//            for (IdentityService ids : idss) {
+//                AccountService as = ids.getAccountService();
+//                Collection<? extends UserAccount> accounts = as.listAccounts(subjectId);
+//                accounts.forEach(ua -> {
+//                    try {
+//                        as.verifyAccount(ua.getUserId());
+//                    } catch (RegistrationException | NoSuchUserException e) {
+//                    }
+//                });
+//            }
+//        }
 
         return userService.getUser(subjectId, realm);
     }
@@ -406,28 +406,28 @@ public class UserManager {
             throws NoSuchUserException, NoSuchRealmException {
         logger.debug("reset email for user {} from realm {}", realm);
 
-        Realm r = realmService.getRealm(realm);
-
-        // get user source realm
-        String source = userService.getUserRealm(subjectId);
-        if (source.equals(r.getSlug())) {
-            // reset account email
-            userEntityService.unverifyEmail(subjectId);
-
-            // update all provider accounts via service
-            // use get to also update offline providersF
-            Collection<IdentityService> idss = authorityManager.getIdentityServices(realm);
-            for (IdentityService ids : idss) {
-                AccountService as = ids.getAccountService();
-                Collection<? extends UserAccount> accounts = as.listAccounts(subjectId);
-                accounts.forEach(ua -> {
-                    try {
-                        as.unverifyAccount(ua.getUserId());
-                    } catch (RegistrationException | NoSuchUserException e) {
-                    }
-                });
-            }
-        }
+//        Realm r = realmService.getRealm(realm);
+//
+//        // get user source realm
+//        String source = userService.getUserRealm(subjectId);
+//        if (source.equals(r.getSlug())) {
+//            // reset account email
+//            userEntityService.unverifyEmail(subjectId);
+//
+//            // update all provider accounts via service
+//            // use get to also update offline providersF
+//            Collection<IdentityService> idss = authorityManager.getIdentityServices(realm);
+//            for (IdentityService ids : idss) {
+//                AccountService as = ids.getAccountService();
+//                Collection<? extends UserAccount> accounts = as.listAccounts(subjectId);
+//                accounts.forEach(ua -> {
+//                    try {
+//                        as.unverifyAccount(ua.getUserId());
+//                    } catch (RegistrationException | NoSuchUserException e) {
+//                    }
+//                });
+//            }
+//        }
 
         return userService.getUser(subjectId, realm);
     }
