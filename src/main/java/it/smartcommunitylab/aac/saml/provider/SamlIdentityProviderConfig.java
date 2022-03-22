@@ -24,12 +24,12 @@ import org.springframework.security.saml2.provider.service.registration.Saml2Mes
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.BaseIdentityProviderConfig;
+import it.smartcommunitylab.aac.core.base.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.saml.SamlIdentityAuthority;
 import it.smartcommunitylab.aac.saml.model.SamlUserAttribute;
 
-public class SamlIdentityProviderConfig extends BaseIdentityProviderConfig {
+public class SamlIdentityProviderConfig extends AbstractIdentityProviderConfig {
     private static final long serialVersionUID = SystemKeys.AAC_SAML_SERIAL_VERSION;
 
     public static final String DEFAULT_METADATA_URL = "{baseUrl}" + SamlIdentityAuthority.AUTHORITY_URL

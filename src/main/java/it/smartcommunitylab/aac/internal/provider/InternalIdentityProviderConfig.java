@@ -10,10 +10,10 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.BaseIdentityProviderConfig;
+import it.smartcommunitylab.aac.core.base.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 
-public class InternalIdentityProviderConfig extends BaseIdentityProviderConfig {
+public class InternalIdentityProviderConfig extends AbstractIdentityProviderConfig {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     private static ObjectMapper mapper = new ObjectMapper();

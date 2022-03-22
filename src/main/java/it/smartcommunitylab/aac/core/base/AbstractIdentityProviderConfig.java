@@ -5,7 +5,7 @@ import java.util.Map;
 
 import it.smartcommunitylab.aac.SystemKeys;
 
-public abstract class BaseIdentityProviderConfig extends AbstractProviderConfig {
+public abstract class AbstractIdentityProviderConfig extends AbstractProviderConfig {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     protected String name;
@@ -19,7 +19,7 @@ public abstract class BaseIdentityProviderConfig extends AbstractProviderConfig 
 
     protected Map<String, String> hookFunctions;
 
-    protected BaseIdentityProviderConfig(String authority, String provider, String realm) {
+    protected AbstractIdentityProviderConfig(String authority, String provider, String realm) {
         super(authority, provider, realm);
         this.hookFunctions = Collections.emptyMap();
     }

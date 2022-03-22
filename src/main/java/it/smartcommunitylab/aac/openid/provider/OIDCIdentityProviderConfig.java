@@ -11,13 +11,13 @@ import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.BaseIdentityProviderConfig;
+import it.smartcommunitylab.aac.core.base.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.openid.OIDCIdentityAuthority;
 import it.smartcommunitylab.aac.openid.model.OIDCUserAttribute;
 
-public class OIDCIdentityProviderConfig extends BaseIdentityProviderConfig {
+public class OIDCIdentityProviderConfig extends AbstractIdentityProviderConfig {
     private static final long serialVersionUID = SystemKeys.AAC_OIDC_SERIAL_VERSION;
 
     private static final String WELL_KNOWN_CONFIGURATION_OPENID = "/.well-known/openid-configuration";

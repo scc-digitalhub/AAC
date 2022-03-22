@@ -37,14 +37,14 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.BaseIdentityProviderConfig;
+import it.smartcommunitylab.aac.core.base.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.spid.SpidIdentityAuthority;
 import it.smartcommunitylab.aac.spid.model.SpidAttribute;
 import it.smartcommunitylab.aac.spid.model.SpidRegistration;
 import it.smartcommunitylab.aac.spid.model.SpidUserAttribute;
 
-public class SpidIdentityProviderConfig extends BaseIdentityProviderConfig {
+public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig {
     private static final long serialVersionUID = SystemKeys.AAC_SPID_SERIAL_VERSION;
 
     public static final String DEFAULT_METADATA_URL = "{baseUrl}" + SpidIdentityAuthority.AUTHORITY_URL
