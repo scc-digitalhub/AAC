@@ -60,7 +60,8 @@ public class OAuth2TokenServices
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // TODO remove logger in favor of events
-    private static final Logger traceUserLogger = LoggerFactory.getLogger("traceUserToken");
+    // TODO send audit event
+//    private static final Logger traceUserLogger = LoggerFactory.getLogger("traceUserToken");
 
     // static config
     private static final StringKeyGenerator TOKEN_GENERATOR = new SecureStringKeyGenerator(20);
@@ -154,8 +155,8 @@ public class OAuth2TokenServices
 
         tokenStore.storeAccessToken(accessToken, authentication);
 
-        traceUserLogger.info(String.format("'type':'new','user':'%s','scope':'%s','token':'%s'",
-                authentication.getName(), String.join(" ", accessToken.getScope()), accessToken.getValue()));
+//        traceUserLogger.info(String.format("'type':'new','user':'%s','scope':'%s','token':'%s'",
+//                authentication.getName(), String.join(" ", accessToken.getScope()), accessToken.getValue()));
         return accessToken;
     }
 
@@ -272,8 +273,8 @@ public class OAuth2TokenServices
             tokenStore.storeAccessToken(accessToken, refreshedAuthentication);
         }
 
-        traceUserLogger.info(String.format("'type':'new','user':'%s','scope':'%s','token':'%s'",
-                authentication.getName(), String.join(" ", accessToken.getScope()), accessToken.getValue()));
+//        traceUserLogger.info(String.format("'type':'new','user':'%s','scope':'%s','token':'%s'",
+//                authentication.getName(), String.join(" ", accessToken.getScope()), accessToken.getValue()));
         return accessToken;
 
     }
