@@ -23,6 +23,7 @@ import com.google.common.util.concurrent.UncheckedExecutionException;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.config.AuthoritiesProperties;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
@@ -39,31 +40,31 @@ import it.smartcommunitylab.aac.utils.MailService;
 @Service
 public class InternalIdentityAuthority implements IdentityAuthority, InitializingBean {
 
-    // TODO replace with proper configuration bean read from props
-    @Value("${authorities.internal.confirmation.required}")
-    private boolean confirmationRequired;
-
-    @Value("${authorities.internal.confirmation.validity}")
-    private int confirmationValidity;
-
-    @Value("${authorities.internal.password.reset.enabled}")
-    private boolean passwordResetEnabled;
-
-    @Value("${authorities.internal.password.reset.validity}")
-    private int passwordResetValidity;
-
-    @Value("${authorities.internal.password.minLength}")
-    private int passwordMinLength;
-    @Value("${authorities.internal.password.maxLength}")
-    private int passwordMaxLength;
-    @Value("${authorities.internal.password.requireAlpha}")
-    private boolean passwordRequireAlpha;
-    @Value("${authorities.internal.password.requireNumber}")
-    private boolean passwordRequireNumber;
-    @Value("${authorities.internal.password.requireSpecial}")
-    private boolean passwordRequireSpecial;
-    @Value("${authorities.internal.password.supportWhitespace}")
-    private boolean passwordSupportWhitespace;
+//    // TODO replace with proper configuration bean read from props
+//    @Value("${authorities.internal.confirmation.required}")
+//    private boolean confirmationRequired;
+//
+//    @Value("${authorities.internal.confirmation.validity}")
+//    private int confirmationValidity;
+//
+//    @Value("${authorities.internal.password.reset.enabled}")
+//    private boolean passwordResetEnabled;
+//
+//    @Value("${authorities.internal.password.reset.validity}")
+//    private int passwordResetValidity;
+//
+//    @Value("${authorities.internal.password.minLength}")
+//    private int passwordMinLength;
+//    @Value("${authorities.internal.password.maxLength}")
+//    private int passwordMaxLength;
+//    @Value("${authorities.internal.password.requireAlpha}")
+//    private boolean passwordRequireAlpha;
+//    @Value("${authorities.internal.password.requireNumber}")
+//    private boolean passwordRequireNumber;
+//    @Value("${authorities.internal.password.requireSpecial}")
+//    private boolean passwordRequireSpecial;
+//    @Value("${authorities.internal.password.supportWhitespace}")
+//    private boolean passwordSupportWhitespace;
 
     // TODO make consistent with global config
     public static final String AUTHORITY_URL = "/auth/internal/";
@@ -72,6 +73,7 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
 
     private final InternalUserAccountService userAccountService;
 
+    private AuthoritiesProperties authoritiesProperties;
     private InternalIdentityProviderConfigMap defaultProviderConfig;
 
     // services
@@ -133,24 +135,29 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
         this.uriBuilder = uriBuilder;
     }
 
-    public void setDefaultProviderConfig(InternalIdentityProviderConfigMap defaultProviderConfig) {
-        this.defaultProviderConfig = defaultProviderConfig;
+    @Autowired
+    public void setAuthoritiesProperties(AuthoritiesProperties authoritiesProperties) {
+        this.authoritiesProperties = authoritiesProperties;
     }
 
     @Override
     public void afterPropertiesSet() throws Exception {
         // build default config from props
+//        defaultProviderConfig = new InternalIdentityProviderConfigMap();
+//        defaultProviderConfig.setConfirmationRequired(confirmationRequired);
+//        defaultProviderConfig.setConfirmationValidity(confirmationValidity);
+//        defaultProviderConfig.setEnablePasswordReset(passwordResetEnabled);
+//        defaultProviderConfig.setPasswordResetValidity(passwordResetValidity);
+//        defaultProviderConfig.setPasswordMaxLength(passwordMaxLength);
+//        defaultProviderConfig.setPasswordMinLength(passwordMinLength);
+//        defaultProviderConfig.setPasswordRequireAlpha(passwordRequireAlpha);
+//        defaultProviderConfig.setPasswordRequireNumber(passwordRequireNumber);
+//        defaultProviderConfig.setPasswordRequireSpecial(passwordRequireSpecial);
+//        defaultProviderConfig.setPasswordSupportWhitespace(passwordSupportWhitespace);
         defaultProviderConfig = new InternalIdentityProviderConfigMap();
-        defaultProviderConfig.setConfirmationRequired(confirmationRequired);
-        defaultProviderConfig.setConfirmationValidity(confirmationValidity);
-        defaultProviderConfig.setEnablePasswordReset(passwordResetEnabled);
-        defaultProviderConfig.setPasswordResetValidity(passwordResetValidity);
-        defaultProviderConfig.setPasswordMaxLength(passwordMaxLength);
-        defaultProviderConfig.setPasswordMinLength(passwordMinLength);
-        defaultProviderConfig.setPasswordRequireAlpha(passwordRequireAlpha);
-        defaultProviderConfig.setPasswordRequireNumber(passwordRequireNumber);
-        defaultProviderConfig.setPasswordRequireSpecial(passwordRequireSpecial);
-        defaultProviderConfig.setPasswordSupportWhitespace(passwordSupportWhitespace);
+        if (authoritiesProperties != null && authoritiesProperties.getInternal() != null) {
+            defaultProviderConfig = authoritiesProperties.getInternal();
+        }
     }
 
     @Override

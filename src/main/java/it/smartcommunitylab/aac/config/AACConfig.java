@@ -80,6 +80,12 @@ public class AACConfig {
 //    private ProviderManager providerManager;
 
     @Bean
+    @ConfigurationProperties(prefix = "authorities")
+    public AuthoritiesProperties authoritiesProps() {
+        return new AuthoritiesProperties();
+    }
+
+    @Bean
     @ConfigurationProperties(prefix = "providers")
     public ProvidersProperties globalProviders() {
         return new ProvidersProperties();
