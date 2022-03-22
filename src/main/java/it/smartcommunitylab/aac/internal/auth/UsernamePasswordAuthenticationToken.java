@@ -9,35 +9,35 @@ import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 
-public class ConfirmKeyAuthenticationToken extends AbstractAuthenticationToken {
+public class UsernamePasswordAuthenticationToken extends AbstractAuthenticationToken {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     private final String username;
-    private String key;
+    private String password;
 
     private InternalUserAccount account;
 
-    public ConfirmKeyAuthenticationToken(String username, String key) {
+    public UsernamePasswordAuthenticationToken(String username, String password) {
         super(null);
         this.username = username;
-        this.key = key;
+        this.password = password;
         setAuthenticated(false);
     }
 
-    public ConfirmKeyAuthenticationToken(String username, String key,
+    public UsernamePasswordAuthenticationToken(String username, String password,
             Collection<? extends GrantedAuthority> authorities) {
         super(authorities);
         this.username = username;
-        this.key = key;
+        this.password = password;
         super.setAuthenticated(true);
     }
 
-    public ConfirmKeyAuthenticationToken(String username, String key, InternalUserAccount account,
+    public UsernamePasswordAuthenticationToken(String username, String password, InternalUserAccount account,
             Collection<? extends GrantedAuthority> authorities) {
         super(authorities);
         this.username = username;
-        this.key = key;
+        this.password = password;
         this.account = account;
         super.setAuthenticated(true);
     }
@@ -46,8 +46,8 @@ public class ConfirmKeyAuthenticationToken extends AbstractAuthenticationToken {
         return username;
     }
 
-    public String getKey() {
-        return key;
+    public String getPassword() {
+        return password;
     }
 
     public InternalUserAccount getAccount() {
@@ -56,7 +56,7 @@ public class ConfirmKeyAuthenticationToken extends AbstractAuthenticationToken {
 
     @Override
     public Object getCredentials() {
-        return this.key;
+        return this.password;
     }
 
     @Override
@@ -79,7 +79,7 @@ public class ConfirmKeyAuthenticationToken extends AbstractAuthenticationToken {
     @Override
     public void eraseCredentials() {
         super.eraseCredentials();
-        this.key = null;
+        this.password = null;
         if (this.account != null) {
             this.account.eraseCredentials();
         }

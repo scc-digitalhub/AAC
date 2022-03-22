@@ -11,6 +11,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -18,15 +20,16 @@ import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountService;
 
-public class ConfirmKeyAuthenticationProvider implements AuthenticationProvider {
+public class UsernamePasswordAuthenticationProvider implements AuthenticationProvider {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final String realm;
     private final String providerId;
 
     private final InternalAccountService accountService;
+    private PasswordEncoder passwordEncoder;
 
-    public ConfirmKeyAuthenticationProvider(String providerId,
+    public UsernamePasswordAuthenticationProvider(String providerId,
             InternalAccountService accountService,
             String realm) {
         Assert.hasText(providerId, "provider can not be null or empty");
@@ -36,19 +39,24 @@ public class ConfirmKeyAuthenticationProvider implements AuthenticationProvider 
         this.providerId = providerId;
 
         this.accountService = accountService;
+        this.passwordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
+    }
+
+    public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        Assert.isInstanceOf(ConfirmKeyAuthenticationToken.class, authentication,
-                "Only ConfirmKeyAuthenticationToken is supported");
+        Assert.isInstanceOf(UsernamePasswordAuthenticationToken.class, authentication,
+                "Only UsernamePasswordAuthenticationToken is supported");
 
-        ConfirmKeyAuthenticationToken authRequest = (ConfirmKeyAuthenticationToken) authentication;
+        UsernamePasswordAuthenticationToken authRequest = (UsernamePasswordAuthenticationToken) authentication;
 
         String username = authRequest.getUsername();
-        String key = authRequest.getKey();
+        String password = authRequest.getPassword();
 
-        if (!StringUtils.hasText(username) || !StringUtils.hasText(key)) {
+        if (!StringUtils.hasText(username) || !StringUtils.hasText(password)) {
             throw new BadCredentialsException("missing required parameters in request");
         }
 
@@ -63,9 +71,8 @@ public class ConfirmKeyAuthenticationProvider implements AuthenticationProvider 
                 throw new BadCredentialsException("invalid request");
             }
 
-            // do confirm
-            account = accountService.confirmAccount(key);
-            if (!account.isConfirmed()) {
+            // do password check
+            if (!this.passwordEncoder.matches(password, account.getPassword())) {
                 throw new BadCredentialsException("invalid request");
             }
 
@@ -75,7 +82,8 @@ public class ConfirmKeyAuthenticationProvider implements AuthenticationProvider 
             Set<GrantedAuthority> authorities = Collections.singleton(new SimpleGrantedAuthority(Config.R_USER));
 
             // build a valid token
-            ConfirmKeyAuthenticationToken auth = new ConfirmKeyAuthenticationToken(username, key, account, authorities);
+            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(username, password,
+                    account, authorities);
 
             return auth;
 
@@ -89,7 +97,7 @@ public class ConfirmKeyAuthenticationProvider implements AuthenticationProvider 
 
     @Override
     public boolean supports(Class<?> authentication) {
-        return (ConfirmKeyAuthenticationToken.class.isAssignableFrom(authentication));
+        return (UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication));
     }
 
 }

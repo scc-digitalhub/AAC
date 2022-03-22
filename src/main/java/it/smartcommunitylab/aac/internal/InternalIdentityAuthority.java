@@ -213,14 +213,6 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
                     throw new RegistrationException(
                             "a provider with the same id already exists under a different realm");
                 }
-
-                // same realm, unload and reload
-                unregisterIdentityProvider(providerId);
-            }
-
-            // we also enforce a single internal idp per realm
-            if (!registrationRepository.findByRealm(realm).isEmpty()) {
-                throw new RegistrationException("an internal provider is already registered for the given realm");
             }
 
             try {
@@ -232,11 +224,11 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
 
                 // load and return
                 return providers.get(providerId);
-            } catch (Exception ee) {
+            } catch (Exception ex) {
                 // cleanup
                 registrationRepository.removeRegistration(providerId);
 
-                throw new RegistrationException(ee.getMessage());
+                throw new RegistrationException("invalid provider configuration: " + ex.getMessage(), ex);
             }
         } else {
             throw new IllegalArgumentException();

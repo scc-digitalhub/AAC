@@ -79,7 +79,7 @@ public class InternalUserIdentity extends AbstractIdentity implements Credential
     @Override
     public void eraseCredentials() {
         if (this.account != null) {
-            this.account.setPassword(null);
+            this.account.eraseCredentials();
         }
         if (this.principal != null) {
             this.principal.eraseCredentials();

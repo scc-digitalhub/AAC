@@ -14,6 +14,7 @@ import javax.validation.constraints.NotNull;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.security.core.CredentialsContainer;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -24,7 +25,7 @@ import it.smartcommunitylab.aac.model.UserStatus;
 @IdClass(InternalUserAccountId.class)
 @Table(name = "internal_users", uniqueConstraints = @UniqueConstraint(columnNames = { "provider_id", "email" }))
 @EntityListeners(AuditingEntityListener.class)
-public class InternalUserAccount extends AbstractAccount {
+public class InternalUserAccount extends AbstractAccount implements CredentialsContainer {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
@@ -265,6 +266,13 @@ public class InternalUserAccount extends AbstractAccount {
 
     public void setModifiedDate(Date modifiedDate) {
         this.modifiedDate = modifiedDate;
+    }
+
+    @Override
+    public void eraseCredentials() {
+        this.password = null;
+        this.resetKey = null;
+        this.confirmationKey = null;
     }
 
 }
