@@ -49,6 +49,22 @@ angular.module('aac.controllers.realmroles', [])
                 return data.data;
             });
         }
+        service.getRoleSubjects = function (realm, roleId) {
+            return $http.get('console/dev/roles/' + realm + '/' + roleId + '/subjects').then(function (data) {
+                return data.data;
+            });
+        }
+
+        service.addRoleSubject = function (realm, roleId, subjectId) {
+            return $http.put('console/dev/roles/' + realm + '/' + roleId + '/subjects/' + subjectId).then(function (data) {
+                return data.data;
+            });
+        }
+        service.removeRoleSubject = function (realm, roleId, subjectId) {
+            return $http.delete('console/dev/roles/' + realm + '/' + roleId + '/subjects/' + subjectId).then(function (data) {
+                return data.data;
+            });
+        }
         return service;
     })
 
@@ -168,7 +184,7 @@ angular.module('aac.controllers.realmroles', [])
 
     })
 
-    .controller('RealmRoleController', function ($scope, $state, $stateParams, RealmRoles, RealmServices, Utils) {
+    .controller('RealmRoleController', function ($scope, $state, $stateParams, RealmRoles, RealmServices, RealmData, Utils) {
         var slug = $stateParams.realmId;
         var roleId = $stateParams.roleId;
 
@@ -204,6 +220,9 @@ angular.module('aac.controllers.realmroles', [])
                 })
                 .then(function (data) {
                     $scope.reloadApprovals(data);
+                })
+                .then(function () {
+                    $scope.loadRoleSubjects();
                 })
                 .catch(function (err) {
                     Utils.showError('Failed to load realm role: ' + err.data.message);
@@ -375,6 +394,112 @@ angular.module('aac.controllers.realmroles', [])
                     });
 
             }
+        }
+
+        $scope.searchSubjects = function () {
+            var keywords = $scope.modRoleSubject.search;
+            if (keywords && keywords.length > 2) {
+                var params = {
+                    t: "user,client,group",
+                    q: keywords
+                };
+
+                RealmData.getSubjects(slug, params)
+                    .then(function (data) {
+                        $scope.modRoleSubject.results = data;
+                    })
+                    .catch(function (err) {
+                        Utils.showError('Error while searching: ' + err.data.message);
+                    });
+            }
+        }
+
+        $scope.loadRoleSubjects = function () {
+            RealmRoles.getRoleSubjects(slug, roleId)
+                .then(function (data) {
+                    $scope.reloadRoleSubjects(data);
+                })
+                .catch(function (err) {
+                    Utils.showError('Failed to load realm role subjects: ' + err.data.message);
+                });
+        };
+
+        $scope.reloadRoleSubjects = function (data) {
+            //$scope.subjects = data;
+            var ids = new Set(data);
+
+            //resolve subjects
+            Promise
+                .all(
+                    Array.from(ids).map(id => {
+                        return RealmData.getSubject(slug, id);
+                    })
+                )
+                .then(function (subjects) {
+                    //add icon
+                    var list = subjects.map(s => {
+                        return {
+                            icon: iconProvider(s.type),
+                            ...s
+                        };
+                    });
+                    $scope.subjects = list;
+                })
+                .catch(function (err) {
+                    Utils.showError('Failed to load role subjects: ' + err.data.message);
+                });
+
+        };
+
+        $scope.createRoleSubjectDlg = function () {
+            $scope.modRoleSubject = {
+                subjectId: null,
+                search: null,
+                results: null
+            };
+            $('#roleSubjectModal').modal({ keyboard: false });
+            Utils.refreshFormBS();
+        }
+
+        $scope.saveRoleSubject = function () {
+            if ($scope.modRoleSubject) {
+                RealmRoles.addRoleSubject(slug, roleId, $scope.modRoleSubject.subjectId)
+                    .then(function () {
+                        Utils.showSuccess();
+                        $scope.loadRoleSubjects();
+                    })
+                    .catch(function (err) {
+                        Utils.showError('Failed to save role subject: ' + err.data.message);
+                    });
+            }
+
+            $('#roleSubjectModal').modal('hide');
+        }
+
+        $scope.removeRoleSubject = function (subject) {
+            $scope.doDelete = function () {
+                $('#deleteConfirm').modal('hide');
+                RealmRoles.removeRoleSubject(slug, roleId, subject.subjectId)
+                    .then(function () {
+                        Utils.showSuccess();
+                        $scope.loadRoleSubjects();
+                    })
+                    .catch(function (err) {
+                        Utils.showError('Failed to remove role subject: ' + err.data.message);
+                    });
+            }
+            $('#deleteConfirm').modal({ keyboard: false });
+        };
+
+        var iconProvider = function (type) {
+            var icon = './italia/svg/sprite.svg#it-user';
+            if (type == 'client') {
+                icon = './italia/svg/sprite.svg#it-piattaforme';
+            }
+            if (type == 'group') {
+                icon = './italia/svg/sprite.svg#it-open-source';
+            }
+            return icon;
         }
 
         init();

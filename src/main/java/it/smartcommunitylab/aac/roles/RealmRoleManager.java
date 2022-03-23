@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchRoleException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
@@ -138,6 +139,64 @@ public class RealmRoleManager {
 
         Collection<Approval> approvals = approvalStore.findClientApprovals(roleId);
         return approvals;
+    }
+
+    /*
+     * Role assignment
+     */
+    public Collection<String> getRoleSubjects(String realm, String role)
+            throws NoSuchRealmException, NoSuchRoleException {
+        return roleService.getRoleSubjects(realm, role);
+    }
+
+    public String addRoleSubject(String realm, String role, String subject)
+            throws NoSuchRealmException, NoSuchRoleException, NoSuchSubjectException {
+        // check if subject exists
+        Subject s = subjectService.getSubject(subject);
+
+        // TODO evaluate checking if subject matches the realm
+        return roleService.addRoleSubject(realm, role, s.getSubjectId());
+    }
+
+    public Collection<String> addRoleSubjects(String realm, String role, Collection<String> subjects)
+            throws NoSuchRealmException, NoSuchRoleException, NoSuchSubjectException {
+
+        // check if all subjects exists
+        if (subjects.stream().anyMatch(s -> (subjectService.findSubject(s) == null))) {
+            throw new NoSuchSubjectException();
+        }
+
+        // TODO evaluate checking if subjects match the realm
+        subjects.stream()
+                .map(s -> roleService.addRoleSubject(realm, role, s))
+                .collect(Collectors.toList());
+
+        return roleService.getRoleSubjects(realm, role);
+    }
+
+    public Collection<String> setRoleSubjects(String realm, String role, Collection<String> subjects)
+            throws NoSuchRealmException, NoSuchRoleException, NoSuchSubjectException {
+
+        // check if all subjects exists
+        if (subjects.stream().anyMatch(s -> (subjectService.findSubject(s) == null))) {
+            throw new NoSuchSubjectException();
+        }
+
+        // TODO evaluate checking if subjects match the realm
+        return roleService.setRoleSubjects(realm, role, subjects);
+    }
+
+    public void removeRoleSubject(String realm, String role, String subject)
+            throws NoSuchRealmException, NoSuchRoleException {
+        roleService.removeRoleSubject(realm, role, subject);
+    }
+
+    public Collection<String> removeRoleSubjects(String realm, String role, Collection<String> subjects)
+            throws NoSuchRealmException, NoSuchRoleException {
+        subjects.stream()
+                .forEach(s -> roleService.removeRoleSubject(realm, role, s));
+
+        return roleService.getRoleSubjects(realm, role);
     }
 
     /*

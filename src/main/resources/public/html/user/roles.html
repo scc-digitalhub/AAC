@@ -9,7 +9,8 @@
             <table class="table table-hover border-bottom">
                 <tr ng-repeat="item in roles">
                     <td class="align-middle">
-                        <h6>{{item.name}}</h6>
+                        <span class="h6">{{item.name}}</span><br>
+                        <small ng-if="(item.groups && item.groups.length > 0)" class="text-muted">via groups <i ng-repeat="g in item.groups"> {{g}} </i></small>
                         <p>{{item.description}}</p>
                     </td>
                     <td class="align-middle">
@@ -21,12 +22,13 @@
                         </button>
                     </td>
                     <td class="text-right">
-                        <button class="btn btn-danger btn-sm" ng-click="removeRole(item)">Remove</button>
+                        <button ng-if="(item.groups && item.groups.length > 0)" class="btn btn-secondary btn-sm" disabled>Remove</button>
+                        <button ng-if="!(item.groups && item.groups.length > 0)" class="btn btn-danger btn-sm" ng-click="removeRole(item)">Remove</button>
                     </td>
                 </tr>
             </table>
             <div class="col-md-12">
-                <button class="btn btn-primary btn-sm" ng-click="addRoleDlg()">Add custom role</button>
+                <button class="btn btn-primary btn-sm" ng-click="addRoleDlg()">Add role</button>
             </div>
         </div>
     </fieldset>
@@ -58,7 +60,8 @@
                     </td>
                     <td class="align-middle">
                         <span ng-repeat="item in service.approvals"><span
-                                class="badge {{item.role ? 'badge-secondary' : 'badge-primary'}}">{{item.scope}}</span> </span>
+                                class="badge {{item.role ? 'badge-secondary' : 'badge-primary'}}">{{item.scope}}</span>
+                        </span>
                     </td>
 
                     <td class="text-right">
@@ -86,8 +89,8 @@
                     <div class="form-group col pt-4 mb-2">
                         <div class="bootstrap-select-wrapper border-bottom-0">
                             <label class="active" for="role">Role</label>
-                            <select required title="Select one" id="role" ng-model="modRole.role" 
-                            ng-options="r as r.name for r in modRole.roles track by r.role">
+                            <select required title="Select one" id="role" ng-model="modRole.role"
+                                ng-options="r as r.name for r in modRole.roles track by r.role">
                             </select>
                         </div>
                     </div>

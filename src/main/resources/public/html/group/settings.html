@@ -1,0 +1,21 @@
+<div class="pt-3">
+    <div class="row">
+        <fieldset class="col-md-5">
+            <legend class="mb-4">Basic settings</legend>
+            <div class="form-group col">
+                <input type="text" name="group" class="form-control form-control-sm" id="group" ng-model="group.group"
+                    required>
+                <label for="group" class="active">Group key</label>
+            </div>
+            <div class="form-group col">
+                <input type="text" name="name" class="form-control form-control-sm" id="name" ng-model="group.name"
+                    required>
+                <label for="name" class="{{group.name != '' ? 'active' : ''}}">Name</label>
+            </div>
+            <div class="form-group col">
+                <textarea rows="3" name="description" id="description" ng-model="group.description"></textarea>
+                <label for="description" class="{{group.description != '' ? 'active' : ''}}">Description</label>
+            </div>
+        </fieldset>
+    </div>
+</div>

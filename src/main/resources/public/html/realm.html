@@ -44,7 +44,7 @@
             <li ng-if="(realmAdmin || realmDeveloper)">
               <a class="list-item medium px-2 pb-2 pt-1 left-icon" href data-toggle="collapse"
                 data-target="#collapseApps" aria-controls="collapseApps"
-                aria-expanded="{{isAnyState(['realm.apps','realm.services','realm.scopes', 'realm.app', 'realm.appstart', 'realm.service'])}}">
+                aria-expanded="{{isAnyState(['realm.apps','realm.services','realm.app', 'realm.appstart', 'realm.service'])}}">
                 <svg class="icon icon-sm icon-primary left" aria-hidden="true">
                   <use xlink:href="./italia/svg/sprite.svg#it-piattaforme"></use>
                 </svg>
@@ -52,23 +52,18 @@
               </a>
 
               <ul class="link-sublist collapse"
-                ng-class="{show: isAnyState(['realm.apps','realm.services','realm.scopes', 'realm.app', 'realm.appstart', 'realm.service'])}"
+                ng-class="{show: isAnyState(['realm.apps','realm.services','realm.app', 'realm.appstart', 'realm.service'])}"
                 id="collapseApps">
                 <li>
                   <a class="list-item" href ui-sref="realm.apps"
                     ng-class="{active: isAnyState(['realm.apps','realm.app', 'realm.appstart'])}">
-                    <span class="text-800">Client applications </span>
+                    <span>Client applications </span>
                   </a>
                 </li>
                 <li>
                   <a class="list-item" href ui-sref="realm.services"
                     ng-class="{active: isAnyState(['realm.services','realm.service'])}">
-                    <span class="text-800">Custom services </span>
-                  </a>
-                </li>
-                <li>
-                  <a class="list-item" href ui-sref-active="active" ui-sref="realm.scopes">
-                    <span class="text-800">Scopes </span>
+                    <span>API services </span>
                   </a>
                 </li>
               </ul>
@@ -79,16 +74,16 @@
             <li ng-if="realmAdmin">
               <a class="list-item medium px-2 pb-2 pt-1 left-icon" href data-toggle="collapse"
                 data-target="#collapseUsers"
-                aria-expanded="{{isAnyState(['realm.users','realm.user','realm.roles','realm.role'])}}"
+                aria-expanded="{{isAnyState(['realm.users','realm.user','realm.groups','realm.group'])}}"
                 aria-controls="collapseUsers">
                 <svg class="icon icon-sm icon-primary left" aria-hidden="true">
                   <use xlink:href="./italia/svg/sprite.svg#it-user"></use>
                 </svg>
-                <span>Users and roles</span>
+                <span>Users and groups</span>
               </a>
 
               <ul class="link-sublist collapse"
-                ng-class="{show: isAnyState(['realm.users','realm.user','realm.roles','realm.role'])}"
+                ng-class="{show: isAnyState(['realm.users','realm.user','realm.groups','realm.group'])}"
                 id="collapseUsers">
                 <li>
                   <a class="list-item" href ui-sref="realm.users"
@@ -97,9 +92,9 @@
                   </a>
                 </li>
                 <li>
-                  <a class="list-item" href ui-sref="realm.roles"
-                    ng-class="{active: isAnyState(['realm.roles','realm.role'])}">
-                    <span>Roles </span>
+                  <a class="list-item" href ui-sref="realm.groups"
+                    ng-class="{active: isAnyState(['realm.groups','realm.group'])}">
+                    <span>Groups </span>
                   </a>
                 </li>
               </ul>
@@ -108,27 +103,49 @@
 
             <li ng-if="realmAdmin && !realmImmutable">
               <a class="list-item medium px-2 pb-2 pt-1 left-icon" href data-toggle="collapse"
-                data-target="#collapseProviders"
-                aria-expanded="{{isAnyState(['realm.idps','realm.idp','realm.aps','realm.ap'])}}"
-                aria-controls="collapseProviders">
+                data-target="#collapseAuthentication" aria-expanded="{{isAnyState(['realm.idps','realm.idp'])}}"
+                aria-controls="collapseAuthentication">
                 <svg class="icon icon-sm icon-primary left" aria-hidden="true">
-                  <use xlink:href="./italia/svg/sprite.svg#it-unlocked"></use>
+                  <use xlink:href="./italia/svg/sprite.svg#it-key"></use>
                 </svg>
                 <span>Authentication</span>
               </a>
 
-              <ul class="link-sublist collapse"
-                ng-class="{show: isAnyState(['realm.idps','realm.idp','realm.aps','realm.ap'])}" id="collapseProviders">
+              <ul class="link-sublist collapse" ng-class="{show: isAnyState(['realm.idps','realm.idp'])}"
+                id="collapseAuthentication">
                 <li>
                   <a class="list-item" href ui-sref="realm.idps"
                     ng-class="{active: isAnyState(['realm.idps','realm.idp'])}">
                     <span>Identity Providers </span>
                   </a>
                 </li>
+
+              </ul>
+
+            </li>
+
+            <li ng-if="realmAdmin && !realmImmutable">
+              <a class="list-item medium px-2 pb-2 pt-1 left-icon" href data-toggle="collapse"
+                data-target="#collapseAuthorization"
+                aria-expanded="{{isAnyState(['realm.roles','realm.role','realm.scopes'])}}"
+                aria-controls="collapseAuthorization">
+                <svg class="icon icon-sm icon-primary left" aria-hidden="true">
+                  <use xlink:href="./italia/svg/sprite.svg#it-unlocked"></use>
+                </svg>
+                <span>Authorization</span>
+              </a>
+
+              <ul class="link-sublist collapse"
+                ng-class="{show: isAnyState(['realm.roles','realm.role','realm.scopes'])}" id="collapseAuthorization">
                 <li>
-                  <a class="list-item" href ui-sref="realm.aps"
-                    ng-class="{active: isAnyState(['realm.aps','realm.ap'])}">
-                    <span>Attribute Providers </span>
+                  <a class="list-item" href ui-sref="realm.roles"
+                    ng-class="{active: isAnyState(['realm.roles','realm.role'])}">
+                    <span>Roles </span>
+                  </a>
+                </li>
+                <li>
+                  <a class="list-item" href ui-sref-active="active" ui-sref="realm.scopes">
+                    <span>Scopes </span>
                   </a>
                 </li>
               </ul>
@@ -138,7 +155,7 @@
             <li ng-if="realmAdmin && !realmImmutable">
               <a class="list-item medium px-2 pb-2 pt-1 left-icon" href data-toggle="collapse"
                 data-target="#collapseAttributes"
-                aria-expanded="{{isAnyState(['realm.attributesets','realm.attributeset','realm.profiles', 'realm.profile'])}}"
+                aria-expanded="{{isAnyState(['realm.aps','realm.ap','realm.attributesets','realm.attributeset','realm.profiles', 'realm.profile'])}}"
                 aria-controls="collapseAttributes">
                 <svg class="icon icon-sm icon-primary left" aria-hidden="true">
                   <use xlink:href="./italia/svg/sprite.svg#it-box"></use>
@@ -147,8 +164,14 @@
               </a>
 
               <ul class="link-sublist collapse"
-                ng-class="{show: isAnyState(['realm.attributesets','realm.attributeset','realm.profiles', 'realm.profile'])}"
+                ng-class="{show: isAnyState(['realm.aps','realm.ap','realm.attributesets','realm.attributeset','realm.profiles', 'realm.profile'])}"
                 id="collapseAttributes">
+                <li>
+                  <a class="list-item" href ui-sref="realm.aps"
+                    ng-class="{active: isAnyState(['realm.aps','realm.ap'])}">
+                    <span>Attribute Providers </span>
+                  </a>
+                </li>
                 <li>
                   <a class="list-item" href ui-sref="realm.attributesets"
                     ng-class="{active: isAnyState(['realm.attributesets','realm.attributeset'])}">

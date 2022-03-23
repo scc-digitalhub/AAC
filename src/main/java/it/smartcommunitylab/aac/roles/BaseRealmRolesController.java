@@ -1,6 +1,8 @@
 package it.smartcommunitylab.aac.roles;
 
 import java.util.Collection;
+import java.util.Collections;
+
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
@@ -17,10 +19,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+
+import io.swagger.v3.oas.annotations.Operation;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchGroupException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchRoleException;
+import it.smartcommunitylab.aac.common.NoSuchSubjectException;
+import it.smartcommunitylab.aac.model.Group;
 import it.smartcommunitylab.aac.model.RealmRole;
 
 /*
@@ -146,6 +153,80 @@ public class BaseRealmRolesController {
             throws NoSuchRealmException, NoSuchRoleException {
         Collection<Approval> approvals = roleManager.getRealmRoleApprovals(realm, roleId);
         return approvals;
+    }
+
+    /*
+     * Role assignment
+     */
+
+    @GetMapping("/roles/{realm}/{roleId}/subjects")
+    @Operation(summary = "get subjects for a given role")
+    public Collection<String> getRoleSubjects(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String roleId)
+            throws NoSuchRealmException, NoSuchRoleException {
+        logger.debug("get role {} subjects for realm {}",
+                StringUtils.trimAllWhitespace(roleId), StringUtils.trimAllWhitespace(realm));
+        RealmRole r = roleManager.getRealmRole(realm, roleId);
+        return roleManager.getRoleSubjects(realm, r.getRole());
+    }
+
+    @PostMapping("/roles/{realm}/{roleId}/subjects")
+    @Operation(summary = "add subjects a given role")
+    public Collection<String> addRoleSubjects(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String roleId,
+            @RequestBody @Valid @NotNull Collection<String> subjects)
+            throws NoSuchRealmException, NoSuchRoleException, NoSuchSubjectException {
+        logger.debug("add role {} subjects for realm {}",
+                StringUtils.trimAllWhitespace(roleId), StringUtils.trimAllWhitespace(realm));
+        RealmRole r = roleManager.getRealmRole(realm, roleId);
+        if (subjects != null && !subjects.isEmpty()) {
+            return roleManager.addRoleSubjects(realm, r.getRole(), subjects);
+        }
+
+        return Collections.emptyList();
+    }
+
+    @PutMapping("/roles/{realm}/{roleId}/subjects")
+    @Operation(summary = "set subjects as the assignee for a given role")
+    public Collection<String> setRoleSubjects(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String roleId,
+            @RequestBody @Valid Collection<String> members)
+            throws NoSuchRealmException, NoSuchRoleException, NoSuchSubjectException {
+        logger.debug("set role {} subjects for realm {}",
+                StringUtils.trimAllWhitespace(roleId), StringUtils.trimAllWhitespace(realm));
+        RealmRole r = roleManager.getRealmRole(realm, roleId);
+        return roleManager.setRoleSubjects(realm, r.getRole(), members);
+    }
+
+    @PutMapping("/roles/{realm}/{roleId}/subjects/{subjectId}")
+    @Operation(summary = "add a specific subject a given role")
+    public void addRoleSubject(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String roleId,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
+            throws NoSuchRealmException, NoSuchRoleException, NoSuchSubjectException {
+        logger.debug("add role {} subject {} for realm {}",
+                StringUtils.trimAllWhitespace(roleId), StringUtils.trimAllWhitespace(subjectId),
+                StringUtils.trimAllWhitespace(realm));
+        RealmRole r = roleManager.getRealmRole(realm, roleId);
+        roleManager.addRoleSubject(realm, r.getRole(), subjectId);
+    }
+
+    @DeleteMapping("/roles/{realm}/{roleId}/subjects/{subjectId}")
+    @Operation(summary = "remove for a specific subject a given role")
+    public void removeRoleSubject(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String roleId,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
+            throws NoSuchRealmException, NoSuchRoleException {
+        logger.debug("delete role {} subject {} for realm {}",
+                StringUtils.trimAllWhitespace(roleId), StringUtils.trimAllWhitespace(subjectId),
+                StringUtils.trimAllWhitespace(realm));
+        RealmRole r = roleManager.getRealmRole(realm, roleId);
+        roleManager.removeRoleSubject(realm, r.getRole(), subjectId);
     }
 
 }

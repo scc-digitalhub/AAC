@@ -2,8 +2,10 @@ package it.smartcommunitylab.aac.core.service;
 
 import java.util.Date;
 import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -118,6 +120,12 @@ public class UserEntityService {
                         realm, q,
                         pageRequest)
                 : userRepository.findByRealm(realm.toLowerCase(), pageRequest);
+        return page;
+    }
+    
+    @Transactional(readOnly = true)
+    public Page<UserEntity> searchUsersWithSpec(Specification<UserEntity> spec, Pageable pageRequest) {
+        Page<UserEntity> page = userRepository.findAll(spec, pageRequest);
         return page;
     }
 

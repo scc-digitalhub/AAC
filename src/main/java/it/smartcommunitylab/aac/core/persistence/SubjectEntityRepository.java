@@ -13,14 +13,21 @@ public interface SubjectEntityRepository extends CustomJpaRepository<SubjectEnti
 
     SubjectEntity findBySubjectId(String subjectId);
 
-    @Query("select s from SubjectEntity as s where (s.subjectId = ?1 and s.type = '" + SystemKeys.RESOURCE_CLIENT + "')")
+    @Query("select s from SubjectEntity as s where (s.subjectId = ?1 and s.type = '" + SystemKeys.RESOURCE_CLIENT
+            + "')")
     SubjectEntity findByClientId(String clientId);
 
     @Query("select s from SubjectEntity as s where (s.subjectId = ?1 and s.type = '" + SystemKeys.RESOURCE_USER + "')")
     SubjectEntity findByUserId(String userId);
 
+    long countByRealm(String realm);
+
     List<SubjectEntity> findByRealm(String realm);
 
     List<SubjectEntity> findByRealmAndType(String realm, String type);
+
+    List<SubjectEntity> findByRealmAndSubjectIdContainingIgnoreCaseOrRealmAndNameContainingIgnoreCase(
+            String realms, String subjectId,
+            String realmn, String name);
 
 }

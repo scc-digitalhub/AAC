@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.core.service;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -24,6 +25,7 @@ import it.smartcommunitylab.aac.core.persistence.SubjectAuthorityEntityRepositor
 import it.smartcommunitylab.aac.core.persistence.SubjectEntity;
 import it.smartcommunitylab.aac.core.persistence.SubjectEntityRepository;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
+import it.smartcommunitylab.aac.groups.persistence.GroupEntity;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.roles.persistence.RealmRoleEntity;
 import it.smartcommunitylab.aac.services.persistence.ServiceEntity;
@@ -71,6 +73,8 @@ public class SubjectService {
             prefix = RealmRoleEntity.ID_PREFIX;
         } else if (SystemKeys.RESOURCE_SERVICE.equals(type)) {
             prefix = ServiceEntity.ID_PREFIX;
+        } else if (SystemKeys.RESOURCE_GROUP.equals(type)) {
+            prefix = GroupEntity.ID_PREFIX;
         }
 
         // we prepend a fixed prefix to enable discovery of entity type from uuid
@@ -161,6 +165,21 @@ public class SubjectService {
     }
 
     @Transactional(readOnly = true)
+    public List<Subject> searchSubjects(String realm, String q) {
+        List<SubjectEntity> subjects = StringUtils.hasText(q)
+                ? subjectRepository.findByRealmAndSubjectIdContainingIgnoreCaseOrRealmAndNameContainingIgnoreCase(realm,
+                        q, realm, q)
+                : Collections.emptyList();
+
+        return subjects.stream().map(s -> toSubject(s)).collect(Collectors.toList());
+    }
+
+    /*
+     * Subject authorities
+     */
+
+    @Deprecated
+    @Transactional(readOnly = true)
     public List<Subject> listSubjectsByAuthorities(String realm) {
         Set<String> ids = authorityRepository.findByRealm(realm).stream().map(a -> a.getSubject())
                 .collect(Collectors.toSet());
@@ -177,26 +196,6 @@ public class SubjectService {
                 .filter(s -> s != null).collect(Collectors.toList());
         return subjects.stream().map(s -> toSubject(s)).collect(Collectors.toList());
     }
-
-//    @Transactional(readOnly = true)
-//    public Subject getSubjectByClientId(String clientId) throws NoSuchSubjectException {
-//        SubjectEntity s = subjectRepository.findByClientId(clientId);
-//        if (s == null) {
-//            return null;
-//        }
-//
-//        return new Subject(s.getSubjectId(), s.getRealm(), s.getName(), s.getType());
-//    }
-//
-//    @Transactional(readOnly = true)
-//    public Subject getSubjectBySubjectId(String userId) throws NoSuchSubjectException {
-//        SubjectEntity s = subjectRepository.findBySubjectId(userId);
-//        if (s == null) {
-//            return null;
-//        }
-//
-//        return new Subject(s.getSubjectId(), s.getRealm(), s.getName(), s.getType());
-//    }
 
     @Transactional(readOnly = true)
     public List<GrantedAuthority> getAuthorities(String subjectId) {
