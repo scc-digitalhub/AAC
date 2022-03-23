@@ -149,8 +149,27 @@ databaseChangeLog:
             columnName:  is_blocked       
         -  dropColumn:  
             tableName: users
-            columnName:  is_locked              
-                        
+            columnName:  is_locked        
+  - changeSet:
+      id: activate-accounts
+      author: matteos
+      changes:   
+        - sql:
+            sql: update internal_users set status = "active" where status is NULL
+        - sql:
+            sql: update oidc_users set status = "active" where status is NULL
+        - sql:
+            sql: update saml_users set status = "active" where status is NULL
+        - sql:
+            sql: update spid_users set status = "active" where status is NULL    
+        - sql:
+            sql: update users set status = "active" where status is NULL                           
+  - changeSet:
+      id: set oidc-authority
+      author: matteos
+      changes:   
+        - sql:
+            sql: update oidc_users set authority = "oidc" where authority is NULL                                        
             
             
             

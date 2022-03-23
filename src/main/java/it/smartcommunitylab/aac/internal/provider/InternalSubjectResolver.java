@@ -107,7 +107,9 @@ public class InternalSubjectResolver extends AbstractProvider
                 && getRealm().equals((attributes.get("realm")))) {
             // let provider resolve to an account
             String email = attributes.get("email");
-            InternalUserAccount account = accountService.findAccountByEmail(getProvider(), email);
+            InternalUserAccount account = accountService.findAccountByEmail(getProvider(), email).stream().findFirst()
+                    .orElse(null);
+
             if (account == null) {
                 return null;
             }

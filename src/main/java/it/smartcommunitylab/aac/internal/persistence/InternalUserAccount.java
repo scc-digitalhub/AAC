@@ -23,7 +23,7 @@ import it.smartcommunitylab.aac.model.UserStatus;
 
 @Entity
 @IdClass(InternalUserAccountId.class)
-@Table(name = "internal_users", uniqueConstraints = @UniqueConstraint(columnNames = { "provider_id", "email" }))
+@Table(name = "internal_users")
 @EntityListeners(AuditingEntityListener.class)
 public class InternalUserAccount extends AbstractAccount implements CredentialsContainer {
 

@@ -20,6 +20,8 @@ import org.springframework.context.event.EventListener;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -51,6 +53,7 @@ import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.SpaceRole;
+import it.smartcommunitylab.aac.model.UserStatus;
 import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
 import it.smartcommunitylab.aac.services.Service;
 import it.smartcommunitylab.aac.services.ServicesManager;
@@ -280,6 +283,7 @@ public class AACBootstrap {
         });
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     private void bootstrapAdminUser(String providerId) {
         // create admin as superuser for system
         logger.debug("create internal admin user " + adminUsername);
@@ -302,6 +306,7 @@ public class AACBootstrap {
             account.setRealm(SystemKeys.REALM_SYSTEM);
             account.setUsername(adminUsername);
             account.setEmail(adminEmail);
+            account.setStatus(UserStatus.ACTIVE.getValue());
             account = internalUserService.addAccount(account);
         }
 
@@ -310,6 +315,8 @@ public class AACBootstrap {
         try {
             // update username
             user = userService.updateUser(userId, adminUsername, adminEmail);
+            // ensure user is active
+            user = userService.activateUser(userId);
 
             // re-set password
             PasswordHash hasher = new PasswordHash();
@@ -317,7 +324,8 @@ public class AACBootstrap {
             account.setPassword(hash);
             account.setChangeOnFirstAccess(false);
 
-            // ensure account is unlocked
+            // ensure account is active and unlocked
+            account.setStatus(UserStatus.ACTIVE.getValue());
             account.setConfirmed(true);
             account.setConfirmationKey(null);
             account.setConfirmationDeadline(null);
@@ -359,7 +367,7 @@ public class AACBootstrap {
         }
     }
 
-    // @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void bootstrapConfig() throws Exception {
 
         // read configuration

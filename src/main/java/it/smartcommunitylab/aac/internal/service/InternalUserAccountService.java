@@ -39,13 +39,11 @@ public class InternalUserAccountService {
     }
 
     @Transactional(readOnly = true)
-    public InternalUserAccount findAccountByEmail(String provider, String email) {
-        InternalUserAccount account = accountRepository.findByProviderAndEmail(provider, email);
-        if (account == null) {
-            return null;
-        }
-
-        return accountRepository.detach(account);
+    public List<InternalUserAccount> findAccountByEmail(String provider, String email) {
+        List<InternalUserAccount> accounts = accountRepository.findByProviderAndEmail(provider, email);
+        return accounts.stream().map(a -> {
+            return accountRepository.detach(a);
+        }).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)

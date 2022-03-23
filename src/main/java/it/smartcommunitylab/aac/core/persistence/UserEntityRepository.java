@@ -12,7 +12,7 @@ import it.smartcommunitylab.aac.repository.DetachableJpaRepository;
 
 @Repository
 public interface UserEntityRepository
-        extends CustomJpaRepository<UserEntity, Long>, DetachableJpaRepository<UserEntity>,
+        extends CustomJpaRepository<UserEntity, Long>,
         JpaSpecificationExecutor<UserEntity> {
 
     UserEntity findByUuid(String uuid);

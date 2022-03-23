@@ -43,8 +43,6 @@ public class IdentityProviderService {
     @Autowired
     private IdentityProviderEntityService providerService;
 
-    private AuthoritiesProperties authoritiesProperties;
-
     // keep a local map for system providers since these are not in db
     // key is providerId
     private Map<String, ConfigurableIdentityProvider> systemIdps;

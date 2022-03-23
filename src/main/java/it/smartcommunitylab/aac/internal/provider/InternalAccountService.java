@@ -113,12 +113,6 @@ public class InternalAccountService extends AbstractProvider implements AccountS
     }
 
     @Transactional(readOnly = true)
-    public InternalUserAccount findAccountByEmail(String email) {
-        String provider = getProvider();
-        return userAccountService.findAccountByEmail(provider, email);
-    }
-
-    @Transactional(readOnly = true)
     public InternalUserAccount findAccountByUsername(String username) {
         String provider = getProvider();
         return userAccountService.findAccountByUsername(provider, username);

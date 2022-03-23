@@ -69,7 +69,7 @@ public class UserEntityService {
         u.setStatus(UserStatus.ACTIVE.getValue());
 
         u = userRepository.save(u);
-        return userRepository.detach(u);
+        return u;
     }
 
     @Transactional(readOnly = true)
@@ -84,7 +84,7 @@ public class UserEntityService {
             throw new NoSuchUserException("no user for subject " + String.valueOf(uuid));
         }
 
-        return userRepository.detach(u);
+        return u;
     }
 
     @Transactional(readOnly = true)
@@ -94,21 +94,17 @@ public class UserEntityService {
 
     @Transactional(readOnly = true)
     public List<UserEntity> listUsers(String realm) {
-        return userRepository.findByRealm(realm).stream().map(u -> userRepository.detach(u))
-                .collect(Collectors.toList());
+        return userRepository.findByRealm(realm);
     }
 
     @Transactional(readOnly = true)
     public List<UserEntity> findUsersByUsername(String realm, String username) {
-        return userRepository.findByRealmAndUsername(realm, username).stream().map(u -> userRepository.detach(u))
-                .collect(Collectors.toList());
+        return userRepository.findByRealmAndUsername(realm, username);
     }
 
     @Transactional(readOnly = true)
     public List<UserEntity> findUsersByEmailAddress(String realm, String emailAddress) {
-        return userRepository.findByRealmAndEmailAddress(realm, emailAddress).stream()
-                .map(u -> userRepository.detach(u))
-                .collect(Collectors.toList());
+        return userRepository.findByRealmAndEmailAddress(realm, emailAddress);
     }
 
     @Transactional(readOnly = true)
@@ -150,7 +146,7 @@ public class UserEntityService {
             }
         }
 
-        return userRepository.detach(u);
+        return u;
 
     }
 
@@ -166,7 +162,7 @@ public class UserEntityService {
         u.setLoginDate(loginDate);
         u.setLoginIp(loginIp);
         u = userRepository.save(u);
-        return userRepository.detach(u);
+        return u;
 
     }
 
@@ -197,7 +193,7 @@ public class UserEntityService {
 
         u.setStatus(newStatus.getValue());
         u = userRepository.save(u);
-        return userRepository.detach(u);
+        return u;
     }
 
     public UserEntity updateExpiration(String uuid, Date exp) throws NoSuchUserException {
@@ -205,8 +201,7 @@ public class UserEntityService {
 
         u.setExpirationDate(exp);
         u = userRepository.save(u);
-        return userRepository.detach(u);
-
+        return u;
     }
 
     public UserEntity verifyEmail(String uuid, String emailAddress) throws NoSuchUserException {
@@ -226,14 +221,14 @@ public class UserEntityService {
 
         u.setEmailVerified(true);
         u = userRepository.save(u);
-        return userRepository.detach(u);
+        return u;
     }
 
     public UserEntity unverifyEmail(String uuid) throws NoSuchUserException {
         UserEntity u = getUser(uuid);
         u.setEmailVerified(false);
         u = userRepository.save(u);
-        return userRepository.detach(u);
+        return u;
     }
 
     public void deleteUser(String uuid) {
