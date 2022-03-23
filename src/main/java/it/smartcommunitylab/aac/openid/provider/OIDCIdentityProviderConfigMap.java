@@ -69,6 +69,7 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
         this.userNameAttributeName = IdTokenClaimNames.SUB;
         this.clientAuthenticationMethod = AuthenticationMethod.CLIENT_SECRET_BASIC;
         this.idAttribute = OIDCUserAttribute.EMAIL;
+        this.trustEmailAddress = true;
     }
 
     public String getClientId() {

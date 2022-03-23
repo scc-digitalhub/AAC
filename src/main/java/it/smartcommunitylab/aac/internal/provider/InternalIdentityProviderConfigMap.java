@@ -50,7 +50,6 @@ public class InternalIdentityProviderConfigMap implements ConfigurableProperties
     private Boolean passwordSupportWhitespace;
 
     public InternalIdentityProviderConfigMap() {
-
     }
 
     public int getMaxSessionDuration() {

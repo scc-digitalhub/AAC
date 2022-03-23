@@ -1,0 +1,108 @@
+<div class="modal fade bs-modal-lg" id="oidcModal" tabindex="-1" role="dialog" aria-labelledby="serviceperm"
+	aria-hidden="true">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+			<div class="modal-header bg-primary text-white">
+				<h3 class="modal-title" id="modal-title">OpenID Connect IdP Configuration</h3>
+			</div>
+			<div class="modal-body" id="modal-body">
+				<form name="editForm" class="needs-validation was-validated" novalidate>
+
+					<div class="form-group col ">
+						<label for="clientId">Provider Name*</label>
+						<input type="text" required name="name" class="form-control form-control-sm" id="name"
+							ng-model="provider.name">
+					</div>
+
+
+					<div class="form-group col ">
+						<label for="clientId">Client ID*</label>
+						<input type="text" required name="clientId" class="form-control form-control-sm" id="clientId"
+							ng-model="provider.clientId">
+					</div>
+					<div class="form-group col ">
+						<label for="clientSecret">Client Secret*</label>
+						<input type="text" required name="clientSecret"
+							class="form-control form-control-sm input-password" id="clientSecret"
+							ng-model="provider.clientSecret">
+					</div>
+
+					<div>
+						<div class="row">
+							<div class="form-group col  ">
+								<div class="bootstrap-select-wrapper border-bottom-0">
+									<label for="clientAuthenticationMethod">Client Authentication Method*</label>
+									<select required title="Select one" id="clientAuthenticationMethod"
+										ng-model="provider.clientAuthenticationMethod">
+										<option value="client_secret_basic"
+											ng-selected="provider.clientAuthenticationMethod=='client_secret_basic'">
+											Basic
+										</option>
+										<option value="client_secret_post"
+											ng-selected="provider.clientAuthenticationMethod=='client_secret_post'">POST
+										</option>
+										<option value="none" ng-selected="provider.clientAuthenticationMethod=='none'">
+											None
+										</option>
+									</select>
+								</div>
+							</div>
+							<div class="form-group col ">
+								<label for="userNameAttributeName">Username attribute*</label>
+								<input required type="text" name="userNameAttributeName"
+									class="form-control form-control-sm" id="userNameAttributeName"
+									ng-model="provider.userNameAttributeName">
+							</div>
+						</div>
+						<div class="form-group col ">
+							<label for="scope">Scopes*</label>
+							<tags-input min-tags="1" name="scope" type="string" placeholder="Scopes"
+								ng-model="provider.scope">
+							</tags-input>
+						</div>
+
+						<div class="form-group col mb-3">
+							<label for="issuerUri">Metadata Discovery URL</label>
+							<input type="text" name="issuerUri" class="form-control form-control-sm" id="issuerUri"
+								ng-model="provider.issuerUri">
+						</div>
+						<div class="pb-4 text-center"> -- OR -- </div>
+						<div class="row">
+							<div class="form-group col ">
+								<label for="authorizationUri">Authorization Endpoint</label>
+								<input type="text" name="authorizationUri" class="form-control form-control-sm"
+									id="authorizationUri" ng-model="provider.authorizationUri">
+							</div>
+							<div class="form-group col ">
+								<label for="tokenUri">Token Endpoint</label>
+								<input type="text" name="tokenUri" class="form-control form-control-sm" id="tokenUri"
+									ng-model="provider.tokenUri">
+							</div>
+						</div>
+						<div class="row">
+							<div class="form-group col ">
+								<label for="jwkSetUri">JWKS Endpoint</label>
+								<input type="text" name="authorizationUri" class="form-control form-control-sm"
+									id="jwkSetUri" ng-model="provider.jwkSetUri">
+							</div>
+							<div class="form-group col ">
+								<label for="userInfoUri">User Info Endpoint</label>
+								<input type="text" name="userInfoUri" class="form-control form-control-sm"
+									id="userInfoUri" ng-model="provider.userInfoUri">
+							</div>
+						</div>
+						<div class="py-0 text-center text-danger small"
+							ng-if="!provider.issuerUri && (!provider.authorizationUri || !provider.tokenUri ||!provider.jwkSetUri || !provider.userInfoUri)">
+							Either metadata or authorization + token + JWKS + user info endpoints should be specified
+						</div>
+					</div>
+				</form>
+			</div>
+			<div class="modal-footer">
+				<button class="btn btn-default" type="button" data-dismiss="modal">Cancel</button>
+				<button class="btn btn-primary" type="button" ng-click="saveProvider()"
+					ng-disabled="editForm.$invalid || !provider.clientName && !provider.issuerUri && (!provider.authorizationUri || !provider.tokenUri ||!provider.jwkSetUri || !provider.userInfoUri)">Save</button>
+			</div>
+		</div>
+	</div>
+</div>
