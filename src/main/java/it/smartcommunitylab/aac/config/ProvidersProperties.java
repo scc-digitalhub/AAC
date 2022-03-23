@@ -74,6 +74,8 @@ public class ProvidersProperties {
 
         private Map<String, String> configuration;
 
+        private Boolean enable;
+
         public ProviderConfiguration() {
             this.configuration = new HashMap<>();
         }
@@ -148,6 +150,18 @@ public class ProvidersProperties {
 
         public void setDescription(String description) {
             this.description = description;
+        }
+
+        public boolean isEnabled() {
+            return enable != null ? enable.booleanValue() : false;
+        }
+
+        public Boolean getEnable() {
+            return enable;
+        }
+
+        public void setEnable(Boolean enable) {
+            this.enable = enable;
         }
 
         @Override

@@ -69,6 +69,10 @@ public class IdentityProviderService {
                         continue;
                     }
 
+                    if (!providerConfig.isEnabled()) {
+                        continue;
+                    }
+
                     // we handle only system providers, add others via bootstrap
                     if (SystemKeys.REALM_SYSTEM.equals(providerConfig.getRealm())
                             || !StringUtils.hasText(providerConfig.getRealm())) {

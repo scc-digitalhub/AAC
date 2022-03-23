@@ -92,6 +92,23 @@ authorities:
 
 providers:
   identity:
+    - provider: google
+      authority: oidc
+      type: identity
+      name: Google
+      configuration:
+          enable: ${IDP_GOOGLE_ENABLE:false}
+          clientName: Google
+          clientId: ${IDP_GOOGLE_CLIENT_ID}
+          clientSecret: ${IDP_GOOGLE_CLIENT_SECRET}
+          clientAuthenticationMethod: client_secret_basic
+          scope: openid,profile,email
+          authorizationUri: https://accounts.google.com/o/oauth2/v2/auth
+          tokenUri: https://www.googleapis.com/oauth2/v4/token
+          jwkSetUri: https://www.googleapis.com/oauth2/v3/certs
+          issuerUri: https://accounts.google.com
+          userInfoUri: https://www.googleapis.com/oauth2/v3/userinfo
+          userNameAttributeName: email
   attributes:
   templates:
     internal:
