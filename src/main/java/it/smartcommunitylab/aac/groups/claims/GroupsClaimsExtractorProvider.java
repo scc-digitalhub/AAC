@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.group.claims;
+package it.smartcommunitylab.aac.groups.claims;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -8,9 +8,9 @@ import org.springframework.stereotype.Component;
 
 import it.smartcommunitylab.aac.claims.ScopeClaimsExtractor;
 import it.smartcommunitylab.aac.claims.ScopeClaimsExtractorProvider;
-import it.smartcommunitylab.aac.group.scopes.ClientGroupsScope;
-import it.smartcommunitylab.aac.group.scopes.GroupsResource;
-import it.smartcommunitylab.aac.group.scopes.UserGroupsScope;
+import it.smartcommunitylab.aac.groups.scopes.ClientGroupsScope;
+import it.smartcommunitylab.aac.groups.scopes.GroupsResource;
+import it.smartcommunitylab.aac.groups.scopes.UserGroupsScope;
 
 @Component
 public class GroupsClaimsExtractorProvider implements ScopeClaimsExtractorProvider {

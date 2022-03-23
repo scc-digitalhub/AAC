@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.group.scopes;
+package it.smartcommunitylab.aac.groups.scopes;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.model.ScopeType;

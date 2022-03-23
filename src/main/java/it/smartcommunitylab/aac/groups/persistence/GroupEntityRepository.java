@@ -14,15 +14,13 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.group.persistence;
+package it.smartcommunitylab.aac.groups.persistence;
 
 import java.util.List;
-import java.util.Set;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import it.smartcommunitylab.aac.repository.CustomJpaRepository;
@@ -32,24 +30,15 @@ import it.smartcommunitylab.aac.repository.CustomJpaRepository;
  *
  */
 @Repository
-public interface GroupMemberEntityRepository
-        extends CustomJpaRepository<GroupMemberEntity, Long>, JpaSpecificationExecutor<GroupMemberEntity> {
+public interface GroupEntityRepository
+        extends CustomJpaRepository<GroupEntity, String>, JpaSpecificationExecutor<GroupEntity> {
 
-    GroupMemberEntity findByRealmAndGroupAndSubject(String realm, String group, String subject);
+    GroupEntity findByRealmAndGroup(String realm, String group);
 
-    long countByRealmAndGroup(String realm, String group);
+    List<GroupEntity> findByRealm(String realm);
 
-    List<GroupMemberEntity> findByRealmAndGroup(String realm, String group);
+    Page<GroupEntity> findByRealm(String realm, Pageable pageRequest);
 
-    Page<GroupMemberEntity> findByRealmAndGroup(String realm, String group, Pageable pageRequest);
-
-    List<GroupMemberEntity> findByRealmAndGroupIn(String realm, Set<String> groups);
-
-    List<GroupMemberEntity> findBySubject(String subject);
-
-    List<GroupMemberEntity> findBySubjectAndRealm(String subject, String realm);
-
-//    @Query("select g from GroupMemberEntity gm inner join GroupEntity g on gm.group = g.uuid where gm.subject = ?1")
-//    List<GroupEntity> findGroupsBySubject(String subject);
+    List<GroupEntity> findByRealmAndParentGroup(String realm, String parentGroup);
 
 }

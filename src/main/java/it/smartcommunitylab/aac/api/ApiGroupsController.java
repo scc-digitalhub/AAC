@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.api.scopes.ApiGroupsScope;
-import it.smartcommunitylab.aac.group.BaseGroupController;
+import it.smartcommunitylab.aac.groups.BaseGroupController;
 
 @RestController
 @RequestMapping(value = "api", consumes = { MediaType.APPLICATION_JSON_VALUE, "application/x-yaml" }, produces = {

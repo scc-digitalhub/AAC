@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.group;
+package it.smartcommunitylab.aac.groups;
 
 import java.util.Collection;
 
@@ -17,9 +17,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
-import it.smartcommunitylab.aac.group.scopes.ClientGroupsScope;
-import it.smartcommunitylab.aac.group.scopes.UserGroupsScope;
-import it.smartcommunitylab.aac.group.service.GroupService;
+import it.smartcommunitylab.aac.groups.scopes.ClientGroupsScope;
+import it.smartcommunitylab.aac.groups.scopes.UserGroupsScope;
+import it.smartcommunitylab.aac.groups.service.GroupService;
 import it.smartcommunitylab.aac.model.Group;
 
 @RestController

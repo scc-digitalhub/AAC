@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.group.claims;
+package it.smartcommunitylab.aac.groups.claims;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -17,8 +17,8 @@ import it.smartcommunitylab.aac.claims.model.SerializableClaim;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
-import it.smartcommunitylab.aac.group.scopes.ClientGroupsScope;
-import it.smartcommunitylab.aac.group.scopes.GroupsResource;
+import it.smartcommunitylab.aac.groups.scopes.ClientGroupsScope;
+import it.smartcommunitylab.aac.groups.scopes.GroupsResource;
 import it.smartcommunitylab.aac.model.Group;
 import it.smartcommunitylab.aac.model.User;
 

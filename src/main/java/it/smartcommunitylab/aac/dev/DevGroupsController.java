@@ -38,7 +38,7 @@ import it.smartcommunitylab.aac.common.NoSuchGroupException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.group.BaseGroupController;
+import it.smartcommunitylab.aac.groups.BaseGroupController;
 import it.smartcommunitylab.aac.model.Group;
 
 @RestController

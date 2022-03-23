@@ -14,7 +14,7 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.group.persistence;
+package it.smartcommunitylab.aac.groups.persistence;
 
 import java.util.Date;
 
