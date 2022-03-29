@@ -6,8 +6,6 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -23,7 +21,6 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.oauth.model.PromptMode;
-import it.smartcommunitylab.aac.openid.model.OIDCUserAttribute;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -35,7 +32,6 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
     private final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
     };
 
-    @NotBlank
     private String clientId;
     private String clientSecret;
     private String clientName;
@@ -46,8 +42,6 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
     private Boolean trustEmailAddress;
     private Boolean requireEmailAddress;
     private Boolean alwaysTrustEmailAddress;
-
-    private OIDCUserAttribute idAttribute;
 
     // explicit config
     private String authorizationUri;
@@ -68,7 +62,6 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
         this.scope = "openid,email";
         this.userNameAttributeName = IdTokenClaimNames.SUB;
         this.clientAuthenticationMethod = AuthenticationMethod.CLIENT_SECRET_BASIC;
-        this.idAttribute = OIDCUserAttribute.EMAIL;
         this.trustEmailAddress = true;
     }
 
@@ -208,14 +201,6 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
         this.promptMode = promptMode;
     }
 
-    public OIDCUserAttribute getIdAttribute() {
-        return idAttribute;
-    }
-
-    public void setIdAttribute(OIDCUserAttribute idAttribute) {
-        this.idAttribute = idAttribute;
-    }
-
     @Override
     @JsonIgnore
     public Map<String, Serializable> getConfiguration() {
@@ -241,8 +226,6 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
         this.trustEmailAddress = map.getTrustEmailAddress();
         this.alwaysTrustEmailAddress = map.getAlwaysTrustEmailAddress();
         this.requireEmailAddress = map.getRequireEmailAddress();
-
-        this.idAttribute = map.getIdAttribute();
 
         // explicit config
         this.authorizationUri = map.getAuthorizationUri();

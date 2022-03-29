@@ -18,7 +18,6 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.provider.AccountProvider;
 import it.smartcommunitylab.aac.model.UserStatus;
-import it.smartcommunitylab.aac.saml.model.SamlUserAttribute;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountId;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
@@ -65,6 +64,11 @@ public class SamlAccountProvider extends AbstractProvider implements AccountProv
         }
 
         return account;
+    }
+
+    @Transactional(readOnly = true)
+    public SamlUserAccount findAccount(String subjectId) {
+        return findAccountBySubjectId(subjectId);
     }
 
     @Transactional(readOnly = true)
@@ -201,13 +205,6 @@ public class SamlAccountProvider extends AbstractProvider implements AccountProv
         // extract id fields
         String email = clean(reg.getEmail());
         String username = clean(reg.getUsername());
-        if (SamlUserAttribute.EMAIL == config.getIdAttribute() && !StringUtils.hasText(email)) {
-            throw new RegistrationException("missing-email");
-        }
-
-        if (SamlUserAttribute.USERNAME == config.getIdAttribute() && !StringUtils.hasText(username)) {
-            throw new RegistrationException("missing-username");
-        }
 
         // validate
         if (!StringUtils.hasText(subjectId)) {
@@ -219,7 +216,6 @@ public class SamlAccountProvider extends AbstractProvider implements AccountProv
 
         // extract attributes
         String issuer = reg.getIssuer();
-        String subjectFormat = reg.getSubjectFormat();
         Boolean emailVerified = reg.getEmailVerified();
         String name = clean(reg.getName());
         String lang = clean(reg.getLang());
@@ -232,7 +228,6 @@ public class SamlAccountProvider extends AbstractProvider implements AccountProv
         account.setRealm(realm);
 
         account.setIssuer(issuer);
-        account.setSubjectFormat(subjectFormat);
         account.setUsername(username);
         account.setEmail(email);
         account.setEmailVerified(emailVerified);
@@ -264,13 +259,6 @@ public class SamlAccountProvider extends AbstractProvider implements AccountProv
         // id attributes
         String username = clean(reg.getUsername());
         String email = clean(reg.getEmail());
-        if (SamlUserAttribute.EMAIL == config.getIdAttribute() && !StringUtils.hasText(email)) {
-            throw new RegistrationException("missing-email");
-        }
-
-        if (SamlUserAttribute.USERNAME == config.getIdAttribute() && !StringUtils.hasText(username)) {
-            throw new RegistrationException("missing-username");
-        }
 
         // validate email
         if (!StringUtils.hasText(email) && config.requireEmailAddress()) {
@@ -279,13 +267,11 @@ public class SamlAccountProvider extends AbstractProvider implements AccountProv
 
         // extract attributes
         String issuer = reg.getIssuer();
-        String subjectFormat = reg.getSubjectFormat();
         Boolean emailVerified = reg.getEmailVerified();
         String name = clean(reg.getName());
         String lang = clean(reg.getLang());
 
         account.setIssuer(issuer);
-        account.setSubjectFormat(subjectFormat);
         account.setUsername(username);
         account.setEmail(email);
         account.setEmailVerified(emailVerified);

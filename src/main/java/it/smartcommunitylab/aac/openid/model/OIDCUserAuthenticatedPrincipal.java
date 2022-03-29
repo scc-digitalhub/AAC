@@ -56,6 +56,22 @@ public class OIDCUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
     }
 
     @Override
+    public String getUsername() {
+        return username;
+    }
+
+    @Override
+    public String getEmailAddress() {
+        return email;
+    }
+
+    @Override
+    public boolean isEmailVerified() {
+        boolean verified = emailVerified != null ? emailVerified.booleanValue() : false;
+        return StringUtils.hasText(email) && verified;
+    }
+
+    @Override
     public Map<String, Serializable> getAttributes() {
         Map<String, Serializable> result = new HashMap<>();
 
@@ -110,10 +126,6 @@ public class OIDCUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
         this.principal = principal;
     }
 
-    public String getUsername() {
-        return username;
-    }
-
     public void setUsername(String username) {
         this.username = username;
     }
@@ -151,11 +163,6 @@ public class OIDCUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
 
     public void setEmailVerified(Boolean emailVerified) {
         this.emailVerified = emailVerified;
-    }
-
-    public boolean isEmailVerified() {
-        boolean verified = emailVerified != null ? emailVerified.booleanValue() : false;
-        return StringUtils.hasText(email) && verified;
     }
 
 }

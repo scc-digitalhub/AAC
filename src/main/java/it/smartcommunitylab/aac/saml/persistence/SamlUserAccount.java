@@ -58,9 +58,6 @@ public class SamlUserAccount extends AbstractAccount {
     @Column(name = "issuer")
     private String issuer;
 
-    @Column(name = "subject_format")
-    private String subjectFormat;
-
     private String email;
     @Column(name = "email_verified")
     private Boolean emailVerified;
@@ -119,7 +116,13 @@ public class SamlUserAccount extends AbstractAccount {
 
     @Override
     public boolean isLocked() {
-        return UserStatus.LOCKED.getValue().equals(status);
+        // only active users are *not* locked
+        if (status == null || UserStatus.ACTIVE.getValue().equals(status)) {
+            return false;
+        }
+
+        // every other condition locks login
+        return true;
     }
 
     /*
@@ -148,14 +151,6 @@ public class SamlUserAccount extends AbstractAccount {
 
     public void setIssuer(String issuer) {
         this.issuer = issuer;
-    }
-
-    public String getSubjectFormat() {
-        return subjectFormat;
-    }
-
-    public void setSubjectFormat(String subjectFormat) {
-        this.subjectFormat = subjectFormat;
     }
 
     public String getEmail() {

@@ -15,7 +15,6 @@ import it.smartcommunitylab.aac.core.base.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.openid.OIDCIdentityAuthority;
-import it.smartcommunitylab.aac.openid.model.OIDCUserAttribute;
 
 public class OIDCIdentityProviderConfig extends AbstractIdentityProviderConfig {
     private static final long serialVersionUID = SystemKeys.AAC_OIDC_SERIAL_VERSION;
@@ -197,10 +196,6 @@ public class OIDCIdentityProviderConfig extends AbstractIdentityProviderConfig {
 
     public boolean requireEmailAddress() {
         return configMap.getRequireEmailAddress() != null ? configMap.getRequireEmailAddress().booleanValue() : false;
-    }
-
-    public OIDCUserAttribute getIdAttribute() {
-        return configMap.getIdAttribute() != null ? configMap.getIdAttribute() : OIDCUserAttribute.EMAIL;
     }
 
     /*

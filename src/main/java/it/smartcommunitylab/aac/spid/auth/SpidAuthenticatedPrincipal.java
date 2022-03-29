@@ -54,6 +54,21 @@ public class SpidAuthenticatedPrincipal extends AbstractAuthenticatedPrincipal {
     }
 
     @Override
+    public String getUsername() {
+        return username;
+    }
+
+    @Override
+    public String getEmailAddress() {
+        return email;
+    }
+
+    @Override
+    public boolean isEmailVerified() {
+        return StringUtils.hasText(email);
+    }
+
+    @Override
     public Map<String, Serializable> getAttributes() {
         Map<String, Serializable> result = new HashMap<>();
 
@@ -125,10 +140,6 @@ public class SpidAuthenticatedPrincipal extends AbstractAuthenticatedPrincipal {
 
     public void setPrincipal(Saml2AuthenticatedPrincipal principal) {
         this.principal = principal;
-    }
-
-    public String getUsername() {
-        return username;
     }
 
     public void setUsername(String username) {

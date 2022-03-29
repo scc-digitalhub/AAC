@@ -65,6 +65,11 @@ public class SpidAccountProvider extends AbstractProvider implements AccountProv
     }
 
     @Transactional(readOnly = true)
+    public SpidUserAccount findAccount(String subjectId) {
+        return findAccountBySubjectId(subjectId);
+    }
+
+    @Transactional(readOnly = true)
     public SpidUserAccount findAccountBySubjectId(String subjectId) {
         String provider = getProvider();
 

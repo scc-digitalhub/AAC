@@ -122,7 +122,13 @@ public class SpidUserAccount extends AbstractAccount {
 
     @Override
     public boolean isLocked() {
-        return UserStatus.LOCKED.getValue().equals(status);
+        // only active users are *not* locked
+        if (status == null || UserStatus.ACTIVE.getValue().equals(status)) {
+            return false;
+        }
+
+        // every other condition locks login
+        return true;
     }
 
     /*

@@ -46,6 +46,7 @@ public class OIDCUserAccount extends AbstractAccount {
     private String userId;
 
     @NotBlank
+    @Column(name = "authority")
     private String authority;
 
     @NotBlank
@@ -72,7 +73,7 @@ public class OIDCUserAccount extends AbstractAccount {
     private String familyName;
 
     private String lang;
-    
+
     @Column(name = "picture_uri")
     private String picture;
 
@@ -126,7 +127,13 @@ public class OIDCUserAccount extends AbstractAccount {
 
     @Override
     public boolean isLocked() {
-        return UserStatus.LOCKED.getValue().equals(status);
+        // only active users are *not* locked
+        if (status == null || UserStatus.ACTIVE.getValue().equals(status)) {
+            return false;
+        }
+
+        // every other condition locks login
+        return true;
     }
 
     /*

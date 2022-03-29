@@ -18,7 +18,6 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
-import it.smartcommunitylab.aac.saml.model.SamlUserAttribute;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -61,8 +60,6 @@ public class SamlIdentityProviderConfigMap implements ConfigurableProperties, Se
     private Boolean alwaysTrustEmailAddress;
     private Boolean requireEmailAddress;
 
-    private SamlUserAttribute idAttribute;
-
     // not editable
     private String metadataUrl;
     private String assertionConsumerServiceUrl;
@@ -70,8 +67,6 @@ public class SamlIdentityProviderConfigMap implements ConfigurableProperties, Se
     public SamlIdentityProviderConfigMap() {
         this.signAuthNRequest = true;
         this.ssoServiceBinding = "HTTP-POST";
-        this.userNameAttributeName = SamlUserAttribute.SUBJECT.getValue();
-        this.idAttribute = SamlUserAttribute.EMAIL;
     }
 
     public String getSigningKey() {
@@ -266,14 +261,6 @@ public class SamlIdentityProviderConfigMap implements ConfigurableProperties, Se
         this.requireEmailAddress = requireEmailAddress;
     }
 
-    public SamlUserAttribute getIdAttribute() {
-        return idAttribute;
-    }
-
-    public void setIdAttribute(SamlUserAttribute idAttribute) {
-        this.idAttribute = idAttribute;
-    }
-
     @Override
     @JsonIgnore
     public Map<String, Serializable> getConfiguration() {
@@ -314,8 +301,6 @@ public class SamlIdentityProviderConfigMap implements ConfigurableProperties, Se
         this.trustEmailAddress = map.getTrustEmailAddress();
         this.alwaysTrustEmailAddress = map.getAlwaysTrustEmailAddress();
         this.requireEmailAddress = map.getRequireEmailAddress();
-
-        this.idAttribute = map.getIdAttribute();
 
         this.entityId = map.getEntityId();
 

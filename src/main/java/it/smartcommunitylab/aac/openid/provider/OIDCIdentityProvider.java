@@ -7,11 +7,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.apache.commons.lang.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -21,9 +19,7 @@ import it.smartcommunitylab.aac.attributes.OpenIdAttributesSet;
 import it.smartcommunitylab.aac.attributes.mapper.OpenIdAttributesMapper;
 import it.smartcommunitylab.aac.attributes.store.AttributeStore;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
-import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
-import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
@@ -48,7 +44,6 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentityPr
 
     // attributes
     private final OpenIdAttributesMapper openidMapper;
-    private ScriptExecutionService executionService;
 
     public OIDCIdentityProvider(
             String providerId,
@@ -86,10 +81,17 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentityPr
 
         this.openidMapper = new OpenIdAttributesMapper();
 
+        // function hooks from config
+        if (config.getHookFunctions() != null
+                && StringUtils.hasText(config.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION))) {
+            this.authenticationProvider
+                    .setCustomMappingFunction(config.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION));
+        }
+
     }
 
     public void setExecutionService(ScriptExecutionService executionService) {
-        this.executionService = executionService;
+        this.authenticationProvider.setExecutionService(executionService);
     }
 
     @Override
@@ -130,55 +132,17 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentityPr
         String subject = principal.getSubject();
         String provider = getProvider();
 
-        // attributes from provider
-        String username = principal.getUsername();
-        Map<String, Serializable> attributes = principal.getAttributes();
-
         if (userId == null) {
             // this better exists
             throw new NoSuchUserException();
         }
 
-        // get all attributes from principal except jwt attrs
-        // TODO handle all attributes not only strings.
-        Map<String, Serializable> principalAttributes = attributes.entrySet().stream()
-                .filter(e -> !ArrayUtils.contains(JWT_ATTRIBUTES, e.getKey()))
-                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
-
-        // let hook process custom mapping
-        if (executionService != null && config.getHookFunctions() != null
-                && StringUtils.hasText(config.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION))) {
-
-            try {
-                // execute script
-                String functionCode = config.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION);
-                Map<String, Serializable> customAttributes = executionService.executeFunction(
-                        ATTRIBUTE_MAPPING_FUNCTION,
-                        functionCode, principalAttributes);
-
-                // update map
-                if (customAttributes != null) {
-                    // replace map
-                    principalAttributes = customAttributes.entrySet().stream()
-                            .filter(e -> !ArrayUtils.contains(JWT_ATTRIBUTES, e.getKey()))
-                            .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
-                }
-            } catch (SystemException | InvalidDefinitionException ex) {
-                logger.debug("error mapping principal attributes via script: " + ex.getMessage());
-            }
-        }
-
-        // rebuild user principal with updated attributes
-        OAuth2User oauth2User = principal.getOAuth2User();
-        principal = new OIDCUserAuthenticatedPrincipal(getAuthority(), getProvider(),
-                getRealm(),
-                userId, subject);
-        principal.setUsername(username);
-        principal.setPrincipal(oauth2User);
-        principal.setAttributes(principalAttributes);
+        // attributes from provider
+        String username = principal.getUsername();
+        Map<String, Serializable> attributes = principal.getAttributes();
 
         // map attributes to openid set and flatten to string
-        AttributeSet oidcAttributeSet = openidMapper.mapAttributes(principalAttributes);
+        AttributeSet oidcAttributeSet = openidMapper.mapAttributes(attributes);
         Map<String, String> oidcAttributes = oidcAttributeSet.getAttributes()
                 .stream()
                 .collect(Collectors.toMap(
@@ -196,7 +160,7 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentityPr
         // TODO handle not persisted configuration
         //
         // look in repo or create
-        OIDCUserAccount account = accountProvider.getAccount(subject);
+        OIDCUserAccount account = accountProvider.findAccount(subject);
 
         if (account == null) {
             // create

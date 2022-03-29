@@ -15,7 +15,12 @@ import it.smartcommunitylab.aac.SystemKeys;
 public interface UserAuthenticatedPrincipal extends AuthenticatedPrincipal, UserResource, Serializable {
 
     // principal name
-    public String getName();
+    public String getUsername();
+
+    // principal email
+    public String getEmailAddress();
+
+    public boolean isEmailVerified();
 
     // principal attributes as received from idp
     public Map<String, Serializable> getAttributes();

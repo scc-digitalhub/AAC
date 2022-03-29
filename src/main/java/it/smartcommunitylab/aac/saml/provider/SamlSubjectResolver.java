@@ -13,7 +13,6 @@ import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
 import it.smartcommunitylab.aac.model.Subject;
-import it.smartcommunitylab.aac.saml.model.SamlUserAttribute;
 import it.smartcommunitylab.aac.saml.model.SamlUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountId;
@@ -74,61 +73,37 @@ public class SamlSubjectResolver extends AbstractProvider implements SubjectReso
 
     @Override
     @Transactional(readOnly = true)
-    public Subject resolveByAttributes(Map<String, String> attributes) {
-        String attributeName = config.getIdAttribute().getValue();
-
-        if (attributes.keySet().contains(attributeName)
-                && getRealm().equals((attributes.get("realm")))) {
-            // resolve to an account by attribute
-            SamlUserAccount account = null;
-            if (SamlUserAttribute.EMAIL == config.getIdAttribute()) {
-                String email = attributes.get(attributeName);
-                account = accountRepository.findByProviderAndEmail(getProvider(), email).stream().findFirst()
-                        .orElse(null);
-            } else if (SamlUserAttribute.USERNAME == config.getIdAttribute()) {
-                String username = attributes.get(attributeName);
-                account = accountRepository.findByProviderAndUsername(getProvider(), username).stream().findFirst()
-                        .orElse(null);
-            }
-
-            if (account == null) {
-                return null;
-            }
-
-            // build subject with username
-            return new Subject(account.getUserId(), getRealm(), account.getUsername(), SystemKeys.RESOURCE_USER);
-        } else {
+    public Subject resolveByUsername(String username) {
+        logger.debug("resolve by username " + username);
+        SamlUserAccount account = accountRepository.findByProviderAndUsername(getProvider(), username).stream()
+                .findFirst()
+                .orElse(null);
+        if (account == null) {
             return null;
         }
+
+        // build subject with username
+        return new Subject(account.getUserId(), getRealm(), account.getUsername(), SystemKeys.RESOURCE_USER);
     }
 
     @Override
-    public Map<String, String> getAttributes(UserAuthenticatedPrincipal principal) {
+    @Transactional(readOnly = true)
+    public Subject resolveByEmailAddress(String email) {
         if (!config.isLinkable()) {
             return null;
         }
 
-        if (!(principal instanceof SamlUserAuthenticatedPrincipal)) {
+        logger.debug("resolve by email " + email);
+        SamlUserAccount account = accountRepository.findByProviderAndEmail(getProvider(), email).stream()
+                .filter(a -> a.isEmailVerified())
+                .findFirst()
+                .orElse(null);
+        if (account == null) {
             return null;
         }
 
-        SamlUserAuthenticatedPrincipal user = (SamlUserAuthenticatedPrincipal) principal;
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put("realm", getRealm());
-        // export userId
-        attributes.put("userId", user.getUserId());
-
-        if (SamlUserAttribute.EMAIL == config.getIdAttribute() && user.isEmailVerified()) {
-            // export email
-            attributes.put("email", user.getEmail());
-        }
-
-        if (SamlUserAttribute.USERNAME == config.getIdAttribute() && StringUtils.hasText(user.getUsername())) {
-            // export username
-            attributes.put("username", user.getName());
-        }
-
-        return attributes;
+        // build subject with username
+        return new Subject(account.getUserId(), getRealm(), account.getUsername(), SystemKeys.RESOURCE_USER);
     }
 
 }

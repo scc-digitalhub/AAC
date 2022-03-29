@@ -18,7 +18,6 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.provider.AccountProvider;
 import it.smartcommunitylab.aac.model.UserStatus;
-import it.smartcommunitylab.aac.openid.model.OIDCUserAttribute;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountId;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
@@ -71,6 +70,11 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
         }
 
         return account;
+    }
+
+    @Transactional(readOnly = true)
+    public OIDCUserAccount findAccount(String sub) {
+        return findAccountBySub(sub);
     }
 
     @Transactional(readOnly = true)
@@ -176,6 +180,10 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
 
         // re-link to user
         account.setUserId(userId);
+
+        // update authority to match ourselves
+        account.setAuthority(getAuthority());
+
         account = accountRepository.save(account);
         return accountRepository.detach(account);
     }
@@ -205,12 +213,6 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
         // extract id fields
         String email = clean(reg.getEmail());
         String username = clean(reg.getUsername());
-        if (OIDCUserAttribute.EMAIL == config.getIdAttribute() && !StringUtils.hasText(email)) {
-            throw new RegistrationException("missing-email");
-        }
-        if (OIDCUserAttribute.USERNAME == config.getIdAttribute() && !StringUtils.hasText(username)) {
-            throw new RegistrationException("missing-username");
-        }
 
         // validate
         if (!StringUtils.hasText(sub)) {
@@ -271,12 +273,6 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
         // id attributes
         String username = clean(reg.getUsername());
         String email = clean(reg.getEmail());
-        if (OIDCUserAttribute.EMAIL == config.getIdAttribute() && !StringUtils.hasText(email)) {
-            throw new RegistrationException("missing-email");
-        }
-        if (OIDCUserAttribute.USERNAME == config.getIdAttribute() && !StringUtils.hasText(username)) {
-            throw new RegistrationException("missing-username");
-        }
 
         // validate email
         if (!StringUtils.hasText(email) && config.requireEmailAddress()) {
@@ -302,6 +298,9 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
         account.setLang(lang);
         account.setPicture(picture);
 
+        // update authority to match ourselves
+        account.setAuthority(getAuthority());
+
         account = accountRepository.save(account);
         return accountRepository.detach(account);
     }
@@ -323,6 +322,10 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
 
         // update status
         account.setStatus(newStatus.getValue());
+
+        // update authority to match ourselves
+        account.setAuthority(getAuthority());
+
         account = accountRepository.save(account);
         return accountRepository.detach(account);
     }

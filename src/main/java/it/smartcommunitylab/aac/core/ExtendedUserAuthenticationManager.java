@@ -7,7 +7,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -64,7 +63,6 @@ import it.smartcommunitylab.aac.model.Subject;
  * 
  * we don't want retries, a request should be handled only by the correct provider, or dropped
  * 
- * note: we should support anonymousToken as fallback for public pages
  */
 
 public class ExtendedUserAuthenticationManager implements AuthenticationManager {
@@ -303,7 +301,7 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
         logger.trace("auth principal is " + principal.toString());
 
         // authentication provider should yield a proper local id (addressable)
-        String principalId = auth.getPrincipal().getPrincipalId();
+        String principalId = principal.getPrincipalId();
         logger.debug("authenticated principalId is " + principalId);
 
         // fetch identity provider for the given account
@@ -332,26 +330,29 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
         }
 
         if (subjectId == null) {
-            // account linking via attributes
-            Map<String, String> attributes = resolver.getAttributes(principal);
-            if (attributes != null && !attributes.isEmpty()) {
-                // let idp resolver try with attributes
-                s = resolver.resolveByAttributes(attributes);
+            // new or non-persisted account
+            // let idp resolver try with identifier(username)
+            s = resolver.resolveByUsername(principal.getUsername());
+            if (s != null) {
+                subjectId = s.getSubjectId();
+                logger.debug("resolved user for identity to " + subjectId);
+            }
+        }
 
-                if (s == null) {
-                    // fallback to other idps from the same realm
-                    Collection<IdentityProvider> idps = authorityManager.fetchIdentityProviders(realm);
-                    // first result is ok
-                    for (IdentityProvider i : idps) {
-                        Subject ss = i.getSubjectResolver().resolveByAttributes(attributes);
-                        if (ss != null) {
-                            subjectId = ss.getSubjectId();
-                            logger.debug("linked subject for identity to " + subjectId);
-                            break;
-                        }
-                    }
+        if (subjectId == null && principal.isEmailVerified()) {
+            // new or non-persisted account for idp, non resolvable
+            // fallback to other idps from the same realm via verified emailAddress
+            Collection<IdentityProvider> idps = authorityManager.fetchIdentityProviders(realm);
+            // first result is ok
+            for (IdentityProvider i : idps) {
+                Subject ss = i.getSubjectResolver().resolveByEmailAddress(principal.getEmailAddress());
+                if (ss != null) {
+                    subjectId = ss.getSubjectId();
+                    logger.debug("linked subject for identity to " + subjectId);
+                    break;
                 }
             }
+
         }
 
         if (subjectId == null) {
@@ -361,7 +362,6 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
             u = userService.addUser(subjectId, realm, null, null);
 
             logger.debug("created subject for identity to " + subjectId);
-
         }
 
         // this must exist
@@ -418,7 +418,6 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
             }
 
             // make sure user is not locked
-            // TODO check blocked
             if (identity.getAccount().isLocked()) {
                 // provider misbehave
                 logger.error("account is locked");

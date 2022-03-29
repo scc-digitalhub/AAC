@@ -1,8 +1,12 @@
 package it.smartcommunitylab.aac.openid.provider;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.Map;
+import java.util.stream.Collectors;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -28,8 +32,14 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.attributes.OpenIdAttributesSet;
+import it.smartcommunitylab.aac.attributes.mapper.OpenIdAttributesMapper;
+import it.smartcommunitylab.aac.claims.ScriptExecutionService;
+import it.smartcommunitylab.aac.common.InvalidDefinitionException;
+import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
-import it.smartcommunitylab.aac.model.UserStatus;
+import it.smartcommunitylab.aac.core.model.AttributeSet;
+import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticationException;
 import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticationToken;
 import it.smartcommunitylab.aac.openid.model.OIDCUserAuthenticatedPrincipal;
@@ -45,6 +55,10 @@ public class OIDCAuthenticationProvider extends ExtendedAuthenticationProvider {
 
     private final OidcAuthorizationCodeAuthenticationProvider oidcProvider;
     private final OAuth2LoginAuthenticationProvider oauthProvider;
+
+    private String customMappingFunction;
+    private ScriptExecutionService executionService;
+    private final OpenIdAttributesMapper openidMapper;
 
     public OIDCAuthenticationProvider(String providerId,
             OIDCUserAccountRepository accountRepository,
@@ -81,6 +95,17 @@ public class OIDCAuthenticationProvider extends ExtendedAuthenticationProvider {
         // default impl translates the whole oauth response as an authority..
         this.oidcProvider.setAuthoritiesMapper(nullAuthoritiesMapper);
         this.oauthProvider.setAuthoritiesMapper(nullAuthoritiesMapper);
+
+        // attribute mapper to extract email
+        this.openidMapper = new OpenIdAttributesMapper();
+    }
+
+    public void setExecutionService(ScriptExecutionService executionService) {
+        this.executionService = executionService;
+    }
+
+    public void setCustomMappingFunction(String customMappingFunction) {
+        this.customMappingFunction = customMappingFunction;
     }
 
     @Override
@@ -107,7 +132,7 @@ public class OIDCAuthenticationProvider extends ExtendedAuthenticationProvider {
             }
 
             if (auth != null) {
-                // convert to out authToken and clear exchange information, those are not
+                // convert to our authToken and clear exchange information, those are not
                 // serializable..
                 OAuth2LoginAuthenticationToken authenticationToken = (OAuth2LoginAuthenticationToken) auth;
                 // extract sub identifier
@@ -118,7 +143,7 @@ public class OIDCAuthenticationProvider extends ExtendedAuthenticationProvider {
 
                 // check if account is present and locked
                 OIDCUserAccount account = accountRepository.findOne(new OIDCUserAccountId(getProvider(), subject));
-                if (account != null && !UserStatus.ACTIVE.getValue().equals(account.getStatus())) {
+                if (account != null && account.isLocked()) {
                     throw new OIDCAuthenticationException(new OAuth2Error("invalid_request"), "account not available",
                             authorizationRequest,
                             authorizationResponse, null, null);
@@ -168,6 +193,58 @@ public class OIDCAuthenticationProvider extends ExtendedAuthenticationProvider {
                 userId, subject);
         user.setUsername(username);
         user.setPrincipal(oauthDetails);
+
+        // custom attribute mapping
+        if (executionService != null && StringUtils.hasText(customMappingFunction)) {
+            try {
+                // get all attributes from principal except jwt attrs
+                // TODO handle all attributes not only strings.
+                Map<String, Serializable> principalAttributes = user.getAttributes().entrySet().stream()
+                        .filter(e -> !ArrayUtils.contains(OIDCIdentityProvider.JWT_ATTRIBUTES, e.getKey()))
+                        .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+                // execute script
+                Map<String, Serializable> customAttributes = executionService.executeFunction(
+                        IdentityProvider.ATTRIBUTE_MAPPING_FUNCTION,
+                        customMappingFunction, principalAttributes);
+
+                // update map
+                if (customAttributes != null) {
+                    // replace map
+                    principalAttributes = customAttributes.entrySet().stream()
+                            .filter(e -> !ArrayUtils.contains(OIDCIdentityProvider.JWT_ATTRIBUTES, e.getKey()))
+                            .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+                    user.setAttributes(principalAttributes);
+                }
+            } catch (SystemException | InvalidDefinitionException ex) {
+                logger.debug("error mapping principal attributes via script: " + ex.getMessage());
+            }
+        }
+
+        // map attributes to openid set and flatten to string
+        AttributeSet oidcAttributeSet = openidMapper.mapAttributes(user.getAttributes());
+        Map<String, String> oidcAttributes = oidcAttributeSet.getAttributes()
+                .stream()
+                .collect(Collectors.toMap(
+                        a -> a.getKey(),
+                        a -> a.exportValue()));
+
+        // fetch email when available
+        String email = oidcAttributes.get(OpenIdAttributesSet.EMAIL);
+
+        boolean defaultVerifiedStatus = config.getConfigMap().getTrustEmailAddress() != null
+                ? config.getConfigMap().getTrustEmailAddress()
+                : false;
+        boolean emailVerified = StringUtils.hasText(oidcAttributes.get(OpenIdAttributesSet.EMAIL_VERIFIED))
+                ? Boolean.parseBoolean(oidcAttributes.get(OpenIdAttributesSet.EMAIL_VERIFIED))
+                : defaultVerifiedStatus;
+
+        if (Boolean.TRUE.equals(config.getConfigMap().getAlwaysTrustEmailAddress())) {
+            emailVerified = true;
+        }
+
+        // update principal
+        user.setEmail(email);
+        user.setEmailVerified(emailVerified);
 
         return user;
     }

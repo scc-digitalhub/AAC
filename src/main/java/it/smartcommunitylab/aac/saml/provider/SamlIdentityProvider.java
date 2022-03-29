@@ -7,10 +7,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.apache.commons.lang.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -18,10 +16,7 @@ import org.springframework.util.StringUtils;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.store.AttributeStore;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
-import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
-import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
@@ -43,9 +38,6 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentityPr
     private final SamlAttributeProvider attributeProvider;
     private final SamlAuthenticationProvider authenticationProvider;
     private final SamlSubjectResolver subjectResolver;
-
-    // attributes
-    private ScriptExecutionService executionService;
 
     public SamlIdentityProvider(
             String providerId,
@@ -71,10 +63,16 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentityPr
         this.authenticationProvider = new SamlAuthenticationProvider(providerId, accountRepository, config, realm);
         this.subjectResolver = new SamlSubjectResolver(providerId, accountRepository, config, realm);
 
+        // function hooks from config
+        if (config.getHookFunctions() != null
+                && StringUtils.hasText(config.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION))) {
+            this.authenticationProvider
+                    .setCustomMappingFunction(config.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION));
+        }
     }
 
     public void setExecutionService(ScriptExecutionService executionService) {
-        this.executionService = executionService;
+        this.authenticationProvider.setExecutionService(executionService);
     }
 
     @Override
@@ -116,53 +114,18 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentityPr
         String subjectId = principal.getSubjectId();
         String provider = getProvider();
 
-        // attributes from provider
-        String username = principal.getUsername();
-        Map<String, Serializable> attributes = principal.getAttributes();
-
         if (userId == null) {
             // this better exists
             throw new NoSuchUserException();
         }
 
-        // get all attributes from principal except saml attrs
-        // TODO handle all attributes not only strings.
-        Map<String, Serializable> principalAttributes = attributes.entrySet().stream()
-                .filter(e -> !ArrayUtils.contains(SAML_ATTRIBUTES, e.getKey()))
-                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
-
-        // let hook process custom mapping
-        if (executionService != null && config.getHookFunctions() != null
-                && StringUtils.hasText(config.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION))) {
-
-            try {
-                // execute script
-                String functionCode = config.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION);
-                Map<String, Serializable> customAttributes = executionService.executeFunction(
-                        ATTRIBUTE_MAPPING_FUNCTION,
-                        functionCode, principalAttributes);
-
-                // update map
-                if (customAttributes != null) {
-                    // replace map
-                    principalAttributes = customAttributes.entrySet().stream()
-                            .filter(e -> !ArrayUtils.contains(SAML_ATTRIBUTES, e.getKey()))
-                            .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
-                }
-            } catch (SystemException | InvalidDefinitionException ex) {
-                logger.debug("error mapping principal attributes via script: " + ex.getMessage());
-            }
-        }
-        // rebuild user principal with updated attributes
-        Saml2AuthenticatedPrincipal saml2Principal = principal.getPrincipal();
-        principal = new SamlUserAuthenticatedPrincipal(provider, getRealm(), userId, subjectId);
-        principal.setUsername(username);
-        principal.setPrincipal(saml2Principal);
-        principal.setAttributes(principalAttributes);
+        // attributes from provider
+        String username = principal.getUsername();
+        Map<String, Serializable> attributes = principal.getAttributes();
 
         // re-read attributes as-is, transform to strings
         // TODO evaluate using a custom mapper to given profile
-        Map<String, String> samlAttributes = principal.getAttributes().entrySet().stream()
+        Map<String, String> samlAttributes = attributes.entrySet().stream()
                 .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().toString()));
 
         String email = samlAttributes.get("email");
@@ -176,7 +139,7 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentityPr
         // TODO handle not persisted configuration
         //
         // look in repo or create
-        SamlUserAccount account = accountProvider.getAccount(subjectId);
+        SamlUserAccount account = accountProvider.findAccount(subjectId);
 
         if (account == null) {
             // create
@@ -199,8 +162,6 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentityPr
         }
 
         // update additional attributes
-        String subjectFormat = attributes.containsKey("subjectFormat") ? attributes.get("subjectFormat").toString()
-                : null;
         String issuer = samlAttributes.get("issuer");
         if (!StringUtils.hasText(issuer)) {
             issuer = config.getRelyingPartyRegistration().getAssertingPartyDetails().getEntityId();
@@ -222,7 +183,6 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentityPr
 
         // we override these every time
         account.setIssuer(issuer);
-        account.setSubjectFormat(subjectFormat);
         account.setUsername(username);
         account.setName(name);
         account.setEmail(email);

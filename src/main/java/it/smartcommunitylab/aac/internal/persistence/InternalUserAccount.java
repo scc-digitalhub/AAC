@@ -7,7 +7,6 @@ import javax.persistence.EntityListeners;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
@@ -121,7 +120,13 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
 
     @Override
     public boolean isLocked() {
-        return UserStatus.LOCKED.getValue().equals(status);
+        // only active users are *not* locked
+        if (status == null || UserStatus.ACTIVE.getValue().equals(status)) {
+            return false;
+        }
+
+        // every other condition locks login
+        return true;
     }
 
     /*

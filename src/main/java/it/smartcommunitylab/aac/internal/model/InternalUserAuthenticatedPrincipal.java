@@ -31,10 +31,6 @@ public class InternalUserAuthenticatedPrincipal extends AbstractAuthenticatedPri
 
     }
 
-    public String getUsername() {
-        return username;
-    }
-
     @Override
     public String getId() {
         return username;
@@ -43,6 +39,21 @@ public class InternalUserAuthenticatedPrincipal extends AbstractAuthenticatedPri
     @Override
     public String getName() {
         return name;
+    }
+
+    @Override
+    public String getUsername() {
+        return username;
+    }
+
+    @Override
+    public String getEmailAddress() {
+        return email;
+    }
+
+    @Override
+    public boolean isEmailVerified() {
+        return isEmailConfirmed();
     }
 
     @Override
@@ -85,17 +96,17 @@ public class InternalUserAuthenticatedPrincipal extends AbstractAuthenticatedPri
         this.email = email;
     }
 
+    public boolean isEmailConfirmed() {
+        boolean verified = confirmed != null ? confirmed.booleanValue() : false;
+        return StringUtils.hasText(email) && verified;
+    }
+
     public Boolean getConfirmed() {
         return confirmed;
     }
 
     public void setConfirmed(Boolean confirmed) {
         this.confirmed = confirmed;
-    }
-
-    public boolean isEmailConfirmed() {
-        boolean verified = confirmed != null ? confirmed.booleanValue() : false;
-        return StringUtils.hasText(email) && verified;
     }
 
     public void setAccountAttributes(InternalUserAccount account) {

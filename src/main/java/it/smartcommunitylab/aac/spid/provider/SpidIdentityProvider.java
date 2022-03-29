@@ -145,7 +145,7 @@ public class SpidIdentityProvider extends AbstractProvider implements IdentityPr
         // TODO handle not persisted configuration
         //
         // look in repo or create
-        SpidUserAccount account = accountProvider.getAccount(subjectId);
+        SpidUserAccount account = accountProvider.findAccount(subjectId);
 
         if (account == null) {
 

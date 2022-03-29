@@ -56,7 +56,10 @@ databaseChangeLog:
             columnDataType: varchar(255)                                                
         -  dropColumn:  
             tableName: oidc_users
-            columnName:  profile_uri              
+            columnName:  profile_uri          
+        -  dropColumn:  
+            tableName: oidc_users
+            columnName:  picture                      
   - changeSet:
       id: update-oidc-account-table-key
       author: matteos
@@ -124,17 +127,25 @@ databaseChangeLog:
             tableName: spid_users
             newColumnName:  user_id  
             oldColumnName:  subject_id     
-            columnDataType: varchar(255)                         
+            columnDataType: varchar(255)                                
+        -  dropColumn:  
+            tableName: spid_users
+            columnName:  id       
+  - changeSet:
+      id: update-spid-account-table-key
+      author: matteos
+      preConditions:
+        - onFail: MARK_RAN
+          primaryKeyExists:
+            tableName: spid_users
+      changes:                     
         - dropPrimaryKey:   
            dropIndex: true  
            tableName: spid_users                
         -  addPrimaryKey:  
             columnNames:  provider_id, subject
             tableName:  spid_users  
-            validate:  false        
-        -  dropColumn:  
-            tableName: spid_users
-            columnName:  id              
+            validate:  false                       
   - changeSet:
       id: update-users-table
       author: matteos
@@ -150,26 +161,6 @@ databaseChangeLog:
         -  dropColumn:  
             tableName: users
             columnName:  is_locked        
-  - changeSet:
-      id: activate-accounts
-      author: matteos
-      changes:   
-        - sql:
-            sql: update internal_users set status = "active" where status is NULL
-        - sql:
-            sql: update oidc_users set status = "active" where status is NULL
-        - sql:
-            sql: update saml_users set status = "active" where status is NULL
-        - sql:
-            sql: update spid_users set status = "active" where status is NULL    
-        - sql:
-            sql: update users set status = "active" where status is NULL                           
-  - changeSet:
-      id: set oidc-authority
-      author: matteos
-      changes:   
-        - sql:
-            sql: update oidc_users set authority = "oidc" where authority is NULL                                        
-            
+
             
             
