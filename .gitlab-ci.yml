@@ -4,11 +4,16 @@ services:
   - docker:dind
 
 stages:
-  - test
   - build
   - container-build
+  - test
   - container-scan
   - deploy
+
+include:
+  - template: Security/Container-Scanning.gitlab-ci.yml
+  - template: Security/Dependency-Scanning.gitlab-ci.yml
+  - template: Security/SAST.gitlab-ci.yml
 
 variables:
   SECURE_LOG_LEVEL: info
@@ -46,11 +51,7 @@ backend-container-build:
     - docker push $CONTAINER_IMAGE_LATEST
   only:
     - 4.x
-
-include:
-  - template: Security/Container-Scanning.gitlab-ci.yml
-  - template: Security/Dependency-Scanning.gitlab-ci.yml
-  - template: Security/SAST.gitlab-ci.yml
+    - 4.x-platform
 
 container_scanning:
   stage: container-scan
@@ -82,3 +83,15 @@ deploy:
     - kubectl -n aac-dev rollout status deployment aac-dev
   only:
     - 4.x
+
+deploy:
+  stage: deploy
+  image: smartcommunitylab/kubectl-alpine:latest
+  environment:
+    name: platform-new
+  script:
+    - echo "deploy backend"
+    - kubectl -n global set image deployments/aac aac=$CONTAINER_IMAGE --record=true
+    - kubectl -n global rollout status deployment aac
+  only:
+    - 4.x-platform
