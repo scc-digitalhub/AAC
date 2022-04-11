@@ -34,7 +34,8 @@ import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountId;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
 
-public class SamlAuthenticationProvider extends ExtendedAuthenticationProvider {
+public class SamlAuthenticationProvider
+        extends ExtendedAuthenticationProvider<SamlUserAuthenticatedPrincipal, SamlUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final static String SUBJECT_ATTRIBUTE = "subject";

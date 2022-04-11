@@ -19,7 +19,6 @@ import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.saml.SamlIdentityAuthority;
 import it.smartcommunitylab.aac.saml.model.SamlUserAuthenticatedPrincipal;
@@ -27,7 +26,8 @@ import it.smartcommunitylab.aac.saml.model.SamlUserIdentity;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
 
-public class SamlIdentityProvider extends AbstractProvider implements IdentityProvider {
+public class SamlIdentityProvider extends AbstractProvider
+        implements IdentityProvider<SamlUserIdentity, SamlUserAccount, SamlUserAuthenticatedPrincipal> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // provider configuration
@@ -58,7 +58,7 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentityPr
 
         // build resource providers, we use our providerId to ensure consistency
         this.accountProvider = new SamlAccountProvider(providerId, accountRepository, config, realm);
-        this.attributeProvider = new SamlAttributeProvider(providerId, accountRepository, attributeStore, config,
+        this.attributeProvider = new SamlAttributeProvider(providerId, attributeStore, config,
                 realm);
         this.authenticationProvider = new SamlAuthenticationProvider(providerId, accountRepository, config, realm);
         this.subjectResolver = new SamlSubjectResolver(providerId, accountRepository, config, realm);
@@ -102,17 +102,16 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentityPr
 
     @Override
     @Transactional(readOnly = false)
-    public SamlUserIdentity convertIdentity(UserAuthenticatedPrincipal userPrincipal, String userId)
+    public SamlUserIdentity convertIdentity(SamlUserAuthenticatedPrincipal principal, String userId)
             throws NoSuchUserException {
-        // we expect an instance of our model
-        Assert.isInstanceOf(SamlUserAuthenticatedPrincipal.class, userPrincipal,
-                "principal must be an instance of internal authenticated principal");
-        SamlUserAuthenticatedPrincipal principal = (SamlUserAuthenticatedPrincipal) userPrincipal;
+//        // we expect an instance of our model
+//        Assert.isInstanceOf(SamlUserAuthenticatedPrincipal.class, userPrincipal,
+//                "principal must be an instance of internal authenticated principal");
+//        SamlUserAuthenticatedPrincipal principal = (SamlUserAuthenticatedPrincipal) userPrincipal;
 
         // we use upstream subject for accounts
         // TODO handle transient ids, for example with session persistence
         String subjectId = principal.getSubjectId();
-        String provider = getProvider();
 
         if (userId == null) {
             // this better exists
@@ -192,7 +191,8 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentityPr
         account = accountProvider.updateAccount(subjectId, account);
 
         // convert attribute sets via provider, will update store
-        Collection<UserAttributes> identityAttributes = attributeProvider.convertPrincipalAttributes(principal, userId);
+        Collection<UserAttributes> identityAttributes = attributeProvider.convertPrincipalAttributes(principal,
+                account);
 
         // build identity
         SamlUserIdentity identity = new SamlUserIdentity(getProvider(), getRealm(), account, principal);
@@ -219,7 +219,7 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentityPr
         SamlUserIdentity identity = new SamlUserIdentity(getProvider(), getRealm(), account);
         if (fetchAttributes) {
             // convert attribute sets
-            Collection<UserAttributes> identityAttributes = attributeProvider.getAccountAttributes(subjectId);
+            Collection<UserAttributes> identityAttributes = attributeProvider.getAccountAttributes(account);
             identity.setAttributes(identityAttributes);
         }
 
@@ -249,8 +249,7 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentityPr
             SamlUserIdentity identity = new SamlUserIdentity(getProvider(), getRealm(), account);
             if (fetchAttributes) {
                 // convert attribute sets
-                Collection<UserAttributes> identityAttributes = attributeProvider
-                        .getAccountAttributes(account.getSubjectId());
+                Collection<UserAttributes> identityAttributes = attributeProvider.getAccountAttributes(account);
                 identity.setAttributes(identityAttributes);
             }
 

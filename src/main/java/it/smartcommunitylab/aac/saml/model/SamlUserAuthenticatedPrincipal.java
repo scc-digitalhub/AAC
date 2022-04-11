@@ -1,16 +1,21 @@
 package it.smartcommunitylab.aac.saml.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.saml.provider.SamlIdentityProvider;
 
 public class SamlUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincipal {
 
@@ -70,24 +75,25 @@ public class SamlUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
         Map<String, Serializable> result = new HashMap<>();
 
         if (principal != null) {
-            // we implement only first attribute
-            Set<String> keys = principal.getAttributes().keySet();
-
-            // map only string attributes
-            // TODO implement a mapper via script handling a json representation without
-            // security related attributes
-            for (String key : keys) {
-                Object value = principal.getFirstAttribute(key);
-                if (value != null) {
-                    result.put(key, value.toString());
-                }
-            }
-
+            // get allowed attributes as strings or list of strings
+            principal.getAttributes().entrySet().stream()
+                    .filter(e -> !ArrayUtils.contains(SamlIdentityProvider.SAML_ATTRIBUTES, e.getKey()))
+                    .filter(e -> (e.getValue() != null && !e.getValue().isEmpty()))
+                    .forEach(e -> {
+                        String key = e.getKey();
+                        // map to String
+                        List<String> values = e.getValue().stream().map(o -> o.toString()).collect(Collectors.toList());
+                        if (values.size() == 1) {
+                            result.put(key, values.get(0));
+                        } else {
+                            result.put(key, new ArrayList<>(values));
+                        }
+                    });
         }
 
         if (attributes != null) {
             // local attributes overwrite saml attributes when set
-            attributes.entrySet().forEach(e -> result.putIfAbsent(e.getKey(), e.getValue()));
+            attributes.entrySet().forEach(e -> result.put(e.getKey(), e.getValue()));
         }
 
         // make sure these are never overridden
@@ -106,6 +112,7 @@ public class SamlUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
         if (emailVerified != null) {
             result.put("emailVerified", emailVerified.booleanValue());
         }
+
         return result;
     }
 
