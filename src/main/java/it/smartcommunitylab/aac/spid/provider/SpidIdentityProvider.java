@@ -12,7 +12,6 @@ import org.apache.commons.lang.ArrayUtils;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
@@ -40,7 +39,6 @@ public class SpidIdentityProvider extends AbstractProvider
 
     // attributes
     private final SpidAttributesMapper spidMapper;
-    private ScriptExecutionService executionService;
 
     public SpidIdentityProvider(
             String providerId, String providerName,
@@ -65,10 +63,6 @@ public class SpidIdentityProvider extends AbstractProvider
 
         this.spidMapper = new SpidAttributesMapper();
 
-    }
-
-    public void setExecutionService(ScriptExecutionService executionService) {
-        this.executionService = executionService;
     }
 
     @Override
