@@ -64,19 +64,22 @@ public class ServiceScopeEntity {
     /**
      * Claims exposed with the scopes (comma-separated list)
      */
-    @Column(columnDefinition = "LONGTEXT")
+    @Lob
+    @Column(name = "claims")
     private String claims;
 
     /**
      * Roles required to access the scope
      */
-    @Column(name = "approval_roles", columnDefinition = "LONGTEXT")
+    @Lob
+    @Column(name = "approval_roles")
     private String approvalRoles;
 
     /**
      * Space Roles required to access the scope
      */
-    @Column(name = "approval_space_roles", columnDefinition = "LONGTEXT")
+    @Lob
+    @Column(name = "approval_space_roles")
     private String approvalSpaceRoles;
 
 //    /**
@@ -92,7 +95,7 @@ public class ServiceScopeEntity {
     private boolean approvalRequired = false;
 
     @Lob
-    @Column(name = "approval_function", columnDefinition = "LONGTEXT")
+    @Column(name = "approval_function")
     @Convert(converter = StringBase64Converter.class)
     private String approvalFunction;
 

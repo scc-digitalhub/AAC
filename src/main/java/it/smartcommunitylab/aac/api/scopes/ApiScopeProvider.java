@@ -31,6 +31,7 @@ public class ApiScopeProvider implements ScopeProvider {
         s.put(ApiScopesScope.SCOPE, new ApiScopesScope());
         s.put(ApiRealmScope.SCOPE, new ApiRealmScope());
         s.put(ApiRolesScope.SCOPE, new ApiRolesScope());
+        s.put(ApiGroupsScope.SCOPE, new ApiGroupsScope());
 
         scopes = Collections.unmodifiableMap(s);
         resource.setScopes(Collections.unmodifiableSet(new HashSet<>(scopes.values())));

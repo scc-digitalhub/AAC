@@ -361,7 +361,7 @@ angular.module('aac.controllers.realmapps', [])
             var icon = './italia/svg/sprite.svg#it-piattaforme';
             if (clientApp.type == 'oauth2') {
                 if (clientApp.configuration.applicationType == 'web') {
-                    icon = './italia/svg/sprite.svg#it-open-source';
+                    icon = './italia/svg/sprite.svg#it-star-outline';
                 }
                 if (clientApp.configuration.applicationType == 'native') {
                     icon = './italia/svg/sprite.svg#it-card';
@@ -1390,7 +1390,7 @@ angular.module('aac.controllers.realmapps', [])
             var icon = './italia/svg/sprite.svg#it-piattaforme';
             if (clientApp.type == 'oauth2') {
                 if (clientApp.configuration.applicationType == 'web') {
-                    icon = './italia/svg/sprite.svg#it-open-source';
+                    icon = './italia/svg/sprite.svg#it-star-outline';
                 }
                 if (clientApp.configuration.applicationType == 'native') {
                     icon = './italia/svg/sprite.svg#it-card';
@@ -1663,7 +1663,7 @@ angular.module('aac.controllers.realmapps', [])
             var icon = './italia/svg/sprite.svg#it-piattaforme';
             if (clientApp.type == 'oauth2') {
                 if (clientApp.configuration.applicationType == 'web') {
-                    icon = './italia/svg/sprite.svg#it-open-source';
+                    icon = './italia/svg/sprite.svg#it-star-outline';
                 }
                 if (clientApp.configuration.applicationType == 'native') {
                     icon = './italia/svg/sprite.svg#it-card';

@@ -16,6 +16,8 @@ import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.persistence.ClientEntity;
+import it.smartcommunitylab.aac.groups.service.GroupService;
+import it.smartcommunitylab.aac.model.Group;
 import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
@@ -30,6 +32,7 @@ public class ClientDetailsService implements InitializingBean {
 
     private SpaceRoleService spaceRoleService;
     private SubjectRoleService subjectRoleService;
+    private GroupService groupService;
 
     public ClientDetailsService(ClientEntityService clientService, SubjectService subjectService) {
         Assert.notNull(clientService, "client service is mandatory");
@@ -52,6 +55,11 @@ public class ClientDetailsService implements InitializingBean {
     @Autowired
     public void setSubjectRoleService(SubjectRoleService subjectRoleService) {
         this.subjectRoleService = subjectRoleService;
+    }
+
+    @Autowired
+    public void setGroupService(GroupService groupService) {
+        this.groupService = groupService;
     }
 
     public ClientDetails loadClient(String clientId) throws NoSuchClientException {
@@ -93,6 +101,13 @@ public class ClientDetailsService implements InitializingBean {
             // clientId is our subjectId
             Collection<SpaceRole> spaceRoles = spaceRoleService.getRoles(clientId);
             details.setSpaceRoles(spaceRoles);
+        }
+
+        // load groups
+        if (groupService != null) {
+            // clientId is our subjectId
+            Collection<Group> groups = groupService.getSubjectGroups(clientId);
+            details.setGroups(groups);
         }
 
         return details;

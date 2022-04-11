@@ -55,6 +55,7 @@
             <p>
                 <span ng-repeat="a in _authorities"><span class="badge badge-primary">{{a}}</span> </span>
                 <span ng-repeat="r in _roles"><span class="badge badge-secondary">{{r}}</span> </span>
+                <span ng-repeat="g in _groups"><span class="badge badge-pill badge-secondary">{{g}}</span> </span>
             </p>
         </div>
     </div>
@@ -75,6 +76,9 @@
         <li class="nav-item">
             <a class="nav-link {{activeView('apps')}}" href ng-click="switchView('apps')">Apps</a>
         </li>
+        <li class="nav-item">
+            <a class="nav-link {{activeView('groups')}}" href ng-click="switchView('groups')">Groups</a>
+        </li>        
         <li class="nav-item">
             <a class="nav-link {{activeView('roles')}}" href ng-click="switchView('roles')">Roles</a>
         </li>

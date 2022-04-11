@@ -45,7 +45,7 @@ angular.module('aac.controllers.realmservices', [])
       window.open('console/dev/services/' + realm + '/' + serviceId + '/yaml');
     }
     service.checkServiceNamespace = function (realm, serviceNs) {
-      return $http.get('console/dev/realms/' + realm + '/nsexists?ns=' + encodeURIComponent(serviceNs)).then(function (data) {
+      return $http.get('console/dev/services/' + realm + '/nsexists?ns=' + encodeURIComponent(serviceNs)).then(function (data) {
         return data.data;
       });
     }

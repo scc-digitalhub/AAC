@@ -586,7 +586,8 @@ public class InternalAccountService extends AbstractProvider implements AccountS
     private void sendPasswordAndConfirmationMail(InternalUserAccount account, String password, String key)
             throws MessagingException {
         if (mailService != null) {
-            String realm = getRealm();
+            // action is handled by global filter
+            String realm = null;
             String provider = getProvider();
 
             String confirmUrl = InternalIdentityAuthority.AUTHORITY_URL + "confirm/" + provider + "?code="
@@ -616,7 +617,8 @@ public class InternalAccountService extends AbstractProvider implements AccountS
 
     private void sendConfirmationMail(InternalUserAccount account, String key) throws MessagingException {
         if (mailService != null) {
-            String realm = getRealm();
+            // action is handled by global filter
+            String realm = null;
             String provider = getProvider();
 
             String confirmUrl = InternalIdentityAuthority.AUTHORITY_URL + "confirm/" + provider + "?code=" + key;

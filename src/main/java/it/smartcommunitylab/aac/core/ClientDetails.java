@@ -10,6 +10,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.core.model.ClientAttributes;
+import it.smartcommunitylab.aac.model.Group;
 import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.SpaceRole;
 
@@ -60,6 +61,9 @@ public class ClientDetails {
     private Set<RealmRole> realmRoles;
     // this field is always disclosed in cross-realm scenarios
     private Set<SpaceRole> spaceRoles;
+
+    // groups where client is a member, without members list
+    private Set<Group> groups;
 
     // we don't support account enabled/disabled
     // TODO implement as ENUM
@@ -200,4 +204,18 @@ public class ClientDetails {
         this.spaceRoles = new HashSet<>();
         spaceRoles.addAll(rr);
     }
+
+    /*
+     * Groups
+     */
+
+    public Set<Group> getGroups() {
+        return groups;
+    }
+
+    public void setGroups(Collection<Group> groups) {
+        this.groups = new HashSet<>();
+        this.groups.addAll(groups);
+    }
+
 }

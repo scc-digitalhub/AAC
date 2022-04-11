@@ -1,0 +1,143 @@
+/*******************************************************************************
+ * Copyright 2015 Fondazione Bruno Kessler
+ * 
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ * 
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ ******************************************************************************/
+
+package it.smartcommunitylab.aac.groups.persistence;
+
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
+import javax.validation.constraints.NotNull;
+
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+/**
+ * @author raman
+ *
+ */
+@Entity
+@Table(name = "groups", uniqueConstraints = @UniqueConstraint(columnNames = { "realm", "group_key" }))
+@EntityListeners(AuditingEntityListener.class)
+public class GroupEntity {
+
+    public static final String ID_PREFIX = "g_";
+
+    /*
+     * UUID is system-wide auto-generated id
+     */
+    @Id
+    @NotNull
+    @Column(unique = true)
+    private String uuid;
+
+    @NotNull
+    private String realm;
+
+    /*
+     * group is user-defined key, unique per realm
+     */
+    @NotNull
+    @Column(name = "group_key", unique = true)
+    private String group;
+
+    /*
+     * parent group supports hierarchy, refers to group key
+     */
+    @Column(name = "parent_group")
+    private String parentGroup;
+
+    private String name;
+    private String description;
+
+    @CreatedDate
+    @Column(name = "created_date")
+    private Date createDate;
+
+    @LastModifiedDate
+    @Column(name = "last_modified_date")
+    private Date modifiedDate;
+
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
+
+    public String getRealm() {
+        return realm;
+    }
+
+    public void setRealm(String realm) {
+        this.realm = realm;
+    }
+
+    public String getGroup() {
+        return group;
+    }
+
+    public void setGroup(String group) {
+        this.group = group;
+    }
+
+    public String getParentGroup() {
+        return parentGroup;
+    }
+
+    public void setParentGroup(String parentGroup) {
+        this.parentGroup = parentGroup;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public Date getCreateDate() {
+        return createDate;
+    }
+
+    public void setCreateDate(Date createDate) {
+        this.createDate = createDate;
+    }
+
+    public Date getModifiedDate() {
+        return modifiedDate;
+    }
+
+    public void setModifiedDate(Date modifiedDate) {
+        this.modifiedDate = modifiedDate;
+
+    }
+}

@@ -17,6 +17,7 @@ var app = angular.module('dev', [
     'aac.controllers.realmaudit',
     'aac.controllers.rolespaces',
     'aac.controllers.realmroles',
+    'aac.controllers.realmgroups',
     'aac.controllers.realmattributesets',
     'ui.ace',
     'ngSanitize'
@@ -177,6 +178,16 @@ app.config(function ($stateProvider) {
             templateUrl: 'html/rolespaces.html',
             controller: 'RoleSpaceController',
         })
+        .state('realm.groups', {
+            url: '/groups',
+            templateUrl: 'html/realm.groups.html',
+            controller: 'RealmGroupsController',
+        })
+        .state('realm.group', {
+            url: '/group?groupId',
+            templateUrl: 'html/realm.group.html',
+            controller: 'RealmGroupController',
+        })        
         .state('home', {
             url: '',
             controller: 'HomeController',

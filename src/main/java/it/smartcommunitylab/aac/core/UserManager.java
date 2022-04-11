@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
@@ -58,7 +59,9 @@ import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.dto.ConnectedAppProfile;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.model.Group;
 import it.smartcommunitylab.aac.model.Realm;
+import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.store.ExtTokenStore;
 import it.smartcommunitylab.aac.oauth.store.SearchableApprovalStore;
@@ -172,6 +175,21 @@ public class UserManager {
         return userService.searchUsers(r.getSlug(), keywords, pageRequest);
     }
 
+    @Transactional(readOnly = true)
+    public Page<User> searchUsersWithSpec(String realm, Specification<UserEntity> spec, Pageable pageRequest)
+            throws NoSuchRealmException {
+        logger.debug("search users for realm {} with spec {}", realm, String.valueOf(spec));
+        Realm r = realmService.getRealm(realm);
+        return userService.searchUsersWithSpec(r.getSlug(), spec, pageRequest);
+    }
+
+    @Transactional(readOnly = true)
+    public List<User> findUsersByUsername(String realm, String username) throws NoSuchRealmException {
+        logger.debug("search users for realm {} with username {}", realm, username);
+        Realm r = realmService.getRealm(realm);
+        return userService.findUsersByUsername(realm, username);
+    }
+
     /*
      * Authorities
      */
@@ -242,7 +260,7 @@ public class UserManager {
         userService.deleteUser(subjectId);
     }
 
-    public void inviteUser(String realm, String username, String subjectId)
+    public String inviteUser(String realm, String username, String subjectId)
             throws NoSuchRealmException, NoSuchProviderException, RegistrationException, NoSuchUserException {
 
         logger.debug("invite user to realm {}", realm);
@@ -271,6 +289,7 @@ public class UserManager {
             UserIdentity identity = identityService.registerIdentity(null, account, Collections.emptyList());
 //            updateRoles(realm, ((InternalUserAccount) identity.getAccount()).getSubject(), roles);
             logger.debug("invite user new identity {} in realm {}", identity.getUserId(), realm);
+            return identity.getUserId();
         }
 
         if (StringUtils.hasText(subjectId)) {
@@ -278,8 +297,10 @@ public class UserManager {
             if (user == null) {
                 throw new NoSuchUserException("No user with specified subjectId exist");
             }
+            return user.getSubjectId();
 //            updateRoles(realm, subjectId, roles);
         }
+        return null;
     }
 
     @Transactional(readOnly = false)
@@ -718,6 +739,23 @@ public class UserManager {
                     return cp;
                 }).collect(Collectors.toList());
 
+    }
+
+    /*
+     * Roles
+     */
+
+    public Collection<RealmRole> getUserRealmRoles(String realm, String subjectId)
+            throws NoSuchRealmException, NoSuchUserException {
+        return userService.fetchUserRealmRoles(subjectId, realm);
+    }
+
+    /*
+     * Groups
+     */
+    public Collection<Group> getUserGroups(String realm, String subjectId)
+            throws NoSuchRealmException, NoSuchUserException {
+        return userService.fetchUserGroups(subjectId, realm);
     }
 
 }

@@ -58,7 +58,8 @@ public class OAuth2ClientEntity {
     @Column(name = "grant_types")
     private String authorizedGrantTypes;
 
-    @Column(name = "redirect_uris", columnDefinition = "LONGTEXT")
+    @Lob
+    @Column(name = "redirect_uris")
     private String redirectUris;
 
     @Column(name = "authentication_methods")

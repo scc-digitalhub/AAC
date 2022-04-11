@@ -33,7 +33,65 @@ public class SubjectRoleService {
     }
 
     /*
-     * Roles assignment
+     * Roles assignment per role
+     */
+    public String addRoleSubject(String realm, String role, String subjectId) {
+        SubjectRoleEntity sr = rolesRepository.findByRealmAndRoleAndSubject(realm, role, subjectId);
+        if (sr == null) {
+            sr = new SubjectRoleEntity(subjectId);
+            sr.setRealm(realm);
+            sr.setRole(role);
+            sr = rolesRepository.save(sr);
+        }
+
+        return sr.getSubject();
+    }
+
+    @Transactional(readOnly = true)
+    public long countRoleSubjects(String realm, String role) {
+        return rolesRepository.countByRealmAndRole(realm, role);
+    }
+
+    @Transactional(readOnly = true)
+    public Collection<String> getRoleSubjects(String realm, String role) {
+        return rolesRepository.findByRealmAndRole(realm, role).stream()
+                .map(m -> m.getSubject())
+                .collect(Collectors.toList());
+    }
+
+    public Collection<String> setRoleSubjects(String realm, String role, Collection<String> subjects) {
+        // fetch current
+        List<SubjectRoleEntity> oldSubjects = rolesRepository.findByRealmAndRole(realm, role);
+
+        // unpack and merge
+        Set<SubjectRoleEntity> newSubjects = subjects.stream().map(s -> {
+            SubjectRoleEntity gm = new SubjectRoleEntity(s);
+            gm.setRealm(realm);
+            gm.setRole(role);
+            return gm;
+        }).collect(Collectors.toSet());
+
+        Set<SubjectRoleEntity> toDelete = oldSubjects.stream().filter(sr -> !newSubjects.contains(sr))
+                .collect(Collectors.toSet());
+        Set<SubjectRoleEntity> toAdd = newSubjects.stream().filter(sr -> !oldSubjects.contains(sr))
+                .collect(Collectors.toSet());
+
+        // update
+        rolesRepository.deleteInBatch(toDelete);
+        rolesRepository.saveAll(toAdd);
+
+        return getRoleSubjects(realm, role);
+    }
+
+    public void removeRoleSubject(String realm, String role, String subjectId) {
+        SubjectRoleEntity sr = rolesRepository.findByRealmAndRoleAndSubject(realm, role, subjectId);
+        if (sr != null) {
+            rolesRepository.delete(sr);
+        }
+    }
+
+    /*
+     * Roles assignment per subject
      */
     @Transactional(readOnly = true)
     public Collection<RealmRole> getRoles(String subjectId) {

@@ -1,0 +1,127 @@
+<div class="pt-3 mb-5">
+
+    <fieldset>
+        <legend class="mb-4">
+            Group members
+            <small class="form-text">
+                Manually manage user/client memberships.
+            </small>
+        </legend>
+
+        <div class="row">
+            <div class="col col-12 text-right">
+                <button class="btn btn-primary text-right" type="button" ng-click="createMemberDlg()">
+                    <svg class="icon icon-sm icon-white">
+                        <use xlink:href="./italia/svg/sprite.svg#it-plus"></use>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <table class="table table-sm table-hover border-bottom" ng-if="members && members.length > 0">
+                    <tr ng-repeat="member in members">
+
+                        <td class="align-middle">
+                            <div class="avatar-wrapper avatar-extra-text">
+                                <div ng-if="member.icon" class="avatar size-lg">
+                                    <svg aria-hidden="true" class="icon icon-secondary">
+                                        <use xlink:href="{{member.icon}}"></use>
+                                    </svg>
+                                </div>
+                                <div class="extra-text">
+                                    <span class="h6">{{member.name}}</span>
+                                    <br> <small class="text-muted"> {{member.type}} </small>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td class="align-middle">
+                            ID <span class="small text-monospace bg-light pl-1 pr-1">{{member.subjectId}}</span>
+                            <button class="btn btn-xs btn-link p-0 pb-1" ng-click="copyText(member.subjectId)">
+                                <svg class="icon icon-xs icon-primary">
+                                    <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
+                                </svg>
+                            </button>
+                        </td>
+                        <td class="text-right">
+                            <button class="btn btn-danger btn-sm" ng-click="removeMember(member)">Delete</button>
+                        </td>
+                    </tr>
+                </table>
+                <p ng-if="!members || members.length == 0">No members defined</p>
+
+            </div>
+        </div>
+
+    </fieldset>
+</div>
+
+
+
+
+<div class="modal fade bs-modal-lg" id="memberModal" tabindex="-1" role="dialog" aria-labelledby="memberModal"
+    aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h3 class="modal-title" id="modal-title">Add group member</h3>
+            </div>
+            <form class="needs-validation was-validated" novalidate name="memberForm">
+                <div class="modal-body" id="modal-body">
+                    <div class="form-group">
+                        <label for="slug">Subject*</label>
+                        <input type="text" class="form-control form-control-sm" id="subjectId"
+                            ng-model="modMember.subjectId" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="search" class="autocomplete" placeholder="search" id="search"
+                            ng-model="modMember.search" ng-change="searchSubjects()" autocomplete="off">
+                        <span class="autocomplete-icon" aria-hidden="true">
+                            <svg class="icon icon-sm">
+                                <use xlink:href="./italia/svg/sprite.svg#it-search"></use>
+                            </svg>
+                        </span>
+                        <label for="search" class="sr-only">Search</label>
+                    </div>
+                    <div>
+                        <table class="table table-sm table-hover border-bottom"
+                            ng-if="modMember.results && modMember.results.length > 0">
+                            <tr ng-repeat="item in modMember.results">
+
+                                <td class="align-middle">
+                                    <div class="avatar-wrapper avatar-extra-text">
+                                        <div ng-if="item.icon" class="avatar size-lg">
+                                            <svg aria-hidden="true" class="icon icon-secondary">
+                                                <use xlink:href="{{item.icon}}"></use>
+                                            </svg>
+                                        </div>
+                                        <div class="extra-text">
+                                            <span class="h6">{{item.name}}</span>
+                                            <br> <span
+                                                class="small text-monospace bg-light pl-1 pr-1">{{item.subjectId}}</span>
+                                            <br> <small class="text-muted"> {{item.type}} </small>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td class="text-right">
+                                    <button class="btn btn-secondary btn-sm"
+                                        ng-click="(modMember.subjectId = item.subjectId)">Select</button>
+                                </td>
+                            </tr>
+                        </table>
+                        <p ng-if="modMember.search && (!modMember.results || modMember.results.length == 0)">No results
+                        </p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-default" type="button" data-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary" type="button" ng-click="saveMember()"
+                        ng-disabled="memberForm.$invalid">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
