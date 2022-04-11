@@ -8,9 +8,11 @@ import org.springframework.security.core.AuthenticationException;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
+import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 
-public abstract class ExtendedAuthenticationProvider extends AbstractProvider
+public abstract class ExtendedAuthenticationProvider<P extends UserAuthenticatedPrincipal, A extends UserAccount>
+        extends AbstractProvider
         implements AuthenticationProvider {
 
     public ExtendedAuthenticationProvider(String authority, String provider, String realm) {
@@ -34,7 +36,7 @@ public abstract class ExtendedAuthenticationProvider extends AbstractProvider
         // TODO implement postAuthChecks
 
         // we expect a fully populated user principal
-        UserAuthenticatedPrincipal principal = createUserPrincipal(authResponse.getPrincipal());
+        P principal = createUserPrincipal(authResponse.getPrincipal());
 
         // create the ext token
         // subclasses could re-implement the method
@@ -46,14 +48,14 @@ public abstract class ExtendedAuthenticationProvider extends AbstractProvider
     // subclasses need to implement this, they should have the knowledge
     protected abstract Authentication doAuthenticate(Authentication authentication);
 
-    protected abstract UserAuthenticatedPrincipal createUserPrincipal(Object principal);
+    protected abstract P createUserPrincipal(Object principal);
 
     protected Instant expiresAt(Authentication authentication) {
-        // default to not expiration set
+        // default to no expiration set
         return null;
     }
 
-    protected ExtendedAuthenticationToken createExtendedAuthentication(UserAuthenticatedPrincipal principal,
+    protected ExtendedAuthenticationToken createExtendedAuthentication(P principal,
             Authentication authentication) {
         // build the token with both the extracted userPrincipal and the original auth
         // note that the token could contain the original credentials

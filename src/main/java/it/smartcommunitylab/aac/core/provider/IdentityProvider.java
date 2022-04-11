@@ -5,7 +5,7 @@ import java.util.Map;
 
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
-import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
+import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 
@@ -16,7 +16,8 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
  * At minimum, we expect every provider to fulfill core attribute sets (basic, email, openid, account).
  */
 
-public interface IdentityProvider extends ResourceProvider {
+public interface IdentityProvider<I extends UserIdentity, A extends UserAccount, P extends UserAuthenticatedPrincipal>
+        extends ResourceProvider {
 
     public static final String ATTRIBUTE_MAPPING_FUNCTION = "attributeMapping";
 
@@ -32,20 +33,20 @@ public interface IdentityProvider extends ResourceProvider {
     /*
      * auth provider
      */
-    public ExtendedAuthenticationProvider getAuthenticationProvider();
+    public ExtendedAuthenticationProvider<P, A> getAuthenticationProvider();
 
     /*
      * internal providers
      */
-    public AccountProvider getAccountProvider();
+    public AccountProvider<A> getAccountProvider();
 
-    public AttributeProvider getAttributeProvider();
+    public IdentityAttributeProvider<P, A> getAttributeProvider();
 
     /*
      * subjects are global, we can resolve
      */
 
-    public SubjectResolver getSubjectResolver();
+    public SubjectResolver<A> getSubjectResolver();
 
     /*
      * convert identities from authenticatedPrincipal. Used for login only.
@@ -53,7 +54,7 @@ public interface IdentityProvider extends ResourceProvider {
      * If given a subjectId the provider should update the account
      */
 
-    public UserIdentity convertIdentity(UserAuthenticatedPrincipal principal, String userId)
+    public I convertIdentity(P principal, String userId)
             throws NoSuchUserException;
 
     /*
@@ -63,9 +64,9 @@ public interface IdentityProvider extends ResourceProvider {
      */
 
     // identityId is provider-specific
-    public UserIdentity getIdentity(String identityId) throws NoSuchUserException;
+    public I getIdentity(String identityId) throws NoSuchUserException;
 
-    public UserIdentity getIdentity(String identityId, boolean fetchAttributes)
+    public I getIdentity(String identityId, boolean fetchAttributes)
             throws NoSuchUserException;
 
     /*
@@ -78,9 +79,9 @@ public interface IdentityProvider extends ResourceProvider {
      * outside the login flow!
      */
 
-    public Collection<? extends UserIdentity> listIdentities(String userId);
+    public Collection<I> listIdentities(String userId);
 
-    public Collection<? extends UserIdentity> listIdentities(String userId, boolean fetchAttributes);
+    public Collection<I> listIdentities(String userId, boolean fetchAttributes);
 
     /*
      * Delete accounts.

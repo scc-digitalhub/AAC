@@ -101,12 +101,12 @@ public interface AttributeProvider extends ResourceProvider {
     // supported, if available
     public Collection<UserAttributes> getUserAttributes(String userId);
 
-    public Collection<UserAttributes> getAccountAttributes(String id);
+//    public Collection<UserAttributes> getAccountAttributes(String id);
 
 //    public UserAttributes getUserAttributes(String userId, String setId) throws NoSuchUserException;
 
     public void deleteUserAttributes(String userId);
 
-    public void deleteAccountAttributes(String id);
+//    public void deleteAccountAttributes(String id);
 
 }
