@@ -31,19 +31,19 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
-import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.spid.auth.SpidAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.spid.auth.SpidAuthenticationException;
 import it.smartcommunitylab.aac.spid.auth.SpidResponseValidator;
 import it.smartcommunitylab.aac.spid.model.SpidAttribute;
 import it.smartcommunitylab.aac.spid.model.SpidError;
+import it.smartcommunitylab.aac.spid.persistence.SpidUserAccount;
 
-public class SpidAuthenticationProvider extends ExtendedAuthenticationProvider {
+public class SpidAuthenticationProvider
+        extends ExtendedAuthenticationProvider<SpidAuthenticatedPrincipal, SpidUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final static String SUBJECT_ATTRIBUTE = "subject";
 
-    private final SpidIdentityProviderConfig config;
     private final String usernameAttributeName;
     private final boolean useSpidCodeAsNameId;
 
@@ -57,8 +57,6 @@ public class SpidAuthenticationProvider extends ExtendedAuthenticationProvider {
             String realm) {
         super(SystemKeys.AUTHORITY_SPID, providerId, realm);
         Assert.notNull(config, "provider config is mandatory");
-
-        this.config = config;
 
         this.useSpidCodeAsNameId = config.getConfigMap().getUseSpidCodeAsNameId() != null
                 ? config.getConfigMap().getUseSpidCodeAsNameId().booleanValue()
@@ -164,7 +162,7 @@ public class SpidAuthenticationProvider extends ExtendedAuthenticationProvider {
     }
 
     @Override
-    protected UserAuthenticatedPrincipal createUserPrincipal(Object principal) {
+    protected SpidAuthenticatedPrincipal createUserPrincipal(Object principal) {
         // we need to unpack token and fetch properties from repo
         // note we expect default behavior, if provider has a converter this will break
         Saml2AuthenticatedPrincipal samlDetails = (Saml2AuthenticatedPrincipal) principal;

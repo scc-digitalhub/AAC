@@ -22,7 +22,7 @@ import it.smartcommunitylab.aac.spid.persistence.SpidUserAccountId;
 import it.smartcommunitylab.aac.spid.persistence.SpidUserAccountRepository;
 
 @Transactional
-public class SpidAccountProvider extends AbstractProvider implements AccountProvider {
+public class SpidAccountProvider extends AbstractProvider implements AccountProvider<SpidUserAccount> {
 
     private final SpidUserAccountRepository accountRepository;
     private final SpidIdentityProviderConfig config;

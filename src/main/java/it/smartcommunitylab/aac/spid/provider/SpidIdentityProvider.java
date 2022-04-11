@@ -17,7 +17,6 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.spid.SpidIdentityAuthority;
 import it.smartcommunitylab.aac.spid.attributes.SpidAttributesMapper;
@@ -27,7 +26,8 @@ import it.smartcommunitylab.aac.spid.model.SpidUserIdentity;
 import it.smartcommunitylab.aac.spid.persistence.SpidUserAccount;
 import it.smartcommunitylab.aac.spid.persistence.SpidUserAccountRepository;
 
-public class SpidIdentityProvider extends AbstractProvider implements IdentityProvider {
+public class SpidIdentityProvider extends AbstractProvider
+        implements IdentityProvider<SpidUserIdentity, SpidUserAccount, SpidAuthenticatedPrincipal> {
 
     // provider configuration
     private final SpidIdentityProviderConfig config;
@@ -59,7 +59,7 @@ public class SpidIdentityProvider extends AbstractProvider implements IdentityPr
 
         // build resource providers, we use our providerId to ensure consistency
         this.accountProvider = new SpidAccountProvider(providerId, accountRepository, config, realm);
-        this.attributeProvider = new SpidAttributeProvider(providerId, accountRepository, config, realm);
+        this.attributeProvider = new SpidAttributeProvider(providerId, config, realm);
         this.authenticationProvider = new SpidAuthenticationProvider(providerId, config, realm);
         this.subjectResolver = new SpidSubjectResolver(providerId, accountRepository, config, realm);
 
@@ -98,18 +98,17 @@ public class SpidIdentityProvider extends AbstractProvider implements IdentityPr
 
     @Override
     @Transactional(readOnly = false)
-    public SpidUserIdentity convertIdentity(UserAuthenticatedPrincipal userPrincipal, String userId)
+    public SpidUserIdentity convertIdentity(SpidAuthenticatedPrincipal principal, String userId)
             throws NoSuchUserException {
-        // we expect an instance of our model
-        Assert.isInstanceOf(SpidAuthenticatedPrincipal.class, userPrincipal,
-                "principal must be an instance of internal authenticated principal");
-        SpidAuthenticatedPrincipal principal = (SpidAuthenticatedPrincipal) userPrincipal;
+//        // we expect an instance of our model
+//        Assert.isInstanceOf(SpidAuthenticatedPrincipal.class, userPrincipal,
+//                "principal must be an instance of internal authenticated principal");
+//        SpidAuthenticatedPrincipal principal = (SpidAuthenticatedPrincipal) userPrincipal;
 
         // we use upstream subjectId for accounts
         // NOTE: spid nameId is transient, so each login will result in a new
         // registration, unless provider is configured to use spidCode as userId
         String subjectId = principal.getSubjectId();
-        String provider = getProvider();
 
         // attributes from provider
         String username = principal.getUsername();
@@ -194,7 +193,8 @@ public class SpidIdentityProvider extends AbstractProvider implements IdentityPr
         // convert attribute sets via provider
         // attributes are not persisted as default policy
         // TODO evaluate an in-memory,per-session attribute store
-        Collection<UserAttributes> identityAttributes = attributeProvider.convertPrincipalAttributes(principal, userId);
+        Collection<UserAttributes> identityAttributes = attributeProvider.convertPrincipalAttributes(principal,
+                account);
 
         // build identity
         SpidUserIdentity identity = new SpidUserIdentity(getProvider(), getRealm(), account, principal);
@@ -220,7 +220,7 @@ public class SpidIdentityProvider extends AbstractProvider implements IdentityPr
         SpidUserIdentity identity = new SpidUserIdentity(getProvider(), getRealm(), account);
         if (fetchAttributes) {
             // convert attribute sets
-            Collection<UserAttributes> identityAttributes = attributeProvider.getAccountAttributes(subjectId);
+            Collection<UserAttributes> identityAttributes = attributeProvider.getAccountAttributes(account);
             identity.setAttributes(identityAttributes);
         }
 
@@ -250,8 +250,7 @@ public class SpidIdentityProvider extends AbstractProvider implements IdentityPr
             SpidUserIdentity identity = new SpidUserIdentity(getProvider(), getRealm(), account);
             if (fetchAttributes) {
                 // convert attribute sets
-                Collection<UserAttributes> identityAttributes = attributeProvider
-                        .getAccountAttributes(account.getSubjectId());
+                Collection<UserAttributes> identityAttributes = attributeProvider.getAccountAttributes(account);
                 identity.setAttributes(identityAttributes);
             }
 

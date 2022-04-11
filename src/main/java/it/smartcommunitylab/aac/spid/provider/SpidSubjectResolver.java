@@ -13,7 +13,7 @@ import it.smartcommunitylab.aac.spid.persistence.SpidUserAccountId;
 import it.smartcommunitylab.aac.spid.persistence.SpidUserAccountRepository;
 
 @Transactional
-public class SpidSubjectResolver extends AbstractProvider implements SubjectResolver {
+public class SpidSubjectResolver extends AbstractProvider implements SubjectResolver<SpidUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final SpidUserAccountRepository accountRepository;

@@ -3,14 +3,9 @@ package it.smartcommunitylab.aac.spid.provider;
 import java.io.Serializable;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang.ArrayUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -21,101 +16,37 @@ import it.smartcommunitylab.aac.attributes.EmailAttributesSet;
 import it.smartcommunitylab.aac.attributes.OpenIdAttributesSet;
 import it.smartcommunitylab.aac.attributes.mapper.OpenIdAttributesMapper;
 import it.smartcommunitylab.aac.attributes.model.StringAttribute;
-import it.smartcommunitylab.aac.core.base.AbstractProvider;
+import it.smartcommunitylab.aac.core.base.AbstractIdentityAttributeProvider;
 import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.spid.attributes.SpidAttributesMapper;
 import it.smartcommunitylab.aac.spid.auth.SpidAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.spid.persistence.SpidUserAccount;
-import it.smartcommunitylab.aac.spid.persistence.SpidUserAccountId;
-import it.smartcommunitylab.aac.spid.persistence.SpidUserAccountRepository;
 
-public class SpidAttributeProvider extends AbstractProvider implements AttributeProvider {
-
-    // services
-    private final SpidUserAccountRepository accountRepository;
-    private final SpidIdentityProviderConfig providerConfig;
+public class SpidAttributeProvider
+        extends AbstractIdentityAttributeProvider<SpidAuthenticatedPrincipal, SpidUserAccount> {
 
     private final OpenIdAttributesMapper openidMapper;
     private final SpidAttributesMapper spidMapper;
 
     public SpidAttributeProvider(
             String providerId,
-            SpidUserAccountRepository accountRepository,
             SpidIdentityProviderConfig providerConfig,
             String realm) {
         super(SystemKeys.AUTHORITY_SPID, providerId, realm);
-        Assert.notNull(accountRepository, "account repository is mandatory");
         Assert.notNull(providerConfig, "provider config is mandatory");
-
-        this.accountRepository = accountRepository;
-        this.providerConfig = providerConfig;
 
         // attributes
         openidMapper = new OpenIdAttributesMapper();
         spidMapper = new SpidAttributesMapper();
+
+        // make sure store is disabled
+        this.attributeStore = null;
     }
 
     @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_ATTRIBUTES;
-    }
-
-    @Override
-    public String getName() {
-        return providerConfig.getName();
-    }
-
-    @Override
-    public String getDescription() {
-        return providerConfig.getDescription();
-    }
-
-    @Override
-    public Collection<UserAttributes> convertPrincipalAttributes(UserAuthenticatedPrincipal principal,
-            String userId) {
-        // we expect an instance of our model
-        if (!(principal instanceof SpidAuthenticatedPrincipal)) {
-            return null;
-        }
-        SpidAuthenticatedPrincipal user = (SpidAuthenticatedPrincipal) principal;
-        String subjectId = user.getSubjectId();
-        String provider = getProvider();
-
-        Map<String, Serializable> attributes = user.getAttributes();
-
-        SpidUserAccount account = accountRepository.findOne(new SpidUserAccountId(provider, subjectId));
-        if (account == null) {
-            return null;
-        }
-
-        // get all attributes from principal except jwt attrs
-        // TODO handle all attributes not only strings.
-        Map<String, Serializable> principalAttributes = attributes.entrySet().stream()
-                .filter(e -> !ArrayUtils.contains(SpidIdentityProvider.SAML_ATTRIBUTES, e.getKey()))
-                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
-
-        return extractUserAttributes(account, principalAttributes);
-
-    }
-
-    @Override
-    public Collection<UserAttributes> getUserAttributes(String userId) {
-        // nothing is accessible here by user, only by account
-        return null;
-    }
-
-    @Override
-    public Collection<UserAttributes> getAccountAttributes(String subjectId) {
-        // attributes are not persisted as default policy
-        // TODO evaluate an in-memory,per-session attribute store
-        return Collections.emptyList();
-    }
-
-    private List<UserAttributes> extractUserAttributes(SpidUserAccount account,
+    protected List<UserAttributes> extractUserAttributes(SpidUserAccount account,
             Map<String, Serializable> principalAttributes) {
         List<UserAttributes> attributes = new ArrayList<>();
         // user identifier
@@ -189,17 +120,6 @@ public class SpidAttributeProvider extends AbstractProvider implements Attribute
         }
 
         return attributes;
-    }
-
-    @Override
-    public void deleteUserAttributes(String userId) {
-        // nothing to do
-    }
-
-    @Override
-    public void deleteAccountAttributes(String subjectId) {
-        // attributes are not persisted as default policy
-        // TODO evaluate an in-memory,per-session attribute store;
     }
 
 }
