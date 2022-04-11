@@ -30,7 +30,8 @@ import it.smartcommunitylab.aac.openid.model.OIDCUserIdentity;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
 
-public class OIDCIdentityProvider extends AbstractProvider implements IdentityProvider {
+public class OIDCIdentityProvider extends AbstractProvider
+        implements IdentityProvider<OIDCUserIdentity, OIDCUserAccount, OIDCUserAuthenticatedPrincipal> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // provider configuration
@@ -72,7 +73,7 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentityPr
 
         // build resource providers, we use our providerId to ensure consistency
         this.accountProvider = new OIDCAccountProvider(authority, providerId, accountRepository, config, realm);
-        this.attributeProvider = new OIDCAttributeProvider(authority, providerId, accountRepository, attributeStore,
+        this.attributeProvider = new OIDCAttributeProvider(authority, providerId, attributeStore,
                 config,
                 realm);
         this.authenticationProvider = new OIDCAuthenticationProvider(authority, providerId, accountRepository, config,
@@ -121,12 +122,12 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentityPr
 
     @Override
     @Transactional(readOnly = false)
-    public OIDCUserIdentity convertIdentity(UserAuthenticatedPrincipal userPrincipal, String userId)
+    public OIDCUserIdentity convertIdentity(OIDCUserAuthenticatedPrincipal principal, String userId)
             throws NoSuchUserException {
-        // we expect an instance of our model
-        Assert.isInstanceOf(OIDCUserAuthenticatedPrincipal.class, userPrincipal,
-                "principal must be an instance of internal authenticated principal");
-        OIDCUserAuthenticatedPrincipal principal = (OIDCUserAuthenticatedPrincipal) userPrincipal;
+//        // we expect an instance of our model
+//        Assert.isInstanceOf(OIDCUserAuthenticatedPrincipal.class, userPrincipal,
+//                "principal must be an instance of internal authenticated principal");
+//        OIDCUserAuthenticatedPrincipal principal = (OIDCUserAuthenticatedPrincipal) userPrincipal;
 
         // we use upstream subject for accounts
         String subject = principal.getSubject();
@@ -226,7 +227,8 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentityPr
         account = accountProvider.updateAccount(subject, account);
 
         // convert attribute sets via provider, will update store
-        Collection<UserAttributes> identityAttributes = attributeProvider.convertPrincipalAttributes(principal, userId);
+        Collection<UserAttributes> identityAttributes = attributeProvider.convertPrincipalAttributes(principal,
+                account);
 
         // build identity
         OIDCUserIdentity identity = new OIDCUserIdentity(getAuthority(), getProvider(), getRealm(), account, principal);
@@ -252,7 +254,7 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentityPr
         OIDCUserIdentity identity = new OIDCUserIdentity(getAuthority(), getProvider(), getRealm(), account);
         if (fetchAttributes) {
             // convert attribute sets
-            Collection<UserAttributes> identityAttributes = attributeProvider.getAccountAttributes(subject);
+            Collection<UserAttributes> identityAttributes = attributeProvider.getAccountAttributes(account);
             identity.setAttributes(identityAttributes);
         }
 
@@ -282,8 +284,7 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentityPr
             OIDCUserIdentity identity = new OIDCUserIdentity(getAuthority(), getProvider(), getRealm(), account);
             if (fetchAttributes) {
                 // convert attribute sets
-                Collection<UserAttributes> identityAttributes = attributeProvider
-                        .getAccountAttributes(account.getSubject());
+                Collection<UserAttributes> identityAttributes = attributeProvider.getAccountAttributes(account);
                 identity.setAttributes(identityAttributes);
             }
 

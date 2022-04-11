@@ -63,8 +63,8 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
     }
 
     @Transactional(readOnly = true)
-    public OIDCUserAccount getAccount(String sub) throws NoSuchUserException {
-        OIDCUserAccount account = findAccountBySub(sub);
+    public OIDCUserAccount getAccount(String subject) throws NoSuchUserException {
+        OIDCUserAccount account = findAccountBySubject(subject);
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -73,15 +73,15 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
     }
 
     @Transactional(readOnly = true)
-    public OIDCUserAccount findAccount(String sub) {
-        return findAccountBySub(sub);
+    public OIDCUserAccount findAccount(String subject) {
+        return findAccountBySubject(subject);
     }
 
     @Transactional(readOnly = true)
-    public OIDCUserAccount findAccountBySub(String sub) {
+    public OIDCUserAccount findAccountBySubject(String subject) {
         String provider = getProvider();
 
-        OIDCUserAccount account = accountRepository.findOne(new OIDCUserAccountId(provider, sub));
+        OIDCUserAccount account = accountRepository.findOne(new OIDCUserAccountId(provider, subject));
         if (account == null) {
             return null;
         }
@@ -138,8 +138,8 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
 //    }
 
     @Override
-    public void deleteAccount(String sub) throws NoSuchUserException {
-        OIDCUserAccount account = findAccountBySub(sub);
+    public void deleteAccount(String subject) throws NoSuchUserException {
+        OIDCUserAccount account = findAccountBySubject(subject);
 
         if (account != null) {
             accountRepository.delete(account);
@@ -147,17 +147,17 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
     }
 
     @Override
-    public OIDCUserAccount lockAccount(String sub) throws NoSuchUserException, RegistrationException {
-        return updateStatus(sub, UserStatus.LOCKED);
+    public OIDCUserAccount lockAccount(String subject) throws NoSuchUserException, RegistrationException {
+        return updateStatus(subject, UserStatus.LOCKED);
     }
 
     @Override
-    public OIDCUserAccount unlockAccount(String sub) throws NoSuchUserException, RegistrationException {
-        return updateStatus(sub, UserStatus.ACTIVE);
+    public OIDCUserAccount unlockAccount(String subject) throws NoSuchUserException, RegistrationException {
+        return updateStatus(subject, UserStatus.ACTIVE);
     }
 
     @Override
-    public OIDCUserAccount linkAccount(String sub, String userId)
+    public OIDCUserAccount linkAccount(String subject, String userId)
             throws NoSuchUserException, RegistrationException {
 
         // we expect subject to be valid
@@ -167,7 +167,7 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
 
         String provider = getProvider();
 
-        OIDCUserAccount account = accountRepository.findOne(new OIDCUserAccountId(provider, sub));
+        OIDCUserAccount account = accountRepository.findOne(new OIDCUserAccountId(provider, subject));
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -202,8 +202,8 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
         }
 
         // check if already registered
-        String sub = clean(reg.getSubject());
-        OIDCUserAccount account = accountRepository.findOne(new OIDCUserAccountId(provider, sub));
+        String subject = clean(reg.getSubject());
+        OIDCUserAccount account = accountRepository.findOne(new OIDCUserAccountId(provider, subject));
         if (account != null) {
             throw new AlreadyRegisteredException("duplicate-registration");
         }
@@ -215,8 +215,8 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
         String username = clean(reg.getUsername());
 
         // validate
-        if (!StringUtils.hasText(sub)) {
-            throw new RegistrationException("missing-sub");
+        if (!StringUtils.hasText(subject)) {
+            throw new RegistrationException("missing-subject");
         }
         if (!StringUtils.hasText(email) && config.requireEmailAddress()) {
             throw new RegistrationException("missing-email");
@@ -233,7 +233,7 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
 
         account = new OIDCUserAccount(getAuthority());
         account.setProvider(provider);
-        account.setSubject(sub);
+        account.setSubject(subject);
 
         account.setUserId(userId);
         account.setRealm(realm);
@@ -255,11 +255,11 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
         return accountRepository.detach(account);
     }
 
-    public OIDCUserAccount updateAccount(String sub, OIDCUserAccount reg)
+    public OIDCUserAccount updateAccount(String subject, OIDCUserAccount reg)
             throws NoSuchUserException, RegistrationException {
         String provider = getProvider();
 
-        OIDCUserAccount account = accountRepository.findOne(new OIDCUserAccountId(provider, sub));
+        OIDCUserAccount account = accountRepository.findOne(new OIDCUserAccountId(provider, subject));
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -305,11 +305,11 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
         return accountRepository.detach(account);
     }
 
-    private OIDCUserAccount updateStatus(String sub, UserStatus newStatus)
+    private OIDCUserAccount updateStatus(String subject, UserStatus newStatus)
             throws NoSuchUserException, RegistrationException {
         String provider = getProvider();
 
-        OIDCUserAccount account = accountRepository.findOne(new OIDCUserAccountId(provider, sub));
+        OIDCUserAccount account = accountRepository.findOne(new OIDCUserAccountId(provider, subject));
         if (account == null) {
             throw new NoSuchUserException();
         }

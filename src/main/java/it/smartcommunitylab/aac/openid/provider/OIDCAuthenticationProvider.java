@@ -47,7 +47,8 @@ import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountId;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
 
-public class OIDCAuthenticationProvider extends ExtendedAuthenticationProvider {
+public class OIDCAuthenticationProvider
+        extends ExtendedAuthenticationProvider<OIDCUserAuthenticatedPrincipal, OIDCUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final OIDCUserAccountRepository accountRepository;

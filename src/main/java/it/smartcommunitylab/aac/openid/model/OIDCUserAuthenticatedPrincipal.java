@@ -3,7 +3,7 @@ package it.smartcommunitylab.aac.openid.model;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
-
+import org.apache.commons.lang.ArrayUtils;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.util.Assert;
@@ -12,6 +12,7 @@ import org.springframework.util.StringUtils;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.OpenIdAttributesSet;
 import it.smartcommunitylab.aac.core.base.AbstractAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProvider;
 
 public class OIDCUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincipal {
 
@@ -76,26 +77,34 @@ public class OIDCUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
         Map<String, Serializable> result = new HashMap<>();
 
         if (principal != null) {
-            Map<String, Object> oauthAttributes = principal.getAttributes();
-
             // map only string attributes
             // TODO implement a mapper via script handling a json representation without
             // security related attributes
-            for (Map.Entry<String, Object> e : oauthAttributes.entrySet()) {
-                result.putIfAbsent(e.getKey(), e.getValue().toString());
-            }
+            principal.getAttributes().entrySet().stream()
+                    .filter(e -> !ArrayUtils.contains(OIDCIdentityProvider.JWT_ATTRIBUTES, e.getKey()))
+                    .filter(e -> (e.getValue() != null))
+                    .forEach(e -> {
+                        // put if absent to pick only first value when repeated
+                        // TODO handle full mapping
+                        result.putIfAbsent(e.getKey(), e.getValue().toString());
+                    });
 
             if (isOidcUser()) {
-                Map<String, Object> claims = ((OidcUser) principal).getClaims();
-                for (Map.Entry<String, Object> e : claims.entrySet()) {
-                    result.putIfAbsent(e.getKey(), e.getValue().toString());
-                }
+                ((OidcUser) principal).getClaims()
+                        .entrySet().stream()
+                        .filter(e -> !ArrayUtils.contains(OIDCIdentityProvider.JWT_ATTRIBUTES, e.getKey()))
+                        .filter(e -> (e.getValue() != null))
+                        .forEach(e -> {
+                            // put if absent to pick only first value when repeated
+                            // TODO handle full mapping
+                            result.putIfAbsent(e.getKey(), e.getValue().toString());
+                        });
             }
         }
 
         if (attributes != null) {
             // local attributes overwrite oauth attributes when set
-            attributes.entrySet().forEach(e -> result.putIfAbsent(e.getKey(), e.getValue()));
+            attributes.entrySet().forEach(e -> result.put(e.getKey(), e.getValue()));
         }
 
         // make sure these are never overridden

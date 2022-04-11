@@ -2,18 +2,10 @@ package it.smartcommunitylab.aac.openid.provider;
 
 import java.io.Serializable;
 import java.text.ParseException;
-import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang.ArrayUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -25,123 +17,44 @@ import it.smartcommunitylab.aac.attributes.OpenIdAttributesSet;
 import it.smartcommunitylab.aac.attributes.mapper.OpenIdAttributesMapper;
 import it.smartcommunitylab.aac.attributes.model.StringAttribute;
 import it.smartcommunitylab.aac.attributes.store.AttributeStore;
-import it.smartcommunitylab.aac.core.base.AbstractProvider;
+import it.smartcommunitylab.aac.core.base.AbstractIdentityAttributeProvider;
 import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.openid.model.OIDCUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
-import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountId;
-import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
 
-public class OIDCAttributeProvider extends AbstractProvider implements AttributeProvider {
+public class OIDCAttributeProvider
+        extends AbstractIdentityAttributeProvider<OIDCUserAuthenticatedPrincipal, OIDCUserAccount> {
 
-    // services
-    private final AttributeStore attributeStore;
-
-    private final OIDCUserAccountRepository accountRepository;
-    private final OIDCIdentityProviderConfig config;
     private final OpenIdAttributesMapper openidMapper;
 
     public OIDCAttributeProvider(
             String providerId,
-            OIDCUserAccountRepository accountRepository, AttributeStore attributeStore,
+            AttributeStore attributeStore,
             OIDCIdentityProviderConfig providerConfig,
             String realm) {
-        this(SystemKeys.AUTHORITY_OIDC, providerId, accountRepository, attributeStore, providerConfig, realm);
+        this(SystemKeys.AUTHORITY_OIDC, providerId, attributeStore, providerConfig, realm);
     }
 
     public OIDCAttributeProvider(
             String authority, String providerId,
-            OIDCUserAccountRepository accountRepository, AttributeStore attributeStore,
+            AttributeStore attributeStore,
             OIDCIdentityProviderConfig providerConfig,
             String realm) {
         super(authority, providerId, realm);
-        Assert.notNull(accountRepository, "account repository is mandatory");
         Assert.notNull(providerConfig, "provider config is mandatory");
         Assert.notNull(attributeStore, "attribute store is mandatory");
 
-        this.accountRepository = accountRepository;
+        // attributes
         this.attributeStore = attributeStore;
-        this.config = providerConfig;
 
         // attributes
         openidMapper = new OpenIdAttributesMapper();
     }
 
     @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_ATTRIBUTES;
-    }
-
-    @Override
-    public String getName() {
-        return config.getName();
-    }
-
-    @Override
-    public String getDescription() {
-        return config.getDescription();
-    }
-
-    @Override
-    public Collection<UserAttributes> convertPrincipalAttributes(UserAuthenticatedPrincipal principal, String userId) {
-        // we expect an instance of our model
-        if (!(principal instanceof OIDCUserAuthenticatedPrincipal)) {
-            return null;
-        }
-        OIDCUserAuthenticatedPrincipal user = (OIDCUserAuthenticatedPrincipal) principal;
-        String subject = user.getSubject();
-        String provider = getProvider();
-
-        Map<String, Serializable> attributes = user.getAttributes();
-
-        OIDCUserAccount account = accountRepository.findOne(new OIDCUserAccountId(provider, subject));
-        if (account == null) {
-            return null;
-        }
-
-        // get all attributes from principal except jwt attrs
-        // TODO handle all attributes not only strings.
-        Map<String, Serializable> principalAttributes = attributes.entrySet().stream()
-                .filter(e -> !ArrayUtils.contains(OIDCIdentityProvider.JWT_ATTRIBUTES, e.getKey()))
-                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
-
-        Set<Entry<String, Serializable>> storeAttributes = new HashSet<>();
-        for (Entry<String, Serializable> e : principalAttributes.entrySet()) {
-            Entry<String, Serializable> es = new AbstractMap.SimpleEntry<>(e.getKey(), e.getValue());
-            storeAttributes.add(es);
-        }
-
-        // store attributes linked to sub
-        attributeStore.setAttributes(subject, storeAttributes);
-
-        return extractUserAttributes(account, principalAttributes);
-
-    }
-
-    @Override
-    public Collection<UserAttributes> getUserAttributes(String userId) {
-        // nothing is accessible here by user, only by account
-        return null;
-    }
-
-    public Collection<UserAttributes> getAccountAttributes(String sub) {
-        String provider = getProvider();
-
-        OIDCUserAccount account = accountRepository.findOne(new OIDCUserAccountId(provider, sub));
-        if (account == null) {
-            return null;
-        }
-
-        // read from store
-        Map<String, Serializable> principalAttributes = attributeStore.findAttributes(sub);
-        return extractUserAttributes(account, principalAttributes);
-    }
-
-    private List<UserAttributes> extractUserAttributes(OIDCUserAccount account,
+    protected List<UserAttributes> extractUserAttributes(OIDCUserAccount account,
             Map<String, Serializable> principalAttributes) {
         List<UserAttributes> attributes = new ArrayList<>();
         // user identifier
@@ -168,6 +81,7 @@ public class OIDCAttributeProvider extends AbstractProvider implements Attribute
         accountset.setId(account.getSubject());
         attributes.add(new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), userId,
                 accountset));
+
         // email
         EmailAttributesSet emailset = new EmailAttributesSet();
         emailset.setEmail(account.getEmail());
@@ -223,17 +137,6 @@ public class OIDCAttributeProvider extends AbstractProvider implements Attribute
 
         return attributes;
 
-    }
-
-    @Override
-    public void deleteUserAttributes(String userId) {
-        // nothing to do
-    }
-
-    @Override
-    public void deleteAccountAttributes(String sub) {
-        // cleanup from store
-        attributeStore.deleteAttributes(sub);
     }
 
 }
