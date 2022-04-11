@@ -223,16 +223,4 @@ public class ScriptAttributeProvider extends AbstractProvider implements Attribu
         attributeStore.deleteAttributes(subjectId);
     }
 
-    @Override
-    public Collection<UserAttributes> getAccountAttributes(String id) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public void deleteAccountAttributes(String id) {
-        // TODO Auto-generated method stub
-
-    }
-
 }

@@ -201,16 +201,4 @@ public class MapperAttributeProvider extends AbstractProvider implements Attribu
         throw new IllegalArgumentException("invalid mapper type");
     }
 
-    @Override
-    public Collection<UserAttributes> getAccountAttributes(String id) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public void deleteAccountAttributes(String id) {
-        // TODO Auto-generated method stub
-
-    }
-
 }
