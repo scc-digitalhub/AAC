@@ -171,14 +171,4 @@ public class InternalAttributeService extends AbstractProvider
 
     }
 
-    @Override
-    public Collection<UserAttributes> getAccountAttributes(String id) {
-        // nothing accessible by account
-        return null;
-    }
-
-    @Override
-    public void deleteAccountAttributes(String id) {
-        // nothing to do
-    }
 }

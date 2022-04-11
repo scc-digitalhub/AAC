@@ -130,9 +130,4 @@ public class InternalAttributeProvider extends AbstractProvider implements Attri
         // nothing to do
     }
 
-    @Override
-    public void deleteAccountAttributes(String id) {
-        // nothing to do
-    }
-
 }
