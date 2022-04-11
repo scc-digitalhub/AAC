@@ -1,8 +1,10 @@
 package it.smartcommunitylab.aac.internal.provider;
 
+import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -10,80 +12,29 @@ import it.smartcommunitylab.aac.attributes.AccountAttributesSet;
 import it.smartcommunitylab.aac.attributes.BasicAttributesSet;
 import it.smartcommunitylab.aac.attributes.EmailAttributesSet;
 import it.smartcommunitylab.aac.attributes.OpenIdAttributesSet;
-import it.smartcommunitylab.aac.core.base.AbstractProvider;
+import it.smartcommunitylab.aac.core.base.AbstractIdentityAttributeProvider;
 import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 
-public class InternalAttributeProvider extends AbstractProvider implements AttributeProvider {
-
-    // services
-    private final InternalUserAccountService accountService;
-    private final InternalIdentityProviderConfig config;
+public class InternalAttributeProvider
+        extends AbstractIdentityAttributeProvider<InternalUserAuthenticatedPrincipal, InternalUserAccount> {
 
     public InternalAttributeProvider(
             String providerId,
-            InternalUserAccountService userAccountService,
             InternalIdentityProviderConfig providerConfig,
             String realm) {
         super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
-        Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(providerConfig, "provider config is mandatory");
 
-        this.accountService = userAccountService;
-        this.config = providerConfig;
-
+        // disable attribute store
+        this.attributeStore = null;
     }
 
     @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_ATTRIBUTES;
-    }
-
-    @Override
-    public String getName() {
-        return config.getName();
-    }
-
-    @Override
-    public String getDescription() {
-        return config.getDescription();
-    }
-
-    @Override
-    public Collection<UserAttributes> convertPrincipalAttributes(UserAuthenticatedPrincipal principal, String userId) {
-        // we expect an instance of our model
-        InternalUserAuthenticatedPrincipal user = (InternalUserAuthenticatedPrincipal) principal;
-        String username = user.getUsername();
-
-        InternalUserAccount account = accountService.findAccountByUsername(getProvider(), username);
-        if (account == null) {
-            return null;
-        }
-
-        return extractUserAttributes(account);
-    }
-
-    @Override
-    public Collection<UserAttributes> getUserAttributes(String userId) {
-        // nothing is accessible here by user, only by account
-        return null;
-    }
-
-    public Collection<UserAttributes> getAccountAttributes(String username) {
-        InternalUserAccount account = accountService.findAccountByUsername(getProvider(), username);
-        if (account == null) {
-            return null;
-        }
-
-        return extractUserAttributes(account);
-    }
-
-    private Collection<UserAttributes> extractUserAttributes(InternalUserAccount account) {
+    protected List<UserAttributes> extractUserAttributes(InternalUserAccount account,
+            Map<String, Serializable> principalAttributes) {
         List<UserAttributes> attributes = new ArrayList<>();
 //        String userId = exportInternalId(account.getUserId());
         String userId = account.getUserId();
@@ -104,6 +55,7 @@ public class InternalAttributeProvider extends AbstractProvider implements Attri
         accountset.setId(account.getUsername());
         attributes.add(new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), userId,
                 accountset));
+
         // email
         EmailAttributesSet emailset = new EmailAttributesSet();
         emailset.setEmail(account.getEmail());
@@ -123,11 +75,6 @@ public class InternalAttributeProvider extends AbstractProvider implements Attri
                 openidset));
 
         return attributes;
-    }
-
-    @Override
-    public void deleteUserAttributes(String userId) {
-        // nothing to do
     }
 
 }

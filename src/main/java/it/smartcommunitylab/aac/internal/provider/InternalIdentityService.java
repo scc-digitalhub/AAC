@@ -18,9 +18,7 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
-import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
@@ -31,7 +29,9 @@ import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.utils.MailService;
 
-public class InternalIdentityService extends AbstractProvider implements IdentityService {
+public class InternalIdentityService extends AbstractProvider
+        implements
+        IdentityService<InternalUserIdentity, InternalUserAccount, InternalUserAuthenticatedPrincipal, InternalIdentityProviderConfig> {
 
     // services
     private final UserEntityService userEntityService;
@@ -65,7 +65,7 @@ public class InternalIdentityService extends AbstractProvider implements Identit
         this.config = config;
 
         // build resource providers, we use our providerId to ensure consistency
-        this.attributeProvider = new InternalAttributeProvider(providerId, userAccountService, config, realm);
+        this.attributeProvider = new InternalAttributeProvider(providerId, config, realm);
         this.accountService = new InternalAccountService(providerId, userAccountService, config, realm);
         this.passwordService = new InternalPasswordService(providerId, userAccountService, config, realm);
         this.authenticationProvider = new InternalAuthenticationProvider(providerId, userAccountService, accountService,
@@ -92,6 +92,11 @@ public class InternalIdentityService extends AbstractProvider implements Identit
     }
 
     @Override
+    public InternalIdentityProviderConfig getConfig() {
+        return config;
+    }
+
+    @Override
     public InternalAuthenticationProvider getAuthenticationProvider() {
         return authenticationProvider;
     }
@@ -113,13 +118,13 @@ public class InternalIdentityService extends AbstractProvider implements Identit
 
     @Override
     @Transactional(readOnly = false)
-    public InternalUserIdentity convertIdentity(UserAuthenticatedPrincipal userPrincipal, String userId)
+    public InternalUserIdentity convertIdentity(InternalUserAuthenticatedPrincipal principal, String userId)
             throws NoSuchUserException {
-        Assert.isInstanceOf(InternalUserAuthenticatedPrincipal.class, userPrincipal,
-                "principal must be an instance of internal authenticated principal");
-
-        // extract account and attributes in raw format from authenticated principal
-        InternalUserAuthenticatedPrincipal principal = (InternalUserAuthenticatedPrincipal) userPrincipal;
+//        Assert.isInstanceOf(InternalUserAuthenticatedPrincipal.class, userPrincipal,
+//                "principal must be an instance of internal authenticated principal");
+//
+//        // extract account and attributes in raw format from authenticated principal
+//        InternalUserAuthenticatedPrincipal principal = (InternalUserAuthenticatedPrincipal) userPrincipal;
 
         // username binds all identity pieces together
         String username = principal.getUsername();
@@ -155,7 +160,8 @@ public class InternalIdentityService extends AbstractProvider implements Identit
         InternalUserIdentity identity = new InternalUserIdentity(getProvider(), getRealm(), account, principal);
 
         // convert attribute sets
-        Collection<UserAttributes> identityAttributes = attributeProvider.convertPrincipalAttributes(principal, userId);
+        Collection<UserAttributes> identityAttributes = attributeProvider.convertPrincipalAttributes(principal,
+                account);
         identity.setAttributes(identityAttributes);
 
         // do note returned identity has credentials populated
@@ -192,7 +198,7 @@ public class InternalIdentityService extends AbstractProvider implements Identit
         InternalUserIdentity identity = new InternalUserIdentity(getProvider(), getRealm(), account);
         if (fetchAttributes) {
             // convert attribute sets
-            Collection<UserAttributes> identityAttributes = attributeProvider.getAccountAttributes(username);
+            Collection<UserAttributes> identityAttributes = attributeProvider.getAccountAttributes(account);
             identity.setAttributes(identityAttributes);
         }
 
@@ -227,8 +233,7 @@ public class InternalIdentityService extends AbstractProvider implements Identit
             InternalUserIdentity identity = new InternalUserIdentity(getProvider(), getRealm(), account);
             if (fetchAttributes) {
                 // convert attribute sets
-                Collection<UserAttributes> identityAttributes = attributeProvider
-                        .getAccountAttributes(account.getUsername());
+                Collection<UserAttributes> identityAttributes = attributeProvider.getAccountAttributes(account);
                 identity.setAttributes(identityAttributes);
             }
 
@@ -287,27 +292,9 @@ public class InternalIdentityService extends AbstractProvider implements Identit
         }
     }
 
-//    @Override
-//    public AuthenticationEntryPoint getAuthenticationEntryPoint() {
-//        // we don't have one
-//        // TODO add
-//        return null;
-//    }
-
     public void shutdown() {
         // cleanup ourselves
         // nothing to do
-    }
-
-    @Override
-    public boolean canRegister() {
-        return config.isEnableRegistration();
-    }
-
-    @Override
-    public boolean canUpdate() {
-        return config.isEnableUpdate();
-
     }
 
     @Override
@@ -323,7 +310,7 @@ public class InternalIdentityService extends AbstractProvider implements Identit
     @Override
     @Transactional(readOnly = false)
     public InternalUserIdentity registerIdentity(
-            String userId, UserAccount reg,
+            String userId, InternalUserAccount reg,
             Collection<UserAttributes> attributes)
             throws NoSuchUserException, RegistrationException {
         if (!config.isEnableRegistration()) {
@@ -368,8 +355,7 @@ public class InternalIdentityService extends AbstractProvider implements Identit
             InternalUserIdentity identity = new InternalUserIdentity(getProvider(), getRealm(), account);
 
             // convert attribute sets
-            Collection<UserAttributes> identityAttributes = attributeProvider
-                    .getAccountAttributes(account.getUsername());
+            Collection<UserAttributes> identityAttributes = attributeProvider.getAccountAttributes(account);
             identity.setAttributes(identityAttributes);
 
             // this identity has credentials
@@ -389,7 +375,7 @@ public class InternalIdentityService extends AbstractProvider implements Identit
     @Override
     @Transactional(readOnly = false)
     public InternalUserIdentity updateIdentity(
-            String username, UserAccount reg,
+            String username, InternalUserAccount reg,
             Collection<UserAttributes> attributes)
             throws NoSuchUserException, RegistrationException {
         if (!config.isEnableUpdate()) {
@@ -424,7 +410,7 @@ public class InternalIdentityService extends AbstractProvider implements Identit
         InternalUserIdentity identity = new InternalUserIdentity(getProvider(), getRealm(), account);
 
         // convert attribute sets
-        Collection<UserAttributes> identityAttributes = attributeProvider.getAccountAttributes(username);
+        Collection<UserAttributes> identityAttributes = attributeProvider.getAccountAttributes(account);
         identity.setAttributes(identityAttributes);
 
         // this identity has credentials, erase

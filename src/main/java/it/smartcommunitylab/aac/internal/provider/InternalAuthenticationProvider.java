@@ -24,7 +24,8 @@ import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipa
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 
-public class InternalAuthenticationProvider extends ExtendedAuthenticationProvider {
+public class InternalAuthenticationProvider
+        extends ExtendedAuthenticationProvider<InternalUserAuthenticatedPrincipal, InternalUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private static final String ACCOUNT_NOT_FOUND_PASSWORD = "internalAccountNotFoundPassword";

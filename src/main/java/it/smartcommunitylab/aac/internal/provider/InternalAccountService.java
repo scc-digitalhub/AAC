@@ -22,7 +22,6 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
-import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.provider.AccountService;
 import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
@@ -31,7 +30,7 @@ import it.smartcommunitylab.aac.model.UserStatus;
 import it.smartcommunitylab.aac.utils.MailService;
 
 @Transactional
-public class InternalAccountService extends AbstractProvider implements AccountService {
+public class InternalAccountService extends AbstractProvider implements AccountService<InternalUserAccount> {
 
     private static final String LANG_UNDEFINED = "en";
 
@@ -79,24 +78,15 @@ public class InternalAccountService extends AbstractProvider implements AccountS
     }
 
     @Override
-    public boolean canRegister() {
-        return config.isEnableRegistration();
-    }
-
-    @Override
-    public boolean canUpdate() {
-        return config.isEnableUpdate();
-    }
-
-    @Override
-    public boolean canVerify() {
-        return true;
+    @Transactional(readOnly = true)
+    public List<InternalUserAccount> listAccounts(String userId) {
+        return userAccountService.findByUser(userId, getProvider());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<InternalUserAccount> listAccounts(String userId) {
-        return userAccountService.findByUser(userId, getProvider());
+    public InternalUserAccount findAccount(String username) {
+        return findAccountByUsername(username);
     }
 
     @Override
@@ -131,7 +121,7 @@ public class InternalAccountService extends AbstractProvider implements AccountS
     }
 
     @Override
-    public InternalUserAccount registerAccount(String userId, UserAccount reg)
+    public InternalUserAccount registerAccount(String userId, InternalUserAccount reg)
             throws NoSuchUserException, RegistrationException {
         if (!config.isEnableRegistration()) {
             throw new IllegalArgumentException("delete is disabled for this provider");
@@ -166,34 +156,31 @@ public class InternalAccountService extends AbstractProvider implements AccountS
         String lang = null;
         boolean confirmed = !config.isConfirmationRequired();
 
-        if (reg instanceof InternalUserAccount) {
-            InternalUserAccount ireg = (InternalUserAccount) reg;
-            password = ireg.getPassword();
-            email = ireg.getEmail();
-            name = ireg.getName();
-            surname = ireg.getSurname();
-            lang = ireg.getLang();
+        password = reg.getPassword();
+        email = reg.getEmail();
+        name = reg.getName();
+        surname = reg.getSurname();
+        lang = reg.getLang();
 
-            if (StringUtils.hasText(password)) {
-                password = Jsoup.clean(password, Safelist.none());
-            }
-            if (StringUtils.hasText(email)) {
-                email = Jsoup.clean(email, Safelist.none());
-            }
-            if (StringUtils.hasText(name)) {
-                name = Jsoup.clean(name, Safelist.none());
-            }
-            if (StringUtils.hasText(surname)) {
-                surname = Jsoup.clean(surname, Safelist.none());
-            }
-            if (StringUtils.hasText(lang)) {
-                lang = Jsoup.clean(lang, Safelist.none());
-            }
+        if (StringUtils.hasText(password)) {
+            password = Jsoup.clean(password, Safelist.none());
+        }
+        if (StringUtils.hasText(email)) {
+            email = Jsoup.clean(email, Safelist.none());
+        }
+        if (StringUtils.hasText(name)) {
+            name = Jsoup.clean(name, Safelist.none());
+        }
+        if (StringUtils.hasText(surname)) {
+            surname = Jsoup.clean(surname, Safelist.none());
+        }
+        if (StringUtils.hasText(lang)) {
+            lang = Jsoup.clean(lang, Safelist.none());
+        }
 
-            // we accept confirmed accounts
-            if (!confirmed) {
-                confirmed = ireg.isConfirmed();
-            }
+        // we accept confirmed accounts
+        if (!confirmed) {
+            confirmed = reg.isConfirmed();
         }
 
         if (!confirmed && config.isConfirmationRequired() && !StringUtils.hasText(email)) {
@@ -270,7 +257,7 @@ public class InternalAccountService extends AbstractProvider implements AccountS
     }
 
     @Override
-    public InternalUserAccount updateAccount(String username, UserAccount reg)
+    public InternalUserAccount updateAccount(String username, InternalUserAccount reg)
             throws NoSuchUserException, RegistrationException {
         if (!config.isEnableUpdate()) {
             throw new IllegalArgumentException("update is disabled for this provider");
@@ -289,35 +276,31 @@ public class InternalAccountService extends AbstractProvider implements AccountS
             throw new IllegalArgumentException("account is inactive, activate first to update status");
         }
 
-        // can update only from our model
-        if (reg instanceof InternalUserAccount) {
-            InternalUserAccount ireg = (InternalUserAccount) reg;
-            String email = ireg.getEmail();
-            String name = ireg.getName();
-            String surname = ireg.getSurname();
-            String lang = ireg.getLang();
+        String email = reg.getEmail();
+        String name = reg.getName();
+        String surname = reg.getSurname();
+        String lang = reg.getLang();
 
-            if (StringUtils.hasText(email)) {
-                email = Jsoup.clean(email, Safelist.none());
-            }
-            if (StringUtils.hasText(name)) {
-                name = Jsoup.clean(name, Safelist.none());
-            }
-            if (StringUtils.hasText(surname)) {
-                surname = Jsoup.clean(surname, Safelist.none());
-            }
-            if (StringUtils.hasText(lang)) {
-                lang = Jsoup.clean(lang, Safelist.none());
-            }
-
-            // we update all props, even if empty or null
-            account.setEmail(email);
-            account.setName(name);
-            account.setSurname(surname);
-            account.setLang(lang);
-
-            account = userAccountService.updateAccount(provider, username, account);
+        if (StringUtils.hasText(email)) {
+            email = Jsoup.clean(email, Safelist.none());
         }
+        if (StringUtils.hasText(name)) {
+            name = Jsoup.clean(name, Safelist.none());
+        }
+        if (StringUtils.hasText(surname)) {
+            surname = Jsoup.clean(surname, Safelist.none());
+        }
+        if (StringUtils.hasText(lang)) {
+            lang = Jsoup.clean(lang, Safelist.none());
+        }
+
+        // we update all props, even if empty or null
+        account.setEmail(email);
+        account.setName(name);
+        account.setSurname(surname);
+        account.setLang(lang);
+
+        account = userAccountService.updateAccount(provider, username, account);
 
         return account;
     }

@@ -81,7 +81,7 @@ public class InternalRegistrationController {
         // resolve provider
         InternalIdentityService idp = internalAuthority.getIdentityService(providerId);
 
-        if (!idp.canRegister()) {
+        if (!idp.getConfig().isEnableRegistration()) {
             throw new RegistrationException("registration is disabled");
         }
 
@@ -144,7 +144,7 @@ public class InternalRegistrationController {
             // resolve provider
             InternalIdentityService idp = internalAuthority.getIdentityService(providerId);
 
-            if (!idp.canRegister()) {
+            if (!idp.getConfig().isEnableRegistration()) {
                 throw new RegistrationException("registration is disabled");
             }
 
