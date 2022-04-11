@@ -1,5 +1,7 @@
 package it.smartcommunitylab.aac.dto;
 
+import java.util.Map;
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.util.Assert;
 
@@ -151,9 +153,10 @@ public class LoginAuthorityBean implements Comparable<LoginAuthorityBean> {
         a.realm = idp.getRealm();
 
         a.loginUrl = idp.getAuthenticationUrl();
-        if (idp.getActionUrls() != null) {
-            a.registrationUrl = idp.getActionUrls().get(SystemKeys.ACTION_REGISTER);
-            a.resetUrl = idp.getActionUrls().get(SystemKeys.ACTION_RESET);
+        Map<String, String> actionUrls = idp.getActionUrls();
+        if (actionUrls != null) {
+            a.registrationUrl = actionUrls.get(SystemKeys.ACTION_REGISTER);
+            a.resetUrl = actionUrls.get(SystemKeys.ACTION_RESET);
         }
 
         a.name = idp.getName();

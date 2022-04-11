@@ -26,7 +26,8 @@ import it.smartcommunitylab.aac.spid.persistence.SpidUserAccount;
 import it.smartcommunitylab.aac.spid.persistence.SpidUserAccountRepository;
 
 public class SpidIdentityProvider extends AbstractProvider
-        implements IdentityProvider<SpidUserIdentity, SpidUserAccount, SpidAuthenticatedPrincipal> {
+        implements
+        IdentityProvider<SpidUserIdentity, SpidUserAccount, SpidAuthenticatedPrincipal, SpidIdentityProviderConfig> {
 
     // provider configuration
     private final SpidIdentityProviderConfig config;
@@ -68,6 +69,11 @@ public class SpidIdentityProvider extends AbstractProvider
     @Override
     public String getType() {
         return SystemKeys.RESOURCE_IDENTITY;
+    }
+
+    @Override
+    public SpidIdentityProviderConfig getConfig() {
+        return config;
     }
 
     @Override

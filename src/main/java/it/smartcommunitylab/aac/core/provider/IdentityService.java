@@ -4,29 +4,24 @@ import java.util.Collection;
 
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.core.base.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 
 /*
  * An identity provider which persists some data about users
  */
 
-public interface IdentityService extends IdentityProvider {
-
-    /*
-     * Capabilities
-     */
-
-    public boolean canRegister();
-
-    public boolean canUpdate();
+public interface IdentityService<I extends UserIdentity, U extends UserAccount, P extends UserAuthenticatedPrincipal, C extends AbstractIdentityProviderConfig>
+        extends IdentityProvider<I, U, P, C> {
 
     /*
      * Services
      */
 
-    public AccountService getAccountService();
+    public AccountService<U> getAccountService();
 
     public UserCredentialsService getCredentialsService();
 
@@ -36,12 +31,12 @@ public interface IdentityService extends IdentityProvider {
      * userId is globally addressable
      */
 
-    public UserIdentity registerIdentity(
-            String userId, UserAccount account,
+    public I registerIdentity(
+            String userId, U account,
             Collection<UserAttributes> attributes) throws NoSuchUserException, RegistrationException;
 
-    public UserIdentity updateIdentity(
-            String identityId, UserAccount account,
+    public I updateIdentity(
+            String identityId, U account,
             Collection<UserAttributes> attributes) throws NoSuchUserException, RegistrationException;
 
     /*

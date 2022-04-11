@@ -23,7 +23,6 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.openid.model.OIDCUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.openid.model.OIDCUserIdentity;
@@ -31,7 +30,8 @@ import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
 
 public class OIDCIdentityProvider extends AbstractProvider
-        implements IdentityProvider<OIDCUserIdentity, OIDCUserAccount, OIDCUserAuthenticatedPrincipal> {
+        implements
+        IdentityProvider<OIDCUserIdentity, OIDCUserAccount, OIDCUserAuthenticatedPrincipal, OIDCIdentityProviderConfig> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // provider configuration
@@ -98,6 +98,11 @@ public class OIDCIdentityProvider extends AbstractProvider
     @Override
     public final String getType() {
         return SystemKeys.RESOURCE_IDENTITY;
+    }
+
+    @Override
+    public OIDCIdentityProviderConfig getConfig() {
+        return config;
     }
 
     @Override

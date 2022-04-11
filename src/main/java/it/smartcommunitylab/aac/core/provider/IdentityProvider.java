@@ -5,6 +5,7 @@ import java.util.Map;
 
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
+import it.smartcommunitylab.aac.core.base.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
@@ -16,7 +17,7 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
  * At minimum, we expect every provider to fulfill core attribute sets (basic, email, openid, account).
  */
 
-public interface IdentityProvider<I extends UserIdentity, A extends UserAccount, P extends UserAuthenticatedPrincipal>
+public interface IdentityProvider<I extends UserIdentity, U extends UserAccount, P extends UserAuthenticatedPrincipal, C extends AbstractIdentityProviderConfig>
         extends ResourceProvider {
 
     public static final String ATTRIBUTE_MAPPING_FUNCTION = "attributeMapping";
@@ -30,23 +31,25 @@ public interface IdentityProvider<I extends UserIdentity, A extends UserAccount,
 
     public String getDisplayMode();
 
+    public C getConfig();
+
     /*
      * auth provider
      */
-    public ExtendedAuthenticationProvider<P, A> getAuthenticationProvider();
+    public ExtendedAuthenticationProvider<P, U> getAuthenticationProvider();
 
     /*
      * internal providers
      */
-    public AccountProvider<A> getAccountProvider();
+    public AccountProvider<U> getAccountProvider();
 
-    public IdentityAttributeProvider<P, A> getAttributeProvider();
+    public IdentityAttributeProvider<P, U> getAttributeProvider();
 
     /*
      * subjects are global, we can resolve
      */
 
-    public SubjectResolver<A> getSubjectResolver();
+    public SubjectResolver<U> getSubjectResolver();
 
     /*
      * convert identities from authenticatedPrincipal. Used for login only.

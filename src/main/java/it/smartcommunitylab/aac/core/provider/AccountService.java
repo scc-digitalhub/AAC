@@ -4,36 +4,25 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 
-public interface AccountService extends AccountProvider {
-
-    /*
-     * Capabilities
-     */
-
-    public boolean canRegister();
-
-    public boolean canUpdate();
-
-    public boolean canVerify();
+public interface AccountService<U extends UserAccount> extends AccountProvider<U> {
 
     /*
      * Manage accounts from this provider
      * 
+     * accountId is local to provider
+     * 
      * userId is globally addressable
      */
-
-    // TODO rewrite with generics, needs userAccount as abstract class or
-    // workarounds
-    public UserAccount registerAccount(
+    public U registerAccount(
             String userId,
-            UserAccount account) throws NoSuchUserException, RegistrationException;
+            U account) throws NoSuchUserException, RegistrationException;
 
-    public UserAccount updateAccount(
+    public U updateAccount(
             String accountId,
-            UserAccount account) throws NoSuchUserException, RegistrationException;
+            U account) throws NoSuchUserException, RegistrationException;
 
-    public UserAccount verifyAccount(String accountId) throws NoSuchUserException, RegistrationException;
+    public U verifyAccount(String accountId) throws NoSuchUserException, RegistrationException;
 
-    public UserAccount unverifyAccount(String accountId) throws NoSuchUserException, RegistrationException;
+    public U unverifyAccount(String accountId) throws NoSuchUserException, RegistrationException;
 
 }

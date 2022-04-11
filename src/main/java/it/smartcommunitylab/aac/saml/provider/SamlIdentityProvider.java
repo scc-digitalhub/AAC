@@ -27,7 +27,8 @@ import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
 
 public class SamlIdentityProvider extends AbstractProvider
-        implements IdentityProvider<SamlUserIdentity, SamlUserAccount, SamlUserAuthenticatedPrincipal> {
+        implements
+        IdentityProvider<SamlUserIdentity, SamlUserAccount, SamlUserAuthenticatedPrincipal, SamlIdentityProviderConfig> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // provider configuration
@@ -78,6 +79,11 @@ public class SamlIdentityProvider extends AbstractProvider
     @Override
     public String getType() {
         return SystemKeys.RESOURCE_IDENTITY;
+    }
+
+    @Override
+    public SamlIdentityProviderConfig getConfig() {
+        return config;
     }
 
     @Override
