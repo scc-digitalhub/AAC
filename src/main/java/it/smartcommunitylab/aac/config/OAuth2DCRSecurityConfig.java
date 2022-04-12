@@ -25,7 +25,7 @@ import it.smartcommunitylab.aac.oauth.auth.InternalOpaqueTokenIntrospector;
  */
 
 @Configuration
-@Order(13)
+@Order(23)
 public class OAuth2DCRSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired

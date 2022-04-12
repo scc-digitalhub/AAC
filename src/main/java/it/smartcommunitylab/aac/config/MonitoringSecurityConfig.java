@@ -17,7 +17,7 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
  */
 
 @Configuration
-@Order(16)
+@Order(26)
 public class MonitoringSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Value("${management.server.port}")

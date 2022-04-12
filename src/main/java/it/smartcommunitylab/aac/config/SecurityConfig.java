@@ -86,7 +86,7 @@ import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
  */
 
 @Configuration
-@Order(19)
+@Order(29)
 @EnableConfigurationProperties
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
@@ -311,13 +311,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return handler;
     }
 
-    @Bean
-    @Override
-    @Primary
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-//        return extendedAuthenticationManager();
-        return authManager;
-    }
+//    @Bean
+//    @Override
+//    @Primary
+//    public AuthenticationManager authenticationManagerBean() throws Exception {
+////        return extendedAuthenticationManager();
+//        return authManager;
+//    }
 
     private RealmAwareAuthenticationEntryPoint realmAuthEntryPoint(String loginPath,
             RealmAwarePathUriBuilder uriBuilder) {

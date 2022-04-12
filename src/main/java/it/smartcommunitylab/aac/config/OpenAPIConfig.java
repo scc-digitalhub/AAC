@@ -41,11 +41,11 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
  * 
  */
 @Configuration
-@Order(20)
+@Order(30)
 public class OpenAPIConfig {
 
-    @Autowired
-    private OpenAPIConf conf;
+//    @Autowired
+//    private OpenAPIConf conf;
 
     @Value("${application.url}")
     private String AUTH_SERVER;
@@ -57,7 +57,7 @@ public class OpenAPIConfig {
     }
 
     @Bean
-    public OpenAPI aacOpenAPI() {
+    public OpenAPI aacOpenAPI(OpenAPIConf conf) {
         return new OpenAPI()
                 .info(new Info()
                         .title("AAC API")
