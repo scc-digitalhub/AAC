@@ -144,10 +144,10 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
         this.uriBuilder = uriBuilder;
     }
 
-    @Autowired
-    public void setAuthoritiesProperties(AuthoritiesProperties authoritiesProperties) {
-        this.authoritiesProperties = authoritiesProperties;
-    }
+//    @Autowired
+//    public void setAuthoritiesProperties(AuthoritiesProperties authoritiesProperties) {
+//        this.authoritiesProperties = authoritiesProperties;
+//    }
 
     @Override
     public void afterPropertiesSet() throws Exception {

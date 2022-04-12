@@ -27,6 +27,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEObject;
 import com.nimbusds.jose.PlainObject;
+import com.nimbusds.jose.util.JSONObjectUtils;
 import com.nimbusds.jwt.SignedJWT;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -304,29 +305,29 @@ public class OAuth2RequestFactory
                     throw new InvalidRequestObjectException("request param type unsupported");
                 }
 
-                JSONObject json = jwt.getPayload().toJSONObject();
+                Map<String, Object> json = jwt.getPayload().toJSONObject();
 
                 // values in jwt superseed params
-                if (StringUtils.hasText(json.getAsString("state"))) {
-                    state = readParameter(json.getAsString("state"), SPECIAL_PATTERN);
+                if (StringUtils.hasText(JSONObjectUtils.getString(json, "state"))) {
+                    state = readParameter(JSONObjectUtils.getString(json, "state"), SPECIAL_PATTERN);
                 }
-                if (StringUtils.hasText(json.getAsString("nonce"))) {
-                    nonce = readParameter(json.getAsString("nonce"), SPECIAL_PATTERN);
+                if (StringUtils.hasText(JSONObjectUtils.getString(json, "nonce"))) {
+                    nonce = readParameter(JSONObjectUtils.getString(json, "nonce"), SPECIAL_PATTERN);
                 }
-                if (StringUtils.hasText(json.getAsString("redirect_uri"))) {
-                    redirectUri = readParameter(json.getAsString("redirect_uri"), URI_PATTERN);
+                if (StringUtils.hasText(JSONObjectUtils.getString(json, "redirect_uri"))) {
+                    redirectUri = readParameter(JSONObjectUtils.getString(json, "redirect_uri"), URI_PATTERN);
                 }
-                if (StringUtils.hasText(json.getAsString("response_mode"))) {
-                    responseMode = readParameter(json.getAsString("response_mode"), STRING_PATTERN);
+                if (StringUtils.hasText(JSONObjectUtils.getString(json, "response_mode"))) {
+                    responseMode = readParameter(JSONObjectUtils.getString(json, "response_mode"), STRING_PATTERN);
                 }
-                if (StringUtils.hasText(json.getAsString("resource"))) {
-                    resourceIds = delimitedStringToSet(json.getAsString("resource"));
+                if (StringUtils.hasText(JSONObjectUtils.getString(json, "resource"))) {
+                    resourceIds = delimitedStringToSet(JSONObjectUtils.getString(json, "resource"));
                 }
-                if (StringUtils.hasText(json.getAsString("audience"))) {
-                    audience = delimitedStringToSet(json.getAsString("audience"));
+                if (StringUtils.hasText(JSONObjectUtils.getString(json, "audience"))) {
+                    audience = delimitedStringToSet(JSONObjectUtils.getString(json, "audience"));
                 }
-                if (StringUtils.hasText(json.getAsString("prompt"))) {
-                    prompt = delimitedStringToSet(json.getAsString("prompt"));
+                if (StringUtils.hasText(JSONObjectUtils.getString(json, "prompt"))) {
+                    prompt = delimitedStringToSet(JSONObjectUtils.getString(json, "prompt"));
                 }
 
             } catch (ParseException e) {
