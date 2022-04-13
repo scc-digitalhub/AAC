@@ -1,5 +1,8 @@
 package it.smartcommunitylab.aac.internal.controller;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
 
@@ -38,10 +41,10 @@ public class InternalCredentialsController {
     @Autowired
     private InternalIdentityAuthority internalAuthority;
 
-    @GetMapping("/changepwd/{providerId}/{userId}")
+    @GetMapping("/changepwd/{providerId}/{username}")
     public String changepwd(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.ID_PATTERN) String userId,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SPECIAL_PATTERN) String username,
             Model model)
             throws NoSuchProviderException, NoSuchUserException {
         // first check userid vs user
@@ -50,18 +53,20 @@ public class InternalCredentialsController {
             throw new InsufficientAuthenticationException("User must be authenticated");
         }
 
-        UserIdentity identity = user.getIdentity(userId);
+        // fetch internal identities matching provider
+        Set<UserIdentity> identities = user.getIdentities().stream().filter(
+                i -> SystemKeys.AUTHORITY_INTERNAL.equals(i.getAuthority()) && i.getProvider().equals(providerId))
+                .collect(Collectors.toSet());
+
+        // pick matching by username
+        UserIdentity identity = identities.stream().filter(i -> i.getAccount().getUsername().equals(username))
+                .findFirst().orElse(null);
         if (identity == null) {
-            throw new IllegalArgumentException("userid invalid");
+            throw new IllegalArgumentException("username invalid");
         }
 
+        String userId = identity.getUserId();
         UserAccount account = identity.getAccount();
-
-        // check if internal authority
-        if (!SystemKeys.AUTHORITY_INTERNAL.equals(account.getAuthority())
-                || !account.getProvider().equals(providerId)) {
-            throw new IllegalArgumentException("account invalid");
-        }
 
         // fetch provider
         InternalIdentityService idp = internalAuthority.getIdentityService(providerId);
@@ -93,14 +98,14 @@ public class InternalCredentialsController {
         model.addAttribute("reg", reg);
         model.addAttribute("policy", policy);
         model.addAttribute("accountUrl", "/account");
-        model.addAttribute("changeUrl", "/changepwd/" + providerId + "/" + userId);
+        model.addAttribute("changeUrl", "/changepwd/" + providerId + "/" + username);
         return "registration/changepwd";
     }
 
-    @PostMapping("/changepwd/{providerId}/{userId}")
+    @PostMapping("/changepwd/{providerId}/{username}")
     public String changepwd(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.ID_PATTERN) String userId,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SPECIAL_PATTERN) String username,
             Model model,
             @ModelAttribute("reg") @Valid UserPasswordBean reg,
             BindingResult result)
@@ -113,18 +118,20 @@ public class InternalCredentialsController {
                 throw new InsufficientAuthenticationException("User must be authenticated");
             }
 
-            UserIdentity identity = user.getIdentity(userId);
+            // fetch internal identities matching provider
+            Set<UserIdentity> identities = user.getIdentities().stream().filter(
+                    i -> SystemKeys.AUTHORITY_INTERNAL.equals(i.getAuthority()) && i.getProvider().equals(providerId))
+                    .collect(Collectors.toSet());
+
+            // pick matching by username
+            UserIdentity identity = identities.stream().filter(i -> i.getAccount().getUsername().equals(username))
+                    .findFirst().orElse(null);
             if (identity == null) {
-                throw new IllegalArgumentException("userid invalid");
+                throw new IllegalArgumentException("username invalid");
             }
 
+            String userId = identity.getUserId();
             UserAccount account = identity.getAccount();
-
-            // check if internal authority
-            if (!SystemKeys.AUTHORITY_INTERNAL.equals(account.getAuthority())
-                    || !account.getProvider().equals(providerId)) {
-                throw new IllegalArgumentException("account invalid");
-            }
 
             // fetch provider
             InternalIdentityService idp = internalAuthority.getIdentityService(providerId);
@@ -151,7 +158,7 @@ public class InternalCredentialsController {
             model.addAttribute("policy", policy);
 
             model.addAttribute("accountUrl", "/account");
-            model.addAttribute("changeUrl", "/changepwd/" + providerId + "/" + userId);
+            model.addAttribute("changeUrl", "/changepwd/" + providerId + "/" + username);
 
             if (result.hasErrors()) {
                 return "registration/changepwd";
