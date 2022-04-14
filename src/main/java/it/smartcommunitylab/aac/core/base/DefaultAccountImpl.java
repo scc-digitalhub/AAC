@@ -21,6 +21,7 @@ public class DefaultAccountImpl extends AbstractAccount {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     private String id;
+    private String uuid;
     private String username;
     private String emailAddress;
     private Boolean emailVerified;
@@ -39,6 +40,14 @@ public class DefaultAccountImpl extends AbstractAccount {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
     }
 
     @Override

@@ -19,6 +19,7 @@ public class DefaultUserAttributesImpl extends BaseAttributes {
 
     private Set<Attribute> attributes;
 
+    private String uuid;
     private String name;
     private String description;
 
@@ -85,6 +86,14 @@ public class DefaultUserAttributesImpl extends BaseAttributes {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
     }
 
 }
