@@ -72,7 +72,7 @@ container_scanning:
 #   rules:
 #     - if: '$CI_COMMIT_REF_NAME != "adc-aac-test"'
 
-deploy:
+deploy-dev:
   stage: deploy
   image: smartcommunitylab/kubectl-alpine:latest
   environment:
@@ -84,11 +84,23 @@ deploy:
   only:
     - 4.x
 
-deploy:
+deploy-dslab:
   stage: deploy
   image: smartcommunitylab/kubectl-alpine:latest
   environment:
     name: platform-new
+  script:
+    - echo "deploy backend"
+    - kubectl -n global set image deployments/aac aac=$CONTAINER_IMAGE --record=true
+    - kubectl -n global rollout status deployment aac
+  only:
+    - 4.x-platform
+
+deploy-coinnovatiolab:
+  stage: deploy
+  image: smartcommunitylab/kubectl-alpine:latest
+  environment:
+    name: coinnovationlab
   script:
     - echo "deploy backend"
     - kubectl -n global set image deployments/aac aac=$CONTAINER_IMAGE --record=true
