@@ -17,6 +17,9 @@ public interface UserResource {
     // id is local to the provider
     public String getId();
 
+    // uuid is global
+    public String getUuid();
+
     // TODO replace with proper typing <T> on resource
     public String getType();
 

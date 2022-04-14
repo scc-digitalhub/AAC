@@ -41,4 +41,11 @@ public interface UserIdentity extends UserResource, Serializable {
         return getAccount() == null ? null : getAccount().getAccountId();
     }
 
+    // uuid is global
+    // by default user identity uuid is the account uuid
+    // the same id should be assigned to authenticatedPrincipal
+    default String getUuid() {
+        return getAccount() == null ? null : getAccount().getUuid();
+    }
+
 }

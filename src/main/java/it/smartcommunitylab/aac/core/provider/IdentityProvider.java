@@ -66,7 +66,12 @@ public interface IdentityProvider<I extends UserIdentity, U extends UserAccount,
      * implementations are not required to support this
      */
 
+    // uuid is global
+    public I findIdentityByUuid(String uuid);
+
     // identityId is provider-specific
+    public I findIdentity(String identityId);
+
     public I getIdentity(String identityId) throws NoSuchUserException;
 
     public I getIdentity(String identityId, boolean fetchAttributes)

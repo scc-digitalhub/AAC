@@ -12,6 +12,9 @@ public interface AccountProvider<U extends UserAccount> extends ResourceProvider
      * Fetch accounts from this provider
      */
 
+    // uuid is global
+    public U findAccountByUuid(String uuid);
+
     // accountId is local to provider
     public U findAccount(String accountId);
 
