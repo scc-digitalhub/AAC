@@ -40,6 +40,11 @@ public class SamlUserAccount extends AbstractAccount {
     @Column(name = "subject")
     private String subjectId;
 
+    // unique uuid (subject entity)
+    @NotBlank
+    @Column(unique = true)
+    private String uuid;
+
     // reference to user
     @NotNull
     @Column(name = "user_id")
@@ -95,6 +100,11 @@ public class SamlUserAccount extends AbstractAccount {
     }
 
     @Override
+    public String getUuid() {
+        return uuid;
+    }
+
+    @Override
     public String getUserId() {
         return userId;
     }
@@ -135,6 +145,10 @@ public class SamlUserAccount extends AbstractAccount {
 
     public void setSubjectId(String subjectId) {
         this.subjectId = subjectId;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
     }
 
     public String getStatus() {

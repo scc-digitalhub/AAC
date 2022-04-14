@@ -37,6 +37,7 @@ import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProvider;
@@ -53,6 +54,9 @@ public class SamlIdentityAuthority implements IdentityAuthority, InitializingBea
 
     // system attributes store
     private final AutoJdbcAttributeStore jdbcAttributeStore;
+
+    // resources registry
+    private final SubjectService subjectService;
 
     private final ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository;
 
@@ -73,7 +77,7 @@ public class SamlIdentityAuthority implements IdentityAuthority, InitializingBea
 
                     SamlIdentityProvider idp = new SamlIdentityProvider(
                             id,
-                            accountRepository, attributeStore,
+                            accountRepository, attributeStore, subjectService,
                             config, config.getRealm());
                     idp.setExecutionService(executionService);
                     return idp;
@@ -93,16 +97,18 @@ public class SamlIdentityAuthority implements IdentityAuthority, InitializingBea
 
     public SamlIdentityAuthority(
             SamlUserAccountRepository accountRepository,
-            AutoJdbcAttributeStore jdbcAttributeStore,
+            AutoJdbcAttributeStore jdbcAttributeStore, SubjectService subjectService,
             ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository,
             @Qualifier("samlRelyingPartyRegistrationRepository") SamlRelyingPartyRegistrationRepository samlRelyingPartyRegistrationRepository) {
         Assert.notNull(accountRepository, "account repository is mandatory");
         Assert.notNull(jdbcAttributeStore, "attribute store is mandatory");
+        Assert.notNull(subjectService, "subject service is mandatory");
         Assert.notNull(registrationRepository, "provider registration repository is mandatory");
         Assert.notNull(samlRelyingPartyRegistrationRepository, "relayingParty registration repository is mandatory");
 
         this.accountRepository = accountRepository;
         this.jdbcAttributeStore = jdbcAttributeStore;
+        this.subjectService = subjectService;
         this.registrationRepository = registrationRepository;
         this.relyingPartyRegistrationRepository = samlRelyingPartyRegistrationRepository;
     }

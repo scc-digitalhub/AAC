@@ -17,6 +17,8 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.provider.AccountProvider;
+import it.smartcommunitylab.aac.core.service.SubjectService;
+import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.model.UserStatus;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountId;
@@ -29,15 +31,20 @@ public class SamlAccountProvider extends AbstractProvider implements AccountProv
     private final SamlUserAccountRepository accountRepository;
     private final SamlIdentityProviderConfig config;
 
+    private final SubjectService subjectService;
+
     protected SamlAccountProvider(String providerId, SamlUserAccountRepository accountRepository,
+            SubjectService subjectService,
             SamlIdentityProviderConfig config,
             String realm) {
         super(SystemKeys.AUTHORITY_SAML, providerId, realm);
         Assert.notNull(accountRepository, "account repository is mandatory");
+        Assert.notNull(subjectService, "subject service is mandatory");
         Assert.notNull(config, "provider config is mandatory");
 
         this.config = config;
         this.accountRepository = accountRepository;
+        this.subjectService = subjectService;
     }
 
     @Override
@@ -76,6 +83,22 @@ public class SamlAccountProvider extends AbstractProvider implements AccountProv
         String provider = getProvider();
 
         SamlUserAccount account = accountRepository.findOne(new SamlUserAccountId(provider, subjectId));
+        if (account == null) {
+            return null;
+        }
+
+        // detach the entity, we don't want modifications to be persisted via a
+        // read-only interface
+        // for example eraseCredentials will reset the password in db
+        return accountRepository.detach(account);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public SamlUserAccount findAccountByUuid(String uuid) {
+        String provider = getProvider();
+
+        SamlUserAccount account = accountRepository.findByProviderAndUuid(provider, uuid);
         if (account == null) {
             return null;
         }
@@ -138,6 +161,12 @@ public class SamlAccountProvider extends AbstractProvider implements AccountProv
         SamlUserAccount account = findAccountBySubjectId(subjectId);
 
         if (account != null) {
+            String uuid = account.getUuid();
+            if (uuid != null) {
+                // remove subject if exists
+                subjectService.deleteSubject(uuid);
+            }
+
             accountRepository.delete(account);
         }
     }
@@ -220,9 +249,14 @@ public class SamlAccountProvider extends AbstractProvider implements AccountProv
         String name = clean(reg.getName());
         String lang = clean(reg.getLang());
 
+        // generate uuid and register as subject
+        String uuid = subjectService.generateUuid(SystemKeys.RESOURCE_ACCOUNT);
+        Subject s = subjectService.addSubject(uuid, realm, SystemKeys.RESOURCE_ACCOUNT, subjectId);
+
         account = new SamlUserAccount();
         account.setProvider(provider);
         account.setSubjectId(subjectId);
+        account.setUuid(s.getSubjectId());
 
         account.setUserId(userId);
         account.setRealm(realm);

@@ -20,6 +20,7 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.saml.SamlIdentityAuthority;
 import it.smartcommunitylab.aac.saml.model.SamlUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.saml.model.SamlUserIdentity;
@@ -43,11 +44,13 @@ public class SamlIdentityProvider extends AbstractProvider
     public SamlIdentityProvider(
             String providerId,
             SamlUserAccountRepository accountRepository, AttributeStore attributeStore,
+            SubjectService subjectService,
             SamlIdentityProviderConfig config,
             String realm) {
         super(SystemKeys.AUTHORITY_SAML, providerId, realm);
         Assert.notNull(accountRepository, "account repository is mandatory");
         Assert.notNull(attributeStore, "attribute store is mandatory");
+        Assert.notNull(subjectService, "subject service is mandatory");
         Assert.notNull(config, "provider config is mandatory");
 
         // check configuration
@@ -58,7 +61,7 @@ public class SamlIdentityProvider extends AbstractProvider
         this.config = config;
 
         // build resource providers, we use our providerId to ensure consistency
-        this.accountProvider = new SamlAccountProvider(providerId, accountRepository, config, realm);
+        this.accountProvider = new SamlAccountProvider(providerId, accountRepository, subjectService, config, realm);
         this.attributeProvider = new SamlAttributeProvider(providerId, attributeStore, config,
                 realm);
         this.authenticationProvider = new SamlAuthenticationProvider(providerId, accountRepository, config, realm);
@@ -155,6 +158,10 @@ public class SamlIdentityProvider extends AbstractProvider
             account = accountProvider.registerAccount(userId, account);
         }
 
+        // uuid is available for persisted accounts
+        String uuid = account.getUuid();
+        principal.setUuid(uuid);
+
         // userId is always present, is derived from the same account table
         String curUserId = account.getUserId();
 
@@ -206,6 +213,32 @@ public class SamlIdentityProvider extends AbstractProvider
 
         return identity;
 
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public SamlUserIdentity findIdentityByUuid(String uuid) {
+        // lookup a matching account
+        SamlUserAccount account = accountProvider.findAccountByUuid(uuid);
+        if (account == null) {
+            return null;
+        }
+        // build identity without attributes
+        SamlUserIdentity identity = new SamlUserIdentity(getProvider(), getRealm(), account);
+        return identity;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public SamlUserIdentity findIdentity(String subjectId) {
+        // lookup a matching account
+        SamlUserAccount account = accountProvider.findAccount(subjectId);
+        if (account == null) {
+            return null;
+        }
+        // build identity without attributes
+        SamlUserIdentity identity = new SamlUserIdentity(getProvider(), getRealm(), account);
+        return identity;
     }
 
     @Override
