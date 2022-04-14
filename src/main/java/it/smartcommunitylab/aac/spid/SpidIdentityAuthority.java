@@ -33,6 +33,7 @@ import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.ProviderRepository;
+import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository;
 import it.smartcommunitylab.aac.spid.persistence.SpidUserAccountRepository;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProvider;
@@ -47,6 +48,9 @@ public class SpidIdentityAuthority implements IdentityAuthority, InitializingBea
     public static final String AUTHORITY_URL = "/auth/spid/";
 
     private final SpidUserAccountRepository accountRepository;
+
+    // resources registry
+    private final SubjectService subjectService;
 
     private final ProviderConfigRepository<SpidIdentityProviderConfig> registrationRepository;
 
@@ -66,7 +70,7 @@ public class SpidIdentityAuthority implements IdentityAuthority, InitializingBea
 
                     SpidIdentityProvider idp = new SpidIdentityProvider(
                             id, config.getName(),
-                            accountRepository,
+                            accountRepository, subjectService,
                             config, config.getRealm());
                     return idp;
 
@@ -84,14 +88,16 @@ public class SpidIdentityAuthority implements IdentityAuthority, InitializingBea
     private ScriptExecutionService executionService;
 
     public SpidIdentityAuthority(
-            SpidUserAccountRepository accountRepository,
+            SpidUserAccountRepository accountRepository, SubjectService subjectService,
             ProviderConfigRepository<SpidIdentityProviderConfig> registrationRepository,
             @Qualifier("spidRelyingPartyRegistrationRepository") SamlRelyingPartyRegistrationRepository samlRelyingPartyRegistrationRepository) {
         Assert.notNull(accountRepository, "account repository is mandatory");
+        Assert.notNull(subjectService, "subject service is mandatory");
         Assert.notNull(registrationRepository, "provider registration repository is mandatory");
         Assert.notNull(samlRelyingPartyRegistrationRepository, "relayingParty registration repository is mandatory");
 
         this.accountRepository = accountRepository;
+        this.subjectService = subjectService;
         this.registrationRepository = registrationRepository;
         this.relyingPartyRegistrationRepository = samlRelyingPartyRegistrationRepository;
     }

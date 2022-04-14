@@ -20,7 +20,7 @@ public class SpidAuthenticatedPrincipal extends AbstractAuthenticatedPrincipal {
 
     private static final long serialVersionUID = SystemKeys.AAC_SPID_SERIAL_VERSION;
 
-    // subject identifier from external provider
+    // subject identifier from external provider is local id
     private final String subjectId;
     // spid upstream idp
     private String idp;
@@ -28,6 +28,8 @@ public class SpidAuthenticatedPrincipal extends AbstractAuthenticatedPrincipal {
     private String spidCode;
 
     private String username;
+
+    private String uuid;
 
     // link attributes
     private String email;
@@ -50,6 +52,11 @@ public class SpidAuthenticatedPrincipal extends AbstractAuthenticatedPrincipal {
     @Override
     public String getId() {
         return subjectId;
+    }
+
+    @Override
+    public String getUuid() {
+        return uuid;
     }
 
     @Override
@@ -121,6 +128,10 @@ public class SpidAuthenticatedPrincipal extends AbstractAuthenticatedPrincipal {
         }
 
         return result;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
     }
 
     public String getSpidCode() {

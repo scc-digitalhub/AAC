@@ -17,6 +17,7 @@ import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.spid.SpidIdentityAuthority;
 import it.smartcommunitylab.aac.spid.attributes.SpidAttributesMapper;
 import it.smartcommunitylab.aac.spid.attributes.SpidAttributesSet;
@@ -43,11 +44,12 @@ public class SpidIdentityProvider extends AbstractProvider
 
     public SpidIdentityProvider(
             String providerId, String providerName,
-            SpidUserAccountRepository accountRepository,
+            SpidUserAccountRepository accountRepository, SubjectService subjectService,
             SpidIdentityProviderConfig config,
             String realm) {
         super(SystemKeys.AUTHORITY_SPID, providerId, realm);
         Assert.notNull(accountRepository, "account repository is mandatory");
+        Assert.notNull(subjectService, "subject service is mandatory");
         Assert.notNull(config, "provider config is mandatory");
 
         // check configuration
@@ -57,7 +59,7 @@ public class SpidIdentityProvider extends AbstractProvider
         this.config = config;
 
         // build resource providers, we use our providerId to ensure consistency
-        this.accountProvider = new SpidAccountProvider(providerId, accountRepository, config, realm);
+        this.accountProvider = new SpidAccountProvider(providerId, accountRepository, subjectService, config, realm);
         this.attributeProvider = new SpidAttributeProvider(providerId, config, realm);
         this.authenticationProvider = new SpidAuthenticationProvider(providerId, config, realm);
         this.subjectResolver = new SpidSubjectResolver(providerId, accountRepository, config, realm);
@@ -159,6 +161,10 @@ public class SpidIdentityProvider extends AbstractProvider
             account = accountProvider.registerAccount(userId, account);
         }
 
+        // uuid is available for persisted accounts
+        String uuid = account.getUuid();
+        principal.setUuid(uuid);
+
         // userId is always present, is derived from the same account table
         String curUserId = account.getUserId();
 
@@ -200,6 +206,32 @@ public class SpidIdentityProvider extends AbstractProvider
         SpidUserIdentity identity = new SpidUserIdentity(getProvider(), getRealm(), account, principal);
         identity.setAttributes(identityAttributes);
 
+        return identity;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public SpidUserIdentity findIdentityByUuid(String uuid) {
+        // lookup a matching account
+        SpidUserAccount account = accountProvider.findAccountByUuid(uuid);
+        if (account == null) {
+            return null;
+        }
+        // build identity without attributes
+        SpidUserIdentity identity = new SpidUserIdentity(getProvider(), getRealm(), account);
+        return identity;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public SpidUserIdentity findIdentity(String subjectId) {
+        // lookup a matching account
+        SpidUserAccount account = accountProvider.findAccount(subjectId);
+        if (account == null) {
+            return null;
+        }
+        // build identity without attributes
+        SpidUserIdentity identity = new SpidUserIdentity(getProvider(), getRealm(), account);
         return identity;
     }
 

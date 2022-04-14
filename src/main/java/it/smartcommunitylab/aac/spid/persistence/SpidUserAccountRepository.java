@@ -11,6 +11,8 @@ import it.smartcommunitylab.aac.repository.DetachableJpaRepository;
 public interface SpidUserAccountRepository extends
         CustomJpaRepository<SpidUserAccount, SpidUserAccountId>, DetachableJpaRepository<SpidUserAccount> {
 
+    SpidUserAccount findByProviderAndUuid(String provider, String uuid);
+
     List<SpidUserAccount> findByProviderAndSpidCode(String provider, String spidCode);
 
     List<SpidUserAccount> findByProviderAndEmail(String provider, String email);

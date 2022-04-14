@@ -15,6 +15,8 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.provider.AccountProvider;
+import it.smartcommunitylab.aac.core.service.SubjectService;
+import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.model.UserStatus;
 import it.smartcommunitylab.aac.spid.model.SpidUserAttribute;
 import it.smartcommunitylab.aac.spid.persistence.SpidUserAccount;
@@ -27,15 +29,20 @@ public class SpidAccountProvider extends AbstractProvider implements AccountProv
     private final SpidUserAccountRepository accountRepository;
     private final SpidIdentityProviderConfig config;
 
+    private final SubjectService subjectService;
+
     protected SpidAccountProvider(String providerId, SpidUserAccountRepository accountRepository,
+            SubjectService subjectService,
             SpidIdentityProviderConfig config,
             String realm) {
         super(SystemKeys.AUTHORITY_SPID, providerId, realm);
         Assert.notNull(accountRepository, "account repository is mandatory");
+        Assert.notNull(subjectService, "subject service is mandatory");
         Assert.notNull(config, "provider config is mandatory");
 
         this.config = config;
         this.accountRepository = accountRepository;
+        this.subjectService = subjectService;
     }
 
     @Override
@@ -85,10 +92,32 @@ public class SpidAccountProvider extends AbstractProvider implements AccountProv
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public SpidUserAccount findAccountByUuid(String uuid) {
+        String provider = getProvider();
+
+        SpidUserAccount account = accountRepository.findByProviderAndUuid(provider, uuid);
+        if (account == null) {
+            return null;
+        }
+
+        // detach the entity, we don't want modifications to be persisted via a
+        // read-only interface
+        // for example eraseCredentials will reset the password in db
+        return accountRepository.detach(account);
+    }
+
+    @Override
     public void deleteAccount(String subjectId) throws NoSuchUserException {
         SpidUserAccount account = findAccountBySubjectId(subjectId);
 
         if (account != null) {
+            String uuid = account.getUuid();
+            if (uuid != null) {
+                // remove subject if exists
+                subjectService.deleteSubject(uuid);
+            }
+
             accountRepository.delete(account);
         }
     }
@@ -190,9 +219,14 @@ public class SpidAccountProvider extends AbstractProvider implements AccountProv
         String name = clean(reg.getName());
         String surname = clean(reg.getSurname());
 
+        // generate uuid and register as subject
+        String uuid = subjectService.generateUuid(SystemKeys.RESOURCE_ACCOUNT);
+        Subject s = subjectService.addSubject(uuid, realm, SystemKeys.RESOURCE_ACCOUNT, subjectId);
+
         account = new SpidUserAccount();
         account.setProvider(provider);
         account.setSubjectId(subjectId);
+        account.setUuid(s.getSubjectId());
 
         account.setUserId(userId);
         account.setRealm(realm);
