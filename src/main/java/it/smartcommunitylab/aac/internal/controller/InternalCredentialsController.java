@@ -44,7 +44,7 @@ public class InternalCredentialsController {
     @GetMapping("/changepwd/{providerId}/{username}")
     public String changepwd(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SPECIAL_PATTERN) String username,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.EMAIL_PATTERN) String username,
             Model model)
             throws NoSuchProviderException, NoSuchUserException {
         // first check userid vs user
@@ -105,7 +105,7 @@ public class InternalCredentialsController {
     @PostMapping("/changepwd/{providerId}/{username}")
     public String changepwd(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SPECIAL_PATTERN) String username,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.EMAIL_PATTERN) String username,
             Model model,
             @ModelAttribute("reg") @Valid UserPasswordBean reg,
             BindingResult result)
