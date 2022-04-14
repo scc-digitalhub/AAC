@@ -17,6 +17,8 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.provider.AccountProvider;
+import it.smartcommunitylab.aac.core.service.SubjectService;
+import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.model.UserStatus;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountId;
@@ -29,21 +31,27 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
     private final OIDCUserAccountRepository accountRepository;
     private final OIDCIdentityProviderConfig config;
 
+    private final SubjectService subjectService;
+
     protected OIDCAccountProvider(String providerId, OIDCUserAccountRepository accountRepository,
+            SubjectService subjectService,
             OIDCIdentityProviderConfig config,
             String realm) {
-        this(SystemKeys.AUTHORITY_OIDC, providerId, accountRepository, config, realm);
+        this(SystemKeys.AUTHORITY_OIDC, providerId, accountRepository, subjectService, config, realm);
     }
 
     protected OIDCAccountProvider(String authority, String providerId, OIDCUserAccountRepository accountRepository,
+            SubjectService subjectService,
             OIDCIdentityProviderConfig config,
             String realm) {
         super(authority, providerId, realm);
         Assert.notNull(accountRepository, "account repository is mandatory");
+        Assert.notNull(subjectService, "subject service is mandatory");
         Assert.notNull(config, "provider config is mandatory");
 
         this.config = config;
         this.accountRepository = accountRepository;
+        this.subjectService = subjectService;
     }
 
     @Override
@@ -92,6 +100,21 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
         return accountRepository.detach(account);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public OIDCUserAccount findAccountByUuid(String uuid) {
+        String provider = getProvider();
+
+        OIDCUserAccount account = accountRepository.findByProviderAndUuid(provider, uuid);
+        if (account == null) {
+            return null;
+        }
+
+        // detach the entity, we don't want modifications to be persisted via a
+        // read-only interface
+        // for example eraseCredentials will reset the password in db
+        return accountRepository.detach(account);
+    }
 //    @Override
 //    @Transactional(readOnly = true)
 //    public OIDCUserAccount getByIdentifyingAttributes(Map<String, String> attributes) throws NoSuchUserException {
@@ -142,7 +165,14 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
         OIDCUserAccount account = findAccountBySubject(subject);
 
         if (account != null) {
+            String uuid = account.getUuid();
+            if (uuid != null) {
+                // remove subject if exists
+                subjectService.deleteSubject(uuid);
+            }
+
             accountRepository.delete(account);
+
         }
     }
 
@@ -231,10 +261,15 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
         String lang = clean(reg.getLang());
         String picture = clean(reg.getPicture());
 
+        // generate uuid and register as subject
+        String uuid = subjectService.generateUuid(SystemKeys.RESOURCE_ACCOUNT);
+        Subject s = subjectService.addSubject(uuid, realm, SystemKeys.RESOURCE_ACCOUNT, subject);
+
         account = new OIDCUserAccount(getAuthority());
         account.setProvider(provider);
         account.setSubject(subject);
 
+        account.setUuid(s.getSubjectId());
         account.setUserId(userId);
         account.setRealm(realm);
 

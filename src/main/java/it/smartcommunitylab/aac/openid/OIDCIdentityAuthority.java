@@ -38,6 +38,7 @@ import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.ProviderRepository;
+import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProvider;
@@ -55,6 +56,9 @@ public class OIDCIdentityAuthority implements IdentityAuthority, InitializingBea
 
     // system attributes store
     private final AutoJdbcAttributeStore jdbcAttributeStore;
+
+    // resources registry
+    private final SubjectService subjectService;
 
     // identity provider configs by id
     private final ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository;
@@ -76,7 +80,7 @@ public class OIDCIdentityAuthority implements IdentityAuthority, InitializingBea
 
                     OIDCIdentityProvider idp = new OIDCIdentityProvider(
                             getAuthorityId(), id,
-                            accountRepository, attributeStore,
+                            accountRepository, attributeStore, subjectService,
                             config, config.getRealm());
 
                     idp.setExecutionService(executionService);
@@ -98,16 +102,18 @@ public class OIDCIdentityAuthority implements IdentityAuthority, InitializingBea
 
     public OIDCIdentityAuthority(
             OIDCUserAccountRepository accountRepository,
-            AutoJdbcAttributeStore jdbcAttributeStore,
+            AutoJdbcAttributeStore jdbcAttributeStore, SubjectService subjectService,
             ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository,
             OIDCClientRegistrationRepository clientRegistrationRepository) {
         Assert.notNull(accountRepository, "account repository is mandatory");
         Assert.notNull(jdbcAttributeStore, "attribute store is mandatory");
+        Assert.notNull(subjectService, "subject service is mandatory");
         Assert.notNull(registrationRepository, "provider registration repository is mandatory");
         Assert.notNull(clientRegistrationRepository, "client registration repository is mandatory");
 
         this.accountRepository = accountRepository;
         this.jdbcAttributeStore = jdbcAttributeStore;
+        this.subjectService = subjectService;
         this.registrationRepository = registrationRepository;
         this.clientRegistrationRepository = clientRegistrationRepository;
     }

@@ -40,6 +40,11 @@ public class OIDCUserAccount extends AbstractAccount {
     @Column(name = "subject")
     private String subject;
 
+    // unique uuid (subject entity)
+    @NotBlank
+    @Column(unique = true)
+    private String uuid;
+
     // reference to user
     @NotNull
     @Column(name = "user_id")
@@ -111,6 +116,11 @@ public class OIDCUserAccount extends AbstractAccount {
     }
 
     @Override
+    public String getUuid() {
+        return uuid;
+    }
+
+    @Override
     public String getUsername() {
         return username;
     }
@@ -158,6 +168,10 @@ public class OIDCUserAccount extends AbstractAccount {
 
     public void setSubject(String subject) {
         this.subject = subject;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
     }
 
     public String getUserId() {

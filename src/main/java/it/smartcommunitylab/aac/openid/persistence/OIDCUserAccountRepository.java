@@ -11,6 +11,8 @@ import it.smartcommunitylab.aac.repository.DetachableJpaRepository;
 public interface OIDCUserAccountRepository
         extends CustomJpaRepository<OIDCUserAccount, OIDCUserAccountId>, DetachableJpaRepository<OIDCUserAccount> {
 
+    OIDCUserAccount findByProviderAndUuid(String provider, String uuid);
+
     List<OIDCUserAccount> findByProviderAndEmail(String provider, String email);
 
     List<OIDCUserAccount> findByProviderAndUsername(String provider, String username);

@@ -24,6 +24,7 @@ import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.openid.model.OIDCUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.openid.model.OIDCUserIdentity;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
@@ -48,20 +49,21 @@ public class OIDCIdentityProvider extends AbstractProvider
 
     public OIDCIdentityProvider(
             String providerId,
-            OIDCUserAccountRepository accountRepository, AttributeStore attributeStore,
+            OIDCUserAccountRepository accountRepository, AttributeStore attributeStore, SubjectService subjectService,
             OIDCIdentityProviderConfig config,
             String realm) {
-        this(SystemKeys.AUTHORITY_OIDC, providerId, accountRepository, attributeStore, config, realm);
+        this(SystemKeys.AUTHORITY_OIDC, providerId, accountRepository, attributeStore, subjectService, config, realm);
     }
 
     public OIDCIdentityProvider(
             String authority, String providerId,
-            OIDCUserAccountRepository accountRepository, AttributeStore attributeStore,
+            OIDCUserAccountRepository accountRepository, AttributeStore attributeStore, SubjectService subjectService,
             OIDCIdentityProviderConfig config,
             String realm) {
         super(authority, providerId, realm);
         Assert.notNull(accountRepository, "account repository is mandatory");
         Assert.notNull(attributeStore, "attribute store is mandatory");
+        Assert.notNull(subjectService, "subject service is mandatory");
         Assert.notNull(config, "provider config is mandatory");
 
         // check configuration
@@ -72,7 +74,8 @@ public class OIDCIdentityProvider extends AbstractProvider
         this.config = config;
 
         // build resource providers, we use our providerId to ensure consistency
-        this.accountProvider = new OIDCAccountProvider(authority, providerId, accountRepository, config, realm);
+        this.accountProvider = new OIDCAccountProvider(authority, providerId, accountRepository, subjectService, config,
+                realm);
         this.attributeProvider = new OIDCAttributeProvider(authority, providerId, attributeStore,
                 config,
                 realm);
@@ -177,6 +180,10 @@ public class OIDCIdentityProvider extends AbstractProvider
             account = accountProvider.registerAccount(userId, account);
         }
 
+        // uuid is available for persisted accounts
+        String uuid = account.getUuid();
+        principal.setUuid(uuid);
+
         // userId is always present, is derived from the same account table
         String curUserId = account.getUserId();
 
@@ -239,6 +246,32 @@ public class OIDCIdentityProvider extends AbstractProvider
         OIDCUserIdentity identity = new OIDCUserIdentity(getAuthority(), getProvider(), getRealm(), account, principal);
         identity.setAttributes(identityAttributes);
 
+        return identity;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public OIDCUserIdentity findIdentityByUuid(String uuid) {
+        // lookup a matching account
+        OIDCUserAccount account = accountProvider.findAccountByUuid(uuid);
+        if (account == null) {
+            return null;
+        }
+        // build identity without attributes
+        OIDCUserIdentity identity = new OIDCUserIdentity(getAuthority(), getProvider(), getRealm(), account);
+        return identity;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public OIDCUserIdentity findIdentity(String subject) {
+        // lookup a matching account
+        OIDCUserAccount account = accountProvider.findAccount(subject);
+        if (account == null) {
+            return null;
+        }
+        // build identity without attributes
+        OIDCUserIdentity identity = new OIDCUserIdentity(getAuthority(), getProvider(), getRealm(), account);
         return identity;
     }
 

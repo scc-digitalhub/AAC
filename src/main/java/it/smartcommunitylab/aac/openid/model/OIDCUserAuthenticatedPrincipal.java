@@ -18,9 +18,11 @@ public class OIDCUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
 
     private static final long serialVersionUID = SystemKeys.AAC_OIDC_SERIAL_VERSION;
 
-    // subject identifier from external provider
+    // subject identifier from external provider is local id
     private final String subject;
     private String username;
+
+    private String uuid;
 
     // link attributes
     private String email;
@@ -49,6 +51,11 @@ public class OIDCUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
     @Override
     public String getId() {
         return subject;
+    }
+
+    @Override
+    public String getUuid() {
+        return uuid;
     }
 
     @Override
@@ -125,6 +132,10 @@ public class OIDCUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
         }
 
         return result;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
     }
 
     public OAuth2User getPrincipal() {
