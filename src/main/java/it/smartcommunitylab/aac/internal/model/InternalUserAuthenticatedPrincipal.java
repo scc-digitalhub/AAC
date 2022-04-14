@@ -17,6 +17,9 @@ public class InternalUserAuthenticatedPrincipal extends AbstractAuthenticatedPri
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     private final String username;
+
+    private String uuid;
+
     private String name;
     private String email;
     private Boolean confirmed;
@@ -34,6 +37,11 @@ public class InternalUserAuthenticatedPrincipal extends AbstractAuthenticatedPri
     @Override
     public String getId() {
         return username;
+    }
+
+    @Override
+    public String getUuid() {
+        return uuid;
     }
 
     @Override
@@ -86,6 +94,10 @@ public class InternalUserAuthenticatedPrincipal extends AbstractAuthenticatedPri
         }
 
         return map;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
     }
 
     public String getEmail() {

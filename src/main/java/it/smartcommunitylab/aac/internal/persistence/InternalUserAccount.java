@@ -39,6 +39,11 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
     @Column(name = "username")
     private String username;
 
+    // unique uuid (subject entity)
+    @NotBlank
+    @Column(unique = true)
+    private String uuid;
+
     // user id
     @NotNull
     @Column(name = "user_id")
@@ -104,6 +109,11 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
     }
 
     @Override
+    public String getUuid() {
+        return uuid;
+    }
+
+    @Override
     public String getUsername() {
         return username;
     }
@@ -143,6 +153,10 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
 
     public void setUserId(String userId) {
         this.userId = userId;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
     }
 
     public void setRealm(String realm) {

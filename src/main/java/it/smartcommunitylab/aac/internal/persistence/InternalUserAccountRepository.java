@@ -12,6 +12,8 @@ public interface InternalUserAccountRepository
         extends CustomJpaRepository<InternalUserAccount, InternalUserAccountId>,
         DetachableJpaRepository<InternalUserAccount> {
 
+    InternalUserAccount findByProviderAndUuid(String provider, String uuid);
+
     List<InternalUserAccount> findByProviderAndEmail(String provider, String email);
 
     InternalUserAccount findByProviderAndConfirmationKey(String provider, String key);

@@ -67,6 +67,16 @@ public class InternalUserAccountService {
     }
 
     @Transactional(readOnly = true)
+    public InternalUserAccount findAccountByUuid(String provider, String uuid) {
+        InternalUserAccount account = accountRepository.findByProviderAndUuid(provider, uuid);
+        if (account == null) {
+            return null;
+        }
+
+        return accountRepository.detach(account);
+    }
+
+    @Transactional(readOnly = true)
     public List<InternalUserAccount> findByUser(String userId) {
         List<InternalUserAccount> accounts = accountRepository.findByUserId(userId);
         return accounts.stream().map(a -> {

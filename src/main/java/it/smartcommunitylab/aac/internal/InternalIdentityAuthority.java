@@ -30,6 +30,7 @@ import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
@@ -73,6 +74,9 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
 
     private final InternalUserAccountService userAccountService;
 
+    // resources registry
+    private final SubjectService subjectService;
+
     private AuthoritiesProperties authoritiesProperties;
     private InternalIdentityProviderConfigMap defaultProviderConfig;
 
@@ -100,7 +104,7 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
 
                     InternalIdentityService idp = new InternalIdentityService(
                             id,
-                            userAccountService, userEntityService,
+                            userAccountService, userEntityService, subjectService,
                             config, config.getRealm());
 
                     // set services
@@ -114,14 +118,16 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
 
     public InternalIdentityAuthority(
             InternalUserAccountService userAccountService,
-            UserEntityService userEntityService,
+            UserEntityService userEntityService, SubjectService subjectService,
             ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository) {
         Assert.notNull(userAccountService, "user account service is mandatory");
         Assert.notNull(userEntityService, "user service is mandatory");
+        Assert.notNull(subjectService, "subject service is mandatory");
         Assert.notNull(registrationRepository, "provider registration repository is mandatory");
 
         this.userAccountService = userAccountService;
         this.userEntityService = userEntityService;
+        this.subjectService = subjectService;
         this.registrationRepository = registrationRepository;
     }
 

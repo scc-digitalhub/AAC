@@ -23,9 +23,11 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.provider.AccountService;
+import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
+import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.model.UserStatus;
 import it.smartcommunitylab.aac.utils.MailService;
 
@@ -43,16 +45,21 @@ public class InternalAccountService extends AbstractProvider implements AccountS
     private final InternalIdentityProviderConfig config;
 
     private final InternalUserAccountService userAccountService;
+    private final SubjectService subjectService;
+
     private MailService mailService;
     private RealmAwareUriBuilder uriBuilder;
 
     public InternalAccountService(String providerId,
-            InternalUserAccountService userAccountService,
+            InternalUserAccountService userAccountService, SubjectService subjectService,
             InternalIdentityProviderConfig providerConfig, String realm) {
         super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
         Assert.notNull(providerConfig, "provider config is mandatory");
         Assert.notNull(userAccountService, "user account service is mandatory");
+        Assert.notNull(subjectService, "subject service is mandatory");
+
         this.userAccountService = userAccountService;
+        this.subjectService = subjectService;
         this.config = providerConfig;
 
         this.passwordService = new InternalPasswordService(providerId, userAccountService, providerConfig, realm);
@@ -89,6 +96,12 @@ public class InternalAccountService extends AbstractProvider implements AccountS
         return findAccountByUsername(username);
     }
 
+    @Transactional(readOnly = true)
+    public InternalUserAccount findAccountByUuid(String uuid) {
+        String provider = getProvider();
+        return userAccountService.findAccountByUuid(provider, uuid);
+    }
+
     @Override
     @Transactional(readOnly = true)
     public InternalUserAccount getAccount(String username) throws NoSuchUserException {
@@ -115,6 +128,12 @@ public class InternalAccountService extends AbstractProvider implements AccountS
         InternalUserAccount account = userAccountService.findAccountByUsername(provider, username);
 
         if (account != null) {
+            String uuid = account.getUuid();
+            if (uuid != null) {
+                // remove subject if exists
+                subjectService.deleteSubject(uuid);
+            }
+
             // remove account
             userAccountService.deleteAccount(provider, username);
         }
@@ -195,9 +214,14 @@ public class InternalAccountService extends AbstractProvider implements AccountS
             passwordService.validatePassword(password);
         }
 
+        // generate uuid and register as subject
+        String uuid = subjectService.generateUuid(SystemKeys.RESOURCE_ACCOUNT);
+        Subject s = subjectService.addSubject(uuid, realm, SystemKeys.RESOURCE_ACCOUNT, username);
+
         account = new InternalUserAccount();
         account.setProvider(provider);
         account.setUsername(username);
+        account.setUuid(s.getSubjectId());
 
         account.setUserId(userId);
         account.setRealm(realm);

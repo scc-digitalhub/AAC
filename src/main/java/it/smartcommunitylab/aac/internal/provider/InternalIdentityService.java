@@ -21,6 +21,7 @@ import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
+import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
 import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
@@ -48,12 +49,14 @@ public class InternalIdentityService extends AbstractProvider
 
     public InternalIdentityService(
             String providerId,
-            InternalUserAccountService userAccountService, UserEntityService userEntityService,
+            InternalUserAccountService userAccountService,
+            UserEntityService userEntityService, SubjectService subjectService,
             InternalIdentityProviderConfig config,
             String realm) {
         super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
         Assert.notNull(userAccountService, "user account service is mandatory");
         Assert.notNull(userEntityService, "user service is mandatory");
+        Assert.notNull(subjectService, "subject service is mandatory");
         Assert.notNull(config, "provider config is mandatory");
 
         Assert.isTrue(providerId.equals(config.getProvider()),
@@ -66,7 +69,7 @@ public class InternalIdentityService extends AbstractProvider
 
         // build resource providers, we use our providerId to ensure consistency
         this.attributeProvider = new InternalAttributeProvider(providerId, config, realm);
-        this.accountService = new InternalAccountService(providerId, userAccountService, config, realm);
+        this.accountService = new InternalAccountService(providerId, userAccountService, subjectService, config, realm);
         this.passwordService = new InternalPasswordService(providerId, userAccountService, config, realm);
         this.authenticationProvider = new InternalAuthenticationProvider(providerId, userAccountService, accountService,
                 passwordService, config, realm);
@@ -142,6 +145,10 @@ public class InternalIdentityService extends AbstractProvider
             throw new NoSuchUserException();
         }
 
+        // uuid is available for persisted accounts
+        String uuid = account.getUuid();
+        principal.setUuid(uuid);
+
         // userId is always present, is derived from the same account table
         String curUserId = account.getUserId();
 
@@ -170,6 +177,32 @@ public class InternalIdentityService extends AbstractProvider
         identity.eraseCredentials();
         return identity;
 
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public InternalUserIdentity findIdentityByUuid(String uuid) {
+        // lookup a matching account
+        InternalUserAccount account = accountService.findAccountByUuid(uuid);
+        if (account == null) {
+            return null;
+        }
+        // build identity without attributes
+        InternalUserIdentity identity = new InternalUserIdentity(getProvider(), getRealm(), account);
+        return identity;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public InternalUserIdentity findIdentity(String username) {
+        // lookup a matching account
+        InternalUserAccount account = accountService.findAccount(username);
+        if (account == null) {
+            return null;
+        }
+        // build identity without attributes
+        InternalUserIdentity identity = new InternalUserIdentity(getProvider(), getRealm(), account);
+        return identity;
     }
 
     @Override

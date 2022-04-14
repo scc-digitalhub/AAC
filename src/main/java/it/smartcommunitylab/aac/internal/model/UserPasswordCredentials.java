@@ -38,4 +38,9 @@ public class UserPasswordCredentials extends AbstractUserCredentials {
         return getUserId() + ":password";
     }
 
+    @Override
+    public String getUuid() {
+        return null;
+    }
+
 }
