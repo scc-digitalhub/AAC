@@ -33,6 +33,9 @@ import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
+import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
@@ -189,7 +192,8 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
     }
 
     @Override
-    public List<IdentityProvider> getIdentityProviders(String realm) {
+    public List<InternalIdentityService> getIdentityProviders(
+            String realm) {
         // we need to fetch registrations and get idp from cache, with optional load
         Collection<InternalIdentityProviderConfig> registrations = registrationRepository.findByRealm(realm);
         return registrations.stream().map(r -> getIdentityProvider(r.getProvider()))
@@ -279,7 +283,8 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
     }
 
     @Override
-    public List<IdentityService> getIdentityServices(String realm) {
+    public List<InternalIdentityService> getIdentityServices(
+            String realm) {
         // we need to fetch registrations and get idp from cache, with optional load
         Collection<InternalIdentityProviderConfig> registrations = registrationRepository.findByRealm(realm);
         return registrations.stream().map(r -> getIdentityService(r.getProvider()))

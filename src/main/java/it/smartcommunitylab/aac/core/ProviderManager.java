@@ -20,9 +20,13 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
+import it.smartcommunitylab.aac.core.base.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.model.UserAccount;
+import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.service.AttributeProviderService;
@@ -281,7 +285,8 @@ public class ProviderManager {
                     ip);
         }
 
-        IdentityProvider idp = authorityManager.registerIdentityProvider(ip);
+        IdentityProvider<? extends UserIdentity> idp = authorityManager
+                .registerIdentityProvider(ip);
         isActive = idp != null;
 
         // TODO fetch registered status?
@@ -528,7 +533,8 @@ public class ProviderManager {
         if (TYPE_IDENTITY.equals(type)) {
             // we support only idp templates
             List<ConfigurableProvider> templates = new ArrayList<>();
-            for (IdentityAuthority ia : authorityManager.listIdentityAuthorities()) {
+            for (IdentityAuthority ia : authorityManager
+                    .listIdentityAuthorities()) {
                 templates.addAll(ia.getConfigurableProviderTemplates());
             }
 

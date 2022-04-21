@@ -268,9 +268,11 @@ public class UserService {
 
         // same realm, fetch all idps
         // TODO we need an order criteria
-        for (IdentityAuthority ia : authorityManager.listIdentityAuthorities()) {
-            List<IdentityProvider> idps = ia.getIdentityProviders(realm);
-            for (IdentityProvider idp : idps) {
+        for (IdentityAuthority ia : authorityManager
+                .listIdentityAuthorities()) {
+            List<? extends IdentityProvider<? extends UserIdentity>> idps = ia
+                    .getIdentityProviders(realm);
+            for (IdentityProvider<? extends UserIdentity> idp : idps) {
                 identities.addAll(idp.listIdentities(subjectId));
             }
         }
@@ -332,18 +334,22 @@ public class UserService {
 
         // fetch all identities from source realm
         // TODO we need an order criteria
-        for (IdentityAuthority ia : authorityManager.listIdentityAuthorities()) {
-            List<IdentityProvider> idps = ia.getIdentityProviders(source);
-            for (IdentityProvider idp : idps) {
+        for (IdentityAuthority ia : authorityManager
+                .listIdentityAuthorities()) {
+            List<? extends IdentityProvider<? extends UserIdentity>> idps = ia
+                    .getIdentityProviders(source);
+            for (IdentityProvider<? extends UserIdentity> idp : idps) {
                 identities.addAll(idp.listIdentities(subjectId));
             }
         }
         if (!source.equals(realm)) {
             // also fetch identities from destination realm
             // TODO we need an order criteria
-            for (IdentityAuthority ia : authorityManager.listIdentityAuthorities()) {
-                List<IdentityProvider> idps = ia.getIdentityProviders(realm);
-                for (IdentityProvider idp : idps) {
+            for (IdentityAuthority ia : authorityManager
+                    .listIdentityAuthorities()) {
+                List<? extends IdentityProvider<? extends UserIdentity>> idps = ia
+                        .getIdentityProviders(realm);
+                for (IdentityProvider<? extends UserIdentity> idp : idps) {
                     identities.addAll(idp.listIdentities(subjectId));
                 }
             }
@@ -518,8 +524,8 @@ public class UserService {
 
         // delete identities via providers
         for (IdentityAuthority ia : authorityManager.listIdentityAuthorities()) {
-            List<IdentityProvider> idps = ia.getIdentityProviders(realm);
-            for (IdentityProvider idp : idps) {
+            List<? extends IdentityProvider<? extends UserIdentity>> idps = ia.getIdentityProviders(realm);
+            for (IdentityProvider<? extends UserIdentity> idp : idps) {
                 // remove all identities
                 idp.deleteIdentities(subjectId);
             }

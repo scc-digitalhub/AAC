@@ -41,6 +41,7 @@ import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.service.AttributeProviderService;
@@ -138,7 +139,7 @@ public class AACBootstrap {
 
             // bootstrap providers
             // TODO use a dedicated thread, or a multithread
-            Map<String, IdentityProvider> systemProviders = bootstrapSystemProviders();
+            Map<String, IdentityProvider<? extends UserIdentity>> systemProviders = bootstrapSystemProviders();
 
             // bootstrap admin account
             // use first active internal provider for system
@@ -166,12 +167,13 @@ public class AACBootstrap {
         }
     }
 
-    private Map<String, IdentityProvider> bootstrapSystemProviders() throws NoSuchRealmException {
+    private Map<String, IdentityProvider<? extends UserIdentity>> bootstrapSystemProviders()
+            throws NoSuchRealmException {
         Map<String, IdentityAuthority> ias = authorityManager.listIdentityAuthorities().stream()
                 .collect(Collectors.toMap(a -> a.getAuthorityId(), a -> a));
 
         Collection<ConfigurableIdentityProvider> idps = identityProviderService.listProviders(SystemKeys.REALM_SYSTEM);
-        Map<String, IdentityProvider> providers = new HashMap<>();
+        Map<String, IdentityProvider<? extends UserIdentity>> providers = new HashMap<>();
         for (ConfigurableIdentityProvider idp : idps) {
             // try register
             if (idp.isEnabled()) {
@@ -186,7 +188,8 @@ public class AACBootstrap {
                                 "no authority for " + String.valueOf(idp.getAuthority()));
                     }
 
-                    IdentityProvider p = ia.registerIdentityProvider(idp);
+                    IdentityProvider<? extends UserIdentity> p = ia
+                            .registerIdentityProvider(idp);
                     providers.put(p.getProvider(), p);
                 } catch (Exception e) {
                     logger.error("error registering provider " + idp.getProvider() + " for realm "

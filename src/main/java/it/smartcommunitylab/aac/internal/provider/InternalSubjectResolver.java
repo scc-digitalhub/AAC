@@ -12,7 +12,7 @@ import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.model.Subject;
 
 public class InternalSubjectResolver extends AbstractProvider
-        implements SubjectResolver {
+        implements SubjectResolver<InternalUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     public final static String[] ATTRIBUTES = { "email" };

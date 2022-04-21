@@ -13,7 +13,7 @@ import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountId;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
 
 @Transactional
-public class OIDCSubjectResolver extends AbstractProvider implements SubjectResolver {
+public class OIDCSubjectResolver extends AbstractProvider implements SubjectResolver<OIDCUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final OIDCUserAccountRepository accountRepository;

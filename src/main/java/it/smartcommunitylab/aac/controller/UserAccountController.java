@@ -220,7 +220,8 @@ public class UserAccountController {
 
         // fetch provider
         String providerId = identity.getProvider();
-        IdentityService idp = authorityManager.getIdentityService(providerId);
+        IdentityService<? extends UserIdentity, ? extends UserAccount> idp = authorityManager
+                .getIdentityService(providerId);
 
         // fetch credentials service if available
         UserCredentialsService service = idp.getCredentialsService();

@@ -17,7 +17,7 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
  * At minimum, we expect every provider to fulfill core attribute sets (basic, email, openid, account).
  */
 
-public interface IdentityProvider<I extends UserIdentity, U extends UserAccount, P extends UserAuthenticatedPrincipal, C extends AbstractIdentityProviderConfig>
+public interface IdentityProvider<I extends UserIdentity>
         extends ResourceProvider {
 
     public static final String ATTRIBUTE_MAPPING_FUNCTION = "attributeMapping";
@@ -31,25 +31,25 @@ public interface IdentityProvider<I extends UserIdentity, U extends UserAccount,
 
     public String getDisplayMode();
 
-    public C getConfig();
+    public AbstractIdentityProviderConfig getConfig();
 
     /*
      * auth provider
      */
-    public ExtendedAuthenticationProvider<P, U> getAuthenticationProvider();
+    public ExtendedAuthenticationProvider<? extends UserAuthenticatedPrincipal, ? extends UserAccount> getAuthenticationProvider();
 
     /*
      * internal providers
      */
-    public AccountProvider<U> getAccountProvider();
+    public AccountProvider<? extends UserAccount> getAccountProvider();
 
-    public IdentityAttributeProvider<P, U> getAttributeProvider();
+    public IdentityAttributeProvider<? extends UserAuthenticatedPrincipal, ? extends UserAccount> getAttributeProvider();
 
     /*
      * subjects are global, we can resolve
      */
 
-    public SubjectResolver<U> getSubjectResolver();
+    public SubjectResolver<? extends UserAccount> getSubjectResolver();
 
     /*
      * convert identities from authenticatedPrincipal. Used for login only.
@@ -57,7 +57,7 @@ public interface IdentityProvider<I extends UserIdentity, U extends UserAccount,
      * If given a subjectId the provider should update the account
      */
 
-    public I convertIdentity(P principal, String userId)
+    public I convertIdentity(UserAuthenticatedPrincipal principal, String userId)
             throws NoSuchUserException;
 
     /*

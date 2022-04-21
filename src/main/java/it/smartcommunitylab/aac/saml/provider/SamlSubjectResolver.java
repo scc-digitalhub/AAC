@@ -19,7 +19,7 @@ import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountId;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
 
 @Transactional
-public class SamlSubjectResolver extends AbstractProvider implements SubjectResolver {
+public class SamlSubjectResolver extends AbstractProvider implements SubjectResolver<SamlUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final SamlUserAccountRepository accountRepository;

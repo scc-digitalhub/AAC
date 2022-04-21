@@ -42,7 +42,6 @@ public class InternalLoginController {
             HttpServletRequest req, HttpServletResponse res) throws Exception {
         // resolve provider
         InternalIdentityService idp = internalAuthority.getIdentityService(providerId);
-
         model.addAttribute("providerId", providerId);
 
         String realm = idp.getRealm();
