@@ -34,11 +34,12 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.config.ProvidersProperties;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository;
+import it.smartcommunitylab.aac.saml.model.SamlUserIdentity;
+import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProvider;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
@@ -169,7 +170,8 @@ public class SamlIdentityAuthority implements IdentityAuthority, InitializingBea
     }
 
     @Override
-    public List<IdentityProvider> getIdentityProviders(String realm) {
+    public List<SamlIdentityProvider> getIdentityProviders(
+            String realm) {
         // we need to fetch registrations and get idp from cache, with optional load
         Collection<SamlIdentityProviderConfig> registrations = registrationRepository.findByRealm(realm);
         return registrations.stream().map(r -> getIdentityProvider(r.getProvider()))
@@ -258,12 +260,14 @@ public class SamlIdentityAuthority implements IdentityAuthority, InitializingBea
     }
 
     @Override
-    public IdentityService getIdentityService(String providerId) {
+    public IdentityService<SamlUserIdentity, SamlUserAccount> getIdentityService(
+            String providerId) {
         return null;
     }
 
     @Override
-    public List<IdentityService> getIdentityServices(String realm) {
+    public List<IdentityService<SamlUserIdentity, SamlUserAccount>> getIdentityServices(
+            String realm) {
         return Collections.emptyList();
     }
 

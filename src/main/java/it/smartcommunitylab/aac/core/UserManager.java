@@ -43,22 +43,19 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.ClientEntity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
-import it.smartcommunitylab.aac.core.provider.AccountService;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
-import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.service.AttributeProviderService;
 import it.smartcommunitylab.aac.core.service.ClientEntityService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderService;
 import it.smartcommunitylab.aac.core.service.RealmService;
-import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.dto.ConnectedAppProfile;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
 import it.smartcommunitylab.aac.model.Group;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.RealmRole;
@@ -268,25 +265,29 @@ public class UserManager {
         Realm r = realmService.getRealm(realm);
 
         if (StringUtils.hasText(username)) {
-            Collection<IdentityProvider> providers = authorityManager.getIdentityProviders(r.getSlug());
+            Collection<IdentityProvider<? extends UserIdentity>> providers = authorityManager
+                    .getIdentityProviders(r.getSlug());
 
             // Assume internal provider exists and is unique
             // TODO rework, register only subject + dedicated "invite" model with
             // link/code/expire etc? or register internalUser without password
-            Optional<IdentityProvider> internalProvider = providers.stream()
+            Optional<IdentityProvider<? extends UserIdentity>> internalProvider = providers
+                    .stream()
                     .filter(p -> p.getAuthority().equals(SystemKeys.AUTHORITY_INTERNAL)).findFirst();
             if (!internalProvider.isPresent()) {
                 throw new NoSuchProviderException("No internal provider available");
             }
 
-            IdentityService identityService = authorityManager.getIdentityService(internalProvider.get().getProvider());
+            InternalIdentityService identityService = (InternalIdentityService) authorityManager
+                    .getIdentityService(internalProvider.get().getProvider());
 
             InternalUserAccount account = new InternalUserAccount();
             account.setUsername(username);
             account.setEmail(username);
             account.setRealm(realm);
 
-            UserIdentity identity = identityService.registerIdentity(null, account, Collections.emptyList());
+            UserIdentity identity = identityService.registerIdentity(null, account,
+                    Collections.emptyList());
 //            updateRoles(realm, ((InternalUserAccount) identity.getAccount()).getSubject(), roles);
             logger.debug("invite user new identity {} in realm {}", identity.getUserId(), realm);
             return identity.getUserId();

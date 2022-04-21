@@ -43,13 +43,13 @@ import it.smartcommunitylab.aac.core.auth.RealmWrappedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.core.auth.WrappedAuthenticationToken;
+import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
-import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
@@ -129,7 +129,7 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
                     throw new ProviderNotFoundException("provider not found");
                 }
 
-                IdentityProvider idp = null;
+                IdentityProvider<? extends UserIdentity> idp = null;
                 if (StringUtils.hasText(authorityId)) {
                     // fast load
                     idp = authorityManager.fetchIdentityProvider(authorityId, providerId);
@@ -143,7 +143,8 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
                     throw new ProviderNotFoundException("provider not found for " + providerId);
                 }
 
-                ExtendedAuthenticationProvider eap = idp.getAuthenticationProvider();
+                ExtendedAuthenticationProvider<? extends UserAuthenticatedPrincipal, ? extends UserAccount> eap = idp
+                        .getAuthenticationProvider();
                 if (eap == null) {
                     logger.error("auth provider not found for " + providerId);
                     throw new ProviderNotFoundException("provider not found for " + providerId);
@@ -168,7 +169,7 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
 
                 // since we don't have an authority we ask all idps to process, and keep the
                 // first not null result
-                List<IdentityProvider> providers = new ArrayList<>();
+                List<IdentityProvider<? extends UserIdentity>> providers = new ArrayList<>();
 
                 if (StringUtils.hasText(authorityId)) {
                     // fast load
@@ -185,8 +186,9 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
                 UserAuthentication result = null;
 
                 // TODO rework loop
-                for (IdentityProvider idp : providers) {
-                    ExtendedAuthenticationProvider eap = idp.getAuthenticationProvider();
+                for (IdentityProvider<? extends UserIdentity> idp : providers) {
+                    ExtendedAuthenticationProvider<? extends UserAuthenticatedPrincipal, ? extends UserAccount> eap = idp
+                            .getAuthenticationProvider();
                     if (eap == null) {
                         continue;
                     }
@@ -217,7 +219,8 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
      * Attemp authentication, returns null if request is not supported or if invalid
      */
     protected UserAuthentication attempAuthenticate(WrappedAuthenticationToken request,
-            ExtendedAuthenticationProvider provider) throws AuthenticationException {
+            ExtendedAuthenticationProvider<? extends UserAuthenticatedPrincipal, ? extends UserAccount> provider)
+            throws AuthenticationException {
         /*
          * Extended authentication:
          * 
@@ -252,7 +255,8 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
      * Perform authentication, throws error
      */
     protected UserAuthentication doAuthenticate(WrappedAuthenticationToken request,
-            ExtendedAuthenticationProvider provider) throws AuthenticationException {
+            ExtendedAuthenticationProvider<? extends UserAuthenticatedPrincipal, ? extends UserAccount> eap)
+            throws AuthenticationException {
 
         /*
          * Extended authentication:
@@ -263,14 +267,14 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
         AbstractAuthenticationToken token = request.getAuthenticationToken();
 
         // check if request is supported
-        if (!provider.supports(token.getClass())) {
+        if (!eap.supports(token.getClass())) {
             logger.error("token is not supported by the requested provider");
             throw new BadCredentialsException("invalid authentication request");
         }
 
         // perform extended authentication
         logger.debug("perform authentication via provider");
-        ExtendedAuthenticationToken auth = provider.authenticate(token);
+        ExtendedAuthenticationToken auth = eap.authenticate(token);
         logger.debug("received authentication token from provider");
 
         if (auth == null) {
@@ -306,7 +310,8 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
 
         // fetch identity provider for the given account
         // fast load skipping db
-        IdentityProvider idp = authorityManager.fetchIdentityProvider(authorityId, providerId);
+        IdentityProvider<? extends UserIdentity> idp = authorityManager
+                .fetchIdentityProvider(authorityId, providerId);
         if (idp == null) {
             // should not happen, provider has become unavailable during login
             throw new ProviderNotFoundException("provider not found");
@@ -321,7 +326,7 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
 
         // ask the IdP to resolve for persisted accounts
         // TODO handle subject as UserSubject
-        SubjectResolver resolver = idp.getSubjectResolver();
+        SubjectResolver<? extends UserAccount> resolver = idp.getSubjectResolver();
         Subject s = resolver.resolveByPrincipalId(principalId);
         if (s != null) {
             // principal is associated to a persisted account linked to a user
@@ -342,9 +347,10 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
         if (subjectId == null && principal.isEmailVerified()) {
             // new or non-persisted account for idp, non resolvable
             // fallback to other idps from the same realm via verified emailAddress
-            Collection<IdentityProvider> idps = authorityManager.fetchIdentityProviders(realm);
+            Collection<IdentityProvider<? extends UserIdentity>> idps = authorityManager
+                    .fetchIdentityProviders(realm);
             // first result is ok
-            for (IdentityProvider i : idps) {
+            for (IdentityProvider<? extends UserIdentity> i : idps) {
                 Subject ss = i.getSubjectResolver().resolveByEmailAddress(principal.getEmailAddress());
                 if (ss != null) {
                     subjectId = ss.getSubjectId();
@@ -542,9 +548,10 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
 
             // load additional identities from same realm providers
             // fast load, get only idp with persistence
-            Collection<IdentityService> idps = authorityManager.fetchIdentityServices(realm);
+            Collection<IdentityProvider<? extends UserIdentity>> idps = authorityManager
+                    .fetchIdentityProviders(realm);
             // ask all providers except the one already used
-            for (IdentityService ip : idps) {
+            for (IdentityProvider<? extends UserIdentity> ip : idps) {
                 if (!providerId.equals(ip.getProvider())) {
                     Collection<? extends UserIdentity> identities = ip.listIdentities(subjectId, true);
                     if (identities == null) {

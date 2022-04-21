@@ -19,6 +19,7 @@ import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.saml.SamlIdentityAuthority;
@@ -29,7 +30,7 @@ import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
 
 public class SamlIdentityProvider extends AbstractProvider
         implements
-        IdentityProvider<SamlUserIdentity, SamlUserAccount, SamlUserAuthenticatedPrincipal, SamlIdentityProviderConfig> {
+        IdentityProvider<SamlUserIdentity> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // provider configuration
@@ -111,12 +112,12 @@ public class SamlIdentityProvider extends AbstractProvider
 
     @Override
     @Transactional(readOnly = false)
-    public SamlUserIdentity convertIdentity(SamlUserAuthenticatedPrincipal principal, String userId)
+    public SamlUserIdentity convertIdentity(UserAuthenticatedPrincipal userPrincipal, String userId)
             throws NoSuchUserException {
-//        // we expect an instance of our model
-//        Assert.isInstanceOf(SamlUserAuthenticatedPrincipal.class, userPrincipal,
-//                "principal must be an instance of internal authenticated principal");
-//        SamlUserAuthenticatedPrincipal principal = (SamlUserAuthenticatedPrincipal) userPrincipal;
+        // we expect an instance of our model
+        Assert.isInstanceOf(SamlUserAuthenticatedPrincipal.class, userPrincipal,
+                "principal must be an instance of internal authenticated principal");
+        SamlUserAuthenticatedPrincipal principal = (SamlUserAuthenticatedPrincipal) userPrincipal;
 
         // we use upstream subject for accounts
         // TODO handle transient ids, for example with session persistence

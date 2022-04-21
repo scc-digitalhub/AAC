@@ -23,6 +23,7 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.openid.model.OIDCUserAuthenticatedPrincipal;
@@ -32,7 +33,7 @@ import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
 
 public class OIDCIdentityProvider extends AbstractProvider
         implements
-        IdentityProvider<OIDCUserIdentity, OIDCUserAccount, OIDCUserAuthenticatedPrincipal, OIDCIdentityProviderConfig> {
+        IdentityProvider<OIDCUserIdentity> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // provider configuration
@@ -130,12 +131,12 @@ public class OIDCIdentityProvider extends AbstractProvider
 
     @Override
     @Transactional(readOnly = false)
-    public OIDCUserIdentity convertIdentity(OIDCUserAuthenticatedPrincipal principal, String userId)
+    public OIDCUserIdentity convertIdentity(UserAuthenticatedPrincipal userPrincipal, String userId)
             throws NoSuchUserException {
-//        // we expect an instance of our model
-//        Assert.isInstanceOf(OIDCUserAuthenticatedPrincipal.class, userPrincipal,
-//                "principal must be an instance of internal authenticated principal");
-//        OIDCUserAuthenticatedPrincipal principal = (OIDCUserAuthenticatedPrincipal) userPrincipal;
+        // we expect an instance of our model
+        Assert.isInstanceOf(OIDCUserAuthenticatedPrincipal.class, userPrincipal,
+                "principal must be an instance of internal authenticated principal");
+        OIDCUserAuthenticatedPrincipal principal = (OIDCUserAuthenticatedPrincipal) userPrincipal;
 
         // we use upstream subject for accounts
         String subject = principal.getSubject();

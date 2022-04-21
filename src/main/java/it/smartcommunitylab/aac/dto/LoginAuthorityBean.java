@@ -7,6 +7,7 @@ import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
+import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 
 public class LoginAuthorityBean implements Comparable<LoginAuthorityBean> {
@@ -146,7 +147,8 @@ public class LoginAuthorityBean implements Comparable<LoginAuthorityBean> {
         return name.compareTo(((LoginAuthorityBean) o).name);
     }
 
-    public static LoginAuthorityBean from(IdentityProvider idp) {
+    public static LoginAuthorityBean from(
+            IdentityProvider<? extends UserIdentity> idp) {
         LoginAuthorityBean a = new LoginAuthorityBean(idp.getProvider());
         a.authority = idp.getAuthority();
         a.provider = idp.getProvider();

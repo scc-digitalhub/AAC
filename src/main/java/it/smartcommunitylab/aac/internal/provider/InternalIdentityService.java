@@ -19,6 +19,7 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
@@ -31,8 +32,7 @@ import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.utils.MailService;
 
 public class InternalIdentityService extends AbstractProvider
-        implements
-        IdentityService<InternalUserIdentity, InternalUserAccount, InternalUserAuthenticatedPrincipal, InternalIdentityProviderConfig> {
+        implements IdentityService<InternalUserIdentity, InternalUserAccount> {
 
     // services
     private final UserEntityService userEntityService;
@@ -121,13 +121,13 @@ public class InternalIdentityService extends AbstractProvider
 
     @Override
     @Transactional(readOnly = false)
-    public InternalUserIdentity convertIdentity(InternalUserAuthenticatedPrincipal principal, String userId)
+    public InternalUserIdentity convertIdentity(UserAuthenticatedPrincipal userPrincipal, String userId)
             throws NoSuchUserException {
-//        Assert.isInstanceOf(InternalUserAuthenticatedPrincipal.class, userPrincipal,
-//                "principal must be an instance of internal authenticated principal");
-//
-//        // extract account and attributes in raw format from authenticated principal
-//        InternalUserAuthenticatedPrincipal principal = (InternalUserAuthenticatedPrincipal) userPrincipal;
+        Assert.isInstanceOf(InternalUserAuthenticatedPrincipal.class, userPrincipal,
+                "principal must be an instance of internal authenticated principal");
+
+        // extract account and attributes in raw format from authenticated principal
+        InternalUserAuthenticatedPrincipal principal = (InternalUserAuthenticatedPrincipal) userPrincipal;
 
         // username binds all identity pieces together
         String username = principal.getUsername();

@@ -16,6 +16,7 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.spid.SpidIdentityAuthority;
@@ -28,7 +29,7 @@ import it.smartcommunitylab.aac.spid.persistence.SpidUserAccountRepository;
 
 public class SpidIdentityProvider extends AbstractProvider
         implements
-        IdentityProvider<SpidUserIdentity, SpidUserAccount, SpidAuthenticatedPrincipal, SpidIdentityProviderConfig> {
+        IdentityProvider<SpidUserIdentity> {
 
     // provider configuration
     private final SpidIdentityProviderConfig config;
@@ -100,12 +101,12 @@ public class SpidIdentityProvider extends AbstractProvider
 
     @Override
     @Transactional(readOnly = false)
-    public SpidUserIdentity convertIdentity(SpidAuthenticatedPrincipal principal, String userId)
+    public SpidUserIdentity convertIdentity(UserAuthenticatedPrincipal userPrincipal, String userId)
             throws NoSuchUserException {
-//        // we expect an instance of our model
-//        Assert.isInstanceOf(SpidAuthenticatedPrincipal.class, userPrincipal,
-//                "principal must be an instance of internal authenticated principal");
-//        SpidAuthenticatedPrincipal principal = (SpidAuthenticatedPrincipal) userPrincipal;
+        // we expect an instance of our model
+        Assert.isInstanceOf(SpidAuthenticatedPrincipal.class, userPrincipal,
+                "principal must be an instance of internal authenticated principal");
+        SpidAuthenticatedPrincipal principal = (SpidAuthenticatedPrincipal) userPrincipal;
 
         // we use upstream subjectId for accounts
         // NOTE: spid nameId is transient, so each login will result in a new

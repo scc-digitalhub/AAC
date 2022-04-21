@@ -7,6 +7,8 @@ import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.model.UserAccount;
+import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 
@@ -24,9 +26,11 @@ public interface IdentityAuthority {
      */
     public boolean hasIdentityProvider(String providerId);
 
-    public IdentityProvider getIdentityProvider(String providerId) throws NoSuchProviderException;
+    public IdentityProvider<? extends UserIdentity> getIdentityProvider(
+            String providerId) throws NoSuchProviderException;
 
-    public List<IdentityProvider> getIdentityProviders(String realm);
+    public List<? extends IdentityProvider<? extends UserIdentity>> getIdentityProviders(
+            String realm);
 //
 //    /*
 //     * we also expect auth provider to be able to infer *provider from userId
@@ -45,7 +49,8 @@ public interface IdentityAuthority {
      * implementations should unregister+register, we want identities and sessions
      * to be invalidated if config changes
      */
-    public IdentityProvider registerIdentityProvider(ConfigurableIdentityProvider idp)
+    public IdentityProvider<? extends UserIdentity> registerIdentityProvider(
+            ConfigurableIdentityProvider idp)
             throws IllegalArgumentException, RegistrationException, SystemException;
 
     public void unregisterIdentityProvider(String providerId) throws SystemException;
@@ -57,9 +62,11 @@ public interface IdentityAuthority {
      * identities are not manageable, but at minimum they should return a service
      * with delete. When not provided, identities will be immutable.
      */
-    public IdentityService getIdentityService(String providerId);
+    public IdentityService<? extends UserIdentity, ? extends UserAccount> getIdentityService(
+            String providerId);
 
-    public List<IdentityService> getIdentityServices(String realm);
+    public List<? extends IdentityService<? extends UserIdentity, ? extends UserAccount>> getIdentityServices(
+            String realm);
 
     /*
      * Configuration templates

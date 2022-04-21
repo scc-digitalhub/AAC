@@ -33,6 +33,7 @@ import it.smartcommunitylab.aac.common.LoginException;
 import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.RealmManager;
+import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.service.ClientDetailsService;
 import it.smartcommunitylab.aac.dto.CustomizationBean;
@@ -153,10 +154,12 @@ public class LoginController {
         model.addAttribute("customization", resources);
 
         // fetch providers for given realm
-        Collection<IdentityProvider> providers = authorityManager.getIdentityProviders(realm);
+        Collection<IdentityProvider<? extends UserIdentity>> providers = authorityManager
+                .getIdentityProviders(realm);
 
         if (StringUtils.hasText(providerId)) {
-            IdentityProvider idp = authorityManager.getIdentityProvider(providerId);
+            IdentityProvider<? extends UserIdentity> idp = authorityManager
+                    .getIdentityProvider(providerId);
             if (idp.getRealm().equals(realm)) {
                 providers = Collections.singleton(idp);
             }
@@ -177,7 +180,7 @@ public class LoginController {
 
         // fetch as authorities model
         List<LoginAuthorityBean> authorities = new ArrayList<>();
-        for (IdentityProvider idp : providers) {
+        for (IdentityProvider<? extends UserIdentity> idp : providers) {
             LoginAuthorityBean a = LoginAuthorityBean.from(idp);
             authorities.add(a);
         }
