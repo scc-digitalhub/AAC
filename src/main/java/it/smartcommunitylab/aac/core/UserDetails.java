@@ -139,8 +139,12 @@ public class UserDetails implements CredentialsContainer, Serializable {
     public void eraseCredentials() {
         // clear credentials on every identity
         identities.values().stream()
-                .forEach(i -> i.eraseCredentials());
+                .forEach(i -> {
+                    if (i instanceof CredentialsContainer) {
+                        ((CredentialsContainer) i).eraseCredentials();
+                    }
 
+                });
     }
 
     public Collection<? extends GrantedAuthority> getAuthorities() {

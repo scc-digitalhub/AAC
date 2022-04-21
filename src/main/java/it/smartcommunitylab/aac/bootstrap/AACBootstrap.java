@@ -1,8 +1,13 @@
 package it.smartcommunitylab.aac.bootstrap;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -15,12 +20,17 @@ import org.springframework.context.event.EventListener;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.NoSuchSubjectException;
+import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.ClientManager;
 import it.smartcommunitylab.aac.core.ProviderManager;
@@ -28,18 +38,23 @@ import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.UserManager;
 import it.smartcommunitylab.aac.core.authorities.AttributeAuthority;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
-import it.smartcommunitylab.aac.core.base.ConfigurableAttributeProvider;
-import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
+import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.service.AttributeProviderService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderService;
+import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.crypto.PasswordHash;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
+import it.smartcommunitylab.aac.model.SpaceRole;
+import it.smartcommunitylab.aac.model.UserStatus;
+import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
 import it.smartcommunitylab.aac.services.Service;
 import it.smartcommunitylab.aac.services.ServicesManager;
 
@@ -55,6 +70,15 @@ public class AACBootstrap {
 
     @Value("${admin.username}")
     private String adminUsername;
+
+    @Value("${admin.password}")
+    private String adminPassword;
+
+    @Value("${admin.email}")
+    private String adminEmail;
+
+    @Value("${admin.roles}")
+    private String[] adminRoles;
 
     @Autowired
     private ResourceLoader resourceLoader;
@@ -88,6 +112,9 @@ public class AACBootstrap {
     private UserEntityService userService;
 
     @Autowired
+    private SubjectService subjectService;
+
+    @Autowired
     private InternalUserAccountService internalUserService;
 
     @Autowired
@@ -96,19 +123,32 @@ public class AACBootstrap {
     @Autowired
     private AttributeProviderService attributeProviderService;
 
+    @Autowired
+    private SpaceRoleService roleService;
+
     @EventListener
     public void onApplicationEvent(ApplicationReadyEvent event) {
         try {
             // base initialization
             logger.debug("application init");
-            initServices();
+//            initServices();
 
             // build a security context as admin to bootstrap configs
             // initContext(adminUsername);
 
             // bootstrap providers
             // TODO use a dedicated thread, or a multithread
-            bootstrapSystemProviders();
+            Map<String, IdentityProvider> systemProviders = bootstrapSystemProviders();
+
+            // bootstrap admin account
+            // use first active internal provider for system
+            systemProviders.values().stream()
+                    .filter(idp -> SystemKeys.AUTHORITY_INTERNAL.equals(idp.getAuthority()))
+                    .findFirst().ifPresent(idp -> {
+                        bootstrapAdminUser(idp.getProvider());
+                    });
+
+            // bootstrap realm providers
             bootstrapIdentityProviders();
             bootstrapAttributeProviders();
 
@@ -126,12 +166,12 @@ public class AACBootstrap {
         }
     }
 
-    private void bootstrapSystemProviders() throws NoSuchRealmException {
+    private Map<String, IdentityProvider> bootstrapSystemProviders() throws NoSuchRealmException {
         Map<String, IdentityAuthority> ias = authorityManager.listIdentityAuthorities().stream()
                 .collect(Collectors.toMap(a -> a.getAuthorityId(), a -> a));
 
         Collection<ConfigurableIdentityProvider> idps = identityProviderService.listProviders(SystemKeys.REALM_SYSTEM);
-
+        Map<String, IdentityProvider> providers = new HashMap<>();
         for (ConfigurableIdentityProvider idp : idps) {
             // try register
             if (idp.isEnabled()) {
@@ -146,7 +186,8 @@ public class AACBootstrap {
                                 "no authority for " + String.valueOf(idp.getAuthority()));
                     }
 
-                    ia.registerIdentityProvider(idp);
+                    IdentityProvider p = ia.registerIdentityProvider(idp);
+                    providers.put(p.getProvider(), p);
                 } catch (Exception e) {
                     logger.error("error registering provider " + idp.getProvider() + " for realm "
                             + idp.getRealm() + ": " + e.getMessage());
@@ -158,6 +199,7 @@ public class AACBootstrap {
             }
         }
 
+        return providers;
     }
 
     private void bootstrapIdentityProviders() {
@@ -241,7 +283,91 @@ public class AACBootstrap {
         });
     }
 
-    // @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    private void bootstrapAdminUser(String providerId) {
+        // create admin as superuser for system
+        logger.debug("create internal admin user " + adminUsername);
+        UserEntity user = null;
+        InternalUserAccount account = internalUserService.findAccountByUsername(providerId, adminUsername);
+        if (account != null) {
+            // check if user exists, recreate if needed
+            user = userService.findUser(account.getUserId());
+            if (user == null) {
+                user = userService.addUser(userService.createUser(SystemKeys.REALM_SYSTEM).getUuid(),
+                        SystemKeys.REALM_SYSTEM, adminUsername, adminEmail);
+            }
+        } else {
+            // register as new
+            user = userService.addUser(userService.createUser(SystemKeys.REALM_SYSTEM).getUuid(),
+                    SystemKeys.REALM_SYSTEM, adminUsername, adminEmail);
+            account = new InternalUserAccount();
+            account.setProvider(providerId);
+            account.setUserId(user.getUuid());
+            account.setRealm(SystemKeys.REALM_SYSTEM);
+            account.setUsername(adminUsername);
+            account.setEmail(adminEmail);
+            account.setStatus(UserStatus.ACTIVE.getValue());
+            account = internalUserService.addAccount(account);
+        }
+
+        String userId = account.getUserId();
+
+        try {
+            // update username
+            user = userService.updateUser(userId, adminUsername, adminEmail);
+            // ensure user is active
+            user = userService.activateUser(userId);
+
+            // re-set password
+            PasswordHash hasher = new PasswordHash();
+            String hash = hasher.createHash(adminPassword);
+            account.setPassword(hash);
+            account.setChangeOnFirstAccess(false);
+
+            // ensure account is active and unlocked
+            account.setStatus(UserStatus.ACTIVE.getValue());
+            account.setConfirmed(true);
+            account.setConfirmationKey(null);
+            account.setConfirmationDeadline(null);
+            account.setResetKey(null);
+            account.setResetDeadline(null);
+            account = internalUserService.updateAccount(providerId, account.getUsername(), account);
+
+            // assign authorities to subject
+            String subjectId = user.getUuid();
+
+            // at minimum we set ADMIN+DEV global, and ADMIN+DEV in SYSTEM realm
+            Set<Map.Entry<String, String>> roles = new HashSet<>();
+            roles.add(new AbstractMap.SimpleEntry<>(SystemKeys.REALM_GLOBAL, Config.R_ADMIN));
+            roles.add(new AbstractMap.SimpleEntry<>(SystemKeys.REALM_GLOBAL, Config.R_DEVELOPER));
+            roles.add(new AbstractMap.SimpleEntry<>(SystemKeys.REALM_SYSTEM, Config.R_ADMIN));
+            roles.add(new AbstractMap.SimpleEntry<>(SystemKeys.REALM_SYSTEM, Config.R_DEVELOPER));
+            // admin roles are global, ie they are valid for any realm
+            for (String role : adminRoles) {
+                roles.add(new AbstractMap.SimpleEntry<>(SystemKeys.REALM_GLOBAL, role));
+
+            }
+
+            subjectService.addAuthorities(subjectId, roles);
+
+            // set minimal space roles
+            Collection<SpaceRole> spaceRoles = roleService.getRoles(subjectId);
+            if (spaceRoles.isEmpty()) {
+                roleService.addRole(subjectId, null, "", Config.R_PROVIDER);
+            }
+
+            logger.debug("admin user id " + String.valueOf(account.getId()));
+            logger.debug("admin user " + user.toString());
+            logger.debug("admin account " + account.toString());
+        } catch (NoSuchUserException | NoSuchSubjectException e) {
+            logger.error("error updating admin account: " + e.getMessage());
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            logger.error("error updating admin password: " + e.getMessage());
+
+        }
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void bootstrapConfig() throws Exception {
 
         // read configuration
@@ -408,77 +534,77 @@ public class AACBootstrap {
             }
         }
 
-        // Internal users
-        PasswordHash hasher = new PasswordHash();
-        for (InternalUserAccount ua : config.getUsers().getInternal()) {
-            try {
-                if (!StringUtils.hasText(ua.getRealm()) || !StringUtils.hasText(ua.getProvider())) {
-                    // invalid, skip
-                    continue;
-                }
-                if (!realms.containsKey(ua.getRealm()) || !providers.containsKey(ua.getProvider())) {
-                    // not managed here, skip
-                    continue;
-                }
-                if (!StringUtils.hasText(ua.getSubject())) {
-                    // we ask id to be provided otherwise we create a new one every time
-                    logger.error("error creating user, missing subjectId");
-                    throw new IllegalArgumentException("missing subjectId");
-                }
-                if (!StringUtils.hasText(ua.getUsername())) {
-                    // we ask id to be provided otherwise we create a new one every time
-                    logger.error("error creating user, missing username");
-                    throw new IllegalArgumentException("missing username");
-                }
-                if (!StringUtils.hasText(ua.getPassword())) {
-                    // we ask id to be provided otherwise we create a new one every time
-                    logger.error("error creating user, missing password");
-                    throw new IllegalArgumentException("missing password");
-                }
-
-                logger.debug("create or update user " + ua.getSubject() + " with authority internal");
-
-                // check if user exists, recreate if needed
-                UserEntity user = userService.findUser(ua.getSubject());
-                if (user == null) {
-                    user = userService.addUser(ua.getSubject(), ua.getRealm(), ua.getUsername(), ua.getEmail());
-                } else {
-                    // check match
-                    if (!user.getRealm().equals(ua.getRealm())) {
-                        logger.error("error creating user, realm mismatch");
-                        throw new IllegalArgumentException("realm mismatch");
-                    }
-
-                    user = userService.updateUser(ua.getSubject(), ua.getUsername(), ua.getEmail());
-                }
-
-                InternalUserAccount account = internalUserService.findAccountByUsername(ua.getRealm(),
-                        ua.getUsername());
-
-                if (account == null) {
-                    account = internalUserService.addAccount(ua);
-                } else {
-                    account = internalUserService.updateAccount(account.getId(), account);
-                }
-
-                // re-set password
-                String hash = hasher.createHash(ua.getPassword());
-                account.setPassword(hash);
-                account.setChangeOnFirstAccess(false);
-
-                // ensure account is unlocked
-                account.setConfirmed(true);
-                account.setConfirmationKey(null);
-                account.setConfirmationDeadline(null);
-                account.setResetKey(null);
-                account.setResetDeadline(null);
-                account = internalUserService.updateAccount(account.getId(), account);
-
-            } catch (Exception e) {
-                logger.error("error creating user " + String.valueOf(ua.getSubject()) + ": " + e.getMessage());
-                e.printStackTrace();
-            }
-        }
+//        // Internal users
+//        PasswordHash hasher = new PasswordHash();
+//        for (InternalUserAccount ua : config.getUsers().getInternal()) {
+//            try {
+//                if (!StringUtils.hasText(ua.getRealm()) || !StringUtils.hasText(ua.getProvider())) {
+//                    // invalid, skip
+//                    continue;
+//                }
+//                if (!realms.containsKey(ua.getRealm()) || !providers.containsKey(ua.getProvider())) {
+//                    // not managed here, skip
+//                    continue;
+//                }
+//                if (!StringUtils.hasText(ua.getSubject())) {
+//                    // we ask id to be provided otherwise we create a new one every time
+//                    logger.error("error creating user, missing subjectId");
+//                    throw new IllegalArgumentException("missing subjectId");
+//                }
+//                if (!StringUtils.hasText(ua.getUsername())) {
+//                    // we ask id to be provided otherwise we create a new one every time
+//                    logger.error("error creating user, missing username");
+//                    throw new IllegalArgumentException("missing username");
+//                }
+//                if (!StringUtils.hasText(ua.getPassword())) {
+//                    // we ask id to be provided otherwise we create a new one every time
+//                    logger.error("error creating user, missing password");
+//                    throw new IllegalArgumentException("missing password");
+//                }
+//
+//                logger.debug("create or update user " + ua.getSubject() + " with authority internal");
+//
+//                // check if user exists, recreate if needed
+//                UserEntity user = userService.findUser(ua.getSubject());
+//                if (user == null) {
+//                    user = userService.addUser(ua.getSubject(), ua.getRealm(), ua.getUsername(), ua.getEmail());
+//                } else {
+//                    // check match
+//                    if (!user.getRealm().equals(ua.getRealm())) {
+//                        logger.error("error creating user, realm mismatch");
+//                        throw new IllegalArgumentException("realm mismatch");
+//                    }
+//
+//                    user = userService.updateUser(ua.getSubject(), ua.getUsername(), ua.getEmail());
+//                }
+//
+//                InternalUserAccount account = internalUserService.findAccountByUsername(ua.getRealm(),
+//                        ua.getUsername());
+//
+//                if (account == null) {
+//                    account = internalUserService.addAccount(ua);
+//                } else {
+//                    account = internalUserService.updateAccount(account.getId(), account);
+//                }
+//
+//                // re-set password
+//                String hash = hasher.createHash(ua.getPassword());
+//                account.setPassword(hash);
+//                account.setChangeOnFirstAccess(false);
+//
+//                // ensure account is unlocked
+//                account.setConfirmed(true);
+//                account.setConfirmationKey(null);
+//                account.setConfirmationDeadline(null);
+//                account.setResetKey(null);
+//                account.setResetDeadline(null);
+//                account = internalUserService.updateAccount(account.getId(), account);
+//
+//            } catch (Exception e) {
+//                logger.error("error creating user " + String.valueOf(ua.getSubject()) + ": " + e.getMessage());
+//                e.printStackTrace();
+//            }
+//        }
 
         // TODO oidc/saml users
         // requires accountService extracted from idp to detach from repo

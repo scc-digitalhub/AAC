@@ -39,7 +39,7 @@ import it.smartcommunitylab.aac.core.auth.ProviderWrappedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
-import it.smartcommunitylab.aac.core.provider.ProviderRepository;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.openid.OIDCIdentityAuthority;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
 
@@ -55,24 +55,26 @@ public class OIDCLoginAuthenticationFilter extends AbstractAuthenticationProcess
 
     // we need to load client registration
     private final ClientRegistrationRepository clientRegistrationRepository;
-    private final ProviderRepository<OIDCIdentityProviderConfig> registrationRepository;
+    private final ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository;
     private AuthenticationEntryPoint authenticationEntryPoint;
 
     // we use this to persist request before redirect, and here to fetch details
     private AuthorizationRequestRepository<OAuth2AuthorizationRequest> authorizationRequestRepository;
 
     public OIDCLoginAuthenticationFilter(
-            ProviderRepository<OIDCIdentityProviderConfig> registrationRepository,
+            ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository,
             ClientRegistrationRepository clientRegistrationRepository) {
-        this(registrationRepository, clientRegistrationRepository, DEFAULT_FILTER_URI, null);
+        this(SystemKeys.AUTHORITY_OIDC, registrationRepository, clientRegistrationRepository, DEFAULT_FILTER_URI, null);
 
     }
 
     public OIDCLoginAuthenticationFilter(
-            ProviderRepository<OIDCIdentityProviderConfig> registrationRepository,
+            String authority,
+            ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository,
             ClientRegistrationRepository clientRegistrationRepository,
             String filterProcessingUrl, AuthenticationEntryPoint authenticationEntryPoint) {
         super(filterProcessingUrl);
+        Assert.hasText(authority, "authority can not be null or empty");
         Assert.notNull(registrationRepository, "provider registration repository cannot be null");
         Assert.notNull(clientRegistrationRepository, "clientRegistrationRepository cannot be null");
         Assert.hasText(filterProcessingUrl, "filterProcessesUrl must contain a URL pattern");

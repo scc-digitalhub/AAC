@@ -1,13 +1,12 @@
 <div class="pt-3 mb-5">
 
-    <fieldset>        
-         <legend class="mb-4">SAML2 SP Configuration</legend>
-         <div class="row">
+    <fieldset>
+        <legend class="mb-4">SAML2 SP Configuration</legend>
+        <div class="row">
             <div class="form-group col">
                 <div class="input-group">
                     <label for="samlMetadataUrl" class="active">Service provider metadata</label>
-                    <input type="text" class="form-control" id="samlMetadataUrl" ng-model="samlMetadataUrl"
-                        readonly>
+                    <input type="text" class="form-control" id="samlMetadataUrl" ng-model="samlMetadataUrl" readonly>
                     </span>
                     <div class="input-group-append">
                         <button class="btn btn-primary btn-sm  text-right" ng-click="copyText(samlMetadataUrl)">
@@ -17,7 +16,7 @@
                         </button>
                     </div>
                 </div>
-            </div>        
+            </div>
         </div>
         <div class="row">
             <div class="form-group col ">
@@ -50,7 +49,7 @@
                     ng-model="idp.configuration.cryptCertificate"></textarea>
             </div>
         </div>
-        
+
         <legend class="mb-4">SAML2 IdP Configuration</legend>
 
 
@@ -105,7 +104,7 @@
             ng-if="!idp.configuration.idpMetadataUrl && (!idp.configuration.ssoLoginServiceLocation || !idp.configuration.ssoLoginServiceLocation ||!idp.configuration.ssoServiceBinding)">
             Either metadata or Asserting party entity + login service + SSO service binding should be specified
         </div>
-       
+
     </fieldset>
     <fieldset>
         <legend class="mb-4">SAML2 Advanced Configuration</legend>
@@ -142,8 +141,8 @@
         <div class="row">
             <div class="form-group col">
                 <label class="active">AuthnContextClasses</label>
-                <tags-input type="text" placeholder="Add contextClassRefs"
-                    ng-model="samlAuthnContextClasses"></tags-input>
+                <tags-input type="text" placeholder="Add contextClassRefs" ng-model="samlAuthnContextClasses">
+                </tags-input>
             </div>
         </div>
     </fieldset>
@@ -157,11 +156,14 @@
                     <label for="trustEmailAddress">trustEmailAddress</label>
                 </div>
             </div>
-            <div class="form-group col ">
-                 <label for="userNameAttributeName">Username attribute*</label>
-                 <input required type="text" name="userNameAttributeName" class="form-control form-control-sm"
-                     id="userNameAttributeName" ng-model="idp.configuration.userNameAttributeName">
-             </div>
-        </div>       
-    </fieldset>    
+
+            <div class="form-group col-md-6 ">
+                <label for="userNameAttributeName">Username attribute*</label>
+                <input required type="text" name="userNameAttributeName" class="form-control form-control-sm"
+                    id="userNameAttributeName" ng-model="idp.configuration.userNameAttributeName">
+            </div>
+
+        </div>
+
+    </fieldset>
 </div>

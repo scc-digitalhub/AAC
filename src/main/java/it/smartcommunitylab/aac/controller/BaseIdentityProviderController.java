@@ -29,7 +29,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.core.ProviderManager;
-import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 
 /*
  * Base controller for identity providers

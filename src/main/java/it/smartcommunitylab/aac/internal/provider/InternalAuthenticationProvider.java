@@ -5,37 +5,43 @@ import java.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.crypto.InternalPasswordEncoder;
 import it.smartcommunitylab.aac.internal.auth.ConfirmKeyAuthenticationProvider;
 import it.smartcommunitylab.aac.internal.auth.ConfirmKeyAuthenticationToken;
 import it.smartcommunitylab.aac.internal.auth.InternalAuthenticationException;
 import it.smartcommunitylab.aac.internal.auth.ResetKeyAuthenticationProvider;
 import it.smartcommunitylab.aac.internal.auth.ResetKeyAuthenticationToken;
+import it.smartcommunitylab.aac.internal.auth.UsernamePasswordAuthenticationProvider;
+import it.smartcommunitylab.aac.internal.auth.UsernamePasswordAuthenticationToken;
 import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
-import it.smartcommunitylab.aac.internal.service.InternalUserDetailsService;
 
-public class InternalAuthenticationProvider extends ExtendedAuthenticationProvider {
+public class InternalAuthenticationProvider
+        extends ExtendedAuthenticationProvider<InternalUserAuthenticatedPrincipal, InternalUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
+
+    private static final String ACCOUNT_NOT_FOUND_PASSWORD = "internalAccountNotFoundPassword";
 
     // provider configuration
     private final InternalIdentityProviderConfigMap config;
 
     private final InternalUserAccountService userAccountService;
-    private final InternalUserDetailsService userDetailsService;
-    private final DaoAuthenticationProvider authProvider;
+    private final UsernamePasswordAuthenticationProvider authProvider;
     private final ConfirmKeyAuthenticationProvider confirmKeyProvider;
     private final ResetKeyAuthenticationProvider resetKeyProvider;
+
+    // use a volatile password to mitigate timing attacks: ensures encoder is always
+    // run
+    private volatile String userNotFoundEncodedPassword;
+    private final PasswordEncoder passwordEncoder;
 
     public InternalAuthenticationProvider(String providerId,
             InternalUserAccountService userAccountService,
@@ -47,15 +53,13 @@ public class InternalAuthenticationProvider extends ExtendedAuthenticationProvid
         this.config = providerConfig.getConfigMap();
         this.userAccountService = userAccountService;
 
-        // build a userDetails service
-        userDetailsService = new InternalUserDetailsService(userAccountService, realm);
+        // build a password encoder
+        this.passwordEncoder = new InternalPasswordEncoder();
 
-        // build our internal auth provider by wrapping spring dao authprovider
-        authProvider = new DaoAuthenticationProvider();
-        // set user details service
-        authProvider.setUserDetailsService(this.userDetailsService);
+        // build our internal auth provider
+        authProvider = new UsernamePasswordAuthenticationProvider(providerId, accountService, realm);
         // we use our password encoder
-        authProvider.setPasswordEncoder(new InternalPasswordEncoder());
+        authProvider.setPasswordEncoder(passwordEncoder);
 
         // build additional providers
         // TODO check config to see if these are available
@@ -67,35 +71,38 @@ public class InternalAuthenticationProvider extends ExtendedAuthenticationProvid
 
     @Override
     public Authentication doAuthenticate(Authentication authentication) throws AuthenticationException {
+        // mitigate timing attacks by encoding the notFound password
+        // performed for all providers
+        if (this.userNotFoundEncodedPassword == null) {
+            this.userNotFoundEncodedPassword = this.passwordEncoder.encode(ACCOUNT_NOT_FOUND_PASSWORD);
+        }
+
         // just delegate to provider
         String username = authentication.getName();
         String credentials = String
                 .valueOf(authentication.getCredentials());
 
-        InternalUserAccount account = userAccountService.findAccountByUsername(getRealm(), username);
+        InternalUserAccount account = userAccountService.findAccountByUsername(getProvider(), username);
         if (account == null) {
+            // mitigate timing attacks to encode the provider password if usernamePassword
+            if (authentication instanceof UsernamePasswordAuthenticationToken
+                    && authentication.getCredentials() != null) {
+                String password = ((UsernamePasswordAuthenticationToken) authentication).getPassword();
+                this.passwordEncoder.matches(password, this.userNotFoundEncodedPassword);
+            }
+
             throw new InternalAuthenticationException(username, username, credentials, "unknown",
                     new BadCredentialsException("invalid user or password"));
         }
-        String subject = account.getSubject();
+
+        // userId is equal to subject
+        String subject = account.getUserId();
 
         // TODO check if providers are available
         if (authentication instanceof UsernamePasswordAuthenticationToken) {
 
             try {
-                UsernamePasswordAuthenticationToken token = (UsernamePasswordAuthenticationToken) authProvider
-                        .authenticate(authentication);
-                if (token == null) {
-                    return null;
-                }
-
-                // rebuild token to include account
-                username = token.getName();
-
-                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(account,
-                        token.getCredentials(), token.getAuthorities());
-                auth.setDetails(token.getDetails());
-                return auth;
+                return authProvider.authenticate(authentication);
             } catch (AuthenticationException e) {
                 throw new InternalAuthenticationException(subject, username, credentials, "password", e,
                         e.getMessage());
@@ -127,10 +134,10 @@ public class InternalAuthenticationProvider extends ExtendedAuthenticationProvid
     }
 
     @Override
-    protected UserAuthenticatedPrincipal createUserPrincipal(Object principal) {
+    protected InternalUserAuthenticatedPrincipal createUserPrincipal(Object principal) {
         InternalUserAccount account = (InternalUserAccount) principal;
+        String userId = account.getUserId();
         String username = account.getUsername();
-        String name = account.getUsername();
 //        StringBuilder fullName = new StringBuilder();
 //        fullName.append(account.getName()).append(" ").append(account.getSurname());
 //
@@ -140,9 +147,11 @@ public class InternalAuthenticationProvider extends ExtendedAuthenticationProvid
 //        }
 
         InternalUserAuthenticatedPrincipal user = new InternalUserAuthenticatedPrincipal(getProvider(), getRealm(),
-                exportInternalId(username));
-        user.setName(name);
-        user.setPrincipal(account);
+                userId, username);
+        // set principal name as username
+        user.setName(username);
+        // set attributes to support mapping in idp
+        user.setAccountAttributes(account);
 
         return user;
     }

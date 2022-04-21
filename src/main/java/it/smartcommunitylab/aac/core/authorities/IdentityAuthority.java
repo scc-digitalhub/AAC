@@ -6,7 +6,7 @@ import java.util.List;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 
@@ -27,16 +27,16 @@ public interface IdentityAuthority {
     public IdentityProvider getIdentityProvider(String providerId) throws NoSuchProviderException;
 
     public List<IdentityProvider> getIdentityProviders(String realm);
-
-    /*
-     * we also expect auth provider to be able to infer *provider from userId
-     * implementations should build ids predictably via composition
-     * 
-     * also *providers should return the same id for the same user!
-     */
-    public String getUserProviderId(String userId);
-
-    public IdentityProvider getUserIdentityProvider(String userId);
+//
+//    /*
+//     * we also expect auth provider to be able to infer *provider from userId
+//     * implementations should build ids predictably via composition
+//     * 
+//     * also *providers should return the same id for the same user!
+//     */
+//    public String getUserProviderId(String userId);
+//
+//    public IdentityProvider getUserIdentityProvider(String userId);
 
     /*
      * Manage providers

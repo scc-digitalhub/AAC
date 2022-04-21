@@ -40,6 +40,7 @@ public class SystemKeys {
     public static final String RESOURCE_ATTRIBUTES = "attributes";
     public static final String RESOURCE_IDENTITY = "identity";
     public static final String RESOURCE_AUTHENTICATION = "authenticationToken";
+    public static final String RESOURCE_PRINCIPAL = "principal";
     public static final String RESOURCE_SUBJECT = "subject";
     public static final String RESOURCE_CREDENTIALS = "credentials";
     public static final String RESOURCE_CLIENT = "client";
@@ -48,6 +49,9 @@ public class SystemKeys {
     public static final String RESOURCE_GROUP = "group";
 
     public static final String PATH_SEPARATOR = "/-/";
+    public static final String ID_SEPARATOR = "|";
+    public static final String URN_PROTOCOL = "urn";
+    public static final String URN_SEPARATOR = ":";
 
     public static final String PATH_USER = "/user";
     public static final String PATH_DEV = "/dev";

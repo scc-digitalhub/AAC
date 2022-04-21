@@ -13,13 +13,12 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.mapper.ExactAttributesMapper;
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
-import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
 import it.smartcommunitylab.aac.core.model.Attribute;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.persistence.InternalAttributeEntity;
 import it.smartcommunitylab.aac.internal.service.InternalAttributeEntityService;
 
@@ -76,23 +75,19 @@ public class InternalAttributeService extends AbstractProvider
     }
 
     @Override
-    public ConfigurableProperties getConfiguration() {
-        return providerConfig;
-    }
-
-    @Override
-    public Collection<UserAttributes> convertAttributes(UserAuthenticatedPrincipal principal, String subjectId) {
+    public Collection<UserAttributes> convertPrincipalAttributes(UserAuthenticatedPrincipal principal,
+            String subjectId) {
 
         if (providerConfig.getAttributeSets().isEmpty()) {
             return Collections.emptyList();
         }
 
         // nothing to process, just fetch attributes already in store
-        return getAttributes(subjectId);
+        return getUserAttributes(subjectId);
     }
 
     @Override
-    public Collection<UserAttributes> getAttributes(String subjectId) {
+    public Collection<UserAttributes> getUserAttributes(String subjectId) {
         List<UserAttributes> result = new ArrayList<>();
 
         // build sets from stored values
@@ -127,7 +122,7 @@ public class InternalAttributeService extends AbstractProvider
     }
 
     @Override
-    public void deleteAttributes(String subjectId) {
+    public void deleteUserAttributes(String subjectId) {
         // cleanup from store
         attributeEntityService.deleteAttributes(getProvider(), subjectId);
     }
@@ -175,4 +170,5 @@ public class InternalAttributeService extends AbstractProvider
         return result;
 
     }
+
 }

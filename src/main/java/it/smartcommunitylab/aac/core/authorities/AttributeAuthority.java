@@ -5,7 +5,7 @@ import java.util.List;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.core.base.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.AttributeService;
 

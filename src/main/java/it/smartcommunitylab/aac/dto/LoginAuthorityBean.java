@@ -1,10 +1,12 @@
 package it.smartcommunitylab.aac.dto;
 
+import java.util.Map;
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
+import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 
 public class LoginAuthorityBean implements Comparable<LoginAuthorityBean> {
@@ -151,9 +153,10 @@ public class LoginAuthorityBean implements Comparable<LoginAuthorityBean> {
         a.realm = idp.getRealm();
 
         a.loginUrl = idp.getAuthenticationUrl();
-        if (idp.getActionUrls() != null) {
-            a.registrationUrl = idp.getActionUrls().get(SystemKeys.ACTION_REGISTER);
-            a.resetUrl = idp.getActionUrls().get(SystemKeys.ACTION_RESET);
+        Map<String, String> actionUrls = idp.getActionUrls();
+        if (actionUrls != null) {
+            a.registrationUrl = actionUrls.get(SystemKeys.ACTION_REGISTER);
+            a.resetUrl = actionUrls.get(SystemKeys.ACTION_RESET);
         }
 
         a.name = idp.getName();
@@ -167,7 +170,6 @@ public class LoginAuthorityBean implements Comparable<LoginAuthorityBean> {
         }
         a.iconUrl = a.icon.startsWith("logo-") ? "svg/sprite.svg#" + a.icon : "italia/svg/sprite.svg#" + a.icon;
         a.displayMode = idp.getDisplayMode() != null ? idp.getDisplayMode() : SystemKeys.DISPLAY_MODE_BUTTON;
-        a.configuration = idp.getConfiguration();
 
         return a;
     }

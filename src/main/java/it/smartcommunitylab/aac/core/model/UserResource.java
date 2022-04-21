@@ -11,13 +11,22 @@ public interface UserResource {
     public String getAuthority();
 
     public String getProvider();
-    
+
+    public String getUserId();
+
+    // id is local to the provider
+    public String getId();
+
+    // uuid is global
+    public String getUuid();
+
     // TODO replace with proper typing <T> on resource
     public String getType();
 
-    // userid is globally unique and addressable
+    // resource is globally unique and addressable
     // ie given to an external actor he should be able to find the authority and
     // then the provider to request this resource
-    public String getUserId();
+    public String getResourceId();
 
+    public String getUrn();
 }

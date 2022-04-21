@@ -51,11 +51,12 @@ import it.smartcommunitylab.aac.core.auth.ExtendedLogoutSuccessHandler;
 import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.auth.RequestAwareAuthenticationSuccessHandler;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.ProviderRepository;
 import it.smartcommunitylab.aac.crypto.InternalPasswordEncoder;
-import it.smartcommunitylab.aac.internal.InternalConfirmKeyAuthenticationFilter;
-import it.smartcommunitylab.aac.internal.InternalLoginAuthenticationFilter;
-import it.smartcommunitylab.aac.internal.InternalResetKeyAuthenticationFilter;
+import it.smartcommunitylab.aac.internal.auth.InternalConfirmKeyAuthenticationFilter;
+import it.smartcommunitylab.aac.internal.auth.InternalLoginAuthenticationFilter;
+import it.smartcommunitylab.aac.internal.auth.InternalResetKeyAuthenticationFilter;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.oauth.auth.AuthorizationEndpointFilter;
@@ -128,16 +129,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private RealmAwarePathUriBuilder realmUriBuilder;
 
     @Autowired
-    private ProviderRepository<InternalIdentityProviderConfig> internalProviderRepository;
+    private ProviderConfigRepository<InternalIdentityProviderConfig> internalProviderRepository;
 
     @Autowired
-    private ProviderRepository<OIDCIdentityProviderConfig> oidcProviderRepository;
+    private ProviderConfigRepository<OIDCIdentityProviderConfig> oidcProviderRepository;
 
     @Autowired
-    private ProviderRepository<SamlIdentityProviderConfig> samlProviderRepository;
+    private ProviderConfigRepository<SamlIdentityProviderConfig> samlProviderRepository;
 
     @Autowired
-    private ProviderRepository<SpidIdentityProviderConfig> spidProviderRepository;
+    private ProviderConfigRepository<SpidIdentityProviderConfig> spidProviderRepository;
 
 //    /*
 //     * rememberme
@@ -337,7 +338,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
      */
 
     public CompositeFilter getInternalAuthorityFilters(AuthenticationManager authManager,
-            ProviderRepository<InternalIdentityProviderConfig> providerRepository,
+            ProviderConfigRepository<InternalIdentityProviderConfig> providerRepository,
             InternalUserAccountService userAccountService) {
 
         List<Filter> filters = new ArrayList<>();
@@ -372,7 +373,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
      */
 
     public CompositeFilter getOIDCAuthorityFilters(AuthenticationManager authManager,
-            ProviderRepository<OIDCIdentityProviderConfig> providerRepository,
+            ProviderConfigRepository<OIDCIdentityProviderConfig> providerRepository,
             OIDCClientRegistrationRepository clientRegistrationRepository) {
         // build filters bound to shared client + request repos
         AuthorizationRequestRepository<OAuth2AuthorizationRequest> authorizationRequestRepository = new HttpSessionOAuth2AuthorizationRequestRepository();
@@ -402,7 +403,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
      */
 
     public CompositeFilter getSamlAuthorityFilters(AuthenticationManager authManager,
-            ProviderRepository<SamlIdentityProviderConfig> providerRepository,
+            ProviderConfigRepository<SamlIdentityProviderConfig> providerRepository,
             SamlRelyingPartyRegistrationRepository relyingPartyRegistrationRepository) {
 
         // request repository
@@ -438,7 +439,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
      */
 
     public CompositeFilter getSpidAuthorityFilters(AuthenticationManager authManager,
-            ProviderRepository<SpidIdentityProviderConfig> providerRepository,
+            ProviderConfigRepository<SpidIdentityProviderConfig> providerRepository,
             SamlRelyingPartyRegistrationRepository relyingPartyRegistrationRepository) {
 
         // request repository

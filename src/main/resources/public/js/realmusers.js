@@ -494,18 +494,7 @@ angular.module('aac.controllers.realmusers', [])
                 })
                 .then(function (data) {
                     //identities
-                    var idps = $scope.idps;
-                    var identities = data.identities;
-                    if (identities) {
-                        identities.forEach(i => {
-                            i.providerId = i.provider;
-                            i.provider = idps.get(i.providerId);
-                            i.icon = iconIdp(i.provider);
-                        });
-                    } else {
-                        identities = [];
-                    }
-                    $scope.identities = identities;
+                    $scope.reloadIdentities(data.identities);
                     return data;
                 })
                 .then(function (data) {
@@ -763,14 +752,14 @@ angular.module('aac.controllers.realmusers', [])
 
 
         $scope.reloadIdentities = function (data) {
-            var idps = $scope.idps;
+            // var idps = $scope.idps;
             var identities = [];
             if (data) {
                 identities = data.map(i => {
                     return {
                         ...i,
-                        providerId: i.provider,
-                        provider: idps.get(i.providerId),
+                        // providerId: i.provider,
+                        // provider: idps.get(i.providerId),
                         icon: iconIdp(i.provider)
                     }
                 });

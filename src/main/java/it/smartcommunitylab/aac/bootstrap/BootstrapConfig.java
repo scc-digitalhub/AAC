@@ -12,7 +12,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
-import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;

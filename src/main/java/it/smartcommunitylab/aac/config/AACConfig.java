@@ -39,6 +39,7 @@ import it.smartcommunitylab.aac.core.auth.DefaultSecurityContextAuthenticationHe
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
 import it.smartcommunitylab.aac.core.provider.UserTranslator;
 import it.smartcommunitylab.aac.core.service.CoreUserTranslator;
+import it.smartcommunitylab.aac.core.service.InMemoryProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.InMemoryProviderRepository;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
@@ -77,6 +78,12 @@ public class AACConfig {
 
 //    @Autowired
 //    private ProviderManager providerManager;
+
+    @Bean
+    @ConfigurationProperties(prefix = "authorities")
+    public AuthoritiesProperties authoritiesProps() {
+        return new AuthoritiesProperties();
+    }
 
     @Bean
     @ConfigurationProperties(prefix = "providers")
@@ -209,23 +216,23 @@ public class AACConfig {
     }
 
     @Bean
-    public InMemoryProviderRepository<InternalIdentityProviderConfig> internalProviderConfigRepository() {
-        return new InMemoryProviderRepository<InternalIdentityProviderConfig>();
+    public InMemoryProviderConfigRepository<InternalIdentityProviderConfig> internalProviderConfigRepository() {
+        return new InMemoryProviderConfigRepository<InternalIdentityProviderConfig>();
     }
 
     @Bean
-    public InMemoryProviderRepository<OIDCIdentityProviderConfig> oidcProviderConfigRepository() {
-        return new InMemoryProviderRepository<OIDCIdentityProviderConfig>();
+    public InMemoryProviderConfigRepository<OIDCIdentityProviderConfig> oidcProviderConfigRepository() {
+        return new InMemoryProviderConfigRepository<OIDCIdentityProviderConfig>();
     }
 
     @Bean
-    public InMemoryProviderRepository<SamlIdentityProviderConfig> samlProviderConfigRepository() {
-        return new InMemoryProviderRepository<SamlIdentityProviderConfig>();
+    public InMemoryProviderConfigRepository<SamlIdentityProviderConfig> samlProviderConfigRepository() {
+        return new InMemoryProviderConfigRepository<SamlIdentityProviderConfig>();
     }
 
     @Bean
-    public InMemoryProviderRepository<SpidIdentityProviderConfig> spidProviderConfigRepository() {
-        return new InMemoryProviderRepository<SpidIdentityProviderConfig>();
+    public InMemoryProviderConfigRepository<SpidIdentityProviderConfig> spidProviderConfigRepository() {
+        return new InMemoryProviderConfigRepository<SpidIdentityProviderConfig>();
     }
 
     @Bean

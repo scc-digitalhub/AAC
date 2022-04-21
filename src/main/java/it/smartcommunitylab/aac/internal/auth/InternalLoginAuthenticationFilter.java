@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.internal;
+package it.smartcommunitylab.aac.internal.auth;
 
 import java.io.IOException;
 import javax.servlet.ServletException;
@@ -23,12 +23,11 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.ProviderWrappedAuthenticationToken;
-import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.auth.RequestAwareAuthenticationSuccessHandler;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
-import it.smartcommunitylab.aac.core.provider.ProviderRepository;
-import it.smartcommunitylab.aac.internal.auth.ResetKeyAuthenticationToken;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
@@ -36,34 +35,27 @@ import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 /*
  * Handles login requests for internal authority, via extended auth manager
  */
-public class InternalResetKeyAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
+public class InternalLoginAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
-    public static final String DEFAULT_FILTER_URI = InternalIdentityAuthority.AUTHORITY_URL
-            + "doreset/{registrationId}";
-
-    private final ProviderRepository<InternalIdentityProviderConfig> registrationRepository;
-
-//    public static final String DEFAULT_FILTER_URI = "/auth/internal/";
-//    public static final String ACTION = "doreset";
-//    public static final String REALM_URI_VARIABLE_NAME = "realm";
-//    public static final String PROVIDER_URI_VARIABLE_NAME = "provider";
+    public static final String DEFAULT_FILTER_URI = InternalIdentityAuthority.AUTHORITY_URL + "login/{registrationId}";
+    public static final String DEFAULT_LOGIN_URI = InternalIdentityAuthority.AUTHORITY_URL + "form/{registrationId}";
 
     private final RequestMatcher requestMatcher;
 
-//    private final RequestMatcher realmRequestMatcher;
-//    private final RequestMatcher providerRequestMatcher;
-//    private final RequestMatcher providerRealmRequestMatcher;
+    private final ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository;
 
     private AuthenticationEntryPoint authenticationEntryPoint;
+
+    // TODO remove
     private final InternalUserAccountService userAccountService;
 
-    public InternalResetKeyAuthenticationFilter(InternalUserAccountService userAccountService,
-            ProviderRepository<InternalIdentityProviderConfig> registrationRepository) {
+    public InternalLoginAuthenticationFilter(InternalUserAccountService userAccountService,
+            ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository) {
         this(userAccountService, registrationRepository, DEFAULT_FILTER_URI, null);
     }
 
-    public InternalResetKeyAuthenticationFilter(InternalUserAccountService userAccountService,
-            ProviderRepository<InternalIdentityProviderConfig> registrationRepository,
+    public InternalLoginAuthenticationFilter(InternalUserAccountService userAccountService,
+            ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository,
             String filterProcessingUrl, AuthenticationEntryPoint authenticationEntryPoint) {
         super(filterProcessingUrl);
         Assert.notNull(userAccountService, "user account service is required");
@@ -80,7 +72,11 @@ public class InternalResetKeyAuthenticationFilter extends AbstractAuthentication
         setRequiresAuthenticationRequestMatcher(requestMatcher);
 
         // redirect failed attempts to login
-        this.authenticationEntryPoint = new RealmAwareAuthenticationEntryPoint("/login");
+//        this.authenticationEntryPoint = new RealmAwareAuthenticationEntryPoint("/login");
+
+        // redirect failed attempts to internal login
+        this.authenticationEntryPoint = new InternalLoginAuthenticationEntryPoint("/login", DEFAULT_LOGIN_URI,
+                filterProcessingUrl);
         if (authenticationEntryPoint != null) {
             this.authenticationEntryPoint = authenticationEntryPoint;
         }
@@ -117,9 +113,9 @@ public class InternalResetKeyAuthenticationFilter extends AbstractAuthentication
             return null;
         }
 
-        // we support only GET requests
-        if (!"GET".equalsIgnoreCase(request.getMethod())) {
-            throw new HttpRequestMethodNotSupportedException(request.getMethod(), new String[] { "GET" });
+        // we support only POST requests
+        if (!"POST".equalsIgnoreCase(request.getMethod())) {
+            throw new HttpRequestMethodNotSupportedException(request.getMethod(), new String[] { "POST" });
         }
 
         // fetch registrationId
@@ -134,34 +130,36 @@ public class InternalResetKeyAuthenticationFilter extends AbstractAuthentication
         // set as attribute to enable fallback to login on error
         request.setAttribute("realm", realm);
 
-        String code = request.getParameter("code");
+        // get params
+        String username = request.getParameter("username");
+        String password = request.getParameter("password");
 
-        if (!StringUtils.hasText(code)) {
-            throw new BadCredentialsException("missing or invalid confirm code");
+        if (!StringUtils.hasText(username) || !StringUtils.hasText(password)) {
+            AuthenticationException e = new BadCredentialsException("invalid user or password");
+            throw new InternalAuthenticationException(null, username, password, "password", e,
+                    e.getMessage());
         }
 
-        // fetch account
-        InternalUserAccount account = userAccountService.findAccountByResetKey(realm, code);
-        if (account == null) {
-            // don't leak user does not exists
-            throw new BadCredentialsException("invalid confirm code");
-        }
-
-        String username = account.getUsername();
-
-        HttpSession session = request.getSession(true);
-        if (session != null) {
-            // check if user needs to reset password, and add redirect
-            if (account.isChangeOnFirstAccess()) {
-                // TODO build url
-                session.setAttribute(RequestAwareAuthenticationSuccessHandler.SAVED_REQUEST,
-                        "/changepwd/" + providerId + "/" + username);
+        // fetch account to check
+        // if this does not exists we'll let authProvider handle the error to ensure
+        // proper audit
+        // TODO rework, this should be handled post login by adding another filter
+        InternalUserAccount account = userAccountService.findAccountByUsername(providerId, username);
+        if (account != null) {
+            HttpSession session = request.getSession(true);
+            if (session != null) {
+                // check if user needs to reset password, and add redirect
+                if (account.isChangeOnFirstAccess()) {
+                    // TODO build url
+                    session.setAttribute(RequestAwareAuthenticationSuccessHandler.SAVED_REQUEST,
+                            "/changepwd/" + providerId + "/" + username);
+                }
             }
         }
 
         // build a request
-        ResetKeyAuthenticationToken authenticationRequest = new ResetKeyAuthenticationToken(username,
-                code);
+        UsernamePasswordAuthenticationToken authenticationRequest = new UsernamePasswordAuthenticationToken(username,
+                password);
 
         ProviderWrappedAuthenticationToken wrappedAuthRequest = new ProviderWrappedAuthenticationToken(
                 authenticationRequest,
@@ -182,8 +180,12 @@ public class InternalResetKeyAuthenticationFilter extends AbstractAuthentication
 
     }
 
-    public AuthenticationEntryPoint getAuthenticationEntryPoint() {
+    protected AuthenticationEntryPoint getAuthenticationEntryPoint() {
         return authenticationEntryPoint;
+    }
+
+    public void setAuthenticationEntryPoint(AuthenticationEntryPoint authenticationEntryPoint) {
+        this.authenticationEntryPoint = authenticationEntryPoint;
     }
 
 }

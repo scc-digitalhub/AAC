@@ -16,7 +16,7 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
+import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -30,139 +30,26 @@ public class InternalIdentityProviderConfigMap implements ConfigurableProperties
 
     private int maxSessionDuration = 24 * 60 * 60; // 24h
 
-    private boolean enableRegistration = true;
-    private boolean enableDelete = true;
-    private boolean enableUpdate = true;
+    private Boolean enableRegistration;
+    private Boolean enableDelete;
+    private Boolean enableUpdate;
 
-    private boolean enablePasswordReset = true;
-    private boolean enablePasswordSet = true;
-    private int passwordResetValidity;
+    private Boolean enablePasswordReset;
+    private Boolean enablePasswordSet;
+    private Integer passwordResetValidity;
 
-    private boolean confirmationRequired = true;
-    private int confirmationValidity;
+    private Boolean confirmationRequired;
+    private Integer confirmationValidity;
 
     // password policy, optional
-    private int passwordMinLength;
-    private int passwordMaxLength;
-    private boolean passwordRequireAlpha;
-    private boolean passwordRequireNumber;
-    private boolean passwordRequireSpecial;
-    private boolean passwordSupportWhitespace;
+    private Integer passwordMinLength;
+    private Integer passwordMaxLength;
+    private Boolean passwordRequireAlpha;
+    private Boolean passwordRequireNumber;
+    private Boolean passwordRequireSpecial;
+    private Boolean passwordSupportWhitespace;
 
     public InternalIdentityProviderConfigMap() {
-
-    }
-
-    public boolean isEnableRegistration() {
-        return enableRegistration;
-    }
-
-    public void setEnableRegistration(boolean enableRegistration) {
-        this.enableRegistration = enableRegistration;
-    }
-
-    public boolean isEnableDelete() {
-        return enableDelete;
-    }
-
-    public void setEnableDelete(boolean enableDelete) {
-        this.enableDelete = enableDelete;
-    }
-
-    public boolean isEnableUpdate() {
-        return enableUpdate;
-    }
-
-    public void setEnableUpdate(boolean enableUpdate) {
-        this.enableUpdate = enableUpdate;
-    }
-
-    public boolean isEnablePasswordReset() {
-        return enablePasswordReset;
-    }
-
-    public void setEnablePasswordReset(boolean enablePasswordReset) {
-        this.enablePasswordReset = enablePasswordReset;
-    }
-
-    public boolean isEnablePasswordSet() {
-        return enablePasswordSet;
-    }
-
-    public void setEnablePasswordSet(boolean enablePasswordSet) {
-        this.enablePasswordSet = enablePasswordSet;
-    }
-
-    public int getPasswordResetValidity() {
-        return passwordResetValidity;
-    }
-
-    public void setPasswordResetValidity(int passwordResetValidity) {
-        this.passwordResetValidity = passwordResetValidity;
-    }
-
-    public boolean isConfirmationRequired() {
-        return confirmationRequired;
-    }
-
-    public void setConfirmationRequired(boolean confirmationRequired) {
-        this.confirmationRequired = confirmationRequired;
-    }
-
-    public int getConfirmationValidity() {
-        return confirmationValidity;
-    }
-
-    public void setConfirmationValidity(int confirmationValidity) {
-        this.confirmationValidity = confirmationValidity;
-    }
-
-    public int getPasswordMinLength() {
-        return passwordMinLength;
-    }
-
-    public void setPasswordMinLength(int passwordMinLength) {
-        this.passwordMinLength = passwordMinLength;
-    }
-
-    public int getPasswordMaxLength() {
-        return passwordMaxLength;
-    }
-
-    public void setPasswordMaxLength(int passwordMaxLength) {
-        this.passwordMaxLength = passwordMaxLength;
-    }
-
-    public boolean isPasswordRequireAlpha() {
-        return passwordRequireAlpha;
-    }
-
-    public void setPasswordRequireAlpha(boolean passwordRequireAlpha) {
-        this.passwordRequireAlpha = passwordRequireAlpha;
-    }
-
-    public boolean isPasswordRequireNumber() {
-        return passwordRequireNumber;
-    }
-
-    public void setPasswordRequireNumber(boolean passwordRequireNumber) {
-        this.passwordRequireNumber = passwordRequireNumber;
-    }
-
-    public boolean isPasswordRequireSpecial() {
-        return passwordRequireSpecial;
-    }
-
-    public void setPasswordRequireSpecial(boolean passwordRequireSpecial) {
-        this.passwordRequireSpecial = passwordRequireSpecial;
-    }
-
-    public boolean isPasswordSupportWhitespace() {
-        return passwordSupportWhitespace;
-    }
-
-    public void setPasswordSupportWhitespace(boolean passwordSupportWhitespace) {
-        this.passwordSupportWhitespace = passwordSupportWhitespace;
     }
 
     public int getMaxSessionDuration() {
@@ -171,6 +58,118 @@ public class InternalIdentityProviderConfigMap implements ConfigurableProperties
 
     public void setMaxSessionDuration(int maxSessionDuration) {
         this.maxSessionDuration = maxSessionDuration;
+    }
+
+    public Boolean getEnableRegistration() {
+        return enableRegistration;
+    }
+
+    public void setEnableRegistration(Boolean enableRegistration) {
+        this.enableRegistration = enableRegistration;
+    }
+
+    public Boolean getEnableDelete() {
+        return enableDelete;
+    }
+
+    public void setEnableDelete(Boolean enableDelete) {
+        this.enableDelete = enableDelete;
+    }
+
+    public Boolean getEnableUpdate() {
+        return enableUpdate;
+    }
+
+    public void setEnableUpdate(Boolean enableUpdate) {
+        this.enableUpdate = enableUpdate;
+    }
+
+    public Boolean getEnablePasswordReset() {
+        return enablePasswordReset;
+    }
+
+    public void setEnablePasswordReset(Boolean enablePasswordReset) {
+        this.enablePasswordReset = enablePasswordReset;
+    }
+
+    public Boolean getEnablePasswordSet() {
+        return enablePasswordSet;
+    }
+
+    public void setEnablePasswordSet(Boolean enablePasswordSet) {
+        this.enablePasswordSet = enablePasswordSet;
+    }
+
+    public Integer getPasswordResetValidity() {
+        return passwordResetValidity;
+    }
+
+    public void setPasswordResetValidity(Integer passwordResetValidity) {
+        this.passwordResetValidity = passwordResetValidity;
+    }
+
+    public Boolean getConfirmationRequired() {
+        return confirmationRequired;
+    }
+
+    public void setConfirmationRequired(Boolean confirmationRequired) {
+        this.confirmationRequired = confirmationRequired;
+    }
+
+    public Integer getConfirmationValidity() {
+        return confirmationValidity;
+    }
+
+    public void setConfirmationValidity(Integer confirmationValidity) {
+        this.confirmationValidity = confirmationValidity;
+    }
+
+    public Integer getPasswordMinLength() {
+        return passwordMinLength;
+    }
+
+    public void setPasswordMinLength(Integer passwordMinLength) {
+        this.passwordMinLength = passwordMinLength;
+    }
+
+    public Integer getPasswordMaxLength() {
+        return passwordMaxLength;
+    }
+
+    public void setPasswordMaxLength(Integer passwordMaxLength) {
+        this.passwordMaxLength = passwordMaxLength;
+    }
+
+    public Boolean getPasswordRequireAlpha() {
+        return passwordRequireAlpha;
+    }
+
+    public void setPasswordRequireAlpha(Boolean passwordRequireAlpha) {
+        this.passwordRequireAlpha = passwordRequireAlpha;
+    }
+
+    public Boolean getPasswordRequireNumber() {
+        return passwordRequireNumber;
+    }
+
+    public void setPasswordRequireNumber(Boolean passwordRequireNumber) {
+        this.passwordRequireNumber = passwordRequireNumber;
+    }
+
+    public Boolean getPasswordRequireSpecial() {
+        return passwordRequireSpecial;
+    }
+
+    public void setPasswordRequireSpecial(Boolean passwordRequireSpecial) {
+        this.passwordRequireSpecial = passwordRequireSpecial;
+    }
+
+    public Boolean getPasswordSupportWhitespace() {
+        return passwordSupportWhitespace;
+    }
+
+    public void setPasswordSupportWhitespace(Boolean passwordSupportWhitespace) {
+        this.passwordSupportWhitespace = passwordSupportWhitespace;
     }
 
     @Override
@@ -190,25 +189,25 @@ public class InternalIdentityProviderConfigMap implements ConfigurableProperties
 
         this.maxSessionDuration = map.getMaxSessionDuration();
 
-        this.confirmationRequired = map.isConfirmationRequired();
-        this.enableRegistration = map.isEnableRegistration();
-        this.enableDelete = map.isEnableDelete();
-        this.enableUpdate = map.isEnableUpdate();
+        this.confirmationRequired = map.getConfirmationRequired();
+        this.enableRegistration = map.getEnableRegistration();
+        this.enableDelete = map.getEnableDelete();
+        this.enableUpdate = map.getEnableUpdate();
 
-        this.enablePasswordReset = map.isEnablePasswordReset();
-        this.enablePasswordSet = map.isEnablePasswordSet();
+        this.enablePasswordReset = map.getEnablePasswordReset();
+        this.enablePasswordSet = map.getEnablePasswordSet();
         this.passwordResetValidity = map.getPasswordResetValidity();
 
-        this.confirmationRequired = map.isConfirmationRequired();
+        this.confirmationRequired = map.getConfirmationRequired();
         this.confirmationValidity = map.getConfirmationValidity();
 
         // password policy, optional
         this.passwordMinLength = map.getPasswordMinLength();
         this.passwordMaxLength = map.getPasswordMaxLength();
-        this.passwordRequireAlpha = map.isPasswordRequireAlpha();
-        this.passwordRequireNumber = map.isPasswordRequireNumber();
-        this.passwordRequireSpecial = map.isPasswordRequireSpecial();
-        this.passwordSupportWhitespace = map.isPasswordSupportWhitespace();
+        this.passwordRequireAlpha = map.getPasswordRequireAlpha();
+        this.passwordRequireNumber = map.getPasswordRequireNumber();
+        this.passwordRequireSpecial = map.getPasswordRequireSpecial();
+        this.passwordSupportWhitespace = map.getPasswordSupportWhitespace();
 
     }
 

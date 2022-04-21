@@ -33,7 +33,7 @@ import it.smartcommunitylab.aac.core.auth.ProviderWrappedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
-import it.smartcommunitylab.aac.core.provider.ProviderRepository;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.saml.SamlIdentityAuthority;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
 import it.smartcommunitylab.aac.saml.service.HttpSessionSaml2AuthenticationRequestRepository;
@@ -44,7 +44,7 @@ public class SamlWebSsoAuthenticationFilter extends AbstractAuthenticationProces
 
     private final RequestMatcher requestMatcher;
 
-    private final ProviderRepository<SamlIdentityProviderConfig> registrationRepository;
+    private final ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository;
     private final Saml2AuthenticationTokenConverter authenticationConverter;
 
     private Saml2AuthenticationRequestRepository<Saml2AuthenticationRequestContext> authenticationRequestRepository = new HttpSessionSaml2AuthenticationRequestRepository();
@@ -52,13 +52,13 @@ public class SamlWebSsoAuthenticationFilter extends AbstractAuthenticationProces
     private AuthenticationEntryPoint authenticationEntryPoint;
 
     public SamlWebSsoAuthenticationFilter(
-            ProviderRepository<SamlIdentityProviderConfig> registrationRepository,
+            ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository,
             RelyingPartyRegistrationRepository relyingPartyRegistrationRepository) {
         this(registrationRepository, relyingPartyRegistrationRepository, DEFAULT_FILTER_URI, null);
     }
 
     public SamlWebSsoAuthenticationFilter(
-            ProviderRepository<SamlIdentityProviderConfig> registrationRepository,
+            ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository,
             RelyingPartyRegistrationRepository relyingPartyRegistrationRepository,
             String filterProcessingUrl, AuthenticationEntryPoint authenticationEntryPoint) {
         super(filterProcessingUrl);

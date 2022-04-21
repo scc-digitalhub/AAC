@@ -81,7 +81,7 @@ public class InternalRegistrationController {
         // resolve provider
         InternalIdentityService idp = internalAuthority.getIdentityService(providerId);
 
-        if (!idp.canRegister()) {
+        if (!idp.getConfig().isEnableRegistration()) {
             throw new RegistrationException("registration is disabled");
         }
 
@@ -144,7 +144,7 @@ public class InternalRegistrationController {
             // resolve provider
             InternalIdentityService idp = internalAuthority.getIdentityService(providerId);
 
-            if (!idp.canRegister()) {
+            if (!idp.getConfig().isEnableRegistration()) {
                 throw new RegistrationException("registration is disabled");
             }
 
@@ -394,88 +394,88 @@ public class InternalRegistrationController {
         return "registration/resetpwd";
     }
 
-    @Hidden
-    @RequestMapping(value = "/auth/internal/reset/{providerId}", method = RequestMethod.POST)
-    public String reset(Model model,
-            @PathVariable("providerId") String providerId,
-            @ModelAttribute("reg") @Valid UserResetBean reg,
-            BindingResult result,
-            HttpServletRequest req) {
-
-        if (result.hasErrors()) {
-            return "registration/resetpwd";
-        }
-
-        try {
-
-            // resolve provider
-            InternalIdentityService idp = internalAuthority.getIdentityService(providerId);
-            if (!idp.getCredentialsService().canReset()) {
-                throw new RegistrationException("reset is disabled");
-            }
-
-            String realm = idp.getRealm();
-
-            // build model for result
-            model.addAttribute("providerId", providerId);
-            model.addAttribute("realm", realm);
-            model.addAttribute("resetUrl", "/auth/internal/reset/" + providerId);
-            model.addAttribute("loginUrl", "/-/" + realm + "/login");
-
-            String displayName = null;
-            Realm re = null;
-            Map<String, String> resources = new HashMap<>();
-            if (!realm.equals(SystemKeys.REALM_COMMON)) {
-                re = realmManager.getRealm(realm);
-                displayName = re.getName();
-                CustomizationBean gcb = re.getCustomization("global");
-                if (gcb != null) {
-                    resources.putAll(gcb.getResources());
-                }
-                CustomizationBean lcb = re.getCustomization("login");
-                if (lcb != null) {
-                    resources.putAll(lcb.getResources());
-                }
-            }
-
-            model.addAttribute("displayName", displayName);
-            model.addAttribute("customization", resources);
-
-            String username = reg.getUsername();
-            String email = reg.getEmail();
-
-            Map<String, String> attributes = new HashMap<>();
-            attributes.put("realm", realm);
-            attributes.put("provider", providerId);
-
-            if (StringUtils.hasText(username)) {
-                attributes.put("username", username);
-            }
-            if (StringUtils.hasText(email)) {
-                attributes.put("email", email);
-            }
-
-            // resolve user
-            UserAccount account = idp.getAccountProvider().getByIdentifyingAttributes(attributes);
-            String userId = account.getUserId();
-
-            // direct call to reset
-            InternalPasswordService passwordService = idp.getCredentialsService();
-            account = passwordService.resetPassword(userId);
-
-            model.addAttribute("account", account);
-
-            // WRONG, should send redirect to success page to avoid double POST
-            return "registration/resetsuccess";
-        } catch (RegistrationException e) {
-            model.addAttribute("error", e.getError());
-            return "registration/resetpwd";
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-            model.addAttribute("error", RegistrationException.ERROR);
-            return "registration/resetpwd";
-        }
-    }
+//    @Hidden
+//    @RequestMapping(value = "/auth/internal/reset/{providerId}", method = RequestMethod.POST)
+//    public String reset(Model model,
+//            @PathVariable("providerId") String providerId,
+//            @ModelAttribute("reg") @Valid UserResetBean reg,
+//            BindingResult result,
+//            HttpServletRequest req) {
+//
+//        if (result.hasErrors()) {
+//            return "registration/resetpwd";
+//        }
+//
+//        try {
+//
+//            // resolve provider
+//            InternalIdentityService idp = internalAuthority.getIdentityService(providerId);
+//            if (!idp.getCredentialsService().canReset()) {
+//                throw new RegistrationException("reset is disabled");
+//            }
+//
+//            String realm = idp.getRealm();
+//
+//            // build model for result
+//            model.addAttribute("providerId", providerId);
+//            model.addAttribute("realm", realm);
+//            model.addAttribute("resetUrl", "/auth/internal/reset/" + providerId);
+//            model.addAttribute("loginUrl", "/-/" + realm + "/login");
+//
+//            String displayName = null;
+//            Realm re = null;
+//            Map<String, String> resources = new HashMap<>();
+//            if (!realm.equals(SystemKeys.REALM_COMMON)) {
+//                re = realmManager.getRealm(realm);
+//                displayName = re.getName();
+//                CustomizationBean gcb = re.getCustomization("global");
+//                if (gcb != null) {
+//                    resources.putAll(gcb.getResources());
+//                }
+//                CustomizationBean lcb = re.getCustomization("login");
+//                if (lcb != null) {
+//                    resources.putAll(lcb.getResources());
+//                }
+//            }
+//
+//            model.addAttribute("displayName", displayName);
+//            model.addAttribute("customization", resources);
+//
+//            String username = reg.getUsername();
+//            String email = reg.getEmail();
+//
+//            Map<String, String> attributes = new HashMap<>();
+//            attributes.put("realm", realm);
+//            attributes.put("provider", providerId);
+//
+//            if (StringUtils.hasText(username)) {
+//                attributes.put("username", username);
+//            }
+//            if (StringUtils.hasText(email)) {
+//                attributes.put("email", email);
+//            }
+//
+//            // resolve user
+//            UserAccount account = idp.getAccountProvider().getByIdentifyingAttributes(attributes);
+//            String userId = account.getUserId();
+//
+//            // direct call to reset
+//            InternalPasswordService passwordService = idp.getCredentialsService();
+//            account = passwordService.resetPassword(userId);
+//
+//            model.addAttribute("account", account);
+//
+//            // WRONG, should send redirect to success page to avoid double POST
+//            return "registration/resetsuccess";
+//        } catch (RegistrationException e) {
+//            model.addAttribute("error", e.getError());
+//            return "registration/resetpwd";
+//        } catch (Exception e) {
+//            logger.error(e.getMessage(), e);
+//            model.addAttribute("error", RegistrationException.ERROR);
+//            return "registration/resetpwd";
+//        }
+//    }
 
 //    @ApiIgnore
 //    @RequestMapping(value = "/internal/reset", method = RequestMethod.POST)

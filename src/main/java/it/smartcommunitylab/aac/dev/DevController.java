@@ -60,7 +60,7 @@ import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.ScopeManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.UserManager;
-import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.dto.RealmStatsBean;

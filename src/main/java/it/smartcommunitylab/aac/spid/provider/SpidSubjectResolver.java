@@ -1,35 +1,23 @@
 package it.smartcommunitylab.aac.spid.provider;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.common.NoSuchUserException;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
 import it.smartcommunitylab.aac.model.Subject;
-import it.smartcommunitylab.aac.spid.auth.SpidAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.spid.persistence.SpidUserAccount;
+import it.smartcommunitylab.aac.spid.persistence.SpidUserAccountId;
 import it.smartcommunitylab.aac.spid.persistence.SpidUserAccountRepository;
 
 @Transactional
-public class SpidSubjectResolver extends AbstractProvider implements SubjectResolver {
+public class SpidSubjectResolver extends AbstractProvider implements SubjectResolver<SpidUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final SpidAccountProvider accountProvider;
-    private final SpidIdentityProviderConfig providerConfig;
+    private final SpidUserAccountRepository accountRepository;
+    private final SpidIdentityProviderConfig config;
 
     protected SpidSubjectResolver(String providerId, SpidUserAccountRepository accountRepository,
             SpidIdentityProviderConfig config,
@@ -38,10 +26,8 @@ public class SpidSubjectResolver extends AbstractProvider implements SubjectReso
         Assert.notNull(accountRepository, "account repository is mandatory");
         Assert.notNull(config, "provider config is mandatory");
 
-        this.providerConfig = config;
-
-        // build an internal provider bound to repository
-        this.accountProvider = new SpidAccountProvider(providerId, accountRepository, config, realm);
+        this.accountRepository = accountRepository;
+        this.config = config;
     }
 
     @Override
@@ -49,83 +35,69 @@ public class SpidSubjectResolver extends AbstractProvider implements SubjectReso
         return SystemKeys.RESOURCE_SUBJECT;
     }
 
-    @Override
     @Transactional(readOnly = true)
-    public Subject resolveByUserId(String userId) {
-        logger.debug("resolve by user id " + userId);
-        try {
-            SpidUserAccount account = accountProvider.getAccount(userId);
-
-            // build subject with username
-            return new Subject(account.getSubject(), getRealm(), account.getUsername(), SystemKeys.RESOURCE_USER);
-        } catch (NoSuchUserException nex) {
+    public Subject resolveBySubjectId(String subjectId) {
+        logger.debug("resolve by subjectId " + subjectId);
+        SpidUserAccount account = accountRepository.findOne(new SpidUserAccountId(getProvider(), subjectId));
+        if (account == null) {
             return null;
         }
+
+        // build subject with username
+        return new Subject(account.getUserId(), getRealm(), account.getUsername(), SystemKeys.RESOURCE_USER);
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public Subject resolveByIdentifyingAttributes(Map<String, String> attributes) {
-        try {
-            // let provider resolve to an account
-            SpidUserAccount account = accountProvider.getByIdentifyingAttributes(attributes);
-
-            // build subject with username
-            return new Subject(account.getSubject(), getRealm(), account.getUsername(), SystemKeys.RESOURCE_USER);
-        } catch (NoSuchUserException nex) {
-            return null;
-        }
+    public Subject resolveByAccountId(String accountId) {
+        // accountId is subjectId
+        return resolveBySubjectId(accountId);
     }
 
-//    @Override
-//    @Transactional(readOnly = true)
-    public Collection<Set<String>> getIdentifyingAttributes() {
-        // hardcoded, see repository
-        List<Set<String>> attributes = new ArrayList<>();
-        // id is enough
-        attributes.add(Collections.singleton("userId"));
+    @Override
+    public Subject resolveByPrincipalId(String principalId) {
+        // principalId is subjectId
+        return resolveBySubjectId(principalId);
+    }
 
-        // also realm+id attributes
-        // init via stream to get an immutable set
-        attributes.add(Stream.of("realm", "provider", "userId")
-                .collect(Collectors.toSet()));
-        attributes.add(Stream.of("realm", "provider", "email")
-                .collect(Collectors.toSet()));
-
-        return attributes;
+    @Override
+    public Subject resolveByIdentityId(String identityId) {
+        // identityId is sub
+        return resolveBySubjectId(identityId);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Subject resolveByLinkingAttributes(Map<String, String> attributes) {
-        // not linkable by design
-        return null;
-    }
-
-//    @Override
-    public Collection<String> getLinkingAttributes() {
-        // not linkable by design
-        return null;
-    }
-
-    @Override
-    public Map<String, String> getIdentifyingAttributes(UserAuthenticatedPrincipal principal) {
-        if (!(principal instanceof SpidAuthenticatedPrincipal)) {
+    public Subject resolveByUsername(String username) {
+        logger.debug("resolve by username " + username);
+        SpidUserAccount account = accountRepository.findByProviderAndUsername(getProvider(), username).stream()
+                .findFirst()
+                .orElse(null);
+        if (account == null) {
             return null;
         }
 
-        Map<String, String> attributes = new HashMap<>();
-
-        // export userId
-        attributes.put("userId", exportInternalId(principal.getUserId()));
-
-        return attributes;
+        // build subject with username
+        return new Subject(account.getUserId(), getRealm(), account.getUsername(), SystemKeys.RESOURCE_USER);
     }
 
     @Override
-    public Map<String, String> getLinkingAttributes(UserAuthenticatedPrincipal principal) {
-        // not linkable by design
-        return null;
+    @Transactional(readOnly = true)
+    public Subject resolveByEmailAddress(String email) {
+        if (!config.isLinkable()) {
+            return null;
+        }
+
+        logger.debug("resolve by email " + email);
+        SpidUserAccount account = accountRepository.findByProviderAndEmail(getProvider(), email).stream()
+                .filter(a -> a.isEmailVerified())
+                .findFirst()
+                .orElse(null);
+        if (account == null) {
+            return null;
+        }
+
+        // build subject with username
+        return new Subject(account.getUserId(), getRealm(), account.getUsername(), SystemKeys.RESOURCE_USER);
     }
 
 }

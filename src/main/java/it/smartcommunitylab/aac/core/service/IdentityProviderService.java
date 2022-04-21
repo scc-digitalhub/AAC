@@ -24,10 +24,12 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.config.AuthoritiesProperties;
 import it.smartcommunitylab.aac.config.ProvidersProperties;
 import it.smartcommunitylab.aac.config.ProvidersProperties.ProviderConfiguration;
-import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
+import it.smartcommunitylab.aac.core.base.AbstractIdentityProviderConfig;
+import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.persistence.IdentityProviderEntity;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
@@ -45,7 +47,13 @@ public class IdentityProviderService {
     // key is providerId
     private Map<String, ConfigurableIdentityProvider> systemIdps;
 
-    public IdentityProviderService(ProvidersProperties providers) {
+    // provider default configs
+    // TODO handle with a base class
+    private InternalIdentityProviderConfigMap internalConfig;
+    private OIDCIdentityProviderConfigMap oidcConfig;
+    private SamlIdentityProviderConfigMap samlConfig;
+
+    public IdentityProviderService(AuthoritiesProperties authoritiesProperties, ProvidersProperties providers) {
         this.systemIdps = new HashMap<>();
         // create system idps
         // these users access administrative contexts, they will have realm="system"
@@ -60,6 +68,17 @@ public class IdentityProviderService {
         systemIdps.put(internalIdpConfig.getProvider(), internalIdpConfig);
 
         // process additional from config
+        // provider default config
+        internalConfig = new InternalIdentityProviderConfigMap();
+        oidcConfig = new OIDCIdentityProviderConfigMap();
+        samlConfig = new SamlIdentityProviderConfigMap();
+        if (authoritiesProperties != null) {
+            if (authoritiesProperties.getInternal() != null) {
+                internalConfig = authoritiesProperties.getInternal();
+            }
+        }
+
+        // system providers
         if (providers != null) {
             // identity providers
             for (ProviderConfiguration providerConfig : providers.getIdentity()) {
@@ -253,12 +272,16 @@ public class IdentityProviderService {
 
             // we validate config by converting to specific configMap
             ConfigurableProperties configurable = null;
+            Map<String, Serializable> configMap = new HashMap<>();
             if (SystemKeys.AUTHORITY_INTERNAL.equals(authority)) {
                 configurable = new InternalIdentityProviderConfigMap();
+                configMap.putAll(internalConfig.getConfiguration());
             } else if (SystemKeys.AUTHORITY_OIDC.equals(authority)) {
                 configurable = new OIDCIdentityProviderConfigMap();
+                configMap.putAll(oidcConfig.getConfiguration());
             } else if (SystemKeys.AUTHORITY_SAML.equals(authority)) {
                 configurable = new SamlIdentityProviderConfigMap();
+                configMap.putAll(samlConfig.getConfiguration());
             } else if (SystemKeys.AUTHORITY_SPID.equals(authority)) {
                 configurable = new SpidIdentityProviderConfigMap();
             }
@@ -267,7 +290,10 @@ public class IdentityProviderService {
                 throw new IllegalArgumentException("invalid configuration");
             }
 
-            configurable.setConfiguration(provider.getConfiguration());
+            // merge with defaults
+            configMap.putAll(provider.getConfiguration());
+
+            configurable.setConfiguration(configMap);
             configuration = configurable.getConfiguration();
         }
 
@@ -351,12 +377,16 @@ public class IdentityProviderService {
 
         // we validate config by converting to specific configMap
         ConfigurableProperties configurable = null;
+        Map<String, Serializable> configMap = new HashMap<>();
         if (SystemKeys.AUTHORITY_INTERNAL.equals(authority)) {
             configurable = new InternalIdentityProviderConfigMap();
+            configMap.putAll(internalConfig.getConfiguration());
         } else if (SystemKeys.AUTHORITY_OIDC.equals(authority)) {
             configurable = new OIDCIdentityProviderConfigMap();
+            configMap.putAll(oidcConfig.getConfiguration());
         } else if (SystemKeys.AUTHORITY_SAML.equals(authority)) {
             configurable = new SamlIdentityProviderConfigMap();
+            configMap.putAll(samlConfig.getConfiguration());
         } else if (SystemKeys.AUTHORITY_SPID.equals(authority)) {
             configurable = new SpidIdentityProviderConfigMap();
         }
@@ -364,8 +394,10 @@ public class IdentityProviderService {
         if (configurable == null) {
             throw new IllegalArgumentException("invalid configuration");
         }
+        // merge with defaults
+        configMap.putAll(provider.getConfiguration());
 
-        configurable.setConfiguration(provider.getConfiguration());
+        configurable.setConfiguration(configMap);
         configuration = configurable.getConfiguration();
 
         // fetch hooks

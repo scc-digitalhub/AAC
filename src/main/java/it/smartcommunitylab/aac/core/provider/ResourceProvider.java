@@ -13,10 +13,4 @@ public interface ResourceProvider {
     // TODO replace with proper typing <T> on resource
     public String getType();
 
-//    /*
-//     * id mapping logic global <-> provider
-//     */
-//    public String exportInternalId(String internalId);
-//
-//    public String parseResourceId(String resourceId);
 }

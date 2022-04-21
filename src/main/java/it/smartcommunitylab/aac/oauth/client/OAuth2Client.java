@@ -15,7 +15,7 @@ import com.nimbusds.jose.jwk.JWKSet;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.BaseClient;
-import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
+import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.persistence.ClientEntity;
 import it.smartcommunitylab.aac.oauth.model.ApplicationType;
 import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;

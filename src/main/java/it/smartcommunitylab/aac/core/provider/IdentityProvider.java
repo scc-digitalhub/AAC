@@ -5,8 +5,9 @@ import java.util.Map;
 
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
+import it.smartcommunitylab.aac.core.base.AbstractIdentityProviderConfig;
+import it.smartcommunitylab.aac.core.model.UserAccount;
+import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 
 /*
@@ -16,7 +17,8 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
  * At minimum, we expect every provider to fulfill core attribute sets (basic, email, openid, account).
  */
 
-public interface IdentityProvider extends ResourceProvider {
+public interface IdentityProvider<I extends UserIdentity, U extends UserAccount, P extends UserAuthenticatedPrincipal, C extends AbstractIdentityProviderConfig>
+        extends ResourceProvider {
 
     public static final String ATTRIBUTE_MAPPING_FUNCTION = "attributeMapping";
 
@@ -27,25 +29,27 @@ public interface IdentityProvider extends ResourceProvider {
 
     public String getDescription();
 
-    public ConfigurableProperties getConfiguration();
+    public String getDisplayMode();
+
+    public C getConfig();
 
     /*
      * auth provider
      */
-    public ExtendedAuthenticationProvider getAuthenticationProvider();
+    public ExtendedAuthenticationProvider<P, U> getAuthenticationProvider();
 
     /*
      * internal providers
      */
-    public AccountProvider getAccountProvider();
+    public AccountProvider<U> getAccountProvider();
 
-    public AttributeProvider getAttributeProvider();
-    
+    public IdentityAttributeProvider<P, U> getAttributeProvider();
+
     /*
      * subjects are global, we can resolve
      */
 
-    public SubjectResolver getSubjectResolver();
+    public SubjectResolver<U> getSubjectResolver();
 
     /*
      * convert identities from authenticatedPrincipal. Used for login only.
@@ -53,7 +57,7 @@ public interface IdentityProvider extends ResourceProvider {
      * If given a subjectId the provider should update the account
      */
 
-    public UserIdentity convertIdentity(UserAuthenticatedPrincipal principal, String subjectId)
+    public I convertIdentity(P principal, String userId)
             throws NoSuchUserException;
 
     /*
@@ -62,13 +66,19 @@ public interface IdentityProvider extends ResourceProvider {
      * implementations are not required to support this
      */
 
-    // userId is provider-specific
-    public UserIdentity getIdentity(String subject, String userId) throws NoSuchUserException;
+    // uuid is global
+    public I findIdentityByUuid(String uuid);
 
-    public UserIdentity getIdentity(String subject, String userId, boolean fetchAttributes) throws NoSuchUserException;
+    // identityId is provider-specific
+    public I findIdentity(String identityId);
+
+    public I getIdentity(String identityId) throws NoSuchUserException;
+
+    public I getIdentity(String identityId, boolean fetchAttributes)
+            throws NoSuchUserException;
 
     /*
-     * fetch for subject
+     * fetch for user
      * 
      * opt-in, loads identities outside login for persisted accounts linked to the
      * subject
@@ -77,9 +87,9 @@ public interface IdentityProvider extends ResourceProvider {
      * outside the login flow!
      */
 
-    public Collection<? extends UserIdentity> listIdentities(String subject);
+    public Collection<I> listIdentities(String userId);
 
-    public Collection<? extends UserIdentity> listIdentities(String subject, boolean fetchAttributes);
+    public Collection<I> listIdentities(String userId, boolean fetchAttributes);
 
     /*
      * Delete accounts.
@@ -87,9 +97,9 @@ public interface IdentityProvider extends ResourceProvider {
      * Implementations are required to implement this, even as a no-op. At minimum
      * we expect providers to clean up any local registration or cache.
      */
-    public void deleteIdentity(String subjectId, String userId) throws NoSuchUserException;
+    public void deleteIdentity(String identityId) throws NoSuchUserException;
 
-    public void deleteIdentities(String subjectId);
+    public void deleteIdentities(String userId);
 
     /*
      * Login
@@ -101,8 +111,6 @@ public interface IdentityProvider extends ResourceProvider {
     public String getAuthenticationUrl();
 
 //    public AuthenticationEntryPoint getAuthenticationEntryPoint();
-
-    public String getDisplayMode();
 
     /*
      * Additional action urls

@@ -26,8 +26,8 @@ import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.authorities.AttributeAuthority;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
-import it.smartcommunitylab.aac.core.base.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
+import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
@@ -40,6 +40,7 @@ import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.model.UserStatus;
 import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
 import it.smartcommunitylab.aac.roles.service.SubjectRoleService;
 
@@ -316,10 +317,8 @@ public class UserService {
         u.setEmailVerified(emailVerified);
 
         // status
-        boolean locked = ue.getLocked() != null ? ue.getLocked().booleanValue() : false;
-        boolean blocked = ue.getBlocked() != null ? ue.getBlocked().booleanValue() : false;
-        u.setLocked(locked);
-        u.setBlocked(blocked);
+        UserStatus status = UserStatus.parse(ue.getStatus());
+        u.setStatus(status);
 
         // fetch attributes
         u.setExpirationDate(ue.getExpirationDate());
@@ -531,7 +530,7 @@ public class UserService {
             List<AttributeProvider> aps = aa.getAttributeProviders(realm);
             for (AttributeProvider ap : aps) {
                 // remove all attributes
-                ap.deleteAttributes(subjectId);
+                ap.deleteUserAttributes(subjectId);
 
             }
         }
@@ -576,7 +575,7 @@ public class UserService {
             throws NoSuchUserException, NoSuchProviderException {
         UserEntity u = userService.getUser(subjectId);
         AttributeProvider ap = authorityManager.getAttributeProvider(provider);
-        return ap.getAttributes(u.getUuid());
+        return ap.getUserAttributes(u.getUuid());
     }
 
     public UserAttributes getUserAttributes(String subjectId, String realm, String provider, String setId)
@@ -591,7 +590,7 @@ public class UserService {
         }
 
         AttributeProvider ap = authorityManager.getAttributeProvider(provider);
-        return ap.getAttributes(u.getUuid()).stream().filter(a -> a.getIdentifier().equals(setId)).findFirst()
+        return ap.getUserAttributes(u.getUuid()).stream().filter(a -> a.getIdentifier().equals(setId)).findFirst()
                 .orElse(null);
     }
 
@@ -634,7 +633,7 @@ public class UserService {
         for (AttributeAuthority aa : authorityManager.listAttributeAuthorities()) {
             List<AttributeProvider> aps = aa.getAttributeProviders(realm);
             for (AttributeProvider ap : aps) {
-                attributes.addAll(ap.getAttributes(subjectId));
+                attributes.addAll(ap.getUserAttributes(subjectId));
             }
         }
 

@@ -32,7 +32,7 @@ import org.springframework.util.Assert;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import it.smartcommunitylab.aac.core.provider.ProviderRepository;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
 
 public class SpidAuthenticationRequestContextConverter
@@ -42,7 +42,7 @@ public class SpidAuthenticationRequestContextConverter
         OpenSamlInitializationService.initialize();
     }
 
-    private final ProviderRepository<SpidIdentityProviderConfig> registrationRepository;
+    private final ProviderConfigRepository<SpidIdentityProviderConfig> registrationRepository;
 
     private AuthnRequestMarshaller marshaller;
 
@@ -55,7 +55,7 @@ public class SpidAuthenticationRequestContextConverter
     private RequestedAuthnContextBuilder reqAuthnContextBuilder;
 
     public SpidAuthenticationRequestContextConverter(
-            ProviderRepository<SpidIdentityProviderConfig> registrationRepository) {
+            ProviderConfigRepository<SpidIdentityProviderConfig> registrationRepository) {
         Assert.notNull(registrationRepository, "provider registration repository cannot be null");
         this.registrationRepository = registrationRepository;
 

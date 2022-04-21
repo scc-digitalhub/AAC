@@ -9,37 +9,45 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.model.EditableAccount;
+import it.smartcommunitylab.aac.model.UserStatus;
 
 /*
  * An instantiable user account. 
  */
 
 @JsonInclude(Include.NON_NULL)
-public class DefaultAccountImpl extends BaseAccount implements EditableAccount {
+public class DefaultAccountImpl extends AbstractAccount {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
-    @JsonIgnore
-    private String internalUserId;
+    private String id;
+    private String uuid;
     private String username;
     private String emailAddress;
     private Boolean emailVerified;
+    private String status;
     private Map<String, String> attributes = new HashMap<>();
     // jsonSchema describing attributes to serve UI
     private JsonSchema schema;
 
     public DefaultAccountImpl(String authority, String provider, String realm) {
         super(authority, provider, realm);
-//        this.attributes = new HashMap<>();
     }
 
-    public String getInternalUserId() {
-        return internalUserId;
+    public String getId() {
+        return id;
     }
 
-    public void setInternalUserId(String internalUserId) {
-        this.internalUserId = internalUserId;
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
     }
 
     @Override
@@ -72,16 +80,6 @@ public class DefaultAccountImpl extends BaseAccount implements EditableAccount {
         return emailVerified != null ? emailVerified.booleanValue() : false;
     }
 
-    @Override
-    public String getUserId() {
-        if (userId == null) {
-            // leverage the default mapper to translate internalId when missing
-            return exportInternalId(internalUserId);
-        } else {
-            return userId;
-        }
-    }
-
     public Map<String, String> getAttributes() {
         return attributes;
     }
@@ -99,6 +97,18 @@ public class DefaultAccountImpl extends BaseAccount implements EditableAccount {
     }
 
     @Override
+    public boolean isLocked() {
+        return UserStatus.LOCKED.getValue().equals(status);
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
     @JsonIgnore
     public JsonSchema getSchema() {
         if (schema != null) {

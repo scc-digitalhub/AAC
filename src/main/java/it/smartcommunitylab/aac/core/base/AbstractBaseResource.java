@@ -1,10 +1,6 @@
 package it.smartcommunitylab.aac.core.base;
 
 import java.io.Serializable;
-import java.util.regex.Pattern;
-
-import org.springframework.util.StringUtils;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.UserResource;
 
@@ -15,11 +11,19 @@ public abstract class AbstractBaseResource implements UserResource, Serializable
     private final String authority;
     private final String realm;
     private final String provider;
+    private String userId;
 
     protected AbstractBaseResource(String authority, String provider, String realm) {
         this.authority = authority;
         this.realm = realm;
         this.provider = provider;
+    }
+
+    protected AbstractBaseResource(String authority, String provider, String realm, String userId) {
+        this.authority = authority;
+        this.realm = realm;
+        this.provider = provider;
+        this.userId = userId;
     }
 
     /**
@@ -33,58 +37,51 @@ public abstract class AbstractBaseResource implements UserResource, Serializable
         this((String) null, (String) null, (String) null);
     }
 
+    @Override
     public String getAuthority() {
         return authority;
     }
 
+    @Override
     public String getRealm() {
         return realm;
     }
 
+    @Override
     public String getProvider() {
         return provider;
     }
 
-    /*
-     * Resource id logic
-     * 
-     * authority|provider|id
-     * 
-     * subclasses can override
-     */
-
-    public static final String ID_SEPARATOR = "|";
-
-    protected String exportInternalId(String internalId) {
-        return getAuthority() + ID_SEPARATOR + getProvider() + ID_SEPARATOR + internalId;
+    @Override
+    public String getUserId() {
+        return userId;
     }
 
-    protected String parseResourceId(String resourceId) throws IllegalArgumentException {
-        if (!StringUtils.hasText(resourceId)) {
-            throw new IllegalArgumentException("empty or null id");
-        }
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
 
-        String[] s = resourceId.split(Pattern.quote(ID_SEPARATOR));
+    // resource is globally unique and addressable
+    // ie given to an external actor he should be able to find the authority and
+    // then the provider to request this resource
+    @Override
+    public String getResourceId() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(getAuthority()).append(SystemKeys.ID_SEPARATOR);
+        sb.append(getProvider()).append(SystemKeys.ID_SEPARATOR);
+        sb.append(getId());
 
-        if (s.length != 3) {
-            throw new IllegalArgumentException("invalid resource id");
-        }
+        return sb.toString();
+    }
 
-        // check match
-        if (!getAuthority().equals(s[0])) {
-            throw new IllegalArgumentException("authority mismatch");
-        }
+    @Override
+    public String getUrn() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(SystemKeys.URN_PROTOCOL).append(SystemKeys.URN_SEPARATOR);
+        sb.append(getType()).append(SystemKeys.URN_SEPARATOR);
+        sb.append(getResourceId());
 
-        if (!getProvider().equals(s[1])) {
-            throw new IllegalArgumentException("provider mismatch");
-        }
-
-        if (!StringUtils.hasText(s[2])) {
-            throw new IllegalArgumentException("empty resource id");
-        }
-
-        return s[2];
-
+        return sb.toString();
     }
 
 }

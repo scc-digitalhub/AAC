@@ -41,7 +41,7 @@ public class ConfirmKeyAuthenticationProvider implements AuthenticationProvider 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         Assert.isInstanceOf(ConfirmKeyAuthenticationToken.class, authentication,
-                "Only ResetKeyAuthenticationToken is supported");
+                "Only ConfirmKeyAuthenticationToken is supported");
 
         ConfirmKeyAuthenticationToken authRequest = (ConfirmKeyAuthenticationToken) authentication;
 

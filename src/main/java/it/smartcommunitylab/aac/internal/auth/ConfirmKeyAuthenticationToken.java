@@ -65,6 +65,11 @@ public class ConfirmKeyAuthenticationToken extends AbstractAuthenticationToken {
     }
 
     @Override
+    public String getName() {
+        return this.username;
+    }
+
+    @Override
     public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
         Assert.isTrue(!isAuthenticated,
                 "Cannot set this token to trusted - use constructor which takes a GrantedAuthority list instead");
@@ -75,5 +80,8 @@ public class ConfirmKeyAuthenticationToken extends AbstractAuthenticationToken {
     public void eraseCredentials() {
         super.eraseCredentials();
         this.key = null;
+        if (this.account != null) {
+            this.account.eraseCredentials();
+        }
     }
 }
