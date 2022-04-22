@@ -34,6 +34,7 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
 
     private String clientId;
     private String clientSecret;
+    private String clientJwk;
     private String clientName;
 
     private AuthenticationMethod clientAuthenticationMethod;
@@ -79,6 +80,14 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
 
     public void setClientSecret(String clientSecret) {
         this.clientSecret = clientSecret;
+    }
+
+    public String getClientJwk() {
+        return clientJwk;
+    }
+
+    public void setClientJwk(String clientJwk) {
+        this.clientJwk = clientJwk;
     }
 
     public String getClientName() {

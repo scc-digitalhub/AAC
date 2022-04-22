@@ -26,23 +26,13 @@
         </div>
         <div class="form-group col ">
             <label for="clientSecret">Client Secret*</label>
-            <input type="text" required name="clientSecret" class="form-control form-control-sm input-password"
-                id="clientSecret" ng-model="idp.configuration.clientSecret">
+            <input type="text" name="clientSecret" class="form-control form-control-sm input-password" id="clientSecret"
+                ng-model="idp.configuration.clientSecret">
         </div>
-        <div class="row">
-            <div class="form-group col">
-                <div class="bootstrap-select-wrapper border-bottom-0">
-                    <label for="clientName">Provider template</label>
-                    <select id="clientName" ng-model="idp.configuration.clientName" ng-change="applyProviderTemplate()">
-                        <option value="">Generic</option>
-                        <option ng-repeat="pt in oidcProviderTemplates" ng-value="pt.name"
-                            ng-selected="idp.configuration.clientName==pt.name">{{pt.name}}</option>
-                    </select>
-                    <small class="form-text"> Applying a template will override current configuration</small>
-                </div>
-            </div>
+        <div class="form-group col ">
+            <label for="clientJwt">Client Private Key (JWT)</label>
+            <textarea rows="5" name="clientJwt" id="clientJwt" ng-model="idp.configuration.clientJwt"></textarea>
         </div>
-
 
         <div class="row">
             <div class="form-group col  ">
@@ -50,13 +40,8 @@
                     <label for="clientAuthenticationMethod">Client Authentication Method*</label>
                     <select required title="Select one" id="clientAuthenticationMethod"
                         ng-model="idp.configuration.clientAuthenticationMethod">
-                        <option value="client_secret_basic"
-                            ng-selected="idp.configuration.clientAuthenticationMethod=='client_secret_basic'">Basic
-                        </option>
-                        <option value="client_secret_post"
-                            ng-selected="idp.configuration.clientAuthenticationMethod=='client_secret_post'">POST
-                        </option>
-                        <option value="none" ng-selected="idp.configuration.clientAuthenticationMethod=='none'">None
+                        <option ng-repeat="c in idp.schema.properties.clientAuthenticationMethod.enum" value="{{c}}"
+                            ng-selected="idp.configuration.clientAuthenticationMethod == c">{{c}}
                         </option>
                     </select>
                 </div>
@@ -68,6 +53,13 @@
                 </tags-input>
             </div>
         </div>
+        <div class="row">
+            <div class="py-0 mb-2 text-center text-danger small"
+                ng-if="!idp.configuration.issuerUri && (!idp.configuration.authorizationUri || !idp.configuration.tokenUri ||!idp.configuration.jwkSetUri )">
+                Either metadata or authorization + token + JWKS endpoints should be specified
+            </div>
+        </div>
+
         <div class="row">
             <div class="form-group col mb-3">
                 <label for="issuerUri">Metadata Discovery URL</label>
@@ -99,12 +91,6 @@
                 <label for="userInfoUri">User Info Endpoint</label>
                 <input type="text" name="userInfoUri" class="form-control form-control-sm" id="userInfoUri"
                     ng-model="idp.configuration.userInfoUri">
-            </div>
-        </div>
-        <div class="row">
-            <div class="py-0 text-center text-danger small"
-                ng-if="!idp.configuration.issuerUri && (!idp.configuration.authorizationUri || !idp.configuration.tokenUri ||!idp.configuration.jwkSetUri || !idp.configuration.userInfoUri)">
-                Either metadata or authorization + token + JWKS + user info endpoints should be specified
             </div>
         </div>
 
@@ -151,11 +137,11 @@
             </div>
             <div class="col-md-4">
                 <div class="form-check">
-                    <input class="form-check-input" name="alwaysTrustEmailAddress" id="alwaysTrustEmailAddress" type="checkbox"
-                        ng-model="idp.configuration.alwaysTrustEmailAddress">
+                    <input class="form-check-input" name="alwaysTrustEmailAddress" id="alwaysTrustEmailAddress"
+                        type="checkbox" ng-model="idp.configuration.alwaysTrustEmailAddress">
                     <label for="alwaysTrustEmailAddress">alwaysTrustEmailAddress</label>
                 </div>
-            </div>            
+            </div>
             <div class="form-group col ">
                 <label for="userNameAttributeName">Username attribute*</label>
                 <input required type="text" name="userNameAttributeName" class="form-control form-control-sm"

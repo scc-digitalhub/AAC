@@ -1,10 +1,15 @@
 package it.smartcommunitylab.aac.openid.provider;
 
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Map;
+import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.slf4j.Logger;
@@ -16,11 +21,13 @@ import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMap
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationProvider;
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
 import org.springframework.security.oauth2.client.endpoint.DefaultAuthorizationCodeTokenResponseClient;
-import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
-import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
+import org.springframework.security.oauth2.client.endpoint.NimbusJwtClientAuthenticationParametersConverter;
+import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequestEntityConverter;
 import org.springframework.security.oauth2.client.oidc.authentication.OidcAuthorizationCodeAuthenticationProvider;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
+import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
@@ -29,6 +36,9 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.OctetSequenceKey;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
@@ -80,8 +90,54 @@ public class OIDCAuthenticationProvider
         this.config = config;
         this.accountRepository = accountRepository;
 
+        // build appropriate client auth request converter
+        OAuth2AuthorizationCodeGrantRequestEntityConverter requestEntityConverter = new OAuth2AuthorizationCodeGrantRequestEntityConverter();
+        // private key jwt resolver, as per
+        // https://tools.ietf.org/html/rfc7523#section-2.2
+        if (ClientAuthenticationMethod.PRIVATE_KEY_JWT.equals(config.getClientAuthenticationMethod())) {
+            // fetch key
+            JWK jwk = config.getClientJWK();
+
+            // build resolver only for this registration
+            Function<ClientRegistration, JWK> jwkResolver = (clientRegistration) -> {
+                if (providerId.equals(clientRegistration.getRegistrationId())) {
+                    return jwk;
+                }
+
+                return null;
+            };
+
+            requestEntityConverter.addParametersConverter(
+                    new NimbusJwtClientAuthenticationParametersConverter<>(jwkResolver));
+        }
+
+        // client secret jwt resolver, as per
+        // https://tools.ietf.org/html/rfc7523#section-2.2
+        if (ClientAuthenticationMethod.CLIENT_SECRET_JWT.equals(config.getClientAuthenticationMethod())) {
+            // build key from secret as HmacSHA256
+            SecretKeySpec secretKey = new SecretKeySpec(
+                    config.getConfigMap().getClientSecret().getBytes(StandardCharsets.UTF_8),
+                    "HmacSHA256");
+            JWK jwk = new OctetSequenceKey.Builder(secretKey)
+                    .keyID(UUID.randomUUID().toString())
+                    .build();
+
+            // build resolver only for this registration
+            Function<ClientRegistration, JWK> jwkResolver = (clientRegistration) -> {
+                if (providerId.equals(clientRegistration.getRegistrationId())) {
+                    return jwk;
+                }
+
+                return null;
+            };
+
+            requestEntityConverter.addParametersConverter(
+                    new NimbusJwtClientAuthenticationParametersConverter<>(jwkResolver));
+        }
+
         // we support only authCode login
-        OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> accessTokenResponseClient = new DefaultAuthorizationCodeTokenResponseClient();
+        DefaultAuthorizationCodeTokenResponseClient accessTokenResponseClient = new DefaultAuthorizationCodeTokenResponseClient();
+        accessTokenResponseClient.setRequestEntityConverter(requestEntityConverter);
 
         // we don't use the account repository to fetch user details,
         // use oidc userinfo to provide user details

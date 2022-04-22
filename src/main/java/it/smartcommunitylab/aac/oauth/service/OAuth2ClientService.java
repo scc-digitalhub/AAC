@@ -71,6 +71,7 @@ public class OAuth2ClientService implements ClientService {
         Set<AuthenticationMethod> s = new HashSet<>();
         s.add(AuthenticationMethod.CLIENT_SECRET_BASIC);
         s.add(AuthenticationMethod.CLIENT_SECRET_POST);
+        s.add(AuthenticationMethod.CLIENT_SECRET_JWT);        
         s.add(AuthenticationMethod.NONE);
         VALID_AUTH_METHODS = Collections.unmodifiableSet(s);
 
@@ -607,7 +608,7 @@ public class OAuth2ClientService implements ClientService {
         return new String(Base64.getUrlEncoder().encode(tokenGenerator.generateKey()), ENCODE_CHARSET);
     }
 
-    private static final BytesKeyGenerator tokenGenerator = KeyGenerators.secureRandom(20);
+    private static final BytesKeyGenerator tokenGenerator = KeyGenerators.secureRandom(32);
     private static final Charset ENCODE_CHARSET = Charset.forName("UTF-8");
 
 }
