@@ -77,7 +77,7 @@ public class SubjectRoleService {
                 .collect(Collectors.toSet());
 
         // update
-        rolesRepository.deleteInBatch(toDelete);
+        rolesRepository.deleteAllInBatch(toDelete);
         rolesRepository.saveAll(toAdd);
 
         return getRoleSubjects(realm, role);
