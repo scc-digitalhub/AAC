@@ -54,6 +54,7 @@ import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.SpaceRole;
+import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.model.UserStatus;
 import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
 import it.smartcommunitylab.aac.services.Service;
@@ -293,6 +294,19 @@ public class AACBootstrap {
         UserEntity user = null;
         InternalUserAccount account = internalUserService.findAccountByUsername(providerId, adminUsername);
         if (account != null) {
+            // check if sub exists, recreate if needed
+            String uuid = account.getUuid();
+            if (!StringUtils.hasText(uuid)) {
+                // generate uuid and register as subject
+                uuid = subjectService.generateUuid(SystemKeys.RESOURCE_ACCOUNT);
+            }
+            Subject s = subjectService.findSubject(uuid);
+            if (s == null) {
+                s = subjectService.addSubject(uuid, SystemKeys.REALM_SYSTEM, SystemKeys.RESOURCE_ACCOUNT,
+                        adminUsername);
+            }
+            account.setUuid(uuid);
+
             // check if user exists, recreate if needed
             user = userService.findUser(account.getUserId());
             if (user == null) {
@@ -303,9 +317,16 @@ public class AACBootstrap {
             // register as new
             user = userService.addUser(userService.createUser(SystemKeys.REALM_SYSTEM).getUuid(),
                     SystemKeys.REALM_SYSTEM, adminUsername, adminEmail);
+
+            // generate uuid and register as subject
+            String uuid = subjectService.generateUuid(SystemKeys.RESOURCE_ACCOUNT);
+            Subject s = subjectService.addSubject(uuid, SystemKeys.REALM_SYSTEM, SystemKeys.RESOURCE_ACCOUNT,
+                    adminUsername);
+
             account = new InternalUserAccount();
             account.setProvider(providerId);
             account.setUserId(user.getUuid());
+            account.setUuid(s.getSubjectId());
             account.setRealm(SystemKeys.REALM_SYSTEM);
             account.setUsername(adminUsername);
             account.setEmail(adminEmail);

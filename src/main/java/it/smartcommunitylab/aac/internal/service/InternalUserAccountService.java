@@ -103,6 +103,7 @@ public class InternalUserAccountService {
             InternalUserAccount account = new InternalUserAccount();
             account.setProvider(reg.getProvider());
             account.setUsername(reg.getUsername());
+            account.setUuid(reg.getUuid());
             account.setUserId(reg.getUserId());
             account.setRealm(reg.getRealm());
             account.setPassword(reg.getPassword());
@@ -144,6 +145,7 @@ public class InternalUserAccountService {
             account.setUsername(reg.getUsername());
 
             // we explode model and update every field
+            account.setUuid(reg.getUuid());
             account.setUserId(reg.getUserId());
             account.setRealm(reg.getRealm());
             account.setPassword(reg.getPassword());
