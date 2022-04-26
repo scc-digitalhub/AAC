@@ -19,7 +19,7 @@ import it.smartcommunitylab.aac.jwt.JWKUtils;
  */
 
 @Configuration
-@Order(2)
+@Order(3)
 public class KeyStoreConfig {
 
     @Value("${security.keystore}")

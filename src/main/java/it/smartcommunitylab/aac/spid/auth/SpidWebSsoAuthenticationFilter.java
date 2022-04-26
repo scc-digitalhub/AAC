@@ -17,6 +17,7 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
 import org.springframework.security.saml2.provider.service.web.DefaultRelyingPartyRegistrationResolver;
+import org.springframework.security.saml2.provider.service.web.RelyingPartyRegistrationResolver;
 import org.springframework.security.saml2.provider.service.web.Saml2AuthenticationTokenConverter;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.WebAttributes;
@@ -80,7 +81,8 @@ public class SpidWebSsoAuthenticationFilter extends AbstractAuthenticationProces
         DefaultRelyingPartyRegistrationResolver registrationResolver = new DefaultRelyingPartyRegistrationResolver(
                 relyingPartyRegistrationRepository);
         // use the default token converter
-        authenticationConverter = new Saml2AuthenticationTokenConverter(registrationResolver);
+        authenticationConverter = new Saml2AuthenticationTokenConverter(
+                (RelyingPartyRegistrationResolver) registrationResolver);
 
         // redirect failed attempts to login
         this.authenticationEntryPoint = new RealmAwareAuthenticationEntryPoint("/login");

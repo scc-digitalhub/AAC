@@ -28,7 +28,7 @@ import it.smartcommunitylab.aac.SystemKeys;
  * Configure web container before security  
  */
 @Configuration
-@Order(10)
+@Order(20)
 public class WebConfig implements WebMvcConfigurer {
 
     @Bean

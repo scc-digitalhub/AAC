@@ -25,7 +25,7 @@ import it.smartcommunitylab.aac.openid.endpoint.OpenIDMetadataEndpoint;
  * 
  */
 @Configuration
-@Order(17)
+@Order(27)
 public class WKNSecurityConfig extends WebSecurityConfigurerAdapter {
 
     /*

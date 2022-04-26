@@ -25,7 +25,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.Resource;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -52,7 +51,6 @@ import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.auth.RequestAwareAuthenticationSuccessHandler;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.core.provider.ProviderRepository;
 import it.smartcommunitylab.aac.crypto.InternalPasswordEncoder;
 import it.smartcommunitylab.aac.internal.auth.InternalConfirmKeyAuthenticationFilter;
 import it.smartcommunitylab.aac.internal.auth.InternalLoginAuthenticationFilter;
@@ -86,7 +84,7 @@ import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
  */
 
 @Configuration
-@Order(19)
+@Order(29)
 @EnableConfigurationProperties
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
@@ -311,13 +309,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return handler;
     }
 
-    @Bean
-    @Override
-    @Primary
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-//        return extendedAuthenticationManager();
-        return authManager;
-    }
+//    @Bean
+//    @Override
+//    @Primary
+//    public AuthenticationManager authenticationManagerBean() throws Exception {
+////        return extendedAuthenticationManager();
+//        return authManager;
+//    }
 
     private RealmAwareAuthenticationEntryPoint realmAuthEntryPoint(String loginPath,
             RealmAwarePathUriBuilder uriBuilder) {

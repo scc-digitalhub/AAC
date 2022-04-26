@@ -41,7 +41,7 @@ import it.smartcommunitylab.aac.oauth.store.ExtTokenStore;
  */
 
 @Configuration
-@Order(11)
+@Order(21)
 public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
