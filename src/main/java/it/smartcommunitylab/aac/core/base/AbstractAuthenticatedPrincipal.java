@@ -9,7 +9,7 @@ import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
  * all implementations should derive from this
  */
 
-public abstract class AbstractAuthenticatedPrincipal extends AbstractBaseResource
+public abstract class AbstractAuthenticatedPrincipal extends AbstractBaseUserResource
         implements UserAuthenticatedPrincipal {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;

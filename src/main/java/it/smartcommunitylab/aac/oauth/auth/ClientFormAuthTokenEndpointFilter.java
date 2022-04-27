@@ -19,6 +19,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.common.exceptions.BadClientCredentialsException;
+import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.security.oauth2.provider.error.OAuth2AuthenticationEntryPoint;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
@@ -35,6 +36,7 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import it.smartcommunitylab.aac.core.auth.NoOpAuthenticationSuccessHandler;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
+import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
 
 /**
  * Filter for the client credential token acquisition. Extends the standard
@@ -91,8 +93,8 @@ public class ClientFormAuthTokenEndpointFilter extends AbstractAuthenticationPro
             throw new HttpRequestMethodNotSupportedException(request.getMethod(), new String[] { "POST" });
         }
 
-        String clientId = request.getParameter("client_id");
-        String clientSecret = request.getParameter("client_secret");
+        String clientId = request.getParameter(OAuth2ParameterNames.CLIENT_ID);
+        String clientSecret = request.getParameter(OAuth2ParameterNames.CLIENT_SECRET);
 
         // If the request is already authenticated we can assume that this
         // filter is not needed
@@ -115,10 +117,10 @@ public class ClientFormAuthTokenEndpointFilter extends AbstractAuthenticationPro
 
         // PKCE requests can avoid secret, let's check
         if (!StringUtils.hasText(clientSecret)) {
-            String grantType = request.getParameter("grant_type");
+            String grantType = request.getParameter(OAuth2ParameterNames.GRANT_TYPE);
             if ("authorization_code".equals(grantType)
                     && request.getParameterMap().containsKey("code_verifier")) {
-                String code = request.getParameter("code");
+                String code = request.getParameter(OAuth2ParameterNames.CODE);
                 String verifier = request.getParameter("code_verifier");
                 // replace request
                 authRequest = new OAuth2ClientPKCEAuthenticationToken(clientId, code, verifier,
@@ -127,12 +129,31 @@ public class ClientFormAuthTokenEndpointFilter extends AbstractAuthenticationPro
 
             // support refresh flow with pkce without secret
             // requires refresh token rotation set
-            if ("refresh_token".equals(grantType)
-                    && request.getParameterMap().containsKey("refresh_token")) {
-                String refreshToken = request.getParameter("refresh_token");
+            if (AuthorizationGrantType.REFRESH_TOKEN.getValue().equals(grantType)
+                    && request.getParameterMap().containsKey(OAuth2ParameterNames.REFRESH_TOKEN)) {
+                String refreshToken = request.getParameter(OAuth2ParameterNames.REFRESH_TOKEN);
                 // replace request
                 authRequest = new OAuth2ClientRefreshAuthenticationToken(clientId, refreshToken,
                         AuthenticationMethod.NONE.getValue());
+            }
+        }
+
+        // JWT assertion auth overrides both secret and PKCE
+        // TODO support auth (secret/jwt) + PKCE as replay protection
+        if (request.getParameterMap().containsKey(OAuth2ParameterNames.CLIENT_ASSERTION) &&
+                request.getParameterMap().containsKey(OAuth2ParameterNames.CLIENT_ASSERTION_TYPE)) {
+            String clientAssertionType = request.getParameter(OAuth2ParameterNames.CLIENT_ASSERTION_TYPE);
+
+            // we support only bearer for now
+            if (OAuth2ClientJwtAssertionAuthenticationToken.CLIENT_ASSERTION_TYPE_VALUE.equals(clientAssertionType)) {
+                // fetch assertion as string
+                String clientAssertion = request.getParameter(OAuth2ParameterNames.CLIENT_ASSERTION);
+
+                // let provider evaluate auth method from assertion
+                String authenticationMethod = null;
+
+                authRequest = new OAuth2ClientJwtAssertionAuthenticationToken(clientId, clientAssertion,
+                        authenticationMethod);
             }
         }
 

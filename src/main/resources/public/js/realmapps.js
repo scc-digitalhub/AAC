@@ -54,8 +54,8 @@ angular.module('aac.controllers.realmapps', [])
             });
         }
 
-        service.resetClientAppCredentials = function (slug, clientId) {
-            return $http.delete('console/dev/realms/' + slug + '/apps/' + clientId + '/credentials').then(function (data) {
+        service.resetClientAppCredentials = function (slug, clientId, credentialsId) {
+            return $http.put('console/dev/realms/' + slug + '/apps/' + clientId + '/credentials/' + credentialsId, {}).then(function (data) {
                 return data.data;
             });
         }
@@ -724,14 +724,17 @@ angular.module('aac.controllers.realmapps', [])
                 });
         }
 
-        $scope.resetClientCredentialsDlg = function (clientApp) {
-            $scope.modClientApp = clientApp;
+        $scope.resetClientCredentialsDlg = function (clientApp, type) {
+            $scope.modClientApp = {
+                clientId: clientApp.clientId,
+                credentialsId: clientApp.clientId + "." + type
+            };
             $('#resetClientCredentialsConfirm').modal({ keyboard: false });
         }
 
         $scope.resetClientCredentials = function () {
             $('#resetClientCredentialsConfirm').modal('hide');
-            RealmAppsData.resetClientAppCredentials($scope.realm.slug, $scope.modClientApp.clientId).then(function (res) {
+            RealmAppsData.resetClientAppCredentials($scope.realm.slug, $scope.modClientApp.clientId, $scope.modClientApp.credentialsId).then(function (res) {
                 $scope.reload(res);
                 Utils.showSuccess();
             }).catch(function (err) {
@@ -1386,6 +1389,11 @@ angular.module('aac.controllers.realmapps', [])
             }
         }
 
+        $scope.oauth2hasSecret = function (authMethods) {
+            var secretAuth = ['client_secret_basic', 'client_secret_post', 'client_secret_jwt'];
+            return authMethods.filter(a => secretAuth.includes(a)).length > 0;
+        }
+
         var iconProvider = function (clientApp) {
             var icon = './italia/svg/sprite.svg#it-piattaforme';
             if (clientApp.type == 'oauth2') {
@@ -1583,9 +1591,7 @@ angular.module('aac.controllers.realmapps', [])
                     });
                 }
                 $scope.oauth2RedirectUris = redirectUris;
-
-
-
+               
             }
 
 
@@ -1644,6 +1650,11 @@ angular.module('aac.controllers.realmapps', [])
             }).catch(function (err) {
                 Utils.showError(err.data.message);
             });
+        }
+
+        $scope.oauth2hasSecret = function (authMethods) {
+            var secretAuth = ['client_secret_basic', 'client_secret_post', 'client_secret_jwt'];
+            return authMethods.filter(a => secretAuth.includes(a)).length > 0;
         }
 
 

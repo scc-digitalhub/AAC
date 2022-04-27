@@ -8,7 +8,7 @@ import it.smartcommunitylab.aac.core.model.UserAttributes;
  * 
  * all implementations should derive from this
  */
-public abstract class AbstractAttributes extends AbstractBaseResource implements UserAttributes {
+public abstract class AbstractAttributes extends AbstractBaseUserResource implements UserAttributes {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 

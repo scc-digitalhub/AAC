@@ -210,6 +210,10 @@ public class OIDCIdentityProviderConfig extends AbstractIdentityProviderConfig {
         return getClientRegistration().getClientAuthenticationMethod();
     }
 
+    public boolean isPkceEnabled() {
+        return configMap.getEnablePkce() != null ? configMap.getEnablePkce().booleanValue() : true;
+    }
+
     public JWK getClientJWK() {
         if (!StringUtils.hasText(configMap.getClientJwk())) {
             return null;

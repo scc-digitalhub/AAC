@@ -94,6 +94,7 @@ public class OAuth2ClientEntity {
     @Column(name = "refresh_token_validity")
     private Integer refreshTokenValidity;
 
+    @Lob
     @Column(name = "jwks")
     private String jwks;
 

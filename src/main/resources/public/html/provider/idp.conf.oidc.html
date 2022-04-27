@@ -30,8 +30,8 @@
                 ng-model="idp.configuration.clientSecret">
         </div>
         <div class="form-group col ">
-            <label for="clientJwt">Client Private Key (JWT)</label>
-            <textarea rows="5" name="clientJwt" id="clientJwt" ng-model="idp.configuration.clientJwt"></textarea>
+            <label for="clientJwk">Client Private Key (JWK)</label>
+            <textarea rows="5" name="clientJwk" id="clientJwk" ng-model="idp.configuration.clientJwk"></textarea>
         </div>
 
         <div class="row">
@@ -47,6 +47,15 @@
                 </div>
             </div>
 
+            <div class="form-group col">
+                <div class="form-check form-check-inline"
+                    ng-click="idp.configuration.enablePkce = !idp.configuration.enablePkce">
+                    <input class="form-check-input" type="checkbox" ng-model="idp.configuration.enablePkce">
+                    <label>Enable PKCE</label>
+                </div>
+            </div>
+        </div>
+        <div class="row">
             <div class="form-group col ">
                 <label for="scope">Scopes*</label>
                 <tags-input name="scope" type="text" placeholder="Scopes" ng-model="idpOidcScope">
