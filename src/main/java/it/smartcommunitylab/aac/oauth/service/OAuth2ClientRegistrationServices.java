@@ -118,7 +118,7 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
                 configMap.getIdTokenClaims(), configMap.getFirstParty(),
                 configMap.getAccessTokenValidity(), configMap.getRefreshTokenValidity(),
                 configMap.getIdTokenValidity(),
-                configMap.getJwks(), configMap.getJwksUri(),
+                null, configMap.getJwksUri(),
                 configMap.getAdditionalConfig(),
                 configMap.getAdditionalInformation());
 
@@ -191,7 +191,7 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
                     configMap.getIdTokenClaims(), configMap.getFirstParty(),
                     configMap.getAccessTokenValidity(), configMap.getRefreshTokenValidity(),
                     configMap.getIdTokenValidity(),
-                    configMap.getJwks(), configMap.getJwksUri(),
+                    configMap.getJwksUri(),
                     configMap.getAdditionalConfig(),
                     configMap.getAdditionalInformation());
 
@@ -268,15 +268,15 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
             configMap.setRefreshTokenValidity(reg.getRefreshTokenValiditySeconds());
         }
 
-        if (reg.getJwks() != null) {
-
-            try {
-                JWKSet jwks = JWKSet.parse(reg.getJwks());
-                configMap.setJwks(jwks);
-            } catch (ParseException e) {
-                // ignore invalid jwks
-            }
-        }
+//        if (reg.getJwks() != null) {
+//
+//            try {
+//                JWKSet jwks = JWKSet.parse(reg.getJwks());
+//                configMap.setJwks(jwks.toString(false));
+//            } catch (ParseException e) {
+//                // ignore invalid jwks
+//            }
+//        }
 
         if (reg.getJwksUri() != null) {
             configMap.setJwksUri(reg.getJwksUri());
@@ -370,7 +370,7 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
         reg.setRefreshTokenValiditySeconds(configMap.getRefreshTokenValidity());
 
         // JWT config
-        reg.setJwks(configMap.getJwks() != null ? configMap.getJwks().toString() : null);
+        reg.setJwks(client.getJwks() != null ? client.getJwks() : null);
         reg.setJwksUri(configMap.getJwksUri());
 
         if (configMap.getAdditionalConfig() != null) {

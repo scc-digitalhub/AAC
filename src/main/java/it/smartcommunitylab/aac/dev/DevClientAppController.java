@@ -252,13 +252,14 @@ public class DevClientAppController {
         return ResponseEntity.ok(null);
     }
 
-    @DeleteMapping("/realms/{realm}/apps/{clientId}/credentials")
+    @PutMapping("/realms/{realm}/apps/{clientId}/credentials/{credentialsId}")
     public ResponseEntity<ClientApp> resetRealmClientAppCredentials(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String credentialsId)
             throws NoSuchClientException, NoSuchRealmException {
 
-        clientManager.resetClientCredentials(realm, clientId);
+        clientManager.resetClientCredentials(realm, clientId, credentialsId);
 
         // re-read app
         ClientApp clientApp = clientManager.getClientApp(realm, clientId);

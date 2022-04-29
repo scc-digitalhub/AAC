@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.openid.provider;
 
 import java.io.Serializable;
+import java.text.ParseException;
 import java.util.Collections;
 import java.util.Map;
 
@@ -9,6 +10,8 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.util.StringUtils;
+
+import com.nimbusds.jose.jwk.JWK;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityProviderConfig;
@@ -113,13 +116,17 @@ public class OIDCIdentityProviderConfig extends AbstractIdentityProviderConfig {
         }
 
         // set config
-        ClientAuthenticationMethod clientAuthenticationMethod = ClientAuthenticationMethod.BASIC;
+        ClientAuthenticationMethod clientAuthenticationMethod = ClientAuthenticationMethod.CLIENT_SECRET_BASIC;
         if (configMap.getClientAuthenticationMethod() != null) {
             // we support only these methods
             if (AuthenticationMethod.CLIENT_SECRET_POST == configMap.getClientAuthenticationMethod()) {
-                clientAuthenticationMethod = ClientAuthenticationMethod.POST;
+                clientAuthenticationMethod = ClientAuthenticationMethod.CLIENT_SECRET_POST;
             } else if (AuthenticationMethod.NONE == configMap.getClientAuthenticationMethod()) {
                 clientAuthenticationMethod = ClientAuthenticationMethod.NONE;
+            } else if (AuthenticationMethod.CLIENT_SECRET_JWT == configMap.getClientAuthenticationMethod()) {
+                clientAuthenticationMethod = ClientAuthenticationMethod.CLIENT_SECRET_JWT;
+            } else if (AuthenticationMethod.PRIVATE_KEY_JWT == configMap.getClientAuthenticationMethod()) {
+                clientAuthenticationMethod = ClientAuthenticationMethod.PRIVATE_KEY_JWT;
             }
         }
         builder.clientAuthenticationMethod(clientAuthenticationMethod);
@@ -196,6 +203,28 @@ public class OIDCIdentityProviderConfig extends AbstractIdentityProviderConfig {
 
     public boolean requireEmailAddress() {
         return configMap.getRequireEmailAddress() != null ? configMap.getRequireEmailAddress().booleanValue() : false;
+    }
+
+    public ClientAuthenticationMethod getClientAuthenticationMethod() {
+        // TODO Auto-generated method stub
+        return getClientRegistration().getClientAuthenticationMethod();
+    }
+
+    public boolean isPkceEnabled() {
+        return configMap.getEnablePkce() != null ? configMap.getEnablePkce().booleanValue() : true;
+    }
+
+    public JWK getClientJWK() {
+        if (!StringUtils.hasText(configMap.getClientJwk())) {
+            return null;
+        }
+
+        // expect a single key as jwk
+        try {
+            return JWK.parse(configMap.getClientJwk());
+        } catch (ParseException e) {
+            return null;
+        }
     }
 
     /*

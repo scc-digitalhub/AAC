@@ -33,7 +33,8 @@ public class OIDCRedirectAuthenticationFilter extends OAuth2AuthorizationRequest
         // set PKCE aware request resolver to enforce pkce for both public and private
         // clients
         super(new ExtendedAuthorizationRequestResolver(
-                new PKCEAwareOAuth2AuthorizationRequestResolver(clientRegistrationRepository,
+                new PKCEAwareOAuth2AuthorizationRequestResolver(
+                        registrationRepository, clientRegistrationRepository,
                         filterProcessesUrl),
                 registrationRepository));
 

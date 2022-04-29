@@ -22,7 +22,26 @@
 
                 </div>
             </div>
+        </div>
+
+        <div class="row">
             <div class="form-group col">
+                <div class="bootstrap-select-wrapper border-bottom-0">
+                    <label>Authentication methods</label>
+                    <select title="Select" multiple="true" data-multiple-separator=""
+                        ng-model="app.configuration.authenticationMethods">
+                        <option ng-repeat="am in configurationSchema.properties.authenticationMethods.items.enum"
+                            ng-value="am"
+                            data-content="<span class='select-pill'><span class='select-pill-text'>{{am}}</span></span>">
+                        </option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+
+            <div class="form-group col-12" ng-if="oauth2hasSecret(app.configuration.authenticationMethods)">
                 <div class="input-group">
                     <label for="secret" class="active">Client secret</label>
                     <input type="password" class="form-control input-password" id="secret"
@@ -36,12 +55,39 @@
                             </svg>
                         </button>
                         <button class="btn btn-danger btn-sm  text-right"
-                            ng-click="resetClientCredentialsDlg(app)">Reset</button>
+                            ng-click="resetClientCredentialsDlg(app, 'credentials_secret')">Reset</button>
                     </div>
                 </div>
             </div>
+
+            <div class="form-group col-12" ng-if="app.configuration.authenticationMethods.includes('private_key_jwt')">
+                <div class="input-group">
+                    <label for="jwks" class="active">Client Key Set (JWKS)</label>
+                    <input type="text" class="form-control" id="jwks" ng-model="app.configuration.jwks" readonly>
+
+                    <div class="input-group-append">
+                        <button class="btn btn-primary btn-sm  text-right" ng-click="copyText(app.configuration.jwks)">
+                            <svg class="icon icon-sm icon-white">
+                                <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
+                            </svg>
+                        </button>
+                        <button class="btn btn-danger btn-sm  text-right"
+                            ng-click="resetClientCredentialsDlg(app, 'credentials_jwks')">Reset</button>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
+
+
+    </fieldset>
+
+    <fieldset class="collapse-div collapse-right-icon" role="tablist">
+        <legend class="collapse-header mb-5">
+            Grant types
+            <small class="form-text"> OAuth2 authorization grant configuration</small>
+        </legend>
         <div class="row">
             <div class="form-group col">
                 <div class="bootstrap-select-wrapper border-bottom-0">
@@ -51,20 +97,6 @@
                         <option ng-repeat="gt in configurationSchema.properties.authorizedGrantTypes.items.enum"
                             ng-value="gt"
                             data-content="<span class='select-pill'><span class='select-pill-text'>{{gt}}</span></span>">
-                        </option>
-                    </select>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="form-group col">
-                <div class="bootstrap-select-wrapper border-bottom-0">
-                    <label>Authentication methods</label>
-                    <select title="Select" multiple="true" data-multiple-separator=""
-                        ng-model="app.configuration.authenticationMethods">
-                        <option ng-repeat="am in configurationSchema.properties.authenticationMethods.items.enum"
-                            ng-value="am"
-                            data-content="<span class='select-pill'><span class='select-pill-text'>{{am}}</span></span>">
                         </option>
                     </select>
                 </div>
@@ -118,7 +150,7 @@
                     <input class="form-check-input" type="checkbox" ng-model="app.configuration.refresh_token_rotation">
                     <label>Refresh token rotation</label>
                 </div>
-            </div>            
+            </div>
         </div>
 
         <div class="row">

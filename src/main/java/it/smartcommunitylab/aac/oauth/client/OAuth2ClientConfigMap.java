@@ -1,12 +1,15 @@
 package it.smartcommunitylab.aac.oauth.client;
 
 import java.io.Serializable;
+import java.text.ParseException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import javax.validation.Valid;
+
+import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -53,7 +56,7 @@ public class OAuth2ClientConfigMap implements ConfigurableProperties, Serializab
     private Integer accessTokenValidity;
     private Integer refreshTokenValidity;
 
-    private JWKSet jwks;
+//    private String jwks;
     private String jwksUri;
 
     // additional configuration
@@ -181,13 +184,13 @@ public class OAuth2ClientConfigMap implements ConfigurableProperties, Serializab
         this.idTokenValidity = idTokenValidity;
     }
 
-    public JWKSet getJwks() {
-        return jwks;
-    }
-
-    public void setJwks(JWKSet jwks) {
-        this.jwks = jwks;
-    }
+//    public String getJwks() {
+//        return jwks;
+//    }
+//
+//    public void setJwks(String jwks) {
+//        this.jwks = jwks;
+//    }
 
     public String getJwksUri() {
         return jwksUri;
@@ -214,6 +217,21 @@ public class OAuth2ClientConfigMap implements ConfigurableProperties, Serializab
     public void setAdditionalInformation(OAuth2ClientInfo additionalInformation) {
         this.additionalInformation = additionalInformation;
     }
+
+//    @JsonIgnore
+//    public JWKSet getJwksSet() {
+//        // read from string or load from uri
+//        // TODO
+//        if (!StringUtils.hasText(jwks)) {
+//            return null;
+//        }
+//
+//        try {
+//            return JWKSet.parse(jwks);
+//        } catch (ParseException e) {
+//            return null;
+//        }
+//    }
 
     @Override
     @JsonIgnore
@@ -245,7 +263,7 @@ public class OAuth2ClientConfigMap implements ConfigurableProperties, Serializab
         this.accessTokenValidity = map.getAccessTokenValidity();
         this.refreshTokenValidity = map.getRefreshTokenValidity();
 
-        this.jwks = map.getJwks();
+//        this.jwks = map.getJwks();
         this.jwksUri = map.getJwksUri();
 
         // handle additional props

@@ -1,11 +1,11 @@
 package it.smartcommunitylab.aac.controller;
 
+import java.io.Serializable;
 import java.util.Collection;
 
 import java.util.Map;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
@@ -21,9 +21,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.multipart.MultipartFile;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
@@ -124,7 +121,7 @@ public class BaseClientAppController {
      */
 
     @GetMapping("/app/{realm}/{clientId}/credentials")
-    public ClientCredentials getAppCredentials(
+    public Collection<ClientCredentials> listAppCredentials(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
             throws NoSuchClientException, NoSuchRealmException {
@@ -134,27 +131,42 @@ public class BaseClientAppController {
         return clientManager.getClientCredentials(realm, clientId);
     }
 
-    @PutMapping("/app/{realm}/{clientId}/credentials")
+    @GetMapping("/app/{realm}/{clientId}/credentials/{credentialsId}")
     public ClientCredentials getAppCredentials(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
-            @RequestBody @NotNull Map<String, Object> credentials)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String credentialsId)
             throws NoSuchClientException, NoSuchRealmException {
-        logger.debug("set credentials for client app {} for realm {}",
+        logger.debug("get credentials for client app {} for realm {}",
                 StringUtils.trimAllWhitespace(clientId), StringUtils.trimAllWhitespace(realm));
 
-        return clientManager.setClientCredentials(realm, clientId, credentials);
+        return clientManager.getClientCredentials(realm, clientId, credentialsId);
     }
 
-    @DeleteMapping("/app/{realm}/{clientId}/credentials")
-    public ClientCredentials resetAppCredentials(
+    @PutMapping("/app/{realm}/{clientId}/credentials/{credentialsId}")
+    public ClientCredentials setAppCredentials(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String credentialsId,
+            @RequestBody @NotNull Map<String, Serializable> credentials)
+            throws NoSuchClientException, NoSuchRealmException {
+        logger.debug("set/reset credentials for client app {} for realm {}",
+                StringUtils.trimAllWhitespace(clientId), StringUtils.trimAllWhitespace(realm));
+
+        // TODO support set by parsing map
+        return clientManager.resetClientCredentials(realm, clientId, credentialsId);
+    }
+
+    @DeleteMapping("/app/{realm}/{clientId}/credentials/{credentialsId}")
+    public void removeAppCredentials(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String credentialsId)
             throws NoSuchClientException, NoSuchRealmException {
         logger.debug("reset credentials for client app {} for realm {}",
                 StringUtils.trimAllWhitespace(clientId), StringUtils.trimAllWhitespace(realm));
 
-        return clientManager.resetClientCredentials(realm, clientId);
+        clientManager.removeClientCredentials(realm, clientId, credentialsId);
     }
 
     /*

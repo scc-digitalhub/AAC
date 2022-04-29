@@ -9,7 +9,7 @@ import it.smartcommunitylab.aac.core.model.UserAccount;
  * all implementations should derive from this
  */
 
-public abstract class AbstractAccount extends AbstractBaseResource implements UserAccount {
+public abstract class AbstractAccount extends AbstractBaseUserResource implements UserAccount {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 

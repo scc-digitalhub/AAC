@@ -117,9 +117,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private InternalUserAccountService internalUserAccountService;
 
-//    @Autowired
-//    private OAuth2ClientUserDetailsService clientUserDetailsService;
-
     @Autowired
     private ExtendedUserAuthenticationManager authManager;
 

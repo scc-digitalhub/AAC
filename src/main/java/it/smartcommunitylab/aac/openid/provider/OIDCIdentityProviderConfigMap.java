@@ -34,9 +34,12 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
 
     private String clientId;
     private String clientSecret;
+    private String clientJwk;
     private String clientName;
 
     private AuthenticationMethod clientAuthenticationMethod;
+    private Boolean enablePkce;
+
     private String scope;
     private String userNameAttributeName;
     private Boolean trustEmailAddress;
@@ -62,6 +65,7 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
         this.scope = "openid,email";
         this.userNameAttributeName = IdTokenClaimNames.SUB;
         this.clientAuthenticationMethod = AuthenticationMethod.CLIENT_SECRET_BASIC;
+        this.enablePkce = true;
         this.trustEmailAddress = true;
     }
 
@@ -81,6 +85,14 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
         this.clientSecret = clientSecret;
     }
 
+    public String getClientJwk() {
+        return clientJwk;
+    }
+
+    public void setClientJwk(String clientJwk) {
+        this.clientJwk = clientJwk;
+    }
+
     public String getClientName() {
         return clientName;
     }
@@ -95,6 +107,14 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
 
     public void setClientAuthenticationMethod(AuthenticationMethod clientAuthenticationMethod) {
         this.clientAuthenticationMethod = clientAuthenticationMethod;
+    }
+
+    public Boolean getEnablePkce() {
+        return enablePkce;
+    }
+
+    public void setEnablePkce(Boolean enablePkce) {
+        this.enablePkce = enablePkce;
     }
 
     public String getScope() {
@@ -218,9 +238,11 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
 
         this.clientId = map.getClientId();
         this.clientSecret = map.getClientSecret();
+        this.clientJwk = map.getClientJwk();
         this.clientName = map.getClientName();
 
         this.clientAuthenticationMethod = map.getClientAuthenticationMethod();
+        this.enablePkce = map.getEnablePkce();
         this.scope = map.getScope();
         this.userNameAttributeName = map.getUserNameAttributeName();
         this.trustEmailAddress = map.getTrustEmailAddress();

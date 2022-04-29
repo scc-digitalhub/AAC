@@ -21,6 +21,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.common.exceptions.BadClientCredentialsException;
+import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.security.oauth2.provider.error.OAuth2AuthenticationEntryPoint;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
@@ -173,6 +174,25 @@ public class ClientBasicAuthFilter extends AbstractAuthenticationProcessingFilte
                 // replace request
                 authRequest = new OAuth2ClientRefreshAuthenticationToken(clientId, refreshToken,
                         AuthenticationMethod.NONE.getValue());
+            }
+        }
+
+        // JWT assertion auth overrides both secret and PKCE
+        // TODO support auth (secret/jwt) + PKCE as replay protection
+        if (request.getParameterMap().containsKey(OAuth2ParameterNames.CLIENT_ASSERTION) &&
+                request.getParameterMap().containsKey(OAuth2ParameterNames.CLIENT_ASSERTION_TYPE)) {
+            String clientAssertionType = request.getParameter(OAuth2ParameterNames.CLIENT_ASSERTION_TYPE);
+
+            // we support only bearer for now
+            if (OAuth2ClientJwtAssertionAuthenticationToken.CLIENT_ASSERTION_TYPE_VALUE.equals(clientAssertionType)) {
+                // fetch assertion as string
+                String clientAssertion = request.getParameter(OAuth2ParameterNames.CLIENT_ASSERTION);
+
+                // let provider evaluate auth method from assertion
+                String authenticationMethod = null;
+
+                authRequest = new OAuth2ClientJwtAssertionAuthenticationToken(clientId, clientAssertion,
+                        authenticationMethod);
             }
         }
 

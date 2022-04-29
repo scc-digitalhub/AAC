@@ -2,11 +2,14 @@ package it.smartcommunitylab.aac.config;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.servlet.Filter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
@@ -27,9 +30,11 @@ import it.smartcommunitylab.aac.core.ClientAuthenticationManager;
 import it.smartcommunitylab.aac.core.service.ClientDetailsService;
 import it.smartcommunitylab.aac.oauth.auth.ClientBasicAuthFilter;
 import it.smartcommunitylab.aac.oauth.auth.ClientFormAuthTokenEndpointFilter;
+import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientJwtAssertionAuthenticationProvider;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientPKCEAuthenticationProvider;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientRefreshAuthenticationProvider;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientSecretAuthenticationProvider;
+import it.smartcommunitylab.aac.oauth.endpoint.TokenEndpoint;
 import it.smartcommunitylab.aac.oauth.provider.PeekableAuthorizationCodeServices;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.oauth.store.ExtTokenStore;
@@ -43,6 +48,9 @@ import it.smartcommunitylab.aac.oauth.store.ExtTokenStore;
 @Configuration
 @Order(21)
 public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Value("${application.url}")
+    private String applicationUrl;
 
     @Autowired
     private ClientDetailsService clientService;
@@ -103,16 +111,29 @@ public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
                 clientDetailsService, tokenStore);
         refreshAuthProvider.setClientService(clientService);
 
-        ClientAuthenticationManager authManager = new ClientAuthenticationManager(secretAuthProvider);
+        // build audience for all endpoints
+        Set<String> audience = new HashSet<>();
+        audience.add(applicationUrl);
+        audience.add(applicationUrl + "/oauth/token");
+        audience.add(applicationUrl + "/oauth/introspect");
+        audience.add(applicationUrl + "/oauth/revoke");
+        // build jwt client auth provider for given endpoints
+        OAuth2ClientJwtAssertionAuthenticationProvider jwtAssertionProvider = new OAuth2ClientJwtAssertionAuthenticationProvider(
+                clientDetailsService, audience);
+        jwtAssertionProvider.setClientService(clientService);
+
+        ClientAuthenticationManager authManager = new ClientAuthenticationManager(secretAuthProvider,
+                jwtAssertionProvider);
         authManager.setClientService(clientService);
 
         ClientAuthenticationManager pkceAuthManager = new ClientAuthenticationManager(secretAuthProvider,
-                pkceAuthProvider, refreshAuthProvider);
+                pkceAuthProvider, refreshAuthProvider, jwtAssertionProvider);
         pkceAuthManager.setClientService(clientService);
 
         // build auth filters for TokenEndpoint
         // TODO add realm style endpoints
-        ClientFormAuthTokenEndpointFilter formTokenEndpointFilter = new ClientFormAuthTokenEndpointFilter();
+        ClientFormAuthTokenEndpointFilter formTokenEndpointFilter = new ClientFormAuthTokenEndpointFilter(
+                "/oauth/token");
         formTokenEndpointFilter.setAuthenticationManager(pkceAuthManager);
 
         // TODO consolidate basicFilter for all endpoints
