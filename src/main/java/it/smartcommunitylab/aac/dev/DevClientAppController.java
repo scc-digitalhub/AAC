@@ -269,7 +269,25 @@ public class DevClientAppController {
         clientApp.setSchema(schema);
 
         return ResponseEntity.ok(clientApp);
+    }
 
+    @DeleteMapping("/realms/{realm}/apps/{clientId}/credentials/{credentialsId}")
+    public ResponseEntity<ClientApp> removeRealmClientAppCredentials(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String credentialsId)
+            throws NoSuchClientException, NoSuchRealmException {
+
+        clientManager.removeClientCredentials(realm, clientId, credentialsId);
+
+        // re-read app
+        ClientApp clientApp = clientManager.getClientApp(realm, clientId);
+
+        // fetch also configuration schema
+        JsonSchema schema = clientManager.getClientConfigurationSchema(realm, clientId);
+        clientApp.setSchema(schema);
+
+        return ResponseEntity.ok(clientApp);
     }
 
     @GetMapping("/realms/{realm}/apps/{clientId}/oauth2/{grantType}")

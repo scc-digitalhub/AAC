@@ -1,6 +1,5 @@
 package it.smartcommunitylab.aac.oauth.service;
 
-import java.text.ParseException;
 import java.time.Instant;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -12,8 +11,6 @@ import org.springframework.security.crypto.keygen.StringKeyGenerator;
 import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
-import com.nimbusds.jose.jwk.JWKSet;
 
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.core.service.IdentityProviderService;

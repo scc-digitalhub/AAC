@@ -1,0 +1,10 @@
+databaseChangeLog:
+  - changeSet:
+      id: make-secret-nullable
+      author: matteos
+      changes:
+        - dropNotNullConstraint:
+            tableName: oauth2_clients
+            columnName: client_secret
+            columnDataType: varchar(255)
+                   

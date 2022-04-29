@@ -100,6 +100,20 @@
         </div>
     </div>
 </div>
+<div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="removeClientCredentialsConfirm">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <p>Are you sure you want to remove credentials?</p>
+                <p class="text-danger">ATTENTION: This operation cannot be undone!</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger btn-sm" ng-click="removeClientCredentials()" type="button">Reset</button>
+                <button class="btn btn-outline-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="deleteClientAppConfirm">
     <div class="modal-dialog" role="document">
         <div class="modal-content">

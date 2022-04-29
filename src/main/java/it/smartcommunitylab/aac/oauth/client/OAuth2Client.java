@@ -1,7 +1,6 @@
 package it.smartcommunitylab.aac.oauth.client;
 
 import java.io.Serializable;
-import java.text.ParseException;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -11,8 +10,6 @@ import org.springframework.util.StringUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
-import com.nimbusds.jose.jwk.JWKSet;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.BaseClient;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
