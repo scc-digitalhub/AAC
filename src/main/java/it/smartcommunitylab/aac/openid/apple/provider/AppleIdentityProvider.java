@@ -1,8 +1,5 @@
 package it.smartcommunitylab.aac.openid.apple.provider;
 
-import java.util.Collections;
-import java.util.Map;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

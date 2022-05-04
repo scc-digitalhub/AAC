@@ -34,27 +34,16 @@ public class AppleClientAuthenticationParametersConverter
     private static final int DEFAULT_DURATION = 180;
 
     private final AppleIdentityProviderConfigMap configMap;
-//    private JwtEncoder jwtEncoder;
     private final JWSSigner jwsSigner;
 
     public AppleClientAuthenticationParametersConverter(AppleIdentityProviderConfig config) {
         Assert.notNull(config, "config must be set");
         this.configMap = config.getConfigMap();
-//
-//        JWK jwk = config.getClientJWK();
-//
-//        Assert.notNull(jwk, "jwk must be set");
-//        Assert.isTrue(jwk.getKeyType().equals(KeyType.EC), "key must be of type ES256");
-//
-//        // build encoder with this key
-//        jwtEncoder = new NimbusJwtEncoder(new ImmutableJWKSet<>(new JWKSet(jwk)));
-
         ECPrivateKey privateKey = config.getPrivateKey();
-
         Assert.notNull(privateKey, "private key must be set");
 
-        // build singer with this key
         try {
+            // build signer with this key
             this.jwsSigner = new ECDSASigner(privateKey);
         } catch (JOSEException e) {
             throw new IllegalArgumentException("invalid private key");
@@ -80,10 +69,6 @@ public class AppleClientAuthenticationParametersConverter
 
         // build jwt with assertions as per
         // https://developer.apple.com/documentation/sign_in_with_apple/generate_and_validate_tokens
-//
-//        JwsHeader.Builder headersBuilder = JwsHeader
-//                .with(SignatureAlgorithm.ES256)
-//                .keyId(configMap.getKeyId());
         try {
             JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.ES256)
                     .keyID(configMap.getKeyId())
@@ -100,20 +85,6 @@ public class AppleClientAuthenticationParametersConverter
                     .issueTime(Date.from(issuedAt))
                     .expirationTime(Date.from(expiresAt))
                     .build();
-
-//        JwtClaimsSet.Builder claimsBuilder = JwtClaimsSet.builder()
-//                .issuer(configMap.getTeamId())
-//                .subject(clientRegistration.getClientId())
-//                .audience(Collections.singletonList(AppleIdentityProviderConfig.ISSUER_URI))
-//                .id(UUID.randomUUID().toString())
-//                .issuedAt(issuedAt)
-//                .expiresAt(expiresAt);
-//
-//        // build and sign
-//        JwsHeader header = headersBuilder.build();
-//        JwtClaimsSet claims = claimsBuilder.build();
-
-//        Jwt jws = jwtEncoder.encode(JwtEncoderParameters.from(jwsHeader, jwtClaimsSet));
 
             SignedJWT jwt = new SignedJWT(header, claims);
             jwt.sign(jwsSigner);
