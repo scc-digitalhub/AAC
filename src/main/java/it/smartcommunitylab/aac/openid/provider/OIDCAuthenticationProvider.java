@@ -176,9 +176,9 @@ public class OIDCAuthenticationProvider
         }
 
         // TODO extract codeResponse + tokenResponse for audit
-        String authorizationRequest = loginAuthenticationToken.getAuthorizationExchange().getAuthorizationRequest()
+        String authorizationRequestUri = loginAuthenticationToken.getAuthorizationExchange().getAuthorizationRequest()
                 .getAuthorizationRequestUri();
-        String authorizationResponse = loginAuthenticationToken.getAuthorizationExchange().getAuthorizationResponse()
+        String authorizationResponseUri = loginAuthenticationToken.getAuthorizationExchange().getAuthorizationResponse()
                 .getRedirectUri();
 
         // delegate to oauth providers in sequence
@@ -202,8 +202,8 @@ public class OIDCAuthenticationProvider
                 OIDCUserAccount account = accountRepository.findOne(new OIDCUserAccountId(getProvider(), subject));
                 if (account != null && account.isLocked()) {
                     throw new OIDCAuthenticationException(new OAuth2Error("invalid_request"), "account not available",
-                            authorizationRequest,
-                            authorizationResponse, null, null);
+                            authorizationRequestUri,
+                            authorizationResponseUri, null, null);
                 }
 
                 auth = new OIDCAuthenticationToken(
@@ -216,8 +216,8 @@ public class OIDCAuthenticationProvider
 
             return auth;
         } catch (OAuth2AuthenticationException e) {
-            throw new OIDCAuthenticationException(e.getError(), e.getMessage(), authorizationRequest,
-                    authorizationResponse, null, null);
+            throw new OIDCAuthenticationException(e.getError(), e.getMessage(), authorizationRequestUri,
+                    authorizationResponseUri, null, null);
         }
     }
 

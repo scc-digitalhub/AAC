@@ -18,15 +18,21 @@ import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCo
 import org.springframework.security.oauth2.client.oidc.authentication.OidcAuthorizationCodeAuthenticationProvider;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
+import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
+import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.openid.apple.auth.AppleClientAuthenticationParametersConverter;
-import it.smartcommunitylab.aac.openid.apple.service.AppleOidcUserService;
+import it.smartcommunitylab.aac.openid.apple.model.AppleOidcUserData;
 import it.smartcommunitylab.aac.attributes.OpenIdAttributesSet;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
@@ -40,6 +46,7 @@ import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountId;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
 import it.smartcommunitylab.aac.openid.provider.OIDCAuthenticationProvider;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProvider;
+import it.smartcommunitylab.aac.openid.service.IdTokenOidcUserService;
 
 public class AppleAuthenticationProvider
         extends OIDCAuthenticationProvider {
@@ -49,6 +56,8 @@ public class AppleAuthenticationProvider
     private final AppleIdentityProviderConfig config;
 
     private final OidcAuthorizationCodeAuthenticationProvider oidcProvider;
+
+    private static ObjectMapper mapper = new ObjectMapper();
 
     public AppleAuthenticationProvider(
             String providerId,
@@ -64,16 +73,16 @@ public class AppleAuthenticationProvider
 
         // build appropriate client auth request converter
         OAuth2AuthorizationCodeGrantRequestEntityConverter requestEntityConverter = new OAuth2AuthorizationCodeGrantRequestEntityConverter();
-        requestEntityConverter.addParametersConverter(new AppleClientAuthenticationParametersConverter<>(config));
+        // use set to replace all standard parameters, we need to control the request
+        requestEntityConverter.setParametersConverter(new AppleClientAuthenticationParametersConverter(config));
 
         // we support only authCode login
         DefaultAuthorizationCodeTokenResponseClient accessTokenResponseClient = new DefaultAuthorizationCodeTokenResponseClient();
         accessTokenResponseClient.setRequestEntityConverter(requestEntityConverter);
 
-        // use custom user service to load from id_token + user response
+        // use id token user service, apple does not expose a userinfo endpoint
         this.oidcProvider = new OidcAuthorizationCodeAuthenticationProvider(accessTokenResponseClient,
-                new AppleOidcUserService());
-
+                new IdTokenOidcUserService());
     }
 
     @Override
@@ -87,9 +96,9 @@ public class AppleAuthenticationProvider
         }
 
         // TODO extract codeResponse + tokenResponse for audit
-        String authorizationRequest = loginAuthenticationToken.getAuthorizationExchange().getAuthorizationRequest()
+        String authorizationRequestUri = loginAuthenticationToken.getAuthorizationExchange().getAuthorizationRequest()
                 .getAuthorizationRequestUri();
-        String authorizationResponse = loginAuthenticationToken.getAuthorizationExchange().getAuthorizationResponse()
+        String authorizationResponseUri = loginAuthenticationToken.getAuthorizationExchange().getAuthorizationResponse()
                 .getRedirectUri();
 
         try {
@@ -110,13 +119,46 @@ public class AppleAuthenticationProvider
                 OIDCUserAccount account = accountRepository.findOne(new OIDCUserAccountId(getProvider(), subject));
                 if (account != null && account.isLocked()) {
                     throw new OIDCAuthenticationException(new OAuth2Error("invalid_request"), "account not available",
-                            authorizationRequest,
-                            authorizationResponse, null, null);
+                            authorizationRequestUri,
+                            authorizationResponseUri, null, null);
+                }
+
+                OAuth2User principal = authenticationToken.getPrincipal();
+
+                // check if authRequest contains user profile
+                // apple sends `user` along with `code` not with token response..
+                OAuth2AuthorizationRequest authorizationRequest = loginAuthenticationToken.getAuthorizationExchange()
+                        .getAuthorizationRequest();
+                if (authorizationRequest.getAdditionalParameters().containsKey("user")) {
+                    // fetch and parse
+                    try {
+                        // map to user info, expect a json as string
+                        AppleOidcUserData userData = mapper.readValue(
+                                (String) authorizationRequest.getAdditionalParameters().get("user"),
+                                AppleOidcUserData.class);
+
+                        Map<String, Object> claims = new HashMap<>();
+                        claims.put("email", userData.getEmail());
+                        claims.put("firstName", userData.getFirstName());
+                        claims.put("lastName", userData.getLastName());
+                        OidcUserInfo userInfo = new OidcUserInfo(claims);
+
+                        // rebuild principal with new info
+                        principal = new DefaultOidcUser(principal.getAuthorities(), ((OidcUser) principal).getIdToken(),
+                                userInfo);
+
+                    } catch (Exception e) {
+                        // skip invalid data
+                        logger.error("cannot parse userinfo from user data");
+                        logger.trace("userdata: "
+                                + String.valueOf(authorizationRequest.getAdditionalParameters().get("user")));
+                    }
+
                 }
 
                 auth = new OIDCAuthenticationToken(
                         subject,
-                        authenticationToken.getPrincipal(),
+                        principal,
                         authenticationToken.getAccessToken(),
                         authenticationToken.getRefreshToken(),
                         Collections.singleton(new SimpleGrantedAuthority(Config.R_USER)));
@@ -124,8 +166,8 @@ public class AppleAuthenticationProvider
 
             return auth;
         } catch (OAuth2AuthenticationException e) {
-            throw new OIDCAuthenticationException(e.getError(), e.getMessage(), authorizationRequest,
-                    authorizationResponse, null, null);
+            throw new OIDCAuthenticationException(e.getError(), e.getMessage(), authorizationRequestUri,
+                    authorizationResponseUri, null, null);
         }
     }
 
@@ -210,6 +252,11 @@ public class AppleAuthenticationProvider
         // update principal
         user.setEmail(email);
         user.setEmailVerified(emailVerified);
+
+        // use email as username when provided
+        if (StringUtils.hasText(email)) {
+            user.setUsername(email);
+        }
 
         // save attributes from user as standard
         Map<String, Serializable> userAttributes = new HashMap<>();

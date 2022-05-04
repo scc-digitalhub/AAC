@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.Resource;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -33,6 +34,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.oauth2.client.web.HttpSessionOAuth2AuthorizationRequestRepository;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationRequestContext;
 import org.springframework.security.web.authentication.logout.CompositeLogoutHandler;
@@ -61,6 +63,9 @@ import it.smartcommunitylab.aac.oauth.auth.AuthorizationEndpointFilter;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientService;
+import it.smartcommunitylab.aac.openid.apple.AppleIdentityAuthority;
+import it.smartcommunitylab.aac.openid.apple.auth.AppleLoginAuthenticationFilter;
+import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfig;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.openid.auth.OIDCLoginAuthenticationFilter;
 import it.smartcommunitylab.aac.openid.auth.OIDCRedirectAuthenticationFilter;
@@ -98,7 +103,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final String logoutPath = "/logout";
 
     @Autowired
-    private OIDCClientRegistrationRepository clientRegistrationRepository;
+    @Qualifier("oidcClientRegistrationRepository")
+    private OIDCClientRegistrationRepository oidcClientRegistrationRepository;
+    @Autowired
+    @Qualifier("appleClientRegistrationRepository")
+    private OIDCClientRegistrationRepository appleClientRegistrationRepository;
 
     @Autowired
     @Qualifier("samlRelyingPartyRegistrationRepository")
@@ -134,6 +143,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private ProviderConfigRepository<SpidIdentityProviderConfig> spidProviderRepository;
+
+    @Autowired
+    private ProviderConfigRepository<AppleIdentityProviderConfig> appleProviderRepository;
 
 //    /*
 //     * rememberme
@@ -240,7 +252,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .ignoringAntMatchers("/logout", "/console/**", "/account/**",
                         "/auth/oidc/**",
                         "/auth/saml/**",
-                        "/auth/spid/**")
+                        "/auth/spid/**",
+                        "/auth/apple/**")
                 .and()
 //                .disable()
 //                // TODO replace with filterRegistrationBean and explicitely map urls
@@ -257,7 +270,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                                 spidRelyingPartyRegistrationRepository),
                         BasicAuthenticationFilter.class)
                 .addFilterBefore(
-                        getOIDCAuthorityFilters(authManager, oidcProviderRepository, clientRegistrationRepository),
+                        getOIDCAuthorityFilters(authManager, oidcProviderRepository, oidcClientRegistrationRepository),
+                        BasicAuthenticationFilter.class)
+                .addFilterBefore(
+                        getAppleAuthorityFilters(authManager, appleProviderRepository,
+                                appleClientRegistrationRepository),
                         BasicAuthenticationFilter.class)
                 .addFilterBefore(new AuthorizationEndpointFilter(oauth2ClientService, oauth2ClientDetailsService),
                         BasicAuthenticationFilter.class);
@@ -459,6 +476,37 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         filters.add(metadataFilter);
         filters.add(requestFilter);
         filters.add(ssoFilter);
+
+        CompositeFilter filter = new CompositeFilter();
+        filter.setFilters(filters);
+
+        return filter;
+    }
+
+    /*
+     * OIDC Auth
+     */
+
+    public CompositeFilter getAppleAuthorityFilters(AuthenticationManager authManager,
+            ProviderConfigRepository<AppleIdentityProviderConfig> providerRepository,
+            OIDCClientRegistrationRepository clientRegistrationRepository) {
+        // build filters bound to shared client + request repos
+        // build filters bound to shared client + request repos
+        AuthorizationRequestRepository<OAuth2AuthorizationRequest> authorizationRequestRepository = new HttpSessionOAuth2AuthorizationRequestRepository();
+
+        OAuth2AuthorizationRequestRedirectFilter redirectFilter = new OAuth2AuthorizationRequestRedirectFilter(
+                clientRegistrationRepository, AppleIdentityAuthority.AUTHORITY_URL + "authorize");
+        redirectFilter.setAuthorizationRequestRepository(authorizationRequestRepository);
+
+        AppleLoginAuthenticationFilter loginFilter = new AppleLoginAuthenticationFilter(
+                providerRepository,
+                clientRegistrationRepository);
+        loginFilter.setAuthorizationRequestRepository(authorizationRequestRepository);
+        loginFilter.setAuthenticationManager(authManager);
+
+        List<Filter> filters = new ArrayList<>();
+        filters.add(loginFilter);
+        filters.add(redirectFilter);
 
         CompositeFilter filter = new CompositeFilter();
         filter.setFilters(filters);
