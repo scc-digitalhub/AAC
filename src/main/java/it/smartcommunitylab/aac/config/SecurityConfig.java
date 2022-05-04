@@ -484,13 +484,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     /*
-     * OIDC Auth
+     * Apple Auth
      */
 
     public CompositeFilter getAppleAuthorityFilters(AuthenticationManager authManager,
             ProviderConfigRepository<AppleIdentityProviderConfig> providerRepository,
             OIDCClientRegistrationRepository clientRegistrationRepository) {
-        // build filters bound to shared client + request repos
         // build filters bound to shared client + request repos
         AuthorizationRequestRepository<OAuth2AuthorizationRequest> authorizationRequestRepository = new HttpSessionOAuth2AuthorizationRequestRepository();
 

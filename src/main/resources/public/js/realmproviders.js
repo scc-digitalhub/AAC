@@ -774,6 +774,9 @@ angular.module('aac.controllers.realmproviders', [])
             if (ap.authority === "spid") {
                 return './spid/sprite.svg#spid-ico-circle-bb';
             }
+            if (ap.authority === "apple") {
+                return './svg/sprite.svg#logo-apple';
+            }
             return './italia/svg/sprite.svg#it-unlocked';
         }
 
