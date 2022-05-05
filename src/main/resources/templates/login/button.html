@@ -7,17 +7,18 @@
 </head>
 
 <body>
-  <div th:fragment="login">    
-    <p th:if="${authority.description != null}" th:text="${authority.description}"></p>
-    <a class="italia-it-button italia-it-button-size-m btn-primary" th:classAppend="${authority.cssClass}"
-      th:href="${authority.loginUrl}">
-      <span class="italia-it-button-icon" aria-hidden="true" style="margin-right: 10px;"> <svg class="icon icon-white icon-sm">
-          <use th:xlink:href="@{/}+${authority.iconUrl}"></use>
-        </svg>
-      </span>
-      <span class="italia-it-button-text" th:text="${authority.name}"></span>
-    </a>
-  </div>
+   <div th:fragment="login">
+      <p th:if="${authority.description != null}" th:text="${authority.description}"></p>
+      <a class="btn btn-icon btn-outline-secondary text-left pl-3 btn-login" th:classAppend="${authority.cssClass}"
+         th:href="${authority.loginUrl}">
+         <span class="mr-3 pr-2 border-right" aria-hidden="true">
+            <svg class="icon icon-black icon-sm">
+               <use th:xlink:href="@{/}+${authority.iconUrl}"></use>
+            </svg>
+         </span>
+         <span class="text-black" th:text="${authority.name}"></span>
+      </a>
+   </div>
 
 </body>
 

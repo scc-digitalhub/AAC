@@ -4,6 +4,7 @@ import java.util.Map;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
@@ -162,17 +163,23 @@ public class LoginAuthorityBean implements Comparable<LoginAuthorityBean> {
         }
 
         a.name = idp.getName();
-        a.description = idp.getDescription();
+        a.description = StringUtils.hasText(idp.getDescription()) ? idp.getDescription().trim() : null;
+
+        String authority = idp.getAuthority();
         String key = a.name.trim()
                 .replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
-        a.cssClass = "provider-" + key;
+        a.cssClass = "provider-" + authority + " provider-" + key;
         a.icon = "it-key";
+        if (ArrayUtils.contains(ICONS, authority)) {
+            a.icon = "logo-" + authority;
+        }
         if (ArrayUtils.contains(ICONS, key)) {
             a.icon = "logo-" + key;
         }
         a.iconUrl = a.icon.startsWith("logo-") ? "svg/sprite.svg#" + a.icon : "italia/svg/sprite.svg#" + a.icon;
         a.displayMode = idp.getDisplayMode() != null ? idp.getDisplayMode() : SystemKeys.DISPLAY_MODE_BUTTON;
 
+        a.configuration = idp.getConfig();
         return a;
     }
 

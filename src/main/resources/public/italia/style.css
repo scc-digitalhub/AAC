@@ -247,3 +247,9 @@ form .invalid-feedback {
    background-color: #06c;
 }
 
+.btn.btn-login {
+   width: 280px;
+   min-height: 50px;
+   justify-content: flex-start;
+}
+
