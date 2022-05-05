@@ -36,6 +36,7 @@ import it.smartcommunitylab.aac.core.service.InMemoryProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.InMemoryProviderRepository;
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeProviderConfig;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
+import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfig;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
 import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository;
@@ -155,7 +156,15 @@ public class PersistenceConfig {
      * TODO fix configuration, expose setter on authManager
      */
     @Bean
-    public OIDCClientRegistrationRepository clientRegistrationRepository() {
+    @Qualifier("oidcClientRegistrationRepository")
+    @Primary
+    public OIDCClientRegistrationRepository oidcClientRegistrationRepository() {
+        return new OIDCClientRegistrationRepository();
+    }
+
+    @Bean
+    @Qualifier("appleClientRegistrationRepository")
+    public OIDCClientRegistrationRepository appleClientRegistrationRepository() {
         return new OIDCClientRegistrationRepository();
     }
 
@@ -179,6 +188,11 @@ public class PersistenceConfig {
     @Bean
     public InMemoryProviderConfigRepository<OIDCIdentityProviderConfig> oidcProviderConfigRepository() {
         return new InMemoryProviderConfigRepository<OIDCIdentityProviderConfig>();
+    }
+
+    @Bean
+    public InMemoryProviderConfigRepository<AppleIdentityProviderConfig> appleProviderConfigRepository() {
+        return new InMemoryProviderConfigRepository<AppleIdentityProviderConfig>();
     }
 
     @Bean

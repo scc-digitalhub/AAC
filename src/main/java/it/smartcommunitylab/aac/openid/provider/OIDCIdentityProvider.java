@@ -40,13 +40,13 @@ public class OIDCIdentityProvider extends AbstractProvider
     private final OIDCIdentityProviderConfig config;
 
     // providers
-    private final OIDCAccountProvider accountProvider;
-    private final OIDCAttributeProvider attributeProvider;
-    private final OIDCAuthenticationProvider authenticationProvider;
-    private final OIDCSubjectResolver subjectResolver;
+    protected final OIDCAccountProvider accountProvider;
+    protected final OIDCAttributeProvider attributeProvider;
+    protected final OIDCAuthenticationProvider authenticationProvider;
+    protected final OIDCSubjectResolver subjectResolver;
 
     // attributes
-    private final OpenIdAttributesMapper openidMapper;
+    protected final OpenIdAttributesMapper openidMapper;
 
     public OIDCIdentityProvider(
             String providerId,

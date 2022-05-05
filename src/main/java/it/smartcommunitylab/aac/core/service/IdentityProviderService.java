@@ -32,6 +32,7 @@ import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.persistence.IdentityProviderEntity;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
+import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfigMap;
@@ -284,6 +285,8 @@ public class IdentityProviderService {
                 configMap.putAll(samlConfig.getConfiguration());
             } else if (SystemKeys.AUTHORITY_SPID.equals(authority)) {
                 configurable = new SpidIdentityProviderConfigMap();
+            } else if (SystemKeys.AUTHORITY_APPLE.equals(authority)) {
+                configurable = new AppleIdentityProviderConfigMap();
             }
 
             if (configurable == null) {
@@ -389,6 +392,8 @@ public class IdentityProviderService {
             configMap.putAll(samlConfig.getConfiguration());
         } else if (SystemKeys.AUTHORITY_SPID.equals(authority)) {
             configurable = new SpidIdentityProviderConfigMap();
+        } else if (SystemKeys.AUTHORITY_APPLE.equals(authority)) {
+            configurable = new AppleIdentityProviderConfigMap();
         }
 
         if (configurable == null) {
@@ -434,6 +439,8 @@ public class IdentityProviderService {
             return new SamlIdentityProviderConfigMap();
         } else if (SystemKeys.AUTHORITY_SPID.equals(authority)) {
             return new SpidIdentityProviderConfigMap();
+        } else if (SystemKeys.AUTHORITY_APPLE.equals(authority)) {
+            return new AppleIdentityProviderConfigMap();
         }
 
         throw new IllegalArgumentException("invalid authority");
@@ -449,6 +456,8 @@ public class IdentityProviderService {
                 return SamlIdentityProviderConfigMap.getConfigurationSchema();
             } else if (SystemKeys.AUTHORITY_SPID.equals(authority)) {
                 return SpidIdentityProviderConfigMap.getConfigurationSchema();
+            } else if (SystemKeys.AUTHORITY_APPLE.equals(authority)) {
+                return AppleIdentityProviderConfigMap.getConfigurationSchema();
             }
         } catch (JsonMappingException e) {
             return null;

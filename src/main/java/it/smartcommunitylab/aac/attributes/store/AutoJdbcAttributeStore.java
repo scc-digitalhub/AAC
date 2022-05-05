@@ -7,6 +7,7 @@ import java.sql.Types;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.Set;
 
@@ -38,7 +39,7 @@ public class AutoJdbcAttributeStore {
     private String clearAttributeSql = DEFAULT_CLEAR_STATEMENT;
 
     private final JdbcTemplate jdbcTemplate;
-    private final RowMapper<Pair<String, Serializable>> rowMapper = new AttributeRowMapper();
+    private final RowMapper<Pair<String, Optional<Serializable>>> rowMapper = new AttributeRowMapper();
 
     public AutoJdbcAttributeStore(DataSource dataSource) {
         Assert.notNull(dataSource, "DataSource required");
@@ -51,19 +52,24 @@ public class AutoJdbcAttributeStore {
     }
 
     public Serializable getAttribute(String providerId, String entityId, String key) {
-        List<Pair<String, Serializable>> list = jdbcTemplate.query(selectAttributeSql, rowMapper, providerId, entityId,
+        List<Pair<String, Optional<Serializable>>> list = jdbcTemplate.query(selectAttributeSql, rowMapper, providerId,
+                entityId,
                 key);
         if (list.isEmpty()) {
             return null;
-        } else {
-            return list.get(0).getSecond();
         }
+
+        return list.get(0).getSecond().orElse(null);
+
     }
 
     public Map<String, Serializable> findAttributes(String providerId, String entityId) {
-        List<Pair<String, Serializable>> list = jdbcTemplate.query(findAttributesSql, rowMapper, providerId, entityId);
+        List<Pair<String, Optional<Serializable>>> list = jdbcTemplate.query(findAttributesSql, rowMapper, providerId,
+                entityId);
 
-        return list.stream().collect(Collectors.toMap(p -> p.getFirst(), p -> p.getSecond()));
+        return list.stream()
+                .filter(p -> p.getSecond().isPresent())
+                .collect(Collectors.toMap(p -> p.getFirst(), p -> p.getSecond().get()));
     }
 
     public void setAttributes(String providerId, String entityId, Set<Entry<String, Serializable>> attributesSet) {
@@ -128,12 +134,12 @@ public class AutoJdbcAttributeStore {
         this.clearAttributeSql = clearAttributeSql;
     }
 
-    private static class AttributeRowMapper implements RowMapper<Pair<String, Serializable>> {
+    private static class AttributeRowMapper implements RowMapper<Pair<String, Optional<Serializable>>> {
         @Override
-        public Pair<String, Serializable> mapRow(ResultSet rs, int rowNum) throws SQLException {
+        public Pair<String, Optional<Serializable>> mapRow(ResultSet rs, int rowNum) throws SQLException {
             String key = rs.getString("attr_key");
             Serializable value = SerializationUtils.deserialize(rs.getBytes("attr_value"));
-            return Pair.of(key, value);
+            return Pair.of(key, Optional.ofNullable(value));
         }
 
     }

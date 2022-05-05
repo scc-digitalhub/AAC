@@ -111,7 +111,7 @@ public class OIDCUserAccount extends AbstractAccount {
 
     @Override
     public String getId() {
-        return username;
+        return subject;
     }
 
     @Override

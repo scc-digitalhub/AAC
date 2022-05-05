@@ -62,6 +62,10 @@
             <a class="nav-link  {{activeView('conf.spid')}}" href ng-click="switchView('conf.spid')">SPID
                 Configuration</a>
         </li>
+        <li ng-if="idp.authority == 'apple'" class="nav-item">
+            <a class="nav-link  {{activeView('conf.apple')}}" href ng-click="switchView('conf.apple')">Apple
+                Configuration</a>
+        </li>        
         <li class="nav-item">
             <a class="nav-link  {{activeView('hooks')}}" href ng-click="switchView('hooks')">Hooks</a>
         </li>
