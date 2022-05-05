@@ -17,6 +17,8 @@ import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuth
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
+import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
@@ -52,6 +54,7 @@ import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfi
 public class AppleLoginAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
     public static final String DEFAULT_FILTER_URI = AppleIdentityAuthority.AUTHORITY_URL + "login/{registrationId}";
+    public static final String DEFAULT_EXTERNAL_REQ_STATE = "externalRequestDefaultStateString";
 
     private final RequestMatcher requestMatcher;
 
@@ -59,6 +62,7 @@ public class AppleLoginAuthenticationFilter extends AbstractAuthenticationProces
     private final ClientRegistrationRepository clientRegistrationRepository;
     private final ProviderConfigRepository<AppleIdentityProviderConfig> registrationRepository;
     private AuthenticationEntryPoint authenticationEntryPoint;
+    private OAuth2AuthorizationRequestResolver authorizationRequestResolver;
 
     // we use this to persist request before redirect, and here to fetch details
     private AuthorizationRequestRepository<OAuth2AuthorizationRequest> authorizationRequestRepository;
@@ -92,6 +96,10 @@ public class AppleLoginAuthenticationFilter extends AbstractAuthenticationProces
         if (authenticationEntryPoint != null) {
             this.authenticationEntryPoint = authenticationEntryPoint;
         }
+
+        // build a resolver for requests to support external
+        this.authorizationRequestResolver = new DefaultOAuth2AuthorizationRequestResolver(clientRegistrationRepository,
+                AppleIdentityAuthority.AUTHORITY_URL + "authorize");
 
         // enforce session id change to prevent fixation attacks
         setAllowSessionCreation(true);
@@ -149,6 +157,14 @@ public class AppleLoginAuthenticationFilter extends AbstractAuthenticationProces
         String errorDescription = request.getParameter(OAuth2ParameterNames.ERROR_DESCRIPTION);
         String errorUri = request.getParameter(OAuth2ParameterNames.ERROR_URI);
 
+        // support externally initiated requests (ie via SDK)
+        boolean isExternal = false;
+
+        if (!StringUtils.hasText(state)) {
+            isExternal = true;
+            state = DEFAULT_EXTERNAL_REQ_STATE;
+        }
+
         // check if request is valid
         if (!isAuthorizationResponse(state, code, error)) {
             OAuth2Error oauth2Error = new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST);
@@ -166,9 +182,10 @@ public class AppleLoginAuthenticationFilter extends AbstractAuthenticationProces
         OAuth2AuthorizationRequest authorizationRequest = authorizationRequestRepository
                 .removeAuthorizationRequest(request, response);
 
-        if (authorizationRequest == null) {
-            OAuth2Error oauth2Error = new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST);
-            throw new OAuth2AuthenticationException(oauth2Error, oauth2Error.toString());
+        if (isExternal || authorizationRequest == null) {
+            // (re)build a local request
+            authorizationRequest = this.authorizationRequestResolver.resolve(request, providerId);
+            isExternal = true;
         }
 
         // fetch client
@@ -193,17 +210,25 @@ public class AppleLoginAuthenticationFilter extends AbstractAuthenticationProces
         // rebuild request
         OAuth2AuthorizationRequest.Builder builder = OAuth2AuthorizationRequest.from(authorizationRequest);
 
+        // make sure params match
+        builder.redirectUri(redirectUri);
+        builder.state(state);
+
         // add openid scope to request to satisfy provider
         // TODO remove hack and write a dedicated provider
         Set<String> scopes = new HashSet<>();
-        scopes.addAll(clientRegistration.getScopes());
+        if (!isExternal && clientRegistration.getScopes() != null) {
+            scopes.addAll(clientRegistration.getScopes());
+        }
         scopes.add("openid");
         builder.scopes(scopes);
 
         // check if we received a `user` profile along with code and store it
         // we keep this in request because response can't store it...
+        // NOTE: supported only for internal requests, we don't trust clients
+        // TODO review: if client is authenticated we could accept it
         String user = request.getParameter("user");
-        if (user != null) {
+        if (!isExternal && user != null) {
             // store as is to let provider decode it
             Map<String, Object> additionalParams = new HashMap<>();
             additionalParams.putAll(authorizationRequest.getAdditionalParameters());

@@ -5,7 +5,9 @@ import java.io.StringReader;
 import java.security.PrivateKey;
 import java.security.interfaces.ECPrivateKey;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.openssl.PEMParser;
@@ -30,7 +32,7 @@ public class AppleIdentityProviderConfig extends AbstractIdentityProviderConfig 
     public static final String ISSUER_URI = "https://appleid.apple.com";
     public static final String AUTHORIZATION_URL = "https://appleid.apple.com/auth/authorize?response_mode=form_post";
 
-    private static final String[] SCOPES = { "name", "email" };
+    private static final String[] DEFAULT_SCOPES = { "name", "email" };
 
     public static final String DEFAULT_REDIRECT_URL = "{baseUrl}" + AppleIdentityAuthority.AUTHORITY_URL
             + "{action}/{registrationId}";
@@ -100,7 +102,7 @@ public class AppleIdentityProviderConfig extends AbstractIdentityProviderConfig 
         builder.redirectUri(DEFAULT_REDIRECT_URL);
 
         // 5. set all scopes available and ask for response POST
-        builder.scope(SCOPES);
+        builder.scope(getScopes());
 
 //        // 5. set key as secret and build JWT at request time
 //        builder.clientSecret(this.getClientJWK().toJSONString());
@@ -119,6 +121,18 @@ public class AppleIdentityProviderConfig extends AbstractIdentityProviderConfig 
         builder.userInfoUri(null);
 
         return builder.build();
+    }
+
+    public Set<String> getScopes() {
+        Set<String> scopes = new HashSet<>();
+        if (Boolean.TRUE.equals(configMap.getAskEmailScope())) {
+            scopes.add("email");
+        }
+        if (Boolean.TRUE.equals(configMap.getAskNameScope())) {
+            scopes.add("name");
+        }
+
+        return scopes;
     }
 
     public ECPrivateKey getPrivateKey() {
@@ -180,7 +194,7 @@ public class AppleIdentityProviderConfig extends AbstractIdentityProviderConfig 
         cMap.setIssuerUri(ISSUER_URI);
         cMap.setClientAuthenticationMethod(AuthenticationMethod.CLIENT_SECRET_POST);
         cMap.setEnablePkce(false);
-        cMap.setScope(String.join(",", SCOPES));
+        cMap.setScope(String.join(",", getScopes()));
         cMap.setUserNameAttributeName("email");
         op.setConfigMap(cMap);
 

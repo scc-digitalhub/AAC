@@ -18,6 +18,8 @@
                 </div>
             </div>
         </div>
+    </fieldset>
+    <fieldset>
         <legend class="mb-4">Apple IdP Configuration</legend>
         <div class="form-group col ">
             <label for="clientId">Client ID*</label>
@@ -36,10 +38,28 @@
         </div>
         <div class="form-group col ">
             <label for="privateKey">Client Private Key (PEM)</label>
-            <textarea class="text-monospace" rows="5" name="privateKey" id="clientJwk" ng-model="idp.configuration.privateKey"></textarea>
+            <textarea class="text-monospace" rows="5" name="privateKey" id="clientJwk"
+                ng-model="idp.configuration.privateKey"></textarea>
         </div>
-
-
+    </fieldset>
+    <fieldset>
+        <legend class="mb-4">User attributes</legend>
+        <div class="row">
+            <div class="form-group col-md-6">
+                <div class="form-check form-check-inline"
+                    ng-click="idp.configuration.askEmailScope = !idp.configuration.askEmailScope">
+                    <input class="form-check-input" type="checkbox" ng-model="idp.configuration.askEmailScope">
+                    <label>Email</label>
+                </div>
+            </div>
+            <div class="form-group col-md-6">
+                <div class="form-check form-check-inline"
+                    ng-click="idp.configuration.askNameScope = !idp.configuration.askNameScope">
+                    <input class="form-check-input" type="checkbox" ng-model="idp.configuration.askNameScope">
+                    <label>Full name</label>
+                </div>
+            </div>
+        </div>
     </fieldset>
 
 </div>

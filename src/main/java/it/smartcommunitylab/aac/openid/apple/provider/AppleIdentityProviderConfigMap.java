@@ -34,6 +34,9 @@ public class AppleIdentityProviderConfigMap implements ConfigurableProperties, S
     private String keyId;
     private String privateKey;
 
+    private Boolean askNameScope;
+    private Boolean askEmailScope;
+
     public AppleIdentityProviderConfigMap() {
 
     }
@@ -70,6 +73,22 @@ public class AppleIdentityProviderConfigMap implements ConfigurableProperties, S
         this.privateKey = privateKey;
     }
 
+    public Boolean getAskNameScope() {
+        return askNameScope;
+    }
+
+    public void setAskNameScope(Boolean askNameScope) {
+        this.askNameScope = askNameScope;
+    }
+
+    public Boolean getAskEmailScope() {
+        return askEmailScope;
+    }
+
+    public void setAskEmailScope(Boolean askEmailScope) {
+        this.askEmailScope = askEmailScope;
+    }
+
     @Override
     @JsonIgnore
     public Map<String, Serializable> getConfiguration() {
@@ -89,6 +108,9 @@ public class AppleIdentityProviderConfigMap implements ConfigurableProperties, S
         this.teamId = map.getTeamId();
         this.privateKey = map.getPrivateKey();
         this.keyId = map.getKeyId();
+
+        this.askEmailScope = map.getAskEmailScope();
+        this.askNameScope = map.getAskNameScope();
 
     }
 
