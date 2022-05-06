@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import javax.mail.MessagingException;
+import javax.validation.Valid;
 
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
@@ -121,6 +122,16 @@ public class InternalAccountService extends AbstractProvider implements AccountS
         return userAccountService.findAccountByUsername(provider, username);
     }
 
+    @Transactional(readOnly = true)
+    public InternalUserAccount findAccountByEmail(String email) {
+        String provider = getProvider();
+
+        // pick first result, we enforce single email per provider at registration
+        return userAccountService.findAccountByEmail(provider, email).stream()
+                .findFirst()
+                .orElse(null);
+    }
+
     @Override
     public void deleteAccount(String username) throws NoSuchUserException {
         String provider = getProvider();
@@ -140,7 +151,7 @@ public class InternalAccountService extends AbstractProvider implements AccountS
     }
 
     @Override
-    public InternalUserAccount registerAccount(String userId, InternalUserAccount reg)
+    public InternalUserAccount registerAccount(String userId, @Valid InternalUserAccount reg)
             throws NoSuchUserException, RegistrationException {
         if (!config.isEnableRegistration()) {
             throw new IllegalArgumentException("delete is disabled for this provider");
@@ -204,6 +215,11 @@ public class InternalAccountService extends AbstractProvider implements AccountS
 
         if (!confirmed && config.isConfirmationRequired() && !StringUtils.hasText(email)) {
             throw new IllegalArgumentException("missing-email");
+        }
+
+        // we require unique email
+        if (StringUtils.hasText(email) && userAccountService.findAccountByEmail(provider, email).size() > 0) {
+            throw new AlreadyRegisteredException("duplicate-registration");
         }
 
         boolean changeOnFirstAccess = false;
@@ -318,6 +334,35 @@ public class InternalAccountService extends AbstractProvider implements AccountS
             lang = Jsoup.clean(lang, Safelist.none());
         }
 
+        // check if email changes
+        boolean emailChanged = false;
+        boolean emailConfirm = false;
+
+        if ((account.getEmail() != null && email == null) || (account.getEmail() == null && email == null)) {
+            emailChanged = true;
+        } else if (account.getEmail() == null && email != null) {
+            // new email, check
+            emailChanged = true;
+        } else if (account.getEmail() == null && email != null) {
+            // check if new
+            emailChanged = !account.getEmail().equals(email);
+        }
+
+        if (emailChanged) {
+            // always reset confirmed flag
+            account.setConfirmed(false);
+
+            // if set to value, check if unique
+            if (StringUtils.hasText(email)) {
+                if (userAccountService.findAccountByEmail(provider, email).size() > 0) {
+                    throw new AlreadyRegisteredException("duplicate-registration");
+                }
+
+                emailConfirm = true;
+            }
+
+        }
+
         // we update all props, even if empty or null
         account.setEmail(email);
         account.setName(name);
@@ -325,6 +370,26 @@ public class InternalAccountService extends AbstractProvider implements AccountS
         account.setLang(lang);
 
         account = userAccountService.updateAccount(provider, username, account);
+
+        if (emailConfirm && config.isConfirmationRequired()) {
+            // build confirm key
+            String confirmationKey = passwordService.generateKey();
+
+            // we set deadline as +N seconds
+            Calendar calendar = Calendar.getInstance();
+            calendar.add(Calendar.SECOND, config.getConfirmationValidity());
+
+            account.setConfirmationDeadline(calendar.getTime());
+            account.setConfirmationKey(confirmationKey);
+
+            // send mail
+            try {
+                // send only confirmation link
+                sendConfirmationMail(account, account.getConfirmationKey());
+            } catch (Exception e) {
+                logger.error(e.getMessage());
+            }
+        }
 
         return account;
     }

@@ -64,11 +64,12 @@
               <h4 class="text-center" th:text="${displayName}">AAC</h4>
             </div>
 
-            <p th:text="#{label.resetpwd_success_text}"></p>
+            <p class="text-center" th:if="${reg == null}"  th:text="#{label.resetpwd_success_text}"></p>
+            <p class="text-center" th:if="${reg != null}"  th:utext="#{label.resetpwd_x_success_text(${reg.email})}"></p>
 
-            <div class="row">
-              <div class="col-md-6 form-group">
-                <a class="btn btn-block" th:href="${loginUrl}" th:text="#{action.login}"></a>
+            <div class="text-center">
+              <div class="form-group">
+                <a class="btn btn-primary btn-block" th:href="${loginUrl}" th:text="#{action.login}"></a>
               </div>
             </div>
           </div>

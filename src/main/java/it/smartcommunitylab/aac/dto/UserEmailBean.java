@@ -2,14 +2,13 @@ package it.smartcommunitylab.aac.dto;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
 
 @Valid
-public class UserResetBean {
+public class UserEmailBean {
 
     @Email(message = "{validation.email}")
     private String email;
-
-    private String username;
 
     public String getEmail() {
         return email;
@@ -17,14 +16,6 @@ public class UserResetBean {
 
     public void setEmail(String email) {
         this.email = email;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
     }
 
 }

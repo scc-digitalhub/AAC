@@ -7,6 +7,7 @@ import javax.persistence.EntityListeners;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.Table;
+import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
@@ -57,6 +58,7 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
     private String status;
 
     // attributes
+    @Email
     private String email;
     private String name;
     private String surname;
