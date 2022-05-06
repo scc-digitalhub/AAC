@@ -31,8 +31,6 @@ public class InternalUserAuthenticationFailureEvent extends UserAuthenticationFa
 
         data.put("error", iex.getMessage());
         data.put("errorCode", ex.getClass().getSimpleName());
-        data.put("username", iex.getUsername());
-        data.put("credentials", iex.getCredentials());
         data.put("flow", iex.getFlow());
 
         return data;
