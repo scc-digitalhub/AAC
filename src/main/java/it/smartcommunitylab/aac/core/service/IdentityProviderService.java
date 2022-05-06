@@ -36,7 +36,6 @@ import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfi
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfigMap;
-import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfigMap;
 
 @Service
 public class IdentityProviderService {
@@ -286,13 +285,8 @@ public class IdentityProviderService {
                 configMap.putAll(samlConfig.getConfiguration());
             } else if (SystemKeys.AUTHORITY_SPID.equals(authority)) {
                 configurable = new SpidIdentityProviderConfigMap();
-<<<<<<< HEAD
             } else if (SystemKeys.AUTHORITY_APPLE.equals(authority)) {
                 configurable = new AppleIdentityProviderConfigMap();
-=======
-            } else if (SystemKeys.AUTHORITY_WEBAUTHN.equals(authority)) {
-                configurable = new WebAuthnIdentityProviderConfigMap();
->>>>>>> Define most entities needed for webauthn
             }
 
             if (configurable == null) {
@@ -400,8 +394,6 @@ public class IdentityProviderService {
             configurable = new SpidIdentityProviderConfigMap();
         } else if (SystemKeys.AUTHORITY_APPLE.equals(authority)) {
             configurable = new AppleIdentityProviderConfigMap();
-        } else if (SystemKeys.AUTHORITY_WEBAUTHN.equals(authority)) {
-            configurable = new WebAuthnIdentityProviderConfigMap();
         }
 
         if (configurable == null) {
@@ -449,8 +441,6 @@ public class IdentityProviderService {
             return new SpidIdentityProviderConfigMap();
         } else if (SystemKeys.AUTHORITY_APPLE.equals(authority)) {
             return new AppleIdentityProviderConfigMap();
-        } else if (SystemKeys.AUTHORITY_WEBAUTHN.equals(authority)) {
-            return new WebAuthnIdentityProviderConfigMap();
         }
 
         throw new IllegalArgumentException("invalid authority");
@@ -468,8 +458,6 @@ public class IdentityProviderService {
                 return SpidIdentityProviderConfigMap.getConfigurationSchema();
             } else if (SystemKeys.AUTHORITY_APPLE.equals(authority)) {
                 return AppleIdentityProviderConfigMap.getConfigurationSchema();
-            } else if (SystemKeys.AUTHORITY_WEBAUTHN.equals(authority)) {
-                return WebAuthnIdentityProviderConfigMap.getConfigurationSchema();
             }
         } catch (JsonMappingException e) {
             return null;

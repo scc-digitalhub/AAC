@@ -71,9 +71,6 @@ public class AuthorityManager implements InitializingBean {
         Assert.notEmpty(identityAuthorities, "at least one identity authority is required");
     }
 
-    @Autowired
-    private WebAuthnIdentityAuthority webAuthnIdentityAuthority;
-
     /*
      * Identity providers
      */

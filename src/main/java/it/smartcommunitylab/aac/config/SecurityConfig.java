@@ -81,7 +81,6 @@ import it.smartcommunitylab.aac.spid.auth.SpidMetadataFilter;
 import it.smartcommunitylab.aac.spid.auth.SpidWebSsoAuthenticationFilter;
 import it.smartcommunitylab.aac.spid.auth.SpidWebSsoAuthenticationRequestFilter;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
-import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 
 /*
  * Security config for AAC UI
@@ -127,9 +126,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private InternalUserAccountService internalUserAccountService;
 
-//    @Autowired
-//    private OAuth2ClientUserDetailsService clientUserDetailsService;
-
     @Autowired
     private ExtendedUserAuthenticationManager authManager;
 
@@ -150,9 +146,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private ProviderConfigRepository<AppleIdentityProviderConfig> appleProviderRepository;
-
-    @Autowired
-    private ProviderRepository<WebAuthnIdentityProviderConfig> webauthnProviderRepository;
 
 //    /*
 //     * rememberme
@@ -217,7 +210,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/img/**").permitAll()
                 .antMatchers("/italia/**").permitAll()
                 .antMatchers("/spid/**").permitAll()
-                .antMatchers("/webauthn/**").permitAll()
                 .antMatchers("/favicon.ico").permitAll()
                 // whitelist swagger
                 .antMatchers(
@@ -261,8 +253,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/auth/oidc/**",
                         "/auth/saml/**",
                         "/auth/spid/**",
-                        "/auth/apple/**",
-                        "/auth/webauthn/**")
+                        "/auth/apple/**")
                 .and()
 //                .disable()
 //                // TODO replace with filterRegistrationBean and explicitely map urls
@@ -490,24 +481,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         filter.setFilters(filters);
 
         return filter;
-    }
-    
-    /*
-     * WebAuthn
-     */
-
-    public CompositeFilter getWebAuthnAuthorityFilters(AuthenticationManager authManager,
-                    ProviderRepository<WebAuthnIdentityProviderConfig> providerRepository
-                    ) {
-
-            // TODO: civts, build filters
-
-            List<Filter> filters = new ArrayList<>();
-
-            CompositeFilter filter = new CompositeFilter();
-            filter.setFilters(filters);
-
-            return filter;
     }
 
     /*
