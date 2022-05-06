@@ -59,7 +59,11 @@ angular.module('aac.controllers.realmapps', [])
                 return data.data;
             });
         }
-
+        service.removeClientAppCredentials = function (slug, clientId, credentialsId) {
+            return $http.delete('console/dev/realms/' + slug + '/apps/' + clientId + '/credentials/' + credentialsId).then(function (data) {
+                return data.data;
+            });
+        }
 
         service.saveClientApp = function (slug, clientApp) {
             if (clientApp.clientId) {
@@ -741,7 +745,23 @@ angular.module('aac.controllers.realmapps', [])
                 Utils.showError(err.data.message);
             });
         }
+        $scope.removeClientCredentialsDlg = function (clientApp, type) {
+            $scope.modClientApp = {
+                clientId: clientApp.clientId,
+                credentialsId: clientApp.clientId + "." + type
+            };
+            $('#removeClientCredentialsConfirm').modal({ keyboard: false });
+        }
 
+        $scope.removeClientCredentials = function () {
+            $('#removeClientCredentialsConfirm').modal('hide');
+            RealmAppsData.removeClientAppCredentials($scope.realm.slug, $scope.modClientApp.clientId, $scope.modClientApp.credentialsId).then(function (res) {
+                $scope.reload(res);
+                Utils.showSuccess();
+            }).catch(function (err) {
+                Utils.showError(err.data.message);
+            });
+        }
 
 
         $scope.deleteClientAppDlg = function (clientApp) {
@@ -1591,7 +1611,7 @@ angular.module('aac.controllers.realmapps', [])
                     });
                 }
                 $scope.oauth2RedirectUris = redirectUris;
-               
+
             }
 
 

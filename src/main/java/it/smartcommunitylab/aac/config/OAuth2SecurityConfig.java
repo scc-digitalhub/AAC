@@ -26,15 +26,14 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CompositeFilter;
 
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.core.ClientAuthenticationManager;
 import it.smartcommunitylab.aac.core.service.ClientDetailsService;
-import it.smartcommunitylab.aac.oauth.auth.ClientBasicAuthFilter;
-import it.smartcommunitylab.aac.oauth.auth.ClientFormAuthTokenEndpointFilter;
+import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientAuthFilter;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientJwtAssertionAuthenticationProvider;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientPKCEAuthenticationProvider;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientRefreshAuthenticationProvider;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientSecretAuthenticationProvider;
-import it.smartcommunitylab.aac.oauth.endpoint.TokenEndpoint;
 import it.smartcommunitylab.aac.oauth.provider.PeekableAuthorizationCodeServices;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.oauth.store.ExtTokenStore;
@@ -72,7 +71,7 @@ public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
         // match only token endpoints
         http.requestMatcher(getRequestMatcher())
                 .authorizeRequests((authorizeRequests) -> authorizeRequests
-                        .anyRequest().hasAnyAuthority("ROLE_CLIENT"))
+                        .anyRequest().hasAnyAuthority(Config.R_CLIENT))
                 // disable request cache, we override redirects but still better enforce it
                 .requestCache((requestCache) -> requestCache.disable())
                 .exceptionHandling()
@@ -114,9 +113,9 @@ public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
         // build audience for all endpoints
         Set<String> audience = new HashSet<>();
         audience.add(applicationUrl);
-        audience.add(applicationUrl + "/oauth/token");
-        audience.add(applicationUrl + "/oauth/introspect");
-        audience.add(applicationUrl + "/oauth/revoke");
+        audience.add(applicationUrl + TOKEN_ENDPOINT);
+        audience.add(applicationUrl + TOKEN_INTROSPECT_ENDPOINT);
+        audience.add(applicationUrl + TOKEN_REVOKE_ENDPOINT);
         // build jwt client auth provider for given endpoints
         OAuth2ClientJwtAssertionAuthenticationProvider jwtAssertionProvider = new OAuth2ClientJwtAssertionAuthenticationProvider(
                 clientDetailsService, audience);
@@ -130,27 +129,20 @@ public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
                 pkceAuthProvider, refreshAuthProvider, jwtAssertionProvider);
         pkceAuthManager.setClientService(clientService);
 
-        // build auth filters for TokenEndpoint
+//        ClientFormAuthTokenEndpointFilter formTokenEndpointFilter = new ClientFormAuthTokenEndpointFilter(
+//                "/oauth/token");
+//        formTokenEndpointFilter.setAuthenticationManager(pkceAuthManager);
+
         // TODO add realm style endpoints
-        ClientFormAuthTokenEndpointFilter formTokenEndpointFilter = new ClientFormAuthTokenEndpointFilter(
-                "/oauth/token");
-        formTokenEndpointFilter.setAuthenticationManager(pkceAuthManager);
-
-        // TODO consolidate basicFilter for all endpoints
-        ClientBasicAuthFilter basicTokenEndpointFilter = new ClientBasicAuthFilter("/oauth/token");
-        basicTokenEndpointFilter.setAuthenticationManager(pkceAuthManager);
-
-        ClientBasicAuthFilter basicTokenIntrospectFilter = new ClientBasicAuthFilter("/oauth/introspect");
-        basicTokenIntrospectFilter.setAuthenticationManager(authManager);
-
-        ClientBasicAuthFilter basicTokenRevokeFilter = new ClientBasicAuthFilter("/oauth/revoke");
-        basicTokenRevokeFilter.setAuthenticationManager(authManager);
+        OAuth2ClientAuthFilter tokenEndpointFilter = new OAuth2ClientAuthFilter(pkceAuthManager, TOKEN_ENDPOINT);
+        OAuth2ClientAuthFilter tokenIntrospectFilter = new OAuth2ClientAuthFilter(authManager,
+                TOKEN_INTROSPECT_ENDPOINT);
+        OAuth2ClientAuthFilter tokenRevokeFilter = new OAuth2ClientAuthFilter(authManager, TOKEN_REVOKE_ENDPOINT);
 
         List<Filter> filters = new ArrayList<>();
-        filters.add(basicTokenEndpointFilter);
-        filters.add(formTokenEndpointFilter);
-        filters.add(basicTokenIntrospectFilter);
-        filters.add(basicTokenRevokeFilter);
+        filters.add(tokenEndpointFilter);
+        filters.add(tokenIntrospectFilter);
+        filters.add(tokenRevokeFilter);
 
         CompositeFilter filter = new CompositeFilter();
         filter.setFilters(filters);
@@ -176,10 +168,12 @@ public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
         return source;
     }
 
-    public static final String[] OAUTH2_URLS = {
-            "/oauth/token",
-            "/oauth/introspect",
-            "/oauth/revoke"
+    private static final String TOKEN_ENDPOINT = "/oauth/token";
+    private static final String TOKEN_INTROSPECT_ENDPOINT = "/oauth/introspect";
+    private static final String TOKEN_REVOKE_ENDPOINT = "/oauth/revoke";
+
+    private static final String[] OAUTH2_URLS = {
+            TOKEN_ENDPOINT, TOKEN_INTROSPECT_ENDPOINT, TOKEN_REVOKE_ENDPOINT
     };
 
 }

@@ -3,3 +3,5 @@ databaseChangeLog:
       file: db/changelog/core-4.x.yaml
   - include:
       file: db/changelog/idp-accounts-4.x.yaml      
+  - include:
+      file: db/changelog/client-auth.yaml          

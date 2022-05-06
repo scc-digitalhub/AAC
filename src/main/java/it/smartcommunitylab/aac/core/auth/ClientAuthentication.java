@@ -74,6 +74,8 @@ public abstract class ClientAuthentication extends AbstractAuthenticationToken {
 
     public abstract ClientDetails getClient();
 
+    public abstract void setClient(ClientDetails details);
+
     public abstract String getAuthenticationMethod();
 
     public abstract WebAuthenticationDetails getWebAuthenticationDetails();

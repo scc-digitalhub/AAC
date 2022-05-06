@@ -236,7 +236,7 @@ public class OAuth2ClientService implements ClientService {
         if (SystemKeys.RESOURCE_CREDENTIALS_SECRET.equals(type) && StringUtils.hasText(oauth.getClientSecret())) {
             return new ClientSecret(client.getRealm(), clientId, oauth.getClientSecret());
         }
-        if (SystemKeys.RESOURCE_CREDENTIALS_JWKS.equals(type) && StringUtils.hasText(oauth.getClientSecret())) {
+        if (SystemKeys.RESOURCE_CREDENTIALS_JWKS.equals(type) && StringUtils.hasText(oauth.getJwks())) {
             return new ClientJwks(client.getRealm(), clientId, oauth.getJwks());
         }
 
@@ -263,7 +263,7 @@ public class OAuth2ClientService implements ClientService {
         }
 
         String type = credentialsId.substring(prefix.length());
-        if (SystemKeys.RESOURCE_CREDENTIALS_SECRET.equals(type) && StringUtils.hasText(oauth.getClientSecret())) {
+        if (SystemKeys.RESOURCE_CREDENTIALS_SECRET.equals(type)) {
             String secret = generateClientSecret();
 
             oauth.setClientSecret(secret);
@@ -271,7 +271,7 @@ public class OAuth2ClientService implements ClientService {
 
             return new ClientSecret(client.getRealm(), clientId, oauth.getClientSecret());
         }
-        if (SystemKeys.RESOURCE_CREDENTIALS_JWKS.equals(type) && StringUtils.hasText(oauth.getClientSecret())) {
+        if (SystemKeys.RESOURCE_CREDENTIALS_JWKS.equals(type)) {
 
             String jwks = generateClientJwks();
 
@@ -310,7 +310,7 @@ public class OAuth2ClientService implements ClientService {
             oauth = oauthClientRepository.save(oauth);
         }
 
-        if (SystemKeys.RESOURCE_CREDENTIALS_JWKS.equals(type) && StringUtils.hasText(oauth.getClientSecret())) {
+        if (SystemKeys.RESOURCE_CREDENTIALS_JWKS.equals(type) && StringUtils.hasText(oauth.getJwks())) {
             oauth.setJwks(null);
             oauth = oauthClientRepository.save(oauth);
         }
@@ -473,7 +473,8 @@ public class OAuth2ClientService implements ClientService {
 
         // TODO validate secret
         if (!StringUtils.hasText(clientSecret)) {
-            clientSecret = generateClientSecret();
+//            clientSecret = generateClientSecret();
+            clientSecret = null;
         }
 
         if (authorizedGrantTypes != null) {
@@ -494,8 +495,8 @@ public class OAuth2ClientService implements ClientService {
 
             applicationTypeValue = applicationType.getValue();
         } else {
-            // default is web
-            applicationTypeValue = ApplicationType.WEB.getValue();
+            // default is spa
+            applicationTypeValue = ApplicationType.SPA.getValue();
         }
 
         String tokenTypeValue = null;
@@ -531,9 +532,9 @@ public class OAuth2ClientService implements ClientService {
         }
 
         if (authenticationMethods == null || authenticationMethods.isEmpty()) {
-            // enable basic
+            // enable none
             authenticationMethods = new HashSet<>();
-            authenticationMethods.add(AuthenticationMethod.CLIENT_SECRET_BASIC);
+            authenticationMethods.add(AuthenticationMethod.NONE);
 
             // if authGrant also enable form for PKCE
             if (authorizedGrantTypes.contains(AuthorizationGrantType.AUTHORIZATION_CODE)) {

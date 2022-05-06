@@ -75,7 +75,7 @@ public class ClientAuthenticationManager implements AuthenticationManager, Initi
         String clientId = auth.getClientId();
         try {
             ClientDetails clientDetails = clientService.loadClient(clientId);
-            auth.setDetails(clientDetails);
+            auth.setClient(clientDetails);
 
             return auth;
         } catch (NoSuchClientException e) {
