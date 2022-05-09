@@ -2,43 +2,31 @@ package it.smartcommunitylab.aac.webauthn.provider;
 
 import java.io.Serializable;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
-import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.base.AbstractIdentityProviderConfig;
+import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 
-public class WebAuthnIdentityProviderConfig extends AbstractConfigurableProvider {
+public class WebAuthnIdentityProviderConfig extends AbstractIdentityProviderConfig {
+    private static final long serialVersionUID = SystemKeys.AAC_WEBAUTHN_SERIAL_VERSION;
 
-    private String name;
-    private String description;
-    private String icon;
-    private Boolean linkable;
-    private String displayMode;
+    private final static int MIN_LINK_DURATION = 3600;
 
     // map capabilities
     private WebAuthnIdentityProviderConfigMap configMap;
 
-    // hook functions
-    private Map<String, String> hookFunctions;
-
-    private static ObjectMapper mapper = new ObjectMapper();
-    private final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
-    };
-
     public WebAuthnIdentityProviderConfig(String provider, String realm) {
-        this(SystemKeys.AUTHORITY_WEBAUTHN, provider, realm);
+        super(SystemKeys.AUTHORITY_WEBAUTHN, provider, realm);
+        this.configMap = new WebAuthnIdentityProviderConfigMap();
     }
 
-    protected WebAuthnIdentityProviderConfig(String authority, String provider, String realm) {
-        super(authority, provider, realm);
-        this.configMap = new WebAuthnIdentityProviderConfigMap();
-        this.hookFunctions = Collections.emptyMap();
+    public WebAuthnIdentityProviderConfigMap getConfigMap() {
+        return configMap;
+    }
+
+    public void setConfigMap(WebAuthnIdentityProviderConfigMap configMap) {
+        this.configMap = configMap;
     }
 
     @Override
@@ -52,93 +40,34 @@ public class WebAuthnIdentityProviderConfig extends AbstractConfigurableProvider
         configMap.setConfiguration(props);
     }
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_IDENTITY;
+    /*
+     * config flags
+     */
+    public boolean isEnableRegistration() {
+        return configMap.getEnableRegistration() != null ? configMap.getEnableRegistration().booleanValue() : true;
     }
 
-    public Map<String, String> getHookFunctions() {
-        return hookFunctions;
+    public boolean isEnableUpdate() {
+        return configMap.getEnableUpdate() != null ? configMap.getEnableUpdate().booleanValue() : true;
     }
 
-    public void setHookFunctions(Map<String, String> hookFunctions) {
-        this.hookFunctions = hookFunctions;
+    public boolean isEnableReset() {
+        return configMap.getEnableReset() != null ? configMap.getEnableReset().booleanValue() : false;
     }
 
-    public String getName() {
-        return name;
+    public boolean isEnableConfirmation() {
+        return configMap.getEnableConfirmation() != null ? configMap.getEnableConfirmation().booleanValue() : false;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public int getConfirmationValidity() {
+        return configMap.getConfirmationValidity() != null ? configMap.getConfirmationValidity().intValue()
+                : MIN_LINK_DURATION;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getIcon() {
-        return icon;
-    }
-
-    public void setIcon(String icon) {
-        this.icon = icon;
-    }
-
-    public String getDisplayMode() {
-        return displayMode;
-    }
-
-    public void setDisplayMode(String displayMode) {
-        this.displayMode = displayMode;
-    }
-
-    public Boolean getLinkable() {
-        return linkable;
-    }
-
-    public void setLinkable(Boolean linkable) {
-        this.linkable = linkable;
-    }
-
-    public boolean isLinkable() {
-        if (linkable != null) {
-            return linkable.booleanValue();
-        }
-
-        return true;
-    }
-
-    public void setConfigMap(WebAuthnIdentityProviderConfigMap configMap) {
-        this.configMap = configMap;
-    }
-
-    public WebAuthnIdentityProviderConfigMap getConfigMap() {
-        return configMap;
-    }
-
-    public static ConfigurableIdentityProvider toConfigurableProvider(WebAuthnIdentityProviderConfig ip) {
-        ConfigurableIdentityProvider cp = new ConfigurableIdentityProvider(SystemKeys.AUTHORITY_WEBAUTHN,
-                ip.getProvider(),
-                ip.getRealm());
-        cp.setType(SystemKeys.RESOURCE_IDENTITY);
-        cp.setPersistence(SystemKeys.PERSISTENCE_LEVEL_REPOSITORY);
-
-        cp.setName(ip.getName());
-        cp.setDescription(ip.getDescription());
-        cp.setIcon(ip.getIcon());
-        cp.setDisplayMode(ip.getDisplayMode());
-
-        cp.setEnabled(true);
-        cp.setLinkable(ip.isLinkable());
-        cp.setConfiguration(ip.getConfigMap().getConfiguration());
-        cp.setHookFunctions(ip.getHookFunctions());
-
-        return cp;
+    public boolean isAllowedUnstrustedAssertions() {
+        return configMap.getTrustUnverifiedAuthenticatorResponses() != null
+                ? configMap.getTrustUnverifiedAuthenticatorResponses().booleanValue()
+                : false;
     }
 
     public static WebAuthnIdentityProviderConfig fromConfigurableProvider(ConfigurableIdentityProvider cp) {
@@ -151,31 +80,11 @@ public class WebAuthnIdentityProviderConfig extends AbstractConfigurableProvider
         ip.icon = cp.getIcon();
         ip.displayMode = cp.getDisplayMode();
 
+        ip.persistence = cp.getPersistence();
         ip.linkable = cp.isLinkable();
         ip.hookFunctions = (cp.getHookFunctions() != null ? cp.getHookFunctions() : Collections.emptyMap());
 
         return ip;
-    }
-
-    public static WebAuthnIdentityProviderConfig fromConfigurableProvider(ConfigurableIdentityProvider cp,
-            WebAuthnIdentityProviderConfigMap defaultConfigMap) {
-        WebAuthnIdentityProviderConfig ip = fromConfigurableProvider(cp);
-
-        // double conversion via map to merge default props
-        Map<String, Serializable> config = new HashMap<>();
-        mapper.setSerializationInclusion(Include.NON_EMPTY);
-        Map<String, Serializable> defaultMap = mapper.convertValue(defaultConfigMap, typeRef);
-        config.putAll(defaultMap);
-        config.putAll(cp.getConfiguration());
-
-        ip.configMap.setConfiguration(config);
-        return ip;
-    }
-
-    public boolean isAllowedUnstrustedAssertions() {
-        return configMap.getTrustUnverifiedAuthenticatorResponses() != null
-                ? configMap.getTrustUnverifiedAuthenticatorResponses().booleanValue()
-                : false;
     }
 
 }

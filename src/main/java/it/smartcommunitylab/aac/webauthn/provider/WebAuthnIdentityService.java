@@ -17,24 +17,27 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
-import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
+import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
-import it.smartcommunitylab.aac.core.provider.CredentialsService;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
+import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
+import it.smartcommunitylab.aac.utils.MailService;
 import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserIdentity;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccount;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserAccountService;
 
-public class WebAuthnIdentityService extends AbstractProvider implements IdentityService {
+public class WebAuthnIdentityService extends AbstractProvider
+        implements IdentityService<WebAuthnUserIdentity, WebAuthnUserAccount> {
 
+    // services
     private final UserEntityService userEntityService;
 
     // provider configuration
@@ -43,17 +46,19 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
     // providers
     private final WebAuthnAccountService accountService;
     private final WebAuthnAttributeProvider attributeProvider;
-    private final WebAuthnSubjectResolver subjectResolver; 
+    private final WebAuthnAuthenticationProvider authenticationProvider;
+    private final WebAuthnSubjectResolver subjectResolver;
 
     public WebAuthnIdentityService(
             String providerId,
             WebAuthnUserAccountService userAccountService,
-            UserEntityService userEntityService,
+            UserEntityService userEntityService, SubjectService subjectService,
             WebAuthnIdentityProviderConfig config,
             String realm) {
         super(SystemKeys.AUTHORITY_WEBAUTHN, providerId, realm);
         Assert.notNull(userAccountService, "user account service is mandatory");
         Assert.notNull(userEntityService, "user service is mandatory");
+        Assert.notNull(subjectService, "subject service is mandatory");
         Assert.notNull(config, "provider config is mandatory");
 
         Assert.isTrue(providerId.equals(config.getProvider()),
@@ -61,20 +66,24 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
         Assert.isTrue(realm.equals(config.getRealm()), "configuration does not match this provider");
 
         // webauthn data repositories
-        // TODO: replace with service to support external repo
-        // this.accountRepository = accountRepository;
         this.userEntityService = userEntityService;
         this.config = config;
 
         // build resource providers, we use our providerId to ensure consistency
-        this.attributeProvider = new WebAuthnAttributeProvider(providerId, userAccountService, config, realm);
-        this.accountService = new WebAuthnAccountService(providerId, userAccountService,  
-                config, realm); 
-        this.subjectResolver = new WebAuthnSubjectResolver(providerId,
-                userAccountService,
-                config,
-                realm);
+        this.attributeProvider = new WebAuthnAttributeProvider(providerId, config, realm);
+        this.accountService = new WebAuthnAccountService(providerId, userAccountService, subjectService, config, realm);
+        this.subjectResolver = new WebAuthnSubjectResolver(providerId, userAccountService, config, realm);
 
+    }
+
+    public void setMailService(MailService mailService) {
+        // assign to services
+        this.accountService.setMailService(mailService);
+    }
+
+    public void setUriBuilder(RealmAwareUriBuilder uriBuilder) {
+        // also assign to services
+        this.accountService.setUriBuilder(uriBuilder);
     }
 
     @Override
@@ -83,7 +92,12 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
     }
 
     @Override
-    public ExtendedAuthenticationProvider getAuthenticationProvider() {
+    public WebAuthnIdentityProviderConfig getConfig() {
+        return config;
+    }
+
+    @Override
+    public WebAuthnAuthenticationProvider getAuthenticationProvider() {
         return null;
     }
 
@@ -103,112 +117,63 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
     }
 
     @Override
-    public boolean canRegister() {
-        return config.getConfigMap().isEnableRegistration();
-    }
-
-    @Override
-    public boolean canUpdate() {
-        return config.getConfigMap().isEnableUpdate();
-
-    }
-
-    @Override
     public WebAuthnAccountService getAccountService() {
         return accountService;
     }
 
     @Override
-    public CredentialsService getCredentialsService() {
-        return null;
-    }
-
-    @Override
-    public String getName() {
-        return config.getName();
-    }
-
-    @Override
-    public String getDescription() {
-        return config.getDescription();
-    }
-
-    @Override
-    public ConfigurableProperties getConfiguration() {
-        return config;
-    }
-
-    @Override
-    public String getDisplayMode() {
-        return config.getDisplayMode() != null ? config.getDisplayMode() : SystemKeys.DISPLAY_MODE_FORM;
-    }
- 
-
-    @Override
-    public Map<String, String> getActionUrls() {
-        Map<String, String> map = new HashMap<>();
-        map.put(SystemKeys.ACTION_LOGIN, getAuthenticationUrl());
-        map.put(SystemKeys.ACTION_REGISTER, getRegistrationUrl());
-
-        return map;
-    }
-
-    @Override
     @Transactional(readOnly = false)
-    public UserIdentity convertIdentity(UserAuthenticatedPrincipal userPrincipal, String subjectId)
+    public WebAuthnUserIdentity convertIdentity(UserAuthenticatedPrincipal userPrincipal, String userId)
             throws NoSuchUserException {
+        Assert.isInstanceOf(WebAuthnUserAuthenticatedPrincipal.class, userPrincipal,
+                "principal must be an instance of internal authenticated principal");
+
         // extract account and attributes in raw format from authenticated principal
         WebAuthnUserAuthenticatedPrincipal principal = (WebAuthnUserAuthenticatedPrincipal) userPrincipal;
-        String userId = principal.getUserId();
-        // String username = principal.getName();
-        //
-        // // userId should be username, check
-        // if (!parseResourceId(userId).equals(username)) {
-        // throw new NoSuchUserException();
-        // }
 
-        if (subjectId == null) {
+        // username binds all identity pieces together
+        String username = principal.getUsername();
+
+        if (userId == null) {
             // this better exists
             throw new NoSuchUserException();
-
         }
 
-        // get the webauthn account entity
-        WebAuthnUserAccount account = accountService.getAccount(userId);
+        // get the internal account entity
+        WebAuthnUserAccount account = accountService.getAccount(username);
 
         if (account == null) {
             // error, user should already exists for authentication
             throw new NoSuchUserException();
         }
 
-        // subjectId is always present, is derived from the same account table
-        String curSubjectId = account.getSubject();
+        // uuid is available for persisted accounts
+        String uuid = account.getUuid();
+        principal.setUuid(uuid);
 
-        if (!curSubjectId.equals(subjectId)) {
-            // // force link
-            // // TODO re-evaluate
-            // account.setSubject(subjectId);
-            // account = accountRepository.save(account);
-            throw new IllegalArgumentException("subject mismatch");
+        // userId is always present, is derived from the same account table
+        String curUserId = account.getUserId();
 
+        if (!curUserId.equals(userId)) {
+//            // force link
+//            // TODO re-evaluate
+//            account.setSubject(subjectId);
+//            account = accountRepository.save(account);
+            throw new IllegalArgumentException("user mismatch");
         }
 
         // store and update attributes
         // TODO, we shouldn't have additional attributes for webauthn
 
         // use builder to properly map attributes
-        WebAuthnUserIdentity identity = new WebAuthnUserIdentity(
-                getProvider(),
-                getRealm(),
-                account,
-                principal);
+        WebAuthnUserIdentity identity = new WebAuthnUserIdentity(getProvider(), getRealm(), account, principal);
 
         // convert attribute sets
-        Collection<UserAttributes> identityAttributes = attributeProvider.convertAttributes(principal, subjectId);
+        Collection<UserAttributes> identityAttributes = attributeProvider.convertPrincipalAttributes(principal,
+                account);
         identity.setAttributes(identityAttributes);
 
-        // do note returned identity has credentials populated
-        // consumers will need to eraseCredentials
+        // do note returned identity may have credentials populated
         // we erase here
         identity.eraseCredentials();
         return identity;
@@ -216,36 +181,57 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
 
     @Override
     @Transactional(readOnly = true)
-    public UserIdentity getIdentity(String subject, String userId) throws NoSuchUserException {
-        return getIdentity(subject, userId, true);
+    public WebAuthnUserIdentity findIdentityByUuid(String uuid) {
+        // lookup a matching account
+        WebAuthnUserAccount account = accountService.findAccountByUuid(uuid);
+        if (account == null) {
+            return null;
+        }
+        // build identity without attributes
+        WebAuthnUserIdentity identity = new WebAuthnUserIdentity(getProvider(), getRealm(), account);
+        return identity;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public UserIdentity getIdentity(String subject, String userId, boolean fetchAttributes) throws NoSuchUserException {
-        // check if we are the providers
-        if (!getProvider().equals(parseProviderId(userId))) {
-            throw new IllegalArgumentException("invalid provider key in userId");
+    public WebAuthnUserIdentity findIdentity(String username) {
+        // lookup a matching account
+        WebAuthnUserAccount account = accountService.findAccount(username);
+        if (account == null) {
+            return null;
         }
+        // build identity without attributes
+        WebAuthnUserIdentity identity = new WebAuthnUserIdentity(getProvider(), getRealm(), account);
+        return identity;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public WebAuthnUserIdentity getIdentity(String username) throws NoSuchUserException {
+        return getIdentity(username, true);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public WebAuthnUserIdentity getIdentity(String username, boolean fetchAttributes)
+            throws NoSuchUserException {
 
         // lookup a matching account
-        WebAuthnUserAccount account = accountService.getAccount(userId);
-
-        // check subject
-        if (!account.getSubject().equals(subject)) {
-            throw new IllegalArgumentException("subject mismatch");
-        }
+        WebAuthnUserAccount account = accountService.getAccount(username);
+//
+//        // check subject
+//        if (!account.getUserId().equals(userId)) {
+//            throw new IllegalArgumentException("user mismatch");
+//        }
 
         // fetch attributes
-        // TODO, we shouldn't have additional attributes for WebAuthn
+        // we shouldn't have additional attributes for internal
 
         // use builder to properly map attributes
-        WebAuthnUserIdentity identity = new WebAuthnUserIdentity(getProvider(),
-                getRealm(),
-                account);
+        WebAuthnUserIdentity identity = new WebAuthnUserIdentity(getProvider(), getRealm(), account);
         if (fetchAttributes) {
             // convert attribute sets
-            Collection<UserAttributes> identityAttributes = attributeProvider.getAttributes(userId);
+            Collection<UserAttributes> identityAttributes = attributeProvider.getAccountAttributes(account);
             identity.setAttributes(identityAttributes);
         }
 
@@ -254,39 +240,33 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
         identity.eraseCredentials();
 
         return identity;
-
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Collection<? extends UserIdentity> listIdentities(String subject) {
-        return listIdentities(subject, true);
+    public Collection<WebAuthnUserIdentity> listIdentities(String userId) {
+        return listIdentities(userId, true);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Collection<? extends UserIdentity> listIdentities(String subject, boolean fetchAttributes) {
+    public Collection<WebAuthnUserIdentity> listIdentities(String userId, boolean fetchAttributes) {
         // lookup for matching accounts
-        List<WebAuthnUserAccount> accounts = accountService.listAccounts(subject);
+        List<WebAuthnUserAccount> accounts = accountService.listAccounts(userId);
         if (accounts.isEmpty()) {
             return Collections.emptyList();
         }
 
         List<WebAuthnUserIdentity> identities = new ArrayList<>();
-
         for (WebAuthnUserAccount account : accounts) {
-
             // fetch attributes
-            // TODO, we shouldn't have additional attributes for WebAuthn
+            // TODO, we shouldn't have additional attributes for internal
 
             // use builder to properly map attributes
-            WebAuthnUserIdentity identity = new WebAuthnUserIdentity(getProvider(),
-                    getRealm(),
-                    account);
+            WebAuthnUserIdentity identity = new WebAuthnUserIdentity(getProvider(), getRealm(), account);
             if (fetchAttributes) {
                 // convert attribute sets
-                Collection<UserAttributes> identityAttributes = attributeProvider
-                        .getAttributes(account.getUserId());
+                Collection<UserAttributes> identityAttributes = attributeProvider.getAccountAttributes(account);
                 identity.setAttributes(identityAttributes);
             }
 
@@ -301,28 +281,28 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
     }
 
     @Override
-    public String getAuthenticationUrl() {
-        return getLoginUrl();
-    }
-
-    @Override
-    public String getRegistrationUrl() {
-        return WebAuthnIdentityAuthority.AUTHORITY_URL + "register/" + getProvider();
-    }
-
-    public String getLoginUrl() {
-        // we use an address bound to provider, no reason to expose realm
-        return WebAuthnIdentityAuthority.AUTHORITY_URL + "login/" + getProvider();
+    @Transactional(readOnly = false)
+    public void deleteIdentity(String username) throws NoSuchUserException {
+        accountService.deleteAccount(username);
     }
 
     @Override
     @Transactional(readOnly = false)
-    public WebAuthnUserIdentity registerIdentity(String subject, UserAccount reg, Collection<UserAttributes> attributes)
-            throws NoSuchUserException, RegistrationException {
-        if (!config.getConfigMap().isEnableRegistration()) {
-            throw new IllegalArgumentException("registration is disabled for this provider");
+    public void deleteIdentities(String userId) {
+        List<WebAuthnUserAccount> accounts = accountService.listAccounts(userId);
+        for (WebAuthnUserAccount account : accounts) {
+            try {
+                accountService.deleteAccount(account.getUsername());
+            } catch (NoSuchUserException e) {
+            }
         }
+    }
 
+    @Override
+    @Transactional(readOnly = false)
+    public WebAuthnUserIdentity registerIdentity(String userId, WebAuthnUserAccount reg,
+            Collection<UserAttributes> attributes)
+            throws NoSuchUserException, RegistrationException {
         if (reg == null) {
             throw new RegistrationException("empty or incomplete registration");
         }
@@ -337,48 +317,43 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
         if (!StringUtils.hasText(username)) {
             throw new RegistrationException("missing-username");
         }
+        String userHandle = reg.getUserHandle();
+        if (StringUtils.hasText(userHandle)) {
+            userHandle = Jsoup.clean(userHandle, Safelist.none());
+        }
+        if (!StringUtils.hasText(userHandle)) {
+            throw new RegistrationException("missing-user-handle");
+        }
         String emailAddress = reg.getEmailAddress();
 
-        // we expect subject to be valid, or null if we need to create
+        // we expect user to be valid, or null if we need to create
         UserEntity user = null;
-        if (!StringUtils.hasText(subject)) {
-            subject = userEntityService.createUser(realm).getUuid();
-            user = userEntityService.addUser(subject, realm, username, emailAddress);
-            subject = user.getUuid();
+        if (!StringUtils.hasText(userId)) {
+            userId = userEntityService.createUser(realm).getUuid();
+            user = userEntityService.addUser(userId, realm, username, emailAddress);
+            userId = user.getUuid();
         } else {
             // check if exists
-            userEntityService.getUser(subject);
+            userEntityService.getUser(userId);
         }
 
         try {
             // create webauthn account
-            WebAuthnUserAccount account = accountService.registerAccount(subject, reg);
-
-            // set providerId since all webauthn accounts have the same
-            account.setProvider(getProvider());
-
-            // rewrite webauthn userId
-            account.setSubject(exportInternalId(username));
-
-            // store and update attributes
-            // TODO, we shouldn't have additional attributes for webauthn
+            WebAuthnUserAccount account = accountService.registerAccount(userId, reg);
 
             // use builder to properly map attributes
-            WebAuthnUserIdentity identity = new WebAuthnUserIdentity(getProvider(),
-                    getRealm(),
-                    account);
+            WebAuthnUserIdentity identity = new WebAuthnUserIdentity(getProvider(), getRealm(), account);
 
             // convert attribute sets
-            Collection<UserAttributes> identityAttributes = attributeProvider.getAttributes(account.getUserId());
+            Collection<UserAttributes> identityAttributes = attributeProvider.getAccountAttributes(account);
             identity.setAttributes(identityAttributes);
 
-            // this identity has credentials
             return identity;
 
         } catch (RegistrationException | IllegalArgumentException e) {
             // cleanup subject if we created it
             if (user != null) {
-                userEntityService.deleteUser(subject);
+                userEntityService.deleteUser(userId);
             }
 
             throw e;
@@ -387,77 +362,72 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
 
     @Override
     @Transactional(readOnly = false)
-    public WebAuthnUserIdentity updateIdentity(String subject, String userId, UserAccount reg,
+    public WebAuthnUserIdentity updateIdentity(
+            String username, WebAuthnUserAccount reg,
             Collection<UserAttributes> attributes) throws NoSuchUserException, RegistrationException {
-        if (!config.getConfigMap().isEnableUpdate()) {
+        if (!config.isEnableUpdate()) {
             throw new IllegalArgumentException("update is disabled for this provider");
         }
 
         if (reg == null) {
             throw new RegistrationException("empty or incomplete registration");
         }
-
-        // we expect subject to be valid
-        if (!StringUtils.hasText(subject)) {
-            throw new IllegalArgumentException("invalid subjectId");
-        }
-
-        userEntityService.getUser(subject);
-
         // get the webauthn account entity
-        WebAuthnUserAccount account = accountService.getAccount(userId);
-
-        // check subject
-        if (!account.getSubject().equals(subject)) {
-            throw new IllegalArgumentException("subject mismatch");
-        }
-
-        account = accountService.updateAccount(subject, reg);
-
-        // store and update attributes
-        // TODO, we shouldn't have additional attributes for webauthn
+        WebAuthnUserAccount account = accountService.getAccount(username);
+        account = accountService.updateAccount(username, reg);
 
         // use builder to properly map attributes
-        WebAuthnUserIdentity identity = new WebAuthnUserIdentity(
-                getProvider(),
-                getRealm(),
-                account);
+        WebAuthnUserIdentity identity = new WebAuthnUserIdentity(getProvider(), getRealm(), account);
 
         // convert attribute sets
-        Collection<UserAttributes> identityAttributes = attributeProvider.getAttributes(userId);
+        Collection<UserAttributes> identityAttributes = attributeProvider.getAccountAttributes(account);
         identity.setAttributes(identityAttributes);
 
-        // this identity has credentials, erase
+        // this identity may have credentials, erase
         identity.eraseCredentials();
 
         return identity;
     }
 
     @Override
-    @Transactional(readOnly = false)
-    public void deleteIdentity(String subject, String userId) throws NoSuchUserException {
-
-        // get the webauthn account entity
-        WebAuthnUserAccount account = accountService.getAccount(userId);
-
-        // check subject
-        if (!account.getSubject().equals(subject)) {
-            throw new IllegalArgumentException("subject mismatch");
-        }
-
-        accountService.deleteAccount(userId);
+    public String getAuthenticationUrl() {
+        return getLoginUrl();
     }
 
     @Override
-    @Transactional(readOnly = false)
-    public void deleteIdentities(String subjectId) {
-
-        List<WebAuthnUserAccount> accounts = accountService.listAccounts(subjectId);
-        for (UserAccount account : accounts) {
-            try {
-                accountService.deleteAccount(account.getUserId());
-            } catch (NoSuchUserException e) {
-            }
-        }
+    public String getRegistrationUrl() {
+        // we use an address bound to provider, no reason to expose realm
+        return WebAuthnIdentityAuthority.AUTHORITY_URL + "register/" + getProvider();
     }
+
+    public String getLoginUrl() {
+        // we use an address bound to provider, no reason to expose realm
+        return WebAuthnIdentityAuthority.AUTHORITY_URL + "login/" + getProvider();
+    }
+
+    @Override
+    public String getName() {
+        return config.getName();
+    }
+
+    @Override
+    public String getDescription() {
+        return config.getDescription();
+    }
+
+    @Override
+    public String getDisplayMode() {
+        // we support only this mode
+        return "webauthn";
+    }
+
+    @Override
+    public Map<String, String> getActionUrls() {
+        Map<String, String> map = new HashMap<>();
+        map.put(SystemKeys.ACTION_LOGIN, getAuthenticationUrl());
+        map.put(SystemKeys.ACTION_REGISTER, getRegistrationUrl());
+
+        return map;
+    }
+
 }

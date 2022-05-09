@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class WebAuthnAttestationResponse {
+    private static ObjectMapper mapper = new ObjectMapper();
 
     @JsonProperty("attestation")
     @NotNull
@@ -22,8 +23,6 @@ public class WebAuthnAttestationResponse {
     @JsonProperty("key")
     @NotNull
     private String key;
-
-    private static ObjectMapper mapper = new ObjectMapper();
 
     public String getKey() {
         return key;
@@ -41,7 +40,7 @@ public class WebAuthnAttestationResponse {
         this.attestation = attestation;
     }
 
-    public String toJson() throws JsonProcessingException{
+    public String toJson() throws JsonProcessingException {
         return mapper.writeValueAsString(attestation);
     }
 }

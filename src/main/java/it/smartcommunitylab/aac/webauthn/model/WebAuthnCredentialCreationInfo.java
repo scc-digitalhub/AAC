@@ -2,9 +2,18 @@ package it.smartcommunitylab.aac.webauthn.model;
 
 import java.io.Serializable;
 
+import javax.validation.Valid;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.yubico.webauthn.data.PublicKeyCredentialCreationOptions;
 
+import it.smartcommunitylab.aac.SystemKeys;
+
+@Valid
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class WebAuthnCredentialCreationInfo implements Serializable {
+    private static final long serialVersionUID = SystemKeys.AAC_WEBAUTHN_SERIAL_VERSION;
+
     private PublicKeyCredentialCreationOptions options;
     private String username;
     private String providerId;
@@ -13,12 +22,8 @@ public class WebAuthnCredentialCreationInfo implements Serializable {
         return options;
     }
 
-    public String getProviderId() {
-        return providerId;
-    }
-
-    public void setProviderId(String providerId) {
-        this.providerId = providerId;
+    public void setOptions(PublicKeyCredentialCreationOptions options) {
+        this.options = options;
     }
 
     public String getUsername() {
@@ -29,7 +34,12 @@ public class WebAuthnCredentialCreationInfo implements Serializable {
         this.username = username;
     }
 
-    public void setOptions(PublicKeyCredentialCreationOptions options) {
-        this.options = options;
+    public String getProviderId() {
+        return providerId;
     }
+
+    public void setProviderId(String providerId) {
+        this.providerId = providerId;
+    }
+
 }

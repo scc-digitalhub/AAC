@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.webauthn.model;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -8,52 +9,39 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.core.base.AbstractAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccount;
 
-public class WebAuthnUserAuthenticatedPrincipal implements UserAuthenticatedPrincipal, CredentialsContainer {
-    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
+public class WebAuthnUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincipal implements CredentialsContainer {
 
-    private final String provider;
-    private final String realm;
+    private static final long serialVersionUID = SystemKeys.AAC_WEBAUTHN_SERIAL_VERSION;
 
-    private final String userId;
+    private final String username;
+
+    private String uuid;
+
     private String name;
-    private WebAuthnUserAccount principal;
+    private String emailAddress;
+    private Boolean confirmed;
 
-    public WebAuthnUserAuthenticatedPrincipal(String provider, String realm, String userId) {
-        Assert.notNull(userId, "userId cannot be null");
-        Assert.notNull(provider, "provider cannot be null");
-        Assert.notNull(realm, "realm cannot be null");
+    // internal attributes from account
+    private Map<String, String> attributes;
 
-        this.userId = userId;
-        this.provider = provider;
-        this.realm = realm;
+    public WebAuthnUserAuthenticatedPrincipal(String provider, String realm, String userId, String username) {
+        super(SystemKeys.AUTHORITY_WEBAUTHN, provider, realm, userId);
+        Assert.hasText(username, "username can not be null or empty");
+        this.username = username;
+
     }
 
     @Override
-    public void eraseCredentials() {
-        this.principal.setUserHandle(null);
+    public String getId() {
+        return username;
     }
 
     @Override
-    public String getAuthority() {
-        return SystemKeys.AUTHORITY_WEBAUTHN;
-    }
-
-    @Override
-    public String getProvider() {
-        return provider;
-    }
-
-    @Override
-    public String getRealm() {
-        return realm;
-    }
-
-    @Override
-    public String getUserId() {
-        return userId;
+    public String getUuid() {
+        return uuid;
     }
 
     @Override
@@ -61,36 +49,106 @@ public class WebAuthnUserAuthenticatedPrincipal implements UserAuthenticatedPrin
         return name;
     }
 
+    @Override
+    public String getUsername() {
+        return username;
+    }
+
+    @Override
+    public String getEmailAddress() {
+        return emailAddress;
+    }
+
+    @Override
+    public boolean isEmailVerified() {
+        return isEmailConfirmed();
+    }
+
+    @Override
+    public Map<String, Serializable> getAttributes() {
+        Map<String, Serializable> map = new HashMap<>();
+        map.put("provider", getProvider());
+        map.put("username", username);
+        map.put("id", username);
+
+        if (StringUtils.hasText(name)) {
+            map.put("name", name);
+        }
+
+        String userId = getUserId();
+        if (StringUtils.hasText(userId)) {
+            map.put("userId", userId);
+        }
+
+        // add all account attributes if set
+        if (attributes != null) {
+            map.putAll(attributes);
+        }
+
+        // override if set
+        if (StringUtils.hasText(emailAddress)) {
+            map.put("email", emailAddress);
+        }
+        if (confirmed != null) {
+            map.put("confirmed", Boolean.toString(confirmed.booleanValue()));
+        }
+
+        return map;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
+
+    public void setEmailAddress(String emailAddress) {
+        this.emailAddress = emailAddress;
+    }
+
+    public boolean isEmailConfirmed() {
+        boolean verified = confirmed != null ? confirmed.booleanValue() : false;
+        return StringUtils.hasText(emailAddress) && verified;
+    }
+
+    public Boolean getConfirmed() {
+        return confirmed;
+    }
+
+    public void setConfirmed(Boolean confirmed) {
+        this.confirmed = confirmed;
+    }
+
+    public void setAccountAttributes(WebAuthnUserAccount account) {
+        if (account != null) {
+            this.emailAddress = account.getEmailAddress();
+            this.confirmed = account.isConfirmed();
+            String userHandle = account.getUserHandle();
+            if (StringUtils.hasText(userHandle)) {
+                attributes.put("userHandle", userHandle);
+            }
+
+            // map base attributes, these will be available for custom mapping
+            attributes = new HashMap<>();
+
+            String pname = account.getName();
+            if (StringUtils.hasText(pname)) {
+                attributes.put("name", pname);
+            }
+
+            String surname = account.getSurname();
+            if (StringUtils.hasText(surname)) {
+                attributes.put("surname", surname);
+            }
+
+        }
+    }
+
     public void setName(String name) {
         this.name = name;
     }
 
     @Override
-    public Map<String, String> getAttributes() {
-        Map<String, String> attributes = new HashMap<>();
-        if (principal != null) {
-            // map base attributes, these will be available for custom mapping
-            attributes.put("id", principal.getUserHandle());
-
-            String username = principal.getUsername();
-            if (StringUtils.hasText(username)) {
-                attributes.put("username", username);
-            }
-            String userHandle = principal.getUserHandle();
-            if (StringUtils.hasText(userHandle)) {
-                attributes.put("userHandle", userHandle);
-            }
-        }
-
-        return attributes;
-    }
-
-    public void setPrincipal(WebAuthnUserAccount principal) {
-        this.principal = principal;
-    }
-
-    public WebAuthnUserAccount getPrincipal() {
-        return this.principal;
+    public void eraseCredentials() {
+        // nothing to do
     }
 
 }

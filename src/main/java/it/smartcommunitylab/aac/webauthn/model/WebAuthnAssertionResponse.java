@@ -18,7 +18,6 @@ public class WebAuthnAssertionResponse {
 
     private static ObjectMapper mapper = new ObjectMapper();
 
-
     @JsonProperty("assertion")
     @NotNull
     private Map<String, Serializable> assertion;
@@ -44,7 +43,7 @@ public class WebAuthnAssertionResponse {
     }
 
     @JsonIgnore
-    public String toJson() throws JsonProcessingException{
+    public String toJson() throws JsonProcessingException {
         return mapper.writeValueAsString(this.assertion);
     }
 }

@@ -16,11 +16,10 @@ import com.yubico.webauthn.data.PublicKeyCredentialCreationOptions;
 public class WebAuthnRegistrationResponse {
 
     private static final ObjectMapper mapper = new ObjectMapper();
-    
+
     @JsonProperty("key")
     @NotNull
     private String key;
-
 
     @NotNull
     private PublicKeyCredentialCreationOptions options;

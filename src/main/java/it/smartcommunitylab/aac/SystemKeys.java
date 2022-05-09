@@ -13,6 +13,8 @@ public class SystemKeys {
     public static final long AAC_SAML_SERIAL_VERSION = 400L;
     public static final long AAC_SPID_SERIAL_VERSION = 400L;
     public static final long AAC_APPLE_SERIAL_VERSION = 410L;
+    public static final long AAC_WEBAUTHN_SERIAL_VERSION = 410L;
+
 
     public static final String REALM_GLOBAL = "";
     public static final String REALM_INTERNAL = "internal";

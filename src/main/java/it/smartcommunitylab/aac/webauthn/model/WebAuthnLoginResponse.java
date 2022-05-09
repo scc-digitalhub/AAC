@@ -16,14 +16,13 @@ import com.yubico.webauthn.AssertionRequest;
 public class WebAuthnLoginResponse {
 
     private static final ObjectMapper mapper = new ObjectMapper();
-    
+
     @JsonProperty("key")
     @NotNull
     private String key;
 
     @NotNull
     private AssertionRequest assertionRequest;
-
 
     public String getKey() {
         return this.key;

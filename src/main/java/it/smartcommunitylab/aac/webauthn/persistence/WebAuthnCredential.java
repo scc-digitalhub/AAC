@@ -5,15 +5,25 @@ import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.IdClass;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.validation.constraints.NotBlank;
 
 @Entity
+@IdClass(WebAuthnCredentialId.class)
 @Table(name = "webauthn_credentials")
 public class WebAuthnCredential {
 
+    // credential id
     @Id
+    @NotBlank
+    @Column(name = "provider_id")
+    private String provider;
+
+    @Id
+    @NotBlank
     @Column(name = "credential_id")
     private String credentialId;
 
@@ -21,8 +31,8 @@ public class WebAuthnCredential {
     private String userHandle;
 
     /**
-     * A custom name the user can associate to this credential
-     * It can be used, for example, to help distinguishing authenticators.
+     * A custom name the user can associate to this credential It can be used, for
+     * example, to help distinguishing authenticators.
      * 
      * E.g., a credential may be called 'Yubico 5c' to make it obvious in the web
      * interface that it is relative to that authenticator
@@ -48,10 +58,26 @@ public class WebAuthnCredential {
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_on")
     private Date createdOn;
+
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "last_used_on")
     private Date lastUsedOn;
 
+    public String getProvider() {
+        return provider;
+    }
+
+    public void setProvider(String provider) {
+        this.provider = provider;
+    }
+
+    public void setCredentialId(String credentialId) {
+        this.credentialId = credentialId;
+    }
+
+    public String getCredentialId() {
+        return credentialId;
+    }
 
     public Date getCreatedOn() {
         return createdOn;
@@ -67,15 +93,6 @@ public class WebAuthnCredential {
 
     public void setLastUsedOn(Date lastUsedOn) {
         this.lastUsedOn = lastUsedOn;
-    }
-
-    // Getters and setters
-    public void setCredentialId(String credentialId) {
-        this.credentialId = credentialId;
-    }
-
-    public String getCredentialId() {
-        return credentialId;
     }
 
     public void setPublicKeyCose(String publicKeyCose) {
