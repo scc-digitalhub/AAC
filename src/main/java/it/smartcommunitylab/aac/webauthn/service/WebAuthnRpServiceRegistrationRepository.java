@@ -13,47 +13,56 @@ import com.google.common.cache.LoadingCache;
 import com.yubico.webauthn.RelyingParty;
 import com.yubico.webauthn.data.RelyingPartyIdentity;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
-import it.smartcommunitylab.aac.core.provider.ProviderRepository;
-import it.smartcommunitylab.aac.core.service.SubjectService;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 
 @Service
 public class WebAuthnRpServiceRegistrationRepository {
-    private final ProviderRepository<WebAuthnIdentityProviderConfig> registrationRepository;
-
-    @Autowired
-    private WebAuthnUserAccountService webAuthnUserAccountService;
-    @Autowired
-    private SubjectService subjectService;
-
-    public WebAuthnRpServiceRegistrationRepository(
-            ProviderRepository<WebAuthnIdentityProviderConfig> registrationRepository) {
-        this.registrationRepository = registrationRepository;
-    }
 
     @Value("${application.url}")
     private String applicationUrl;
 
+    private final ProviderConfigRepository<WebAuthnIdentityProviderConfig> registrationRepository;
+    private final WebAuthnUserAccountService userAccountService;
+
+    public WebAuthnRpServiceRegistrationRepository(
+            WebAuthnUserAccountService userAccountService,
+            ProviderConfigRepository<WebAuthnIdentityProviderConfig> registrationRepository) {
+        Assert.notNull(userAccountService, "user account service is mandatory");
+        Assert.notNull(registrationRepository, "provider registration repository is mandatory");
+
+        this.userAccountService = userAccountService;
+        this.registrationRepository = registrationRepository;
+    }
+
     private RelyingParty buildRp(String providerId, WebAuthnIdentityProviderConfig config)
             throws MalformedURLException {
+        // build RP configuration
         URL publicAppUrl = new URL(applicationUrl);
         Set<String> origins = Collections.singleton(applicationUrl);
-        RelyingPartyIdentity rpIdentity = RelyingPartyIdentity.builder().id(publicAppUrl.getHost())
+
+        RelyingPartyIdentity rpIdentity = RelyingPartyIdentity.builder()
+                .id(publicAppUrl.getHost())
                 .name("AAC " + providerId)
                 .build();
+
         WebAuthnYubicoCredentialsRepository webauthnRepository = new WebAuthnYubicoCredentialsRepository(
-                providerId,
-                webAuthnUserAccountService);
-        RelyingParty rp = RelyingParty.builder().identity(rpIdentity).credentialRepository(webauthnRepository)
-                .allowUntrustedAttestation(config.isAllowedUnstrustedAssertions()).allowOriginPort(true)
+                providerId, userAccountService);
+
+        RelyingParty rp = RelyingParty.builder()
+                .identity(rpIdentity)
+                .credentialRepository(webauthnRepository)
+                .allowUntrustedAttestation(config.isAllowedUnstrustedAssertions())
+                .allowOriginPort(true)
                 .allowOriginSubdomain(false)
                 .origins(origins)
                 .build();
+
         return rp;
     }
 
@@ -70,11 +79,9 @@ public class WebAuthnRpServiceRegistrationRepository {
                     }
 
                     RelyingParty rp = buildRp(providerId, config);
-                    WebAuthnRpService rpservice = new WebAuthnRpService(rp,
-                            webAuthnUserAccountService,
-                            subjectService,
-                            providerId);
+                    WebAuthnRpService rpservice = new WebAuthnRpService(rp, userAccountService, providerId);
                     rpservice.setAllowUntrustedAttestation(config.isAllowedUnstrustedAssertions());
+
                     return rpservice;
                 }
             });

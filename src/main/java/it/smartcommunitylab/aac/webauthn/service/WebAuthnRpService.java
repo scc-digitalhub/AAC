@@ -1,6 +1,5 @@
 package it.smartcommunitylab.aac.webauthn.service;
 
-import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -33,13 +32,13 @@ import com.yubico.webauthn.data.exception.Base64UrlException;
 import com.yubico.webauthn.exception.AssertionFailedException;
 import com.yubico.webauthn.exception.RegistrationFailedException;
 
-import org.springframework.security.crypto.keygen.Base64StringKeyGenerator;
-import org.springframework.security.crypto.keygen.StringKeyGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
-import it.smartcommunitylab.aac.core.service.SubjectService;
+import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.webauthn.auth.WebAuthnAuthenticationException;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnCredentialCreationInfo;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnLoginResponse;
@@ -48,206 +47,234 @@ import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredential;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccount;
 
 public class WebAuthnRpService {
+    private static final Long TIMEOUT = 9000L;
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private boolean allowUntrustedAttestation = false;
-    private final WebAuthnUserAccountService webAuthnUserAccountService;
-
-    private final SubjectService subjectService;
-
+    private final WebAuthnUserAccountService userAccountService;
     private final RelyingParty rp;
     private final String provider;
-
-    private static final Long TIMEOUT = 9000L;
-    private final StringKeyGenerator keyGenerator = new Base64StringKeyGenerator(
-            Base64.getUrlEncoder().withoutPadding(), 64);
 
     private final Map<String, WebAuthnCredentialCreationInfo> activeRegistrations = new ConcurrentHashMap<>();
     private final Map<String, AssertionRequest> activeAuthentications = new ConcurrentHashMap<>();
 
+    private boolean allowUntrustedAttestation = false;
+    private AuthenticatorSelectionCriteria authenticatorSelection;
+
     public WebAuthnRpService(RelyingParty rp,
-            WebAuthnUserAccountService webAuthnUserAccountService,
-            SubjectService subjectService,
+            WebAuthnUserAccountService userAccountService,
             String provider) {
+        Assert.notNull(userAccountService, "user account service is mandatory");
+        Assert.notNull(rp, "relaying party is mandatory");
+
         this.rp = rp;
         this.provider = provider;
-        this.webAuthnUserAccountService = webAuthnUserAccountService;
-        this.subjectService = subjectService;
+        this.userAccountService = userAccountService;
+
+//        // build default keyGen
+//        keyGenerator = new Base64StringKeyGenerator(Base64.getUrlEncoder().withoutPadding(), 64);
+
+        // default config
+        authenticatorSelection = AuthenticatorSelectionCriteria.builder()
+                .residentKey(ResidentKeyRequirement.REQUIRED)
+                .userVerification(UserVerificationRequirement.REQUIRED)
+                .build();
     }
 
     public void setAllowUntrustedAttestation(boolean allowUntrustedAttestation) {
         this.allowUntrustedAttestation = allowUntrustedAttestation;
     }
 
-    public WebAuthnRegistrationResponse startRegistration(String username, String displayName) {
-        final AuthenticatorSelectionCriteria authenticatorSelection = AuthenticatorSelectionCriteria.builder()
-                .residentKey(ResidentKeyRequirement.REQUIRED).userVerification(UserVerificationRequirement.REQUIRED)
-                .build();
-        WebAuthnUserAccount existingAccount = webAuthnUserAccountService.findByProviderAndUsername(provider,
-                username);
-        if (existingAccount != null) {
-            // TODO: civts, check if the user is already authenticated.
-            // In that case, we should allow registering multiple credentials
-            throw new WebAuthnAuthenticationException("_", "User already exists");
+    /*
+     * Registration ceremony
+     * 
+     * an already registered user can add credentials. For first login use either
+     * confirmation link or account link via session
+     */
+
+    public WebAuthnRegistrationResponse startRegistration(String username, String displayName)
+            throws NoSuchUserException, RegistrationException {
+
+        WebAuthnUserAccount account = userAccountService.findAccountByUsername(provider, username);
+        if (account == null) {
+            throw new NoSuchUserException();
         }
-        final UserIdentity user = generateUserIdentity(username, displayName);
-        final StartRegistrationOptions startRegistrationOptions = StartRegistrationOptions.builder().user(user)
-                .authenticatorSelection(authenticatorSelection).timeout(TIMEOUT).build();
-        final PublicKeyCredentialCreationOptions options = rp.startRegistration(startRegistrationOptions);
-        final WebAuthnCredentialCreationInfo info = new WebAuthnCredentialCreationInfo();
+
+        // build a new identity for this key
+        UserIdentity user = generateUserIdentity(username, displayName, account.getUserHandle());
+
+        StartRegistrationOptions startRegistrationOptions = StartRegistrationOptions.builder()
+                .user(user)
+                .authenticatorSelection(authenticatorSelection)
+                .timeout(TIMEOUT)
+                .build();
+
+        PublicKeyCredentialCreationOptions options = rp.startRegistration(startRegistrationOptions);
+
+        WebAuthnCredentialCreationInfo info = new WebAuthnCredentialCreationInfo();
         info.setUsername(username);
         info.setOptions(options);
         info.setProviderId(provider);
-        final String key = UUID.randomUUID().toString();
+
+        // keep partial registration in memory
+        // TODO remove, we can rebuild it later
+        String key = UUID.randomUUID().toString();
         activeRegistrations.put(key, info);
-        final WebAuthnRegistrationResponse response = new WebAuthnRegistrationResponse();
+
+        // build response
+        WebAuthnRegistrationResponse response = new WebAuthnRegistrationResponse();
         response.setKey(key);
         response.setOptions(options);
         return response;
     }
 
-    /**
-     * Returns:
-     * - the username of the authenticated user on successful authentication
-     * - null if the authentication was not successful
-     * - throws a WebAuthnAuthenticationException if some other error occourred
-     */
-    public String finishRegistration(
-            PublicKeyCredential<AuthenticatorAttestationResponse, ClientRegistrationExtensionOutputs> pkc,
-            String providerId,
-            String key) throws WebAuthnAuthenticationException {
+    public WebAuthnCredential finishRegistration(
+            String key,
+            PublicKeyCredential<AuthenticatorAttestationResponse, ClientRegistrationExtensionOutputs> pkc)
+            throws RegistrationException, WebAuthnAuthenticationException, NoSuchUserException {
+
         try {
-            final WebAuthnCredentialCreationInfo info = activeRegistrations.get(key);
-            WebAuthnAuthenticationException noSuchRegistration = new WebAuthnAuthenticationException("_",
-                    "Can not find matching active registration request");
+            WebAuthnCredentialCreationInfo info = activeRegistrations.get(key);
             if (info == null) {
-                throw noSuchRegistration;
+                throw new RegistrationException("invalid key");
             }
-            if (!info.getProviderId().equals(providerId)) {
-                throw noSuchRegistration;
+
+            // remove, single use
+            activeRegistrations.remove(key);
+
+            String username = info.getUsername();
+            WebAuthnUserAccount account = userAccountService.findAccountByUsername(provider, username);
+            if (account == null) {
+                throw new NoSuchUserException();
             }
-            final String username = info.getUsername();
-            if (!StringUtils.hasText(username)) {
-                throw new WebAuthnAuthenticationException("_",
-                        "Could not finish registration: missing username");
-            }
-            WebAuthnUserAccount existingAccount = webAuthnUserAccountService.findByProviderAndUsername(provider,
-                    username);
-            if (existingAccount != null) {
-                throw new WebAuthnAuthenticationException("_",
-                        "Account already registered");
-            }
-            final PublicKeyCredentialCreationOptions options = info.getOptions();
+
+            // parse response
+            PublicKeyCredentialCreationOptions options = info.getOptions();
             RegistrationResult result = rp
                     .finishRegistration(FinishRegistrationOptions.builder().request(options).response(pkc).build());
             boolean attestationIsTrusted = result.isAttestationTrusted();
             if (!attestationIsTrusted && !allowUntrustedAttestation) {
                 throw new WebAuthnAuthenticationException("_", "Untrusted attestation");
             }
-            // Create user account in the database
-            WebAuthnUserAccount account = new WebAuthnUserAccount();
-            account.setUsername(username);
-            account.setRealm(null);
-            String subject = subjectService.generateUuid(SystemKeys.RESOURCE_USER);
-            account.setSubject(subject);
-            ByteArray userHandle = info.getOptions().getUser().getId();
-            account.setUserHandle(userHandle.getBase64());
-            account.setProvider(provider);
-            webAuthnUserAccountService.addAccount(account);
 
             // Create credential in the database
-            WebAuthnCredential newCred = new WebAuthnCredential();
-            newCred.setCreatedOn(new Date());
-            newCred.setLastUsedOn(new Date());
-            newCred.setCredentialId(result.getKeyId().getId().getBase64());
-            newCred.setPublicKeyCose(result.getPublicKeyCose().getBase64());
-            newCred.setSignatureCount(result.getSignatureCount());
+            WebAuthnCredential credential = new WebAuthnCredential();
+            credential.setProvider(provider);
+            credential.setUserHandle(account.getUserHandle());
+            credential.setCredentialId(result.getKeyId().getId().getBase64());
+
+            credential.setPublicKeyCose(result.getPublicKeyCose().getBase64());
+            credential.setSignatureCount(result.getSignatureCount());
             if (result.getKeyId().getTransports().isPresent()) {
                 Set<AuthenticatorTransport> transports = result.getKeyId().getTransports().get();
                 List<String> transportCodes = transports.stream().map(t -> t.getId()).collect(Collectors.toList());
-                newCred.setTransports(StringUtils.collectionToCommaDelimitedString(transportCodes));
+                credential.setTransports(StringUtils.collectionToCommaDelimitedString(transportCodes));
             }
-            newCred.setUserHandle(account.getUserHandle());
+            credential.setCreatedOn(new Date());
+            credential.setLastUsedOn(new Date());
 
-            webAuthnUserAccountService.saveCredential(newCred);
-            activeRegistrations.remove(key);
-            return username;
+            credential = userAccountService.addCredential(provider, credential);
+
+            return credential;
         } catch (WebAuthnAuthenticationException | RegistrationFailedException e) {
             throw new WebAuthnAuthenticationException("_",
                     "Registration failed");
         }
     }
 
-    public WebAuthnLoginResponse startLogin(String username) {
-        WebAuthnUserAccount account = webAuthnUserAccountService.findByProviderAndUsername(provider, username);
+    /*
+     * Login ceremony
+     */
+
+    public WebAuthnLoginResponse startLogin(String username) throws NoSuchUserException {
+        // fetch account
+        WebAuthnUserAccount account = userAccountService.findAccountByUsername(provider, username);
+        if (account == null) {
+            throw new NoSuchUserException();
+        }
+
+        // build assertion
         StartAssertionOptions startAssertionOptions = StartAssertionOptions.builder()
-                .userHandle(ByteArray.fromBase64(account.getUserHandle())).timeout(TIMEOUT)
-                .userVerification(UserVerificationRequirement.REQUIRED).username(username).build();
+                .userHandle(ByteArray.fromBase64(account.getUserHandle()))
+                .timeout(TIMEOUT)
+                .userVerification(UserVerificationRequirement.REQUIRED)
+                .username(username)
+                .build();
+
         AssertionRequest startAssertion = rp.startAssertion(startAssertionOptions);
-        final String key = UUID.randomUUID().toString();
+
+        // save active session via key
+        String key = UUID.randomUUID().toString();
         activeAuthentications.put(key, startAssertion);
-        final WebAuthnLoginResponse response = new WebAuthnLoginResponse();
+
+        // build response
+        WebAuthnLoginResponse response = new WebAuthnLoginResponse();
         response.setAssertionRequest(startAssertion);
         response.setKey(key);
+
         return response;
     }
 
-    // public AssertionRequest startLoginUsernameless(String sessionId) {
-    // StartAssertionOptions startAssertionOptions =
-    // StartAssertionOptions.builder().timeout(TIMEOUT)
-    // .userVerification(UserVerificationRequirement.REQUIRED).build();
-    // AssertionRequest startAssertion = rp.startAssertion(startAssertionOptions);
-    // activeAuthentications.put(sessionId, startAssertion);
-    // return startAssertion;
-    // }
+    public WebAuthnCredential finishLogin(
+            String key,
+            PublicKeyCredential<AuthenticatorAssertionResponse, ClientAssertionExtensionOutputs> pkc)
+            throws NoSuchUserException, WebAuthnAuthenticationException {
 
-    /**
-     * @return the authenticated username if authentication was successful, else
-     *         null
-     */
-    public String finishLogin(
-            PublicKeyCredential<AuthenticatorAssertionResponse, ClientAssertionExtensionOutputs> pkc,
-            String sessionId) throws WebAuthnAuthenticationException {
         try {
-            AssertionRequest assertionRequest = activeAuthentications.get(sessionId);
+            AssertionRequest assertionRequest = activeAuthentications.get(key);
+            if (assertionRequest == null) {
+                throw new RegistrationException("invalid key");
+            }
+
+            // remove, single use
+            activeAuthentications.remove(key);
+
+            // build result
             AssertionResult result = rp.finishAssertion(FinishAssertionOptions.builder().request(assertionRequest)
                     .response(pkc).build());
+
             if (!(result.isSuccess() && result.isSignatureCounterValid())) {
-                throw new WebAuthnAuthenticationException("_",
-                        "Untrusted assertion");
+                throw new WebAuthnAuthenticationException("", "Untrusted assertion");
             }
-            final WebAuthnUserAccount account = webAuthnUserAccountService
-                    .findByUserHandle(result.getUserHandle().getBase64());
+
+            String userHandle = result.getUserHandle().getBase64();
+            WebAuthnUserAccount account = userAccountService.findAccountByUserHandle(provider, userHandle);
             if (account == null) {
-                throw new WebAuthnAuthenticationException("_",
-                        "Could not find the requested credential in the account");
+                throw new NoSuchUserException();
             }
-            ByteArray resultCredentialId = result.getCredentialId();
-            String credentialId = resultCredentialId.getBase64();
-            if (webAuthnUserAccountService.findByUserHandleAndCredentialId(result.getUserHandle().getBase64(),
-                    credentialId) == null) {
-                throw new WebAuthnAuthenticationException("_", "");
+
+            // fetch associated credential
+            String credentialId = result.getCredentialId().getBase64();
+            WebAuthnCredential credential = userAccountService.findByCredentialByUserHandleAndId(provider, userHandle,
+                    credentialId);
+            if (credential == null) {
+                throw new WebAuthnAuthenticationException(account.getUserId(), "invalid credentials");
             }
-            webAuthnUserAccountService.updateCredentialCounter(credentialId, result.getSignatureCount());
-            return account.getUsername();
+
+            // update usage counter
+            credential = userAccountService.updateCredentialCounter(provider, credentialId, result.getSignatureCount());
+
+            return credential;
         } catch (WebAuthnAuthenticationException | AssertionFailedException | NoSuchUserException e) {
-            throw new WebAuthnAuthenticationException("_",
-                    "Login failed");
+            throw new WebAuthnAuthenticationException("_", "Login failed");
         }
     }
 
-    private UserIdentity generateUserIdentity(String username, String displayName) {
-        String userDisplayName = displayName != null ? displayName : "";
-        String userHandle = keyGenerator.generateKey();
-        ByteArray userHandleBA = null;
+    /*
+     * Helpers
+     */
+    private UserIdentity generateUserIdentity(String username, String displayName, String userHandle) {
         try {
-            userHandleBA = ByteArray.fromBase64Url(userHandle);
+            String userDisplayName = StringUtils.hasText(displayName) ? displayName : username;
+            UserIdentity identity = UserIdentity.builder()
+                    .name(username)
+                    .displayName(userDisplayName)
+                    .id(ByteArray.fromBase64Url(userHandle))
+                    .build();
+
+            return identity;
         } catch (Base64UrlException e) {
-            System.out.println("The newly-generated user handle is not valid base64Url");
+            logger.error("User handle is not valid base64Url");
             return null;
         }
-        UserIdentity newUserIdentity = UserIdentity.builder()
-                .name(username).displayName(userDisplayName)
-                .id(userHandleBA).build();
-        return newUserIdentity;
     }
 }
