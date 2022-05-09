@@ -1,27 +1,28 @@
 package it.smartcommunitylab.aac.webauthn.model;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.security.core.CredentialsContainer;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.core.base.BaseIdentity;
-import it.smartcommunitylab.aac.core.model.UserAccount;
+import it.smartcommunitylab.aac.core.base.AbstractIdentity;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccount;
 
-public class WebAuthnUserIdentity extends BaseIdentity implements CredentialsContainer {
-    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
+public class WebAuthnUserIdentity extends AbstractIdentity implements CredentialsContainer {
 
+    private static final long serialVersionUID = SystemKeys.AAC_WEBAUTHN_SERIAL_VERSION;
+
+    // authentication principal (if available)
     private final WebAuthnUserAuthenticatedPrincipal principal;
 
-    private WebAuthnUserAccount account;
+    // user account
+    private final WebAuthnUserAccount account;
 
-    private String userId;
-
+    // attributes map for sets associated with this identity
     private Map<String, UserAttributes> attributes;
 
     public WebAuthnUserIdentity(String provider,
@@ -30,8 +31,8 @@ public class WebAuthnUserIdentity extends BaseIdentity implements CredentialsCon
         super(SystemKeys.AUTHORITY_WEBAUTHN, provider, realm);
         this.account = account;
         this.principal = null;
-        this.userId = account.getUserId();
-        this.attributes = new HashMap<>();
+        this.attributes = Collections.emptyMap();
+        super.setUserId(account.getUserId());
     }
 
     public WebAuthnUserIdentity(String provider,
@@ -41,17 +42,17 @@ public class WebAuthnUserIdentity extends BaseIdentity implements CredentialsCon
         super(SystemKeys.AUTHORITY_WEBAUTHN, provider, realm);
         this.account = account;
         this.principal = principal;
-        this.userId = account.getUserId();
-        this.attributes = new HashMap<>();
+        this.attributes = Collections.emptyMap();
+        super.setUserId(account.getUserId());
     }
 
     @Override
-    public UserAuthenticatedPrincipal getPrincipal() {
+    public WebAuthnUserAuthenticatedPrincipal getPrincipal() {
         return principal;
     }
 
     @Override
-    public UserAccount getAccount() {
+    public WebAuthnUserAccount getAccount() {
         return account;
     }
 
@@ -72,28 +73,29 @@ public class WebAuthnUserIdentity extends BaseIdentity implements CredentialsCon
         }
     }
 
-    public String getUserId() {
-        return userId;
-    }
-
     public String getUsername() {
         return account.getUsername();
     }
 
-    /*
-     * userid can be resetted to properly map identity
-     */
+    public String getUserHandle() {
+        return account.getUserHandle();
+    }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public String getEmailAddress() {
+        return account.getEmailAddress();
     }
 
     @Override
     public void eraseCredentials() {
+        if (this.account != null) {
+            this.account.eraseCredentials();
+        }
+        if (this.principal != null) {
+            this.principal.eraseCredentials();
+        }
     }
 
-    @Override
-    public String toString() {
-        return "WebAuthnUserIdentity [account=" + account + ", userId=" + userId + "]";
+    public Object getCredentials() {
+        return null;
     }
 }
