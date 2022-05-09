@@ -81,7 +81,7 @@ public class WebAuthnUserAccountService {
     }
 
     @Transactional(readOnly = true)
-    public List<WebAuthnUserAccount> findByUser(String userId) {
+    public List<WebAuthnUserAccount> listAccountsByUser(String userId) {
         List<WebAuthnUserAccount> accounts = accountRepository.findByUserId(userId);
         return accounts.stream().map(a -> {
             return accountRepository.detach(a);
@@ -89,7 +89,7 @@ public class WebAuthnUserAccountService {
     }
 
     @Transactional(readOnly = true)
-    public List<WebAuthnUserAccount> findByUser(String userId, String provider) {
+    public List<WebAuthnUserAccount> listAccountsByUser(String userId, String provider) {
         List<WebAuthnUserAccount> accounts = accountRepository.findByUserIdAndProvider(userId, provider);
         return accounts.stream().map(a -> {
             return accountRepository.detach(a);
@@ -212,7 +212,8 @@ public class WebAuthnUserAccountService {
         return credentialsRepository.findByProviderAndUserHandle(provider, userHandle);
     }
 
-    public WebAuthnCredential findByUserHandleAndCredentialId(String provider, String userHandle, String credentialId) {
+    public WebAuthnCredential findByCredentialByUserHandleAndId(String provider, String userHandle,
+            String credentialId) {
         return credentialsRepository.findByProviderAndUserHandleAndCredentialId(provider, userHandle, credentialId);
     }
 
@@ -269,6 +270,22 @@ public class WebAuthnUserAccountService {
         // update allowed fields
         c.setDisplayName(reg.getDisplayName());
         c.setSignatureCount(reg.getSignatureCount());
+
+        c = credentialsRepository.saveAndFlush(c);
+        c = credentialsRepository.detach(c);
+
+        return c;
+    }
+
+    public WebAuthnCredential updateCredentialCounter(String provider, String credentialId, long count)
+            throws NoSuchUserException, RegistrationException {
+        WebAuthnCredential c = credentialsRepository.findOne(new WebAuthnCredentialId(provider, credentialId));
+        if (c == null) {
+            throw new NoSuchUserException();
+        }
+
+        // update field
+        c.setSignatureCount(count);
 
         c = credentialsRepository.saveAndFlush(c);
         c = credentialsRepository.detach(c);

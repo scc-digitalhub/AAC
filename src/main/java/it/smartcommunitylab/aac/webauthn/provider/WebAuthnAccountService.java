@@ -1,15 +1,11 @@
 package it.smartcommunitylab.aac.webauthn.provider;
 
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
-
 import javax.mail.MessagingException;
 import javax.validation.Valid;
 
@@ -28,16 +24,12 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
-import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.provider.AccountService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
-import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.model.UserStatus;
 import it.smartcommunitylab.aac.utils.MailService;
 import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredential;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccount;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserAccountService;
 
@@ -84,7 +76,7 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
     @Override
     @Transactional(readOnly = true)
     public List<WebAuthnUserAccount> listAccounts(String userId) {
-        return userAccountService.findByUser(userId, getProvider());
+        return userAccountService.listAccountsByUser(userId, getProvider());
 
     }
 

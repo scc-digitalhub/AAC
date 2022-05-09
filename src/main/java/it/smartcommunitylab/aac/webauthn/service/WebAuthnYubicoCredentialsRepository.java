@@ -21,32 +21,38 @@ import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredential;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccount;
 
 /**
- * For this class, everytime we should use the 'username', we
- * will instead use a string in the following format:
- * 'realmname{@link #separator}username'. This
+ * DEPRECATED: username is unique per provider
+ * 
+ * For this class, everytime we should use the 'username', we will instead use a
+ * string in the following format: 'realmname{@link #separator}username'. This
  * is due to the fact that yubico's library assumes that two distinct users can
  * not have the same username (https://git.io/JD5Vr).
  */
 public class WebAuthnYubicoCredentialsRepository implements CredentialRepository {
 
     private final String providerId;
-    private final WebAuthnUserAccountService webAuthnUserAccountService;
+    private final WebAuthnUserAccountService userAccountService;
 
     public WebAuthnYubicoCredentialsRepository(String provider,
             WebAuthnUserAccountService webAuthnUserAccountService) {
+        Assert.hasText(provider, "provider identifier is required");
         Assert.notNull(webAuthnUserAccountService, "WebAuthn account service is mandatory");
-        this.webAuthnUserAccountService = webAuthnUserAccountService;
+        this.userAccountService = webAuthnUserAccountService;
         this.providerId = provider;
     }
 
     @Override
     public Set<PublicKeyCredentialDescriptor> getCredentialIdsForUsername(String username) {
-        WebAuthnUserAccount account = webAuthnUserAccountService.findByProviderAndUsername(providerId, username);
+        WebAuthnUserAccount account = userAccountService.findAccountByUsername(providerId, username);
         if (account == null) {
             return Collections.emptySet();
         }
-        final List<WebAuthnCredential> credentials = webAuthnUserAccountService
-                .findCredentialsByUserHandle(account.getUserHandle());
+
+        // fetch all credentials for this user
+        List<WebAuthnCredential> credentials = userAccountService.findCredentialsByUserHandle(providerId,
+                account.getUserHandle());
+
+        // build descriptors
         Set<PublicKeyCredentialDescriptor> descriptors = new HashSet<>();
         for (WebAuthnCredential c : credentials) {
             Set<AuthenticatorTransport> transports = StringUtils.commaDelimitedListToSet(c.getTransports())
@@ -59,62 +65,84 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
                     .build();
             descriptors.add(descriptor);
         }
+
         return descriptors;
     }
 
     @Override
     public Optional<ByteArray> getUserHandleForUsername(String username) {
-        WebAuthnUserAccount account = webAuthnUserAccountService.findByProviderAndUsername(providerId, username);
+        WebAuthnUserAccount account = userAccountService.findAccountByUsername(providerId, username);
         if (account == null) {
             return Optional.empty();
         }
+
+        // yubico userhandle is base64
         return Optional.of(ByteArray.fromBase64(account.getUserHandle()));
     }
 
     @Override
     public Optional<String> getUsernameForUserHandle(ByteArray userHandle) {
-        WebAuthnUserAccount account = webAuthnUserAccountService.findByUserHandle(userHandle.getBase64());
+        if (userHandle == null) {
+            return Optional.empty();
+        }
+
+        // yubico userhandle is base64
+        String uId = userHandle.getBase64();
+        WebAuthnUserAccount account = userAccountService.findAccountByUserHandle(providerId, uId);
         if (account == null) {
             return Optional.empty();
         }
+
         return Optional.of(account.getUsername());
     }
 
     @Override
     public Optional<RegisteredCredential> lookup(ByteArray credentialId, ByteArray userHandle) {
-        WebAuthnUserAccount acc = webAuthnUserAccountService.findByUserHandle(userHandle.getBase64());
-        if (acc == null) {
+        if (userHandle == null || credentialId == null) {
             return Optional.empty();
         }
-        List<WebAuthnCredential> credentials = webAuthnUserAccountService
-                .findCredentialsByUserHandle(acc.getUserHandle());
-        return credentials.stream()
-                .filter(c -> c.getCredentialId().equals(credentialId.getBase64()))
-                .findFirst()
-                .map(c -> getRegisteredCredential(c));
+
+        // yubico userhandle is base64
+        String uId = userHandle.getBase64();
+        WebAuthnUserAccount account = userAccountService.findAccountByUserHandle(providerId, uId);
+        if (account == null) {
+            return Optional.empty();
+        }
+
+        // fetch credentials
+        String cId = credentialId.getBase64();
+        WebAuthnCredential credential = userAccountService.findByCredentialByUserHandleAndId(providerId,
+                account.getUserHandle(), cId);
+        if (credential == null) {
+            return Optional.empty();
+        }
+
+        // convert model to yubico
+        return Optional.of(getRegisteredCredential(credential));
     }
 
     @Override
     public Set<RegisteredCredential> lookupAll(ByteArray credentialId) {
-        // In our database the credentialID already has a unique constraint
-        WebAuthnCredential cred = webAuthnUserAccountService.findCredentialById(credentialId.getBase64());
-        if (cred == null) {
+        if (credentialId == null) {
             return Collections.emptySet();
         }
-        RegisteredCredential credential = getRegisteredCredential(cred);
+
+        // yubico userhandle is base64
+        String cId = credentialId.getBase64();
+
+        // In our database the credentialID already has a unique constraint
+        WebAuthnCredential credential = userAccountService.findCredentialById(providerId, cId);
         if (credential == null) {
             return Collections.emptySet();
         }
-        return Collections.singleton(credential);
+
+        // convert model to yubico
+        return Collections.singleton(getRegisteredCredential(credential));
     }
 
     private RegisteredCredential getRegisteredCredential(WebAuthnCredential credential) {
-        final WebAuthnUserAccount account = webAuthnUserAccountService.findByUserHandle(credential.getUserHandle());
-        if (account == null) {
-            return null;
-        }
         return RegisteredCredential.builder().credentialId(ByteArray.fromBase64(credential.getCredentialId()))
-                .userHandle(ByteArray.fromBase64(account.getUserHandle()))
+                .userHandle(ByteArray.fromBase64(credential.getUserHandle()))
                 .publicKeyCose(ByteArray.fromBase64(credential.getPublicKeyCose()))
                 .signatureCount(credential.getSignatureCount()).build();
     }
