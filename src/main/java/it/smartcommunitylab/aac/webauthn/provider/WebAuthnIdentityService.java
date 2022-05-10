@@ -25,6 +25,7 @@ import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
+import it.smartcommunitylab.aac.core.provider.UserCredentialsService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.utils.MailService;
@@ -72,6 +73,7 @@ public class WebAuthnIdentityService extends AbstractProvider
         // build resource providers, we use our providerId to ensure consistency
         this.attributeProvider = new WebAuthnAttributeProvider(providerId, config, realm);
         this.accountService = new WebAuthnAccountService(providerId, userAccountService, subjectService, config, realm);
+        this.authenticationProvider = new WebAuthnAuthenticationProvider(providerId, userAccountService, config, realm);
         this.subjectResolver = new WebAuthnSubjectResolver(providerId, userAccountService, config, realm);
 
     }
@@ -98,7 +100,7 @@ public class WebAuthnIdentityService extends AbstractProvider
 
     @Override
     public WebAuthnAuthenticationProvider getAuthenticationProvider() {
-        return null;
+        return authenticationProvider;
     }
 
     @Override
@@ -428,6 +430,11 @@ public class WebAuthnIdentityService extends AbstractProvider
         map.put(SystemKeys.ACTION_REGISTER, getRegistrationUrl());
 
         return map;
+    }
+
+    @Override
+    public UserCredentialsService getCredentialsService() {
+        return null;
     }
 
 }

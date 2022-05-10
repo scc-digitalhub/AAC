@@ -70,6 +70,10 @@ public class WebAuthnIdentityProviderConfig extends AbstractIdentityProviderConf
                 : false;
     }
 
+    public int getMaxSessionDuration() {
+        return configMap.getMaxSessionDuration();
+    }
+
     public static WebAuthnIdentityProviderConfig fromConfigurableProvider(ConfigurableIdentityProvider cp) {
         WebAuthnIdentityProviderConfig ip = new WebAuthnIdentityProviderConfig(cp.getProvider(), cp.getRealm());
         ip.configMap = new WebAuthnIdentityProviderConfigMap();
