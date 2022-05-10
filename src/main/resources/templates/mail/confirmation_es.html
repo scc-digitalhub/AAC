@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <title th:remove="all">Template for HTML email</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  </head>
+  <body>
+    <p>
+EstimadoDear  <span data-th-text="${user.name}">Mario</span> <span data-th-text="${user.surname}">Rossi</span>, 
+    </p>
+    <p>
+      Se ha registrado en <b>SmartCommunity</b>
+    </p>
+    <p>Para completar el registro, haga clic <a href="http://smartcommunitylab.it/" th:href="${url}">aquí</a>.</p>
+    <p>
+      Póngase en contacto con <a href="mailto:info@smartcommunitylab.it">soporte</a> si tiene algún problema con el acceso.
+    </p>
+    <p>
+      Saludos cordiales, <br />
+       <em>Smart Community Lab</em>
+    </p>
+  </body>
+</html>
