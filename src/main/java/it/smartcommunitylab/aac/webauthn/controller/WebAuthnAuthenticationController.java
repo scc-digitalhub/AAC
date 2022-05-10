@@ -1,16 +1,11 @@
 package it.smartcommunitylab.aac.webauthn.controller;
 
-import java.io.IOException;
-import java.util.regex.Pattern;
-
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 
-import com.yubico.webauthn.data.AuthenticatorAssertionResponse;
-import com.yubico.webauthn.data.ClientAssertionExtensionOutputs;
-import com.yubico.webauthn.data.PublicKeyCredential;
-
+import com.yubico.webauthn.AssertionRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,20 +14,20 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.server.ResponseStatusException;
-
 import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
-import it.smartcommunitylab.aac.webauthn.model.WebAuthnAssertionResponse;
+import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnAuthenticationStartRequest;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnLoginResponse;
+import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccount;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityService;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpService;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpServiceRegistrationRepository;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserAccountService;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnRequestStore;
 
 /**
- * Manages the endpoints connected to the authentication ceremony of WebAuthn.
+ * Manages the endpoint connected to the authentication ceremony of WebAuthn.
  * 
  * The authentication ceremony is used to authenticate the client by verifying
  * that it owns a credential that was previously registered on this server
@@ -43,17 +38,21 @@ import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpServiceRegistrationRe
 public class WebAuthnAuthenticationController {
 
     @Autowired
-    private WebAuthnRpServiceRegistrationRepository webAuthnRpServiceRegistrationRepository;
+    private WebAuthnUserAccountService userAccountService;
 
-    private static Pattern pattern = Pattern.compile(SystemKeys.SLUG_PATTERN);
+    @Autowired
+    private WebAuthnRpService rpService;
+
+    @Autowired
+    private WebAuthnRequestStore requestStore;
 
     /**
-     * Serves the page to start a new WebAuthn authentication ceremony.
-     * Ensure the request mapping value matches the one returned from
+     * Serves the page to start a new WebAuthn authentication ceremony. Ensure the
+     * request mapping value matches the one returned from
      * {@link WebAuthnIdentityService#getLoginUrl}
      */
     @Hidden
-    @RequestMapping(value = "/auth/webauthn/login/{providerId}", method = RequestMethod.GET)
+    @RequestMapping(value = "/auth/webauthn/form/{providerId}", method = RequestMethod.GET)
     public String authenticatePage() {
         return "webauthn/authenticate";
     }
@@ -66,50 +65,34 @@ public class WebAuthnAuthenticationController {
      * in the session.
      * 
      * @throws NoSuchProviderException
+     * @throws NoSuchUserException
      */
     @Hidden
     @PostMapping(value = "/auth/webauthn/assertionOptions/{providerId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public WebAuthnLoginResponse generateAssertionOptions(@RequestBody @Valid WebAuthnAuthenticationStartRequest body,
-            @PathVariable("providerId") String providerId) throws NoSuchProviderException {
-        WebAuthnRpService rps = webAuthnRpServiceRegistrationRepository.get(providerId);
+    public WebAuthnLoginResponse generateAssertionOptions(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
+            @RequestBody @Valid WebAuthnAuthenticationStartRequest body)
+            throws NoSuchProviderException, NoSuchUserException {
 
+        // fetch user
         String username = body.getUsername();
-        if (!isValidUsername(username)) {
-            throw new IllegalArgumentException();
+        WebAuthnUserAccount account = userAccountService.findAccountByUsername(providerId, username);
+        if (account == null) {
+            // TODO review exception to avoid disclosing user existence
+            throw new NoSuchUserException();
         }
 
-        WebAuthnLoginResponse response = rps.startLogin(username);
+        AssertionRequest assertionRequest = rpService.startLogin(providerId, account.getUserHandle(), username);
+
+        // store request
+        String key = requestStore.store(assertionRequest);
+
+        // build response
+        WebAuthnLoginResponse response = new WebAuthnLoginResponse();
+        response.setAssertionRequest(assertionRequest);
+        response.setKey(key);
         return response;
     }
 
-    /**
-     * Validates the assertion generated using the Credential Request
-     * Options obtained through the {@link #generateAssertionOptions} controller
-     * 
-     * @throws NoSuchProviderException
-     */
-    @Hidden
-    @RequestMapping(value = "/auth/webauthn/assertions/{providerId}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseBody
-    public String verifyAssertion(@RequestBody @Valid WebAuthnAssertionResponse body,
-            @PathVariable("providerId") String providerId) throws NoSuchProviderException {
-        try {
-            final WebAuthnRpService rps = webAuthnRpServiceRegistrationRepository.get(providerId);
-
-            PublicKeyCredential<AuthenticatorAssertionResponse, ClientAssertionExtensionOutputs> pkc = PublicKeyCredential
-                    .parseAssertionResponseJson(body.toJson());
-            final String authenticatedUser = rps.finishLogin(pkc, body.getKey());
-            return "Welcome " + authenticatedUser;
-        } catch (IOException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid assertion");
-        }
-    }
-
-    /**
-     * Checks if the provided object can be used as a valid username
-     */
-    private boolean isValidUsername(String username) {
-        return pattern.matcher(username).matches();
-    }
 }

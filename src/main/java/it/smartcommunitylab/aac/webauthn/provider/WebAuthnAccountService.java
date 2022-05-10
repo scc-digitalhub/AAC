@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.webauthn.provider;
 
+import java.util.Base64;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -13,6 +14,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.crypto.keygen.StringKeyGenerator;
+import org.springframework.security.crypto.keygen.Base64StringKeyGenerator;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -47,6 +50,8 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
     private MailService mailService;
     private RealmAwareUriBuilder uriBuilder;
 
+    private StringKeyGenerator keyGenerator;
+
     public WebAuthnAccountService(String providerId,
             WebAuthnUserAccountService userAccountService, SubjectService subjectService,
             WebAuthnIdentityProviderConfig providerConfig, String realm) {
@@ -58,6 +63,10 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
         this.userAccountService = userAccountService;
         this.subjectService = subjectService;
         this.config = providerConfig;
+
+        // build default keyGen
+        keyGenerator = new Base64StringKeyGenerator(Base64.getUrlEncoder().withoutPadding(), 64);
+
     }
 
     public void setMailService(MailService mailService) {
@@ -66,6 +75,10 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
 
     public void setUriBuilder(RealmAwareUriBuilder uriBuilder) {
         this.uriBuilder = uriBuilder;
+    }
+
+    public void setKeyGenerator(StringKeyGenerator keyGenerator) {
+        this.keyGenerator = keyGenerator;
     }
 
     @Override
@@ -166,7 +179,8 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
             throw new RegistrationException("missing-username");
         }
         if (!StringUtils.hasText(userHandle)) {
-            throw new RegistrationException("missing-user-handle");
+            // build a new key as handle
+            userHandle = keyGenerator.generateKey();
         }
 
         WebAuthnUserAccount account = userAccountService.findAccountByUsername(provider, username);

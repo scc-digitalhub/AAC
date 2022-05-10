@@ -1,43 +1,41 @@
 package it.smartcommunitylab.aac.webauthn.auth;
 
-
 import org.springframework.security.core.AuthenticationException;
 
 import it.smartcommunitylab.aac.SystemKeys;
 
 public class WebAuthnAuthenticationException extends AuthenticationException {
- 
-    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
+    private static final long serialVersionUID = SystemKeys.AAC_WEBAUTHN_SERIAL_VERSION;
 
     private final String subject;
     private final String username;
-    private final String credentials; 
+    private final String assertion;
     private final AuthenticationException exception;
 
     public WebAuthnAuthenticationException(String subject, String message) {
         super(message);
         this.subject = subject;
-        this.username = null; 
-        this.credentials = null;
+        this.username = null;
+        this.assertion = null;
         this.exception = null;
     }
 
-    public WebAuthnAuthenticationException(String subject, String username, String credentials,
+    public WebAuthnAuthenticationException(String subject, String username, String assertion,
             AuthenticationException ex) {
         super(ex.getMessage(), ex.getCause());
         this.subject = subject;
         this.username = username;
-        this.credentials = credentials; 
+        this.assertion = assertion;
         this.exception = ex;
     }
 
-    public WebAuthnAuthenticationException(String subject, String username, String credentials,
+    public WebAuthnAuthenticationException(String subject, String username, String assertion,
             AuthenticationException ex,
             String message) {
         super(message, ex.getCause());
         this.subject = subject;
         this.username = username;
-        this.credentials = credentials; 
+        this.assertion = assertion;
         this.exception = ex;
     }
 
@@ -49,10 +47,10 @@ public class WebAuthnAuthenticationException extends AuthenticationException {
         return username;
     }
 
-    public String getCredentials() {
-        return credentials;
+    public String getAssertion() {
+        return assertion;
     }
- 
+
     public AuthenticationException getException() {
         return exception;
     }
@@ -64,8 +62,8 @@ public class WebAuthnAuthenticationException extends AuthenticationException {
     public String getErrorMessage() {
         String error = getError();
         if (error == null) {
-            return "internal_error";
+            return "webauthn_error";
         }
         return "error." + error;
-    } 
+    }
 }
