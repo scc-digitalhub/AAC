@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.controller;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -30,6 +31,7 @@ import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 
 /*
  * Base controller for identity providers
@@ -69,7 +71,8 @@ public class BaseIdentityProviderController {
     @PostMapping("/idp/{realm}")
     public ConfigurableIdentityProvider addIdp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestBody @Valid @NotNull ConfigurableIdentityProvider registration) throws NoSuchRealmException {
+            @RequestBody @Valid @NotNull ConfigurableIdentityProvider registration)
+            throws NoSuchRealmException, NoSuchProviderException {
         logger.debug("add idp to realm {}",
                 StringUtils.trimAllWhitespace(realm));
 
@@ -114,6 +117,17 @@ public class BaseIdentityProviderController {
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
         ConfigurableIdentityProvider provider = providerManager.getIdentityProvider(realm, providerId);
+
+        // merge default properties
+        Map<String, Serializable> configuration = new HashMap<>();
+        configuration.putAll(provider.getConfiguration());
+        ConfigurableProperties cp = providerManager.getConfigurableProperties(realm, SystemKeys.RESOURCE_IDENTITY,
+                provider.getAuthority());
+        Map<String, Serializable> dcp = cp.getConfiguration();
+        dcp.entrySet().forEach(e -> {
+            configuration.putIfAbsent(e.getKey(), e.getValue());
+        });
+        provider.setConfiguration(configuration);
 
         // check if registered
         boolean isRegistered = providerManager.isProviderRegistered(realm, provider);

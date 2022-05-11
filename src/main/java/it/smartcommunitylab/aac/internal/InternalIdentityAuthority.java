@@ -5,16 +5,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -27,61 +23,32 @@ import it.smartcommunitylab.aac.config.AuthoritiesProperties;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.provider.IdentityProvider;
-import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
-import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
-import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.utils.MailService;
 
 @Service
 public class InternalIdentityAuthority implements IdentityAuthority, InitializingBean {
 
-//    // TODO replace with proper configuration bean read from props
-//    @Value("${authorities.internal.confirmation.required}")
-//    private boolean confirmationRequired;
-//
-//    @Value("${authorities.internal.confirmation.validity}")
-//    private int confirmationValidity;
-//
-//    @Value("${authorities.internal.password.reset.enabled}")
-//    private boolean passwordResetEnabled;
-//
-//    @Value("${authorities.internal.password.reset.validity}")
-//    private int passwordResetValidity;
-//
-//    @Value("${authorities.internal.password.minLength}")
-//    private int passwordMinLength;
-//    @Value("${authorities.internal.password.maxLength}")
-//    private int passwordMaxLength;
-//    @Value("${authorities.internal.password.requireAlpha}")
-//    private boolean passwordRequireAlpha;
-//    @Value("${authorities.internal.password.requireNumber}")
-//    private boolean passwordRequireNumber;
-//    @Value("${authorities.internal.password.requireSpecial}")
-//    private boolean passwordRequireSpecial;
-//    @Value("${authorities.internal.password.supportWhitespace}")
-//    private boolean passwordSupportWhitespace;
-
-    // TODO make consistent with global config
     public static final String AUTHORITY_URL = "/auth/internal/";
 
+    // user service
     private final UserEntityService userEntityService;
-
-    private final InternalUserAccountService userAccountService;
 
     // resources registry
     private final SubjectService subjectService;
 
+    // internal account persistence service
+    private final InternalUserAccountService userAccountService;
+
+    // configuration provider
+    private InternalIdentityConfigurationProvider configProvider;
     private AuthoritiesProperties authoritiesProperties;
-    private InternalIdentityProviderConfigMap defaultProviderConfig;
 
     // services
     private MailService mailService;
@@ -135,6 +102,12 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
     }
 
     @Autowired
+    public void setConfigProvider(InternalIdentityConfigurationProvider configProvider) {
+        Assert.notNull(configProvider, "config provider is mandatory");
+        this.configProvider = configProvider;
+    }
+
+    @Autowired
     public void setMailService(MailService mailService) {
         this.mailService = mailService;
     }
@@ -144,29 +117,14 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
         this.uriBuilder = uriBuilder;
     }
 
-//    @Autowired
-//    public void setAuthoritiesProperties(AuthoritiesProperties authoritiesProperties) {
-//        this.authoritiesProperties = authoritiesProperties;
-//    }
+    @Autowired
+    public void setAuthoritiesProperties(AuthoritiesProperties authoritiesProperties) {
+        this.authoritiesProperties = authoritiesProperties;
+    }
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        // build default config from props
-//        defaultProviderConfig = new InternalIdentityProviderConfigMap();
-//        defaultProviderConfig.setConfirmationRequired(confirmationRequired);
-//        defaultProviderConfig.setConfirmationValidity(confirmationValidity);
-//        defaultProviderConfig.setEnablePasswordReset(passwordResetEnabled);
-//        defaultProviderConfig.setPasswordResetValidity(passwordResetValidity);
-//        defaultProviderConfig.setPasswordMaxLength(passwordMaxLength);
-//        defaultProviderConfig.setPasswordMinLength(passwordMinLength);
-//        defaultProviderConfig.setPasswordRequireAlpha(passwordRequireAlpha);
-//        defaultProviderConfig.setPasswordRequireNumber(passwordRequireNumber);
-//        defaultProviderConfig.setPasswordRequireSpecial(passwordRequireSpecial);
-//        defaultProviderConfig.setPasswordSupportWhitespace(passwordSupportWhitespace);
-        defaultProviderConfig = new InternalIdentityProviderConfigMap();
-        if (authoritiesProperties != null && authoritiesProperties.getInternal() != null) {
-            defaultProviderConfig = authoritiesProperties.getInternal();
-        }
+        Assert.notNull(configProvider, "config provider is mandatory");
     }
 
     @Override
@@ -234,7 +192,7 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
 
             try {
                 // build config
-                InternalIdentityProviderConfig providerConfig = getProviderConfig(providerId, realm, cp);
+                InternalIdentityProviderConfig providerConfig = configProvider.getConfig(cp);
 
                 // register, we defer loading
                 registrationRepository.addRegistration(providerConfig);
@@ -300,27 +258,6 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
     public ConfigurableIdentityProvider getConfigurableProviderTemplate(String templateId)
             throws NoSuchProviderException {
         throw new NoSuchProviderException("no templates available");
-    }
-
-    /*
-     * Helpers
-     */
-
-    private InternalIdentityProviderConfig getProviderConfig(String provider, String realm,
-            ConfigurableIdentityProvider cp) {
-
-        // build empty config if missing
-        if (cp == null) {
-            cp = new ConfigurableIdentityProvider(SystemKeys.AUTHORITY_INTERNAL, provider, realm);
-        } else {
-            Assert.isTrue(SystemKeys.AUTHORITY_INTERNAL.equals(cp.getAuthority()),
-                    "configuration does not match this provider");
-        }
-
-        // merge config with default
-        return InternalIdentityProviderConfig.fromConfigurableProvider(
-                cp, defaultProviderConfig);
-
     }
 
 }

@@ -65,8 +65,8 @@ public class SamlIdentityProviderConfigMap implements ConfigurableProperties, Se
     private String assertionConsumerServiceUrl;
 
     public SamlIdentityProviderConfigMap() {
-        this.signAuthNRequest = true;
-        this.ssoServiceBinding = "HTTP-POST";
+//        this.signAuthNRequest = true;
+//        this.ssoServiceBinding = "HTTP-POST";
     }
 
     public String getSigningKey() {

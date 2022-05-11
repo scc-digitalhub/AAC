@@ -39,6 +39,7 @@ import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.openid.model.OIDCUserIdentity;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
+import it.smartcommunitylab.aac.openid.provider.OIDCIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProvider;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
@@ -46,10 +47,9 @@ import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
 @Service
 public class OIDCIdentityAuthority implements IdentityAuthority, InitializingBean {
 
-    // TODO make consistent with global config
     public static final String AUTHORITY_URL = "/auth/oidc/";
 
-    // private account repository
+    // oidc account repository
     private final OIDCUserAccountRepository accountRepository;
 
     // system attributes store
@@ -57,6 +57,9 @@ public class OIDCIdentityAuthority implements IdentityAuthority, InitializingBea
 
     // resources registry
     private final SubjectService subjectService;
+
+    // configuration provider
+    private OIDCIdentityConfigurationProvider configProvider;
 
     // identity provider configs by id
     private final ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository;
@@ -117,6 +120,11 @@ public class OIDCIdentityAuthority implements IdentityAuthority, InitializingBea
     }
 
     @Autowired
+    public void setConfigProvider(OIDCIdentityConfigurationProvider configProvider) {
+        this.configProvider = configProvider;
+    }
+
+    @Autowired
     public void setProviderProperties(ProvidersProperties providerProperties) {
         this.providerProperties = providerProperties;
     }
@@ -128,6 +136,8 @@ public class OIDCIdentityAuthority implements IdentityAuthority, InitializingBea
 
     @Override
     public void afterPropertiesSet() throws Exception {
+        Assert.notNull(configProvider, "config provider is mandatory");
+
         // build templates
         if (providerProperties != null && providerProperties.getTemplates() != null) {
             List<OIDCIdentityProviderConfigMap> templateConfigs = providerProperties.getTemplates().getOidc();
@@ -208,7 +218,7 @@ public class OIDCIdentityAuthority implements IdentityAuthority, InitializingBea
             }
 
             try {
-                OIDCIdentityProviderConfig providerConfig = OIDCIdentityProviderConfig.fromConfigurableProvider(cp);
+                OIDCIdentityProviderConfig providerConfig = configProvider.getConfig(cp);
 
                 // build registration, will ensure configuration is valid *before* registering
                 // the provider in repositories

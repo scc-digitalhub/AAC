@@ -103,7 +103,8 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
     @PostMapping("/idp/{realm}")
     public ConfigurableIdentityProvider addIdp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestBody @Valid @NotNull ConfigurableIdentityProvider registration) throws NoSuchRealmException {
+            @RequestBody @Valid @NotNull ConfigurableIdentityProvider registration)
+            throws NoSuchRealmException, NoSuchProviderException {
         ConfigurableIdentityProvider provider = super.addIdp(realm, registration);
 
         // fetch also configuration schema

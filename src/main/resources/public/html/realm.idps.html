@@ -23,8 +23,8 @@
               <a class="list-item" href=""
                 ng-click="createProviderDlg(template.authority, template.name)"><span>{{template.name}}</span></a>
             </li>
-            <li><a class="list-item" href="" ng-click="oidcProviderDlg()"><span>OpenID Connect</span></a></li>
-            <li><a class="list-item" href="" ng-click="samlProviderDlg()"><span>SAML</span></a></li>
+            <li><a class="list-item" href="" ng-click="createProviderDlg('oidc')"><span>OpenID Connect</span></a></li>
+            <li><a class="list-item" href="" ng-click="createProviderDlg('saml')"><span>SAML</span></a></li>
             <li><a class="list-item" href="" ng-click="createProviderDlg('spid')"><span>SPID</span></a></li>
             <li><a class="list-item" href="" ng-click="createProviderDlg('apple')">Apple</a></li>
           </ul>
@@ -178,8 +178,10 @@
                         <a class="list-item" href=""
                           ng-click="createProviderDlg(template.authority, template.name)">{{template.name}}</a>
                       </li>
-                      <li><a class="list-item" href="" ng-click="oidcProviderDlg()">OpenID Connect</a></li>
-                      <li><a class="list-item" href="" ng-click="samlProviderDlg()">SAML</a></li>
+                      <li><a class="list-item" href="" ng-click="createProviderDlg('oidc')"><span>OpenID
+                            Connect</span></a></li>
+                      <li><a class="list-item" href="" ng-click="createProviderDlg('saml')"><span>SAML</span></a></li>
+                      <li><a class="list-item" href="" ng-click="createProviderDlg('spid')"><span>SPID</span></a></li>
                       <li><a class="list-item" href="" ng-click="createProviderDlg('apple')">Apple</a></li>
                     </ul>
                   </div>

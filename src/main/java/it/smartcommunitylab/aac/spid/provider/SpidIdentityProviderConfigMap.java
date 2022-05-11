@@ -77,14 +77,14 @@ public class SpidIdentityProviderConfigMap implements ConfigurableProperties, Se
     private String singleLogoutUrl;
 
     public SpidIdentityProviderConfigMap() {
-        this.ssoServiceBinding = "HTTP-POST";
-        this.contactPersonType = "other";
-        this.authnContext = SpidAuthnContext.SPID_L1;
-        this.useSpidCodeAsNameId = true;
-        this.idAttribute = SpidUserAttribute.SPID_CODE;
-
-        this.spidAttributes = new HashSet<>();
-        this.spidAttributes.add(SpidAttribute.SPID_CODE);
+//        this.ssoServiceBinding = "HTTP-POST";
+//        this.contactPersonType = "other";
+//        this.authnContext = SpidAuthnContext.SPID_L1;
+//        this.useSpidCodeAsNameId = true;
+//        this.idAttribute = SpidUserAttribute.SPID_CODE;
+//
+//        this.spidAttributes = new HashSet<>();
+//        this.spidAttributes.add(SpidAttribute.SPID_CODE);
     }
 
     public String getSigningKey() {

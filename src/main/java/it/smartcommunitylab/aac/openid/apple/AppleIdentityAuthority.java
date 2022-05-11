@@ -20,6 +20,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProvider;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfig;
 import it.smartcommunitylab.aac.attributes.store.AttributeStore;
@@ -52,6 +53,9 @@ public class AppleIdentityAuthority implements IdentityAuthority, InitializingBe
 
     // resources registry
     private final SubjectService subjectService;
+
+    // configuration provider
+    private AppleIdentityConfigurationProvider configProvider;
 
     // identity provider configs by id
     private final ProviderConfigRepository<AppleIdentityProviderConfig> registrationRepository;
@@ -107,12 +111,18 @@ public class AppleIdentityAuthority implements IdentityAuthority, InitializingBe
     }
 
     @Autowired
+    public void setConfigProvider(AppleIdentityConfigurationProvider configProvider) {
+        this.configProvider = configProvider;
+    }
+
+    @Autowired
     public void setExecutionService(ScriptExecutionService executionService) {
         this.executionService = executionService;
     }
 
     @Override
     public void afterPropertiesSet() throws Exception {
+        Assert.notNull(configProvider, "config provider is mandatory");
     }
 
     @Override
@@ -176,7 +186,7 @@ public class AppleIdentityAuthority implements IdentityAuthority, InitializingBe
             }
 
             try {
-                AppleIdentityProviderConfig providerConfig = AppleIdentityProviderConfig.fromConfigurableProvider(cp);
+                AppleIdentityProviderConfig providerConfig = configProvider.getConfig(cp);
 
                 // build registration, will ensure configuration is valid *before* registering
                 // the provider in repositories

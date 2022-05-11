@@ -103,6 +103,26 @@ authorities:
 #        reset:
 #          enabled: true
 #          validity: 86400
+   oidc:
+      scope: openid,email
+      userNameAttributeName: sub
+      clientAuthenticationMethod: CLIENT_SECRET_BASIC
+      enablePkce: true
+      trustEmailAddress: true
+   apple:
+      askNameScope: true
+      askEmailScope: true
+   spid:
+      userNameAttributeName: SPID_CODE
+      idAttribute: SPID_CODE
+      useSpidCodeAsNameId: true
+      spidAttributes: SPID_CODE
+      ssoServiceBinding: HTTP-POST
+      authnContext: SPID_L2
+   saml:
+      signAuthNRequest: true
+      ssoServiceBinding: HTTP-POST
+      
 
 
 providers:

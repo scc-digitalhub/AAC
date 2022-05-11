@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -36,13 +38,20 @@ public class InternalIdentityProviderConfigMap implements ConfigurableProperties
 
     private Boolean enablePasswordReset;
     private Boolean enablePasswordSet;
+
+    @Max(3 * 24 * 60 * 60)
     private Integer passwordResetValidity;
 
     private Boolean confirmationRequired;
+    @Max(3 * 24 * 60 * 60)
     private Integer confirmationValidity;
 
     // password policy, optional
+    @Min(1)
+    @Max(35)
     private Integer passwordMinLength;
+    @Min(1)
+    @Max(35)
     private Integer passwordMaxLength;
     private Boolean passwordRequireAlpha;
     private Boolean passwordRequireNumber;

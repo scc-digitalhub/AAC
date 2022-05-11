@@ -41,6 +41,7 @@ import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository
 import it.smartcommunitylab.aac.saml.model.SamlUserIdentity;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
+import it.smartcommunitylab.aac.saml.provider.SamlIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProvider;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfigMap;
@@ -58,6 +59,9 @@ public class SamlIdentityAuthority implements IdentityAuthority, InitializingBea
 
     // resources registry
     private final SubjectService subjectService;
+
+    // configuration provider
+    private SamlIdentityConfigurationProvider configProvider;
 
     private final ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository;
 
@@ -115,6 +119,11 @@ public class SamlIdentityAuthority implements IdentityAuthority, InitializingBea
     }
 
     @Autowired
+    public void setConfigProvider(SamlIdentityConfigurationProvider configProvider) {
+        this.configProvider = configProvider;
+    }
+
+    @Autowired
     public void setProviderProperties(ProvidersProperties providerProperties) {
         this.providerProperties = providerProperties;
     }
@@ -126,6 +135,8 @@ public class SamlIdentityAuthority implements IdentityAuthority, InitializingBea
 
     @Override
     public void afterPropertiesSet() throws Exception {
+        Assert.notNull(configProvider, "config provider is mandatory");
+
         // build templates
         if (providerProperties != null && providerProperties.getTemplates() != null) {
             List<SamlIdentityProviderConfigMap> templateConfigs = providerProperties.getTemplates().getSaml();
@@ -208,7 +219,7 @@ public class SamlIdentityAuthority implements IdentityAuthority, InitializingBea
             }
 
             try {
-                SamlIdentityProviderConfig providerConfig = SamlIdentityProviderConfig.fromConfigurableProvider(cp);
+                SamlIdentityProviderConfig providerConfig = configProvider.getConfig(cp);
 
                 // build registration, will ensure configuration is valid *before* registering
                 // the provider in repositories

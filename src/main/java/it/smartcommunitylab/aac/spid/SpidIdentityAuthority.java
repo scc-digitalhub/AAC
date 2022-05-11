@@ -33,6 +33,7 @@ import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository
 import it.smartcommunitylab.aac.spid.model.SpidUserIdentity;
 import it.smartcommunitylab.aac.spid.persistence.SpidUserAccount;
 import it.smartcommunitylab.aac.spid.persistence.SpidUserAccountRepository;
+import it.smartcommunitylab.aac.spid.provider.SpidIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProvider;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
 import it.smartcommunitylab.aac.spid.service.LocalSpidRegistry;
@@ -41,13 +42,15 @@ import it.smartcommunitylab.aac.spid.service.SpidRegistry;
 @Service
 public class SpidIdentityAuthority implements IdentityAuthority, InitializingBean {
 
-    // TODO make consistent with global config
     public static final String AUTHORITY_URL = "/auth/spid/";
 
     private final SpidUserAccountRepository accountRepository;
 
     // resources registry
     private final SubjectService subjectService;
+
+    // configuration provider
+    private SpidIdentityConfigurationProvider configProvider;
 
     private final ProviderConfigRepository<SpidIdentityProviderConfig> registrationRepository;
 
@@ -100,6 +103,11 @@ public class SpidIdentityAuthority implements IdentityAuthority, InitializingBea
     }
 
     @Autowired
+    public void setConfigProvider(SpidIdentityConfigurationProvider configProvider) {
+        this.configProvider = configProvider;
+    }
+
+    @Autowired
     public void setSpidProperties(SpidProperties spidProperties) {
         this.spidProperties = spidProperties;
     }
@@ -111,6 +119,8 @@ public class SpidIdentityAuthority implements IdentityAuthority, InitializingBea
 
     @Override
     public void afterPropertiesSet() throws Exception {
+        Assert.notNull(configProvider, "config provider is mandatory");
+
         // initialize registry
         if (spidProperties != null) {
             // we support only local registry for now
@@ -166,7 +176,7 @@ public class SpidIdentityAuthority implements IdentityAuthority, InitializingBea
             }
 
             try {
-                SpidIdentityProviderConfig providerConfig = SpidIdentityProviderConfig.fromConfigurableProvider(cp);
+                SpidIdentityProviderConfig providerConfig = configProvider.getConfig(cp);
                 providerConfig.setIdps(spidRegistry.getIdentityProviders());
 
                 // build registration, will ensure configuration is valid *before* registering

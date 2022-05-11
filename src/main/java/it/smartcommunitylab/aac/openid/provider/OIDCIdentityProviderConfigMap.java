@@ -61,12 +61,12 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
     private Set<PromptMode> promptMode;
 
     public OIDCIdentityProviderConfigMap() {
-        // set default
-        this.scope = "openid,email";
-        this.userNameAttributeName = IdTokenClaimNames.SUB;
-        this.clientAuthenticationMethod = AuthenticationMethod.CLIENT_SECRET_BASIC;
-        this.enablePkce = true;
-        this.trustEmailAddress = true;
+//        // set default
+//        this.scope = "openid,email";
+//        this.userNameAttributeName = IdTokenClaimNames.SUB;
+//        this.clientAuthenticationMethod = AuthenticationMethod.CLIENT_SECRET_BASIC;
+//        this.enablePkce = true;
+//        this.trustEmailAddress = true;
     }
 
     public String getClientId() {

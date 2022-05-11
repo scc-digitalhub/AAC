@@ -20,12 +20,10 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
-import it.smartcommunitylab.aac.core.base.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
-import it.smartcommunitylab.aac.core.model.UserAccount;
-import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
@@ -116,7 +114,8 @@ public class ProviderManager {
     }
 
     public ConfigurableProvider addProvider(String realm,
-            ConfigurableProvider provider) throws RegistrationException, SystemException, NoSuchRealmException {
+            ConfigurableProvider provider)
+            throws RegistrationException, SystemException, NoSuchRealmException, NoSuchProviderException {
 
         if (provider instanceof ConfigurableIdentityProvider) {
             return addIdentityProvider(realm, (ConfigurableIdentityProvider) provider);
@@ -213,7 +212,8 @@ public class ProviderManager {
     }
 
     public ConfigurableIdentityProvider addIdentityProvider(String realm,
-            ConfigurableIdentityProvider provider) throws RegistrationException, SystemException, NoSuchRealmException {
+            ConfigurableIdentityProvider provider)
+            throws RegistrationException, SystemException, NoSuchRealmException, NoSuchProviderException {
 
         if (SystemKeys.REALM_GLOBAL.equals(realm) || SystemKeys.REALM_SYSTEM.equals(realm)) {
             // we do not persist in db global providers
@@ -558,11 +558,20 @@ public class ProviderManager {
      * Configuration schemas
      */
 
+    public ConfigurableProperties getConfigurableProperties(String realm, String type, String authority) {
+        if (TYPE_IDENTITY.equals(type)) {
+            return identityProviderService.getConfigurableProperties(authority);
+        } else if (TYPE_ATTRIBUTES.equals(type)) {
+            // TODO
+            return null;
+        }
+        throw new IllegalArgumentException("invalid provider type");
+    }
+
     public JsonSchema getConfigurationSchema(String realm, String type, String authority) {
         if (TYPE_IDENTITY.equals(type)) {
             return identityProviderService.getConfigurationSchema(authority);
-        }
-        if (TYPE_ATTRIBUTES.equals(type)) {
+        } else if (TYPE_ATTRIBUTES.equals(type)) {
             return attributeProviderService.getConfigurationSchema(authority);
         }
         throw new IllegalArgumentException("invalid provider type");
