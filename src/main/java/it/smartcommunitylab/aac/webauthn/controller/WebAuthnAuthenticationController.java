@@ -53,7 +53,8 @@ public class WebAuthnAuthenticationController {
      */
     @Hidden
     @RequestMapping(value = "/auth/webauthn/form/{providerId}", method = RequestMethod.GET)
-    public String authenticatePage() {
+    public String authenticatePage(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId) {
         return "webauthn/authenticate";
     }
 

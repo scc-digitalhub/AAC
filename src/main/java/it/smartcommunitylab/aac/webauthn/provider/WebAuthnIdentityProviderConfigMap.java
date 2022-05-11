@@ -17,7 +17,6 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
-import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -136,7 +135,7 @@ public class WebAuthnIdentityProviderConfigMap implements ConfigurableProperties
     @JsonIgnore
     public static JsonSchema getConfigurationSchema() throws JsonMappingException {
         JsonSchemaGenerator schemaGen = new JsonSchemaGenerator(mapper);
-        return schemaGen.generateSchema(InternalIdentityProviderConfigMap.class);
+        return schemaGen.generateSchema(WebAuthnIdentityProviderConfigMap.class);
     }
 
 }
