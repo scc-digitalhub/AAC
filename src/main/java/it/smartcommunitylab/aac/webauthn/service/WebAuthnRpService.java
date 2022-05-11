@@ -43,7 +43,6 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.webauthn.auth.WebAuthnAuthenticationException;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnCredentialCreationInfo;
-import it.smartcommunitylab.aac.webauthn.model.WebAuthnLoginResponse;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationResponse;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredential;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccount;
@@ -197,8 +196,6 @@ public class WebAuthnRpService {
         if (rp == null) {
             throw new NoSuchProviderException();
         }
-
-        String providerId = registrationId;
 
         // build assertion
         StartAssertionOptions startAssertionOptions = StartAssertionOptions.builder()
