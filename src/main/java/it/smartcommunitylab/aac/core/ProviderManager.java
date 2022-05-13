@@ -144,18 +144,18 @@ public class ProviderManager {
             deleteIdentityProvider(realm, providerId);
         } else if (TYPE_ATTRIBUTES.equals(type)) {
             deleteAttributeProvider(realm, providerId);
+        } else {
+            throw new IllegalArgumentException("invalid type");
         }
-
-        throw new IllegalArgumentException("invalid type");
     }
 
     public ConfigurableProvider registerProvider(
             String realm, String type,
             String providerId) throws SystemException, NoSuchRealmException, NoSuchProviderException {
         if (TYPE_IDENTITY.equals(type)) {
-            registerIdentityProvider(realm, providerId);
+            return registerIdentityProvider(realm, providerId);
         } else if (TYPE_ATTRIBUTES.equals(type)) {
-            registerAttributeProvider(realm, providerId);
+            return registerAttributeProvider(realm, providerId);
         }
 
         throw new IllegalArgumentException("invalid type");
@@ -165,9 +165,9 @@ public class ProviderManager {
             String realm, String type,
             String providerId) throws SystemException, NoSuchRealmException, NoSuchProviderException {
         if (TYPE_IDENTITY.equals(type)) {
-            unregisterIdentityProvider(realm, providerId);
+            return unregisterIdentityProvider(realm, providerId);
         } else if (TYPE_ATTRIBUTES.equals(type)) {
-            unregisterAttributeProvider(realm, providerId);
+            return unregisterAttributeProvider(realm, providerId);
         }
 
         throw new IllegalArgumentException("invalid type");

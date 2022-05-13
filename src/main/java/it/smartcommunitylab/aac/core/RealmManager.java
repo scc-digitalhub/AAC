@@ -23,21 +23,30 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.attributes.AttributeSetsManager;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
+import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
+import it.smartcommunitylab.aac.common.NoSuchGroupException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.NoSuchRoleException;
 import it.smartcommunitylab.aac.common.NoSuchServiceException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.Client;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.dto.CustomizationBean;
+import it.smartcommunitylab.aac.groups.GroupManager;
 import it.smartcommunitylab.aac.model.Developer;
+import it.smartcommunitylab.aac.model.Group;
 import it.smartcommunitylab.aac.model.Realm;
+import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.roles.RealmRoleManager;
 import it.smartcommunitylab.aac.services.ServicesManager;
 
 @Service
@@ -64,6 +73,15 @@ public class RealmManager {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    protected AttributeSetsManager attributeManager;
+
+    @Autowired
+    protected GroupManager groupManager;
+
+    @Autowired
+    private RealmRoleManager roleManager;
 
 //    @Autowired
 //    private SessionManager sessionManager;
@@ -289,7 +307,44 @@ public class RealmManager {
                 }
             }
 
-            // TODO attributes
+            // attributes
+            Collection<AttributeSet> attributeSets = attributeManager.listAttributeSets(slug, false);
+            for (AttributeSet set : attributeSets) {
+                try {
+                    String setId = set.getIdentifier();
+
+                    // remove, should cleanup user association for leftovers
+                    attributeManager.deleteAttributeSet(slug, setId);
+                } catch (NoSuchAttributeSetException e) {
+                    // skip
+                }
+            }
+
+            // groups
+            Collection<Group> groups = groupManager.getGroups(slug);
+            for (Group group : groups) {
+                try {
+                    String groupId = group.getGroupId();
+
+                    // remove, should cleanup user association for leftovers
+                    groupManager.deleteGroup(slug, groupId);
+                } catch (NoSuchGroupException e) {
+                    // skip
+                }
+            }
+
+            // roles
+            Collection<RealmRole> roles = roleManager.getRealmRoles(slug);
+            for (RealmRole role : roles) {
+                try {
+                    String roleId = role.getRoleId();
+
+                    // remove, should cleanup user association for leftovers
+                    roleManager.deleteRealmRole(slug, roleId);
+                } catch (Exception e) {
+                    // skip
+                }
+            }
         }
 
         // remove realm
