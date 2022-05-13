@@ -232,7 +232,7 @@ public class UserDetails implements CredentialsContainer, Serializable {
         }
 
         // we add or replace
-        identities.put(identity.getUserId(), identity);
+        identities.put(identity.getUuid(), identity);
 
 //        // we also check if profile is incomplete
 //        updateProfile(identity.toBasicProfile());
@@ -248,7 +248,7 @@ public class UserDetails implements CredentialsContainer, Serializable {
     }
 
     public void eraseIdentity(UserIdentity identity) {
-        identities.remove(identity.getUserId());
+        identities.remove(identity.getUuid());
     }
 
 //    private void updateProfile(BasicProfile p) {
