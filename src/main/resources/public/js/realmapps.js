@@ -443,24 +443,32 @@ angular.module('aac.controllers.realmapps', [])
                     $scope.services = sMap;
                 })
                 .then(function () {
-                    return RealmRoles.getRoles(slug);
+                    if ($scope.isAdmin) {
+                        return RealmRoles.getRoles(slug);
+                    } else {
+                        return Promise.resolve();
+                    }
                 })
                 .then(function (roles) {
-                    return Promise.all(
-                        roles.map(r => {
-                            return RealmRoles.getApprovals(slug, r.roleId)
-                                .then(function (approvals) {
-                                    return {
-                                        ...r,
-                                        approvals: approvals
-                                    }
-                                });
-                        })
-                    );
+                    if (roles) {
+                        return Promise.all(
+                            roles.map(r => {
+                                return RealmRoles.getApprovals(slug, r.roleId)
+                                    .then(function (approvals) {
+                                        return {
+                                            ...r,
+                                            approvals: approvals
+                                        }
+                                    });
+                            })
+                        );
+                    }
                 })
                 .then(function (roles) {
-                    var rMap = new Map(roles.map(e => [e.role, e]));
-                    $scope.realmRoles = rMap;
+                    if (roles) {
+                        var rMap = new Map(roles.map(e => [e.role, e]));
+                        $scope.realmRoles = rMap;
+                    }
                 })
                 .then(function () {
                     return RoleSpaceData.getMySpaces();
@@ -519,10 +527,9 @@ angular.module('aac.controllers.realmapps', [])
                     return;
                 })
                 .then(function () {
-                    return RealmAppsData.getAudit(slug, clientId);
-                })
-                .then(function (events) {
-                    $scope.audit = events;
+                    if ($scope.isAdmin) {
+                        $scope.loadAudit();
+                    }
                     return;
                 })
                 .then(function () {
@@ -951,6 +958,11 @@ angular.module('aac.controllers.realmapps', [])
 
         $scope.updateAuthorities = function () {
             $('#authoritiesModal').modal('hide');
+            if (!$scope.isAdmin) {
+                Utils.showError('Invalid action: missing authorization');
+                return;
+            }
+
             if ($scope.modAuthorities) {
                 var roles = $scope.modAuthorities;
                 var authorities = [];
@@ -997,6 +1009,12 @@ angular.module('aac.controllers.realmapps', [])
         }
 
         $scope.reloadRoles = function (data) {
+            if (!$scope.isAdmin) {
+                $scope.roles = [];
+                $scope._roles = null;
+                return;
+            }
+
             var realmRoles = $scope.realmRoles;
             var roles = data.map(r => {
 
@@ -1051,6 +1069,11 @@ angular.module('aac.controllers.realmapps', [])
 
         // save roles
         var updateRoles = function (rolesAdd, rolesRemove) {
+            if (!$scope.isAdmin) {
+                Utils.showError('Invalid action: missing authorization');
+                return;
+            }
+
             //map cur realm
             var curRoles = $scope.roles
                 .map(a => a.role);
@@ -1123,6 +1146,11 @@ angular.module('aac.controllers.realmapps', [])
         }
 
         $scope.reloadSpaceRoles = function (data) {
+            if (!$scope.isAdmin) {
+                $scope.spaceRoles = [];
+                return;
+            }
+
             var roles = data;
             if (roles) {
                 roles.sort(function (a, b) {
@@ -1178,6 +1206,11 @@ angular.module('aac.controllers.realmapps', [])
 
 
         var updateSpaceRoles = function (rolesAdd, rolesRemove) {
+            if (!$scope.isAdmin) {
+                Utils.showError('Invalid action: missing authorization');
+                return;
+            }
+
             var curRoles = $scope.spaceRoles.map(a => a.authority);
 
             var rolesToAdd = [];
@@ -1225,6 +1258,11 @@ angular.module('aac.controllers.realmapps', [])
 
 
         $scope.reloadApprovals = function (data, rr) {
+            if (!$scope.isAdmin) {
+                $scope.approvals = [];
+                return;
+            }
+
             var services = $scope.services;
             var realmRoles = $scope.realmRoles;
 
@@ -1284,6 +1322,10 @@ angular.module('aac.controllers.realmapps', [])
         $scope.updatePermissions = function () {
             $('#permissionsModal').modal('hide');
 
+            if (!$scope.isAdmin) {
+                Utils.showError('Invalid action: missing authorization');
+                return;
+            }
 
             if ($scope.modApprovals) {
 
@@ -1331,6 +1373,22 @@ angular.module('aac.controllers.realmapps', [])
             }
         }
 
+        /*
+         * Audit
+         **/
+
+        $scope.loadAudit = function () {
+            RealmAppsData.getAudit(slug, clientId)
+                .then(function (data) {
+                    $scope.reloadAudit(data);
+                })
+                .catch(function (err) {
+                    Utils.showError('Failed to load client audit: ' + err.data.message);
+                });
+        }
+        $scope.reloadAudit = function (data) {
+            $scope.audit = data;
+        }
 
         $scope.testOAuth2ClientApp = function (grantType) {
 
