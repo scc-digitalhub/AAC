@@ -7,16 +7,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -33,12 +31,15 @@ import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.config.ProvidersProperties;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
-import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
-import it.smartcommunitylab.aac.core.provider.ProviderRepository;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
+import it.smartcommunitylab.aac.openid.model.OIDCUserIdentity;
+import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
+import it.smartcommunitylab.aac.openid.provider.OIDCIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProvider;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
@@ -46,22 +47,22 @@ import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
 @Service
 public class OIDCIdentityAuthority implements IdentityAuthority, InitializingBean {
 
-    // TODO make consistent with global config
     public static final String AUTHORITY_URL = "/auth/oidc/";
 
-    // private account repository
+    // oidc account repository
     private final OIDCUserAccountRepository accountRepository;
 
     // system attributes store
     private final AutoJdbcAttributeStore jdbcAttributeStore;
 
-//    // identity providers by id
-//    // TODO move to a registry with cache/db etc
-//    // this class should fetch only configuration from registry, parsed, and handle
-//    // a loading cache to instantiate providers as needed
-//    private final Map<String, OIDCIdentityProvider> providers = new HashMap<>();
+    // resources registry
+    private final SubjectService subjectService;
 
-    private final ProviderRepository<OIDCIdentityProviderConfig> registrationRepository;
+    // configuration provider
+    private OIDCIdentityConfigurationProvider configProvider;
+
+    // identity provider configs by id
+    private final ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository;
 
     // loading cache for idps
     private final LoadingCache<String, OIDCIdentityProvider> providers = CacheBuilder.newBuilder()
@@ -80,9 +81,8 @@ public class OIDCIdentityAuthority implements IdentityAuthority, InitializingBea
 
                     OIDCIdentityProvider idp = new OIDCIdentityProvider(
                             getAuthorityId(), id,
-                            accountRepository, attributeStore,
-                            config,
-                            config.getRealm());
+                            accountRepository, attributeStore, subjectService,
+                            config, config.getRealm());
 
                     idp.setExecutionService(executionService);
                     return idp;
@@ -94,6 +94,7 @@ public class OIDCIdentityAuthority implements IdentityAuthority, InitializingBea
     private final OIDCClientRegistrationRepository clientRegistrationRepository;
 
     // configuration templates
+    // TODO drop templates, add as dedicated authorities
     private ProvidersProperties providerProperties;
     private final Map<String, OIDCIdentityProviderConfig> templates = new HashMap<>();
 
@@ -102,33 +103,25 @@ public class OIDCIdentityAuthority implements IdentityAuthority, InitializingBea
 
     public OIDCIdentityAuthority(
             OIDCUserAccountRepository accountRepository,
-            AutoJdbcAttributeStore jdbcAttributeStore,
-            ProviderRepository<OIDCIdentityProviderConfig> registrationRepository,
-            OIDCClientRegistrationRepository clientRegistrationRepository) {
-
+            AutoJdbcAttributeStore jdbcAttributeStore, SubjectService subjectService,
+            ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository,
+            @Qualifier("oidcClientRegistrationRepository") OIDCClientRegistrationRepository clientRegistrationRepository) {
         Assert.notNull(accountRepository, "account repository is mandatory");
         Assert.notNull(jdbcAttributeStore, "attribute store is mandatory");
+        Assert.notNull(subjectService, "subject service is mandatory");
         Assert.notNull(registrationRepository, "provider registration repository is mandatory");
         Assert.notNull(clientRegistrationRepository, "client registration repository is mandatory");
 
         this.accountRepository = accountRepository;
         this.jdbcAttributeStore = jdbcAttributeStore;
+        this.subjectService = subjectService;
         this.registrationRepository = registrationRepository;
         this.clientRegistrationRepository = clientRegistrationRepository;
-//
-//        // global client registration repository to be used by global filters
-//        clientRegistrationRepository = new OIDCClientRegistrationRepository();
-////        oauth2ClientService = new InMemoryOAuth2AuthorizedClientService(clientRegistrationRepository);
-//        authorizationRequestRepository = new HttpSessionOAuth2AuthorizationRequestRepository();
-//
-//        // oauth2 filters
-//        redirectFilter = new OAuth2AuthorizationRequestRedirectFilter(clientRegistrationRepository, BASE_URL);
-//        redirectFilter.setAuthorizationRequestRepository(authorizationRequestRepository);
-//
-//        // our login filter leverages extendedAuth manager to handle multi-realm
-//        loginFilter = new OIDCLoginAuthenticationFilter(clientRegistrationRepository);
-//        loginFilter.setAuthorizationRequestRepository(authorizationRequestRepository);
-//        loginFilter.setAuthenticationManager(authManager);
+    }
+
+    @Autowired
+    public void setConfigProvider(OIDCIdentityConfigurationProvider configProvider) {
+        this.configProvider = configProvider;
     }
 
     @Autowired
@@ -143,6 +136,8 @@ public class OIDCIdentityAuthority implements IdentityAuthority, InitializingBea
 
     @Override
     public void afterPropertiesSet() throws Exception {
+        Assert.notNull(configProvider, "config provider is mandatory");
+
         // build templates
         if (providerProperties != null && providerProperties.getTemplates() != null) {
             List<OIDCIdentityProviderConfigMap> templateConfigs = providerProperties.getTemplates().getOidc();
@@ -185,25 +180,26 @@ public class OIDCIdentityAuthority implements IdentityAuthority, InitializingBea
     }
 
     @Override
-    public List<IdentityProvider> getIdentityProviders(String realm) {
+    public List<OIDCIdentityProvider> getIdentityProviders(
+            String realm) {
         // we need to fetch registrations and get idp from cache, with optional load
         Collection<OIDCIdentityProviderConfig> registrations = registrationRepository.findByRealm(realm);
         return registrations.stream().map(r -> getIdentityProvider(r.getProvider()))
                 .filter(p -> (p != null)).collect(Collectors.toList());
     }
 
-    @Override
-    public String getUserProviderId(String userId) {
-        // unpack id
-        return extractProviderId(userId);
-    }
-
-    @Override
-    public OIDCIdentityProvider getUserIdentityProvider(String userId) {
-        // unpack id
-        String providerId = extractProviderId(userId);
-        return getIdentityProvider(providerId);
-    }
+//    @Override
+//    public String getUserProviderId(String userId) {
+//        // unpack id
+//        return extractProviderId(userId);
+//    }
+//
+//    @Override
+//    public OIDCIdentityProvider getUserIdentityProvider(String userId) {
+//        // unpack id
+//        String providerId = extractProviderId(userId);
+//        return getIdentityProvider(providerId);
+//    }
 
     @Override
     public OIDCIdentityProvider registerIdentityProvider(ConfigurableIdentityProvider cp) {
@@ -222,7 +218,7 @@ public class OIDCIdentityAuthority implements IdentityAuthority, InitializingBea
             }
 
             try {
-                OIDCIdentityProviderConfig providerConfig = OIDCIdentityProviderConfig.fromConfigurableProvider(cp);
+                OIDCIdentityProviderConfig providerConfig = configProvider.getConfig(cp);
 
                 // build registration, will ensure configuration is valid *before* registering
                 // the provider in repositories
@@ -274,18 +270,20 @@ public class OIDCIdentityAuthority implements IdentityAuthority, InitializingBea
     }
 
     @Override
-    public IdentityService getIdentityService(String providerId) {
+    public IdentityService<OIDCUserIdentity, OIDCUserAccount> getIdentityService(
+            String providerId) {
         return null;
     }
 
     @Override
-    public List<IdentityService> getIdentityServices(String realm) {
+    public List<IdentityService<OIDCUserIdentity, OIDCUserAccount>> getIdentityServices(
+            String realm) {
         return Collections.emptyList();
     }
 
     @Override
     public Collection<ConfigurableIdentityProvider> getConfigurableProviderTemplates() {
-        return templates.values().stream().map(c -> OIDCIdentityProviderConfig.toConfigurableProvider(c))
+        return templates.values().stream().map(c -> c.toConfigurableProvider())
                 .collect(Collectors.toList());
     }
 
@@ -293,7 +291,7 @@ public class OIDCIdentityAuthority implements IdentityAuthority, InitializingBea
     public ConfigurableIdentityProvider getConfigurableProviderTemplate(String templateId)
             throws NoSuchProviderException {
         if (templates.containsKey(templateId)) {
-            return OIDCIdentityProviderConfig.toConfigurableProvider(templates.get(templateId));
+            return templates.get(templateId).toConfigurableProvider();
         }
 
         throw new NoSuchProviderException("no templates available");
@@ -313,30 +311,6 @@ public class OIDCIdentityAuthority implements IdentityAuthority, InitializingBea
         }
 
         return store;
-    }
-
-    private String extractProviderId(String userId) throws IllegalArgumentException {
-        if (!StringUtils.hasText(userId)) {
-            throw new IllegalArgumentException("empty or null id");
-        }
-
-        String[] s = userId.split(Pattern.quote("|"));
-
-        if (s.length != 3) {
-            throw new IllegalArgumentException("invalid resource id");
-        }
-
-        // check match
-        if (!getAuthorityId().equals(s[0])) {
-            throw new IllegalArgumentException("authority mismatch");
-        }
-
-        if (!StringUtils.hasText(s[1])) {
-            throw new IllegalArgumentException("empty provider id");
-        }
-
-        return s[1];
-
     }
 
 }

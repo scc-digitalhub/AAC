@@ -1,81 +1,137 @@
 package it.smartcommunitylab.aac.spid.auth;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.core.base.AbstractAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.spid.provider.SpidIdentityProvider;
 
-public class SpidAuthenticatedPrincipal implements UserAuthenticatedPrincipal {
+public class SpidAuthenticatedPrincipal extends AbstractAuthenticatedPrincipal {
 
     private static final long serialVersionUID = SystemKeys.AAC_SPID_SERIAL_VERSION;
 
-    private final String provider;
-    private final String realm;
-
+    // subject identifier from external provider is local id
+    private final String subjectId;
     // spid upstream idp
-    private final String idp;
-    // transient id
-    private final String userId;
-    // unique id
+    private String idp;
+    // spidCode identifier (when available)
     private String spidCode;
 
-    private String name;
+    private String username;
+
+    private String uuid;
+
+    // link attributes
+    private String email;
+
     private Saml2AuthenticatedPrincipal principal;
 
-    public SpidAuthenticatedPrincipal(String provider, String realm, String idp, String userId) {
-        Assert.notNull(userId, "userId cannot be null");
-        Assert.notNull(provider, "provider cannot be null");
-        Assert.notNull(realm, "realm cannot be null");
-        Assert.notNull(idp, "idp cannot be null");
+    // locally set attributes, for example after custom mapping
+    private Map<String, Serializable> attributes;
 
-        this.idp = idp;
-        this.userId = userId;
-        this.provider = provider;
-        this.realm = realm;
+    public SpidAuthenticatedPrincipal(String provider, String realm, String userId, String subjectId) {
+        super(SystemKeys.AUTHORITY_SPID, provider, realm, userId);
+        Assert.notNull(subjectId, "subjectId cannot be null");
+        this.subjectId = subjectId;
+    }
+
+    public String getSubjectId() {
+        return subjectId;
     }
 
     @Override
-    public String getUserId() {
-        return userId;
+    public String getId() {
+        return subjectId;
     }
 
-    public String getIdp() {
-        return idp;
+    @Override
+    public String getUuid() {
+        return uuid;
     }
 
     @Override
     public String getName() {
-        return name;
+        return username;
     }
 
     @Override
-    public Map<String, String> getAttributes() {
-        Map<String, String> attributes = new HashMap<>();
-        if (principal != null) {
-            // we implement only first attribute
-            Set<String> keys = principal.getAttributes().keySet();
-
-            // map as string attributes
-            for (String key : keys) {
-                Object o = principal.getFirstAttribute(key);
-                if (o instanceof String) {
-                    attributes.put(key, (String) o);
-                } else {
-                    attributes.put(key, String.valueOf(o));
-                }
-            }
-
-        }
-        return attributes;
+    public String getUsername() {
+        return username;
     }
 
-    public Saml2AuthenticatedPrincipal getPrincipal() {
-        return principal;
+    @Override
+    public String getEmailAddress() {
+        return email;
+    }
+
+    @Override
+    public boolean isEmailVerified() {
+        return StringUtils.hasText(email);
+    }
+
+    @Override
+    public Map<String, Serializable> getAttributes() {
+        Map<String, Serializable> result = new HashMap<>();
+
+        if (principal != null) {
+            // get allowed attributes as strings or list of strings
+            principal.getAttributes().entrySet().stream()
+                    .filter(e -> !ArrayUtils.contains(SpidIdentityProvider.SAML_ATTRIBUTES, e.getKey()))
+                    .filter(e -> (e.getValue() != null && !e.getValue().isEmpty()))
+                    .forEach(e -> {
+                        String key = e.getKey();
+                        // map to String
+                        List<String> values = e.getValue().stream().map(o -> o.toString()).collect(Collectors.toList());
+                        if (values.size() == 1) {
+                            result.put(key, values.get(0));
+                        } else {
+                            result.put(key, new ArrayList<>(values));
+                        }
+                    });
+        }
+
+        if (attributes != null) {
+            // local attributes overwrite saml attributes when set
+            attributes.entrySet().forEach(e -> result.put(e.getKey(), e.getValue()));
+        }
+
+        // make sure these are never overridden
+        result.put("provider", getProvider());
+        result.put("subjectId", subjectId);
+        result.put("id", subjectId);
+
+        if (StringUtils.hasText(spidCode)) {
+            result.put("spidCode", spidCode);
+        }
+        if (StringUtils.hasText(idp)) {
+            result.put("idp", idp);
+        }
+
+        if (StringUtils.hasText(username)) {
+            result.put("username", username);
+        }
+
+        if (StringUtils.hasText(email)) {
+            result.put("email", email);
+            // spid email is always trusted
+            result.put("emailVerified", true);
+        }
+
+        return result;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
     }
 
     public String getSpidCode() {
@@ -86,27 +142,36 @@ public class SpidAuthenticatedPrincipal implements UserAuthenticatedPrincipal {
         this.spidCode = spidCode;
     }
 
+    public String getIdp() {
+        return idp;
+    }
+
+    public void setIdp(String idp) {
+        this.idp = idp;
+    }
+
+    public Saml2AuthenticatedPrincipal getPrincipal() {
+        return principal;
+    }
+
     public void setPrincipal(Saml2AuthenticatedPrincipal principal) {
         this.principal = principal;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
-    @Override
-    public String getAuthority() {
-        return SystemKeys.AUTHORITY_SAML;
+    public void setAttributes(Map<String, Serializable> attributes) {
+        this.attributes = attributes;
     }
 
-    @Override
-    public String getRealm() {
-        return realm;
+    public String getEmail() {
+        return email;
     }
 
-    @Override
-    public String getProvider() {
-        return provider;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
 }

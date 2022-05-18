@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
-import it.smartcommunitylab.aac.core.base.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 
 public class InternalAttributeProviderConfig extends AbstractConfigurableProvider {
 

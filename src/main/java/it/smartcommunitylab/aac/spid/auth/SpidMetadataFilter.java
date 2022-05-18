@@ -18,7 +18,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.Assert;
 import org.springframework.web.filter.OncePerRequestFilter;
-import it.smartcommunitylab.aac.core.provider.ProviderRepository;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.spid.SpidIdentityAuthority;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
 
@@ -34,13 +34,13 @@ public class SpidMetadataFilter extends OncePerRequestFilter {
     private final DefaultRelyingPartyRegistrationResolver registrationResolver;
 
     public SpidMetadataFilter(
-            ProviderRepository<SpidIdentityProviderConfig> registrationRepository,
+            ProviderConfigRepository<SpidIdentityProviderConfig> registrationRepository,
             RelyingPartyRegistrationRepository relyingPartyRegistrationRepository) {
         this(registrationRepository, relyingPartyRegistrationRepository, DEFAULT_FILTER_URI, null);
     }
 
     public SpidMetadataFilter(
-            ProviderRepository<SpidIdentityProviderConfig> registrationRepository,
+            ProviderConfigRepository<SpidIdentityProviderConfig> registrationRepository,
             RelyingPartyRegistrationRepository relyingPartyRegistrationRepository,
             String filterProcessingUrl, AuthenticationEntryPoint authenticationEntryPoint) {
         Assert.notNull(registrationRepository, "provider registration repository cannot be null");

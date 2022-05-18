@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.openid.provider;
 
 import java.io.Serializable;
+import java.text.ParseException;
 import java.util.Collections;
 import java.util.Map;
 
@@ -10,33 +11,24 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.util.StringUtils;
 
+import com.nimbusds.jose.jwk.JWK;
+
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
-import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.base.AbstractIdentityProviderConfig;
+import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.openid.OIDCIdentityAuthority;
 
-public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
-//
-//    public static final String PROVIDER_GOOGLE = "google";
-//    public static final String PROVIDER_FACEBOOK = "facebook";
-//    public static final String PROVIDER_GITHUB = "github";
+public class OIDCIdentityProviderConfig extends AbstractIdentityProviderConfig {
+    private static final long serialVersionUID = SystemKeys.AAC_OIDC_SERIAL_VERSION;
 
     private static final String WELL_KNOWN_CONFIGURATION_OPENID = "/.well-known/openid-configuration";
 
     public static final String DEFAULT_REDIRECT_URL = "{baseUrl}" + OIDCIdentityAuthority.AUTHORITY_URL
             + "{action}/{registrationId}";
 
-    private String name;
-    private String description;
-    private String persistence;
-    private Boolean linkable;
-
     private OIDCIdentityProviderConfigMap configMap;
     private ClientRegistration clientRegistration;
-
-    // hook functions
-    private Map<String, String> hookFunctions;
 
     public OIDCIdentityProviderConfig(String provider, String realm) {
         this(SystemKeys.AUTHORITY_OIDC, provider, realm);
@@ -46,29 +38,6 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
         super(authority, provider, realm);
         this.clientRegistration = null;
         this.configMap = new OIDCIdentityProviderConfigMap();
-        this.hookFunctions = Collections.emptyMap();
-
-    }
-
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_IDENTITY;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     public OIDCIdentityProviderConfigMap getConfigMap() {
@@ -77,38 +46,6 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
 
     public void setConfigMap(OIDCIdentityProviderConfigMap configMap) {
         this.configMap = configMap;
-    }
-
-    public String getPersistence() {
-        return persistence;
-    }
-
-    public void setPersistence(String persistence) {
-        this.persistence = persistence;
-    }
-
-    public Boolean getLinkable() {
-        return linkable;
-    }
-
-    public void setLinkable(Boolean linkable) {
-        this.linkable = linkable;
-    }
-
-    public boolean isLinkable() {
-        if (linkable != null) {
-            return linkable.booleanValue();
-        }
-
-        return true;
-    }
-
-    public Map<String, String> getHookFunctions() {
-        return hookFunctions;
-    }
-
-    public void setHookFunctions(Map<String, String> hookFunctions) {
-        this.hookFunctions = hookFunctions;
     }
 
     @Override
@@ -179,13 +116,17 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
         }
 
         // set config
-        ClientAuthenticationMethod clientAuthenticationMethod = ClientAuthenticationMethod.BASIC;
+        ClientAuthenticationMethod clientAuthenticationMethod = ClientAuthenticationMethod.CLIENT_SECRET_BASIC;
         if (configMap.getClientAuthenticationMethod() != null) {
             // we support only these methods
             if (AuthenticationMethod.CLIENT_SECRET_POST == configMap.getClientAuthenticationMethod()) {
-                clientAuthenticationMethod = ClientAuthenticationMethod.POST;
+                clientAuthenticationMethod = ClientAuthenticationMethod.CLIENT_SECRET_POST;
             } else if (AuthenticationMethod.NONE == configMap.getClientAuthenticationMethod()) {
                 clientAuthenticationMethod = ClientAuthenticationMethod.NONE;
+            } else if (AuthenticationMethod.CLIENT_SECRET_JWT == configMap.getClientAuthenticationMethod()) {
+                clientAuthenticationMethod = ClientAuthenticationMethod.CLIENT_SECRET_JWT;
+            } else if (AuthenticationMethod.PRIVATE_KEY_JWT == configMap.getClientAuthenticationMethod()) {
+                clientAuthenticationMethod = ClientAuthenticationMethod.PRIVATE_KEY_JWT;
             }
         }
         builder.clientAuthenticationMethod(clientAuthenticationMethod);
@@ -260,25 +201,51 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
 //        return defaultValue;
 //    }
 
+    public boolean requireEmailAddress() {
+        return configMap.getRequireEmailAddress() != null ? configMap.getRequireEmailAddress().booleanValue() : false;
+    }
+
+    public ClientAuthenticationMethod getClientAuthenticationMethod() {
+        // TODO Auto-generated method stub
+        return getClientRegistration().getClientAuthenticationMethod();
+    }
+
+    public boolean isPkceEnabled() {
+        return configMap.getEnablePkce() != null ? configMap.getEnablePkce().booleanValue() : true;
+    }
+
+    public JWK getClientJWK() {
+        if (!StringUtils.hasText(configMap.getClientJwk())) {
+            return null;
+        }
+
+        // expect a single key as jwk
+        try {
+            return JWK.parse(configMap.getClientJwk());
+        } catch (ParseException e) {
+            return null;
+        }
+    }
+
     /*
      * builders
      */
-    public static ConfigurableIdentityProvider toConfigurableProvider(OIDCIdentityProviderConfig op) {
-        ConfigurableIdentityProvider cp = new ConfigurableIdentityProvider(SystemKeys.AUTHORITY_OIDC, op.getProvider(),
-                op.getRealm());
-        cp.setType(SystemKeys.RESOURCE_IDENTITY);
-        cp.setPersistence(op.getPersistence());
-
-        cp.setName(op.getName());
-        cp.setDescription(op.getDescription());
-        cp.setHookFunctions(op.getHookFunctions());
-
-        cp.setEnabled(true);
-        cp.setLinkable(op.isLinkable());
-        cp.setConfiguration(op.getConfiguration());
-
-        return cp;
-    }
+//    public static ConfigurableIdentityProvider toConfigurableProvider(OIDCIdentityProviderConfig op) {
+//        ConfigurableIdentityProvider cp = new ConfigurableIdentityProvider(SystemKeys.AUTHORITY_OIDC, op.getProvider(),
+//                op.getRealm());
+//        cp.setType(SystemKeys.RESOURCE_IDENTITY);
+//        cp.setPersistence(op.getPersistence());
+//
+//        cp.setName(op.getName());
+//        cp.setDescription(op.getDescription());
+//        cp.setHookFunctions(op.getHookFunctions());
+//
+//        cp.setEnabled(true);
+//        cp.setLinkable(op.isLinkable());
+//        cp.setConfiguration(op.getConfiguration());
+//
+//        return cp;
+//    }
 
     public static OIDCIdentityProviderConfig fromConfigurableProvider(ConfigurableIdentityProvider cp) {
         OIDCIdentityProviderConfig op = new OIDCIdentityProviderConfig(cp.getAuthority(), cp.getProvider(),
@@ -288,12 +255,14 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
 
         op.name = cp.getName();
         op.description = cp.getDescription();
+        op.icon = cp.getIcon();
+        op.displayMode = cp.getDisplayMode();
+
         op.persistence = cp.getPersistence();
         op.linkable = cp.isLinkable();
         op.hookFunctions = (cp.getHookFunctions() != null ? cp.getHookFunctions() : Collections.emptyMap());
 
         return op;
-
     }
 
 }

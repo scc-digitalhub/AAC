@@ -17,6 +17,7 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
 import org.springframework.security.saml2.provider.service.web.DefaultRelyingPartyRegistrationResolver;
+import org.springframework.security.saml2.provider.service.web.RelyingPartyRegistrationResolver;
 import org.springframework.security.saml2.provider.service.web.Saml2AuthenticationTokenConverter;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.WebAttributes;
@@ -33,7 +34,7 @@ import it.smartcommunitylab.aac.core.auth.ProviderWrappedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
-import it.smartcommunitylab.aac.core.provider.ProviderRepository;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.saml.auth.Saml2AuthenticationRequestRepository;
 import it.smartcommunitylab.aac.saml.service.HttpSessionSaml2AuthenticationRequestRepository;
 import it.smartcommunitylab.aac.spid.SpidIdentityAuthority;
@@ -45,7 +46,7 @@ public class SpidWebSsoAuthenticationFilter extends AbstractAuthenticationProces
 
     private final RequestMatcher requestMatcher;
 
-    private final ProviderRepository<SpidIdentityProviderConfig> registrationRepository;
+    private final ProviderConfigRepository<SpidIdentityProviderConfig> registrationRepository;
     private final Saml2AuthenticationTokenConverter authenticationConverter;
 
     private Saml2AuthenticationRequestRepository<Saml2AuthenticationRequestContext> authenticationRequestRepository = new HttpSessionSaml2AuthenticationRequestRepository(
@@ -54,13 +55,13 @@ public class SpidWebSsoAuthenticationFilter extends AbstractAuthenticationProces
     private AuthenticationEntryPoint authenticationEntryPoint;
 
     public SpidWebSsoAuthenticationFilter(
-            ProviderRepository<SpidIdentityProviderConfig> registrationRepository,
+            ProviderConfigRepository<SpidIdentityProviderConfig> registrationRepository,
             RelyingPartyRegistrationRepository relyingPartyRegistrationRepository) {
         this(registrationRepository, relyingPartyRegistrationRepository, DEFAULT_FILTER_URI, null);
     }
 
     public SpidWebSsoAuthenticationFilter(
-            ProviderRepository<SpidIdentityProviderConfig> registrationRepository,
+            ProviderConfigRepository<SpidIdentityProviderConfig> registrationRepository,
             RelyingPartyRegistrationRepository relyingPartyRegistrationRepository,
             String filterProcessingUrl, AuthenticationEntryPoint authenticationEntryPoint) {
         super(filterProcessingUrl);
@@ -80,7 +81,8 @@ public class SpidWebSsoAuthenticationFilter extends AbstractAuthenticationProces
         DefaultRelyingPartyRegistrationResolver registrationResolver = new DefaultRelyingPartyRegistrationResolver(
                 relyingPartyRegistrationRepository);
         // use the default token converter
-        authenticationConverter = new Saml2AuthenticationTokenConverter(registrationResolver);
+        authenticationConverter = new Saml2AuthenticationTokenConverter(
+                (RelyingPartyRegistrationResolver) registrationResolver);
 
         // redirect failed attempts to login
         this.authenticationEntryPoint = new RealmAwareAuthenticationEntryPoint("/login");

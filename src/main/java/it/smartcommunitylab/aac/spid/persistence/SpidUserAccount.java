@@ -1,6 +1,5 @@
 package it.smartcommunitylab.aac.spid.persistence;
 
-import java.io.Serializable;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -19,13 +18,14 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.model.UserAccount;
+import it.smartcommunitylab.aac.core.base.AbstractAccount;
+import it.smartcommunitylab.aac.model.UserStatus;
 
 @Entity
 @IdClass(SpidUserAccountId.class)
 @Table(name = "spid_users", uniqueConstraints = @UniqueConstraint(columnNames = { "realm", "provider_id", "user_id" }))
 @EntityListeners(AuditingEntityListener.class)
-public class SpidUserAccount implements UserAccount, Serializable {
+public class SpidUserAccount extends AbstractAccount {
 
     private static final long serialVersionUID = SystemKeys.AAC_SPID_SERIAL_VERSION;
 
@@ -34,27 +34,48 @@ public class SpidUserAccount implements UserAccount, Serializable {
     @Column(name = "provider_id")
     private String provider;
 
+    // subject identifier from external provider
     @Id
     @NotBlank
-    private String realm;
+    @Column(name = "subject")
+    private String subjectId;
 
-    @Id
+    // unique uuid (subject entity)
     @NotBlank
+    @Column(unique = true)
+    private String uuid;
+
+    // reference to user
+    @NotNull
     @Column(name = "user_id")
     private String userId;
 
-    @NotNull
-    @Column(name = "subject_id")
-    private String subject;
+    @NotBlank
+    private String realm;
 
-    @Column(name = "username")
-    private String username;
-    private String issuer;
+    // login
+    private String status;
 
     // attributes
+    @Column(name = "username")
+    private String username;
+    private String idp;
+
+    @Column(name = "spid_code")
+    private String spidCode;
+
     private String email;
     private String name;
     private String surname;
+
+    @Column(name = "mobile_phone")
+    private String phone;
+
+    @Column(name = "fiscal_number")
+    private String fiscalNumber;
+
+    @Column(name = "iva_code")
+    private String ivaCode;
 
     // audit
     @CreatedDate
@@ -65,14 +86,8 @@ public class SpidUserAccount implements UserAccount, Serializable {
     @Column(name = "last_modified_date")
     private Date modifiedDate;
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_ACCOUNT;
-    }
-
-    @Override
-    public String getAuthority() {
-        return SystemKeys.AUTHORITY_SPID;
+    public SpidUserAccount() {
+        super(SystemKeys.AUTHORITY_SPID, null, null);
     }
 
     @Override
@@ -86,12 +101,18 @@ public class SpidUserAccount implements UserAccount, Serializable {
     }
 
     @Override
-    public String getUserId() {
-        return userId;
+    public String getId() {
+        return subjectId;
     }
 
-    public void setUserId(String id) {
-        userId = id;
+    @Override
+    public String getUuid() {
+        return uuid;
+    }
+
+    @Override
+    public String getUserId() {
+        return userId;
     }
 
     @Override
@@ -104,24 +125,76 @@ public class SpidUserAccount implements UserAccount, Serializable {
         return email;
     }
 
+    @Override
+    public boolean isEmailVerified() {
+        return StringUtils.hasText(email);
+    }
+
+    @Override
+    public boolean isLocked() {
+        // only active users are *not* locked
+        if (status == null || UserStatus.ACTIVE.getValue().equals(status)) {
+            return false;
+        }
+
+        // every other condition locks login
+        return true;
+    }
+
     /*
      * fields
      */
 
-    public String getSubject() {
-        return subject;
+    public String getSubjectId() {
+        return subjectId;
     }
 
-    public void setSubject(String subject) {
-        this.subject = subject;
+    public void setSubjectId(String subjectId) {
+        this.subjectId = subjectId;
     }
 
-    public String getIssuer() {
-        return issuer;
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
     }
 
-    public void setIssuer(String issuer) {
-        this.issuer = issuer;
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getIdp() {
+        return idp;
+    }
+
+    public void setIdp(String idp) {
+        this.idp = idp;
+    }
+
+    public String getSpidCode() {
+        return spidCode;
+    }
+
+    public void setSpidCode(String spidCode) {
+        this.spidCode = spidCode;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public Date getCreateDate() {
@@ -144,6 +217,10 @@ public class SpidUserAccount implements UserAccount, Serializable {
         this.provider = provider;
     }
 
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
     public void setRealm(String realm) {
         this.realm = realm;
     }
@@ -152,33 +229,36 @@ public class SpidUserAccount implements UserAccount, Serializable {
         this.username = username;
     }
 
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public boolean isEmailVerified() {
-        // if email is set we trust it
-        return StringUtils.hasText(email);
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public String getSurname() {
         return surname;
     }
 
     public void setSurname(String surname) {
         this.surname = surname;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getFiscalNumber() {
+        return fiscalNumber;
+    }
+
+    public void setFiscalNumber(String fiscalNumber) {
+        this.fiscalNumber = fiscalNumber;
+    }
+
+    public String getIvaCode() {
+        return ivaCode;
+    }
+
+    public void setIvaCode(String ivaCode) {
+        this.ivaCode = ivaCode;
     }
 
 }

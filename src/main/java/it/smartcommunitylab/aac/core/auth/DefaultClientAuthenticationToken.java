@@ -12,7 +12,7 @@ public abstract class DefaultClientAuthenticationToken extends ClientAuthenticat
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     // client details
-    protected ClientDetails details;
+    protected ClientDetails clientDetails;
 
     // web authentication details
     protected WebAuthenticationDetails webAuthenticationDetails;
@@ -30,11 +30,15 @@ public abstract class DefaultClientAuthenticationToken extends ClientAuthenticat
 
     @Override
     public Object getDetails() {
-        return details;
+        return clientDetails;
     }
 
     public ClientDetails getClient() {
-        return details;
+        return clientDetails;
+    }
+
+    public void setClient(ClientDetails clientDetails) {
+        this.clientDetails = clientDetails;
     }
 
     public String getAuthenticationMethod() {
@@ -50,7 +54,7 @@ public abstract class DefaultClientAuthenticationToken extends ClientAuthenticat
     }
 
     public void setDetails(ClientDetails details) {
-        this.details = details;
+        this.clientDetails = details;
     }
 
     public void setAuthenticationMethod(String authenticationMethod) {

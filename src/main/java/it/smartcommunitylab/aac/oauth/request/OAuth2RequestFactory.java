@@ -27,6 +27,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEObject;
 import com.nimbusds.jose.PlainObject;
+import com.nimbusds.jose.util.JSONObjectUtils;
 import com.nimbusds.jwt.SignedJWT;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -144,7 +145,7 @@ public class OAuth2RequestFactory
             throw new UnsupportedGrantTypeException("Grant type not supported: " + grantType);
         }
         if (authorizationGrantType == PASSWORD) {
-            String username = readParameter(requestParameters, "username", STRING_PATTERN);
+            String username = readParameter(requestParameters, "username", EMAIL_PATTERN);
             String password = requestParameters.get("password");
             Set<String> requestScopes = extractScopes(scopes, clientDetails.getScope(), false);
 
@@ -304,29 +305,29 @@ public class OAuth2RequestFactory
                     throw new InvalidRequestObjectException("request param type unsupported");
                 }
 
-                JSONObject json = jwt.getPayload().toJSONObject();
+                Map<String, Object> json = jwt.getPayload().toJSONObject();
 
                 // values in jwt superseed params
-                if (StringUtils.hasText(json.getAsString("state"))) {
-                    state = readParameter(json.getAsString("state"), SPECIAL_PATTERN);
+                if (StringUtils.hasText(JSONObjectUtils.getString(json, "state"))) {
+                    state = readParameter(JSONObjectUtils.getString(json, "state"), SPECIAL_PATTERN);
                 }
-                if (StringUtils.hasText(json.getAsString("nonce"))) {
-                    nonce = readParameter(json.getAsString("nonce"), SPECIAL_PATTERN);
+                if (StringUtils.hasText(JSONObjectUtils.getString(json, "nonce"))) {
+                    nonce = readParameter(JSONObjectUtils.getString(json, "nonce"), SPECIAL_PATTERN);
                 }
-                if (StringUtils.hasText(json.getAsString("redirect_uri"))) {
-                    redirectUri = readParameter(json.getAsString("redirect_uri"), URI_PATTERN);
+                if (StringUtils.hasText(JSONObjectUtils.getString(json, "redirect_uri"))) {
+                    redirectUri = readParameter(JSONObjectUtils.getString(json, "redirect_uri"), URI_PATTERN);
                 }
-                if (StringUtils.hasText(json.getAsString("response_mode"))) {
-                    responseMode = readParameter(json.getAsString("response_mode"), STRING_PATTERN);
+                if (StringUtils.hasText(JSONObjectUtils.getString(json, "response_mode"))) {
+                    responseMode = readParameter(JSONObjectUtils.getString(json, "response_mode"), STRING_PATTERN);
                 }
-                if (StringUtils.hasText(json.getAsString("resource"))) {
-                    resourceIds = delimitedStringToSet(json.getAsString("resource"));
+                if (StringUtils.hasText(JSONObjectUtils.getString(json, "resource"))) {
+                    resourceIds = delimitedStringToSet(JSONObjectUtils.getString(json, "resource"));
                 }
-                if (StringUtils.hasText(json.getAsString("audience"))) {
-                    audience = delimitedStringToSet(json.getAsString("audience"));
+                if (StringUtils.hasText(JSONObjectUtils.getString(json, "audience"))) {
+                    audience = delimitedStringToSet(JSONObjectUtils.getString(json, "audience"));
                 }
-                if (StringUtils.hasText(json.getAsString("prompt"))) {
-                    prompt = delimitedStringToSet(json.getAsString("prompt"));
+                if (StringUtils.hasText(JSONObjectUtils.getString(json, "prompt"))) {
+                    prompt = delimitedStringToSet(JSONObjectUtils.getString(json, "prompt"));
                 }
 
             } catch (ParseException e) {
@@ -549,6 +550,7 @@ public class OAuth2RequestFactory
 
     public final static String SLUG_PATTERN = SystemKeys.SLUG_PATTERN;
     public final static String STRING_PATTERN = "^[a-zA-Z0-9_:-]+$";
+    public final static String EMAIL_PATTERN = SystemKeys.EMAIL_PATTERN;
     public final static String URI_PATTERN = "^[a-zA-Z0-9._:/-]+$";
     public final static String SPECIAL_PATTERN = "^[a-zA-Z0-9_!=@#$&%():/\\-`.+,/\"]*$";
     public final static String SPACE_STRING_PATTERN = "^[a-zA-Z0-9 _:-]+$";

@@ -18,15 +18,15 @@
       <div class="dropdown-menu">
         <div class="link-list-wrapper">
           <ul class="link-list">
-            <li><a class="list-item" href="" ng-click="internalProviderDlg()"><span>Internal</span></a></li>
+            <li><a class="list-item" href="" ng-click="createProviderDlg('internal')"><span>Internal</span></a></li>
             <li ng-repeat="template in providerTemplates">
               <a class="list-item" href=""
                 ng-click="createProviderDlg(template.authority, template.name)"><span>{{template.name}}</span></a>
             </li>
-            <li><a class="list-item" href="" ng-click="oidcProviderDlg()"><span>OpenID Connect</span></a></li>
-            <li><a class="list-item" href="" ng-click="samlProviderDlg()"><span>SAML</span></a></li>
+            <li><a class="list-item" href="" ng-click="createProviderDlg('oidc')"><span>OpenID Connect</span></a></li>
+            <li><a class="list-item" href="" ng-click="createProviderDlg('saml')"><span>SAML</span></a></li>
             <li><a class="list-item" href="" ng-click="createProviderDlg('spid')"><span>SPID</span></a></li>
-
+            <li><a class="list-item" href="" ng-click="createProviderDlg('apple')">Apple</a></li>
           </ul>
         </div>
       </div>
@@ -173,14 +173,16 @@
                 <div class="dropdown-menu">
                   <div class="link-list-wrapper">
                     <ul class="link-list">
-                      <li><a class="list-item" href="" ng-click="internalProviderDlg()">Internal</a></li>
+                      <li><a class="list-item" href="" ng-click="createProviderDlg('internal')">Internal</a></li>
                       <li ng-repeat="template in providerTemplates">
                         <a class="list-item" href=""
                           ng-click="createProviderDlg(template.authority, template.name)">{{template.name}}</a>
                       </li>
-                      <li><a class="list-item" href="" ng-click="oidcProviderDlg()">OpenID Connect</a></li>
-                      <li><a class="list-item" href="" ng-click="samlProviderDlg()">SAML</a></li>
-
+                      <li><a class="list-item" href="" ng-click="createProviderDlg('oidc')"><span>OpenID
+                            Connect</span></a></li>
+                      <li><a class="list-item" href="" ng-click="createProviderDlg('saml')"><span>SAML</span></a></li>
+                      <li><a class="list-item" href="" ng-click="createProviderDlg('spid')"><span>SPID</span></a></li>
+                      <li><a class="list-item" href="" ng-click="createProviderDlg('apple')">Apple</a></li>
                     </ul>
                   </div>
                 </div>
@@ -197,9 +199,9 @@
 
 
 
-<div ng-include="'./html/realm.providers.internal.modal.html'"></div>
-<div ng-include="'./html/realm.providers.oidc.modal.html'"></div>
-<div ng-include="'./html/realm.providers.saml.modal.html'"></div>
+<div ng-include="'./html/provider/modal.idp.internal.html'"></div>
+<div ng-include="'./html/provider/modal.idp.oidc.html'"></div>
+<div ng-include="'./html/provider/modal.idp.saml.html'"></div>
 
 <div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="deleteProviderConfirm">
   <div class="modal-dialog" role="document">

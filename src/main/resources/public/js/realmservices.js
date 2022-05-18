@@ -363,7 +363,9 @@ angular.module('aac.controllers.realmservices', [])
           return;
         })
         .then(function () {
-          $scope.loadApprovals();
+          if ($scope.isAdmin) {
+            $scope.loadApprovals();
+          }
         })
         .catch(function (err) {
           Utils.showError('Failed to load realm service: ' + err.data.message);
@@ -817,6 +819,11 @@ angular.module('aac.controllers.realmservices', [])
     */
 
     $scope.loadApprovals = function () {
+      if (!$scope.isAdmin) {
+        Utils.showError('Invalid action: missing authorization');
+        return;
+      }
+
       RealmServices.getApprovals(slug, serviceId)
         .then(function (data) {
           $scope.approvals = data;
@@ -850,6 +857,11 @@ angular.module('aac.controllers.realmservices', [])
     }
 
     $scope.saveApproval = function () {
+      if (!$scope.isAdmin) {
+        Utils.showError('Invalid action: missing authorization');
+        return;
+      }
+
       if ($scope.modApproval) {
         RealmServices.addApproval($scope.service.realm, $scope.service.serviceId, $scope.modApproval)
           .then(function () {
@@ -865,6 +877,11 @@ angular.module('aac.controllers.realmservices', [])
     }
 
     $scope.removeApproval = function (approval) {
+      if (!$scope.isAdmin) {
+        Utils.showError('Invalid action: missing authorization');
+        return;
+      }
+
       $scope.doDelete = function () {
         $('#deleteConfirm').modal('hide');
         RealmServices.deleteApproval($scope.service.realm, $scope.service.serviceId, approval)

@@ -16,23 +16,25 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.DataBinder;
+import org.springframework.validation.MapBindingResult;
+import org.springframework.validation.SmartValidator;
 
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.config.AuthoritiesProperties;
 import it.smartcommunitylab.aac.config.ProvidersProperties;
 import it.smartcommunitylab.aac.config.ProvidersProperties.ProviderConfiguration;
-import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
+import it.smartcommunitylab.aac.core.base.AbstractProviderConfig;
+import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
+import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.persistence.IdentityProviderEntity;
-import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
-import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
-import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfigMap;
-import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfigMap;
+import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 
 @Service
 public class IdentityProviderService {
@@ -41,11 +43,17 @@ public class IdentityProviderService {
     @Autowired
     private IdentityProviderEntityService providerService;
 
+    @Autowired
+    private ConfigurationService configService;
+
+    @Autowired
+    private SmartValidator validator;
+
     // keep a local map for system providers since these are not in db
     // key is providerId
     private Map<String, ConfigurableIdentityProvider> systemIdps;
 
-    public IdentityProviderService(ProvidersProperties providers) {
+    public IdentityProviderService(AuthoritiesProperties authoritiesProperties, ProvidersProperties providers) {
         this.systemIdps = new HashMap<>();
         // create system idps
         // these users access administrative contexts, they will have realm="system"
@@ -59,7 +67,7 @@ public class IdentityProviderService {
         logger.debug("configure internal idp for system realm");
         systemIdps.put(internalIdpConfig.getProvider(), internalIdpConfig);
 
-        // process additional from config
+        // system providers
         if (providers != null) {
             // identity providers
             for (ProviderConfiguration providerConfig : providers.getIdentity()) {
@@ -163,7 +171,8 @@ public class IdentityProviderService {
     }
 
     public ConfigurableIdentityProvider addProvider(String realm,
-            ConfigurableIdentityProvider provider) throws RegistrationException, SystemException {
+            ConfigurableIdentityProvider provider)
+            throws RegistrationException, SystemException, NoSuchProviderException {
 
         if (SystemKeys.REALM_GLOBAL.equals(realm) || SystemKeys.REALM_SYSTEM.equals(realm)) {
             // we do not persist in db global providers
@@ -248,28 +257,25 @@ public class IdentityProviderService {
             throw new RegistrationException("invalid display mode");
         }
 
-        Map<String, Serializable> configuration = null;
-        if (SystemKeys.RESOURCE_IDENTITY.equals(type)) {
+        // we validate config by converting to specific configMap
+        ConfigurationProvider<? extends ConfigurableProvider, ? extends AbstractProviderConfig, ? extends ConfigurableProperties> configProvider = configService
+                .getProvider(SystemKeys.RESOURCE_IDENTITY, authority);
 
-            // we validate config by converting to specific configMap
-            ConfigurableProperties configurable = null;
-            if (SystemKeys.AUTHORITY_INTERNAL.equals(authority)) {
-                configurable = new InternalIdentityProviderConfigMap();
-            } else if (SystemKeys.AUTHORITY_OIDC.equals(authority)) {
-                configurable = new OIDCIdentityProviderConfigMap();
-            } else if (SystemKeys.AUTHORITY_SAML.equals(authority)) {
-                configurable = new SamlIdentityProviderConfigMap();
-            } else if (SystemKeys.AUTHORITY_SPID.equals(authority)) {
-                configurable = new SpidIdentityProviderConfigMap();
-            }
+        ConfigurableProperties configurable = configProvider.getConfigMap(provider.getConfiguration());
 
-            if (configurable == null) {
-                throw new IllegalArgumentException("invalid configuration");
-            }
-
-            configurable.setConfiguration(provider.getConfiguration());
-            configuration = configurable.getConfiguration();
+        // check with validator
+        DataBinder binder = new DataBinder(configurable);
+        validator.validate(configurable, binder.getBindingResult());
+        if (binder.getBindingResult().hasErrors()) {
+            StringBuilder sb = new StringBuilder();
+            binder.getBindingResult().getFieldErrors().forEach(e -> {
+                sb.append(e.getField()).append(" ").append(e.getDefaultMessage());
+            });
+            String errorMsg = sb.toString();
+            throw new RegistrationException(errorMsg);
         }
+
+        Map<String, Serializable> configuration = configurable.getConfiguration();
 
         // fetch hooks
         Map<String, String> hookFunctions = provider.getHookFunctions();
@@ -345,28 +351,27 @@ public class IdentityProviderService {
         boolean enabled = provider.isEnabled();
         boolean linkable = provider.isLinkable();
 
-        Map<String, Serializable> configuration = null;
-
         String authority = pe.getAuthority();
 
         // we validate config by converting to specific configMap
-        ConfigurableProperties configurable = null;
-        if (SystemKeys.AUTHORITY_INTERNAL.equals(authority)) {
-            configurable = new InternalIdentityProviderConfigMap();
-        } else if (SystemKeys.AUTHORITY_OIDC.equals(authority)) {
-            configurable = new OIDCIdentityProviderConfigMap();
-        } else if (SystemKeys.AUTHORITY_SAML.equals(authority)) {
-            configurable = new SamlIdentityProviderConfigMap();
-        } else if (SystemKeys.AUTHORITY_SPID.equals(authority)) {
-            configurable = new SpidIdentityProviderConfigMap();
+        ConfigurationProvider<? extends ConfigurableProvider, ? extends AbstractProviderConfig, ? extends ConfigurableProperties> configProvider = configService
+                .getProvider(SystemKeys.RESOURCE_IDENTITY, authority);
+
+        ConfigurableProperties configurable = configProvider.getConfigMap(provider.getConfiguration());
+
+        // check with validator
+        DataBinder binder = new DataBinder(configurable);
+        validator.validate(configurable, binder.getBindingResult());
+        if (binder.getBindingResult().hasErrors()) {
+            StringBuilder sb = new StringBuilder();
+            binder.getBindingResult().getFieldErrors().forEach(e -> {
+                sb.append(e.getField()).append(" ").append(e.getDefaultMessage());
+            });
+            String errorMsg = sb.toString();
+            throw new RegistrationException(errorMsg);
         }
 
-        if (configurable == null) {
-            throw new IllegalArgumentException("invalid configuration");
-        }
-
-        configurable.setConfiguration(provider.getConfiguration());
-        configuration = configurable.getConfiguration();
+        Map<String, Serializable> configuration = configurable.getConfiguration();
 
         // fetch hooks
         Map<String, String> hookFunctions = provider.getHookFunctions();
@@ -394,35 +399,24 @@ public class IdentityProviderService {
      */
 
     public ConfigurableProperties getConfigurableProperties(String authority) {
-        if (SystemKeys.AUTHORITY_INTERNAL.equals(authority)) {
-            return new InternalIdentityProviderConfigMap();
-        } else if (SystemKeys.AUTHORITY_OIDC.equals(authority)) {
-            return new OIDCIdentityProviderConfigMap();
-        } else if (SystemKeys.AUTHORITY_SAML.equals(authority)) {
-            return new SamlIdentityProviderConfigMap();
-        } else if (SystemKeys.AUTHORITY_SPID.equals(authority)) {
-            return new SpidIdentityProviderConfigMap();
+        try {
+            ConfigurationProvider<? extends ConfigurableProvider, ? extends AbstractProviderConfig, ? extends ConfigurableProperties> configProvider = configService
+                    .getProvider(SystemKeys.RESOURCE_IDENTITY, authority);
+            return configProvider.getDefaultConfigMap();
+        } catch (NoSuchProviderException e) {
+            throw new IllegalArgumentException("invalid authority");
         }
-
-        throw new IllegalArgumentException("invalid authority");
     }
 
     public JsonSchema getConfigurationSchema(String authority) {
         try {
-            if (SystemKeys.AUTHORITY_INTERNAL.equals(authority)) {
-                return InternalIdentityProviderConfigMap.getConfigurationSchema();
-            } else if (SystemKeys.AUTHORITY_OIDC.equals(authority)) {
-                return OIDCIdentityProviderConfigMap.getConfigurationSchema();
-            } else if (SystemKeys.AUTHORITY_SAML.equals(authority)) {
-                return SamlIdentityProviderConfigMap.getConfigurationSchema();
-            } else if (SystemKeys.AUTHORITY_SPID.equals(authority)) {
-                return SpidIdentityProviderConfigMap.getConfigurationSchema();
-            }
-        } catch (JsonMappingException e) {
-            return null;
+            ConfigurationProvider<? extends ConfigurableProvider, ? extends AbstractProviderConfig, ? extends ConfigurableProperties> configProvider = configService
+                    .getProvider(SystemKeys.RESOURCE_IDENTITY, authority);
+            return configProvider.getSchema();
+        } catch (NoSuchProviderException e) {
+            throw new IllegalArgumentException("invalid authority");
         }
 
-        throw new IllegalArgumentException("invalid authority");
     }
 
     /*

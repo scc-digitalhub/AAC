@@ -1,0 +1,65 @@
+<div class="pt-3 mb-5">
+
+    <fieldset>
+        <legend class="mb-4">Apple RP Configuration</legend>
+        <div class="row">
+            <div class="form-group col">
+                <div class="input-group">
+                    <label for="oidcRedirectUrl" class="active">Redirect url</label>
+                    <input type="text" class="form-control" id="oidcRedirectUrl" ng-model="oidcRedirectUrl" readonly>
+                    </span>
+                    <div class="input-group-append">
+                        <button class="btn btn-primary btn-sm  text-right" ng-click="copyText(oidcRedirectUrl)">
+                            <svg class="icon icon-sm icon-white">
+                                <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+    <fieldset>
+        <legend class="mb-4">Apple IdP Configuration</legend>
+        <div class="form-group col ">
+            <label for="clientId">Client ID*</label>
+            <input type="text" required name="clientId" class="form-control form-control-sm" id="clientId"
+                ng-model="idp.configuration.clientId">
+        </div>
+        <div class="form-group col ">
+            <label for="teamId">Team ID*</label>
+            <input type="text" required name="teamId" class="form-control form-control-sm" id="teamId"
+                ng-model="idp.configuration.teamId">
+        </div>
+        <div class="form-group col ">
+            <label for="keyId">Key ID*</label>
+            <input type="text" required name="keyId" class="form-control form-control-sm" id="keyId"
+                ng-model="idp.configuration.keyId">
+        </div>
+        <div class="form-group col ">
+            <label for="privateKey">Client Private Key (PEM)</label>
+            <textarea class="text-monospace" rows="5" name="privateKey" id="clientJwk"
+                ng-model="idp.configuration.privateKey"></textarea>
+        </div>
+    </fieldset>
+    <fieldset>
+        <legend class="mb-4">User attributes</legend>
+        <div class="row">
+            <div class="form-group col-md-6">
+                <div class="form-check form-check-inline"
+                    ng-click="idp.configuration.askEmailScope = !idp.configuration.askEmailScope">
+                    <input class="form-check-input" type="checkbox" ng-model="idp.configuration.askEmailScope">
+                    <label>Email</label>
+                </div>
+            </div>
+            <div class="form-group col-md-6">
+                <div class="form-check form-check-inline"
+                    ng-click="idp.configuration.askNameScope = !idp.configuration.askNameScope">
+                    <input class="form-check-input" type="checkbox" ng-model="idp.configuration.askNameScope">
+                    <label>Full name</label>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+
+</div>

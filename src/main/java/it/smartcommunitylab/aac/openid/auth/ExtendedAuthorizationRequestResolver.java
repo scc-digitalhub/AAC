@@ -11,17 +11,17 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequ
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.core.provider.ProviderRepository;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.oauth.model.PromptMode;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
 
 public class ExtendedAuthorizationRequestResolver implements OAuth2AuthorizationRequestResolver {
 
-    private final ProviderRepository<OIDCIdentityProviderConfig> registrationRepository;
+    private final ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository;
     private final OAuth2AuthorizationRequestResolver resolver;
 
     public ExtendedAuthorizationRequestResolver(OAuth2AuthorizationRequestResolver resolver,
-            ProviderRepository<OIDCIdentityProviderConfig> registrationRepository) {
+            ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository) {
         this.resolver = resolver;
         this.registrationRepository = registrationRepository;
     }

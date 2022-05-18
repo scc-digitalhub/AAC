@@ -1,6 +1,5 @@
 package it.smartcommunitylab.aac.openid.persistence;
 
-import java.io.Serializable;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -9,7 +8,6 @@ import javax.persistence.EntityListeners;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
@@ -19,13 +17,14 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.model.UserAccount;
+import it.smartcommunitylab.aac.core.base.AbstractAccount;
+import it.smartcommunitylab.aac.model.UserStatus;
 
 @Entity
 @IdClass(OIDCUserAccountId.class)
-@Table(name = "oidc_users", uniqueConstraints = @UniqueConstraint(columnNames = { "realm", "provider_id", "user_id" }))
+@Table(name = "oidc_users")
 @EntityListeners(AuditingEntityListener.class)
-public class OIDCUserAccount implements UserAccount, Serializable {
+public class OIDCUserAccount extends AbstractAccount {
 
     private static final long serialVersionUID = SystemKeys.AAC_OIDC_SERIAL_VERSION;
 
@@ -34,24 +33,37 @@ public class OIDCUserAccount implements UserAccount, Serializable {
     @Column(name = "provider_id")
     private String provider;
 
+    // subject identifier from external provider
     @Id
     @NotBlank
-    private String realm;
+    @Column(name = "subject")
+    private String subject;
 
-    @Id
+    // unique uuid (subject entity)
     @NotBlank
+    @Column(unique = true)
+    private String uuid;
+
+    // reference to user
+    @NotNull
     @Column(name = "user_id")
     private String userId;
 
-    @NotNull
-    @Column(name = "subject_id")
-    private String subject;
+    @NotBlank
+    @Column(name = "authority")
+    private String authority;
 
+    @NotBlank
+    private String realm;
+
+    // login
+    private String status;
+
+    // attributes
     @Column(name = "username")
     private String username;
     private String issuer;
 
-    // attributes
     private String email;
     @Column(name = "email_verified")
     private Boolean emailVerified;
@@ -65,6 +77,8 @@ public class OIDCUserAccount implements UserAccount, Serializable {
     private String familyName;
 
     private String lang;
+
+    @Column(name = "picture_uri")
     private String picture;
 
     // audit
@@ -76,19 +90,18 @@ public class OIDCUserAccount implements UserAccount, Serializable {
     @Column(name = "last_modified_date")
     private Date modifiedDate;
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_ACCOUNT;
+    public OIDCUserAccount() {
+        super(SystemKeys.AUTHORITY_OIDC, null, null);
+    }
+
+    public OIDCUserAccount(String authority) {
+        super(authority, null, null);
+        this.authority = authority;
     }
 
     @Override
     public String getAuthority() {
-        return SystemKeys.AUTHORITY_OIDC;
-    }
-
-    @Override
-    public String getRealm() {
-        return realm;
+        return authority;
     }
 
     @Override
@@ -97,12 +110,13 @@ public class OIDCUserAccount implements UserAccount, Serializable {
     }
 
     @Override
-    public String getUserId() {
-        return userId;
+    public String getId() {
+        return subject;
     }
 
-    public void setUserId(String id) {
-        userId = id;
+    @Override
+    public String getUuid() {
+        return uuid;
     }
 
     @Override
@@ -115,9 +129,37 @@ public class OIDCUserAccount implements UserAccount, Serializable {
         return email;
     }
 
+    @Override
+    public boolean isEmailVerified() {
+        return (StringUtils.hasText(email) && emailVerified != null) ? emailVerified.booleanValue() : false;
+    }
+
+    @Override
+    public boolean isLocked() {
+        // only active users are *not* locked
+        if (status == null || UserStatus.ACTIVE.getValue().equals(status)) {
+            return false;
+        }
+
+        // every other condition locks login
+        return true;
+    }
+
     /*
      * fields
      */
+
+    public void setProvider(String provider) {
+        this.provider = provider;
+    }
+
+    public void setAuthority(String authority) {
+        this.authority = authority;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
 
     public String getSubject() {
         return subject;
@@ -127,20 +169,32 @@ public class OIDCUserAccount implements UserAccount, Serializable {
         this.subject = subject;
     }
 
-    public String getEmail() {
-        return email;
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public String getUserId() {
+        return userId;
     }
 
-    public String getName() {
-        return name;
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public String getRealm() {
+        return realm;
+    }
+
+    public void setRealm(String realm) {
+        this.realm = realm;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public String getIssuer() {
@@ -151,6 +205,14 @@ public class OIDCUserAccount implements UserAccount, Serializable {
         this.issuer = issuer;
     }
 
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
     public Boolean getEmailVerified() {
         return emailVerified;
     }
@@ -159,8 +221,12 @@ public class OIDCUserAccount implements UserAccount, Serializable {
         this.emailVerified = emailVerified;
     }
 
-    public boolean isEmailVerified() {
-        return (StringUtils.hasText(email) && emailVerified != null) ? emailVerified.booleanValue() : false;
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getGivenName() {
@@ -187,6 +253,14 @@ public class OIDCUserAccount implements UserAccount, Serializable {
         this.lang = lang;
     }
 
+    public String getPicture() {
+        return picture;
+    }
+
+    public void setPicture(String picture) {
+        this.picture = picture;
+    }
+
     public Date getCreateDate() {
         return createDate;
     }
@@ -202,61 +276,5 @@ public class OIDCUserAccount implements UserAccount, Serializable {
     public void setModifiedDate(Date modifiedDate) {
         this.modifiedDate = modifiedDate;
     }
-
-    public void setProvider(String provider) {
-        this.provider = provider;
-    }
-
-    public void setRealm(String realm) {
-        this.realm = realm;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-////    @Override
-//    public AccountProfile toProfile() {
-//        OIDCAccountProfile profile = new OIDCAccountProfile();
-//        profile.setAuthority(getAuthority());
-//        profile.setProvider(getProvider());
-//        profile.setRealm(getRealm());
-//        profile.setUsername(getUsername());
-//        profile.setUserId(getUserId());
-//
-//        profile.setIssuer(getIssuer());
-//        return profile;
-//    }
-
-    public String getPicture() {
-        return picture;
-    }
-
-    public void setPicture(String picture) {
-        this.picture = picture;
-    }
-
-    @Override
-    public String toString() {
-        return "OIDCUserAccount [subject=" + subject + ", provider=" + provider + ", realm=" + realm
-                + ", username=" + username + ", issuer=" + issuer + ", email=" + email + ", emailVerified="
-                + emailVerified + ", name=" + name + ", givenName=" + givenName + ", familyName=" + familyName
-                + ", lang=" + lang + ", createDate="
-                + createDate + ", modifiedDate=" + modifiedDate + "]";
-    }
-
-//    public class OIDCAccountProfile extends AccountProfile {
-//
-//        private String issuer;
-//
-//        public String getIssuer() {
-//            return issuer;
-//        }
-//
-//        public void setIssuer(String issuer) {
-//            this.issuer = issuer;
-//        }
-//
-//    }
 
 }

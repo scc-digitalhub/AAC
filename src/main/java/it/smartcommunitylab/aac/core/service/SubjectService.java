@@ -58,7 +58,7 @@ public class SubjectService {
         // generate random
         // TODO ensure unique on multi node deploy: replace with idGenerator
         // (given that UUID is derived from timestamp we consider this safe enough)
-        String uuid = UUID.randomUUID().toString();
+        String uuid = UUID.randomUUID().toString().replace("-", "");
 
         String prefix = "";
 

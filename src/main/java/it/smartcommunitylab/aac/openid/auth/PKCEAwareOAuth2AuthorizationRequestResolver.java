@@ -16,7 +16,12 @@ import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequest
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.oauth2.core.endpoint.PkceParameterNames;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.Assert;
+
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
 
 /*
  * Extends spring DefaultOAuth2AuthorizationRequestResolver to always include PKCE exchange
@@ -29,11 +34,19 @@ import org.springframework.util.Assert;
 public class PKCEAwareOAuth2AuthorizationRequestResolver implements OAuth2AuthorizationRequestResolver {
 
     private final OAuth2AuthorizationRequestResolver defaultResolver;
+    private final ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository;
+    private final RequestMatcher requestMatcher;
 
-    public PKCEAwareOAuth2AuthorizationRequestResolver(ClientRegistrationRepository clientRegistrationRepository,
+    public PKCEAwareOAuth2AuthorizationRequestResolver(
+            ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository,
+            ClientRegistrationRepository clientRegistrationRepository,
             String authorizationRequestBaseUri) {
+        Assert.notNull(registrationRepository, "provider registration repository cannot be null");
         Assert.notNull(clientRegistrationRepository, "clientRegistrationRepository cannot be null");
         Assert.hasText(authorizationRequestBaseUri, "authorizationRequestBaseUri cannot be empty");
+
+        this.registrationRepository = registrationRepository;
+        this.requestMatcher = new AntPathRequestMatcher(authorizationRequestBaseUri + "/{registrationId}");
 
         defaultResolver = new DefaultOAuth2AuthorizationRequestResolver(clientRegistrationRepository,
                 authorizationRequestBaseUri);
@@ -44,8 +57,17 @@ public class PKCEAwareOAuth2AuthorizationRequestResolver implements OAuth2Author
         // let default resolver work
         OAuth2AuthorizationRequest request = defaultResolver.resolve(servletRequest);
 
-        // add pkce
-        return extendAuthorizationRequest(request);
+        // resolver providerId and load config
+        String providerId = resolveRegistrationId(servletRequest);
+        if (providerId != null) {
+            OIDCIdentityProviderConfig config = registrationRepository.findByProviderId(providerId);
+            if (config != null && config.isPkceEnabled()) {
+                // add pkce
+                return extendAuthorizationRequest(request);
+            }
+        }
+
+        return request;
     }
 
     @Override
@@ -53,8 +75,21 @@ public class PKCEAwareOAuth2AuthorizationRequestResolver implements OAuth2Author
         // let default resolver work
         OAuth2AuthorizationRequest request = defaultResolver.resolve(servletRequest, clientRegistrationId);
 
-        // add pkce
-        return extendAuthorizationRequest(request);
+        // load config
+        OIDCIdentityProviderConfig config = registrationRepository.findByProviderId(clientRegistrationId);
+        if (config != null && config.isPkceEnabled()) {
+            // add pkce
+            return extendAuthorizationRequest(request);
+        }
+
+        return request;
+    }
+
+    private String resolveRegistrationId(HttpServletRequest request) {
+        if (this.requestMatcher.matches(request)) {
+            return this.requestMatcher.matcher(request).getVariables().get("registrationId");
+        }
+        return null;
     }
 
     private OAuth2AuthorizationRequest extendAuthorizationRequest(OAuth2AuthorizationRequest authRequest) {
@@ -102,4 +137,5 @@ public class PKCEAwareOAuth2AuthorizationRequestResolver implements OAuth2Author
         byte[] digest = md.digest(value.getBytes(StandardCharsets.US_ASCII));
         return Base64.getUrlEncoder().withoutPadding().encodeToString(digest);
     }
+
 }

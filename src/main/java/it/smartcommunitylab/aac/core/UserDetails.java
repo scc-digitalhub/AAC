@@ -139,8 +139,12 @@ public class UserDetails implements CredentialsContainer, Serializable {
     public void eraseCredentials() {
         // clear credentials on every identity
         identities.values().stream()
-                .forEach(i -> i.eraseCredentials());
+                .forEach(i -> {
+                    if (i instanceof CredentialsContainer) {
+                        ((CredentialsContainer) i).eraseCredentials();
+                    }
 
+                });
     }
 
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -228,7 +232,7 @@ public class UserDetails implements CredentialsContainer, Serializable {
         }
 
         // we add or replace
-        identities.put(identity.getUserId(), identity);
+        identities.put(identity.getUuid(), identity);
 
 //        // we also check if profile is incomplete
 //        updateProfile(identity.toBasicProfile());
@@ -244,7 +248,7 @@ public class UserDetails implements CredentialsContainer, Serializable {
     }
 
     public void eraseIdentity(UserIdentity identity) {
-        identities.remove(identity.getUserId());
+        identities.remove(identity.getUuid());
     }
 
 //    private void updateProfile(BasicProfile p) {

@@ -25,7 +25,7 @@ import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
 import net.minidev.json.JSONObject;
 
 @Controller
-@Tag(name= "OpenID Connect Discovery" )
+@Tag(name = "OpenID Connect Discovery")
 public class JWKSetPublishingEndpoint {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -39,7 +39,7 @@ public class JWKSetPublishingEndpoint {
 
     @Operation(summary = "JSON Web Key Set")
     @RequestMapping(method = RequestMethod.GET, value = JWKS_URL, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<JSONObject> getJwks() {
+    public ResponseEntity<Map<String, Object>> getJwks() {
 
         // map from key id to key
         Map<String, JWK> keys = jwtService.getAllPublicKeys();

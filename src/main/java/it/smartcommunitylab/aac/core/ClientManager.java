@@ -9,7 +9,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -28,7 +27,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.Config;
@@ -37,9 +35,9 @@ import it.smartcommunitylab.aac.audit.store.AuditEventStore;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
-import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.Client;
 import it.smartcommunitylab.aac.core.model.ClientCredentials;
+import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.persistence.ClientEntity;
 import it.smartcommunitylab.aac.core.service.ClientEntityService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderService;
@@ -49,7 +47,6 @@ import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.SpaceRole;
-import it.smartcommunitylab.aac.oauth.model.ClientSecret;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientAppService;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientService;
 import it.smartcommunitylab.aac.oauth.store.ExtTokenStore;
@@ -65,7 +62,7 @@ import it.smartcommunitylab.aac.scope.ScopeRegistry;
 public class ClientManager {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private static ObjectMapper mapper = new ObjectMapper();
+//    private static ObjectMapper mapper = new ObjectMapper();
 
     @Autowired
     private ClientEntityService clientService;
@@ -438,9 +435,8 @@ public class ClientManager {
     /*
      * Client Credentials via service
      */
-
     @Transactional(readOnly = true)
-    public ClientCredentials getClientCredentials(String realm, String clientId)
+    public Collection<ClientCredentials> getClientCredentials(String realm, String clientId)
             throws NoSuchClientException, NoSuchRealmException {
         logger.debug("get credentials for client " + String.valueOf(clientId) + " for realm " + realm);
 
@@ -467,10 +463,39 @@ public class ClientManager {
         throw new IllegalArgumentException("invalid client type");
     }
 
-    @Transactional(readOnly = false)
-    public ClientCredentials resetClientCredentials(String realm, String clientId)
+    @Transactional(readOnly = true)
+    public ClientCredentials getClientCredentials(String realm, String clientId, String credentialsId)
             throws NoSuchClientException, NoSuchRealmException {
-        logger.debug("reset credentials for client " + String.valueOf(clientId) + " for realm " + realm);
+        logger.debug("get credentials for client " + String.valueOf(clientId) + " for realm " + realm);
+
+        Realm r = realmService.getRealm(realm);
+
+        // get type by loading base client
+        // TODO optimize to avoid db fetch
+        ClientEntity entity = findClient(clientId);
+        if (entity == null) {
+            throw new NoSuchClientException();
+        }
+
+        // check realm match
+        if (!entity.getRealm().equals(r.getSlug())) {
+            throw new AccessDeniedException("realm mismatch");
+        }
+
+        String type = entity.getType();
+
+        if (SystemKeys.CLIENT_TYPE_OAUTH2.equals(type)) {
+            return oauthClientService.getClientCredentials(clientId, credentialsId);
+        }
+
+        throw new IllegalArgumentException("invalid client type");
+    }
+
+    @Transactional(readOnly = false)
+    public ClientCredentials resetClientCredentials(String realm, String clientId, String credentialsId)
+            throws NoSuchClientException, NoSuchRealmException {
+        logger.debug("reset credentials " + String.valueOf(credentialsId) + " for client " + String.valueOf(clientId)
+                + " for realm " + realm);
 
         Realm r = realmService.getRealm(realm);
 
@@ -489,16 +514,47 @@ public class ClientManager {
         String type = entity.getType();
 
         if (SystemKeys.CLIENT_TYPE_OAUTH2.equals(type)) {
-            return oauthClientService.resetClientCredentials(clientId);
+            return oauthClientService.resetClientCredentials(clientId, credentialsId);
         }
 
         throw new IllegalArgumentException("invalid client type");
     }
 
     @Transactional(readOnly = false)
-    public ClientCredentials setClientCredentials(String realm, String clientId, Map<String, Object> credentials)
+    public void removeClientCredentials(String realm, String clientId, String credentialsId)
             throws NoSuchClientException, NoSuchRealmException {
-        logger.debug("set credentials for client " + String.valueOf(clientId) + " for realm " + realm);
+        logger.debug("remove credentials " + String.valueOf(credentialsId) + " for client " + String.valueOf(clientId)
+                + " for realm " + realm);
+
+        Realm r = realmService.getRealm(realm);
+
+        // get type by loading base client
+        // TODO optimize to avoid db fetch (better in service)
+        ClientEntity entity = findClient(clientId);
+        if (entity == null) {
+            throw new NoSuchClientException();
+        }
+
+        // check realm match
+        if (!entity.getRealm().equals(r.getSlug())) {
+            throw new AccessDeniedException("realm mismatch");
+        }
+
+        String type = entity.getType();
+
+        if (SystemKeys.CLIENT_TYPE_OAUTH2.equals(type)) {
+            oauthClientService.removeClientCredentials(clientId, credentialsId);
+        } else {
+            throw new IllegalArgumentException("invalid client type");
+        }
+    }
+
+    @Transactional(readOnly = false)
+    public ClientCredentials setClientCredentials(String realm, String clientId, String credentialsId,
+            ClientCredentials credentials)
+            throws NoSuchClientException, NoSuchRealmException {
+        logger.debug("set credentials " + String.valueOf(credentialsId) + " for client " + String.valueOf(clientId)
+                + " for realm " + realm);
 
         Realm r = realmService.getRealm(realm);
 
@@ -518,8 +574,7 @@ public class ClientManager {
 
         if (SystemKeys.CLIENT_TYPE_OAUTH2.equals(type)) {
             // convert to credentials
-            ClientSecret secret = mapper.convertValue(credentials, ClientSecret.class);
-            return oauthClientService.setClientCredentials(clientId, secret);
+            return oauthClientService.setClientCredentials(clientId, credentialsId, credentials);
         }
 
         throw new IllegalArgumentException("invalid client type");

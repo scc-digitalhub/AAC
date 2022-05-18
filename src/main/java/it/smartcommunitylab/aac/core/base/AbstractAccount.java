@@ -9,7 +9,7 @@ import it.smartcommunitylab.aac.core.model.UserAccount;
  * all implementations should derive from this
  */
 
-public abstract class AbstractAccount extends AbstractBaseResource implements UserAccount {
+public abstract class AbstractAccount extends AbstractBaseUserResource implements UserAccount {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
@@ -17,8 +17,12 @@ public abstract class AbstractAccount extends AbstractBaseResource implements Us
         super(authority, provider, realm);
     }
 
+    protected AbstractAccount(String authority, String provider, String realm, String userId) {
+        super(authority, provider, realm, userId);
+    }
+
     @Override
-    public String getType() {
+    public final String getType() {
         return SystemKeys.RESOURCE_ACCOUNT;
     }
 

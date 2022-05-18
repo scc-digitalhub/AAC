@@ -8,9 +8,12 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 import it.smartcommunitylab.aac.repository.CustomJpaRepository;
+import it.smartcommunitylab.aac.repository.DetachableJpaRepository;
 
 @Repository
-public interface UserEntityRepository extends CustomJpaRepository<UserEntity, Long>, JpaSpecificationExecutor<UserEntity> {
+public interface UserEntityRepository
+        extends CustomJpaRepository<UserEntity, Long>,
+        JpaSpecificationExecutor<UserEntity> {
 
     UserEntity findByUuid(String uuid);
 

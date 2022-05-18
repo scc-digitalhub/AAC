@@ -1,5 +1,7 @@
 package it.smartcommunitylab.aac.core.base;
 
+import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
+
 public abstract class AbstractConfigurableProvider extends AbstractProvider implements ConfigurableProperties {
 
     protected AbstractConfigurableProvider(String authority, String provider, String realm) {

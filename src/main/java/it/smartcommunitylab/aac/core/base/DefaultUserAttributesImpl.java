@@ -17,38 +17,26 @@ public class DefaultUserAttributesImpl extends BaseAttributes {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
-    private final String userId;
     private Set<Attribute> attributes;
 
+    private String uuid;
     private String name;
     private String description;
 
     public DefaultUserAttributesImpl(String authority, String provider, String realm, String userId,
             String identifier) {
-        super(authority, provider, realm, identifier);
-        this.userId = userId;
+        super(authority, provider, realm, userId, identifier);
         this.attributes = new HashSet<>();
     }
 
     public DefaultUserAttributesImpl(String authority, String provider, String realm, String userId,
             AttributeSet attributeSet) {
-        super(authority, provider, realm, attributeSet.getIdentifier());
-        this.userId = userId;
+        super(authority, provider, realm, userId, attributeSet.getIdentifier());
         this.attributes = new HashSet<>();
         this.attributes.addAll(attributeSet.getAttributes());
         this.name = attributeSet.getName();
         this.description = attributeSet.getDescription();
 
-    }
-
-    @Override
-    public String getAttributesId() {
-        return exportInternalId(identifier + ":" + userId);
-    }
-
-    @Override
-    public String getUserId() {
-        return userId;
     }
 
     public Collection<Attribute> getAttributes() {
@@ -98,6 +86,14 @@ public class DefaultUserAttributesImpl extends BaseAttributes {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
     }
 
 }

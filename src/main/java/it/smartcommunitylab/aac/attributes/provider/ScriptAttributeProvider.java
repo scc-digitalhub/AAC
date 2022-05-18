@@ -23,13 +23,13 @@ import it.smartcommunitylab.aac.attributes.store.AttributeStore;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
-import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
 import it.smartcommunitylab.aac.core.model.Attribute;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
+import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 
 public class ScriptAttributeProvider extends AbstractProvider implements AttributeProvider {
@@ -94,12 +94,8 @@ public class ScriptAttributeProvider extends AbstractProvider implements Attribu
     }
 
     @Override
-    public ConfigurableProperties getConfiguration() {
-        return providerConfig;
-    }
-
-    @Override
-    public Collection<UserAttributes> convertAttributes(UserAuthenticatedPrincipal principal, String subjectId) {
+    public Collection<UserAttributes> convertPrincipalAttributes(UserAuthenticatedPrincipal principal,
+            String subjectId) {
 
         if (providerConfig.getAttributeSets().isEmpty()) {
             return Collections.emptyList();
@@ -110,7 +106,9 @@ public class ScriptAttributeProvider extends AbstractProvider implements Attribu
         List<UserAttributes> result = new ArrayList<>();
         Map<String, Serializable> principalAttributes = new HashMap<>();
         // get all attributes from principal
-        Map<String, String> attributes = principal.getAttributes();
+        Map<String, String> attributes = principal.getAttributes().entrySet().stream()
+                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().toString()));
+
         // TODO handle all attributes not only strings.
         principalAttributes.putAll(attributes.entrySet().stream()
                 .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue())));
@@ -184,7 +182,7 @@ public class ScriptAttributeProvider extends AbstractProvider implements Attribu
     }
 
     @Override
-    public Collection<UserAttributes> getAttributes(String subjectId) {
+    public Collection<UserAttributes> getUserAttributes(String subjectId) {
         // fetch from store
         Map<String, Serializable> attributes = attributeStore.findAttributes(subjectId);
         if (attributes == null || attributes.isEmpty()) {
@@ -220,7 +218,7 @@ public class ScriptAttributeProvider extends AbstractProvider implements Attribu
     }
 
     @Override
-    public void deleteAttributes(String subjectId) {
+    public void deleteUserAttributes(String subjectId) {
         // cleanup from store
         attributeStore.deleteAttributes(subjectId);
     }

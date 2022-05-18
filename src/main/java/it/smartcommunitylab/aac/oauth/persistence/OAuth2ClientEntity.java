@@ -52,7 +52,7 @@ public class OAuth2ClientEntity {
     // - client_secret_expires_at -> TODO (seconds)
 
     // client details
-    @Column(name = "client_secret", nullable = false)
+    @Column(name = "client_secret", nullable = true)
     private String clientSecret;
 
     @Column(name = "grant_types")
@@ -94,6 +94,7 @@ public class OAuth2ClientEntity {
     @Column(name = "refresh_token_validity")
     private Integer refreshTokenValidity;
 
+    @Lob
     @Column(name = "jwks")
     private String jwks;
 

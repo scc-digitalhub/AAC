@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
+import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 
 public class ConfigurablePropertiesBean implements ConfigurableProperties {
     private Map<String, Serializable> configuration = new HashMap<>();

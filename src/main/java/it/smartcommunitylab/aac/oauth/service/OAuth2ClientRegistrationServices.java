@@ -1,6 +1,5 @@
 package it.smartcommunitylab.aac.oauth.service;
 
-import java.text.ParseException;
 import java.time.Instant;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -12,8 +11,6 @@ import org.springframework.security.crypto.keygen.StringKeyGenerator;
 import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
-import com.nimbusds.jose.jwk.JWKSet;
 
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.core.service.IdentityProviderService;
@@ -118,7 +115,7 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
                 configMap.getIdTokenClaims(), configMap.getFirstParty(),
                 configMap.getAccessTokenValidity(), configMap.getRefreshTokenValidity(),
                 configMap.getIdTokenValidity(),
-                configMap.getJwks(), configMap.getJwksUri(),
+                null, configMap.getJwksUri(),
                 configMap.getAdditionalConfig(),
                 configMap.getAdditionalInformation());
 
@@ -191,7 +188,7 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
                     configMap.getIdTokenClaims(), configMap.getFirstParty(),
                     configMap.getAccessTokenValidity(), configMap.getRefreshTokenValidity(),
                     configMap.getIdTokenValidity(),
-                    configMap.getJwks(), configMap.getJwksUri(),
+                    configMap.getJwksUri(),
                     configMap.getAdditionalConfig(),
                     configMap.getAdditionalInformation());
 
@@ -268,15 +265,15 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
             configMap.setRefreshTokenValidity(reg.getRefreshTokenValiditySeconds());
         }
 
-        if (reg.getJwks() != null) {
-
-            try {
-                JWKSet jwks = JWKSet.parse(reg.getJwks());
-                configMap.setJwks(jwks);
-            } catch (ParseException e) {
-                // ignore invalid jwks
-            }
-        }
+//        if (reg.getJwks() != null) {
+//
+//            try {
+//                JWKSet jwks = JWKSet.parse(reg.getJwks());
+//                configMap.setJwks(jwks.toString(false));
+//            } catch (ParseException e) {
+//                // ignore invalid jwks
+//            }
+//        }
 
         if (reg.getJwksUri() != null) {
             configMap.setJwksUri(reg.getJwksUri());
@@ -370,7 +367,7 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
         reg.setRefreshTokenValiditySeconds(configMap.getRefreshTokenValidity());
 
         // JWT config
-        reg.setJwks(configMap.getJwks() != null ? configMap.getJwks().toString() : null);
+        reg.setJwks(client.getJwks() != null ? client.getJwks() : null);
         reg.setJwksUri(configMap.getJwksUri());
 
         if (configMap.getAdditionalConfig() != null) {

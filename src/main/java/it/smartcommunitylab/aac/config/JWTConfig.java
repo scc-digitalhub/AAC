@@ -41,7 +41,7 @@ import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
  *
  */
 @Configuration
-@Order(3)
+@Order(4)
 public class JWTConfig {
 
     @Value("${jwt.kid.sig}")

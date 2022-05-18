@@ -20,9 +20,11 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
-import it.smartcommunitylab.aac.core.base.ConfigurableAttributeProvider;
-import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
+import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.service.AttributeProviderService;
@@ -112,7 +114,8 @@ public class ProviderManager {
     }
 
     public ConfigurableProvider addProvider(String realm,
-            ConfigurableProvider provider) throws RegistrationException, SystemException, NoSuchRealmException {
+            ConfigurableProvider provider)
+            throws RegistrationException, SystemException, NoSuchRealmException, NoSuchProviderException {
 
         if (provider instanceof ConfigurableIdentityProvider) {
             return addIdentityProvider(realm, (ConfigurableIdentityProvider) provider);
@@ -141,18 +144,18 @@ public class ProviderManager {
             deleteIdentityProvider(realm, providerId);
         } else if (TYPE_ATTRIBUTES.equals(type)) {
             deleteAttributeProvider(realm, providerId);
+        } else {
+            throw new IllegalArgumentException("invalid type");
         }
-
-        throw new IllegalArgumentException("invalid type");
     }
 
     public ConfigurableProvider registerProvider(
             String realm, String type,
             String providerId) throws SystemException, NoSuchRealmException, NoSuchProviderException {
         if (TYPE_IDENTITY.equals(type)) {
-            registerIdentityProvider(realm, providerId);
+            return registerIdentityProvider(realm, providerId);
         } else if (TYPE_ATTRIBUTES.equals(type)) {
-            registerAttributeProvider(realm, providerId);
+            return registerAttributeProvider(realm, providerId);
         }
 
         throw new IllegalArgumentException("invalid type");
@@ -162,9 +165,9 @@ public class ProviderManager {
             String realm, String type,
             String providerId) throws SystemException, NoSuchRealmException, NoSuchProviderException {
         if (TYPE_IDENTITY.equals(type)) {
-            unregisterIdentityProvider(realm, providerId);
+            return unregisterIdentityProvider(realm, providerId);
         } else if (TYPE_ATTRIBUTES.equals(type)) {
-            unregisterAttributeProvider(realm, providerId);
+            return unregisterAttributeProvider(realm, providerId);
         }
 
         throw new IllegalArgumentException("invalid type");
@@ -209,7 +212,8 @@ public class ProviderManager {
     }
 
     public ConfigurableIdentityProvider addIdentityProvider(String realm,
-            ConfigurableIdentityProvider provider) throws RegistrationException, SystemException, NoSuchRealmException {
+            ConfigurableIdentityProvider provider)
+            throws RegistrationException, SystemException, NoSuchRealmException, NoSuchProviderException {
 
         if (SystemKeys.REALM_GLOBAL.equals(realm) || SystemKeys.REALM_SYSTEM.equals(realm)) {
             // we do not persist in db global providers
@@ -281,7 +285,8 @@ public class ProviderManager {
                     ip);
         }
 
-        IdentityProvider idp = authorityManager.registerIdentityProvider(ip);
+        IdentityProvider<? extends UserIdentity> idp = authorityManager
+                .registerIdentityProvider(ip);
         isActive = idp != null;
 
         // TODO fetch registered status?
@@ -528,7 +533,8 @@ public class ProviderManager {
         if (TYPE_IDENTITY.equals(type)) {
             // we support only idp templates
             List<ConfigurableProvider> templates = new ArrayList<>();
-            for (IdentityAuthority ia : authorityManager.listIdentityAuthorities()) {
+            for (IdentityAuthority ia : authorityManager
+                    .listIdentityAuthorities()) {
                 templates.addAll(ia.getConfigurableProviderTemplates());
             }
 
@@ -552,11 +558,20 @@ public class ProviderManager {
      * Configuration schemas
      */
 
+    public ConfigurableProperties getConfigurableProperties(String realm, String type, String authority) {
+        if (TYPE_IDENTITY.equals(type)) {
+            return identityProviderService.getConfigurableProperties(authority);
+        } else if (TYPE_ATTRIBUTES.equals(type)) {
+            // TODO
+            return null;
+        }
+        throw new IllegalArgumentException("invalid provider type");
+    }
+
     public JsonSchema getConfigurationSchema(String realm, String type, String authority) {
         if (TYPE_IDENTITY.equals(type)) {
             return identityProviderService.getConfigurationSchema(authority);
-        }
-        if (TYPE_ATTRIBUTES.equals(type)) {
+        } else if (TYPE_ATTRIBUTES.equals(type)) {
             return attributeProviderService.getConfigurationSchema(authority);
         }
         throw new IllegalArgumentException("invalid provider type");

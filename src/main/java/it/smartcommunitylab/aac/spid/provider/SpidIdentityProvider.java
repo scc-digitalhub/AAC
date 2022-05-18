@@ -11,30 +11,28 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang.ArrayUtils;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
-import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
-import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
+import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserIdentity;
+import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.spid.SpidIdentityAuthority;
-import it.smartcommunitylab.aac.spid.SpidUserIdentity;
+import it.smartcommunitylab.aac.spid.attributes.SpidAttributesMapper;
+import it.smartcommunitylab.aac.spid.attributes.SpidAttributesSet;
 import it.smartcommunitylab.aac.spid.auth.SpidAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.spid.model.SpidAttribute;
+import it.smartcommunitylab.aac.spid.model.SpidUserIdentity;
 import it.smartcommunitylab.aac.spid.persistence.SpidUserAccount;
 import it.smartcommunitylab.aac.spid.persistence.SpidUserAccountRepository;
 
-public class SpidIdentityProvider extends AbstractProvider implements IdentityProvider {
+public class SpidIdentityProvider extends AbstractProvider
+        implements
+        IdentityProvider<SpidUserIdentity> {
 
-    private final SpidUserAccountRepository accountRepository;
-
-    private final SpidIdentityProviderConfig providerConfig;
+    // provider configuration
+    private final SpidIdentityProviderConfig config;
 
     // internal providers
     private final SpidAccountProvider accountProvider;
@@ -42,36 +40,33 @@ public class SpidIdentityProvider extends AbstractProvider implements IdentityPr
     private final SpidAuthenticationProvider authenticationProvider;
     private final SpidSubjectResolver subjectResolver;
 
-    private ScriptExecutionService executionService;
+    // attributes
+    private final SpidAttributesMapper spidMapper;
 
     public SpidIdentityProvider(
             String providerId, String providerName,
-            SpidUserAccountRepository accountRepository,
+            SpidUserAccountRepository accountRepository, SubjectService subjectService,
             SpidIdentityProviderConfig config,
             String realm) {
         super(SystemKeys.AUTHORITY_SPID, providerId, realm);
         Assert.notNull(accountRepository, "account repository is mandatory");
+        Assert.notNull(subjectService, "subject service is mandatory");
         Assert.notNull(config, "provider config is mandatory");
-
-        // internal data repositories
-        this.accountRepository = accountRepository;
 
         // check configuration
         Assert.isTrue(providerId.equals(config.getProvider()),
                 "configuration does not match this provider");
         Assert.isTrue(realm.equals(config.getRealm()), "configuration does not match this provider");
-        this.providerConfig = config;
+        this.config = config;
 
         // build resource providers, we use our providerId to ensure consistency
-        this.accountProvider = new SpidAccountProvider(providerId, accountRepository, config, realm);
-        this.attributeProvider = new SpidAttributeProvider(providerId, accountRepository, config, realm);
+        this.accountProvider = new SpidAccountProvider(providerId, accountRepository, subjectService, config, realm);
+        this.attributeProvider = new SpidAttributeProvider(providerId, config, realm);
         this.authenticationProvider = new SpidAuthenticationProvider(providerId, config, realm);
         this.subjectResolver = new SpidSubjectResolver(providerId, accountRepository, config, realm);
 
-    }
+        this.spidMapper = new SpidAttributesMapper();
 
-    public void setExecutionService(ScriptExecutionService executionService) {
-        this.executionService = executionService;
     }
 
     @Override
@@ -80,22 +75,12 @@ public class SpidIdentityProvider extends AbstractProvider implements IdentityPr
     }
 
     @Override
-    public String getName() {
-        return providerConfig.getName();
+    public SpidIdentityProviderConfig getConfig() {
+        return config;
     }
 
     @Override
-    public String getDescription() {
-        return providerConfig.getDescription();
-    }
-
-    @Override
-    public ConfigurableProperties getConfiguration() {
-        return providerConfig;
-    }
-
-    @Override
-    public ExtendedAuthenticationProvider getAuthenticationProvider() {
+    public SpidAuthenticationProvider getAuthenticationProvider() {
         return authenticationProvider;
     }
 
@@ -116,116 +101,110 @@ public class SpidIdentityProvider extends AbstractProvider implements IdentityPr
 
     @Override
     @Transactional(readOnly = false)
-    public UserIdentity convertIdentity(UserAuthenticatedPrincipal principal, String subjectId)
+    public SpidUserIdentity convertIdentity(UserAuthenticatedPrincipal userPrincipal, String userId)
             throws NoSuchUserException {
         // we expect an instance of our model
-        SpidAuthenticatedPrincipal user = (SpidAuthenticatedPrincipal) principal;
-        // we use internal id for accounts
+        Assert.isInstanceOf(SpidAuthenticatedPrincipal.class, userPrincipal,
+                "principal must be an instance of internal authenticated principal");
+        SpidAuthenticatedPrincipal principal = (SpidAuthenticatedPrincipal) userPrincipal;
+
+        // we use upstream subjectId for accounts
         // NOTE: spid nameId is transient, so each login will result in a new
         // registration, unless provider is configured to use spidCode as userId
-        String userId = parseResourceId(user.getUserId());
-        String realm = getRealm();
-        String provider = getProvider();
-        Map<String, String> attributes = user.getAttributes();
+        String subjectId = principal.getSubjectId();
 
-        if (subjectId == null) {
+        // attributes from provider
+        String username = principal.getUsername();
+        Map<String, Serializable> attributes = principal.getAttributes();
+
+        if (userId == null) {
             // this better exists
             throw new NoSuchUserException();
-
         }
 
-        // TODO handle not persisted configuration
-        //
-        // look in repo or create
-        SpidUserAccount account = accountRepository.findByRealmAndProviderAndUserId(realm, provider, userId);
-
-        if (account == null) {
-
-            account = new SpidUserAccount();
-            account.setSubject(subjectId);
-            account.setUserId(userId);
-            account.setProvider(provider);
-            account.setRealm(realm);
-            account = accountRepository.saveAndFlush(account);
-        } else {
-            // force link
-            // TODO re-evaluate
-            account.setSubject(subjectId);
-
-        }
-
-        String issuer = attributes.get("issuer");
-        if (!StringUtils.hasText(issuer)) {
-            issuer = provider;
-        }
-        account.setIssuer(issuer);
-
-        // get all attributes from principal except message attrs
+        // get all attributes from principal except saml attrs
         // TODO handle all attributes not only strings.
         Map<String, Serializable> principalAttributes = attributes.entrySet().stream()
                 .filter(e -> !ArrayUtils.contains(SAML_ATTRIBUTES, e.getKey()))
                 .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
 
-        // DISABLED custom mapping for SPID
-        // TODO evaluate support
-//        // let hook process custom mapping
-//        if (executionService != null && providerConfig.getHookFunctions() != null
-//                && StringUtils.hasText(providerConfig.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION))) {
-//
-//            try {
-//                // execute script
-//                String functionCode = providerConfig.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION);
-//                Map<String, Serializable> customAttributes = executionService.executeFunction(
-//                        ATTRIBUTE_MAPPING_FUNCTION,
-//                        functionCode, principalAttributes);
-//
-//                // update map
-//                if (customAttributes != null) {
-//                    // replace map
-//                    principalAttributes = customAttributes;
-//
-//                    // TODO handle non string
-//                    attributes = customAttributes.entrySet().stream()
-//                            .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().toString()));
-//                }
-//
-//            } catch (SystemException | InvalidDefinitionException ex) {
-////                logger.error(ex.getMessage());
-//            }
-//
-//        }
+        // TODO evaluate hook custom mapping
+        // re-read attributes as-is, transform to strings
+        // map attributes to spid set and flatten to string
+        AttributeSet spidAttributeSet = spidMapper.mapAttributes(principalAttributes);
+        Map<String, String> spidAttributes = spidAttributeSet.getAttributes()
+                .stream()
+                .collect(Collectors.toMap(
+                        a -> a.getKey(),
+                        a -> a.exportValue()));
+
+        String email = spidAttributes.get(SpidAttributesSet.EMAIL);
+        String phone = spidAttributes.get(SpidAttributesSet.MOBILE_PHONE);
+        String spidCode = spidAttributes.get(SpidAttributesSet.SPID_CODE);
+        String fiscalNumber = spidAttributes.get(SpidAttributesSet.FISCAL_NUMBER);
+        String ivaCode = spidAttributes.get(SpidAttributesSet.IVA_CODE);
+
+        // TODO handle not persisted configuration
+        //
+        // look in repo or create
+        SpidUserAccount account = accountProvider.findAccount(subjectId);
+
+        if (account == null) {
+
+            account = new SpidUserAccount();
+            account.setSubjectId(subjectId);
+            account.setUsername(username);
+            account.setEmail(email);
+            account.setPhone(phone);
+            account.setSpidCode(spidCode);
+            account.setFiscalNumber(fiscalNumber);
+            account.setIvaCode(ivaCode);
+            account = accountProvider.registerAccount(userId, account);
+        }
+
+        // uuid is available for persisted accounts
+        String uuid = account.getUuid();
+        principal.setUuid(uuid);
+
+        // userId is always present, is derived from the same account table
+        String curUserId = account.getUserId();
+
+        if (!curUserId.equals(userId)) {
+//            // force link
+//            // TODO re-evaluate
+//            account.setSubject(subjectId);
+//            account = accountRepository.save(account);
+            throw new IllegalArgumentException("user mismatch");
+        }
+
+        // issuer is idp id
+        String issuer = spidAttributes.get("issuer");
 
         // update account attributes
-        // fetch from principal attributes - exact match only
-        String username = user.getName();
-        String name = attributes.get(SpidAttribute.NAME.getValue());
-        String surname = attributes.get(SpidAttribute.FAMILY_NAME.getValue());
-        String email = attributes.get(SpidAttribute.EMAIL.getValue());
+        String name = spidAttributes.get(SpidAttributesSet.NAME);
+        String surname = spidAttributes.get(SpidAttributesSet.FAMILY_NAME);
 
-        // we override every time
+        // we override these every time
         account.setUsername(username);
+        account.setIdp(issuer);
+        account.setEmail(email);
+        account.setPhone(phone);
+        account.setSpidCode(spidCode);
+        account.setFiscalNumber(fiscalNumber);
+        account.setIvaCode(ivaCode);
         account.setName(name);
         account.setSurname(surname);
-        account.setEmail(email);
 
-        account = accountRepository.saveAndFlush(account);
+        account = accountProvider.updateAccount(subjectId, account);
 
+        // convert attribute sets via provider
         // attributes are not persisted as default policy
         // TODO evaluate an in-memory,per-session attribute store
+        Collection<UserAttributes> identityAttributes = attributeProvider.convertPrincipalAttributes(principal,
+                account);
 
         // build identity
-        // detach account
-        account = accountRepository.detach(account);
-
-        // export userId
-        account.setUserId(exportInternalId(userId));
-
-        // convert attribute sets
-        Collection<UserAttributes> identityAttributes = attributeProvider.convertAttributes(user, subjectId);
-
-        // write custom model
-        SpidUserIdentity identity = new SpidUserIdentity(getProvider(), getRealm(), user);
-        identity.setAccount(account);
+        SpidUserIdentity identity = new SpidUserIdentity(getProvider(), getRealm(), account, principal);
         identity.setAttributes(identityAttributes);
 
         return identity;
@@ -233,27 +212,48 @@ public class SpidIdentityProvider extends AbstractProvider implements IdentityPr
 
     @Override
     @Transactional(readOnly = true)
-    public SpidUserIdentity getIdentity(String subject, String userId) throws NoSuchUserException {
-        return getIdentity(subject, userId, true);
+    public SpidUserIdentity findIdentityByUuid(String uuid) {
+        // lookup a matching account
+        SpidUserAccount account = accountProvider.findAccountByUuid(uuid);
+        if (account == null) {
+            return null;
+        }
+        // build identity without attributes
+        SpidUserIdentity identity = new SpidUserIdentity(getProvider(), getRealm(), account);
+        return identity;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public SpidUserIdentity getIdentity(String subject, String userId, boolean fetchAttributes)
-            throws NoSuchUserException {
-        SpidUserAccount account = accountProvider.getAccount(userId);
-
-        if (!account.getSubject().equals(subject)) {
-            throw new NoSuchUserException();
+    public SpidUserIdentity findIdentity(String subjectId) {
+        // lookup a matching account
+        SpidUserAccount account = accountProvider.findAccount(subjectId);
+        if (account == null) {
+            return null;
         }
+        // build identity without attributes
+        SpidUserIdentity identity = new SpidUserIdentity(getProvider(), getRealm(), account);
+        return identity;
+    }
 
-        // write custom model
-        SpidUserIdentity identity = new SpidUserIdentity(getProvider(), getRealm());
-        identity.setAccount(account);
+    @Override
+    @Transactional(readOnly = true)
+    public SpidUserIdentity getIdentity(String subjectId) throws NoSuchUserException {
+        return getIdentity(subjectId, true);
+    }
 
+    @Override
+    @Transactional(readOnly = true)
+    public SpidUserIdentity getIdentity(String subjectId, boolean fetchAttributes)
+            throws NoSuchUserException {
+        // lookup a matching account
+        SpidUserAccount account = accountProvider.getAccount(subjectId);
+
+        // build identity
+        SpidUserIdentity identity = new SpidUserIdentity(getProvider(), getRealm(), account);
         if (fetchAttributes) {
             // convert attribute sets
-            Collection<UserAttributes> identityAttributes = attributeProvider.getAttributes(userId);
+            Collection<UserAttributes> identityAttributes = attributeProvider.getAccountAttributes(account);
             identity.setAttributes(identityAttributes);
         }
 
@@ -262,27 +262,28 @@ public class SpidIdentityProvider extends AbstractProvider implements IdentityPr
 
     @Override
     @Transactional(readOnly = true)
-    public Collection<SpidUserIdentity> listIdentities(String subject) {
-        return listIdentities(subject, true);
+    public Collection<SpidUserIdentity> listIdentities(String userId) {
+        return listIdentities(userId, true);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Collection<SpidUserIdentity> listIdentities(String subject, boolean fetchAttributes) {
+    public Collection<SpidUserIdentity> listIdentities(String userId, boolean fetchAttributes) {
         // TODO handle not persisted configuration
+        // lookup for matching accounts
+        List<SpidUserAccount> accounts = accountProvider.listAccounts(userId);
+        if (accounts.isEmpty()) {
+            return Collections.emptyList();
+        }
+
         List<SpidUserIdentity> identities = new ArrayList<>();
 
-        Collection<SpidUserAccount> accounts = accountProvider.listAccounts(subject);
-
         for (SpidUserAccount account : accounts) {
-            // write custom model
-            SpidUserIdentity identity = new SpidUserIdentity(getProvider(), getRealm());
-            identity.setAccount(account);
-
+            // build identity
+            SpidUserIdentity identity = new SpidUserIdentity(getProvider(), getRealm(), account);
             if (fetchAttributes) {
                 // convert attribute sets
-                Collection<UserAttributes> identityAttributes = attributeProvider
-                        .getAttributes(account.getUserId());
+                Collection<UserAttributes> identityAttributes = attributeProvider.getAccountAttributes(account);
                 identity.setAttributes(identityAttributes);
             }
 
@@ -290,29 +291,27 @@ public class SpidIdentityProvider extends AbstractProvider implements IdentityPr
         }
 
         return identities;
-
     }
 
     @Override
     @Transactional(readOnly = false)
-    public void deleteIdentity(String subjectId, String userId) throws NoSuchUserException {
-
-        // delete account
-        accountProvider.deleteAccount(userId);
-
+    public void deleteIdentity(String subjectId) throws NoSuchUserException {
         // cleanup attributes
         // attributes are not persisted as default policy
         // TODO evaluate an in-memory,per-session attribute store
+        attributeProvider.deleteAccountAttributes(subjectId);
 
+        // delete account
+        accountProvider.deleteAccount(subjectId);
     }
 
     @Override
     @Transactional(readOnly = false)
-    public void deleteIdentities(String subjectId) {
-        Collection<SpidUserAccount> accounts = accountProvider.listAccounts(subjectId);
+    public void deleteIdentities(String userId) {
+        Collection<SpidUserAccount> accounts = accountProvider.listAccounts(userId);
         for (SpidUserAccount account : accounts) {
             try {
-                deleteIdentity(subjectId, account.getUserId());
+                deleteIdentity(account.getSubjectId());
             } catch (NoSuchUserException e) {
             }
         }
@@ -325,22 +324,15 @@ public class SpidIdentityProvider extends AbstractProvider implements IdentityPr
                 + "authenticate/" + getProvider();
     }
 
-//    @Override
-//    public AuthenticationEntryPoint getAuthenticationEntryPoint() {
-//        // we don't have one
-//        return null;
-//    }
+    @Override
+    public String getName() {
+        return config.getName();
+    }
 
-    public static String[] SAML_ATTRIBUTES = {
-            "subject", "issuer", "issueInstant"
-    };
-
-    public static String[] ACCOUNT_ATTRIBUTES = {
-            "username",
-            "name",
-            "email",
-            "locale"
-    };
+    @Override
+    public String getDescription() {
+        return config.getDescription();
+    }
 
     @Override
     public String getDisplayMode() {
@@ -353,4 +345,14 @@ public class SpidIdentityProvider extends AbstractProvider implements IdentityPr
         return Collections.singletonMap(SystemKeys.ACTION_LOGIN, getAuthenticationUrl());
     }
 
+    public static String[] SAML_ATTRIBUTES = {
+            "subject", "issuer", "issueInstant"
+    };
+
+    public static String[] ACCOUNT_ATTRIBUTES = {
+            "username",
+            "name",
+            "email",
+            "locale"
+    };
 }

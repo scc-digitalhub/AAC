@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
+import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -18,7 +18,7 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
+import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.oauth.model.PromptMode;
 
@@ -32,15 +32,18 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
     private final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
     };
 
-    @NotBlank
     private String clientId;
     private String clientSecret;
+    private String clientJwk;
     private String clientName;
 
     private AuthenticationMethod clientAuthenticationMethod;
+    private Boolean enablePkce;
+
     private String scope;
-    private String userNameAttributeName = "sub";
+    private String userNameAttributeName;
     private Boolean trustEmailAddress;
+    private Boolean requireEmailAddress;
     private Boolean alwaysTrustEmailAddress;
 
     // explicit config
@@ -58,10 +61,12 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
     private Set<PromptMode> promptMode;
 
     public OIDCIdentityProviderConfigMap() {
-        // set default
-        this.scope = "openid,email";
-        this.userNameAttributeName = "sub";
-        this.clientAuthenticationMethod = AuthenticationMethod.CLIENT_SECRET_BASIC;
+//        // set default
+//        this.scope = "openid,email";
+//        this.userNameAttributeName = IdTokenClaimNames.SUB;
+//        this.clientAuthenticationMethod = AuthenticationMethod.CLIENT_SECRET_BASIC;
+//        this.enablePkce = true;
+//        this.trustEmailAddress = true;
     }
 
     public String getClientId() {
@@ -80,6 +85,14 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
         this.clientSecret = clientSecret;
     }
 
+    public String getClientJwk() {
+        return clientJwk;
+    }
+
+    public void setClientJwk(String clientJwk) {
+        this.clientJwk = clientJwk;
+    }
+
     public String getClientName() {
         return clientName;
     }
@@ -94,6 +107,14 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
 
     public void setClientAuthenticationMethod(AuthenticationMethod clientAuthenticationMethod) {
         this.clientAuthenticationMethod = clientAuthenticationMethod;
+    }
+
+    public Boolean getEnablePkce() {
+        return enablePkce;
+    }
+
+    public void setEnablePkce(Boolean enablePkce) {
+        this.enablePkce = enablePkce;
     }
 
     public String getScope() {
@@ -126,6 +147,14 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
 
     public void setAlwaysTrustEmailAddress(Boolean alwaysTrustEmailAddress) {
         this.alwaysTrustEmailAddress = alwaysTrustEmailAddress;
+    }
+
+    public Boolean getRequireEmailAddress() {
+        return requireEmailAddress;
+    }
+
+    public void setRequireEmailAddress(Boolean requireEmailAddress) {
+        this.requireEmailAddress = requireEmailAddress;
     }
 
     public String getAuthorizationUri() {
@@ -205,27 +234,20 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
     public void setConfiguration(Map<String, Serializable> props) {
         // use mapper
         mapper.setSerializationInclusion(Include.NON_EMPTY);
-//        // workaround for clientAuthenticationMethod not having default constructor
-//        ClientAuthenticationMethod method = null;
-//        if (props.containsKey("clientAuthenticationMethod")) {
-//            Object v = props.get("clientAuthenticationMethod");
-//            String name = v instanceof String ? v.toString() : (String) ((Map) v).get("value");
-//            method = new ClientAuthenticationMethod(name);
-//            props.remove("clientAuthenticationMethod");
-//        }
-
         OIDCIdentityProviderConfigMap map = mapper.convertValue(props, OIDCIdentityProviderConfigMap.class);
-//        map.setClientAuthenticationMethod(method);
 
         this.clientId = map.getClientId();
         this.clientSecret = map.getClientSecret();
+        this.clientJwk = map.getClientJwk();
         this.clientName = map.getClientName();
 
         this.clientAuthenticationMethod = map.getClientAuthenticationMethod();
+        this.enablePkce = map.getEnablePkce();
         this.scope = map.getScope();
         this.userNameAttributeName = map.getUserNameAttributeName();
         this.trustEmailAddress = map.getTrustEmailAddress();
         this.alwaysTrustEmailAddress = map.getAlwaysTrustEmailAddress();
+        this.requireEmailAddress = map.getRequireEmailAddress();
 
         // explicit config
         this.authorizationUri = map.getAuthorizationUri();

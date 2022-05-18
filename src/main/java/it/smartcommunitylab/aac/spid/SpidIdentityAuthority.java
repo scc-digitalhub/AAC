@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.InitializingBean;
@@ -15,8 +14,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -28,12 +25,15 @@ import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.config.SpidProperties;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
-import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
-import it.smartcommunitylab.aac.core.provider.ProviderRepository;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository;
+import it.smartcommunitylab.aac.spid.model.SpidUserIdentity;
+import it.smartcommunitylab.aac.spid.persistence.SpidUserAccount;
 import it.smartcommunitylab.aac.spid.persistence.SpidUserAccountRepository;
+import it.smartcommunitylab.aac.spid.provider.SpidIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProvider;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
 import it.smartcommunitylab.aac.spid.service.LocalSpidRegistry;
@@ -42,12 +42,17 @@ import it.smartcommunitylab.aac.spid.service.SpidRegistry;
 @Service
 public class SpidIdentityAuthority implements IdentityAuthority, InitializingBean {
 
-    // TODO make consistent with global config
     public static final String AUTHORITY_URL = "/auth/spid/";
 
     private final SpidUserAccountRepository accountRepository;
 
-    private final ProviderRepository<SpidIdentityProviderConfig> registrationRepository;
+    // resources registry
+    private final SubjectService subjectService;
+
+    // configuration provider
+    private SpidIdentityConfigurationProvider configProvider;
+
+    private final ProviderConfigRepository<SpidIdentityProviderConfig> registrationRepository;
 
     // loading cache for idps
     private final LoadingCache<String, SpidIdentityProvider> providers = CacheBuilder.newBuilder()
@@ -65,7 +70,7 @@ public class SpidIdentityAuthority implements IdentityAuthority, InitializingBea
 
                     SpidIdentityProvider idp = new SpidIdentityProvider(
                             id, config.getName(),
-                            accountRepository,
+                            accountRepository, subjectService,
                             config, config.getRealm());
                     return idp;
 
@@ -82,22 +87,24 @@ public class SpidIdentityAuthority implements IdentityAuthority, InitializingBea
     // execution service for custom attributes mapping
     private ScriptExecutionService executionService;
 
-    @Override
-    public String getAuthorityId() {
-        return SystemKeys.AUTHORITY_SPID;
-    }
-
     public SpidIdentityAuthority(
-            SpidUserAccountRepository accountRepository,
-            ProviderRepository<SpidIdentityProviderConfig> registrationRepository,
+            SpidUserAccountRepository accountRepository, SubjectService subjectService,
+            ProviderConfigRepository<SpidIdentityProviderConfig> registrationRepository,
             @Qualifier("spidRelyingPartyRegistrationRepository") SamlRelyingPartyRegistrationRepository samlRelyingPartyRegistrationRepository) {
         Assert.notNull(accountRepository, "account repository is mandatory");
+        Assert.notNull(subjectService, "subject service is mandatory");
         Assert.notNull(registrationRepository, "provider registration repository is mandatory");
         Assert.notNull(samlRelyingPartyRegistrationRepository, "relayingParty registration repository is mandatory");
 
         this.accountRepository = accountRepository;
+        this.subjectService = subjectService;
         this.registrationRepository = registrationRepository;
         this.relyingPartyRegistrationRepository = samlRelyingPartyRegistrationRepository;
+    }
+
+    @Autowired
+    public void setConfigProvider(SpidIdentityConfigurationProvider configProvider) {
+        this.configProvider = configProvider;
     }
 
     @Autowired
@@ -112,11 +119,18 @@ public class SpidIdentityAuthority implements IdentityAuthority, InitializingBea
 
     @Override
     public void afterPropertiesSet() throws Exception {
+        Assert.notNull(configProvider, "config provider is mandatory");
+
         // initialize registry
         if (spidProperties != null) {
             // we support only local registry for now
             spidRegistry = new LocalSpidRegistry(spidProperties);
         }
+    }
+
+    @Override
+    public String getAuthorityId() {
+        return SystemKeys.AUTHORITY_SPID;
     }
 
     @Override
@@ -137,24 +151,12 @@ public class SpidIdentityAuthority implements IdentityAuthority, InitializingBea
     }
 
     @Override
-    public List<IdentityProvider> getIdentityProviders(String realm) {
+    public List<SpidIdentityProvider> getIdentityProviders(
+            String realm) {
         // we need to fetch registrations and get idp from cache, with optional load
         Collection<SpidIdentityProviderConfig> registrations = registrationRepository.findByRealm(realm);
         return registrations.stream().map(r -> getIdentityProvider(r.getProvider()))
                 .filter(p -> (p != null)).collect(Collectors.toList());
-    }
-
-    @Override
-    public String getUserProviderId(String userId) {
-        // unpack id
-        return extractProviderId(userId);
-    }
-
-    @Override
-    public SpidIdentityProvider getUserIdentityProvider(String userId) {
-        // unpack id
-        String providerId = extractProviderId(userId);
-        return getIdentityProvider(providerId);
     }
 
     @Override
@@ -174,7 +176,7 @@ public class SpidIdentityAuthority implements IdentityAuthority, InitializingBea
             }
 
             try {
-                SpidIdentityProviderConfig providerConfig = SpidIdentityProviderConfig.fromConfigurableProvider(cp);
+                SpidIdentityProviderConfig providerConfig = configProvider.getConfig(cp);
                 providerConfig.setIdps(spidRegistry.getIdentityProviders());
 
                 // build registration, will ensure configuration is valid *before* registering
@@ -232,12 +234,14 @@ public class SpidIdentityAuthority implements IdentityAuthority, InitializingBea
     }
 
     @Override
-    public IdentityService getIdentityService(String providerId) {
+    public IdentityService<SpidUserIdentity, SpidUserAccount> getIdentityService(
+            String providerId) {
         return null;
     }
 
     @Override
-    public List<IdentityService> getIdentityServices(String realm) {
+    public List<IdentityService<SpidUserIdentity, SpidUserAccount>> getIdentityServices(
+            String realm) {
         return Collections.emptyList();
     }
 
@@ -250,33 +254,6 @@ public class SpidIdentityAuthority implements IdentityAuthority, InitializingBea
     public ConfigurableIdentityProvider getConfigurableProviderTemplate(String templateId)
             throws NoSuchProviderException {
         throw new NoSuchProviderException();
-    }
-
-    /*
-     * helpers
-     */
-    private String extractProviderId(String userId) throws IllegalArgumentException {
-        if (!StringUtils.hasText(userId)) {
-            throw new IllegalArgumentException("empty or null id");
-        }
-
-        String[] s = userId.split(Pattern.quote("|"));
-
-        if (s.length != 3) {
-            throw new IllegalArgumentException("invalid resource id");
-        }
-
-        // check match
-        if (!getAuthorityId().equals(s[0])) {
-            throw new IllegalArgumentException("authority mismatch");
-        }
-
-        if (!StringUtils.hasText(s[1])) {
-            throw new IllegalArgumentException("empty provider id");
-        }
-
-        return s[1];
-
     }
 
 }

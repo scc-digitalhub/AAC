@@ -1,7 +1,6 @@
 package it.smartcommunitylab.aac.oauth.client;
 
 import java.io.Serializable;
-import java.text.ParseException;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -11,15 +10,14 @@ import org.springframework.util.StringUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
-import com.nimbusds.jose.jwk.JWKSet;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.BaseClient;
-import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
+import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.persistence.ClientEntity;
 import it.smartcommunitylab.aac.oauth.model.ApplicationType;
 import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
+import it.smartcommunitylab.aac.oauth.model.ClientJwks;
 import it.smartcommunitylab.aac.oauth.model.ClientSecret;
 import it.smartcommunitylab.aac.oauth.model.SubjectType;
 import it.smartcommunitylab.aac.oauth.model.TokenType;
@@ -33,6 +31,9 @@ public class OAuth2Client extends BaseClient implements ConfigurableProperties {
 
     @JsonIgnore
     private ClientSecret clientSecret;
+
+    @JsonIgnore
+    private ClientJwks jwks;
 
 //    private Set<AuthorizationGrantType> authorizedGrantTypes;
 //    private Set<String> redirectUris;
@@ -73,14 +74,10 @@ public class OAuth2Client extends BaseClient implements ConfigurableProperties {
 
     @JsonProperty("clientSecret")
     public void setSecret(String secret) {
-        this.clientSecret = new ClientSecret(secret);
-        this.clientSecret.setClientId(getClientId());
+        this.clientSecret = new ClientSecret(getRealm(), getClientId(), secret);
     }
 
     public ClientSecret getClientSecret() {
-        if (clientSecret != null) {
-            this.clientSecret.setClientId(getClientId());
-        }
         return clientSecret;
     }
 
@@ -88,8 +85,29 @@ public class OAuth2Client extends BaseClient implements ConfigurableProperties {
         if (clientSecret == null) {
             this.clientSecret = null;
         } else {
-            this.clientSecret = new ClientSecret(clientSecret.getClientSecret());
-            this.clientSecret.setClientId(getClientId());
+            this.clientSecret = new ClientSecret(getRealm(), getClientId(), clientSecret.getClientSecret());
+        }
+    }
+
+    @JsonProperty("jwks")
+    public String getJwks() {
+        return (jwks != null ? jwks.getCredentials() : null);
+    }
+
+    @JsonProperty("clientSecret")
+    public void setJwks(String jwks) {
+        this.jwks = new ClientJwks(getRealm(), getClientId(), jwks);
+    }
+
+    public ClientJwks getClientJwks() {
+        return jwks;
+    }
+
+    public void setClientJwks(ClientJwks jwks) {
+        if (jwks == null) {
+            this.jwks = null;
+        } else {
+            this.jwks = new ClientJwks(getRealm(), getClientId(), jwks.getJwks());
         }
     }
 
@@ -218,8 +236,9 @@ public class OAuth2Client extends BaseClient implements ConfigurableProperties {
     @Override
     public Map<String, Serializable> getConfiguration() {
         Map<String, Serializable> map = configMap.getConfiguration();
-        // add secret
+        // add credentials
         map.put("clientSecret", getSecret());
+        map.put("jwks", getJwks());
         return map;
     }
 
@@ -341,8 +360,6 @@ public class OAuth2Client extends BaseClient implements ConfigurableProperties {
         c.setHookUniqueSpaces(client.getHookUniqueSpaces());
 
         // map attributes
-        c.clientSecret = (oauth.getClientSecret() != null ? new ClientSecret(oauth.getClientSecret()) : null);
-
         // oauth2 config map
         c.configMap = new OAuth2ClientConfigMap();
 
@@ -390,11 +407,7 @@ public class OAuth2Client extends BaseClient implements ConfigurableProperties {
 //            jwtConfig.setEncMethod(jwtEncMethod != null ? EncryptionMethod.parse(jwtEncMethod) : null);
 //        }
 
-        try {
-            c.configMap.setJwks(StringUtils.hasText(oauth.getJwks()) ? JWKSet.parse(oauth.getJwks()) : null);
-        } catch (ParseException e) {
-            c.configMap.setJwks(null);
-        }
+//        c.configMap.setJwks(oauth.getJwks());
         c.configMap.setJwksUri(oauth.getJwksUri());
 
         Map<String, Serializable> additionalConfig = oauth.getAdditionalConfiguration();
@@ -441,6 +454,14 @@ public class OAuth2Client extends BaseClient implements ConfigurableProperties {
         if (additionalInfo != null) {
             c.configMap.setAdditionalInformation(OAuth2ClientInfo.convert(additionalInfo));
 //            c.additionalInformation = OAuth2ClientInfo.convert(map);
+        }
+
+        // credentials
+        if (oauth.getClientSecret() != null) {
+            c.setSecret(oauth.getClientSecret());
+        }
+        if (oauth.getJwks() != null) {
+            c.setJwks(oauth.getJwks());
         }
 
         return c;

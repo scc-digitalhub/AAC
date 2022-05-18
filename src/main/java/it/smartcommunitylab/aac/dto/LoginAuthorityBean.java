@@ -1,10 +1,14 @@
 package it.smartcommunitylab.aac.dto;
 
+import java.util.Map;
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
+import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
+import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 
 public class LoginAuthorityBean implements Comparable<LoginAuthorityBean> {
@@ -144,31 +148,38 @@ public class LoginAuthorityBean implements Comparable<LoginAuthorityBean> {
         return name.compareTo(((LoginAuthorityBean) o).name);
     }
 
-    public static LoginAuthorityBean from(IdentityProvider idp) {
+    public static LoginAuthorityBean from(
+            IdentityProvider<? extends UserIdentity> idp) {
         LoginAuthorityBean a = new LoginAuthorityBean(idp.getProvider());
         a.authority = idp.getAuthority();
         a.provider = idp.getProvider();
         a.realm = idp.getRealm();
 
         a.loginUrl = idp.getAuthenticationUrl();
-        if (idp.getActionUrls() != null) {
-            a.registrationUrl = idp.getActionUrls().get(SystemKeys.ACTION_REGISTER);
-            a.resetUrl = idp.getActionUrls().get(SystemKeys.ACTION_RESET);
+        Map<String, String> actionUrls = idp.getActionUrls();
+        if (actionUrls != null) {
+            a.registrationUrl = actionUrls.get(SystemKeys.ACTION_REGISTER);
+            a.resetUrl = actionUrls.get(SystemKeys.ACTION_RESET);
         }
 
         a.name = idp.getName();
-        a.description = idp.getDescription();
+        a.description = StringUtils.hasText(idp.getDescription()) ? idp.getDescription().trim() : null;
+
+        String authority = idp.getAuthority();
         String key = a.name.trim()
                 .replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
-        a.cssClass = "provider-" + key;
+        a.cssClass = "provider-" + authority + " provider-" + key;
         a.icon = "it-key";
+        if (ArrayUtils.contains(ICONS, authority)) {
+            a.icon = "logo-" + authority;
+        }
         if (ArrayUtils.contains(ICONS, key)) {
             a.icon = "logo-" + key;
         }
         a.iconUrl = a.icon.startsWith("logo-") ? "svg/sprite.svg#" + a.icon : "italia/svg/sprite.svg#" + a.icon;
         a.displayMode = idp.getDisplayMode() != null ? idp.getDisplayMode() : SystemKeys.DISPLAY_MODE_BUTTON;
-        a.configuration = idp.getConfiguration();
 
+        a.configuration = idp.getConfig();
         return a;
     }
 

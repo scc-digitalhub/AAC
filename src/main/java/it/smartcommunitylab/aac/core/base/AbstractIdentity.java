@@ -8,7 +8,7 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
  * 
  * all implementations should derive from this
  */
-public abstract class AbstractIdentity extends AbstractBaseResource implements UserIdentity {
+public abstract class AbstractIdentity extends AbstractBaseUserResource implements UserIdentity {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
@@ -16,7 +16,12 @@ public abstract class AbstractIdentity extends AbstractBaseResource implements U
         super(authority, provider, realm);
     }
 
-    public String getType() {
+    protected AbstractIdentity(String authority, String provider, String realm, String userId) {
+        super(authority, provider, realm, userId);
+    }
+
+    @Override
+    public final String getType() {
         return SystemKeys.RESOURCE_IDENTITY;
     }
 

@@ -13,28 +13,22 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.attributes.MapperAttributeAuthority;
-import it.smartcommunitylab.aac.attributes.ScriptAttributeAuthority;
-import it.smartcommunitylab.aac.attributes.WebhookAttributeAuthority;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.authorities.AttributeAuthority;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
-import it.smartcommunitylab.aac.core.base.ConfigurableAttributeProvider;
-import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.model.UserAccount;
+import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.AttributeService;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.service.AttributeProviderService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderService;
-import it.smartcommunitylab.aac.internal.InternalAttributeAuthority;
-import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
-import it.smartcommunitylab.aac.openid.OIDCIdentityAuthority;
-import it.smartcommunitylab.aac.saml.SamlIdentityAuthority;
-import it.smartcommunitylab.aac.spid.SpidIdentityAuthority;
 
 @Service
 public class AuthorityManager implements InitializingBean {
@@ -154,20 +148,24 @@ public class AuthorityManager implements InitializingBean {
      * since config is immutable in authorities
      */
 
-    public IdentityProvider findIdentityProvider(String providerId) {
+    public IdentityProvider<? extends UserIdentity> findIdentityProvider(
+            String providerId) {
         try {
             ConfigurableProvider provider = getProvider(TYPE_IDENTITY, providerId);
 
             // lookup in authority
             IdentityAuthority ia = getIdentityAuthority(provider.getAuthority());
-            return ia.getIdentityProvider(providerId);
+            IdentityProvider<? extends UserIdentity> idp = ia
+                    .getIdentityProvider(providerId);
+            return idp;
         } catch (NoSuchProviderException e) {
             return null;
         }
     }
 
-    public IdentityProvider getIdentityProvider(String providerId) throws NoSuchProviderException {
-        IdentityProvider idp = findIdentityProvider(providerId);
+    public IdentityProvider<? extends UserIdentity> getIdentityProvider(String providerId)
+            throws NoSuchProviderException {
+        IdentityProvider<? extends UserIdentity> idp = findIdentityProvider(providerId);
         if (idp == null) {
             // provider is not active or not existing
             // TODO add dedicated exception?
@@ -178,7 +176,7 @@ public class AuthorityManager implements InitializingBean {
     }
 
     // fast load, skips db lookup, returns null if missing
-    public IdentityProvider fetchIdentityProvider(String authority, String providerId) {
+    public IdentityProvider<? extends UserIdentity> fetchIdentityProvider(String authority, String providerId) {
         // lookup in authority
         IdentityAuthority ia = getIdentityAuthority(authority);
         if (ia == null) {
@@ -191,16 +189,17 @@ public class AuthorityManager implements InitializingBean {
         }
     }
 
-    public Collection<IdentityProvider> getIdentityProviders(String realm) throws NoSuchRealmException {
+    public Collection<IdentityProvider<? extends UserIdentity>> getIdentityProviders(String realm)
+            throws NoSuchRealmException {
         Collection<? extends ConfigurableProvider> providers = listProviders(TYPE_IDENTITY, realm);
 
         // fetch each active provider from authority
-        List<IdentityProvider> idps = new ArrayList<>();
+        List<IdentityProvider<? extends UserIdentity>> idps = new ArrayList<>();
         for (ConfigurableProvider provider : providers) {
             // lookup in authority
             IdentityAuthority ia = getIdentityAuthority(provider.getAuthority());
             try {
-                IdentityProvider idp = ia.getIdentityProvider(provider.getProvider());
+                IdentityProvider<? extends UserIdentity> idp = ia.getIdentityProvider(provider.getProvider());
                 if (idp != null) {
                     idps.add(idp);
                 }
@@ -214,8 +213,8 @@ public class AuthorityManager implements InitializingBean {
     }
 
     // fast load, skips db lookup
-    public Collection<IdentityProvider> fetchIdentityProviders(String realm) {
-        List<IdentityProvider> providers = new ArrayList<>();
+    public Collection<IdentityProvider<? extends UserIdentity>> fetchIdentityProviders(String realm) {
+        List<IdentityProvider<? extends UserIdentity>> providers = new ArrayList<>();
         for (IdentityAuthority ia : listIdentityAuthorities()) {
             providers.addAll(ia.getIdentityProviders(realm));
         }
@@ -225,13 +224,14 @@ public class AuthorityManager implements InitializingBean {
     }
 
     // fast load, skips db lookup
-    public Collection<IdentityProvider> fetchIdentityProviders(String authority, String realm) {
+    public Collection<IdentityProvider<? extends UserIdentity>> fetchIdentityProviders(String authority, String realm) {
+        List<IdentityProvider<? extends UserIdentity>> providers = new ArrayList<>();
         IdentityAuthority ia = getIdentityAuthority(authority);
         if (ia != null) {
-            return ia.getIdentityProviders(realm);
+            providers.addAll(ia.getIdentityProviders(realm));
         }
 
-        return null;
+        return providers;
     }
 
     /*
@@ -241,7 +241,7 @@ public class AuthorityManager implements InitializingBean {
      * users, such as search,update,delete etc
      */
 
-    public IdentityService findIdentityService(String providerId) {
+    public IdentityService<? extends UserIdentity, ? extends UserAccount> findIdentityService(String providerId) {
         try {
             ConfigurableProvider provider = getProvider(TYPE_IDENTITY, providerId);
 
@@ -253,8 +253,9 @@ public class AuthorityManager implements InitializingBean {
         }
     }
 
-    public IdentityService getIdentityService(String providerId) throws NoSuchProviderException {
-        IdentityService idp = findIdentityService(providerId);
+    public IdentityService<? extends UserIdentity, ? extends UserAccount> getIdentityService(String providerId)
+            throws NoSuchProviderException {
+        IdentityService<? extends UserIdentity, ? extends UserAccount> idp = findIdentityService(providerId);
         if (idp == null) {
             // provider is not active or not existing
             // TODO add dedicated exception?
@@ -265,7 +266,8 @@ public class AuthorityManager implements InitializingBean {
     }
 
     // fast load, skips db lookup, returns null if missing
-    public IdentityService fetchIdentityService(String authority, String providerId) {
+    public IdentityService<? extends UserIdentity, ? extends UserAccount> fetchIdentityService(String authority,
+            String providerId) {
         // lookup in authority
         IdentityAuthority ia = getIdentityAuthority(authority);
         if (ia == null) {
@@ -274,15 +276,17 @@ public class AuthorityManager implements InitializingBean {
         return ia.getIdentityService(providerId);
     }
 
-    public Collection<IdentityService> getIdentityServices(String realm) throws NoSuchRealmException {
+    public Collection<IdentityService<? extends UserIdentity, ? extends UserAccount>> getIdentityServices(String realm)
+            throws NoSuchRealmException {
         Collection<? extends ConfigurableProvider> providers = listProviders(TYPE_IDENTITY, realm);
 
         // fetch each active provider from authority
-        List<IdentityService> idps = new ArrayList<>();
+        List<IdentityService<? extends UserIdentity, ? extends UserAccount>> idps = new ArrayList<>();
         for (ConfigurableProvider provider : providers) {
             // lookup in authority
             IdentityAuthority ia = getIdentityAuthority(provider.getAuthority());
-            IdentityService idp = ia.getIdentityService(provider.getProvider());
+            IdentityService<? extends UserIdentity, ? extends UserAccount> idp = ia
+                    .getIdentityService(provider.getProvider());
             if (idp != null) {
                 idps.add(idp);
             }
@@ -292,8 +296,9 @@ public class AuthorityManager implements InitializingBean {
     }
 
     // fast load, skips db lookup
-    public Collection<IdentityService> fetchIdentityServices(String realm) {
-        List<IdentityService> providers = new ArrayList<>();
+    public Collection<IdentityService<? extends UserIdentity, ? extends UserAccount>> fetchIdentityServices(
+            String realm) {
+        List<IdentityService<? extends UserIdentity, ? extends UserAccount>> providers = new ArrayList<>();
         for (IdentityAuthority ia : listIdentityAuthorities()) {
             providers.addAll(ia.getIdentityServices(realm));
         }
@@ -303,13 +308,15 @@ public class AuthorityManager implements InitializingBean {
     }
 
     // fast load, skips db lookup
-    public Collection<IdentityService> fetchIdentityServices(String authority, String realm) {
+    public Collection<IdentityService<? extends UserIdentity, ? extends UserAccount>> fetchIdentityServices(
+            String authority, String realm) {
+        List<IdentityService<? extends UserIdentity, ? extends UserAccount>> providers = new ArrayList<>();
         IdentityAuthority ia = getIdentityAuthority(authority);
         if (ia != null) {
-            return ia.getIdentityServices(realm);
+            providers.addAll(ia.getIdentityServices(realm));
         }
 
-        return null;
+        return providers;
     }
 
     /*
@@ -342,7 +349,8 @@ public class AuthorityManager implements InitializingBean {
      * Enable/disable providers with authorities
      */
 
-    public IdentityProvider registerIdentityProvider(ConfigurableIdentityProvider provider) throws SystemException {
+    public IdentityProvider<? extends UserIdentity> registerIdentityProvider(
+            ConfigurableIdentityProvider provider) throws SystemException {
         if (!provider.isEnabled()) {
             throw new IllegalArgumentException("provider is disabled");
         }
@@ -351,7 +359,8 @@ public class AuthorityManager implements InitializingBean {
         return a.registerIdentityProvider(provider);
     }
 
-    public void unregisterIdentityProvider(ConfigurableIdentityProvider provider) throws SystemException {
+    public void unregisterIdentityProvider(ConfigurableIdentityProvider provider)
+            throws SystemException {
         IdentityAuthority a = getIdentityAuthority(provider.getAuthority());
         String providerId = provider.getProvider();
 

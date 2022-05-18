@@ -1,26 +1,35 @@
 package it.smartcommunitylab.aac.oauth.model;
 
+import javax.validation.Valid;
+
 import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ClientCredentials;
+import it.smartcommunitylab.aac.oauth.persistence.AbstractOAuth2ClientResource;
 
-public class ClientSecret implements ClientCredentials {
+@Valid
+@JsonInclude(Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class ClientSecret extends AbstractOAuth2ClientResource implements ClientCredentials {
+    private static final long serialVersionUID = SystemKeys.AAC_OAUTH2_SERIAL_VERSION;
 
-    private String clientId;
     private final String secret;
 
-    public ClientSecret(@JsonProperty("clientSecret") String secret) {
+    public ClientSecret(String realm, String clientId, String secret) {
+        super(realm, clientId);
         Assert.notNull(secret, "secret can not be null");
         this.secret = secret;
     }
 
-    public ClientSecret(String clientId, String secret) {
-        Assert.notNull(secret, "secret can not be null");
-        this.clientId = clientId;
-        this.secret = secret;
+    @Override
+    public final String getType() {
+        return SystemKeys.RESOURCE_CREDENTIALS_SECRET;
     }
 
     @Override
@@ -33,12 +42,9 @@ public class ClientSecret implements ClientCredentials {
         return secret;
     }
 
-    public String getClientId() {
-        return clientId;
-    }
-
-    public void setClientId(String clientId) {
-        this.clientId = clientId;
+    @Override
+    public String getId() {
+        return getClientId() + "." + getType();
     }
 
 }

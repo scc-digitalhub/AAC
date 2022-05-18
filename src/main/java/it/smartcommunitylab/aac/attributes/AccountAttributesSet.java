@@ -64,13 +64,25 @@ public class AccountAttributesSet implements AttributeSet {
         attributes.put(USER_ID, attr);
     }
 
+    public void setId(String id) {
+        if (id == null) {
+            attributes.remove(ID);
+            return;
+        }
+
+        StringAttribute attr = new StringAttribute(ID);
+        attr.setValue(id);
+
+        attributes.put(ID, attr);
+    }
+
     // additional attributes
     public void setAttribute(String key, String value) {
         if (key == null) {
             return;
         }
 
-        if (USERNAME.equals(key) || USER_ID.equals(key)) {
+        if (USERNAME.equals(key) || USER_ID.equals(key) || ID.equals(key)) {
             return;
         }
 
@@ -98,11 +110,13 @@ public class AccountAttributesSet implements AttributeSet {
 
     public static final String USER_ID = "user_id";
     public static final String USERNAME = "username";
+    public static final String ID = "id";
 
     static {
         List<String> k = new ArrayList<>();
         k.add(USERNAME);
         k.add(USER_ID);
+        k.add(ID);
         keys = Collections.unmodifiableList(k);
     }
 }

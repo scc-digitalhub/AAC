@@ -17,7 +17,7 @@ import it.smartcommunitylab.aac.core.auth.Http401UnauthorizedEntryPoint;
  */
 
 @Configuration
-@Order(15)
+@Order(25)
 public class ConsoleSecurityConfig extends WebSecurityConfigurerAdapter {
 
     /*

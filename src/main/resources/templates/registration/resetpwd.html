@@ -71,12 +71,6 @@
                             Error text</div>
                             
               <div class="col-md-12 form-group">
-                <label th:text="#{field.username} + '*: '"></label>
-                <input type="text" class="form-control" th:field="*{username}" />
-                <div class="invalid-feedback" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></div>
-              </div>
-
-              <div class="col-md-12 form-group">
                 <label th:text="#{field.email} + '*: '"></label>
                 <input type="text" class="form-control" th:field="*{email}" />
                 <div class="invalid-feedback" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>

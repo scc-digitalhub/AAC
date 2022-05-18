@@ -97,7 +97,7 @@
                      <td>{{v}}</td>
                   </tr>
                </table>
-               <a class="read-more" href="" ng-click="updateCredentials(account.userId)"
+               <a class="read-more" href="" ng-click="updateCredentials('internal',account.provider.provider, account.username)"
                   ng-if="account.authority == 'internal'">
                   <span class="text text-primary">{{'accounts.internal_edit'| translate}}</span>
                   <svg class="icon">

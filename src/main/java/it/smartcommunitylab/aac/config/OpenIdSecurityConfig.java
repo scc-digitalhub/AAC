@@ -31,7 +31,7 @@ import it.smartcommunitylab.aac.oauth.auth.InternalOpaqueTokenIntrospector;
  */
 
 @Configuration
-@Order(12)
+@Order(22)
 public class OpenIdSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired

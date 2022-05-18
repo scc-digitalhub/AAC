@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountId;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountRepository;
 
 /*
@@ -28,18 +29,8 @@ public class InternalUserAccountService {
     private InternalUserAccountRepository accountRepository;
 
     @Transactional(readOnly = true)
-    public InternalUserAccount getAccount(long id) throws NoSuchUserException {
-        InternalUserAccount account = accountRepository.findOne(id);
-        if (account == null) {
-            throw new NoSuchUserException();
-        }
-
-        return accountRepository.detach(account);
-    }
-
-    @Transactional(readOnly = true)
-    public InternalUserAccount findAccount(long id) {
-        InternalUserAccount account = accountRepository.findOne(id);
+    public InternalUserAccount findAccountByUsername(String provider, String username) {
+        InternalUserAccount account = accountRepository.findOne(new InternalUserAccountId(provider, username));
         if (account == null) {
             return null;
         }
@@ -48,56 +39,54 @@ public class InternalUserAccountService {
     }
 
     @Transactional(readOnly = true)
-    public InternalUserAccount findAccountByUsername(String realm, String username) {
-        InternalUserAccount account = accountRepository.findByRealmAndUsername(realm, username);
-        if (account == null) {
-            return null;
-        }
-
-        return accountRepository.detach(account);
-    }
-
-    @Transactional(readOnly = true)
-    public InternalUserAccount findAccountByEmail(String realm, String email) {
-        InternalUserAccount account = accountRepository.findByRealmAndEmail(realm, email);
-        if (account == null) {
-            return null;
-        }
-
-        return accountRepository.detach(account);
-    }
-
-    @Transactional(readOnly = true)
-    public InternalUserAccount findAccountByConfirmationKey(String realm, String key) {
-        InternalUserAccount account = accountRepository.findByRealmAndConfirmationKey(realm, key);
-        if (account == null) {
-            return null;
-        }
-
-        return accountRepository.detach(account);
-    }
-
-    @Transactional(readOnly = true)
-    public InternalUserAccount findAccountByResetKey(String realm, String key) {
-        InternalUserAccount account = accountRepository.findByRealmAndResetKey(realm, key);
-        if (account == null) {
-            return null;
-        }
-
-        return accountRepository.detach(account);
-    }
-
-    @Transactional(readOnly = true)
-    public List<InternalUserAccount> findBySubject(String subject) {
-        List<InternalUserAccount> accounts = accountRepository.findBySubject(subject);
+    public List<InternalUserAccount> findAccountByEmail(String provider, String email) {
+        List<InternalUserAccount> accounts = accountRepository.findByProviderAndEmail(provider, email);
         return accounts.stream().map(a -> {
             return accountRepository.detach(a);
         }).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public List<InternalUserAccount> findBySubject(String subject, String realm) {
-        List<InternalUserAccount> accounts = accountRepository.findBySubjectAndRealm(subject, realm);
+    public InternalUserAccount findAccountByConfirmationKey(String provider, String key) {
+        InternalUserAccount account = accountRepository.findByProviderAndConfirmationKey(provider, key);
+        if (account == null) {
+            return null;
+        }
+
+        return accountRepository.detach(account);
+    }
+
+    @Transactional(readOnly = true)
+    public InternalUserAccount findAccountByResetKey(String provider, String key) {
+        InternalUserAccount account = accountRepository.findByProviderAndResetKey(provider, key);
+        if (account == null) {
+            return null;
+        }
+
+        return accountRepository.detach(account);
+    }
+
+    @Transactional(readOnly = true)
+    public InternalUserAccount findAccountByUuid(String provider, String uuid) {
+        InternalUserAccount account = accountRepository.findByProviderAndUuid(provider, uuid);
+        if (account == null) {
+            return null;
+        }
+
+        return accountRepository.detach(account);
+    }
+
+    @Transactional(readOnly = true)
+    public List<InternalUserAccount> findByUser(String userId) {
+        List<InternalUserAccount> accounts = accountRepository.findByUserId(userId);
+        return accounts.stream().map(a -> {
+            return accountRepository.detach(a);
+        }).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<InternalUserAccount> findByUser(String userId, String provider) {
+        List<InternalUserAccount> accounts = accountRepository.findByUserIdAndProvider(userId, provider);
         return accounts.stream().map(a -> {
             return accountRepository.detach(a);
         }).collect(Collectors.toList());
@@ -112,10 +101,13 @@ public class InternalUserAccountService {
         try {
             // we explode model
             InternalUserAccount account = new InternalUserAccount();
-            account.setSubject(reg.getSubject());
-            account.setRealm(reg.getRealm());
+            account.setProvider(reg.getProvider());
             account.setUsername(reg.getUsername());
+            account.setUuid(reg.getUuid());
+            account.setUserId(reg.getUserId());
+            account.setRealm(reg.getRealm());
             account.setPassword(reg.getPassword());
+            account.setStatus(reg.getStatus());
             account.setEmail(reg.getEmail());
             account.setName(reg.getName());
             account.setSurname(reg.getSurname());
@@ -137,23 +129,27 @@ public class InternalUserAccountService {
     }
 
     public InternalUserAccount updateAccount(
-            long id,
+            String provider, String username,
             InternalUserAccount reg) throws NoSuchUserException, RegistrationException {
         if (reg == null) {
             throw new NoSuchUserException();
         }
 
-        InternalUserAccount account = accountRepository.findOne(id);
+        InternalUserAccount account = accountRepository.findOne(new InternalUserAccountId(provider, username));
         if (account == null) {
             throw new NoSuchUserException();
         }
 
         try {
-            // we explode model and update every field
-            account.setSubject(reg.getSubject());
-            account.setRealm(reg.getRealm());
+            // we support username update
             account.setUsername(reg.getUsername());
+
+            // we explode model and update every field
+            account.setUuid(reg.getUuid());
+            account.setUserId(reg.getUserId());
+            account.setRealm(reg.getRealm());
             account.setPassword(reg.getPassword());
+            account.setStatus(reg.getStatus());
             account.setEmail(reg.getEmail());
             account.setName(reg.getName());
             account.setSurname(reg.getSurname());
@@ -172,11 +168,10 @@ public class InternalUserAccountService {
         } catch (Exception e) {
             throw new RegistrationException(e.getMessage());
         }
-
     }
 
-    public void deleteAccount(long id) {
-        InternalUserAccount account = accountRepository.findOne(id);
+    public void deleteAccount(String provider, String username) {
+        InternalUserAccount account = accountRepository.findOne(new InternalUserAccountId(provider, username));
         if (account != null) {
             accountRepository.delete(account);
         }

@@ -52,9 +52,7 @@ public class User {
     private boolean emailVerified;
 
     // user status
-    // TODO convert to enum
-    private boolean blocked;
-    private boolean locked;
+    private UserStatus status;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Date expirationDate;
@@ -203,20 +201,12 @@ public class User {
         this.emailVerified = emailVerified;
     }
 
-    public boolean isBlocked() {
-        return blocked;
+    public UserStatus getStatus() {
+        return status;
     }
 
-    public void setBlocked(boolean blocked) {
-        this.blocked = blocked;
-    }
-
-    public boolean isLocked() {
-        return locked;
-    }
-
-    public void setLocked(boolean locked) {
-        this.locked = locked;
+    public void setStatus(UserStatus status) {
+        this.status = status;
     }
 
     public Date getExpirationDate() {

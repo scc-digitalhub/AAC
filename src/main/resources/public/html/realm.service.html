@@ -58,7 +58,7 @@
       <a class="nav-link  {{activeView('clients')}}" href ng-click="switchView('clients')">Clients</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link  {{activeView('approvals')}}" href ng-click="switchView('approvals')">Approvals</a>
+      <a class="nav-link  {{activeView('approvals')}}" href ng-click="switchView('approvals')" ng-if="isAdmin">Approvals</a>
     </li>
   </ul>
   <div class="tab-content pt-3">

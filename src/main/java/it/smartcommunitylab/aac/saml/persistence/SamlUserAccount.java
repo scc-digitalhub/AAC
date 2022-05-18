@@ -1,6 +1,5 @@
 package it.smartcommunitylab.aac.saml.persistence;
 
-import java.io.Serializable;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -19,13 +18,14 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.model.UserAccount;
+import it.smartcommunitylab.aac.core.base.AbstractAccount;
+import it.smartcommunitylab.aac.model.UserStatus;
 
 @Entity
 @IdClass(SamlUserAccountId.class)
-@Table(name = "saml_users", uniqueConstraints = @UniqueConstraint(columnNames = { "realm", "provider_id", "user_id" }))
+@Table(name = "saml_users")
 @EntityListeners(AuditingEntityListener.class)
-public class SamlUserAccount implements UserAccount, Serializable {
+public class SamlUserAccount extends AbstractAccount {
 
     private static final long serialVersionUID = SystemKeys.AAC_SAML_SERIAL_VERSION;
 
@@ -34,24 +34,35 @@ public class SamlUserAccount implements UserAccount, Serializable {
     @Column(name = "provider_id")
     private String provider;
 
+    // subject identifier from external provider
     @Id
     @NotBlank
-    private String realm;
+    @Column(name = "subject")
+    private String subjectId;
 
-    @Id
+    // unique uuid (subject entity)
     @NotBlank
+    @Column(unique = true)
+    private String uuid;
+
+    // reference to user
+    @NotNull
     @Column(name = "user_id")
     private String userId;
 
-    @NotNull
-    @Column(name = "subject_id")
-    private String subject;
+    @NotBlank
+    private String realm;
 
-    @Column(name = "username")
-    private String username;
-    private String issuer;
+    // login
+    private String status;
 
     // attributes
+    @Column(name = "username")
+    private String username;
+
+    @Column(name = "issuer")
+    private String issuer;
+
     private String email;
     @Column(name = "email_verified")
     private Boolean emailVerified;
@@ -69,14 +80,8 @@ public class SamlUserAccount implements UserAccount, Serializable {
     @Column(name = "last_modified_date")
     private Date modifiedDate;
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_ACCOUNT;
-    }
-
-    @Override
-    public String getAuthority() {
-        return SystemKeys.AUTHORITY_SAML;
+    public SamlUserAccount() {
+        super(SystemKeys.AUTHORITY_SAML, null, null);
     }
 
     @Override
@@ -90,12 +95,18 @@ public class SamlUserAccount implements UserAccount, Serializable {
     }
 
     @Override
-    public String getUserId() {
-        return userId;
+    public String getId() {
+        return subjectId;
     }
 
-    public void setUserId(String id) {
-        userId = id;
+    @Override
+    public String getUuid() {
+        return uuid;
+    }
+
+    @Override
+    public String getUserId() {
+        return userId;
     }
 
     @Override
@@ -108,16 +119,52 @@ public class SamlUserAccount implements UserAccount, Serializable {
         return email;
     }
 
+    @Override
+    public boolean isEmailVerified() {
+        return (StringUtils.hasText(email) && emailVerified != null) ? emailVerified.booleanValue() : false;
+    }
+
+    @Override
+    public boolean isLocked() {
+        // only active users are *not* locked
+        if (status == null || UserStatus.ACTIVE.getValue().equals(status)) {
+            return false;
+        }
+
+        // every other condition locks login
+        return true;
+    }
+
     /*
      * fields
      */
 
-    public String getSubject() {
-        return subject;
+    public String getSubjectId() {
+        return subjectId;
     }
 
-    public void setSubject(String subject) {
-        this.subject = subject;
+    public void setSubjectId(String subjectId) {
+        this.subjectId = subjectId;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getIssuer() {
+        return issuer;
+    }
+
+    public void setIssuer(String issuer) {
+        this.issuer = issuer;
     }
 
     public String getEmail() {
@@ -128,10 +175,6 @@ public class SamlUserAccount implements UserAccount, Serializable {
         this.email = email;
     }
 
-    public String getName() {
-        return name;
-    }
-
     public Boolean getEmailVerified() {
         return emailVerified;
     }
@@ -140,20 +183,12 @@ public class SamlUserAccount implements UserAccount, Serializable {
         this.emailVerified = emailVerified;
     }
 
-    public boolean isEmailVerified() {
-        return (StringUtils.hasText(email) && emailVerified != null) ? emailVerified.booleanValue() : false;
+    public String getName() {
+        return name;
     }
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getIssuer() {
-        return issuer;
-    }
-
-    public void setIssuer(String issuer) {
-        this.issuer = issuer;
     }
 
     public String getLang() {
@@ -184,20 +219,16 @@ public class SamlUserAccount implements UserAccount, Serializable {
         this.provider = provider;
     }
 
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
     public void setRealm(String realm) {
         this.realm = realm;
     }
 
     public void setUsername(String username) {
         this.username = username;
-    }
-
-    @Override
-    public String toString() {
-        return "SamlUserAccount [subject=" + subject + ", provider=" + provider + ", realm=" + realm
-                + ", userId=" + userId + ", username=" + username + ", issuer=" + issuer + ", email=" + email
-                + ", name=" + name + ", lang=" + lang + ", createDate=" + createDate + ", modifiedDate=" + modifiedDate
-                + "]";
     }
 
 }

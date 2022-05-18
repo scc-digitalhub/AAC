@@ -62,7 +62,7 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientManager;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
-import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.dto.FunctionValidationBean;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.RealmRole;
@@ -252,13 +252,14 @@ public class DevClientAppController {
         return ResponseEntity.ok(null);
     }
 
-    @DeleteMapping("/realms/{realm}/apps/{clientId}/credentials")
+    @PutMapping("/realms/{realm}/apps/{clientId}/credentials/{credentialsId}")
     public ResponseEntity<ClientApp> resetRealmClientAppCredentials(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String credentialsId)
             throws NoSuchClientException, NoSuchRealmException {
 
-        clientManager.resetClientCredentials(realm, clientId);
+        clientManager.resetClientCredentials(realm, clientId, credentialsId);
 
         // re-read app
         ClientApp clientApp = clientManager.getClientApp(realm, clientId);
@@ -268,7 +269,25 @@ public class DevClientAppController {
         clientApp.setSchema(schema);
 
         return ResponseEntity.ok(clientApp);
+    }
 
+    @DeleteMapping("/realms/{realm}/apps/{clientId}/credentials/{credentialsId}")
+    public ResponseEntity<ClientApp> removeRealmClientAppCredentials(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String credentialsId)
+            throws NoSuchClientException, NoSuchRealmException {
+
+        clientManager.removeClientCredentials(realm, clientId, credentialsId);
+
+        // re-read app
+        ClientApp clientApp = clientManager.getClientApp(realm, clientId);
+
+        // fetch also configuration schema
+        JsonSchema schema = clientManager.getClientConfigurationSchema(realm, clientId);
+        clientApp.setSchema(schema);
+
+        return ResponseEntity.ok(clientApp);
     }
 
     @GetMapping("/realms/{realm}/apps/{clientId}/oauth2/{grantType}")

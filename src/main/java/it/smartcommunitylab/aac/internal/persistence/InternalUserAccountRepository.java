@@ -9,23 +9,25 @@ import it.smartcommunitylab.aac.repository.DetachableJpaRepository;
 
 @Repository
 public interface InternalUserAccountRepository
-        extends CustomJpaRepository<InternalUserAccount, Long>, DetachableJpaRepository<InternalUserAccount> {
+        extends CustomJpaRepository<InternalUserAccount, InternalUserAccountId>,
+        DetachableJpaRepository<InternalUserAccount> {
 
-//    @Query("select u from InternalUserAccount u where u.id=?1")
-//    InternalUserAccount findByUserId(Long userId);
+    InternalUserAccount findByProviderAndUuid(String provider, String uuid);
 
-    InternalUserAccount findByRealmAndUsername(String realm, String username);
+    List<InternalUserAccount> findByProviderAndEmail(String provider, String email);
 
-    InternalUserAccount findByRealmAndConfirmationKey(String realm, String key);
+    InternalUserAccount findByProviderAndConfirmationKey(String provider, String key);
 
-    InternalUserAccount findByRealmAndResetKey(String realm, String key);
-
-    List<InternalUserAccount> findBySubject(String subject);
-
-    List<InternalUserAccount> findBySubjectAndRealm(String subject, String realm);
+    InternalUserAccount findByProviderAndResetKey(String provider, String key);
 
     List<InternalUserAccount> findByRealm(String realm);
 
-    InternalUserAccount findByRealmAndEmail(String realm, String email);
+    List<InternalUserAccount> findByProvider(String provider);
+
+    List<InternalUserAccount> findByUserId(String userId);
+
+    List<InternalUserAccount> findByUserIdAndRealm(String userId, String realm);
+
+    List<InternalUserAccount> findByUserIdAndProvider(String userId, String provider);
 
 }

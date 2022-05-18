@@ -34,6 +34,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.oauth2.client.web.HttpSessionOAuth2AuthorizationRequestRepository;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationRequestContext;
 import org.springframework.security.web.authentication.logout.CompositeLogoutHandler;
@@ -51,17 +52,20 @@ import it.smartcommunitylab.aac.core.auth.ExtendedLogoutSuccessHandler;
 import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.auth.RequestAwareAuthenticationSuccessHandler;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
-import it.smartcommunitylab.aac.core.provider.ProviderRepository;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.crypto.InternalPasswordEncoder;
-import it.smartcommunitylab.aac.internal.InternalConfirmKeyAuthenticationFilter;
-import it.smartcommunitylab.aac.internal.InternalLoginAuthenticationFilter;
-import it.smartcommunitylab.aac.internal.InternalResetKeyAuthenticationFilter;
+import it.smartcommunitylab.aac.internal.auth.InternalConfirmKeyAuthenticationFilter;
+import it.smartcommunitylab.aac.internal.auth.InternalLoginAuthenticationFilter;
+import it.smartcommunitylab.aac.internal.auth.InternalResetKeyAuthenticationFilter;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.oauth.auth.AuthorizationEndpointFilter;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientService;
+import it.smartcommunitylab.aac.openid.apple.AppleIdentityAuthority;
+import it.smartcommunitylab.aac.openid.apple.auth.AppleLoginAuthenticationFilter;
+import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfig;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.openid.auth.OIDCLoginAuthenticationFilter;
 import it.smartcommunitylab.aac.openid.auth.OIDCRedirectAuthenticationFilter;
@@ -85,7 +89,7 @@ import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
  */
 
 @Configuration
-@Order(19)
+@Order(29)
 @EnableConfigurationProperties
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
@@ -99,7 +103,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final String logoutPath = "/logout";
 
     @Autowired
-    private OIDCClientRegistrationRepository clientRegistrationRepository;
+    @Qualifier("oidcClientRegistrationRepository")
+    private OIDCClientRegistrationRepository oidcClientRegistrationRepository;
+    @Autowired
+    @Qualifier("appleClientRegistrationRepository")
+    private OIDCClientRegistrationRepository appleClientRegistrationRepository;
 
     @Autowired
     @Qualifier("samlRelyingPartyRegistrationRepository")
@@ -118,9 +126,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private InternalUserAccountService internalUserAccountService;
 
-//    @Autowired
-//    private OAuth2ClientUserDetailsService clientUserDetailsService;
-
     @Autowired
     private ExtendedUserAuthenticationManager authManager;
 
@@ -128,16 +133,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private RealmAwarePathUriBuilder realmUriBuilder;
 
     @Autowired
-    private ProviderRepository<InternalIdentityProviderConfig> internalProviderRepository;
+    private ProviderConfigRepository<InternalIdentityProviderConfig> internalProviderRepository;
 
     @Autowired
-    private ProviderRepository<OIDCIdentityProviderConfig> oidcProviderRepository;
+    private ProviderConfigRepository<OIDCIdentityProviderConfig> oidcProviderRepository;
 
     @Autowired
-    private ProviderRepository<SamlIdentityProviderConfig> samlProviderRepository;
+    private ProviderConfigRepository<SamlIdentityProviderConfig> samlProviderRepository;
 
     @Autowired
-    private ProviderRepository<SpidIdentityProviderConfig> spidProviderRepository;
+    private ProviderConfigRepository<SpidIdentityProviderConfig> spidProviderRepository;
+
+    @Autowired
+    private ProviderConfigRepository<AppleIdentityProviderConfig> appleProviderRepository;
 
 //    /*
 //     * rememberme
@@ -244,7 +252,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .ignoringAntMatchers("/logout", "/console/**", "/account/**",
                         "/auth/oidc/**",
                         "/auth/saml/**",
-                        "/auth/spid/**")
+                        "/auth/spid/**",
+                        "/auth/apple/**")
                 .and()
 //                .disable()
 //                // TODO replace with filterRegistrationBean and explicitely map urls
@@ -261,7 +270,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                                 spidRelyingPartyRegistrationRepository),
                         BasicAuthenticationFilter.class)
                 .addFilterBefore(
-                        getOIDCAuthorityFilters(authManager, oidcProviderRepository, clientRegistrationRepository),
+                        getOIDCAuthorityFilters(authManager, oidcProviderRepository, oidcClientRegistrationRepository),
+                        BasicAuthenticationFilter.class)
+                .addFilterBefore(
+                        getAppleAuthorityFilters(authManager, appleProviderRepository,
+                                appleClientRegistrationRepository),
                         BasicAuthenticationFilter.class)
                 .addFilterBefore(new AuthorizationEndpointFilter(oauth2ClientService, oauth2ClientDetailsService),
                         BasicAuthenticationFilter.class);
@@ -310,13 +323,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return handler;
     }
 
-    @Bean
-    @Override
-    @Primary
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-//        return extendedAuthenticationManager();
-        return authManager;
-    }
+//    @Bean
+//    @Override
+//    @Primary
+//    public AuthenticationManager authenticationManagerBean() throws Exception {
+////        return extendedAuthenticationManager();
+//        return authManager;
+//    }
 
     private RealmAwareAuthenticationEntryPoint realmAuthEntryPoint(String loginPath,
             RealmAwarePathUriBuilder uriBuilder) {
@@ -337,7 +350,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
      */
 
     public CompositeFilter getInternalAuthorityFilters(AuthenticationManager authManager,
-            ProviderRepository<InternalIdentityProviderConfig> providerRepository,
+            ProviderConfigRepository<InternalIdentityProviderConfig> providerRepository,
             InternalUserAccountService userAccountService) {
 
         List<Filter> filters = new ArrayList<>();
@@ -372,7 +385,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
      */
 
     public CompositeFilter getOIDCAuthorityFilters(AuthenticationManager authManager,
-            ProviderRepository<OIDCIdentityProviderConfig> providerRepository,
+            ProviderConfigRepository<OIDCIdentityProviderConfig> providerRepository,
             OIDCClientRegistrationRepository clientRegistrationRepository) {
         // build filters bound to shared client + request repos
         AuthorizationRequestRepository<OAuth2AuthorizationRequest> authorizationRequestRepository = new HttpSessionOAuth2AuthorizationRequestRepository();
@@ -402,7 +415,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
      */
 
     public CompositeFilter getSamlAuthorityFilters(AuthenticationManager authManager,
-            ProviderRepository<SamlIdentityProviderConfig> providerRepository,
+            ProviderConfigRepository<SamlIdentityProviderConfig> providerRepository,
             SamlRelyingPartyRegistrationRepository relyingPartyRegistrationRepository) {
 
         // request repository
@@ -438,7 +451,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
      */
 
     public CompositeFilter getSpidAuthorityFilters(AuthenticationManager authManager,
-            ProviderRepository<SpidIdentityProviderConfig> providerRepository,
+            ProviderConfigRepository<SpidIdentityProviderConfig> providerRepository,
             SamlRelyingPartyRegistrationRepository relyingPartyRegistrationRepository) {
 
         // request repository
@@ -463,6 +476,36 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         filters.add(metadataFilter);
         filters.add(requestFilter);
         filters.add(ssoFilter);
+
+        CompositeFilter filter = new CompositeFilter();
+        filter.setFilters(filters);
+
+        return filter;
+    }
+
+    /*
+     * Apple Auth
+     */
+
+    public CompositeFilter getAppleAuthorityFilters(AuthenticationManager authManager,
+            ProviderConfigRepository<AppleIdentityProviderConfig> providerRepository,
+            OIDCClientRegistrationRepository clientRegistrationRepository) {
+        // build filters bound to shared client + request repos
+        AuthorizationRequestRepository<OAuth2AuthorizationRequest> authorizationRequestRepository = new HttpSessionOAuth2AuthorizationRequestRepository();
+
+        OAuth2AuthorizationRequestRedirectFilter redirectFilter = new OAuth2AuthorizationRequestRedirectFilter(
+                clientRegistrationRepository, AppleIdentityAuthority.AUTHORITY_URL + "authorize");
+        redirectFilter.setAuthorizationRequestRepository(authorizationRequestRepository);
+
+        AppleLoginAuthenticationFilter loginFilter = new AppleLoginAuthenticationFilter(
+                providerRepository,
+                clientRegistrationRepository);
+        loginFilter.setAuthorizationRequestRepository(authorizationRequestRepository);
+        loginFilter.setAuthenticationManager(authManager);
+
+        List<Filter> filters = new ArrayList<>();
+        filters.add(loginFilter);
+        filters.add(redirectFilter);
 
         CompositeFilter filter = new CompositeFilter();
         filter.setFilters(filters);

@@ -8,26 +8,16 @@ public class OIDCUserAccountId implements Serializable {
 
     private static final long serialVersionUID = SystemKeys.AAC_OIDC_SERIAL_VERSION;
 
-    private String realm;
     private String provider;
-    private String userId;
+    private String subject;
 
     public OIDCUserAccountId() {
     }
 
-    public OIDCUserAccountId(String realm, String provider, String userId) {
+    public OIDCUserAccountId(String provider, String userId) {
         super();
-        this.realm = realm;
         this.provider = provider;
-        this.userId = userId;
-    }
-
-    public String getRealm() {
-        return realm;
-    }
-
-    public void setRealm(String realm) {
-        this.realm = realm;
+        this.subject = userId;
     }
 
     public String getProvider() {
@@ -38,12 +28,12 @@ public class OIDCUserAccountId implements Serializable {
         this.provider = provider;
     }
 
-    public String getUserId() {
-        return userId;
+    public String getSubject() {
+        return subject;
     }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public void setSubject(String subject) {
+        this.subject = subject;
     }
 
     @Override
@@ -51,8 +41,7 @@ public class OIDCUserAccountId implements Serializable {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((provider == null) ? 0 : provider.hashCode());
-        result = prime * result + ((realm == null) ? 0 : realm.hashCode());
-        result = prime * result + ((userId == null) ? 0 : userId.hashCode());
+        result = prime * result + ((subject == null) ? 0 : subject.hashCode());
         return result;
     }
 
@@ -70,15 +59,10 @@ public class OIDCUserAccountId implements Serializable {
                 return false;
         } else if (!provider.equals(other.provider))
             return false;
-        if (realm == null) {
-            if (other.realm != null)
+        if (subject == null) {
+            if (other.subject != null)
                 return false;
-        } else if (!realm.equals(other.realm))
-            return false;
-        if (userId == null) {
-            if (other.userId != null)
-                return false;
-        } else if (!userId.equals(other.userId))
+        } else if (!subject.equals(other.subject))
             return false;
         return true;
     }

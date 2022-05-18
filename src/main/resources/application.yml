@@ -10,7 +10,7 @@ server:
       protocol_header: ${SERVER_TOMCAT_PROTOCOL_HEADER:x-forwarded-proto}
    max-http-header-size: 32000     
    error:
-      include-stacktrace: ON_TRACE_PARAM   
+      include-stacktrace: ON_PARAM   
 
 # APPLICATION EXTERNAL URL
 application:
@@ -75,19 +75,54 @@ jwt:
 #EXTERNAL PROVIDERS
 authorities:
    internal:
-      confirmation:
-        required: true
-        validity: 86400
-      password:
-        minLength: 8
-        maxLength: 20
-        requireAlpha: true
-        requireNumber: false
-        requireSpecial: false
-        supportWhitespace: false
-        reset:
-          enabled: true
-          validity: 86400
+      passwordResetValidity: 86400
+      confirmationValidity: 86400
+      enablePasswordReset: true
+      passwordSupportWhitespace: false
+      passwordRequireNumber: true
+      enablePasswordSet: false
+      passwordMaxLength: 15
+      passwordMinLength: 6
+      enableDelete: true
+      maxSessionDuration: 86400
+      enableUpdate: true
+      passwordRequireAlpha: true
+      enableRegistration: true
+      confirmationRequired: true
+      passwordRequireSpecial: false   
+#      confirmation:
+#        required: true
+#        validity: 86400
+#      password:
+#        minLength: 8
+#        maxLength: 20
+#        requireAlpha: true
+#        requireNumber: false
+#        requireSpecial: false
+#        supportWhitespace: false
+#        reset:
+#          enabled: true
+#          validity: 86400
+   oidc:
+      scope: openid,email
+      userNameAttributeName: sub
+      clientAuthenticationMethod: CLIENT_SECRET_BASIC
+      enablePkce: true
+      trustEmailAddress: true
+   apple:
+      askNameScope: true
+      askEmailScope: true
+   spid:
+      userNameAttributeName: SPID_CODE
+      idAttribute: SPID_CODE
+      useSpidCodeAsNameId: true
+      spidAttributes: SPID_CODE
+      ssoServiceBinding: HTTP-POST
+      authnContext: SPID_L2
+   saml:
+      signAuthNRequest: true
+      ssoServiceBinding: HTTP-POST
+      
 
 
 providers:

@@ -369,7 +369,7 @@ public class GroupService {
 
         List<GroupMemberEntity> members = groupMemberRepository.findByRealmAndGroup(g.getRealm(), g.getGroup());
         if (members.size() > 0) {
-            groupMemberRepository.deleteInBatch(members);
+            groupMemberRepository.deleteAllInBatch(members);
         }
 
         // also need to unlink all children
@@ -475,7 +475,7 @@ public class GroupService {
                 .collect(Collectors.toSet());
 
         // update
-        groupMemberRepository.deleteInBatch(toDelete);
+        groupMemberRepository.deleteAllInBatch(toDelete);
         groupMemberRepository.saveAll(toAdd);
 
         return getGroupMembers(realm, group);
@@ -531,7 +531,7 @@ public class GroupService {
                 .collect(Collectors.toSet());
 
         // update
-        groupMemberRepository.deleteInBatch(toDelete);
+        groupMemberRepository.deleteAllInBatch(toDelete);
         groupMemberRepository.saveAll(toAdd);
 
         return getSubjectGroups(subject, realm);
@@ -559,7 +559,7 @@ public class GroupService {
                 .collect(Collectors.toSet());
 
         // update
-        groupMemberRepository.deleteInBatch(toDelete);
+        groupMemberRepository.deleteAllInBatch(toDelete);
         groupMemberRepository.saveAll(toAdd);
 
         return getSubjectGroups(subject);

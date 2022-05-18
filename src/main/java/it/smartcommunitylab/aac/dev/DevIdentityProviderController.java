@@ -49,8 +49,8 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.controller.BaseIdentityProviderController;
 import it.smartcommunitylab.aac.core.ClientManager;
-import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.model.ClientApp;
 
 @RestController
@@ -103,7 +103,8 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
     @PostMapping("/idp/{realm}")
     public ConfigurableIdentityProvider addIdp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestBody @Valid @NotNull ConfigurableIdentityProvider registration) throws NoSuchRealmException {
+            @RequestBody @Valid @NotNull ConfigurableIdentityProvider registration)
+            throws NoSuchRealmException, NoSuchProviderException {
         ConfigurableIdentityProvider provider = super.addIdp(realm, registration);
 
         // fetch also configuration schema

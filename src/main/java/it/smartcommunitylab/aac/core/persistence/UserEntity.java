@@ -13,6 +13,8 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import it.smartcommunitylab.aac.model.UserStatus;
+
 @Entity
 @Table(name = "users")
 @EntityListeners(AuditingEntityListener.class)
@@ -39,13 +41,8 @@ public class UserEntity {
     /*
      * user status
      */
-    // locked means no login
-    @Column(name = "is_locked")
-    private Boolean locked;
-
-    // blocked means no login + revoke all tokens/sessions
-    @Column(name = "is_blocked")
-    private Boolean blocked;
+    @Column(name = "status")
+    private String status;
 
     @Column(name = "expiration_date")
     private Date expirationDate;
@@ -131,20 +128,12 @@ public class UserEntity {
         this.realm = realm;
     }
 
-    public Boolean getLocked() {
-        return locked;
+    public String getStatus() {
+        return status;
     }
 
-    public void setLocked(Boolean locked) {
-        this.locked = locked;
-    }
-
-    public Boolean getBlocked() {
-        return blocked;
-    }
-
-    public void setBlocked(Boolean blocked) {
-        this.blocked = blocked;
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public Date getExpirationDate() {
@@ -195,20 +184,12 @@ public class UserEntity {
         this.loginProvider = loginProvider;
     }
 
-    public boolean isLocked() {
-        if (this.locked != null) {
-            return this.locked.booleanValue();
-        }
-
-        return false;
+    public boolean isBlocked() {
+        return UserStatus.BLOCKED.getValue().equals(status);
     }
 
-    public boolean isBlocked() {
-        if (this.blocked != null) {
-            return this.blocked.booleanValue();
-        }
-
-        return false;
+    public boolean isInactive() {
+        return UserStatus.INACTIVE.getValue().equals(status);
     }
 
     public boolean isExpired() {

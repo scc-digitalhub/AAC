@@ -7,7 +7,7 @@
 </head>
 
 <body>
-    <div th:fragment="login">
+    <div th:fragment="login" class="border-bottom mb-2">
         <p th:if="${authority.description != null}" th:text="${authority.description}"></p>
 
         <form th:action=${authority.loginUrl} th:object="${login}" method="post">
@@ -37,17 +37,17 @@
             </div>
 
             <div class="col-md-12 text-center mt-4 mb-4" th:if="${authority.registrationUrl != null}">
-                <span>
+                <span class="small">
                     <a class="" th:href="${authority.registrationUrl}" th:text="#{label.login_register}">Register</a>
-                </span>
+                </span >
 
             </div>
 
             <div class="col-md-12 text-center mt-n2 mb-4" th:if="${authority.resetUrl != null}">
-                <span>
+                <span class="small">
                     <a class="" th:href="${authority.resetUrl}" th:text="#{label.login_pwd_reset}">Reset
                         password</a>
-                </span>
+                </span >
             </div>
         </form>
 

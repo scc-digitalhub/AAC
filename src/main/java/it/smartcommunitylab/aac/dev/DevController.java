@@ -30,6 +30,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -60,7 +61,7 @@ import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.ScopeManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.UserManager;
-import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.dto.RealmStatsBean;
@@ -166,65 +167,72 @@ public class DevController {
     }
 
     @GetMapping("/console/dev/realms/{realm}/stats")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')"
+            + " or hasAuthority(#realm+':" + Config.R_ADMIN + "')"
+            + " or hasAuthority(#realm+':" + Config.R_DEVELOPER + "')")
     public ResponseEntity<RealmStatsBean> getRealmStats(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            Authentication authentication)
             throws NoSuchRealmException {
+        boolean isAdmin = authentication.getAuthorities().contains(Config.R_ADMIN)
+                || authentication.getAuthorities().contains(realm + ":" + Config.R_ADMIN);
+
         RealmStatsBean bean = new RealmStatsBean();
 
         Realm realmObj = realmManager.getRealm(realm);
         bean.setRealm(realmObj);
-
-        Long userCount = userManager.countUsers(realm);
-        bean.setUsers(userCount);
-
-        Collection<ConfigurableProvider> providers = providerManager.listProviders(realm);
-        bean.setProviders(providers.size());
-
-        int activeProviders = (int) providers.stream().filter(p -> providerManager.isProviderRegistered(realm, p))
-                .count();
-        bean.setProvidersActive(activeProviders);
 
         Collection<ClientApp> apps = clientManager.listClientApps(realm);
         bean.setApps(apps.size());
 
         bean.setServices(serviceManager.listServices(realm).size());
 
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.DAY_OF_MONTH, -7);
-        Date after = cal.getTime();
+        if (isAdmin) {
+            Long userCount = userManager.countUsers(realm);
+            bean.setUsers(userCount);
 
-        bean.setEvents(auditManager.countRealmEvents(realm, null, after, null));
+            Collection<ConfigurableProvider> providers = providerManager.listProviders(realm);
+            bean.setProviders(providers.size());
 
-        bean.setLoginCount(auditManager.countRealmEvents(realm, "USER_AUTHENTICATION_SUCCESS", after, null));
-        List<RealmAuditEvent> loginEvents = auditManager
-                .findRealmEvents(realm, "USER_AUTHENTICATION_SUCCESS", after, null).stream()
-                .limit(5)
-                .map(e -> {
-                    // clear event details
-                    Map<String, Object> d = new HashMap<>(e.getData());
-                    d.remove("details");
+            int activeProviders = (int) providers.stream().filter(p -> providerManager.isProviderRegistered(realm, p))
+                    .count();
+            bean.setProvidersActive(activeProviders);
 
-                    return new RealmAuditEvent(e.getRealm(), e.getTimestamp(), e.getPrincipal(), e.getType(), d);
-                })
-                .collect(Collectors.toList());
+            Calendar cal = Calendar.getInstance();
+            cal.add(Calendar.DAY_OF_MONTH, -7);
+            Date after = cal.getTime();
 
-        bean.setLoginEvents(loginEvents);
+            bean.setEvents(auditManager.countRealmEvents(realm, null, after, null));
 
-        bean.setRegistrationCount(auditManager.countRealmEvents(realm, "USER_REGISTRATION", after, null));
-        List<RealmAuditEvent> registrationEvents = auditManager
-                .findRealmEvents(realm, "USER_REGISTRATION", after, null).stream()
-                .limit(5)
-                .map(e -> {
-                    // clear event details
-                    Map<String, Object> d = new HashMap<>(e.getData());
-                    d.remove("details");
+            bean.setLoginCount(auditManager.countRealmEvents(realm, "USER_AUTHENTICATION_SUCCESS", after, null));
+            List<RealmAuditEvent> loginEvents = auditManager
+                    .findRealmEvents(realm, "USER_AUTHENTICATION_SUCCESS", after, null).stream()
+                    .limit(5)
+                    .map(e -> {
+                        // clear event details
+                        Map<String, Object> d = new HashMap<>(e.getData());
+                        d.remove("details");
 
-                    return new RealmAuditEvent(e.getRealm(), e.getTimestamp(), e.getPrincipal(), e.getType(), d);
-                })
-                .collect(Collectors.toList());
-        bean.setRegistrationEvents(registrationEvents);
+                        return new RealmAuditEvent(e.getRealm(), e.getTimestamp(), e.getPrincipal(), e.getType(), d);
+                    })
+                    .collect(Collectors.toList());
+
+            bean.setLoginEvents(loginEvents);
+
+            bean.setRegistrationCount(auditManager.countRealmEvents(realm, "USER_REGISTRATION", after, null));
+            List<RealmAuditEvent> registrationEvents = auditManager
+                    .findRealmEvents(realm, "USER_REGISTRATION", after, null).stream()
+                    .limit(5)
+                    .map(e -> {
+                        // clear event details
+                        Map<String, Object> d = new HashMap<>(e.getData());
+                        d.remove("details");
+
+                        return new RealmAuditEvent(e.getRealm(), e.getTimestamp(), e.getPrincipal(), e.getType(), d);
+                    })
+                    .collect(Collectors.toList());
+            bean.setRegistrationEvents(registrationEvents);
+        }
 
         return ResponseEntity.ok(bean);
     }

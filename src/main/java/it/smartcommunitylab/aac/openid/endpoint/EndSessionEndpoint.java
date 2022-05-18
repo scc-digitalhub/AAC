@@ -55,7 +55,7 @@ import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
  */
 
 @Controller
-@Tag(name = "OpenID Connect Session Management" )
+@Tag(name = "OpenID Connect Session Management")
 public class EndSessionEndpoint {
 
     public static final String END_SESSION_URL = "/endsession";
@@ -280,19 +280,19 @@ public class EndSessionEndpoint {
         }
     }
 
-    private String readParameter(Map<String, String> requestParameters, String key, String pattern)
-            throws IllegalArgumentException {
-        if (!requestParameters.containsKey(key)) {
-            return null;
-        }
-
-        String raw = requestParameters.get(key);
-        if (!raw.matches(pattern)) {
-            throw new IllegalArgumentException(key + " does not match pattern " + String.valueOf(pattern));
-        }
-
-        return raw.trim();
-
-    }
+//    private String readParameter(Map<String, String> requestParameters, String key, String pattern)
+//            throws IllegalArgumentException {
+//        if (!requestParameters.containsKey(key)) {
+//            return null;
+//        }
+//
+//        String raw = requestParameters.get(key);
+//        if (!raw.matches(pattern)) {
+//            throw new IllegalArgumentException(key + " does not match pattern " + String.valueOf(pattern));
+//        }
+//
+//        return raw.trim();
+//
+//    }
 
 }
