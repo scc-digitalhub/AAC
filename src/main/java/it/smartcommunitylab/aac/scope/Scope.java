@@ -36,6 +36,15 @@ public class Scope {
         this.scope = scope;
     }
 
+    public String getId() {
+        return scope;
+    }
+
+    public void setId(String id) {
+        Assert.hasText(scope, "scope can not be empty");
+        this.scope = id;
+    }
+
     public String getScope() {
         return scope;
     }

@@ -586,7 +586,8 @@ public class UserManager {
             }
         }
 
-        ConnectedAppProfile app = new ConnectedAppProfile(clientId, client.getRealm(), client.getName(), scopes);
+        ConnectedAppProfile app = new ConnectedAppProfile(subjectId, clientId, client.getRealm(), client.getName(),
+                scopes);
 
         return app;
     }
@@ -616,7 +617,7 @@ public class UserManager {
         }
 
         List<ConnectedAppProfile> apps = map.entrySet().stream()
-                .map(e -> new ConnectedAppProfile(e.getKey().getClientId(), e.getKey().getRealm(),
+                .map(e -> new ConnectedAppProfile(subjectId, e.getKey().getClientId(), e.getKey().getRealm(),
                         e.getKey().getName(), e.getValue()))
                 .collect(Collectors.toList());
 

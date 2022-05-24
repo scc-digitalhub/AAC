@@ -22,6 +22,8 @@ import java.util.List;
 
 import javax.validation.constraints.NotBlank;
 
+import org.springframework.util.StringUtils;
+
 import it.smartcommunitylab.aac.scope.Scope;
 
 /**
@@ -30,12 +32,17 @@ import it.smartcommunitylab.aac.scope.Scope;
  */
 public class ConnectedAppProfile {
 
+    private String id;
+
+    @NotBlank
+    private String subjectId;
+
     @NotBlank
     private String clientId;
 
     @NotBlank
     private String realm;
-    
+
     private String appName;
     private List<Scope> scopes;
 
@@ -43,12 +50,33 @@ public class ConnectedAppProfile {
 
     }
 
-    public ConnectedAppProfile(String clientId, String realm, String name, Collection<Scope> scopes) {
+    public ConnectedAppProfile(String subjectId, String clientId, String realm, String name, Collection<Scope> scopes) {
+        this.subjectId = subjectId;
         this.clientId = clientId;
         this.realm = realm;
         this.appName = name;
         this.scopes = new ArrayList<>();
         this.scopes.addAll(scopes);
+    }
+
+    public String getId() {
+        if (!StringUtils.hasText(id)) {
+            return subjectId + ":" + clientId;
+        }
+
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getSubjectId() {
+        return subjectId;
+    }
+
+    public void setSubjectId(String subjectId) {
+        this.subjectId = subjectId;
     }
 
     public String getClientId() {
