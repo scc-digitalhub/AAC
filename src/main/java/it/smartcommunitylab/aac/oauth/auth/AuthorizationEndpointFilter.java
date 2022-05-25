@@ -23,6 +23,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import it.smartcommunitylab.aac.core.auth.ComposedAuthenticationToken;
+import it.smartcommunitylab.aac.core.auth.ExtendedLoginUrlAuthenticationEntryPoint;
+import it.smartcommunitylab.aac.core.auth.LoginUrlRequestConverter;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.oauth.client.OAuth2Client;
 import it.smartcommunitylab.aac.oauth.model.PromptMode;
@@ -55,7 +57,12 @@ public class AuthorizationEndpointFilter extends OncePerRequestFilter {
 
         // build an auth entry point
         // TODO build a select account entrypoint
-        this.authenticationEntryPoint = new OAuth2RealmAwareAuthenticationEntryPoint(clientDetailsService, "/login");
+        LoginUrlRequestConverter clientAwareConverter = new OAuth2ClientAwareLoginUrlConverter(clientDetailsService,
+                "/login");
+        ExtendedLoginUrlAuthenticationEntryPoint entryPoint = new ExtendedLoginUrlAuthenticationEntryPoint("/login",
+                clientAwareConverter);
+
+        this.authenticationEntryPoint = entryPoint;
     }
 
     public void setAuthenticationEntryPoint(AuthenticationEntryPoint authenticationEntryPoint) {
