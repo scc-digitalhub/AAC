@@ -178,7 +178,6 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
                     String authority = registration.getAuthority();
                     String name = registration.getName();
                     String description = registration.getDescription();
-                    String displayMode = registration.getDisplayMode();
                     String persistence = registration.getPersistence();
                     String events = registration.getEvents();
                     Map<String, Serializable> configuration = registration.getConfiguration();
@@ -187,7 +186,6 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
                     ConfigurableIdentityProvider provider = new ConfigurableIdentityProvider(authority, id, realm);
                     provider.setName(name);
                     provider.setDescription(description);
-                    provider.setDisplayMode(displayMode);
                     provider.setEnabled(false);
                     provider.setPersistence(persistence);
                     provider.setEvents(events);
@@ -217,7 +215,6 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
                 String type = registration.getType();
                 String name = registration.getName();
                 String description = registration.getDescription();
-                String displayMode = registration.getDisplayMode();
                 String persistence = registration.getPersistence();
                 String events = registration.getEvents();
                 Map<String, Serializable> configuration = registration.getConfiguration();
@@ -226,7 +223,6 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
                 ConfigurableIdentityProvider provider = new ConfigurableIdentityProvider(authority, id, realm);
                 provider.setName(name);
                 provider.setDescription(description);
-                provider.setDisplayMode(displayMode);
                 provider.setType(type);
                 provider.setEnabled(false);
                 provider.setPersistence(persistence);

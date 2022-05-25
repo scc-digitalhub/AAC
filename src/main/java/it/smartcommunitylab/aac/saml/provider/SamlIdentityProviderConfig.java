@@ -379,7 +379,6 @@ public class SamlIdentityProviderConfig extends AbstractIdentityProviderConfig {
         sp.name = cp.getName();
         sp.description = cp.getDescription();
         sp.icon = cp.getIcon();
-        sp.displayMode = cp.getDisplayMode();
 
         sp.persistence = cp.getPersistence();
         sp.linkable = cp.isLinkable();

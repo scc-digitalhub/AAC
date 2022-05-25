@@ -712,7 +712,6 @@ public class UserManager {
         return identityProviderService.listProviders(r.getSlug()).stream()
                 .map(cp -> {
                     // clear config and reserved info
-                    cp.setDisplayMode(null);
                     cp.setEvents(null);
                     cp.setPersistence(null);
                     cp.setSchema(null);

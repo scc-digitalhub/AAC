@@ -157,7 +157,6 @@ public class BaseIdentityProviderController {
         // we update only configuration
         String name = registration.getName();
         String description = registration.getDescription();
-        String displayMode = registration.getDisplayMode();
         String persistence = registration.getPersistence();
         boolean enabled = registration.isEnabled();
         String events = registration.getEvents();
@@ -168,7 +167,6 @@ public class BaseIdentityProviderController {
 
         provider.setName(name);
         provider.setDescription(description);
-        provider.setDisplayMode(displayMode);
 
         provider.setEnabled(enabled);
         provider.setPersistence(persistence);

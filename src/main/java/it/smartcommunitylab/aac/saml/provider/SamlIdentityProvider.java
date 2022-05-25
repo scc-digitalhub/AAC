@@ -7,6 +7,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +24,7 @@ import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.service.SubjectService;
+import it.smartcommunitylab.aac.dto.LoginProvider;
 import it.smartcommunitylab.aac.saml.SamlIdentityAuthority;
 import it.smartcommunitylab.aac.saml.model.SamlUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.saml.model.SamlUserIdentity;
@@ -338,14 +341,15 @@ public class SamlIdentityProvider extends AbstractProvider
     }
 
     @Override
-    public String getDisplayMode() {
-        // not configurable for now
-        return SystemKeys.DISPLAY_MODE_BUTTON;
-    }
+    public LoginProvider getLoginProvider() {
+        LoginProvider lp = new LoginProvider(getAuthority(), getProvider(), getRealm());
+        lp.setName(getName());
+        lp.setDescription(getDescription());
 
-    @Override
-    public Map<String, String> getActionUrls() {
-        return Collections.singletonMap(SystemKeys.ACTION_LOGIN, getAuthenticationUrl());
+        lp.setLoginUrl(getAuthenticationUrl());
+        lp.setTemplate("button");
+
+        return lp;
     }
 
     public static String[] SAML_ATTRIBUTES = {

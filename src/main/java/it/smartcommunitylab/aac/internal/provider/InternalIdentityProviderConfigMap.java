@@ -58,6 +58,8 @@ public class InternalIdentityProviderConfigMap implements ConfigurableProperties
     private Boolean passwordRequireSpecial;
     private Boolean passwordSupportWhitespace;
 
+    private Boolean displayAsButton;
+
     public InternalIdentityProviderConfigMap() {
     }
 
@@ -181,6 +183,14 @@ public class InternalIdentityProviderConfigMap implements ConfigurableProperties
         this.passwordSupportWhitespace = passwordSupportWhitespace;
     }
 
+    public Boolean getDisplayAsButton() {
+        return displayAsButton;
+    }
+
+    public void setDisplayAsButton(Boolean displayAsButton) {
+        this.displayAsButton = displayAsButton;
+    }
+
     @Override
     @JsonIgnore
     public Map<String, Serializable> getConfiguration() {
@@ -218,6 +228,7 @@ public class InternalIdentityProviderConfigMap implements ConfigurableProperties
         this.passwordRequireSpecial = map.getPasswordRequireSpecial();
         this.passwordSupportWhitespace = map.getPasswordSupportWhitespace();
 
+        this.displayAsButton = map.getDisplayAsButton();
     }
 
     @JsonIgnore

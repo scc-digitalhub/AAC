@@ -18,9 +18,10 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.LoginException;
 import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.dto.CustomizationBean;
-import it.smartcommunitylab.aac.dto.LoginAuthorityBean;
+import it.smartcommunitylab.aac.dto.LoginProvider;
 import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
 import it.smartcommunitylab.aac.internal.auth.InternalAuthenticationException;
+import it.smartcommunitylab.aac.internal.dto.InternalLoginProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
 import it.smartcommunitylab.aac.model.Realm;
 
@@ -68,10 +69,10 @@ public class InternalLoginController {
         model.addAttribute("displayName", displayName);
         model.addAttribute("customization", resources);
 
-        LoginAuthorityBean a = LoginAuthorityBean.from(idp);
+        InternalLoginProvider a = idp.getLoginProvider();
         // make sure we show the form
         // it should also point to login
-        a.setDisplayMode(SystemKeys.DISPLAY_MODE_FORM);
+        a.setTemplate("form");
         a.setLoginUrl(idp.getLoginUrl());
         model.addAttribute("authorities", Collections.singleton(a));
 
