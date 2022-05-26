@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import javax.servlet.Filter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -15,12 +16,15 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.auth.ExtendedLoginUrlAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.auth.LoginUrlRequestConverter;
@@ -28,6 +32,8 @@ import it.smartcommunitylab.aac.core.service.IdentityProviderService;
 import it.smartcommunitylab.aac.oauth.auth.AuthorizationEndpointFilter;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientAwareLoginUrlConverter;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2IdpAwareLoginUrlConverter;
+import it.smartcommunitylab.aac.oauth.endpoint.AuthorizationEndpoint;
+import it.smartcommunitylab.aac.oauth.endpoint.UserApprovalEndpoint;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientService;
 
@@ -64,11 +70,13 @@ public class OAuth2UserSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     public void configure(HttpSecurity http) throws Exception {
         // match only user endpoints
-        http.requestMatcher(getRequestMatcher()).authorizeRequests().anyRequest().authenticated()
-//                .authorizeRequests((authorizeRequests) -> authorizeRequests
-//                        .anyRequest().hasAnyAuthority(Config.R_USER))
-                .and().exceptionHandling()
-                .authenticationEntryPoint(authEntryPoint(loginPath))
+        http.requestMatcher(getRequestMatcher())
+//                .authorizeRequests().anyRequest().authenticated().and()
+                .authorizeRequests((authorizeRequests) -> authorizeRequests
+                        .anyRequest().hasAnyAuthority(Config.R_USER))
+                .exceptionHandling()
+                .authenticationEntryPoint(
+                        authEntryPoint(loginPath, authorityManager, idpProviderService, clientDetailsService))
                 .accessDeniedPage("/accesserror")
                 .and().cors().configurationSource(corsConfigurationSource())
                 .and().csrf()
@@ -76,12 +84,16 @@ public class OAuth2UserSecurityConfig extends WebSecurityConfigurerAdapter {
                 .addFilterBefore(
                         getOAuth2UserFilters(authorityManager, idpProviderService, clientDetailsService, clientService,
                                 loginPath),
-                        BasicAuthenticationFilter.class);
-
-        // we do want a valid user session for these endpoints
-        http.sessionManagement()
+                        BasicAuthenticationFilter.class)
+                // we do want a valid user session for these endpoints
+                .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
     }
+
+//    @Bean
+//    public SecurityContextHolderAwareRequestFilter securityContextHolderAwareRequestFilter() {
+//        return new SecurityContextHolderAwareRequestFilter();
+//    }
 
     public Filter getOAuth2UserFilters(
             AuthorityManager authorityManager, IdentityProviderService providerService,
@@ -90,7 +102,8 @@ public class OAuth2UserSecurityConfig extends WebSecurityConfigurerAdapter {
 
         AuthorizationEndpointFilter authorizationFilter = new AuthorizationEndpointFilter(oauth2ClientService,
                 oauth2ClientDetailsService);
-        LoginUrlRequestConverter clientAwareConverter = new OAuth2ClientAwareLoginUrlConverter(clientDetailsService,
+        LoginUrlRequestConverter clientAwareConverter = new OAuth2ClientAwareLoginUrlConverter(
+                oauth2ClientDetailsService,
                 loginUrl);
         ExtendedLoginUrlAuthenticationEntryPoint entryPoint = new ExtendedLoginUrlAuthenticationEntryPoint(loginUrl,
                 clientAwareConverter);
@@ -98,12 +111,15 @@ public class OAuth2UserSecurityConfig extends WebSecurityConfigurerAdapter {
         return authorizationFilter;
     }
 
-    private AuthenticationEntryPoint authEntryPoint(String loginUrl) {
+    private AuthenticationEntryPoint authEntryPoint(String loginUrl,
+            AuthorityManager authorityManager, IdentityProviderService providerService,
+            OAuth2ClientDetailsService oauth2ClientDetailsService) {
         ExtendedLoginUrlAuthenticationEntryPoint entryPoint = new ExtendedLoginUrlAuthenticationEntryPoint(loginUrl);
         List<LoginUrlRequestConverter> converters = new ArrayList<>();
         LoginUrlRequestConverter idpAwareConverter = new OAuth2IdpAwareLoginUrlConverter(idpProviderService,
                 authorityManager);
-        LoginUrlRequestConverter clientAwareConverter = new OAuth2ClientAwareLoginUrlConverter(clientDetailsService,
+        LoginUrlRequestConverter clientAwareConverter = new OAuth2ClientAwareLoginUrlConverter(
+                oauth2ClientDetailsService,
                 loginUrl);
 
         converters.add(idpAwareConverter);
@@ -113,27 +129,9 @@ public class OAuth2UserSecurityConfig extends WebSecurityConfigurerAdapter {
         return entryPoint;
     }
 
-//    private RealmAwareAuthenticationEntryPoint realmAuthEntryPoint(String loginPath,
-//            RealmAwarePathUriBuilder uriBuilder) {
-//        RealmAwareAuthenticationEntryPoint entryPoint = new RealmAwareAuthenticationEntryPoint(loginPath);
-//        entryPoint.setUseForward(false);
-//        entryPoint.setRealmUriBuilder(uriBuilder);
-//
-//        return entryPoint;
-//
-//    }
-//
-//    private OAuth2RealmAwareAuthenticationEntryPoint clientAwareAuthenticationEntryPoint(
-//            OAuth2ClientDetailsService clientDetailsService, String loginUrl) {
-//        // TODO implement support for "common" realm, "global" realm shoud not be
-//        // available here
-//        // we need a way to discover ALL providers for a common login.. infeasible.
-//        // Maybe let existing sessions work, or ask only for matching realm?
-//        return new OAuth2RealmAwareAuthenticationEntryPoint(clientDetailsService, loginUrl);
-//    }
-
     public RequestMatcher getRequestMatcher() {
-        List<RequestMatcher> antMatchers = Arrays.stream(OAUTH2_URLS).map(u -> new AntPathRequestMatcher(u))
+        List<RequestMatcher> antMatchers = Arrays.stream(OAUTH2_USER_URLS)
+                .map(u -> new AntPathRequestMatcher(u))
                 .collect(Collectors.toList());
 
         return new OrRequestMatcher(antMatchers);
@@ -150,10 +148,12 @@ public class OAuth2UserSecurityConfig extends WebSecurityConfigurerAdapter {
         return source;
     }
 
-    private static final String AUTHORIZATION_ENDPOINT = "/oauth/authorize";
+    private static final String AUTHORIZATION_ENDPOINT = AuthorizationEndpoint.AUTHORIZATION_URL;
+    private static final String USER_APPROVAL_ENDPOINT = UserApprovalEndpoint.APPROVAL_URL;
+    private static final String ACCESS_CONFIRMATION_ENDPOINT = UserApprovalEndpoint.ACCESS_CONFIRMATION_URL;
 
-    private static final String[] OAUTH2_URLS = {
-            AUTHORIZATION_ENDPOINT
+    private static final String[] OAUTH2_USER_URLS = {
+            AUTHORIZATION_ENDPOINT, USER_APPROVAL_ENDPOINT, ACCESS_CONFIRMATION_ENDPOINT
     };
 
 }

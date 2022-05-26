@@ -18,7 +18,6 @@ import it.smartcommunitylab.aac.core.service.IdentityProviderService;
 
 public class OAuth2IdpAwareLoginUrlConverter implements LoginUrlRequestConverter {
 
-    public static final String REALM_URI_VARIABLE_NAME = "realm";
     public static final String IDP_PARAMETER_NAME = "idp_hint";
 
     private final IdentityProviderService providerService;
@@ -61,7 +60,7 @@ public class OAuth2IdpAwareLoginUrlConverter implements LoginUrlRequestConverter
                 if (provider == null) {
                     throw new NoSuchProviderException();
                 }
-                
+
                 return provider.getAuthenticationUrl();
 
             } catch (NoSuchProviderException e) {

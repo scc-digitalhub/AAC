@@ -225,7 +225,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .defaultAuthenticationEntryPointFor(
                         realmAuthEntryPoint(loginPath, realmUriBuilder),
                         new AntPathRequestMatcher("/**"))
-//                .accessDeniedPage("/accesserror")
+                .accessDeniedPage("/accesserror")
                 .and()
                 .logout(logout -> logout
                         .logoutUrl(logoutPath)
@@ -245,7 +245,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/auth/spid/**",
                         "/auth/apple/**")
                 .and()
-//                .disable()
 //                // TODO replace with filterRegistrationBean and explicitely map urls
                 .addFilterBefore(
                         getInternalAuthorityFilters(authManager, internalProviderRepository,
@@ -265,11 +264,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .addFilterBefore(
                         getAppleAuthorityFilters(authManager, appleProviderRepository,
                                 appleClientRegistrationRepository),
-                        BasicAuthenticationFilter.class);
+                        BasicAuthenticationFilter.class)
 //                .addFilterBefore(new ExpiredUserAuthenticationFilter(), BasicAuthenticationFilter.class);
 
-        // we always want a session here
-        http.sessionManagement()
+                // we always want a session here
+                .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
 
     }

@@ -37,10 +37,9 @@ public class ConsoleSecurityConfig extends WebSecurityConfigurerAdapter {
                 .accessDeniedPage("/accesserror")
                 .and()
                 .csrf()
-                .disable();
-
-        // we want a session for console
-        http.sessionManagement()
+                .disable()
+                // we want a session for console
+                .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
     }
 

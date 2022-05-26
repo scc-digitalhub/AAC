@@ -34,6 +34,9 @@ import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientJwtAssertionAuthenticatio
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientPKCEAuthenticationProvider;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientRefreshAuthenticationProvider;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientSecretAuthenticationProvider;
+import it.smartcommunitylab.aac.oauth.endpoint.TokenEndpoint;
+import it.smartcommunitylab.aac.oauth.endpoint.TokenIntrospectionEndpoint;
+import it.smartcommunitylab.aac.oauth.endpoint.TokenRevocationEndpoint;
 import it.smartcommunitylab.aac.oauth.provider.PeekableAuthorizationCodeServices;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.oauth.store.ExtTokenStore;
@@ -55,7 +58,7 @@ public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
     private ClientDetailsService clientService;
 
     @Autowired
-    private OAuth2ClientDetailsService clientDetailsService;
+    private OAuth2ClientDetailsService oauth2ClientDetailsService;
 
     @Autowired
     private PeekableAuthorizationCodeServices authCodeServices;
@@ -68,7 +71,7 @@ public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
      */
     @Override
     public void configure(HttpSecurity http) throws Exception {
-        // match only token endpoints
+        // match only client endpoints
         http.requestMatcher(getRequestMatcher())
                 .authorizeRequests((authorizeRequests) -> authorizeRequests
                         .anyRequest().hasAnyAuthority(Config.R_CLIENT))
@@ -82,18 +85,19 @@ public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .cors().configurationSource(corsConfigurationSource())
                 .and()
-                .csrf()
-                .disable()
+                .csrf().disable()
                 .addFilterBefore(
-                        getOAuth2ProviderFilters(clientService, clientDetailsService, authCodeServices, tokenStore),
-                        BasicAuthenticationFilter.class);
-
-        // we don't want a session for these endpoints, each request should be evaluated
-        http.sessionManagement()
+                        getOAuth2ClientFilters(
+                                clientService, oauth2ClientDetailsService,
+                                authCodeServices, tokenStore),
+                        BasicAuthenticationFilter.class)
+                // we don't want a session for these endpoints, each request should be evaluated
+                .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+
     }
 
-    private Filter getOAuth2ProviderFilters(
+    private Filter getOAuth2ClientFilters(
             ClientDetailsService clientService,
             OAuth2ClientDetailsService clientDetailsService,
             PeekableAuthorizationCodeServices authCodeServices,
@@ -129,10 +133,6 @@ public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
                 pkceAuthProvider, refreshAuthProvider, jwtAssertionProvider);
         pkceAuthManager.setClientService(clientService);
 
-//        ClientFormAuthTokenEndpointFilter formTokenEndpointFilter = new ClientFormAuthTokenEndpointFilter(
-//                "/oauth/token");
-//        formTokenEndpointFilter.setAuthenticationManager(pkceAuthManager);
-
         // TODO add realm style endpoints
         OAuth2ClientAuthFilter tokenEndpointFilter = new OAuth2ClientAuthFilter(pkceAuthManager, TOKEN_ENDPOINT);
         OAuth2ClientAuthFilter tokenIntrospectFilter = new OAuth2ClientAuthFilter(authManager,
@@ -151,11 +151,11 @@ public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     public RequestMatcher getRequestMatcher() {
-        List<RequestMatcher> antMatchers = Arrays.stream(OAUTH2_URLS).map(u -> new AntPathRequestMatcher(u))
+        List<RequestMatcher> antMatchers = Arrays.stream(OAUTH2_CLIENT_URLS)
+                .map(u -> new AntPathRequestMatcher(u))
                 .collect(Collectors.toList());
 
         return new OrRequestMatcher(antMatchers);
-
     }
 
     private CorsConfigurationSource corsConfigurationSource() {
@@ -168,11 +168,11 @@ public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
         return source;
     }
 
-    private static final String TOKEN_ENDPOINT = "/oauth/token";
-    private static final String TOKEN_INTROSPECT_ENDPOINT = "/oauth/introspect";
-    private static final String TOKEN_REVOKE_ENDPOINT = "/oauth/revoke";
+    private static final String TOKEN_ENDPOINT = TokenEndpoint.TOKEN_URL;
+    private static final String TOKEN_INTROSPECT_ENDPOINT = TokenIntrospectionEndpoint.TOKEN_INTROSPECTION_URL;
+    private static final String TOKEN_REVOKE_ENDPOINT = TokenRevocationEndpoint.TOKEN_REVOCATION_URL;
 
-    private static final String[] OAUTH2_URLS = {
+    private static final String[] OAUTH2_CLIENT_URLS = {
             TOKEN_ENDPOINT, TOKEN_INTROSPECT_ENDPOINT, TOKEN_REVOKE_ENDPOINT
     };
 

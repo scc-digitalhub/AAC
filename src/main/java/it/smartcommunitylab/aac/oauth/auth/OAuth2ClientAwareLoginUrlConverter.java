@@ -14,7 +14,6 @@ import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 
 public class OAuth2ClientAwareLoginUrlConverter implements LoginUrlRequestConverter {
 
-    public static final String REALM_URI_VARIABLE_NAME = "realm";
     public static final String CLIENT_ID_PARAMETER_NAME = "client_id";
 
     private final OAuth2ClientDetailsService clientDetailsService;
