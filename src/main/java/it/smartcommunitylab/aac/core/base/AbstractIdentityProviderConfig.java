@@ -12,7 +12,6 @@ public abstract class AbstractIdentityProviderConfig extends AbstractProviderCon
     protected String name;
     protected String description;
     protected String icon;
-    protected String displayMode;
 
     protected Boolean linkable;
     protected String persistence;
@@ -52,14 +51,6 @@ public abstract class AbstractIdentityProviderConfig extends AbstractProviderCon
 
     public void setIcon(String icon) {
         this.icon = icon;
-    }
-
-    public String getDisplayMode() {
-        return displayMode;
-    }
-
-    public void setDisplayMode(String displayMode) {
-        this.displayMode = displayMode;
     }
 
     public Boolean getLinkable() {
@@ -108,7 +99,6 @@ public abstract class AbstractIdentityProviderConfig extends AbstractProviderCon
         cp.setName(getName());
         cp.setDescription(getDescription());
         cp.setIcon(getIcon());
-        cp.setDisplayMode(getDisplayMode());
 
         cp.setEnabled(true);
         cp.setLinkable(isLinkable());

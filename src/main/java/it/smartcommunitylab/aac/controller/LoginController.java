@@ -37,7 +37,7 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.service.ClientDetailsService;
 import it.smartcommunitylab.aac.dto.CustomizationBean;
-import it.smartcommunitylab.aac.dto.LoginAuthorityBean;
+import it.smartcommunitylab.aac.dto.LoginProvider;
 import it.smartcommunitylab.aac.model.Realm;
 
 @Controller
@@ -179,23 +179,23 @@ public class LoginController {
         }
 
         // fetch as authorities model
-        List<LoginAuthorityBean> authorities = new ArrayList<>();
+        List<LoginProvider> authorities = new ArrayList<>();
         for (IdentityProvider<? extends UserIdentity> idp : providers) {
-            LoginAuthorityBean a = LoginAuthorityBean.from(idp);
+            LoginProvider a = idp.getLoginProvider();
             authorities.add(a);
         }
 
         // bypass idp selection when only 1 is available
 
         if (authorities.size() == 1) {
-            LoginAuthorityBean lab = authorities.get(0);
+            LoginProvider lab = authorities.get(0);
             // note: we can bypass only providers which expose a button,
             // anything else requires user interaction
-            if (SystemKeys.DISPLAY_MODE_BUTTON.equals(lab.getDisplayMode())) {
-                String redirectUrl = lab.getLoginUrl();
-                logger.trace("bypass login for single idp, send to " + redirectUrl);
-                return "redirect:" + redirectUrl;
-            }
+//            if (SystemKeys.DISPLAY_MODE_BUTTON.equals(lab.getDisplayMode())) {
+            String redirectUrl = lab.getLoginUrl();
+            logger.trace("bypass login for single idp, send to " + redirectUrl);
+            return "redirect:" + redirectUrl;
+//            }
 
         }
 
@@ -203,15 +203,16 @@ public class LoginController {
         Collections.sort(authorities);
 
         // build a display list respecting display mode for ordering: form, spid, button
-        List<LoginAuthorityBean> loginAuthorities = new ArrayList<>();
+        // TODO rework with comparable on model
+        List<LoginProvider> loginAuthorities = new ArrayList<>();
         loginAuthorities.addAll(authorities.stream()
-                .filter(a -> SystemKeys.DISPLAY_MODE_FORM.equals(a.getDisplayMode()))
+                .filter(a -> "form".equals(a.getTemplate()))
                 .collect(Collectors.toList()));
         loginAuthorities.addAll(authorities.stream()
-                .filter(a -> SystemKeys.DISPLAY_MODE_SPID.equals(a.getDisplayMode()))
+                .filter(a -> "spid".equals(a.getTemplate()))
                 .collect(Collectors.toList()));
         loginAuthorities.addAll(authorities.stream()
-                .filter(a -> SystemKeys.DISPLAY_MODE_BUTTON.equals(a.getDisplayMode()))
+                .filter(a -> "button".equals(a.getTemplate()))
                 .collect(Collectors.toList()));
 
         model.addAttribute("authorities", loginAuthorities);

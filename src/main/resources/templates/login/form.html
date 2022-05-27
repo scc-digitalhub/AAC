@@ -10,7 +10,7 @@
     <div th:fragment="login" class="border-bottom mb-2">
         <p th:if="${authority.description != null}" th:text="${authority.description}"></p>
 
-        <form th:action=${authority.loginUrl} th:object="${login}" method="post">
+        <form th:action=${authority.formUrl} th:object="${login}" method="post">
 
             <div class="col-md-12 form-group">
                 <label th:text="#{field.username}" for="username">: </label>

@@ -246,7 +246,6 @@ public class MyUserManager {
                 .filter(cp -> idps.contains(cp.getProvider()))
                 .map(cp -> {
                     // clear config and reserved info
-                    cp.setDisplayMode(null);
                     cp.setEvents(null);
                     cp.setPersistence(null);
                     cp.setSchema(null);

@@ -25,6 +25,7 @@ import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
+import it.smartcommunitylab.aac.internal.dto.InternalLoginProvider;
 import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
@@ -316,13 +317,8 @@ public class InternalIdentityService extends AbstractProvider
 
     @Override
     public String getAuthenticationUrl() {
-        if (SystemKeys.DISPLAY_MODE_FORM.equals(getDisplayMode())) {
-            // action url for receiving post
-            return getLoginUrl();
-        } else {
-            // display url for internal form
-            return getFormUrl();
-        }
+        // display url for internal form
+        return getFormUrl();
     }
 
     public void shutdown() {
@@ -483,17 +479,23 @@ public class InternalIdentityService extends AbstractProvider
     }
 
     @Override
-    public String getDisplayMode() {
-        return config.getDisplayMode() != null ? config.getDisplayMode() : SystemKeys.DISPLAY_MODE_FORM;
+    public InternalLoginProvider getLoginProvider() {
+        InternalLoginProvider ilp = new InternalLoginProvider(getProvider(), getRealm());
+        ilp.setName(getName());
+        ilp.setDescription(getDescription());
+
+        // login url is always form display
+        ilp.setLoginUrl(getFormUrl());
+        ilp.setRegistrationUrl(getRegistrationUrl());
+        ilp.setResetUrl(getResetUrl());
+
+        // form action is always login action
+        ilp.setFormUrl(getLoginUrl());
+
+        String template = config.displayAsButton() ? "button" : "form";
+        ilp.setTemplate(template);
+
+        return ilp;
     }
 
-    @Override
-    public Map<String, String> getActionUrls() {
-        Map<String, String> map = new HashMap<>();
-        map.put(SystemKeys.ACTION_LOGIN, getAuthenticationUrl());
-        map.put(SystemKeys.ACTION_REGISTER, getRegistrationUrl());
-        map.put(SystemKeys.ACTION_RESET, getResetUrl());
-
-        return map;
-    }
 }

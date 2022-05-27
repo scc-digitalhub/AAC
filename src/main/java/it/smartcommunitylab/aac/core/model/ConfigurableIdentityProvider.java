@@ -29,7 +29,6 @@ public class ConfigurableIdentityProvider extends ConfigurableProvider {
     private String events;
 
     private String icon;
-    private String displayMode;
     private Map<String, String> actionUrls;
     @JsonIgnore
     private Map<String, String> hookFunctions = new HashMap<>();
@@ -88,14 +87,6 @@ public class ConfigurableIdentityProvider extends ConfigurableProvider {
 
     public void setIcon(String icon) {
         this.icon = icon;
-    }
-
-    public String getDisplayMode() {
-        return displayMode;
-    }
-
-    public void setDisplayMode(String displayMode) {
-        this.displayMode = displayMode;
     }
 
     public Map<String, String> getActionUrls() {

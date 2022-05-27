@@ -14,45 +14,22 @@ import org.springframework.util.StringUtils;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 
-public class OAuth2RealmAwareAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPoint {
+public class OAuth2ClientAwareAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPoint {
 
-    public static final String REALM_URI_VARIABLE_NAME = "realm";
     public static final String CLIENT_ID_PARAMETER_NAME = "client_id";
-
-    private final RequestMatcher realmRequestMatcher;
 
     private final OAuth2ClientDetailsService clientDetailsService;
 
-    public OAuth2RealmAwareAuthenticationEntryPoint(OAuth2ClientDetailsService clientDetailsService,
+    public OAuth2ClientAwareAuthenticationEntryPoint(OAuth2ClientDetailsService clientDetailsService,
             String loginFormUrl) {
         super(loginFormUrl);
         Assert.notNull(clientDetailsService, "client details service is required");
         this.clientDetailsService = clientDetailsService;
-
-        // build a matcher for realm requests
-        realmRequestMatcher = new AntPathRequestMatcher("/-/{" + REALM_URI_VARIABLE_NAME + "}/**");
     }
 
     @Override
     protected String determineUrlToUseForThisRequest(HttpServletRequest request, HttpServletResponse response,
             AuthenticationException exception) {
-
-        // check via matcher
-        if (realmRequestMatcher.matches(request)) {
-            // resolve realm
-            String realm = realmRequestMatcher.matcher(request).getVariables()
-                    .get(REALM_URI_VARIABLE_NAME);
-
-            return "/-/" + realm + getLoginFormUrl();
-        }
-
-        // check in parameters
-        if (StringUtils.hasText(request.getParameter(REALM_URI_VARIABLE_NAME))) {
-            String realm = request.getParameter(REALM_URI_VARIABLE_NAME);
-            if (!"oauth".equals(realm)) {
-                return "/-/" + realm + getLoginFormUrl();
-            }
-        }
 
         // check if clientId
         if (StringUtils.hasText(request.getParameter(CLIENT_ID_PARAMETER_NAME))) {

@@ -30,10 +30,9 @@ public class MonitoringSecurityConfig extends WebSecurityConfigurerAdapter {
     public void configure(HttpSecurity http) throws Exception {
         // match only actuator endpoints
         http.requestMatcher(forPort(managementPort))
-                .authorizeRequests((requests) -> requests.anyRequest().permitAll());
-
-        // we don't want a session for these endpoints
-        http.sessionManagement()
+                .authorizeRequests((requests) -> requests.anyRequest().permitAll())
+                // we don't want a session for these endpoints
+                .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     }
 
