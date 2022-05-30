@@ -22,6 +22,8 @@ import javax.servlet.Filter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -271,6 +273,20 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
 
+    }
+
+    /*
+     * BUG hotfix: disable error filter because it doesn't work with dummyrequests
+     * and/or multiple filter chains TODO remove when upstream fixes the issue
+     * 
+     * https://github.com/spring-projects/spring-security/issues/11055#issuecomment-
+     * 1098061598
+     * 
+     */
+    @Bean
+    public static BeanFactoryPostProcessor removeErrorSecurityFilter() {
+        return beanFactory -> ((DefaultListableBeanFactory) beanFactory)
+                .removeBeanDefinition("errorPageSecurityInterceptor");
     }
 
     @Bean
