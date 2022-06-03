@@ -7,6 +7,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.ArrayUtils;
+
 import it.smartcommunitylab.aac.claims.Claim;
 import it.smartcommunitylab.aac.claims.ClaimsSet;
 import it.smartcommunitylab.aac.claims.model.SerializableClaim;
@@ -100,14 +102,19 @@ public class ProfileClaimsSet implements ClaimsSet {
         List<Claim> claims = new ArrayList<>();
         Map<String, Serializable> map = profile.toMap();
         for (Map.Entry<String, Serializable> e : map.entrySet()) {
-            SerializableClaim sc = new SerializableClaim(e.getKey(), e.getValue());
-            // key is namespace
-            sc.setNamespace(getKey());
-            claims.add(sc);
+            if (!ArrayUtils.contains(SYSTEM_CLAIMS, e.getKey())) {
+                SerializableClaim sc = new SerializableClaim(e.getKey(), e.getValue());
+                // key is namespace
+                sc.setNamespace(getKey());
+                claims.add(sc);
+            }
         }
 
         return claims;
 
     }
 
+    public static final String[] SYSTEM_CLAIMS = {
+            "authority", "provider", "realm", "subjectId", "userId", "urn", "id", "resourceId", "profileId"
+    };
 }
