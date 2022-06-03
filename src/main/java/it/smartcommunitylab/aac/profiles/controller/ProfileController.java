@@ -17,7 +17,6 @@
 package it.smartcommunitylab.aac.profiles.controller;
 
 import java.io.IOException;
-import java.util.Collection;
 
 import javax.annotation.security.RolesAllowed;
 import javax.servlet.http.HttpServletResponse;
@@ -46,8 +45,8 @@ import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
+import it.smartcommunitylab.aac.core.model.UserProfile;
 import it.smartcommunitylab.aac.profiles.ProfileManager;
-import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
 import it.smartcommunitylab.aac.profiles.model.AccountProfile;
 import it.smartcommunitylab.aac.profiles.model.BasicProfile;
 import it.smartcommunitylab.aac.profiles.model.OpenIdProfile;
@@ -89,7 +88,7 @@ public class ProfileController {
             throw new IllegalArgumentException("invalid authentication");
         }
 
-        AbstractProfile profile = profileManager.getProfile(realm, subject, BasicProfile.IDENTIFIER);
+        UserProfile profile = profileManager.getProfile(realm, subject, BasicProfile.IDENTIFIER);
         return new ProfileResponse(subject, profile);
     }
 
@@ -112,7 +111,7 @@ public class ProfileController {
             throw new IllegalArgumentException("invalid authentication");
         }
 
-        AbstractProfile profile = profileManager.getProfile(realm, subject, OpenIdProfile.IDENTIFIER);
+        UserProfile profile = profileManager.getProfile(realm, subject, OpenIdProfile.IDENTIFIER);
         return new ProfileResponse(subject, profile);
     }
 
@@ -136,8 +135,8 @@ public class ProfileController {
             throw new IllegalArgumentException("invalid authentication");
         }
 
-        Collection<AbstractProfile> profiles = profileManager.getProfiles(realm, subject, AccountProfile.IDENTIFIER);
-        return new ProfileResponse(subject, profiles);
+        UserProfile profile = profileManager.getProfile(realm, subject, AccountProfile.IDENTIFIER);
+        return new ProfileResponse(subject, profile);
     }
 
     @Operation(summary = "Get profiles of the current user")
@@ -160,8 +159,8 @@ public class ProfileController {
             throw new IllegalArgumentException("invalid authentication");
         }
 
-        Collection<AbstractProfile> profiles = profileManager.getProfiles(realm, subject, identifier);
-        return new ProfileResponse(subject, profiles);
+        UserProfile profile = profileManager.getProfile(realm, subject, identifier);
+        return new ProfileResponse(subject, profile);
     }
 
     /*
@@ -209,7 +208,7 @@ public class ProfileController {
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subject)
             throws NoSuchRealmException, NoSuchUserException, InvalidDefinitionException {
-        AbstractProfile profile = profileManager.getProfile(realm, subject, BasicProfile.IDENTIFIER);
+        UserProfile profile = profileManager.getProfile(realm, subject, BasicProfile.IDENTIFIER);
         return new ProfileResponse(subject, profile);
     }
 
@@ -222,7 +221,7 @@ public class ProfileController {
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subject)
             throws NoSuchRealmException, NoSuchUserException, InvalidDefinitionException {
-        AbstractProfile profile = profileManager.getProfile(realm, subject, BasicProfile.IDENTIFIER);
+        UserProfile profile = profileManager.getProfile(realm, subject, BasicProfile.IDENTIFIER);
         return new ProfileResponse(subject, profile);
     }
 
@@ -235,8 +234,8 @@ public class ProfileController {
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subject)
             throws NoSuchRealmException, NoSuchUserException, InvalidDefinitionException {
-        Collection<AbstractProfile> profiles = profileManager.getProfiles(realm, subject, AccountProfile.IDENTIFIER);
-        return new ProfileResponse(subject, profiles);
+        UserProfile profile = profileManager.getProfile(realm, subject, AccountProfile.IDENTIFIER);
+        return new ProfileResponse(subject, profile);
     }
 
     @Operation(summary = "Get custom profiles of a user")
@@ -248,8 +247,8 @@ public class ProfileController {
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String identifier,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subject)
             throws NoSuchRealmException, NoSuchUserException, InvalidDefinitionException {
-        Collection<AbstractProfile> profiles = profileManager.getProfiles(realm, subject, identifier);
-        return new ProfileResponse(subject, profiles);
+        UserProfile profile = profileManager.getProfile(realm, subject, identifier);
+        return new ProfileResponse(subject, profile);
     }
 
 }

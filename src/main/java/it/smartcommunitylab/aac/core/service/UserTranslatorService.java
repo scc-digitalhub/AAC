@@ -23,26 +23,19 @@ public class UserTranslatorService {
 
     // global translator
     // TODO add per realm translators, either per source, per dest or per combo?
-    private final UserTranslator translator;
+    private UserTranslator translator;
 
     public UserTranslatorService(UserTranslator translator) {
-        Assert.notNull(translator, "translator is required");
-        this.translator = translator;
+        if (translator != null) {
+            this.translator = translator;
+        } else {
+            // no-op translator
+            this.translator = (u, r) -> (u);
+        }
     }
 
-    public User translate(UserDetails details, String realm) {
-        User user = new User(details);
-
-        // TODO
-//        user.setAuthorities();
-//        user.setRoles(roles);
-
-        if (realm == null || details.getRealm().equals(realm)) {
-            return user;
-        } else {
-            return translator.translate(user, realm);
-        }
-
+    public void setTranslator(UserTranslator translator) {
+        this.translator = translator;
     }
 
     public User translate(User user, String realm) {
@@ -55,21 +48,4 @@ public class UserTranslatorService {
 
     }
 
-    protected UserIdentity translateIdentity(UserIdentity identity, String realm) {
-        if (identity.getRealm().equals(realm)) {
-            // short circuit, nothing to do
-            return identity;
-        }
-
-        return translator.translate(identity, realm);
-    }
-
-    protected UserAttributes translateIdentity(UserAttributes attributes, String realm) {
-        if (attributes.getRealm().equals(realm)) {
-            // short circuit, nothing to do
-            return attributes;
-        }
-
-        return translator.translate(attributes, realm);
-    }
 }

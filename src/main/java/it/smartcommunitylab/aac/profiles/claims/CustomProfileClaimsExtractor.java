@@ -6,9 +6,9 @@ import java.util.Collections;
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
+import it.smartcommunitylab.aac.core.base.AbstractProfile;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.profiles.extractor.UserProfileExtractor;
-import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
 
 public class CustomProfileClaimsExtractor extends ProfileClaimsExtractor {
     private final UserProfileExtractor extractor;
@@ -41,7 +41,7 @@ public class CustomProfileClaimsExtractor extends ProfileClaimsExtractor {
     protected AbstractProfile buildUserProfile(User user, Collection<String> scopes)
             throws InvalidDefinitionException {
 
-        AbstractProfile profile = extractor.extractUserProfile(user);
+        AbstractProfile profile = (AbstractProfile) extractor.extractUserProfile(user);
         return profile;
     }
 

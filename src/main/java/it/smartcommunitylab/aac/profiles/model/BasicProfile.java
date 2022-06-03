@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.base.AbstractProfile;
 
 @JsonInclude(Include.NON_EMPTY)
 public class BasicProfile extends AbstractProfile {
@@ -32,18 +33,12 @@ public class BasicProfile extends AbstractProfile {
     private String username;
     private String email;
 
-    public BasicProfile() {
-    }
-
-    public BasicProfile(BasicProfile bp) {
-        name = bp.getName();
-        surname = bp.getSurname();
-        username = bp.getUsername();
-        email = bp.getEmail();
+    public BasicProfile(String authority, String provider, String realm, String userId) {
+        super(authority, provider, realm, userId);
     }
 
     @Override
-    public String getIdentifier() {
+    public String getId() {
         return IDENTIFIER;
     }
 

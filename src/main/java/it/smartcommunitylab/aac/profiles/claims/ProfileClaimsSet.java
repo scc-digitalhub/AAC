@@ -10,7 +10,7 @@ import java.util.Map;
 import it.smartcommunitylab.aac.claims.Claim;
 import it.smartcommunitylab.aac.claims.ClaimsSet;
 import it.smartcommunitylab.aac.claims.model.SerializableClaim;
-import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
+import it.smartcommunitylab.aac.core.base.AbstractProfile;
 
 public class ProfileClaimsSet implements ClaimsSet {
 

@@ -4,8 +4,11 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.util.StringUtils;
@@ -16,7 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.dto.UserProfile;
+import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 
@@ -49,12 +52,15 @@ public class ScriptOAuthFlowExtensions implements OAuthFlowExtensions {
 
         // convert to profile beans
         // TODO client
-        UserProfile profile = new UserProfile(user);
+        // clone user and reset content to visible
+        User u = new User(user);
+        u.setIdentities(null);
+        u.setAttributes(null);
 
         // convert to map
         Map<String, Serializable> map = new HashMap<>();
         map.put("request", mapper.convertValue(requestParameters, stringMapTypeRef));
-        map.put("user", mapper.convertValue(profile, serMapTypeRef));
+        map.put("user", mapper.convertValue(u, serMapTypeRef));
         map.put("client", mapper.convertValue(client, serMapTypeRef));
 
         // execute script
@@ -86,12 +92,16 @@ public class ScriptOAuthFlowExtensions implements OAuthFlowExtensions {
 
         // convert to profile beans
         // TODO client
-        UserProfile profile = new UserProfile(user);
+        // clone user and reset content to visible
+        User u = new User(user);
+        u.setIdentities(null);
+        // TODO evaluate passing filtered attribute sets based on approved scopes
+        u.setAttributes(null);
 
         // convert to map
         Map<String, Serializable> map = new HashMap<>();
         map.put("scopes", new ArrayList<>(scopes));
-        map.put("user", mapper.convertValue(profile, serMapTypeRef));
+        map.put("user", mapper.convertValue(u, serMapTypeRef));
         map.put("client", mapper.convertValue(client, serMapTypeRef));
 
         // execute script

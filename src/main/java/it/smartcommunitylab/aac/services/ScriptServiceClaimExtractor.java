@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -30,7 +31,7 @@ import it.smartcommunitylab.aac.claims.model.StringClaim;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
-import it.smartcommunitylab.aac.dto.UserProfile;
+import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.model.User;
 
 public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
@@ -161,12 +162,21 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
 
     public Map<String, Serializable> buildUserContext(User user, ClientDetails client, Collection<String> scopes,
             Map<String, Serializable> extensions) {
-        UserProfile profile = new UserProfile(user);
+        // clone user and reset content to visible
+        User u = new User(user);
+        u.setIdentities(null);
+
+        Stream<UserAttributes> iattributes = user.getIdentities().stream()
+                .map(i -> i.getAttributes()).flatMap(Collection::stream)
+                .filter(a -> isAllowed(scopes, a.getIdentifier()));
+        List<UserAttributes> attributes = Stream.concat(iattributes, user.getAttributes(false).stream())
+                .collect(Collectors.toList());
+        u.setAttributes(attributes);
 
         // translate user, client and scopes to a map
         Map<String, Serializable> map = new HashMap<>();
         map.put("scopes", new ArrayList<>(scopes));
-        map.put("user", mapper.convertValue(profile, serMapTypeRef));
+        map.put("user", mapper.convertValue(u, serMapTypeRef));
         map.put("client", mapper.convertValue(client, serMapTypeRef));
         if (extensions != null) {
             map.put("extensions", mapper.convertValue(extensions, serMapTypeRef));
@@ -275,6 +285,13 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
         }
 
         return c;
+    }
+
+    private boolean isAllowed(Collection<String> scopes, String identifier) {
+        // evaluate if set is accessible given the scope
+        // TODO move logic to service and evaluate dependencies
+        String scope = "profile." + identifier + ".me";
+        return scopes.contains(scope);
     }
 
 }

@@ -19,6 +19,7 @@ import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.profiles.extractor.AccountProfileExtractor;
 import it.smartcommunitylab.aac.profiles.model.AccountProfile;
+import it.smartcommunitylab.aac.profiles.model.MultiProfile;
 
 public class AccountProfileClaimsExtractor implements ScopeClaimsExtractor {
 
@@ -46,11 +47,11 @@ public class AccountProfileClaimsExtractor implements ScopeClaimsExtractor {
             throws InvalidDefinitionException, SystemException {
 
         // we handle multiple profiles, one per identity
-        Collection<AccountProfile> profiles = extractor.extractUserProfiles(user);
+        MultiProfile<AccountProfile> profiles = extractor.extractUserProfile(user);
 
         // convert to a claims list
         List<Claim> claims = new ArrayList<>();
-        for (AccountProfile profile : profiles) {
+        for (AccountProfile profile : profiles.getProfiles()) {
             SerializableClaim claim = new SerializableClaim("accounts");
             claim.setValue(profile.toMap());
             claims.add(claim);

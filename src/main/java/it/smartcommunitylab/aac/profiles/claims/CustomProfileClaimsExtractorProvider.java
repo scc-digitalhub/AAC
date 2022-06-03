@@ -19,6 +19,7 @@ import it.smartcommunitylab.aac.core.model.Attribute;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.profiles.extractor.AttributesProfileExtractor;
 
+//TODO review extractor design and implementation
 @Component
 public class CustomProfileClaimsExtractorProvider implements ScopeClaimsExtractorProvider {
 

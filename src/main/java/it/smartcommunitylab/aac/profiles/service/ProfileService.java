@@ -1,6 +1,5 @@
 package it.smartcommunitylab.aac.profiles.service;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,6 +17,7 @@ import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
+import it.smartcommunitylab.aac.core.model.UserProfile;
 import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.profiles.extractor.AccountProfileExtractor;
@@ -26,7 +26,6 @@ import it.smartcommunitylab.aac.profiles.extractor.BasicProfileExtractor;
 import it.smartcommunitylab.aac.profiles.extractor.EmailProfileExtractor;
 import it.smartcommunitylab.aac.profiles.extractor.OpenIdProfileExtractor;
 import it.smartcommunitylab.aac.profiles.extractor.UserProfileExtractor;
-import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
 
 @Service
 public class ProfileService {
@@ -113,23 +112,18 @@ public class ProfileService {
      * Profiles from userDetails - shortcuts
      */
 
-    public AbstractProfile getProfile(UserDetails userDetails, String identifier) throws InvalidDefinitionException {
+    public UserProfile getProfile(UserDetails userDetails, String identifier) throws InvalidDefinitionException {
         return getProfile(userService.getUser(userDetails), identifier);
-    }
-
-    public Collection<? extends AbstractProfile> getProfiles(UserDetails userDetails, String identifier)
-            throws InvalidDefinitionException {
-        return getProfiles(userService.getUser(userDetails), identifier);
     }
 
     /*
      * Profiles from user
      */
 
-    private AbstractProfile getProfile(User user, String identifier) throws InvalidDefinitionException {
+    private UserProfile getProfile(User user, String identifier) throws InvalidDefinitionException {
         UserProfileExtractor ext = getExtractor(identifier);
 
-        AbstractProfile profile = ext.extractUserProfile(user);
+        UserProfile profile = ext.extractUserProfile(user);
 
         if (profile == null) {
             throw new InvalidDefinitionException("invalid profile");
@@ -138,28 +132,14 @@ public class ProfileService {
         return profile;
     }
 
-    private Collection<? extends AbstractProfile> getProfiles(User user, String identifier)
-            throws InvalidDefinitionException {
-        UserProfileExtractor ext = getExtractor(identifier);
-
-        return ext.extractUserProfiles(user);
-
-    }
-
     /*
      * Profiles from db
      */
 
-    public AbstractProfile getProfile(String realm, String subjectId, String identifier)
+    public UserProfile getProfile(String realm, String userId, String identifier)
             throws NoSuchUserException, InvalidDefinitionException {
-        User user = userService.getUser(subjectId, realm);
+        User user = userService.getUser(userId, realm);
         return getProfile(user, identifier);
-    }
-
-    public Collection<? extends AbstractProfile> getProfiles(String realm, String subjectId, String identifier)
-            throws NoSuchUserException, InvalidDefinitionException {
-        User user = userService.getUser(subjectId, realm);
-        return getProfiles(user, identifier);
     }
 
     /*

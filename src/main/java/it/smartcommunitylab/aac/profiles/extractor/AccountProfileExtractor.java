@@ -1,12 +1,10 @@
 package it.smartcommunitylab.aac.profiles.extractor;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
-
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.AccountAttributesSet;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.core.model.UserAccount;
@@ -15,6 +13,7 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.model.AttributeType;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.profiles.model.AccountProfile;
+import it.smartcommunitylab.aac.profiles.model.MultiProfile;
 
 public class AccountProfileExtractor extends AbstractUserProfileExtractor {
 
@@ -23,9 +22,8 @@ public class AccountProfileExtractor extends AbstractUserProfileExtractor {
         return AccountProfile.IDENTIFIER;
     }
 
-    
     @Override
-    public AccountProfile extractUserProfile(User user)
+    public MultiProfile<AccountProfile> extractUserProfile(User user)
             throws InvalidDefinitionException {
 
         // fetch identities
@@ -35,15 +33,19 @@ public class AccountProfileExtractor extends AbstractUserProfileExtractor {
             return null;
         }
 
-        // TODO decide how to select primary identity
-        // for now get first identity, should be last logged in
-        UserIdentity id = identities.iterator().next();
-        AccountProfile profile = extract(id.getAccount(), id.getAttributes());
+        MultiProfile<AccountProfile> profile = new MultiProfile<>(SystemKeys.AUTHORITY_AAC, SystemKeys.AUTHORITY_AAC,
+                user.getRealm(), user.getUserId(), AccountProfile.IDENTIFIER);
+        profile.setKey("accounts");
+
+        // build account profile for every identity
+        for (UserIdentity id : identities) {
+            AccountProfile ap = extract(id.getAccount(), id.getAttributes());
+            profile.addProfile(ap);
+        }
 
         return profile;
     }
 
-    @Override
     public AccountProfile extractUserProfile(UserIdentity identity) throws InvalidDefinitionException {
         if (identity == null) {
             return null;
@@ -52,20 +54,9 @@ public class AccountProfileExtractor extends AbstractUserProfileExtractor {
         return extract(identity.getAccount(), identity.getAttributes());
     }
 
-    @Override
-    public Collection<AccountProfile> extractUserProfiles(User user) throws InvalidDefinitionException {
-        // fetch identities
-        Collection<UserIdentity> identities = user.getIdentities();
-
-        if (identities.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        return identities.stream().map(id -> extract(id.getAccount(), id.getAttributes())).collect(Collectors.toList());
-    }
-
     private AccountProfile extract(UserAccount account, Collection<UserAttributes> attributes) {
-        AccountProfile profile = new AccountProfile();
+        AccountProfile profile = new AccountProfile(account.getAuthority(), account.getProvider(), account.getRealm(),
+                account.getUserId());
         profile.setAuthority(account.getAuthority());
         profile.setProvider(account.getProvider());
         profile.setRealm(account.getRealm());

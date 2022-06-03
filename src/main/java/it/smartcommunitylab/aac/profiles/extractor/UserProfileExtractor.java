@@ -1,11 +1,8 @@
 package it.smartcommunitylab.aac.profiles.extractor;
 
-import java.util.Collection;
-
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
-import it.smartcommunitylab.aac.core.model.UserIdentity;
+import it.smartcommunitylab.aac.core.model.UserProfile;
 import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
 
 /*
  * Profile extractors are converters which take a user and build a profile according to a given schema
@@ -22,11 +19,11 @@ public interface UserProfileExtractor {
 
     public String getIdentifier();
 
-    /*
-     * Get the profile from the given identity, where possible
-     */
-    public AbstractProfile extractUserProfile(UserIdentity identity)
-            throws InvalidDefinitionException;
+//    /*
+//     * Get the profile from the given identity, where possible
+//     */
+//    public AbstractProfile extractUserProfile(UserIdentity identity)
+//            throws InvalidDefinitionException;
 
     /*
      * Get the profile from the default/primary identity, or from all identities
@@ -35,14 +32,14 @@ public interface UserProfileExtractor {
      * 
      * This method is *required* to return a valid profile.
      */
-    public AbstractProfile extractUserProfile(User user)
+    public UserProfile extractUserProfile(User user)
             throws InvalidDefinitionException;
 
-    /*
-     * Get a collection of profiles, where the user can be represented by more than
-     * one. For example in case of multiple identities.
-     */
-
-    public Collection<? extends AbstractProfile> extractUserProfiles(User user)
-            throws InvalidDefinitionException;
+//    /*
+//     * Get a collection of profiles, where the user can be represented by more than
+//     * one. For example in case of multiple identities.
+//     */
+//
+//    public Collection<? extends AbstractProfile> extractUserProfiles(User user)
+//            throws InvalidDefinitionException;
 }

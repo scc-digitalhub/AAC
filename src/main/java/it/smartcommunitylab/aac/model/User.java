@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.validation.constraints.NotBlank;
 
@@ -15,6 +16,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -36,17 +38,12 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
 public class User {
 
     @NotBlank
-    private final String subjectId;
+    private final String userId;
 
-    // describes the realm responsible for this user
-    // TODO remove field, not needed with realm-scoped resources
-    private final String source;
+    @NotBlank
+    private final String realm;
 
-    // realm describes the current user for the given realm
-    // TODO always set to subject source realm
-    private String realm;
-
-    // basic profile
+    // entity attributes for basic profile
     private String username;
     private String email;
     private boolean emailVerified;
@@ -86,6 +83,8 @@ public class User {
     private Set<RealmRole> realmRoles;
 
     // space roles are global
+    // TODO drop from here
+    @JsonIgnore
     private Set<SpaceRole> spaceRoles;
 
     // groups where user is a member
@@ -95,14 +94,13 @@ public class User {
     // realm scoped
     private List<UserAttributes> attributes;
 
-    public User(String subjectId, String source) {
-        Assert.hasText(subjectId, "subject can not be null or empty");
-        Assert.notNull(source, "source realm can not be null");
+    public User(String userId, String realm) {
+        Assert.hasText(userId, "userId can not be null or empty");
+        Assert.notNull(realm, " realm can not be null");
 
-        this.subjectId = subjectId;
-        this.source = source;
-        // set consuming realm to source
-        this.realm = source;
+        this.userId = userId;
+        this.realm = realm;
+
         this.authorities = Collections.emptySet();
         this.identities = new HashSet<>();
         this.attributes = new ArrayList<>();
@@ -113,16 +111,15 @@ public class User {
 
     public User(UserDetails details) {
         Assert.notNull(details, "user details can not be null");
-        this.subjectId = details.getSubjectId();
-        this.source = details.getRealm();
-        // set consuming realm to source
-        this.realm = source;
+        this.userId = details.getUserId();
+        this.realm = details.getRealm();
+
         this.authorities = details.getAuthorities().stream()
                 .filter(a -> (a instanceof RealmGrantedAuthority))
                 .map(a -> (RealmGrantedAuthority) a)
                 .collect(Collectors.toSet());
         this.identities = new HashSet<>(details.getIdentities());
-        this.attributes = new ArrayList<>(details.getAttributeSets(false));
+        this.attributes = new ArrayList<>(details.getAttributeSets(true));
         this.realmRoles = new HashSet<>();
         this.spaceRoles = new HashSet<>();
         this.groups = new HashSet<>();
@@ -134,12 +131,38 @@ public class User {
 
     }
 
-    public String getSubjectId() {
-        return subjectId;
+    public User(User user) {
+        Assert.notNull(user, "user  can not be null");
+        this.userId = user.getUserId();
+        this.realm = user.getRealm();
+
+        this.username = user.getUsername();
+        this.email = user.getEmail();
+        this.emailVerified = user.isEmailVerified();
+
+        this.authorities = new HashSet<>(user.getAuthorities());
+        this.identities = new HashSet<>(user.getIdentities());
+        this.attributes = new ArrayList<>(user.getAttributes(false));
+        this.realmRoles = new HashSet<>();
+        this.spaceRoles = new HashSet<>();
+        this.groups = new HashSet<>();
+
+        this.status = user.getStatus();
+        this.expirationDate = user.getExpirationDate();
+        this.createDate = user.getCreateDate();
+        this.modifiedDate = user.getModifiedDate();
+        this.loginDate = user.getLoginDate();
+        this.loginIp = user.getLoginIp();
+        this.loginProvider = user.getLoginProvider();
     }
 
-    public String getSource() {
-        return source;
+    // TODO remove subjectId access, always use userId
+    public String getSubjectId() {
+        return userId;
+    }
+
+    public String getUserId() {
+        return userId;
     }
 
     public Set<GrantedAuthority> getAuthorities() {
@@ -156,10 +179,10 @@ public class User {
     public String getRealm() {
         return realm;
     }
-
-    public void setRealm(String realm) {
-        this.realm = realm;
-    }
+//
+//    public void setRealm(String realm) {
+//        this.realm = realm;
+//    }
 
 //    public String getName() {
 //        return name;
@@ -265,21 +288,24 @@ public class User {
         this.identities = new HashSet<>();
         if (identities != null) {
             this.identities.addAll(identities);
-            // add all attributes
-            identities.forEach(i -> attributes.addAll(i.getAttributes()));
         }
-
     }
 
     public void addIdentity(UserIdentity identity) {
         identities.add(identity);
-
-        // add all attributes
-        identities.forEach(i -> attributes.addAll(i.getAttributes()));
     }
 
     public Collection<UserAttributes> getAttributes() {
-        return Collections.unmodifiableCollection(attributes);
+        return getAttributes(true);
+    }
+
+    public Collection<UserAttributes> getAttributes(boolean includeIdentities) {
+        if (!includeIdentities) {
+            return Collections.unmodifiableCollection(attributes);
+        }
+
+        Stream<UserAttributes> ia = identities.stream().map(i -> i.getAttributes()).flatMap(Collection::stream);
+        return Stream.concat(ia, attributes.stream()).collect(Collectors.toList());
     }
 
     public void setAttributes(Collection<UserAttributes> attributes) {

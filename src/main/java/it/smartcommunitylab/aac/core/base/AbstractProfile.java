@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.profiles.model;
+package it.smartcommunitylab.aac.core.base;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -9,11 +9,12 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.model.UserProfile;
 
 @JsonInclude(Include.NON_EMPTY)
-public abstract class AbstractProfile implements Serializable {
+public abstract class AbstractProfile extends AbstractBaseUserResource implements UserProfile {
 
-    private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
+    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     private static ObjectMapper mapper = new ObjectMapper();
     private final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
@@ -23,8 +24,24 @@ public abstract class AbstractProfile implements Serializable {
         mapper.setSerializationInclusion(Include.NON_EMPTY);
     }
 
+    protected AbstractProfile(String authority, String provider, String realm) {
+        super(authority, provider, realm);
+    }
+
+    protected AbstractProfile(String authority, String provider, String realm, String userId) {
+        super(authority, provider, realm, userId);
+    }
+
+    @Override
     @JsonIgnore
-    public abstract String getIdentifier();
+    public final String getType() {
+        return SystemKeys.RESOURCE_PROFILE;
+    }
+
+    @Override
+    public String getUuid() {
+        return null;
+    }
 
     /*
      * Convert profile, subclasses can override

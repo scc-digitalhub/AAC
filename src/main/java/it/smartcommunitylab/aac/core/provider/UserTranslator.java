@@ -1,7 +1,5 @@
 package it.smartcommunitylab.aac.core.provider;
 
-import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.model.User;
 
 /*
@@ -14,8 +12,8 @@ public interface UserTranslator {
 
     public User translate(User user, String realm);
 
-    public UserIdentity translate(UserIdentity identity, String realm);
+//    public UserIdentity translate(UserIdentity identity, String realm);
 
-    public UserAttributes translate(UserAttributes attributes, String realm);
+//    public UserAttributes translate(UserAttributes attributes, String realm);
 
 }

@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.base.AbstractProfile;
 
 /**
  * User registration information (different account of the registered user)
@@ -48,11 +49,12 @@ public class AccountProfile extends AbstractProfile {
     // do not expose private data!
     private Map<String, String> attributes;
 
-    public AccountProfile() {
+    public AccountProfile(String authority, String provider, String realm, String userId) {
+        super(authority, provider, realm, userId);
     }
 
     @Override
-    public String getIdentifier() {
+    public String getId() {
         return IDENTIFIER;
     }
 

@@ -6,6 +6,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -15,9 +17,11 @@ import it.smartcommunitylab.aac.attributes.model.DateAttribute;
 import it.smartcommunitylab.aac.attributes.model.DateTimeAttribute;
 import it.smartcommunitylab.aac.attributes.model.NumberAttribute;
 import it.smartcommunitylab.aac.attributes.model.TimeAttribute;
+import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
 import it.smartcommunitylab.aac.core.model.Attribute;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.model.AttributeType;
+import it.smartcommunitylab.aac.model.User;
 
 public abstract class AbstractUserProfileExtractor implements UserProfileExtractor {
 
@@ -40,6 +44,100 @@ public abstract class AbstractUserProfileExtractor implements UserProfileExtract
 
         return null;
 
+    }
+
+    protected Collection<UserAttributes> mergeAttributes(User user, String identityId) {
+        // fetch user attributes to merge properties
+        Collection<UserAttributes> userAttributes = user.getAttributes(false);
+        Collection<UserAttributes> idAttributes = user.getIdentities().stream()
+                .filter(i -> i.getId().equals(identityId))
+                .map(i -> i.getAttributes())
+                .flatMap(Collection::stream).collect(Collectors.toList());
+        Collection<UserAttributes> additionalAttributes = user.getIdentities().stream()
+                .filter(i -> !i.getId().equals(identityId))
+                .map(i -> i.getAttributes())
+                .flatMap(Collection::stream).collect(Collectors.toList());
+
+        return mergeAttributes(idAttributes, userAttributes, additionalAttributes, true);
+    }
+
+    protected Collection<UserAttributes> mergeAttributes(
+            Collection<UserAttributes> identityAttributes,
+            Collection<UserAttributes> userAttributes,
+            Collection<UserAttributes> additionalAttributes,
+            boolean mergeSets) {
+
+        // merge attributes into a single collection
+        Map<String, UserAttributes> attributesMap = new HashMap<>();
+
+        // add all identity attributes, we expect a single set per id here
+        identityAttributes.forEach(ua -> attributesMap.put(ua.getIdentifier(), ua));
+
+        // always add or merge all sets from user
+        userAttributes.forEach(ua -> {
+            if (!attributesMap.containsKey(ua.getIdentifier())) {
+                attributesMap.put(ua.getIdentifier(), ua);
+                return;
+            }
+
+            // build a new set merging single attributes
+            // user attributes have higher priority
+            // do note that when identity attributes are required this method *should not*
+            // be used at all
+            String id = ua.getIdentifier();
+            UserAttributes u = attributesMap.get(id);
+
+            DefaultUserAttributesImpl uma = new DefaultUserAttributesImpl(ua.getAuthority(), ua.getProvider(),
+                    ua.getRealm(),
+                    ua.getUserId(), id);
+            uma.addAttributes(ua.getAttributes());
+            // add identity attributes if missing
+            u.getAttributes().forEach(a -> {
+                boolean exists = ua.getAttributes().stream()
+                        .anyMatch(e -> e.getKey().equals(a.getKey()));
+
+                if (!exists) {
+                    uma.addAttribute(a);
+                }
+            });
+
+            attributesMap.put(uma.getIdentifier(), uma);
+        });
+
+        // add or merge additional sets
+        additionalAttributes.forEach(ua -> {
+            if (!attributesMap.containsKey(ua.getIdentifier())) {
+                attributesMap.put(ua.getIdentifier(), ua);
+                return;
+            }
+            if (!mergeSets) {
+                return;
+            }
+
+            // build a new set merging single attributes
+            // additional attributes have low priority
+            String id = ua.getIdentifier();
+            UserAttributes u = attributesMap.get(id);
+
+            DefaultUserAttributesImpl uma = new DefaultUserAttributesImpl(ua.getAuthority(), ua.getProvider(),
+                    ua.getRealm(),
+                    ua.getUserId(), id);
+            // keep all existing
+            uma.addAttributes(u.getAttributes());
+            // add additional attributes if missing
+            ua.getAttributes().forEach(a -> {
+                boolean exists = u.getAttributes().stream()
+                        .anyMatch(e -> e.getKey().equals(a.getKey()));
+
+                if (!exists) {
+                    uma.addAttribute(a);
+                }
+            });
+
+            attributesMap.put(uma.getIdentifier(), uma);
+        });
+
+        return attributesMap.values();
     }
 
     protected String getStringAttribute(Attribute attr) {

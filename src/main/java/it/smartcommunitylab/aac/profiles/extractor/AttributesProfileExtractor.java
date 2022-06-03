@@ -17,6 +17,7 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.profiles.model.CustomProfile;
 
+@Deprecated
 public class AttributesProfileExtractor extends AbstractUserProfileExtractor {
 
     // profile identifier
@@ -37,7 +38,6 @@ public class AttributesProfileExtractor extends AbstractUserProfileExtractor {
         return identifier;
     }
 
-    @Override
     public CustomProfile extractUserProfile(UserIdentity identity) throws InvalidDefinitionException {
         if (identity == null) {
             return null;
@@ -68,7 +68,6 @@ public class AttributesProfileExtractor extends AbstractUserProfileExtractor {
         return profile;
     }
 
-    @Override
     public Collection<? extends CustomProfile> extractUserProfiles(User user) throws InvalidDefinitionException {
         // fetch custom attributes
         List<UserAttributes> userAttributes = user.getAttributes().stream()
@@ -103,7 +102,8 @@ public class AttributesProfileExtractor extends AbstractUserProfileExtractor {
 
     private CustomProfile extract(Collection<UserAttributes> attributes) {
 
-        CustomProfile profile = new CustomProfile(identifier);
+        // TODO handle as userResource
+        CustomProfile profile = new CustomProfile(null, null, null, null, identifier);
         List<String> reserved = Collections.emptyList();
         if (identifier.startsWith("aac.")) {
             // filter core claims
@@ -125,6 +125,6 @@ public class AttributesProfileExtractor extends AbstractUserProfileExtractor {
         return profile;
     }
 
-    private static final String[] RESERVED = { "username", "provider", "authority", "realm" };
+    private static final String[] RESERVED = { "username", "provider", "authority", "realm", "userId" };
 
 }

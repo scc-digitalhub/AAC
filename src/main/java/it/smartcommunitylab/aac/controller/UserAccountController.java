@@ -40,6 +40,7 @@ import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.MyUserManager;
 import it.smartcommunitylab.aac.core.UserDetails;
+import it.smartcommunitylab.aac.core.base.AbstractProfile;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
@@ -49,10 +50,10 @@ import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.dto.ConnectedAppProfile;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.profiles.ProfileManager;
-import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
 import it.smartcommunitylab.aac.profiles.model.AccountProfile;
 import it.smartcommunitylab.aac.profiles.model.BasicProfile;
 import it.smartcommunitylab.aac.profiles.model.EmailProfile;
+import it.smartcommunitylab.aac.profiles.model.MultiProfile;
 import it.smartcommunitylab.aac.profiles.model.OpenIdProfile;
 import it.smartcommunitylab.aac.roles.SpaceRoleManager;
 
@@ -145,9 +146,8 @@ public class UserAccountController {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        Collection<AccountProfile> profiles = profileManager.curAccountProfiles();
-
-        return ResponseEntity.ok(profiles);
+        MultiProfile<AccountProfile> profile = profileManager.curAccountProfiles();
+        return ResponseEntity.ok(profile.getProfiles());
     }
 
     @DeleteMapping("/account/profile")

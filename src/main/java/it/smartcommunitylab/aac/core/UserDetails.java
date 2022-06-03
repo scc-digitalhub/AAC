@@ -43,7 +43,7 @@ public class UserDetails implements CredentialsContainer, Serializable {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     // base attributes
-    private final String subjectId;
+    private final String userId;
     private final String realm;
     private String username;
 
@@ -65,16 +65,15 @@ public class UserDetails implements CredentialsContainer, Serializable {
     private final boolean locked;
 
     public UserDetails(
-            String subjectId, String realm,
+            String userId, String realm,
             UserIdentity identity,
             Collection<UserAttributes> attributeSets,
             Collection<? extends GrantedAuthority> authorities) {
-        Assert.notNull(subjectId, "subject can not be null");
+        Assert.notNull(userId, "userId can not be null");
         Assert.notNull(realm, "realm can not be null");
         Assert.notNull(identity, "one identity is required");
 
-        // subject is our id
-        this.subjectId = subjectId;
+        this.userId = userId;
         this.realm = realm;
         this.username = identity.getAccount().getUsername();
 
@@ -99,16 +98,15 @@ public class UserDetails implements CredentialsContainer, Serializable {
     }
 
     public UserDetails(
-            String subjectId, String realm,
+            String userId, String realm,
             Collection<UserIdentity> identities,
             Collection<UserAttributes> attributeSets,
             Collection<? extends GrantedAuthority> authorities) {
-        Assert.notNull(subjectId, "subject can not be null");
+        Assert.notNull(userId, "userId can not be null");
         Assert.notNull(realm, "realm can not be null");
         Assert.notEmpty(identities, "one identity is required");
 
-        // subject is our id
-        this.subjectId = subjectId;
+        this.userId = userId;
         this.realm = realm;
 
         // identity sets, at minimum we handle first login identity
@@ -155,8 +153,13 @@ public class UserDetails implements CredentialsContainer, Serializable {
      * User profile
      */
 
+    // TODO remove subjectId access, always use userId
     public String getSubjectId() {
-        return subjectId;
+        return userId;
+    }
+
+    public String getUserId() {
+        return userId;
     }
 
     public String getRealm() {
@@ -389,7 +392,7 @@ public class UserDetails implements CredentialsContainer, Serializable {
 
     @Override
     public String toString() {
-        return "User [subjectId=" + subjectId + ", authorities=" + authorities + "]";
+        return "User [userId=" + userId + ", authorities=" + authorities + "]";
     }
 
     /*

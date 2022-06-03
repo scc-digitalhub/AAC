@@ -29,6 +29,7 @@ public class SystemKeys {
     public static final String AUTHORITY_WEBHOOK = "webhook";
     public static final String AUTHORITY_OAUTH2 = "oauth2";
     public static final String AUTHORITY_APPLE = "apple";
+    public static final String AUTHORITY_AAC = "aac";
 
     public static final String CLIENT_TYPE_OAUTH2 = "oauth2";
     public static final String CLIENT_TYPE_SAML = "saml";
@@ -52,6 +53,7 @@ public class SystemKeys {
     public static final String RESOURCE_GROUP = "group";
     public static final String RESOURCE_CREDENTIALS_SECRET = "credentials_secret";
     public static final String RESOURCE_CREDENTIALS_JWKS = "credentials_jwks";
+    public static final String RESOURCE_PROFILE = "profile";
 
     public static final String PATH_SEPARATOR = "/-/";
     public static final String ID_SEPARATOR = "|";

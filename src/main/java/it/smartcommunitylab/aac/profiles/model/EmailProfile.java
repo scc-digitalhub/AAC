@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.base.AbstractProfile;
 
 @JsonInclude(Include.NON_EMPTY)
 public class EmailProfile extends AbstractProfile {
@@ -18,16 +19,12 @@ public class EmailProfile extends AbstractProfile {
     @JsonProperty("email_verified")
     private Boolean emailVerified;
 
-    public EmailProfile() {
-    }
-
-    public EmailProfile(BasicProfile p) {
-        email = p.getEmail();
-        emailVerified = false;
+    public EmailProfile(String authority, String provider, String realm, String userId) {
+        super(authority, provider, realm, userId);
     }
 
     @Override
-    public String getIdentifier() {
+    public String getId() {
         return IDENTIFIER;
     }
 

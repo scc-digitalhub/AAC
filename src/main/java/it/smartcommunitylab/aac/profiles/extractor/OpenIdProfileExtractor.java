@@ -3,15 +3,11 @@ package it.smartcommunitylab.aac.profiles.extractor;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Locale;
-import java.util.stream.Collectors;
-
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.attributes.BasicAttributesSet;
-import it.smartcommunitylab.aac.attributes.EmailAttributesSet;
 import it.smartcommunitylab.aac.attributes.OpenIdAttributesSet;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.core.model.UserAccount;
@@ -38,15 +34,16 @@ public class OpenIdProfileExtractor extends AbstractUserProfileExtractor {
         if (identities.isEmpty()) {
             return null;
         }
-
-        // TODO decide how to merge identities into a single profile
-        // for now get first identity, should be last logged in
+        // get first identity as base, should be last logged in
         UserIdentity id = identities.iterator().next();
-        OpenIdProfile profile = extract(id.getAccount(), id.getAttributes());
+
+        // get attributes merged with default policy
+        Collection<UserAttributes> attributes = mergeAttributes(user, id.getId());
+
+        OpenIdProfile profile = extract(id.getAccount(), attributes);
         return profile;
     }
 
-    @Override
     public OpenIdProfile extractUserProfile(UserIdentity identity) throws InvalidDefinitionException {
         if (identity == null) {
             return null;
@@ -55,23 +52,15 @@ public class OpenIdProfileExtractor extends AbstractUserProfileExtractor {
         return extract(identity.getAccount(), identity.getAttributes());
     }
 
-    @Override
-    public Collection<OpenIdProfile> extractUserProfiles(User user) throws InvalidDefinitionException {
-        // fetch identities
-        Collection<UserIdentity> identities = user.getIdentities();
-
-        if (identities.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        return identities.stream().map(id -> extract(id.getAccount(), id.getAttributes())).collect(Collectors.toList());
-    }
-
     private OpenIdProfile extract(UserAccount account, Collection<UserAttributes> attributes) {
-        OpenIdProfile profile = new OpenIdProfile();
+        OpenIdProfile profile = new OpenIdProfile(account.getAuthority(), account.getProvider(), account.getRealm(),
+                account.getUserId());
 
         // username is not modifiable via attributes
         profile.setUsername(account.getUsername());
+
+        // email is not modifiable via attributes
+        profile.setEmail(account.getEmailAddress());
 
         // lookup attributes with default names in openid profile
         String givenName = getStringAttribute(getAttribute(attributes, OpenIdAttributesSet.GIVEN_NAME,
@@ -92,17 +81,11 @@ public class OpenIdProfileExtractor extends AbstractUserProfileExtractor {
                     BasicAttributesSet.IDENTIFIER,
                     "profile"));
         }
-        String email = getStringAttribute(
-                getAttribute(attributes, OpenIdAttributesSet.EMAIL, OpenIdAttributesSet.IDENTIFIER,
-                        EmailAttributesSet.IDENTIFIER, BasicAttributesSet.IDENTIFIER,
-                        "profile"));
 
         profile.setGivenName(givenName);
         profile.setFamilyName(familyName);
-        profile.setEmail(email);
 
         // lookup attributes with default names (oidc)
-
         profile.setMiddleName(getStringAttribute(
                 getAttribute(attributes, OpenIdAttributesSet.MIDDLE_NAME, OpenIdAttributesSet.IDENTIFIER,
                         "profile")));

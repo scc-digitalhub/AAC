@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.base.AbstractProfile;
 
 @JsonInclude(Include.NON_EMPTY)
 public class SessionProfile extends AbstractProfile {
@@ -54,8 +55,12 @@ public class SessionProfile extends AbstractProfile {
     // loa1+, otherwise we keep loa0
     private Integer acr = 0;
 
+    public SessionProfile(String authority, String provider, String realm, String userId) {
+        super(authority, provider, realm, userId);
+    }
+
     @Override
-    public String getIdentifier() {
+    public String getId() {
         return IDENTIFIER;
     }
 

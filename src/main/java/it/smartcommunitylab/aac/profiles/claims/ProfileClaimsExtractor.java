@@ -9,8 +9,8 @@ import it.smartcommunitylab.aac.claims.ClaimsSet;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
+import it.smartcommunitylab.aac.core.base.AbstractProfile;
 import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
 
 public abstract class ProfileClaimsExtractor implements ScopeClaimsExtractor {
 

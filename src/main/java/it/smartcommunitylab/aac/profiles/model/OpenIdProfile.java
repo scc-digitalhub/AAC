@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.base.AbstractProfile;
 
 @JsonInclude(Include.NON_EMPTY)
 public class OpenIdProfile extends AbstractProfile {
@@ -74,20 +75,12 @@ public class OpenIdProfile extends AbstractProfile {
     @JsonFormat(shape = JsonFormat.Shape.NUMBER)
     private Date updatedAt;
 
-    public OpenIdProfile() {
-
-    }
-
-    public OpenIdProfile(BasicProfile basic) {
-        this.name = basic.getName();
-        this.givenName = basic.getName();
-        this.familyName = basic.getSurname();
-        this.username = basic.getUsername();
-        this.email = basic.getEmail();
+    public OpenIdProfile(String authority, String provider, String realm, String userId) {
+        super(authority, provider, realm, userId);
     }
 
     @Override
-    public String getIdentifier() {
+    public String getId() {
         return IDENTIFIER;
     }
 
@@ -96,7 +89,7 @@ public class OpenIdProfile extends AbstractProfile {
      */
 
     public OpenIdProfile toDefaultProfile() {
-        OpenIdProfile profile = new OpenIdProfile();
+        OpenIdProfile profile = new OpenIdProfile(getAuthority(), getProvider(), getRealm(), getUserId());
         profile.name = this.name;
         profile.givenName = this.givenName;
         profile.familyName = this.familyName;
@@ -116,7 +109,7 @@ public class OpenIdProfile extends AbstractProfile {
     }
 
     public OpenIdProfile toEmailProfile() {
-        OpenIdProfile profile = new OpenIdProfile();
+        OpenIdProfile profile = new OpenIdProfile(getAuthority(), getProvider(), getRealm(), getUserId());
         if (StringUtils.hasText(this.email)) {
             profile.email = this.email;
             profile.emailVerified = this.emailVerified;
@@ -125,14 +118,14 @@ public class OpenIdProfile extends AbstractProfile {
     }
 
     public OpenIdProfile toAddressProfile() {
-        OpenIdProfile profile = new OpenIdProfile();
+        OpenIdProfile profile = new OpenIdProfile(getAuthority(), getProvider(), getRealm(), getUserId());
         profile.address = this.address;
 
         return profile;
     }
 
     public OpenIdProfile toPhoneProfile() {
-        OpenIdProfile profile = new OpenIdProfile();
+        OpenIdProfile profile = new OpenIdProfile(getAuthority(), getProvider(), getRealm(), getUserId());
         if (StringUtils.hasText(this.phone)) {
             profile.phone = this.phone;
             profile.phoneVerified = this.phoneVerified;

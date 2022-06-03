@@ -137,7 +137,7 @@ public class UserService {
 
         // translate details via translator
         // this will support per-realm translators and fine-grained policies
-        User u = translator.translate(userDetails, realm);
+        User u = translate(new User(userDetails), realm);
 
         try {
             UserEntity ue = userService.getUser(subjectId);
@@ -183,7 +183,7 @@ public class UserService {
 
         // translate details via translator
         // this will support per-realm translators and fine-grained policies
-        User u = translator.translate(user, realm);
+        User u = translate(user, realm);
 
         try {
             UserEntity ue = userService.getUser(subjectId);
@@ -363,7 +363,7 @@ public class UserService {
 
         if (!source.equals(realm)) {
             // let translator filter content according to policy
-            u = translator.translate(u, realm);
+            u = translate(u, realm);
         }
 
         // add authorities
@@ -688,6 +688,17 @@ public class UserService {
 
     public Collection<Group> fetchUserGroups(String subjectId, String realm) throws NoSuchUserException {
         return groupService.getSubjectGroups(subjectId, realm);
+    }
+
+    private User translate(User user, String realm) {
+        if (user.getRealm().equals(realm)) {
+            return user;
+        }
+        if (translator != null) {
+            return translator.translate(user, realm);
+        }
+
+        return null;
     }
 
 }
