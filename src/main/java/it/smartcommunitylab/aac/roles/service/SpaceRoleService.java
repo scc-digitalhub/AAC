@@ -15,8 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.SpaceRoles;
+import it.smartcommunitylab.aac.roles.SpaceRole;
 import it.smartcommunitylab.aac.roles.persistence.SpaceRoleEntity;
 import it.smartcommunitylab.aac.roles.persistence.SpaceRoleEntityRepository;
 

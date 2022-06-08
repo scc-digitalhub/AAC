@@ -1,7 +1,14 @@
 package it.smartcommunitylab.aac.claims;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 public class DefaultClaimsSet implements ClaimsSet {
 
@@ -62,4 +69,29 @@ public class DefaultClaimsSet implements ClaimsSet {
         this.claims = claims;
     }
 
+    @Override
+    public Map<String, Serializable> exportClaims() {
+        if (claims == null) {
+            return Collections.emptyMap();
+        }
+
+        // translate each claim to serializable, merge multiple keys under collections
+        MultiValueMap<String, Serializable> map = new LinkedMultiValueMap<>();
+        claims.forEach(claim -> {
+            map.add(claim.getKey(), claim.getValue());
+        });
+
+        // flatten and collect
+        Map<String, Serializable> result = new HashMap<>();
+        map.forEach((key, list) -> {
+            if (list.size() == 1) {
+                result.put(key, list.get(0));
+            } else {
+                // use arrayList to ensure element is serializable
+                result.put(key, new ArrayList<>(list));
+            }
+        });
+
+        return result;
+    }
 }

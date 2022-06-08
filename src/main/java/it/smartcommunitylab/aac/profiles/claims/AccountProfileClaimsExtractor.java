@@ -51,7 +51,7 @@ public class AccountProfileClaimsExtractor implements ScopeClaimsExtractor {
 
         // convert to a claims list
         List<Claim> claims = new ArrayList<>();
-        SerializableClaim claim = new SerializableClaim("accounts");
+        SerializableClaim claim = new SerializableClaim(NAMESPACE);
         ArrayList<Serializable> list = new ArrayList<>();
         for (AccountProfile profile : profiles.getProfiles()) {
             // TODO filter props and proper serialize via claimsSet

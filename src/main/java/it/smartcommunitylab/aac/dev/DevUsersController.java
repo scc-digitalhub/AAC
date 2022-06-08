@@ -52,9 +52,9 @@ import it.smartcommunitylab.aac.dto.ConnectedAppProfile;
 import it.smartcommunitylab.aac.groups.GroupManager;
 import it.smartcommunitylab.aac.model.Group;
 import it.smartcommunitylab.aac.model.RealmRole;
-import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.roles.RealmRoleManager;
+import it.smartcommunitylab.aac.roles.SpaceRole;
 import it.smartcommunitylab.aac.roles.SpaceRoleManager;
 
 @RestController

@@ -20,8 +20,8 @@ import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.model.RealmRole;
-import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.roles.SpaceRole;
 
 public class ClientRolesClaimsExtractor implements ScopeClaimsExtractor {
 

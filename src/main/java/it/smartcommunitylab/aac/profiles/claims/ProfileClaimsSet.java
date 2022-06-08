@@ -4,10 +4,13 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import it.smartcommunitylab.aac.claims.Claim;
 import it.smartcommunitylab.aac.claims.ClaimsSet;
@@ -21,7 +24,6 @@ public class ProfileClaimsSet implements ClaimsSet {
     private String scope;
     private String key;
     private String namespace;
-    private boolean isUser;
 
     private AbstractProfile profile;
 
@@ -49,38 +51,15 @@ public class ProfileClaimsSet implements ClaimsSet {
         this.namespace = namespace;
     }
 
-    public void setUser(boolean isUser) {
-        this.isUser = isUser;
-    }
-
     @Override
     public String getScope() {
         return scope;
     }
 
     @Override
-    public boolean isUser() {
-        return isUser;
-    }
-
-    @Override
-    public boolean isClient() {
-        return !isUser;
-    }
-
-    @Override
     public String getNamespace() {
         return namespace;
     }
-
-//    @Override
-//    public Map<String, Serializable> getClaims() {
-//        if (profile == null) {
-//            return Collections.emptyMap();
-//        }
-//
-//        return profile.toMap();
-//    }
 
     @Override
     public String getResourceId() {
@@ -104,17 +83,44 @@ public class ProfileClaimsSet implements ClaimsSet {
         for (Map.Entry<String, Serializable> e : map.entrySet()) {
             if (!ArrayUtils.contains(SYSTEM_CLAIMS, e.getKey())) {
                 SerializableClaim sc = new SerializableClaim(e.getKey(), e.getValue());
-                // key is namespace
-                sc.setNamespace(getKey());
                 claims.add(sc);
             }
         }
 
         return claims;
+    }
 
+    @Override
+    public Map<String, Serializable> exportClaims() {
+        if (profile == null) {
+            return Collections.emptyMap();
+        }
+
+        // get claims
+        Collection<Claim> claims = getClaims();
+
+        // translate each claim to serializable, merge multiple keys under collections
+        MultiValueMap<String, Serializable> map = new LinkedMultiValueMap<>();
+        claims.forEach(claim -> {
+            map.add(claim.getKey(), claim.getValue());
+        });
+
+        // flatten and collect
+        Map<String, Serializable> result = new HashMap<>();
+        map.forEach((key, list) -> {
+            if (list.size() == 1) {
+                result.put(key, list.get(0));
+            } else {
+                // use arrayList to ensure element is serializable
+                result.put(key, new ArrayList<>(list));
+            }
+        });
+
+        return result;
     }
 
     public static final String[] SYSTEM_CLAIMS = {
             "authority", "provider", "realm", "subjectId", "userId", "urn", "id", "resourceId", "profileId"
     };
+
 }

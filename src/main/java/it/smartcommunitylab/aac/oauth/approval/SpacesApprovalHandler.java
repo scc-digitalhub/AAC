@@ -1,8 +1,10 @@
 package it.smartcommunitylab.aac.oauth.approval;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -23,9 +25,10 @@ import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.service.ClientDetailsService;
 import it.smartcommunitylab.aac.core.service.UserService;
-import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.roles.SpaceRole;
 import it.smartcommunitylab.aac.roles.claims.SpacesClaimsExtractor;
+import it.smartcommunitylab.aac.roles.service.SpaceRoleUserExtendedAttributeProvider;
 
 public class SpacesApprovalHandler implements UserApprovalHandler {
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -177,7 +180,14 @@ public class SpacesApprovalHandler implements UserApprovalHandler {
 
     private Set<String> getUniqueSpaces(UserDetails userDetails, String uniqueSpaces) {
         User user = userService.getUser(userDetails);
-        Set<SpaceRole> roles = user.getSpaceRoles();
+        // space roles are extended attributes
+        Set<SpaceRole> roles = new HashSet<>();
+        Collection<Serializable> attrs = user.getExtendedAttributes(SpaceRoleUserExtendedAttributeProvider.KEY);
+        if (attrs != null) {
+            attrs.forEach(a -> {
+                roles.add((SpaceRole) a);
+            });
+        }
 
         // filter and flatmap everything under context
         Set<String> spaces = roles.stream()

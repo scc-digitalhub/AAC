@@ -13,7 +13,6 @@ public abstract class AbstractClaim implements Claim {
     @Pattern(regexp = SystemKeys.KEY_PATTERN)
     @NotBlank
     protected String key;
-    protected String namespace;
 
     protected String name;
     protected String description;
@@ -25,15 +24,6 @@ public abstract class AbstractClaim implements Claim {
 
     public void setKey(String key) {
         this.key = key;
-    }
-
-    @Override
-    public String getNamespace() {
-        return namespace;
-    }
-
-    public void setNamespace(String namespace) {
-        this.namespace = namespace;
     }
 
     @Override

@@ -1,10 +1,12 @@
-package it.smartcommunitylab.aac.model;
+package it.smartcommunitylab.aac.roles;
+
+import java.io.Serializable;
 
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
 
-public class SpaceRole {
+public class SpaceRole implements Serializable {
 
     // role definition
     private String context;

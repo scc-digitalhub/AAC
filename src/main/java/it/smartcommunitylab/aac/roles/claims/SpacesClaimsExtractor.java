@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -21,8 +22,9 @@ import it.smartcommunitylab.aac.claims.model.StringClaim;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
-import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.roles.SpaceRole;
+import it.smartcommunitylab.aac.roles.service.SpaceRoleUserExtendedAttributeProvider;
 
 public class SpacesClaimsExtractor implements ScopeClaimsExtractor {
 
@@ -44,7 +46,14 @@ public class SpacesClaimsExtractor implements ScopeClaimsExtractor {
             throws InvalidDefinitionException, SystemException {
 
         // we get roles from user, it should be up-to-date
-        Set<SpaceRole> roles = user.getSpaceRoles();
+        // space roles are extended attributes
+        Set<SpaceRole> roles = new HashSet<>();
+        Collection<Serializable> attrs = user.getExtendedAttributes(SpaceRoleUserExtendedAttributeProvider.KEY);
+        if (attrs != null) {
+            for (Serializable a : attrs) {
+                roles.add((SpaceRole) a);
+            }
+        }
 
         // filter context if specified by client
         if (StringUtils.hasText(client.getHookUniqueSpaces())) {

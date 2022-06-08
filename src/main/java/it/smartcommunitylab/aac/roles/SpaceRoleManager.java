@@ -16,7 +16,6 @@ import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.service.SubjectService;
-import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.SpaceRoles;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.roles.service.SpaceRoleService;

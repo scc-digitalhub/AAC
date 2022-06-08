@@ -68,16 +68,16 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
     private UserService userService;
 
     // object mapper
-    private final ObjectMapper mapper = new ObjectMapper();
+//    private final ObjectMapper mapper = new ObjectMapper();
 //    private final TypeReference<HashMap<String, String>> stringMapTypeRef = new TypeReference<HashMap<String, String>>() {
 //    };
-    private final TypeReference<HashMap<String, Serializable>> serMapTypeRef = new TypeReference<HashMap<String, Serializable>>() {
-    };
+//    private final TypeReference<HashMap<String, Serializable>> serMapTypeRef = new TypeReference<HashMap<String, Serializable>>() {
+//    };
 
     public DefaultClaimsService(ExtractorsRegistry extractorsRegistry) {
         Assert.notNull(extractorsRegistry, "extractors registry is mandatory");
         this.extractorsRegistry = extractorsRegistry;
-        mapper.setSerializationInclusion(Include.NON_EMPTY);
+//        mapper.setSerializationInclusion(Include.NON_EMPTY);
 
     }
 
@@ -118,13 +118,18 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
             resourceIds = Collections.emptyList();
         }
 
+        // translate user to destination realm
+        User user = userService.getUser(userDetails, realm);
+
         // base information, could be overwritten by converters
-        claims.put("sub", userDetails.getSubjectId());
+        // TODO replace with SubjectIdentifierExtractor (supporting pairwise)
+        claims.put("sub", user.getUserId());
 
         if (scopes.contains(Config.SCOPE_PROFILE)) {
             // realm should stay behind scope "profile", if client doesn't match the realm
             // it should ask for this info and be approved
-            claims.put("realm", userDetails.getRealm());
+            // TODO replace with RealmIdExtractor
+            claims.put("realm", user.getRealm());
 
             // TODO evaluate an additional ID to mark this specific userDetails (ie subject
             // + the identities loaded) so clients will be able to distinguish identities
@@ -136,22 +141,32 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
         for (String scope : scopes) {
             Collection<ScopeClaimsExtractor> exts = extractorsRegistry.getScopeExtractors(scope);
             for (ScopeClaimsExtractor ce : exts) {
-                // each extractor can respond, we keep only userClaims
-                User user = userService.getUser(userDetails, ce.getRealm());
+                // evaluate if same or cross realm between user and extractor
+                // TODO, disabled for now
+                if (ce.getRealm() != null && !user.getRealm().equals(ce.getRealm())) {
+                    // translate user to client realm
+//                    User u = userService.getUser(userDetails, ce.getRealm());
+
+                    // skip
+                    continue;
+                }
 
                 // filter attribute sets according to scopes
+                // TODO refactor with profiles
+                User u = new User(user);
+
+                // TODO remove fullprofile, not existing
                 if (!ce.getResourceId().startsWith("aac.") && !scopes.contains(Config.SCOPE_FULL_PROFILE)) {
-                    user.setAttributes(narrowUserAttributes(user.getAttributes(), scopes));
+                    u.setAttributes(narrowUserAttributes(user.getAttributes(), scopes));
                 }
 
                 if (!scopes.contains(Config.SCOPE_USER_ROLE)) {
-                    user.setAuthorities(null);
-                    user.setRealmRoles(null);
-                    user.setSpaceRoles(null);
+                    u.setAuthorities(null);
+                    u.setRealmRoles(null);
                 }
 
-                ClaimsSet cs = ce.extractUserClaims(scope, user, client, scopes, extensions);
-                if (cs != null && cs.isUser()) {
+                ClaimsSet cs = ce.extractUserClaims(scope, u, client, scopes, extensions);
+                if (cs != null) {
                     claims.putAll(extractClaims(cs));
                 }
             }
@@ -163,81 +178,37 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
         for (String resourceId : resourceIds) {
             Collection<ResourceClaimsExtractor> exts = extractorsRegistry.getResourceExtractors(resourceId);
             for (ResourceClaimsExtractor ce : exts) {
-                // each extractor can respond, we keep only userClaims
-                User user = userService.getUser(userDetails, ce.getRealm());
+                // evaluate if same or cross realm between user and extractor
+                // TODO, disabled for now
+                if (ce.getRealm() != null && !user.getRealm().equals(ce.getRealm())) {
+                    // translate user to client realm
+//                    User u = userService.getUser(userDetails, ce.getRealm());
+
+                    // skip
+                    continue;
+                }
 
                 // filter attribute sets according to scopes
+                // TODO refactor with profiles
+                User u = new User(user);
+
+                // TODO remove fullprofile, not existing
                 if (!ce.getResourceId().startsWith("aac.") && !scopes.contains(Config.SCOPE_FULL_PROFILE)) {
-                    user.setAttributes(narrowUserAttributes(user.getAttributes(), scopes));
+                    u.setAttributes(narrowUserAttributes(user.getAttributes(), scopes));
                 }
 
                 if (!scopes.contains(Config.SCOPE_USER_ROLE)) {
-                    user.setAuthorities(null);
-                    user.setRealmRoles(null);
-                    user.setSpaceRoles(null);
+                    u.setAuthorities(null);
+                    u.setRealmRoles(null);
                 }
 
-                ClaimsSet cs = ce.extractUserClaims(resourceId, user, client, scopes, extensions);
-                if (cs != null && cs.isUser()) {
+                ClaimsSet cs = ce.extractUserClaims(resourceId, u, client, scopes, extensions);
+                if (cs != null) {
                     claims.putAll(extractClaims(cs));
                 }
             }
 
         }
-
-//
-//        // process basic scopes from userDetails
-//        if (scopes.contains(Config.SCOPE_OPENID)) {
-//            Map<String, Serializable> openIdClaims = this.getUserClaimsFromOpenIdProfile(user, scopes);
-//            claims.putAll(openIdClaims);
-//        }
-//
-//        if (scopes.contains(Config.SCOPE_BASIC_PROFILE)) {
-//            Map<String, Serializable> profileClaims = this.getUserClaimsFromBasicProfile(user);
-//            claims.putAll(profileClaims);
-//        }
-//
-//        if (scopes.contains(Config.SCOPE_ACCOUNT_PROFILE)) {
-//            ArrayList<Serializable> accountClaims = this.getUserClaimsFromAccountProfile(user);
-//            claims.put("accounts", accountClaims);
-//        }
-//
-//        // realm role claims
-//        if (scopes.contains(Config.SCOPE_ROLE)) {
-//            // TODO read realmRoles from service (need impl)
-//        }
-//
-//        // space roles
-//        // TODO
-//
-//        // group claims
-//        // TODO, we need to define groups
-//
-//        // services can add claims
-//        Map<String, Serializable> servicesClaims = new HashMap<>();
-//        // TODO
-//        Set<String> serviceIds = new HashSet<>();
-//        serviceIds.addAll(resourceIds);
-//        // resolve scopes to services to integrate list
-//        // TODO
-//        for (String scope : scopes) {
-//            // TODO resolve if matches a service scope, fetch serviceId
-//        }
-//
-//        for (String serviceId : serviceIds) {
-//            // narrow down userDetails + clientDetails to match service realm
-//            // TODO
-//            // call service and let it provide additional data
-//            // TODO
-//            HashMap<String, Serializable> serviceClaims = null;
-//            // enforce prefix via service namespace
-//            // TODO
-//            String namespace = serviceId;
-//            servicesClaims.put(namespace, serviceClaims);
-//        }
-//
-//        // integrate, no clash thanks to namespacing
-//        claims.putAll(servicesClaims);
 
         // freeze claims by keeping keys, these won't be modifiable
         Set<String> reservedKeys = Collections.unmodifiableSet(claims.keySet());
@@ -292,7 +263,7 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
             for (ScopeClaimsExtractor ce : exts) {
                 // each extractor can respond, we keep only userClaims
                 ClaimsSet cs = ce.extractClientClaims(scope, client, scopes, extensions);
-                if (cs != null && cs.isClient()) {
+                if (cs != null) {
                     claims.putAll(extractClaims(cs));
                 }
             }
@@ -306,7 +277,7 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
             for (ResourceClaimsExtractor ce : exts) {
                 // each extractor can respond, we keep only userClaims
                 ClaimsSet cs = ce.extractClientClaims(resourceId, client, scopes, extensions);
-                if (cs != null && cs.isClient()) {
+                if (cs != null) {
                     claims.putAll(extractClaims(cs));
                 }
             }
@@ -340,20 +311,18 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
 
     public Map<String, Serializable> extractClaims(ClaimsSet set) {
         if (set != null) {
-
             // check for namespace, if present we avoid collisions with reserved
             // we don't care about namespace collisions here
             if (StringUtils.hasText(set.getNamespace())) {
-
-                return Collections.singletonMap(set.getNamespace(), claimsToMap(set.getClaims()));
+                // store all exported claims into a new serializable map
+                HashMap<String, Serializable> map = new HashMap<>(set.exportClaims());
+                return Collections.singletonMap(set.getNamespace(), map);
             } else if (set.getResourceId().startsWith("aac.")) {
-                // we let internal map to tld, no checks
-                return claimsToMap(set.getClaims());
+                // we let internal map to tld as-is, no checks
+                return set.exportClaims();
             } else {
                 // we let map to tld only for not-reserved claims
-                HashMap<String, Serializable> map = claimsToMap(set.getClaims());
-
-                return map.entrySet().stream().filter(
+                return set.exportClaims().entrySet().stream().filter(
                         e -> (!REGISTERED_CLAIM_NAMES.contains(e.getKey()) &&
                                 !STANDARD_CLAIM_NAMES.contains(e.getKey()) &&
                                 !SYSTEM_CLAIM_NAMES.contains(e.getKey())))
@@ -368,98 +337,98 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
 
     // custom converter from claims list to values map
     // TODO rework
-    public HashMap<String, Serializable> claimsToMap(Collection<Claim> claims) {
-        // we build a tree where
-        // namespace -> collection of claims via key
-        // with multiple claims with the same key grouped under a collection
-        // do note that claim namespace is DIFFERENT from claimsSet namespace.
-        HashMap<String, List<Claim>> map = new HashMap<>();
-        map.put("_", new ArrayList<>());
-        // put under namespaces
-        for (Claim c : claims) {
-            String namespace = c.getNamespace();
-            if (!StringUtils.hasText(namespace)) {
-                namespace = "_";
-            }
-            if (!map.containsKey(namespace)) {
-                map.put(c.getNamespace(), new ArrayList<>());
-            }
-            map.get(namespace).add(c);
-        }
-
-        // flatten as result
-        HashMap<String, Serializable> result = new HashMap<>();
-        for (String namespace : map.keySet()) {
-            List<Claim> cs = map.get(namespace);
-            // map to values as collections
-            Map<String, ArrayList<Serializable>> contents = new HashMap<>();
-            for (Claim c : cs) {
-                // handle raw types here
-                if (!AttributeType.OBJECT.equals(c.getType())) {
-                    addContent(contents, c.getKey(), getClaimValue(c.getType(), c.getValue()));
-                } else {
-                    // object type can be without key
-                    if (c.getKey() == null && c instanceof SerializableClaim) {
-                        // we unwrap the object and merge
-                        Map<String, Serializable> unwrapped = unwrap((SerializableClaim) c);
-                        for (String k : unwrapped.keySet()) {
-                            addContent(contents, k, unwrapped.get(k));
-                        }
-                    } else {
-                        // add as exported
-                        addContent(contents, c.getKey(), getClaimValue(c.getType(), c.getValue()));
-                    }
-                }
-            }
-
-            // flatten single value collections + TLD
-            HashMap<String, Serializable> content = new HashMap<>();
-            for (String key : contents.keySet()) {
-                ArrayList<Serializable> list = contents.get(key);
-
-                if (list.size() > 1) {
-                    content.put(key, list);
-                } else {
-                    content.put(key, list.get(0));
-                }
-            }
-
-            if ("_".equals(namespace)) {
-                // append to root
-                result.putAll(content);
-            } else {
-                // append as namespace
-                result.put(namespace, content);
-            }
-
-        }
-
-        return result;
-    }
-
-    // export claim value
-    // TODO implement export per-type
-    private Serializable getClaimValue(AttributeType type, Serializable value) {
-        return value;
-    }
-
-    private Map<String, Serializable> unwrap(SerializableClaim claim) {
-        if (AttributeType.OBJECT.equals(claim.getType())) {
-            return mapper.convertValue(claim.getValue(), serMapTypeRef);
-        }
-
-        return null;
-    }
-
-    private void addContent(Map<String, ArrayList<Serializable>> contents, String key, Serializable value) {
-
-        if (!contents.containsKey(key)) {
-            contents.put(key, new ArrayList<>());
-        }
-
-        // add
-        contents.get(key).add(value);
-    }
+//    public HashMap<String, Serializable> claimsToMap(Collection<Claim> claims) {
+//        // we build a tree where
+//        // namespace -> collection of claims via key
+//        // with multiple claims with the same key grouped under a collection
+//        // do note that claim namespace is DIFFERENT from claimsSet namespace.
+//        HashMap<String, List<Claim>> map = new HashMap<>();
+//        map.put("_", new ArrayList<>());
+//        // put under namespaces
+//        for (Claim c : claims) {
+//            String namespace = c.getNamespace();
+//            if (!StringUtils.hasText(namespace)) {
+//                namespace = "_";
+//            }
+//            if (!map.containsKey(namespace)) {
+//                map.put(c.getNamespace(), new ArrayList<>());
+//            }
+//            map.get(namespace).add(c);
+//        }
+//
+//        // flatten as result
+//        HashMap<String, Serializable> result = new HashMap<>();
+//        for (String namespace : map.keySet()) {
+//            List<Claim> cs = map.get(namespace);
+//            // map to values as collections
+//            Map<String, ArrayList<Serializable>> contents = new HashMap<>();
+//            for (Claim c : cs) {
+//                // handle raw types here
+//                if (!AttributeType.OBJECT.equals(c.getType())) {
+//                    addContent(contents, c.getKey(), getClaimValue(c.getType(), c.getValue()));
+//                } else {
+//                    // object type can be without key
+//                    if (c.getKey() == null && c instanceof SerializableClaim) {
+//                        // we unwrap the object and merge
+//                        Map<String, Serializable> unwrapped = unwrap((SerializableClaim) c);
+//                        for (String k : unwrapped.keySet()) {
+//                            addContent(contents, k, unwrapped.get(k));
+//                        }
+//                    } else {
+//                        // add as exported
+//                        addContent(contents, c.getKey(), getClaimValue(c.getType(), c.getValue()));
+//                    }
+//                }
+//            }
+//
+//            // flatten single value collections + TLD
+//            HashMap<String, Serializable> content = new HashMap<>();
+//            for (String key : contents.keySet()) {
+//                ArrayList<Serializable> list = contents.get(key);
+//
+//                if (list.size() > 1) {
+//                    content.put(key, list);
+//                } else {
+//                    content.put(key, list.get(0));
+//                }
+//            }
+//
+//            if ("_".equals(namespace)) {
+//                // append to root
+//                result.putAll(content);
+//            } else {
+//                // append as namespace
+//                result.put(namespace, content);
+//            }
+//
+//        }
+//
+//        return result;
+//    }
+//
+//    // export claim value
+//    // TODO implement export per-type
+//    private Serializable getClaimValue(AttributeType type, Serializable value) {
+//        return value;
+//    }
+//
+//    private Map<String, Serializable> unwrap(SerializableClaim claim) {
+//        if (AttributeType.OBJECT.equals(claim.getType())) {
+//            return mapper.convertValue(claim.getValue(), serMapTypeRef);
+//        }
+//
+//        return null;
+//    }
+//
+//    private void addContent(Map<String, ArrayList<Serializable>> contents, String key, Serializable value) {
+//
+//        if (!contents.containsKey(key)) {
+//            contents.put(key, new ArrayList<>());
+//        }
+//
+//        // add
+//        contents.get(key).add(value);
+//    }
 
     public List<UserAttributes> narrowUserAttributes(Collection<UserAttributes> attributes,
             Collection<String> scopes) {

@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -14,11 +15,13 @@ import javax.validation.constraints.NotBlank;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.Assert;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
@@ -84,8 +87,8 @@ public class User {
 
     // space roles are global
     // TODO drop from here
-    @JsonIgnore
-    private Set<SpaceRole> spaceRoles;
+//    @JsonIgnore
+//    private Set<SpaceRole> spaceRoles;
 
     // groups where user is a member
     private Set<Group> groups;
@@ -93,6 +96,10 @@ public class User {
     // additional attributes as UserAttributes collection
     // realm scoped
     private List<UserAttributes> attributes;
+
+    // attributes from extensions
+    @JsonUnwrapped
+    private MultiValueMap<String, Serializable> extendedAttributes;
 
     public User(String userId, String realm) {
         Assert.hasText(userId, "userId can not be null or empty");
@@ -105,8 +112,9 @@ public class User {
         this.identities = new HashSet<>();
         this.attributes = new ArrayList<>();
         this.realmRoles = new HashSet<>();
-        this.spaceRoles = new HashSet<>();
+//        this.spaceRoles = new HashSet<>();
         this.groups = new HashSet<>();
+        this.extendedAttributes = new LinkedMultiValueMap<>();
     }
 
     public User(UserDetails details) {
@@ -121,9 +129,9 @@ public class User {
         this.identities = new HashSet<>(details.getIdentities());
         this.attributes = new ArrayList<>(details.getAttributeSets(true));
         this.realmRoles = new HashSet<>();
-        this.spaceRoles = new HashSet<>();
+//        this.spaceRoles = new HashSet<>();
         this.groups = new HashSet<>();
-
+        this.extendedAttributes = new LinkedMultiValueMap<>();
         this.username = details.getUsername();
 //        this.name = details.getFirstName();
 //        this.surname = details.getLastName();
@@ -143,9 +151,11 @@ public class User {
         this.authorities = new HashSet<>(user.getAuthorities());
         this.identities = new HashSet<>(user.getIdentities());
         this.attributes = new ArrayList<>(user.getAttributes(false));
-        this.realmRoles = new HashSet<>();
-        this.spaceRoles = new HashSet<>();
-        this.groups = new HashSet<>();
+        this.realmRoles = new HashSet<>(user.getRealmRoles());
+//        this.spaceRoles = new HashSet<>();
+        this.groups = new HashSet<>(user.getGroups());
+        this.extendedAttributes = new LinkedMultiValueMap<>();
+        this.extendedAttributes.addAll(user.getExtendedAttributes());
 
         this.status = user.getStatus();
         this.expirationDate = user.getExpirationDate();
@@ -342,19 +352,19 @@ public class User {
         }
     }
 
-    /*
-     * Space roles
-     */
-    public Set<SpaceRole> getSpaceRoles() {
-        return spaceRoles;
-    }
-
-    public void setSpaceRoles(Collection<SpaceRole> rr) {
-        this.spaceRoles = new HashSet<>();
-        if (rr != null) {
-            spaceRoles.addAll(rr);
-        }
-    }
+//    /*
+//     * Space roles
+//     */
+//    public Set<SpaceRole> getSpaceRoles() {
+//        return spaceRoles;
+//    }
+//
+//    public void setSpaceRoles(Collection<SpaceRole> rr) {
+//        this.spaceRoles = new HashSet<>();
+//        if (rr != null) {
+//            spaceRoles.addAll(rr);
+//        }
+//    }
 
     /*
      * Groups
@@ -367,6 +377,26 @@ public class User {
     public void setGroups(Collection<Group> groups) {
         this.groups = new HashSet<>();
         this.groups.addAll(groups);
+    }
+
+    /*
+     * Extended attributes
+     */
+
+    public MultiValueMap<String, Serializable> getExtendedAttributes() {
+        return extendedAttributes;
+    }
+
+    public List<Serializable> getExtendedAttributes(String key) {
+        return this.extendedAttributes.get(key);
+    }
+
+    public void setExtendedAttributes(String key, Collection<Serializable> values) {
+        this.extendedAttributes.put(key, new ArrayList<>(values));
+    }
+
+    public void setExtendedAttributes(String key, Serializable value) {
+        this.extendedAttributes.set(key, value);
     }
 
 //    public void addSpaceRoles(Collection<SpaceRole> rr) {

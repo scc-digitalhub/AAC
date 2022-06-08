@@ -1,10 +1,12 @@
 package it.smartcommunitylab.aac.core.service;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.util.MultiValueMap;
 
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
@@ -59,8 +61,11 @@ public class CoreUserTranslator implements UserTranslator {
                 .collect(Collectors.toList());
         result.setAuthorities(authorities);
 
-        // all roles
-        result.setSpaceRoles(user.getSpaceRoles());
+        // all extended attributes
+        MultiValueMap<String, Serializable> extendedAttributes = user.getExtendedAttributes();
+        extendedAttributes.forEach((key, value) -> {
+            result.setExtendedAttributes(key, value);
+        });
 
         return result;
 

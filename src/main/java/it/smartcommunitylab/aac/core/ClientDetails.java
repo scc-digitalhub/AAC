@@ -12,7 +12,7 @@ import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.core.model.ClientAttributes;
 import it.smartcommunitylab.aac.model.Group;
 import it.smartcommunitylab.aac.model.RealmRole;
-import it.smartcommunitylab.aac.model.SpaceRole;
+import it.smartcommunitylab.aac.roles.SpaceRole;
 
 public class ClientDetails {
 

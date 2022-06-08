@@ -18,10 +18,10 @@ public interface Claim {
 
     public AttributeType getType();
 
-    // a claim can be namespaced. When empty claims will be merged top level
-    // TODO remove, claimsSet are namespaced, single claim need to belong to a
-    // claimSet to be exposed
-    public String getNamespace();
+//    // a claim can be namespaced. When empty claims will be merged top level
+//    // TODO remove, claimsSet are namespaced, single claim need to belong to a
+//    // claimSet to be exposed
+//    public String getNamespace();
 
     // a humane readable name for this claim
     // TODO evaluate removal

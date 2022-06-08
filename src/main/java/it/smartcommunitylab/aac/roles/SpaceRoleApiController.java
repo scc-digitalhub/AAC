@@ -39,7 +39,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.model.SpaceRole;
 
 @RestController
 @Tag(name= "AAC SpaceRoles" )

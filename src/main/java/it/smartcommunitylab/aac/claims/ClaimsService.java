@@ -13,7 +13,9 @@ import it.smartcommunitylab.aac.core.UserDetails;
 public interface ClaimsService {
 
     /*
-     * Complete mapping TODO move to dedicated interface claimMapper
+     * Complete mapping
+     * 
+     * TODO move to dedicated interface claimMapper
      */
     public Map<String, Serializable> getUserClaims(UserDetails user, String realm, ClientDetails client,
             Collection<String> scopes, Collection<String> resourceIds,

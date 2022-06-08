@@ -46,14 +46,13 @@ public abstract class ProfileClaimsExtractor implements ScopeClaimsExtractor {
 
         // by default profile claims are top level
         // if custom profiles enforce namespace as resourceId
-        if (getResourceId().startsWith("aac.")) {
+        if (getResourceId().startsWith(ProfileClaimsSet.RESOURCE_ID)) {
             claimsSet.setNamespace(null);
         } else {
             claimsSet.setNamespace(getResourceId());
         }
 
         // set profile
-        claimsSet.setUser(isUser);
         claimsSet.setProfile(profile);
 
         return claimsSet;

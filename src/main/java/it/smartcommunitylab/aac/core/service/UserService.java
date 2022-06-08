@@ -34,13 +34,14 @@ import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.AttributeService;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.core.provider.UserExtendedAttributeProvider;
 import it.smartcommunitylab.aac.groups.service.GroupService;
 import it.smartcommunitylab.aac.model.Group;
 import it.smartcommunitylab.aac.model.RealmRole;
-import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.model.UserStatus;
+import it.smartcommunitylab.aac.roles.SpaceRole;
 import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
 import it.smartcommunitylab.aac.roles.service.SubjectRoleService;
 
@@ -79,11 +80,18 @@ public class UserService {
     @Autowired
     private AttributeProviderService attributeProviderService;
 
-    @Autowired
-    private SpaceRoleService spaceRoleService;
+//    @Autowired
+//    private SpaceRoleService spaceRoleService;
 
     @Autowired
     private UserTranslatorService translator;
+
+    private List<UserExtendedAttributeProvider> extendedProviders;
+
+    @Autowired
+    public void setExtendedProviders(List<UserExtendedAttributeProvider> extendedProviders) {
+        this.extendedProviders = extendedProviders;
+    }
 
     /*
      * User translation
@@ -117,8 +125,15 @@ public class UserService {
             // refresh realm roles
             u.setRealmRoles(fetchUserRealmRoles(subjectId, realm, groupIds));
 
-            // refresh space roles
-            u.setSpaceRoles(fetchUserSpaceRoles(subjectId, realm));
+//            // refresh space roles
+//            u.setSpaceRoles(fetchUserSpaceRoles(subjectId, realm));
+
+            // refresh extended attributes
+            if (extendedProviders != null) {
+                extendedProviders.forEach(provider -> {
+                    u.setExtendedAttributes(provider.getKey(), provider.fetchExtendedAttributes(u, realm));
+                });
+            }
 
         } catch (NoSuchUserException e) {
             // something wrong with refresh, ignore
@@ -162,9 +177,15 @@ public class UserService {
             // refresh realm roles
             u.setRealmRoles(fetchUserRealmRoles(subjectId, realm, groupIds));
 
-            // refresh space roles
-            u.setSpaceRoles(fetchUserSpaceRoles(subjectId, realm));
+//            // refresh space roles
+//            u.setSpaceRoles(fetchUserSpaceRoles(subjectId, realm));
 
+            // refresh extended attributes
+            if (extendedProviders != null) {
+                extendedProviders.forEach(provider -> {
+                    u.setExtendedAttributes(provider.getKey(), provider.fetchExtendedAttributes(u, realm));
+                });
+            }
         } catch (NoSuchUserException e) {
             // something wrong with refresh, ignore
         }
@@ -208,9 +229,15 @@ public class UserService {
             // refresh realm roles
             u.setRealmRoles(fetchUserRealmRoles(subjectId, realm, groupIds));
 
-            // refresh space roles
-            u.setSpaceRoles(fetchUserSpaceRoles(subjectId, realm));
+//            // refresh space roles
+//            u.setSpaceRoles(fetchUserSpaceRoles(subjectId, realm));
 
+            // refresh extended attributes
+            if (extendedProviders != null) {
+                extendedProviders.forEach(provider -> {
+                    u.setExtendedAttributes(provider.getKey(), provider.fetchExtendedAttributes(u, realm));
+                });
+            }
         } catch (NoSuchUserException e) {
             // something wrong with refresh, ignore
         }
@@ -294,8 +321,15 @@ public class UserService {
         // add realm roles
         u.setRealmRoles(fetchUserRealmRoles(subjectId, realm, groupIds));
 
-        // add space roles
-        u.setSpaceRoles(fetchUserSpaceRoles(subjectId, realm));
+//        // add space roles
+//        u.setSpaceRoles(fetchUserSpaceRoles(subjectId, realm));
+
+        // refresh extended attributes
+        if (extendedProviders != null) {
+            extendedProviders.forEach(provider -> {
+                u.setExtendedAttributes(provider.getKey(), provider.fetchExtendedAttributes(u, realm));
+            });
+        }
 
         return u;
 
@@ -379,8 +413,15 @@ public class UserService {
         // add realm roles
         u.setRealmRoles(fetchUserRealmRoles(subjectId, realm, groupIds));
 
-        // add space roles
-        u.setSpaceRoles(fetchUserSpaceRoles(subjectId, realm));
+//        // add space roles
+//        u.setSpaceRoles(fetchUserSpaceRoles(subjectId, realm));
+
+        // refresh extended attributes
+        if (extendedProviders != null) {
+            for (UserExtendedAttributeProvider provider : extendedProviders) {
+                u.setExtendedAttributes(provider.getKey(), provider.fetchExtendedAttributes(u, realm));
+            }
+        }
 
         return u;
 
@@ -540,8 +581,15 @@ public class UserService {
 
             }
         }
-        // roles
-        spaceRoleService.deleteRoles(subjectId);
+//        // roles
+//        spaceRoleService.deleteRoles(subjectId);
+
+        // delete extended attributes
+        if (extendedProviders != null) {
+            extendedProviders.forEach(provider -> {
+                provider.deleteExtendedAttributes(user.getUuid(), realm);
+            });
+        }
 
         // delete user
         userService.deleteUser(subjectId);
@@ -675,16 +723,16 @@ public class UserService {
     }
 
     public Collection<RealmRole> fetchUserRealmRoles(String subjectId, String realm) throws NoSuchUserException {
-        // fetch groups to retrive roles associated
+        // fetch groups to retrieve roles associated
         Collection<Group> groups = fetchUserGroups(subjectId, realm);
         Set<String> groupIds = groups.stream().map(g -> g.getGroupId()).collect(Collectors.toSet());
         return fetchUserRealmRoles(subjectId, realm, groupIds);
     }
 
-    public Collection<SpaceRole> fetchUserSpaceRoles(String subjectId, String realm) throws NoSuchUserException {
-        // we don't filter space roles per realm, so read all
-        return spaceRoleService.getRoles(subjectId);
-    }
+//    public Collection<SpaceRole> fetchUserSpaceRoles(String subjectId, String realm) throws NoSuchUserException {
+//        // we don't filter space roles per realm, so read all
+//        return spaceRoleService.getRoles(subjectId);
+//    }
 
     public Collection<Group> fetchUserGroups(String subjectId, String realm) throws NoSuchUserException {
         return groupService.getSubjectGroups(subjectId, realm);

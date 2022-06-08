@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,8 +21,9 @@ import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.model.RealmRole;
-import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.roles.SpaceRole;
+import it.smartcommunitylab.aac.roles.service.SpaceRoleUserExtendedAttributeProvider;
 
 public class UserRolesClaimsExtractor implements ScopeClaimsExtractor {
 
@@ -41,8 +43,14 @@ public class UserRolesClaimsExtractor implements ScopeClaimsExtractor {
             throws InvalidDefinitionException, SystemException {
 
         // we get roles from user, it should be up-to-date
-        Set<SpaceRole> spaceRoles = user.getSpaceRoles();
-
+        // space roles are extended attributes
+        Set<SpaceRole> spaceRoles = new HashSet<>();
+        Collection<Serializable> attrs = user.getExtendedAttributes(SpaceRoleUserExtendedAttributeProvider.KEY);
+        if (attrs != null) {
+            for (Serializable a : attrs) {
+                spaceRoles.add((SpaceRole) a);
+            }
+        }
         // we also include realm roles
         Set<RealmRole> realmRoles = user.getRealmRoles();
 

@@ -184,7 +184,6 @@ public class DevManager {
             if (!approvedScopes.contains(Config.SCOPE_USER_ROLE)) {
                 user.setAuthorities(null);
                 user.setRealmRoles(null);
-                user.setSpaceRoles(null);
             }
 
             // build context to populate result
@@ -193,8 +192,7 @@ public class DevManager {
             // execute
             ClaimsSet claimsSet = e.extractUserClaims(service.getNamespace(), user, clientDetails, approvedScopes,
                     null);
-            // get map via claimsService (hack)
-            Map<String, Serializable> claims = claimsService.claimsToMap(claimsSet.getClaims());
+            Map<String, Serializable> claims = claimsSet.exportClaims();
 
             // save result
             functionBean.setContext(ctx);
@@ -209,8 +207,7 @@ public class DevManager {
             // execute
             ClaimsSet claimsSet = e.extractClientClaims(service.getNamespace(),
                     clientDetails, approvedScopes, null);
-            // get map via claimsService (hack)
-            Map<String, Serializable> claims = claimsService.claimsToMap(claimsSet.getClaims());
+            Map<String, Serializable> claims = claimsSet.exportClaims();
 
             // save result
             functionBean.setContext(ctx);
