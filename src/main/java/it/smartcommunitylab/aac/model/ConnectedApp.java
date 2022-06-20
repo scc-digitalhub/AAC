@@ -14,7 +14,7 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.dto;
+package it.smartcommunitylab.aac.model;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -30,7 +30,7 @@ import it.smartcommunitylab.aac.scope.Scope;
  * @author raman
  *
  */
-public class ConnectedAppProfile {
+public class ConnectedApp {
 
     private String id;
 
@@ -44,17 +44,19 @@ public class ConnectedAppProfile {
     private String realm;
 
     private String appName;
+    private String appDescription;
+
     private List<Scope> scopes;
 
-    public ConnectedAppProfile() {
+    public ConnectedApp() {
 
     }
 
-    public ConnectedAppProfile(String subjectId, String clientId, String realm, String name, Collection<Scope> scopes) {
+    public ConnectedApp(String subjectId, String clientId, String realm, Collection<Scope> scopes) {
         this.subjectId = subjectId;
         this.clientId = clientId;
         this.realm = realm;
-        this.appName = name;
+
         this.scopes = new ArrayList<>();
         this.scopes.addAll(scopes);
     }
@@ -101,6 +103,14 @@ public class ConnectedAppProfile {
 
     public void setAppName(String appName) {
         this.appName = appName;
+    }
+
+    public String getAppDescription() {
+        return appDescription;
+    }
+
+    public void setAppDescription(String appDescription) {
+        this.appDescription = appDescription;
     }
 
     public List<Scope> getScopes() {

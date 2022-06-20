@@ -77,7 +77,7 @@ public abstract class AbstractBaseUserResource implements UserResource, Serializ
     @Override
     public String getUrn() {
         StringBuilder sb = new StringBuilder();
-        sb.append(SystemKeys.URN_PROTOCOL).append(SystemKeys.URN_SEPARATOR);
+        sb.append(SystemKeys.URN_PROTOCOL);
         sb.append(getType()).append(SystemKeys.URN_SEPARATOR);
         sb.append(getResourceId());
 

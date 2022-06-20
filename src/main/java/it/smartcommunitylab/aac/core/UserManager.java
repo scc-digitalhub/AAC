@@ -48,10 +48,12 @@ import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.service.ClientEntityService;
 import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.core.service.UserService;
-import it.smartcommunitylab.aac.dto.ConnectedAppProfile;
 import it.smartcommunitylab.aac.internal.InternalAccountServiceAuthority;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountService;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
+import it.smartcommunitylab.aac.model.ConnectedApp;
 import it.smartcommunitylab.aac.model.Group;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.RealmRole;
@@ -535,10 +537,10 @@ public class UserManager {
      * Connected apps: subjects
      */
     @Transactional(readOnly = false)
-    public Collection<ConnectedAppProfile> getConnectedApps(String realm, String subjectId) {
+    public Collection<ConnectedApp> getConnectedApps(String realm, String subjectId) {
 
         // we return only clients which belong to the given realm
-        List<ConnectedAppProfile> apps = getConnectedApps(subjectId).stream()
+        List<ConnectedApp> apps = getConnectedApps(subjectId).stream()
                 .filter(a -> a.getRealm().equals(realm))
                 .collect(Collectors.toList());
 
@@ -550,7 +552,7 @@ public class UserManager {
             throws NoSuchUserException, NoSuchClientException {
 
         // get registrations, we need to match realm to client
-        ConnectedAppProfile app = getConnectedApp(subjectId, clientId);
+        ConnectedApp app = getConnectedApp(subjectId, clientId);
         if (app != null && app.getRealm().equals(realm)) {
             // valid registration in approval store, remove
             deleteConnectedApp(subjectId, clientId);
@@ -562,7 +564,7 @@ public class UserManager {
      * 
      * TODO move to dedicated service!
      */
-    private ConnectedAppProfile getConnectedApp(String subjectId, String clientId)
+    private ConnectedApp getConnectedApp(String subjectId, String clientId)
             throws NoSuchUserException, NoSuchClientException {
 
         ClientEntity client = clientService.getClient(clientId);
@@ -586,13 +588,15 @@ public class UserManager {
             }
         }
 
-        ConnectedAppProfile app = new ConnectedAppProfile(subjectId, clientId, client.getRealm(), client.getName(),
+        ConnectedApp app = new ConnectedApp(subjectId, clientId, client.getRealm(),
                 scopes);
+        app.setAppName(client.getName());
+        app.setAppDescription(client.getDescription());
 
         return app;
     }
 
-    private List<ConnectedAppProfile> getConnectedApps(String subjectId) {
+    private List<ConnectedApp> getConnectedApps(String subjectId) {
 
         Collection<Approval> approvals = approvalStore.findUserApprovals(subjectId);
         Map<ClientEntity, List<Scope>> map = new HashMap<>();
@@ -616,9 +620,15 @@ public class UserManager {
             }
         }
 
-        List<ConnectedAppProfile> apps = map.entrySet().stream()
-                .map(e -> new ConnectedAppProfile(subjectId, e.getKey().getClientId(), e.getKey().getRealm(),
-                        e.getKey().getName(), e.getValue()))
+        List<ConnectedApp> apps = map.entrySet().stream()
+                .map(e -> {
+                    ClientEntity client = e.getKey();
+                    ConnectedApp app = new ConnectedApp(subjectId, client.getClientId(),
+                            client.getRealm(), e.getValue());
+                    app.setAppName(client.getName());
+                    app.setAppDescription(client.getDescription());
+                    return app;
+                })
                 .collect(Collectors.toList());
 
         return apps;
