@@ -1,8 +1,11 @@
 package it.smartcommunitylab.aac.controller;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
@@ -24,8 +27,12 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.Config;
@@ -43,6 +50,7 @@ import it.smartcommunitylab.aac.core.ScopeManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.ConnectedApp;
 import it.smartcommunitylab.aac.model.ScopeType;
@@ -57,6 +65,8 @@ import it.smartcommunitylab.aac.scope.Scope;
 @RequestMapping("/console/user")
 //@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 public class UserConsoleController {
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
     private AuthenticationHelper authHelper;
@@ -127,6 +137,33 @@ public class UserConsoleController {
         String id = i[2];
 
         UserIdentity identity = userManager.getMyIdentity(authority, provider, id);
+        return ResponseEntity.ok(identity);
+    }
+
+    @PutMapping("/accounts/{resourceId}")
+    public ResponseEntity<UserIdentity> updateAccount(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String resourceId,
+            @RequestBody @Valid @NotNull Map<String, Serializable> map)
+            throws NoSuchUserException, NoSuchProviderException {
+        UserDetails user = currentUser();
+
+        // explode resourceId
+        String[] i = resourceId.split(SystemKeys.ID_SEPARATOR);
+        if (i.length != 3) {
+            throw new IllegalArgumentException("invalid id format");
+        }
+        String authority = i[0];
+        String provider = i[1];
+        String id = i[2];
+
+        // convert map to account if internal
+        if (!"internal".equals(map.get("authority"))) {
+            throw new IllegalArgumentException("not editable");
+        }
+
+        InternalUserAccount account = objectMapper.convertValue(map, InternalUserAccount.class);
+        UserIdentity identity = userManager.updateMyIdentity(authority, provider, id, account, null);
+
         return ResponseEntity.ok(identity);
     }
 

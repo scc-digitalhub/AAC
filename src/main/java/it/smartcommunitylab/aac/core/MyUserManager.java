@@ -32,10 +32,12 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.ClientEntity;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.service.AttributeProviderService;
 import it.smartcommunitylab.aac.core.service.ClientEntityService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderService;
@@ -207,6 +209,34 @@ public class MyUserManager {
             // user mismatch
             throw new NoSuchUserException();
         }
+
+        // make sure credentials are erased
+        if (identity instanceof CredentialsContainer) {
+            ((CredentialsContainer) identity).eraseCredentials();
+        }
+
+        return identity;
+    }
+
+    public <U extends UserAccount> UserIdentity updateMyIdentity(String authority, String providerId, String id,
+            U account,
+            Collection<UserAttributes> attributes)
+            throws NoSuchProviderException, NoSuchUserException {
+        UserDetails details = curUserDetails();
+        IdentityService<? extends UserIdentity, ? extends UserAccount> idp = authorityManager
+                .fetchIdentityService(authority, providerId);
+        if (idp == null) {
+            throw new NoSuchProviderException();
+        }
+
+        UserIdentity identity = idp.getIdentity(id, true);
+        if (!details.getSubjectId().equals(identity.getUserId())) {
+            // user mismatch
+            throw new NoSuchUserException();
+        }
+
+        // update
+        identity = idp.updateIdentity(id, account, attributes);
 
         // make sure credentials are erased
         if (identity instanceof CredentialsContainer) {
