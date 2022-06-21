@@ -3,6 +3,7 @@ package it.smartcommunitylab.aac.core;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -31,6 +32,8 @@ import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
+import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
@@ -449,7 +452,15 @@ public class MyUserManager {
         UserDetails details = curUserDetails();
         String subjectId = details.getSubjectId();
 
-        return sessionManager.listUserSessions(subjectId, details.getRealm(), details.getUsername());
+//        return sessionManager.listUserSessions(subjectId, details.getRealm(), details.getUsername());
+
+        // fetch from context for now
+        UserAuthentication userAuth = authHelper.getUserAuthentication();
+        WebAuthenticationDetails webDetails = userAuth.getWebAuthenticationDetails();
+
+        SessionInformation sessionInfo = new SessionInformation(userAuth.getPrincipal(), webDetails.getSessionId(),
+                new Date());
+        return Collections.singleton(sessionInfo);
     }
 
     /*
