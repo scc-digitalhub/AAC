@@ -67,13 +67,14 @@
             </div>
 
             <p class="text-center" th:text="#{label.changepwd_text}">Change password</p>
-            <p id="infoPassword" class="form-text text-muted" th:text=${policy}>password policy</p>
+            <div th:if="${policy} != null"   th:replace="registration/pwdpolicy :: policy"></div>
 
             <form action="#" th:action="${changeUrl}" th:object="${reg}" method="post">
-              <input type="hidden" th:field="*{userId}">
+              <input type="hidden" th:field="*{username}">
               <div class="alert alert-danger" role="alert" th:if="${error} != null" th:text="#{${error}}">
                             Error text</div>
-              <div class="col-md-12 form-group" th:if="${!credentials.isChangeOnFirstAccess()}">
+              <br>
+              <div class="col-md-12 form-group">
                 <label th:text="#{field.pwd}  + '*: '"></label>
                 <input class="form-control input-password" type="password" th:field="*{curPassword}" />
                 <span class="password-icon" aria-hidden="true"> <svg class="password-icon-visible icon icon-sm">
@@ -117,7 +118,7 @@
                 <div class="col-md-6 form-group">
                   <button class="btn btn-primary btn-block" th:text="#{action.continue}"></button>
                 </div>
-                <div class="col-md-6 form-group" th:if="${!credentials.isChangeOnFirstAccess()}">
+                <div class="col-md-6 form-group">
                   <a class="btn btn-block" th:href="${accountUrl}" th:text="#{action.cancel}"></a>
                 </div>
               </div>

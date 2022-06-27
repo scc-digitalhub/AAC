@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.InvalidPasswordException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
@@ -60,16 +61,16 @@ public class InternalCredentialsController {
      * Password change
      */
 
-    @GetMapping("/changepwd/{providerId}/{username}")
+    @GetMapping("/changepwd/{providerId}/{uuid}")
     public String changepwd(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.EMAIL_PATTERN) String username,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid,
             Model model)
             throws NoSuchProviderException, NoSuchUserException {
         // first check userid vs user
         UserDetails user = authHelper.getUserDetails();
         if (user == null) {
-            throw new InsufficientAuthenticationException("User must be authenticated");
+            throw new InsufficientAuthenticationException("error.unauthenticated_user");
         }
 
         // fetch internal identities matching provider
@@ -77,11 +78,11 @@ public class InternalCredentialsController {
                 i -> SystemKeys.AUTHORITY_INTERNAL.equals(i.getAuthority()) && i.getProvider().equals(providerId))
                 .collect(Collectors.toSet());
 
-        // pick matching by username
-        UserIdentity identity = identities.stream().filter(i -> i.getAccount().getUsername().equals(username))
+        // pick matching by uuid
+        UserIdentity identity = identities.stream().filter(i -> i.getAccount().getUuid().equals(uuid))
                 .findFirst().orElse(null);
         if (identity == null) {
-            throw new IllegalArgumentException("username invalid");
+            throw new IllegalArgumentException("error.invalid_user");
         }
 
         String userId = identity.getUserId();
@@ -94,16 +95,18 @@ public class InternalCredentialsController {
         InternalPasswordService service = idp.getCredentialsService();
 
         if (service == null) {
-            throw new IllegalArgumentException("credentials are immutable");
+            throw new IllegalArgumentException("error.unsupported_operation");
         }
 
         if (!service.canSet()) {
-            throw new IllegalArgumentException("credentials are immutable");
+            throw new IllegalArgumentException("error.unsupported_operation");
         }
 
-        UserPasswordCredentials cred = service.getCredentials(userId);
+        // for internal username is accountId
+        String username = account.getAccountId();
+        UserPasswordCredentials cred = service.getCredentials(username);
         UserPasswordBean reg = new UserPasswordBean();
-        reg.setUserId(userId);
+        reg.setUsername(username);
 //        reg.setPassword("");
 //        reg.setVerifyPassword(null);
 
@@ -113,18 +116,19 @@ public class InternalCredentialsController {
         // build model
         model.addAttribute("userId", userId);
         model.addAttribute("username", account.getUsername());
+        model.addAttribute("uuid", account.getUuid());
         model.addAttribute("credentials", cred);
         model.addAttribute("reg", reg);
         model.addAttribute("policy", policy);
         model.addAttribute("accountUrl", "/account");
-        model.addAttribute("changeUrl", "/changepwd/" + providerId + "/" + username);
+        model.addAttribute("changeUrl", "/changepwd/" + providerId + "/" + uuid);
         return "registration/changepwd";
     }
 
-    @PostMapping("/changepwd/{providerId}/{username}")
+    @PostMapping("/changepwd/{providerId}/{uuid}")
     public String changepwd(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.EMAIL_PATTERN) String username,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid,
             Model model,
             @ModelAttribute("reg") @Valid UserPasswordBean reg,
             BindingResult result)
@@ -134,7 +138,7 @@ public class InternalCredentialsController {
             // first check userid vs user
             UserDetails user = authHelper.getUserDetails();
             if (user == null) {
-                throw new InsufficientAuthenticationException("User must be authenticated");
+                throw new InsufficientAuthenticationException("error.unauthenticated_user");
             }
 
             // fetch internal identities matching provider
@@ -143,10 +147,10 @@ public class InternalCredentialsController {
                     .collect(Collectors.toSet());
 
             // pick matching by username
-            UserIdentity identity = identities.stream().filter(i -> i.getAccount().getUsername().equals(username))
+            UserIdentity identity = identities.stream().filter(i -> i.getAccount().getUuid().equals(uuid))
                     .findFirst().orElse(null);
             if (identity == null) {
-                throw new IllegalArgumentException("username invalid");
+                throw new IllegalArgumentException("error.invalid_user");
             }
 
             String userId = identity.getUserId();
@@ -160,17 +164,21 @@ public class InternalCredentialsController {
             InternalPasswordService service = idp.getCredentialsService();
 
             if (service == null) {
-                throw new IllegalArgumentException("credentials are immutable");
+                throw new IllegalArgumentException("error.unsupported_operation");
             }
 
             if (!service.canSet()) {
-                throw new IllegalArgumentException("credentials are immutable");
+                throw new IllegalArgumentException("error.unsupported_operation");
             }
 
+            // for internal username is accountId
+            String username = account.getAccountId();
+
             // get current password
-            UserPasswordCredentials cur = service.getCredentials(userId);
+            UserPasswordCredentials cur = service.getCredentials(username);
             model.addAttribute("userId", userId);
-            model.addAttribute("username", account.getUsername());
+            model.addAttribute("username", username);
+            model.addAttribute("uuid", account.getUuid());
             model.addAttribute("credentials", cur);
 
             // expose password policy by passing idp config
@@ -178,10 +186,16 @@ public class InternalCredentialsController {
             model.addAttribute("policy", policy);
 
             model.addAttribute("accountUrl", "/account");
-            model.addAttribute("changeUrl", "/changepwd/" + providerId + "/" + username);
+            model.addAttribute("changeUrl", "/changepwd/" + providerId + "/" + uuid);
 
             if (result.hasErrors()) {
                 return "registration/changepwd";
+            }
+
+            // check curPassword match
+            String curPassword = reg.getCurPassword();
+            if (!service.verifyPassword(username, curPassword)) {
+                throw new RegistrationException("error.wrong_password");
             }
 
             String password = reg.getPassword();
@@ -189,7 +203,7 @@ public class InternalCredentialsController {
 
             if (!password.equals(verifyPassword)) {
                 // error
-                throw new RegistrationException("passwords do not match");
+                throw new RegistrationException("error.mismatch_passwords");
             }
 
 //            // if cur has changeOnFirstAccess we skip verification
@@ -204,11 +218,16 @@ public class InternalCredentialsController {
             UserPasswordCredentials pwd = new UserPasswordCredentials(SystemKeys.AUTHORITY_INTERNAL, providerId, realm,
                     userId);
             pwd.setPassword(password);
-            pwd = service.setCredentials(userId, pwd);
+            pwd = service.setCredentials(username, pwd);
 
             return "registration/changesuccess";
+        } catch (InvalidPasswordException e) {
+            String msg = e.getError() + "." + e.getMessage();
+            model.addAttribute("error", msg);
+            return "registration/changepwd";
         } catch (RegistrationException e) {
-            model.addAttribute("error", e.getMessage());
+            String msg = e.getMessage();
+            model.addAttribute("error", msg);
             return "registration/changepwd";
         } catch (Exception e) {
             model.addAttribute("error", RegistrationException.class.getSimpleName());
@@ -229,7 +248,7 @@ public class InternalCredentialsController {
         InternalIdentityService idp = internalAuthority.getIdentityService(providerId);
 
         if (!idp.getCredentialsService().canReset()) {
-            throw new RegistrationException("reset is disabled");
+            throw new RegistrationException("error.unsupported_operation");
         }
 
         model.addAttribute("providerId", providerId);

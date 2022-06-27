@@ -39,9 +39,11 @@ public class AccountProfile extends AbstractProfile {
     private String authority;
     private String provider;
     private String realm;
-
-    // userId identifies the user for the provider
     private String userId;
+
+    // id identifies the user for the provider
+    private String accountId;
+    private String uuid;
     private String username;
 
     // this contains additional attributes from provider
@@ -78,6 +80,22 @@ public class AccountProfile extends AbstractProfile {
 
     public void setUserId(String userId) {
         this.userId = userId;
+    }
+
+    public String getAccountId() {
+        return accountId;
+    }
+
+    public void setAccountId(String accountId) {
+        this.accountId = accountId;
+    }
+
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
     }
 
     public String getUsername() {
