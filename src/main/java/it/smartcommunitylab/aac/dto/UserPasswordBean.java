@@ -7,7 +7,7 @@ import javax.validation.constraints.NotBlank;
 public class UserPasswordBean {
 
     @NotBlank
-    private String userId;
+    private String username;
 
     @NotBlank
     private String password;
@@ -17,12 +17,12 @@ public class UserPasswordBean {
 
     private String curPassword;
 
-    public String getUserId() {
-        return userId;
+    public String getUsername() {
+        return username;
     }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getPassword() {

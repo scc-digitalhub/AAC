@@ -209,7 +209,6 @@ public class AppleIdentityProviderConfig extends AbstractIdentityProviderConfig 
         ap.name = cp.getName();
         ap.description = cp.getDescription();
         ap.icon = cp.getIcon();
-        ap.displayMode = cp.getDisplayMode();
 
         ap.persistence = cp.getPersistence();
         ap.linkable = cp.isLinkable();

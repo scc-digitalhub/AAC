@@ -89,11 +89,11 @@ angular.module('aac.controllers.main', [])
             });
       }
 
-      $scope.updateCredentials = function(authority, provider, accountId) {
+      $scope.updateCredentials = function(authority, provider, uuid) {
          if(authority == 'internal') {
             //redirect to changepwd
             //TODO handle in service
-            window.location.href = './changepwd/'+provider+'/' + accountId;
+            window.location.href = './changepwd/'+provider+'/' + uuid;
          }
 //         //split userid and redirect
 //         var path = userId.replaceAll("|", "/");

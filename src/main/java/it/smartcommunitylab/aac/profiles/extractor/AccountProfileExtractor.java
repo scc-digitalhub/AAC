@@ -23,7 +23,6 @@ public class AccountProfileExtractor extends AbstractUserProfileExtractor {
         return AccountProfile.IDENTIFIER;
     }
 
-    
     @Override
     public AccountProfile extractUserProfile(User user)
             throws InvalidDefinitionException {
@@ -71,6 +70,8 @@ public class AccountProfileExtractor extends AbstractUserProfileExtractor {
         profile.setRealm(account.getRealm());
 
         profile.setUserId(account.getUserId());
+        profile.setAccountId(account.getAccountId());
+        profile.setUuid(account.getUuid());
         profile.setUsername(account.getUsername());
 
         // look for accountProfile extra attributes

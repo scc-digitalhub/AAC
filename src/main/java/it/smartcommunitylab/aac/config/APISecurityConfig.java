@@ -16,6 +16,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.oauth.auth.InternalOpaqueTokenIntrospector;
 
 /*
@@ -37,10 +38,10 @@ public class APISecurityConfig extends WebSecurityConfigurerAdapter {
      */
     @Override
     public void configure(HttpSecurity http) throws Exception {
-        // match only token endpoints
+        // match only API endpoints
         http.requestMatcher(getRequestMatcher())
                 .authorizeRequests((authorizeRequests) -> authorizeRequests
-                        .anyRequest().hasAnyAuthority("ROLE_USER", "ROLE_CLIENT"))
+                        .anyRequest().hasAnyAuthority(Config.R_USER, Config.R_CLIENT))
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .opaqueToken(opaqueToken -> opaqueToken
                                 .introspector(tokenIntrospector)))
@@ -54,12 +55,9 @@ public class APISecurityConfig extends WebSecurityConfigurerAdapter {
                 .cors().configurationSource(corsConfigurationSource())
                 .and()
                 .csrf()
-                .disable();
-
-        // TODO add bearer auth filter
-
-        // we don't want a session for these endpoints, each request should be evaluated
-        http.sessionManagement()
+                .disable()
+                // we don't want a session for these endpoints, each request should be evaluated
+                .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     }
 

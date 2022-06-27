@@ -15,7 +15,13 @@ import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.oauth.auth.InternalOpaqueTokenIntrospector;
+import it.smartcommunitylab.aac.oauth.endpoint.ClientRegistrationEndpoint;
 
 /*
  * Security context for OAuth2/OIDC Dynamic client registration
@@ -40,8 +46,8 @@ public class OAuth2DCRSecurityConfig extends WebSecurityConfigurerAdapter {
         // registration as anonymous
         http.requestMatcher(getRequestMatcher())
                 .authorizeRequests((authorizeRequests) -> authorizeRequests
-                        .anyRequest().hasAnyAuthority("ROLE_USER", "ROLE_CLIENT", "ROLE_ANONYMOUS"))
-
+                        .anyRequest().hasAnyAuthority(Config.R_CLIENT, Config.R_USER, "ROLE_ANONYMOUS"))
+                // use bearer token auth
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .opaqueToken(opaqueToken -> opaqueToken
                                 .introspector(tokenIntrospector)))
@@ -52,25 +58,37 @@ public class OAuth2DCRSecurityConfig extends WebSecurityConfigurerAdapter {
                 .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
                 .accessDeniedPage("/accesserror")
                 .and()
-                .csrf()
-                .disable();
-
-        // we don't want a session for these endpoints, each request should be evaluated
-        http.sessionManagement()
+                .cors().configurationSource(corsConfigurationSource())
+                .and()
+                .csrf().disable()
+                // we don't want a session for these endpoints, each request should be evaluated
+                .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     }
 
     public RequestMatcher getRequestMatcher() {
-        List<RequestMatcher> antMatchers = Arrays.stream(DCR_URLS).map(u -> new AntPathRequestMatcher(u))
+        List<RequestMatcher> antMatchers = Arrays.stream(OAUTH2_DCR_URLS)
+                .map(u -> new AntPathRequestMatcher(u))
                 .collect(Collectors.toList());
 
         return new OrRequestMatcher(antMatchers);
-
     }
 
-    public static final String[] DCR_URLS = {
-            "/oauth/register",
-            "/oauth/register/**"
+    private CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(Arrays.asList("*"));
+        config.setAllowedMethods(Arrays.asList("GET", "POST"));
+        config.setAllowedHeaders(Arrays.asList("authorization"));
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
+
+    private static final String DCR_REGISTRATION_URL = ClientRegistrationEndpoint.REGISTRATION_URL;
+    private static final String DCR_MANAGE_URL = ClientRegistrationEndpoint.REGISTRATION_URL + "/**";
+
+    private static final String[] OAUTH2_DCR_URLS = {
+            DCR_REGISTRATION_URL, DCR_MANAGE_URL
     };
 
 }

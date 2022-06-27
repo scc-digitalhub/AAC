@@ -72,9 +72,9 @@ public class SystemKeys {
     public static final String EVENTS_LEVEL_DETAILS = "details";
     public static final String EVENTS_LEVEL_FULL = "full";
 
-    public static final String DISPLAY_MODE_BUTTON = "button";
-    public static final String DISPLAY_MODE_FORM = "form";
-    public static final String DISPLAY_MODE_SPID = "spid";
+//    public static final String DISPLAY_MODE_BUTTON = "button";
+//    public static final String DISPLAY_MODE_FORM = "form";
+//    public static final String DISPLAY_MODE_SPID = "spid";
 
     public static final String ACTION_LOGIN = "login";
     public static final String ACTION_REGISTER = "register";

@@ -31,7 +31,7 @@ public class InternalAuthenticationProvider
     private static final String ACCOUNT_NOT_FOUND_PASSWORD = "internalAccountNotFoundPassword";
 
     // provider configuration
-    private final InternalIdentityProviderConfigMap config;
+    private final InternalIdentityProviderConfig config;
 
     private final InternalUserAccountService userAccountService;
     private final UsernamePasswordAuthenticationProvider authProvider;
@@ -50,7 +50,7 @@ public class InternalAuthenticationProvider
         super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
         Assert.notNull(userAccountService, "user account service is mandatory");
         Assert.notNull(providerConfig, "provider config is mandatory");
-        this.config = providerConfig.getConfigMap();
+        this.config = providerConfig;
         this.userAccountService = userAccountService;
 
         // build a password encoder
@@ -98,9 +98,18 @@ public class InternalAuthenticationProvider
         // userId is equal to subject
         String subject = account.getUserId();
 
+        // check whether confirmation is required and user is confirmed
+        if (!(authentication instanceof ConfirmKeyAuthenticationToken) && config.isConfirmationRequired()
+                && !account.isConfirmed()) {
+            logger.debug("account is not verified and confirmation is required to login");
+            // throw generic error to avoid account status leak
+            AuthenticationException e = new BadCredentialsException("invalid request");
+            throw new InternalAuthenticationException(subject, username, credentials, "password", e,
+                    e.getMessage());
+        }
+
         // TODO check if providers are available
         if (authentication instanceof UsernamePasswordAuthenticationToken) {
-
             try {
                 return authProvider.authenticate(authentication);
             } catch (AuthenticationException e) {
@@ -159,6 +168,6 @@ public class InternalAuthenticationProvider
     @Override
     protected Instant expiresAt(Authentication auth) {
         // build expiration with maxAge
-        return Instant.now().plusSeconds(config.getMaxSessionDuration());
+        return Instant.now().plusSeconds(config.getConfigMap().getMaxSessionDuration());
     }
 }

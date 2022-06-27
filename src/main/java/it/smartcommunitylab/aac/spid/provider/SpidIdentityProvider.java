@@ -19,6 +19,7 @@ import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.service.SubjectService;
+import it.smartcommunitylab.aac.dto.LoginProvider;
 import it.smartcommunitylab.aac.spid.SpidIdentityAuthority;
 import it.smartcommunitylab.aac.spid.attributes.SpidAttributesMapper;
 import it.smartcommunitylab.aac.spid.attributes.SpidAttributesSet;
@@ -320,8 +321,7 @@ public class SpidIdentityProvider extends AbstractProvider
     @Override
     public String getAuthenticationUrl() {
         // TODO build a realm-bound url, need updates on filters
-        return SpidIdentityAuthority.AUTHORITY_URL
-                + "authenticate/" + getProvider();
+        return SpidIdentityAuthority.AUTHORITY_URL + "authenticate/" + getProvider();
     }
 
     @Override
@@ -335,14 +335,17 @@ public class SpidIdentityProvider extends AbstractProvider
     }
 
     @Override
-    public String getDisplayMode() {
-        // not configurable
-        return SystemKeys.DISPLAY_MODE_SPID;
-    }
+    public LoginProvider getLoginProvider() {
+        LoginProvider lp = new LoginProvider(SystemKeys.AUTHORITY_SPID, getProvider(), getRealm());
+        lp.setName(getName());
+        lp.setDescription(getDescription());
 
-    @Override
-    public Map<String, String> getActionUrls() {
-        return Collections.singletonMap(SystemKeys.ACTION_LOGIN, getAuthenticationUrl());
+        lp.setLoginUrl(getAuthenticationUrl());
+        lp.setTemplate("spid");
+
+        lp.setConfiguration(getConfig());
+
+        return lp;
     }
 
     public static String[] SAML_ATTRIBUTES = {

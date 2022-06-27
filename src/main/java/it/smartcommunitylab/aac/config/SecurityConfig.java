@@ -22,10 +22,11 @@ import javax.servlet.Filter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.Resource;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -47,6 +48,7 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import org.springframework.security.web.header.writers.ClearSiteDataHeaderWriter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.filter.CompositeFilter;
+
 import it.smartcommunitylab.aac.core.ExtendedUserAuthenticationManager;
 import it.smartcommunitylab.aac.core.auth.ExtendedLogoutSuccessHandler;
 import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
@@ -59,10 +61,6 @@ import it.smartcommunitylab.aac.internal.auth.InternalLoginAuthenticationFilter;
 import it.smartcommunitylab.aac.internal.auth.InternalResetKeyAuthenticationFilter;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
-import it.smartcommunitylab.aac.oauth.auth.AuthorizationEndpointFilter;
-import it.smartcommunitylab.aac.oauth.auth.OAuth2RealmAwareAuthenticationEntryPoint;
-import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
-import it.smartcommunitylab.aac.oauth.service.OAuth2ClientService;
 import it.smartcommunitylab.aac.openid.apple.AppleIdentityAuthority;
 import it.smartcommunitylab.aac.openid.apple.auth.AppleLoginAuthenticationFilter;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfig;
@@ -116,12 +114,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     @Qualifier("spidRelyingPartyRegistrationRepository")
     private SamlRelyingPartyRegistrationRepository spidRelyingPartyRegistrationRepository;
-
-    @Autowired
-    private OAuth2ClientDetailsService oauth2ClientDetailsService;
-
-    @Autowired
-    private OAuth2ClientService oauth2ClientService;
 
     @Autowired
     private InternalUserAccountService internalUserAccountService;
@@ -229,13 +221,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .exceptionHandling()
                 // use a realm aware entryPoint
 //                .authenticationEntryPoint(new RealmAwareAuthenticationEntryPoint("/login"))
-                .defaultAuthenticationEntryPointFor(
-                        oauth2AuthenticationEntryPoint(oauth2ClientDetailsService, loginPath),
-                        new AntPathRequestMatcher("/oauth/**"))
+//                .defaultAuthenticationEntryPointFor(
+//                        oauth2AuthenticationEntryPoint(oauth2ClientDetailsService, loginPath),
+//                        new AntPathRequestMatcher("/oauth/**"))
                 .defaultAuthenticationEntryPointFor(
                         realmAuthEntryPoint(loginPath, realmUriBuilder),
                         new AntPathRequestMatcher("/**"))
-//                .accessDeniedPage("/accesserror")
+                .accessDeniedPage("/accesserror")
                 .and()
                 .logout(logout -> logout
                         .logoutUrl(logoutPath)
@@ -255,7 +247,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/auth/spid/**",
                         "/auth/apple/**")
                 .and()
-//                .disable()
 //                // TODO replace with filterRegistrationBean and explicitely map urls
                 .addFilterBefore(
                         getInternalAuthorityFilters(authManager, internalProviderRepository,
@@ -276,14 +267,26 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         getAppleAuthorityFilters(authManager, appleProviderRepository,
                                 appleClientRegistrationRepository),
                         BasicAuthenticationFilter.class)
-                .addFilterBefore(new AuthorizationEndpointFilter(oauth2ClientService, oauth2ClientDetailsService),
-                        BasicAuthenticationFilter.class);
 //                .addFilterBefore(new ExpiredUserAuthenticationFilter(), BasicAuthenticationFilter.class);
 
-        // we always want a session here
-        http.sessionManagement()
+                // we always want a session here
+                .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
 
+    }
+
+    /*
+     * BUG hotfix: disable error filter because it doesn't work with dummyrequests
+     * and/or multiple filter chains TODO remove when upstream fixes the issue
+     * 
+     * https://github.com/spring-projects/spring-security/issues/11055#issuecomment-
+     * 1098061598
+     * 
+     */
+    @Bean
+    public static BeanFactoryPostProcessor removeErrorSecurityFilter() {
+        return beanFactory -> ((DefaultListableBeanFactory) beanFactory)
+                .removeBeanDefinition("errorPageSecurityInterceptor");
     }
 
     @Bean
@@ -511,20 +514,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         filter.setFilters(filters);
 
         return filter;
-    }
-
-    /*
-     * OAuth2
-     */
-
-    private OAuth2RealmAwareAuthenticationEntryPoint oauth2AuthenticationEntryPoint(
-            OAuth2ClientDetailsService clientDetailsService, String loginUrl) {
-        // TODO implement support for "common" realm, "global" realm shoud not be
-        // available here
-        // we need a way to discover ALL providers for a common login.. infeasible.
-        // Maybe let existing sessions work, or ask only for matching realm?
-        return new OAuth2RealmAwareAuthenticationEntryPoint(clientDetailsService, loginUrl);
-
     }
 
 }

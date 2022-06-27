@@ -256,7 +256,6 @@ public class OIDCIdentityProviderConfig extends AbstractIdentityProviderConfig {
         op.name = cp.getName();
         op.description = cp.getDescription();
         op.icon = cp.getIcon();
-        op.displayMode = cp.getDisplayMode();
 
         op.persistence = cp.getPersistence();
         op.linkable = cp.isLinkable();

@@ -17,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.DataBinder;
-import org.springframework.validation.MapBindingResult;
 import org.springframework.validation.SmartValidator;
 
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
@@ -246,17 +245,6 @@ public class IdentityProviderService {
             throw new RegistrationException("invalid events level");
         }
 
-        String displayMode = provider.getDisplayMode();
-        if (!StringUtils.hasText(displayMode)) {
-            displayMode = SystemKeys.DISPLAY_MODE_BUTTON;
-        }
-
-        if (!SystemKeys.DISPLAY_MODE_BUTTON.equals(displayMode)
-                && !SystemKeys.DISPLAY_MODE_FORM.equals(displayMode)
-                && !SystemKeys.DISPLAY_MODE_SPID.equals(displayMode)) {
-            throw new RegistrationException("invalid display mode");
-        }
-
         // we validate config by converting to specific configMap
         ConfigurationProvider<? extends ConfigurableProvider, ? extends AbstractProviderConfig, ? extends ConfigurableProperties> configProvider = configService
                 .getProvider(SystemKeys.RESOURCE_IDENTITY, authority);
@@ -283,7 +271,7 @@ public class IdentityProviderService {
         IdentityProviderEntity pe = providerService.addIdentityProvider(
                 authority, providerId, realm,
                 name, description, icon,
-                persistence, events, displayMode,
+                persistence, events,
                 configuration, hookFunctions);
 
         return fromEntity(pe);
@@ -337,17 +325,6 @@ public class IdentityProviderService {
             throw new RegistrationException("invalid events level");
         }
 
-        String displayMode = provider.getDisplayMode();
-        if (!StringUtils.hasText(displayMode)) {
-            displayMode = SystemKeys.DISPLAY_MODE_BUTTON;
-        }
-
-        if (!SystemKeys.DISPLAY_MODE_BUTTON.equals(displayMode)
-                && !SystemKeys.DISPLAY_MODE_FORM.equals(displayMode)
-                && !SystemKeys.DISPLAY_MODE_SPID.equals(displayMode)) {
-            throw new RegistrationException("invalid display mode");
-        }
-
         boolean enabled = provider.isEnabled();
         boolean linkable = provider.isLinkable();
 
@@ -380,7 +357,7 @@ public class IdentityProviderService {
         pe = providerService.updateIdentityProvider(providerId,
                 enabled, linkable,
                 name, description, icon,
-                persistence, events, displayMode,
+                persistence, events,
                 configuration, hookFunctions);
 
         return fromEntity(pe);
@@ -434,7 +411,6 @@ public class IdentityProviderService {
 
         cp.setName(pe.getName());
         cp.setDescription(pe.getDescription());
-        cp.setDisplayMode(pe.getDisplayMode());
 
         return cp;
 

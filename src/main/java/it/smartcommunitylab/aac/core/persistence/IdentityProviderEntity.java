@@ -67,9 +67,6 @@ public class IdentityProviderEntity {
     @Convert(converter = HashMapBase64Converter.class)
     private Map<String, String> hookFunctions;
 
-    @Column(name = "display_mode")
-    private String displayMode;
-
     public IdentityProviderEntity() {
 
     }
@@ -172,14 +169,6 @@ public class IdentityProviderEntity {
 
     public void setEvents(String events) {
         this.events = events;
-    }
-
-    public String getDisplayMode() {
-        return displayMode;
-    }
-
-    public void setDisplayMode(String displayMode) {
-        this.displayMode = displayMode;
     }
 
     public Map<String, Serializable> getConfigurationMap() {

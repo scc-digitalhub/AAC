@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.store.AttributeStore;
 import it.smartcommunitylab.aac.core.service.SubjectService;
+import it.smartcommunitylab.aac.dto.LoginProvider;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProvider;
 
@@ -47,9 +48,15 @@ public class AppleIdentityProvider extends OIDCIdentityProvider {
     }
 
     @Override
-    public String getDisplayMode() {
-        // not configurable for now
-        return SystemKeys.DISPLAY_MODE_BUTTON;
+    public LoginProvider getLoginProvider() {
+        LoginProvider lp = super.getLoginProvider();
+
+        String icon = "logo-apple";
+        String iconUrl = icon.startsWith("logo-") ? "svg/sprite.svg#" + icon : "italia/svg/sprite.svg#" + icon;
+        lp.setIcon(icon);
+        lp.setIconUrl(iconUrl);
+
+        return lp;
     }
 
 }

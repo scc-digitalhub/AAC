@@ -43,6 +43,8 @@ public class OAuth2ClientAuthFilter extends OncePerRequestFilter {
     private final AuthenticationManager authenticationManager;
     private final AuthenticationConverter authenticationConverter;
 
+    private final String name;
+
     public OAuth2ClientAuthFilter(AuthenticationManager authenticationManager,
             String filterProcessingUrl) {
         Assert.notNull(authenticationManager, "auth manager is required");
@@ -59,6 +61,9 @@ public class OAuth2ClientAuthFilter extends OncePerRequestFilter {
 
         // build request matcher
         requestMatcher = new AntPathRequestMatcher(filterProcessingUrl);
+
+        // set unique name based on url
+        name = filterProcessingUrl;
     }
 
     public OAuth2ClientAuthFilter(AuthenticationManager authenticationManager,
@@ -72,6 +77,9 @@ public class OAuth2ClientAuthFilter extends OncePerRequestFilter {
 
         // build request matcher
         requestMatcher = new AntPathRequestMatcher(filterProcessingUrl);
+
+        // set unique name based on url
+        name = filterProcessingUrl;
     }
 
     public OAuth2ClientAuthFilter(AuthenticationManager authenticationManager,
@@ -91,6 +99,14 @@ public class OAuth2ClientAuthFilter extends OncePerRequestFilter {
         Assert.notEmpty(antMatchers, "filterProcessingUrl can not be null or empty");
 
         requestMatcher = new OrRequestMatcher(antMatchers);
+
+        // set unique name based on url
+        name = StringUtils.arrayToDelimitedString(filterProcessingUrl, "|");
+    }
+
+    @Override
+    protected String getFilterName() {
+        return getClass().getName() + this.name;
     }
 
     @Override

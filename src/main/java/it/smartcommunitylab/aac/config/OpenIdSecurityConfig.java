@@ -21,10 +21,12 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.oauth.auth.InternalOpaqueTokenIntrospector;
+import it.smartcommunitylab.aac.openid.endpoint.UserInfoEndpoint;
 
 /*
- * Security context for API endpoints
+ * Security context for OpenId endpoints
  * 
  * Builds a stateless context with JWT/OAuth2 auth.
  * We actually use Bearer tokens and validate by fetching tokens from store
@@ -42,11 +44,11 @@ public class OpenIdSecurityConfig extends WebSecurityConfigurerAdapter {
      */
     @Override
     public void configure(HttpSecurity http) throws Exception {
-        // match only token endpoints
+        // match only endpoints
         http.requestMatcher(getRequestMatcher())
                 .authorizeRequests((authorizeRequests) -> authorizeRequests
-                        .anyRequest().hasAnyAuthority("ROLE_USER", "ROLE_CLIENT"))
-                // TODO add support for passing token in request body via custom filter
+                        .anyRequest().hasAnyAuthority(Config.R_USER, Config.R_CLIENT))
+                // support passing token in request body via custom resolver
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .bearerTokenResolver(bearerTokenResolver())
                         .opaqueToken(opaqueToken -> opaqueToken
@@ -60,10 +62,9 @@ public class OpenIdSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .cors().configurationSource(corsConfigurationSource())
                 .and()
-                .csrf().disable();
-
-        // we don't want a session for these endpoints, each request should be evaluated
-        http.sessionManagement()
+                .csrf().disable()
+                // we don't want a session for these endpoints, each request should be evaluated
+                .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     }
 
@@ -71,7 +72,6 @@ public class OpenIdSecurityConfig extends WebSecurityConfigurerAdapter {
         DefaultBearerTokenResolver resolver = new DefaultBearerTokenResolver();
         // support token in form body
         resolver.setAllowFormEncodedBodyParameter(true);
-
         return resolver;
     }
 
@@ -94,7 +94,7 @@ public class OpenIdSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     public static final String[] OPENID_URLS = {
-            "/userinfo"
+            UserInfoEndpoint.USERINFO_URL
     };
 
 }

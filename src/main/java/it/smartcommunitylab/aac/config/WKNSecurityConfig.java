@@ -41,10 +41,9 @@ public class WKNSecurityConfig extends WebSecurityConfigurerAdapter {
                 .cors().configurationSource(corsConfigurationSource())
                 .and()
                 // disable csrf, we expose only GET
-                .csrf().disable();
-
-        // we don't want a session for these endpoints
-        http.sessionManagement()
+                .csrf().disable()
+                // we don't want a session for these endpoints
+                .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     }
 

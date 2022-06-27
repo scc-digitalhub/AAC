@@ -9,6 +9,7 @@ import it.smartcommunitylab.aac.core.base.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
+import it.smartcommunitylab.aac.dto.LoginProvider;
 
 /*
  * Identity providers handle authentication for users and produce a valid user identity
@@ -28,8 +29,6 @@ public interface IdentityProvider<I extends UserIdentity>
     public String getName();
 
     public String getDescription();
-
-    public String getDisplayMode();
 
     public AbstractIdentityProviderConfig getConfig();
 
@@ -110,10 +109,12 @@ public interface IdentityProvider<I extends UserIdentity>
 
     public String getAuthenticationUrl();
 
+    public LoginProvider getLoginProvider();
+
 //    public AuthenticationEntryPoint getAuthenticationEntryPoint();
 
-    /*
-     * Additional action urls
-     */
-    public Map<String, String> getActionUrls();
+//    /*
+//     * Additional action urls
+//     */
+//    public Map<String, String> getActionUrls();
 }

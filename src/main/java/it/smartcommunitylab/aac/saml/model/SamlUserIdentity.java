@@ -66,7 +66,7 @@ public class SamlUserIdentity extends AbstractIdentity {
     public void setAttributes(Collection<UserAttributes> attributes) {
         this.attributes = new HashSet<>();
         if (attributes != null) {
-            attributes.addAll(attributes);
+            this.attributes.addAll(attributes);
         }
     }
 }
