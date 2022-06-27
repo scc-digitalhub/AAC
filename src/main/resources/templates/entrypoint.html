@@ -55,7 +55,7 @@
 
           <div class="text-center mt-4">
             <p th:text="#{label.login_select_realm}">Login with</p>
-            <form th:action="${loginUrl}" th:object="${login}" method="get">
+            <form th:action="${loginUrl}" th:object="${login}" method="post">
 
               <div class="col-md-12 form-group mt-5 mb-2">
                 <label th:text="#{field.realm}" for="realm" class="active">: </label>

@@ -102,6 +102,25 @@ public class LoginController {
     }
 
     @RequestMapping(value = {
+            "/login"
+    }, method = RequestMethod.POST)
+    public String redirect(
+            @RequestParam(required = true, name = "realm") String realmKey,
+            HttpServletRequest req, HttpServletResponse res) throws Exception {
+
+        if (StringUtils.hasText(realmKey)) {
+            Realm realm = realmManager.findRealm(realmKey);
+            if (realm != null) {
+                String slug = realm.getSlug();
+                String redirect = "/-/" + slug + "/login";
+                return "redirect:" + redirect;
+            }
+        }
+
+        return "redirect:/login";
+    }
+
+    @RequestMapping(value = {
             "/-/{realm}/login",
             "/-/{realm}/login/{providerId}"
     }, method = RequestMethod.GET)
