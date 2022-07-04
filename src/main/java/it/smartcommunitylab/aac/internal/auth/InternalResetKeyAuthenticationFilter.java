@@ -154,6 +154,7 @@ public class InternalResetKeyAuthenticationFilter extends AbstractAuthentication
         if (session != null) {
             // check if user needs to reset password, and add redirect
             if (account.isChangeOnFirstAccess()) {
+            	session.setAttribute("resetCode", code);
                 // TODO build url
                 session.setAttribute(RequestAwareAuthenticationSuccessHandler.SAVED_REQUEST,
                         "/changepwd/" + providerId + "/" + account.getUuid());

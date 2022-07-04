@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
 
@@ -19,9 +20,8 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 
-import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.InvalidPasswordException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
@@ -53,7 +53,7 @@ public class InternalCredentialsController {
 
     @Autowired
     private InternalIdentityAuthority internalAuthority;
-
+    
     @Autowired
     private RealmManager realmManager;
 
@@ -65,8 +65,10 @@ public class InternalCredentialsController {
     public String changepwd(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid,
+            HttpServletRequest request,
             Model model)
             throws NoSuchProviderException, NoSuchUserException {
+    	
         // first check userid vs user
         UserDetails user = authHelper.getUserDetails();
         if (user == null) {
@@ -101,7 +103,7 @@ public class InternalCredentialsController {
         if (!service.canSet()) {
             throw new IllegalArgumentException("error.unsupported_operation");
         }
-
+        
         // for internal username is accountId
         String username = account.getAccountId();
         UserPasswordCredentials cred = service.getCredentials(username);
@@ -122,6 +124,11 @@ public class InternalCredentialsController {
         model.addAttribute("policy", policy);
         model.addAttribute("accountUrl", "/account");
         model.addAttribute("changeUrl", "/changepwd/" + providerId + "/" + uuid);
+
+        String code = (String)request.getSession().getAttribute("resetCode");
+        if (code != null) {
+        	model.addAttribute("resetCode", code);
+        }
         return "registration/changepwd";
     }
 
@@ -131,6 +138,7 @@ public class InternalCredentialsController {
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid,
             Model model,
             @ModelAttribute("reg") @Valid UserPasswordBean reg,
+            HttpServletRequest request,
             BindingResult result)
             throws NoSuchProviderException, NoSuchUserException {
 
@@ -192,10 +200,12 @@ public class InternalCredentialsController {
                 return "registration/changepwd";
             }
 
-            // check curPassword match
-            String curPassword = reg.getCurPassword();
-            if (!service.verifyPassword(username, curPassword)) {
-                throw new RegistrationException("error.wrong_password");
+            if (request.getSession().getAttribute("resetCode") == null) {
+                // check curPassword match
+                String curPassword = reg.getCurPassword();
+                if (!service.verifyPassword(username, curPassword)) {
+                    throw new RegistrationException("error.wrong_password");
+                }
             }
 
             String password = reg.getPassword();
@@ -220,6 +230,8 @@ public class InternalCredentialsController {
             pwd.setPassword(password);
             pwd = service.setCredentials(username, pwd);
 
+            request.getSession().removeAttribute("resetCode");
+            
             return "registration/changesuccess";
         } catch (InvalidPasswordException e) {
             String msg = e.getError() + "." + e.getMessage();
