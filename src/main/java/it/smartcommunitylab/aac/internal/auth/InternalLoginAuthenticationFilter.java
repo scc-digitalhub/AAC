@@ -152,7 +152,7 @@ public class InternalLoginAuthenticationFilter extends AbstractAuthenticationPro
                 if (account.isChangeOnFirstAccess()) {
                     // TODO build url
                     session.setAttribute(RequestAwareAuthenticationSuccessHandler.SAVED_REQUEST,
-                            "/changepwd/" + providerId + "/" + username);
+                            "/changepwd/" + providerId + "/" + account.getUuid());
                 }
             }
         }

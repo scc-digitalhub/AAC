@@ -142,7 +142,7 @@ public class InternalResetKeyAuthenticationFilter extends AbstractAuthentication
 
         // fetch account
         // TODO remove, let authProvider handle
-        InternalUserAccount account = userAccountService.findAccountByResetKey(realm, code);
+        InternalUserAccount account = userAccountService.findAccountByResetKey(providerId, code);
         if (account == null) {
             // don't leak user does not exists
             throw new BadCredentialsException("invalid confirm code");
@@ -156,7 +156,7 @@ public class InternalResetKeyAuthenticationFilter extends AbstractAuthentication
             if (account.isChangeOnFirstAccess()) {
                 // TODO build url
                 session.setAttribute(RequestAwareAuthenticationSuccessHandler.SAVED_REQUEST,
-                        "/changepwd/" + providerId + "/" + username);
+                        "/changepwd/" + providerId + "/" + account.getUuid());
             }
         }
 

@@ -160,7 +160,7 @@ public class InternalConfirmKeyAuthenticationFilter extends AbstractAuthenticati
 
         // fetch account
         // TODO remove, let authProvider handle
-        InternalUserAccount account = userAccountService.findAccountByConfirmationKey(realm, code);
+        InternalUserAccount account = userAccountService.findAccountByConfirmationKey(providerId, code);
         if (account == null) {
             // don't leak user does not exists
             throw new BadCredentialsException("invalid confirm code");
@@ -174,7 +174,7 @@ public class InternalConfirmKeyAuthenticationFilter extends AbstractAuthenticati
             if (account.isChangeOnFirstAccess()) {
                 // TODO build url
                 session.setAttribute(RequestAwareAuthenticationSuccessHandler.SAVED_REQUEST,
-                        "/changepwd/" + providerId + "/" + username);
+                        "/changepwd/" + providerId + "/" + account.getUuid());
             }
         }
 
