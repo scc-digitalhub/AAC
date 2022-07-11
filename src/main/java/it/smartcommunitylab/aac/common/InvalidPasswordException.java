@@ -47,4 +47,10 @@ public class InvalidPasswordException extends RegistrationException {
     public String getError() {
         return InvalidPasswordException.ERROR;
     }
+
+    @Override
+    public String getMessage() {
+        return ERROR.concat(".").concat(super.getMessage());
+    }
+
 }

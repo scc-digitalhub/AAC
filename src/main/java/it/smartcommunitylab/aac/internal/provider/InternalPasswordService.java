@@ -97,6 +97,29 @@ public class InternalPasswordService extends AbstractProvider implements UserCre
         return policy;
     }
 
+    public String getPasswordPattern() {
+        // translate policy to input pattern
+        StringBuilder sb = new StringBuilder();
+        if (config.isPasswordRequireAlpha()) {
+            // require alpha means both
+            sb.append("(?=.*[a-z])(?=.*[A-Z])");
+        }
+        if (config.isPasswordRequireNumber()) {
+            sb.append("(?=.*\\d)");
+        }
+        if (config.isPasswordRequireSpecial()) {
+            // TODO
+        }
+
+        // add length
+        sb
+                .append(".{")
+                .append(config.getPasswordMinLength()).append(",").append(config.getPasswordMaxLength())
+                .append("}");
+
+        return sb.toString();
+    }
+
     @Override
     public UserPasswordCredentials getCredentials(String username) throws NoSuchUserException {
         // fetch user

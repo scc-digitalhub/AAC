@@ -19,6 +19,7 @@ package it.smartcommunitylab.aac.internal.controller;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -31,6 +32,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -49,6 +51,7 @@ import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.dto.UserRegistrationBean;
 import it.smartcommunitylab.aac.dto.UserEmailBean;
 import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
+import it.smartcommunitylab.aac.internal.dto.PasswordPolicy;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
 import it.smartcommunitylab.aac.internal.provider.InternalPasswordService;
@@ -120,6 +123,16 @@ public class InternalRegistrationController {
 //            model.addAllAttributes(customizations);
 //        }
 
+        // fetch credentials service if available
+        InternalPasswordService service = idp.getCredentialsService();
+        if (service != null) {
+            // expose password policy by passing idp config
+            PasswordPolicy policy = service.getPasswordPolicy();
+            model.addAttribute("policy", policy);
+            String passwordPattern = service.getPasswordPattern();
+            model.addAttribute("passwordPattern", passwordPattern);
+        }
+
         // build url
         // TODO handle via urlBuilder or entryPoint
         model.addAttribute("registrationUrl", "/auth/internal/register/" + providerId);
@@ -173,11 +186,31 @@ public class InternalRegistrationController {
             model.addAttribute("displayName", displayName);
             model.addAttribute("customization", resources);
 
+            // fetch credentials service if available
+            InternalPasswordService service = idp.getCredentialsService();
+            if (service != null) {
+                // expose password policy by passing idp config
+                PasswordPolicy policy = service.getPasswordPolicy();
+                model.addAttribute("policy", policy);
+                String passwordPattern = service.getPasswordPattern();
+                model.addAttribute("passwordPattern", passwordPattern);
+            }
+
             model.addAttribute("registrationUrl", "/auth/internal/register/" + providerId);
             model.addAttribute("loginUrl", "/-/" + realm + "/login");
 
             if (result.hasErrors()) {
                 model.addAttribute("error", InvalidDataException.ERROR);
+                // check if custom msg available
+                Optional<FieldError> fieldError = Optional.ofNullable(result.getFieldError());
+                if (fieldError.isPresent()) {
+                    String errorMsg = fieldError.get().getDefaultMessage();
+
+                    if (errorMsg != null && errorMsg.startsWith("error.")) {
+                        model.addAttribute("error", errorMsg);
+                    }
+                }
+
                 return "registration/register";
             }
 
@@ -213,7 +246,8 @@ public class InternalRegistrationController {
             return "registration/regsuccess";
         } catch (RegistrationException e) {
             String error = e.getError();
-            model.addAttribute("error", error);
+            String errorMsg = e.getMessage();
+            model.addAttribute("error", errorMsg);
             return "registration/register";
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
