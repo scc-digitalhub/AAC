@@ -193,6 +193,11 @@ public class InternalCredentialsController {
             PasswordPolicy policy = service.getPasswordPolicy();
             model.addAttribute("policy", policy);
 
+            String code = (String) request.getSession().getAttribute("resetCode");
+            if (code != null) {
+                model.addAttribute("resetCode", code);
+            }
+
             model.addAttribute("accountUrl", "/account");
             model.addAttribute("changeUrl", "/changepwd/" + providerId + "/" + uuid);
 
@@ -234,7 +239,7 @@ public class InternalCredentialsController {
 
             return "registration/changesuccess";
         } catch (InvalidPasswordException e) {
-            String msg = e.getError() + "." + e.getMessage();
+            String msg = e.getMessage();
             model.addAttribute("error", msg);
             return "registration/changepwd";
         } catch (RegistrationException e) {
@@ -354,10 +359,11 @@ public class InternalCredentialsController {
 
             // resolve user
             InternalUserAccount account = idp.getAccountProvider().findAccountByEmail(email);
-            if (account == null) {
+            if (account == null || (!account.isConfirmed() && idp.getConfig().isConfirmationRequired())) {
                 // don't leak error
-                result.rejectValue("email", "error.invalid_email");
-                return "registration/resetpwd";
+//                result.rejectValue("email", "error.invalid_email");
+//                return "registration/resetpwd";
+                throw new RegistrationException("error.bad_credentials");
 
             } else {
                 // direct call to reset
@@ -369,7 +375,7 @@ public class InternalCredentialsController {
                 return "registration/resetsuccess";
             }
         } catch (RegistrationException e) {
-            model.addAttribute("error", e.getError());
+            model.addAttribute("error", e.getMessage());
             return "registration/resetpwd";
         } catch (Exception e) {
             model.addAttribute("error", RegistrationException.ERROR);
