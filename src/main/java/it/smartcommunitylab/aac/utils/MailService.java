@@ -17,6 +17,8 @@
 package it.smartcommunitylab.aac.utils;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -44,7 +46,7 @@ import org.thymeleaf.context.Context;
  * TODO rework, add link to userEntityService + realmService TODO implement here
  * message handling for userDetails/userIdentity/userAccount
  *
- *@author raman
+ * @author raman
  */
 @Component
 public class MailService {
@@ -54,18 +56,27 @@ public class MailService {
 
     @Value("${mail.username}")
     private String mailUser;
-    @Autowired
+
     @Value("${mail.password}")
     private String mailPwd;
-    @Autowired
+
     @Value("${mail.host}")
     private String mailHost;
-    @Autowired
+
     @Value("${mail.port}")
     private Integer mailPort;
-    @Autowired
+
     @Value("${mail.protocol}")
     private String mailProtocol;
+
+    @Value("${application.name}")
+    private String applicationName;
+
+    @Value("${application.url}")
+    private String applicationUrl;
+
+    @Value("${application.email}")
+    private String applicationEmail;
 
     @Value("classpath:/javamail.properties")
     private org.springframework.core.io.Resource mailProps;
@@ -111,6 +122,16 @@ public class MailService {
             throws MessagingException {
 
         final Context ctx = new Context();
+
+        // set app context
+        Map<String, String> application = new HashMap<>();
+        application.put("name", applicationName);
+        application.put("url", applicationUrl);
+        application.put("email", applicationEmail);
+        ctx.setVariable("application", application);
+
+        // set template vars
+        // note: we let template override app context vars
         if (vars != null) {
             for (String var : vars.keySet()) {
                 ctx.setVariable(var, vars.get(var));
@@ -120,7 +141,12 @@ public class MailService {
         final MimeMessage mimeMessage = mailSender.createMimeMessage();
         final MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "UTF-8");
         message.setSubject(subject);
-        message.setFrom(mailUser);
+        try {
+            message.setFrom(mailUser, applicationEmail);
+        } catch (UnsupportedEncodingException | MessagingException e) {
+            throw new MessagingException("invalid-mail-sender");
+        }
+        message.setReplyTo(applicationEmail);
         message.setTo(email);
 
         // Create the HTML body using Thymeleaf

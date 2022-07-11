@@ -15,8 +15,9 @@ server:
 # APPLICATION EXTERNAL URL
 application:
    url: ${APPLICATION_EXT_URL:http://localhost:8080}
-   name: AAC
-
+   name: ${APPLICATION_NAME:AAC}
+   email: ${APPLICATION_EMAIL:info@smartcommunitylab.it}
+   
 # DB CONFIGURATION
 jdbc:
    dialect: ${JDBC_DIALECT:org.hibernate.dialect.H2Dialect}
@@ -288,10 +289,10 @@ openapi:
    license: Apache License, Version 2.0
    licenseUrl: http://www.apache.org/licenses/LICENSE-2.0
    contact:
-      name: DS Lab
-      url: www.smartcommunitylab.it
-      email: info@smartcommunitylab.it
-                      
+      name: ${OPENAPI_NAME:${application.name}}
+      url: ${OPENAPI_URL:${application.url}}
+      email: ${OPENAPI_EMAIL:${application.email}}
+
 springdoc:
   swagger-ui:
     disable-swagger-default-url: true

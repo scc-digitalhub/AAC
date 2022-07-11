@@ -1,23 +1,28 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-  <head>
-    <title th:remove="all">Template for HTML email</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-  </head>
-  <body>
-    <p>
-       Cien. <span data-th-text="${user.name}">Mario</span> <span data-th-text="${user.surname}">Rosi</span>!
-     </p>
-     <p>
-       Jūsu <b>SmartCommunity</b> parole ir atiestatīta.
-     </p>
-     <p>Lai atjauninātu savus akreditācijas datus, noklikšķiniet <a href="http://smartcommunitylab.it/" th:href="${url}">šeit</a>.</p>
-     <p>
-       Ja jums rodas problēmas ar piekļuvi, lūdzu, sazinieties ar <a href="mailto:info@smartcommunitylab.it">atbalstu</a>.
-     </p>
-     <p>
-       Ar cieņu <br />
-      <em>Smart Community Lab</em>
-    </p>
-  </body>
+
+<head>
+   <title th:remove="all">Template for HTML email</title>
+   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+
+<body>
+   <p>
+      Cien. <span data-th-text="${user.name}">Mario</span> <span data-th-text="${user.surname}">Rosi</span>!
+   </p>
+   <p>
+      Jūsu <b data-th-text="${application.name}">AAC</b> parole ir atiestatīta.
+   </p>
+   <p>Lai atjauninātu savus akreditācijas datus, noklikšķiniet <a href="#" th:href="${url}">šeit</a>.</p>
+   <p>
+      Ja jums rodas problēmas ar piekļuvi, lūdzu, sazinieties ar <a href="mailto:"
+         th:href="'mailto:'+${application.email}">atbalstu</a>.
+   </p>
+   <p>
+      Ar cieņu <br />
+      <em data-th-text="${application.name}">AAC</em><br>
+      <a href="#" th:href="${application.url}" th:text="${application.url}">aac</a>
+   </p>
+</body>
+
 </html>
