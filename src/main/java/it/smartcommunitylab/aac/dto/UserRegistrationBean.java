@@ -142,4 +142,10 @@ public class UserRegistrationBean {
         this.lang = lang;
     }
 
+    @Override
+    public String toString() {
+        return "UserRegistrationBean [email=" + email + ", name=" + name + ", surname=" + surname + ", password="
+                + password + ", verifyPassword=" + verifyPassword + ", lang=" + lang + "]";
+    }
+
 }

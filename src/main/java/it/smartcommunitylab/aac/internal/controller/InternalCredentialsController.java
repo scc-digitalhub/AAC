@@ -53,7 +53,7 @@ public class InternalCredentialsController {
 
     @Autowired
     private InternalIdentityAuthority internalAuthority;
-    
+
     @Autowired
     private RealmManager realmManager;
 
@@ -68,7 +68,7 @@ public class InternalCredentialsController {
             HttpServletRequest request,
             Model model)
             throws NoSuchProviderException, NoSuchUserException {
-    	
+
         // first check userid vs user
         UserDetails user = authHelper.getUserDetails();
         if (user == null) {
@@ -103,7 +103,7 @@ public class InternalCredentialsController {
         if (!service.canSet()) {
             throw new IllegalArgumentException("error.unsupported_operation");
         }
-        
+
         // for internal username is accountId
         String username = account.getAccountId();
         UserPasswordCredentials cred = service.getCredentials(username);
@@ -125,9 +125,9 @@ public class InternalCredentialsController {
         model.addAttribute("accountUrl", "/account");
         model.addAttribute("changeUrl", "/changepwd/" + providerId + "/" + uuid);
 
-        String code = (String)request.getSession().getAttribute("resetCode");
+        String code = (String) request.getSession().getAttribute("resetCode");
         if (code != null) {
-        	model.addAttribute("resetCode", code);
+            model.addAttribute("resetCode", code);
         }
         return "registration/changepwd";
     }
@@ -231,7 +231,7 @@ public class InternalCredentialsController {
             pwd = service.setCredentials(username, pwd);
 
             request.getSession().removeAttribute("resetCode");
-            
+
             return "registration/changesuccess";
         } catch (InvalidPasswordException e) {
             String msg = e.getError() + "." + e.getMessage();
@@ -293,7 +293,8 @@ public class InternalCredentialsController {
         // build url
         // TODO handle via urlBuilder or entryPoint
         model.addAttribute("resetUrl", "/auth/internal/reset/" + providerId);
-        model.addAttribute("loginUrl", "/-/" + realm + "/login");
+        // set idp form as login url
+        model.addAttribute("loginUrl", "/auth/internal/form/" + providerId);
 
         return "registration/resetpwd";
     }
@@ -319,7 +320,8 @@ public class InternalCredentialsController {
             model.addAttribute("providerId", providerId);
             model.addAttribute("realm", realm);
             model.addAttribute("resetUrl", "/auth/internal/reset/" + providerId);
-            model.addAttribute("loginUrl", "/-/" + realm + "/login");
+            // set idp form as login url
+            model.addAttribute("loginUrl", "/auth/internal/form/" + providerId);
 
             String displayName = null;
             Realm re = null;

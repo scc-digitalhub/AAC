@@ -136,7 +136,8 @@ public class InternalRegistrationController {
         // build url
         // TODO handle via urlBuilder or entryPoint
         model.addAttribute("registrationUrl", "/auth/internal/register/" + providerId);
-        model.addAttribute("loginUrl", "/-/" + realm + "/login");
+        // set idp form as login url
+        model.addAttribute("loginUrl", "/auth/internal/form/" + providerId);
 
         return "registration/register";
     }
@@ -197,7 +198,9 @@ public class InternalRegistrationController {
             }
 
             model.addAttribute("registrationUrl", "/auth/internal/register/" + providerId);
-            model.addAttribute("loginUrl", "/-/" + realm + "/login");
+
+            // set idp form as login url
+            model.addAttribute("loginUrl", "/auth/internal/form/" + providerId);
 
             if (result.hasErrors()) {
                 model.addAttribute("error", InvalidDataException.ERROR);
