@@ -271,7 +271,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
                 // we always want a session here
                 .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
+                .sessionCreationPolicy(SessionCreationPolicy.ALWAYS);
 
     }
 
