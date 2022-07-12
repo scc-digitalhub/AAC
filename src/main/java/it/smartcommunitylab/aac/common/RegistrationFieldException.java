@@ -22,18 +22,28 @@ import it.smartcommunitylab.aac.SystemKeys;
  * @author raman
  *
  */
-public class InvalidDataException extends RegistrationFieldException {
+public class RegistrationFieldException extends RegistrationException {
 
     private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
-    public final static String ERROR = "error.invalid_data";
 
-    public InvalidDataException(String field) {
-        super(field);
+    private final String field;
+
+    public RegistrationFieldException(String field) {
+        super("invalid_field");
+        this.field = field;
     }
 
-    @Override
-    public String getError() {
-        return ERROR;
+    public RegistrationFieldException(String field, String message) {
+        super(message);
+        this.field = field;
     }
 
+    public RegistrationFieldException(String error, String field, String message) {
+        super(error, message);
+        this.field = field;
+    }
+
+    public String getField() {
+        return field;
+    }
 }

@@ -18,7 +18,9 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
-import it.smartcommunitylab.aac.common.InvalidInputException;
+import it.smartcommunitylab.aac.common.DuplicatedDataException;
+import it.smartcommunitylab.aac.common.InvalidDataException;
+import it.smartcommunitylab.aac.common.MissingDataException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
@@ -159,7 +161,7 @@ public class InternalAccountService extends AbstractProvider implements AccountS
 
         // we expect user to be valid
         if (!StringUtils.hasText(userId)) {
-            throw new RegistrationException("missing-user");
+            throw new MissingDataException("user");
         }
 
         String provider = getProvider();
@@ -170,12 +172,12 @@ public class InternalAccountService extends AbstractProvider implements AccountS
 
         // validate username
         if (!StringUtils.hasText(username)) {
-            throw new RegistrationException("missing-username");
+            throw new MissingDataException("username");
         }
 
         InternalUserAccount account = userAccountService.findAccountByUsername(provider, username);
         if (account != null) {
-            throw new AlreadyRegisteredException("duplicate-registration");
+            throw new AlreadyRegisteredException();
         }
 
         // check type and extract our parameters if present
@@ -214,12 +216,12 @@ public class InternalAccountService extends AbstractProvider implements AccountS
         }
 
         if (!confirmed && config.isConfirmationRequired() && !StringUtils.hasText(email)) {
-            throw new IllegalArgumentException("missing-email");
+            throw new MissingDataException("email");
         }
 
         // we require unique email
         if (StringUtils.hasText(email) && userAccountService.findAccountByEmail(provider, email).size() > 0) {
-            throw new AlreadyRegisteredException("duplicate-registration");
+            throw new DuplicatedDataException("email");
         }
 
         boolean changeOnFirstAccess = false;
@@ -355,7 +357,7 @@ public class InternalAccountService extends AbstractProvider implements AccountS
             // if set to value, check if unique
             if (StringUtils.hasText(email)) {
                 if (userAccountService.findAccountByEmail(provider, email).size() > 0) {
-                    throw new AlreadyRegisteredException("duplicate-registration");
+                    throw new DuplicatedDataException("email");
                 }
 
                 emailConfirm = true;
@@ -400,7 +402,7 @@ public class InternalAccountService extends AbstractProvider implements AccountS
 
         // we expect subject to be valid
         if (!StringUtils.hasText(userId)) {
-            throw new RegistrationException("missing-user");
+            throw new MissingDataException("user");
         }
 
         String provider = getProvider();
@@ -582,7 +584,7 @@ public class InternalAccountService extends AbstractProvider implements AccountS
 
             if (!isMatch) {
                 logger.error("invalid key, not matching");
-                throw new InvalidInputException("invalid-key");
+                throw new InvalidDataException("key");
             }
 
             // validate deadline
@@ -590,7 +592,7 @@ public class InternalAccountService extends AbstractProvider implements AccountS
             if (account.getConfirmationDeadline() == null) {
                 logger.error("corrupt or used key, missing deadline");
                 // do not leak reason
-                throw new InvalidInputException("invalid-key");
+                throw new InvalidDataException("key");
             }
 
             boolean isExpired = calendar.after(account.getConfirmationDeadline());
@@ -598,7 +600,7 @@ public class InternalAccountService extends AbstractProvider implements AccountS
             if (isExpired) {
                 logger.error("expired key on " + String.valueOf(account.getConfirmationDeadline()));
                 // do not leak reason
-                throw new InvalidInputException("invalid-key");
+                throw new InvalidDataException("key");
             }
 
             isValid = isMatch && !isExpired;

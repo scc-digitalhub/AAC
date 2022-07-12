@@ -55,7 +55,7 @@ public class UserEntityService {
 
         UserEntity u = userRepository.findByUuid(uuid);
         if (u != null) {
-            throw new AlreadyRegisteredException("user already exists");
+            throw new AlreadyRegisteredException();
         }
 
         // create subject

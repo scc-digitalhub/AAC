@@ -27,12 +27,12 @@ public class NotRegisteredException extends RegistrationException {
     private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
     public final static String ERROR = "error.not_registered";
 
-    public NotRegisteredException() {
-        super(NotRegisteredException.class.getSimpleName());
+    public NotRegisteredException(String message) {
+        super(message);
     }
 
     @Override
     public String getError() {
-        return NotRegisteredException.ERROR;
+        return ERROR;
     }
 }

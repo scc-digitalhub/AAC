@@ -27,30 +27,13 @@ public class InvalidPasswordException extends RegistrationException {
     private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
     public final static String ERROR = "error.invalid_password";
 
-    public InvalidPasswordException() {
-        super(InvalidPasswordException.class.getSimpleName());
-    }
-
     public InvalidPasswordException(String message) {
-        super(message);
-    }
-
-    public InvalidPasswordException(Throwable cause) {
-        super(InvalidPasswordException.class.getSimpleName(), cause);
-    }
-
-    public InvalidPasswordException(String message, Throwable cause) {
-        super(message, cause);
+        super(ERROR, message);
     }
 
     @Override
     public String getError() {
-        return InvalidPasswordException.ERROR;
-    }
-
-    @Override
-    public String getMessage() {
-        return ERROR.concat(".").concat(super.getMessage());
+        return ERROR;
     }
 
 }

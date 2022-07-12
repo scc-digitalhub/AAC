@@ -12,6 +12,9 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
+import it.smartcommunitylab.aac.common.DuplicatedDataException;
+import it.smartcommunitylab.aac.common.MissingDataException;
 import it.smartcommunitylab.aac.common.NoSuchClaimException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
@@ -151,16 +154,16 @@ public class ServicesService {
             String name, String description) {
 
         if (!StringUtils.hasText(realm)) {
-            throw new IllegalArgumentException("empty realm");
+            throw new MissingDataException("realm");
         }
 
         if (!StringUtils.hasText(namespace)) {
-            throw new IllegalArgumentException("empty namespace");
+            throw new MissingDataException("namespace");
         }
 
         ServiceEntity se = serviceRepository.findByNamespace(namespace);
         if (se != null) {
-            throw new RegistrationException("duplicate namespace");
+            throw new DuplicatedDataException("namespace");
         }
 
         if (!StringUtils.hasText(serviceId)) {
@@ -332,7 +335,7 @@ public class ServicesService {
 
         ServiceScopeEntity s = scopeRepository.findByServiceIdAndScope(serviceId, scope);
         if (s != null) {
-            throw new RegistrationException("duplicated scope");
+            throw new DuplicatedDataException("scope");
         }
 
         ServiceScopeEntity se = new ServiceScopeEntity();
@@ -474,7 +477,7 @@ public class ServicesService {
 
         ServiceClaimEntity s = claimRepository.findByServiceIdAndKey(serviceId, key);
         if (s != null) {
-            throw new RegistrationException("duplicated key");
+            throw new DuplicatedDataException("key");
         }
 
         ServiceClaimEntity sc = new ServiceClaimEntity();
@@ -580,7 +583,7 @@ public class ServicesService {
             String type) throws NoSuchServiceException, RegistrationException {
 
         if (!StringUtils.hasText(clientId)) {
-            throw new IllegalArgumentException("invalid clientId");
+            throw new MissingDataException("client");
         }
 
         ServiceEntity service = serviceRepository.findOne(serviceId);
@@ -590,7 +593,7 @@ public class ServicesService {
 
         ServiceClientEntity s = clientRepository.findByServiceIdAndClientId(serviceId, clientId);
         if (s != null) {
-            throw new RegistrationException("duplicated key");
+            throw new DuplicatedDataException("key");
         }
 
         ServiceClientEntity sc = new ServiceClientEntity();

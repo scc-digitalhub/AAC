@@ -10,6 +10,7 @@ import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -48,6 +49,9 @@ public class InternalAttributesController {
 
     @Autowired
     private AttributeService attributeService;
+
+    @Autowired
+    private MessageSource messageSource;
 
     /**
      * Redirect to registration page
@@ -173,9 +177,16 @@ public class InternalAttributesController {
 
             // WRONG, should send redirect to success page to avoid double POST
             return "attributes/form";
+        } catch (InvalidDataException e) {
+            StringBuilder msg = new StringBuilder();
+            msg.append(messageSource.getMessage(e.getMessage(), null, req.getLocale()));
+            msg.append(": ");
+            msg.append(messageSource.getMessage("field." + e.getField(), null, req.getLocale()));
+
+            model.addAttribute("error", msg.toString());
+            return "attributes/form";
         } catch (RegistrationException e) {
-            String error = e.getError();
-            model.addAttribute("error", error);
+            model.addAttribute("error", e.getMessage());
             return "attributes/form";
         } catch (Exception e) {
             logger.error(e.getMessage(), e);

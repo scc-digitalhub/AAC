@@ -17,7 +17,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.common.InvalidInputException;
+import it.smartcommunitylab.aac.common.InvalidDataException;
 import it.smartcommunitylab.aac.common.InvalidPasswordException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.SystemException;
@@ -313,7 +313,7 @@ public class InternalPasswordService extends AbstractProvider implements UserCre
 
         if (!isMatch) {
             logger.error("invalid key, not matching");
-            throw new InvalidInputException("invalid-key");
+            throw new InvalidDataException("key");
         }
 
         // validate deadline
@@ -321,7 +321,7 @@ public class InternalPasswordService extends AbstractProvider implements UserCre
         if (account.getResetDeadline() == null) {
             logger.error("corrupt or used key, missing deadline");
             // do not leak reason
-            throw new InvalidInputException("invalid-key");
+            throw new InvalidDataException("key");
         }
 
         boolean isExpired = calendar.after(account.getResetDeadline());
@@ -329,13 +329,13 @@ public class InternalPasswordService extends AbstractProvider implements UserCre
         if (isExpired) {
             logger.error("expired key on " + String.valueOf(account.getResetDeadline()));
             // do not leak reason
-            throw new InvalidInputException("invalid-key");
+            throw new InvalidDataException("key");
         }
 
         isValid = isMatch && !isExpired;
 
         if (!isValid) {
-            throw new InvalidInputException("invalid-key");
+            throw new InvalidDataException("key");
         }
 
         // we clear keys and reset password to lock login

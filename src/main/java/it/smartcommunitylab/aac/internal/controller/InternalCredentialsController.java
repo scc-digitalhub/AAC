@@ -209,7 +209,7 @@ public class InternalCredentialsController {
                 // check curPassword match
                 String curPassword = reg.getCurPassword();
                 if (!service.verifyPassword(username, curPassword)) {
-                    throw new RegistrationException("error.wrong_password");
+                    throw new RegistrationException("wrong_password");
                 }
             }
 
@@ -218,7 +218,7 @@ public class InternalCredentialsController {
 
             if (!password.equals(verifyPassword)) {
                 // error
-                throw new RegistrationException("error.mismatch_passwords");
+                throw new RegistrationException("mismatch_passwords");
             }
 
 //            // if cur has changeOnFirstAccess we skip verification
@@ -238,16 +238,11 @@ public class InternalCredentialsController {
             request.getSession().removeAttribute("resetCode");
 
             return "registration/changesuccess";
-        } catch (InvalidPasswordException e) {
-            String msg = e.getMessage();
-            model.addAttribute("error", msg);
-            return "registration/changepwd";
         } catch (RegistrationException e) {
-            String msg = e.getMessage();
-            model.addAttribute("error", msg);
+            model.addAttribute("error", e.getMessage());
             return "registration/changepwd";
         } catch (Exception e) {
-            model.addAttribute("error", RegistrationException.class.getSimpleName());
+            model.addAttribute("error", RegistrationException.ERROR);
             return "registration/changepwd";
         }
     }
@@ -265,7 +260,7 @@ public class InternalCredentialsController {
         InternalIdentityService idp = internalAuthority.getIdentityService(providerId);
 
         if (!idp.getCredentialsService().canReset()) {
-            throw new RegistrationException("error.unsupported_operation");
+            throw new RegistrationException("unsupported_operation");
         }
 
         model.addAttribute("providerId", providerId);
@@ -316,7 +311,7 @@ public class InternalCredentialsController {
             // resolve provider
             InternalIdentityService idp = internalAuthority.getIdentityService(providerId);
             if (!idp.getCredentialsService().canReset()) {
-                throw new RegistrationException("reset is disabled");
+                throw new RegistrationException("unsupported_operation");
             }
 
             String realm = idp.getRealm();
@@ -363,7 +358,7 @@ public class InternalCredentialsController {
                 // don't leak error
 //                result.rejectValue("email", "error.invalid_email");
 //                return "registration/resetpwd";
-                throw new RegistrationException("error.bad_credentials");
+                throw new RegistrationException("bad_credentials");
 
             } else {
                 // direct call to reset
