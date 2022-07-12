@@ -14,6 +14,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.MissingDataException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
@@ -347,7 +348,7 @@ public class InternalIdentityService extends AbstractProvider
         }
 
         if (reg == null) {
-            throw new RegistrationException("empty or incomplete registration");
+            throw new RegistrationException();
         }
 
         String realm = getRealm();
@@ -358,7 +359,7 @@ public class InternalIdentityService extends AbstractProvider
             username = Jsoup.clean(username, Safelist.none());
         }
         if (!StringUtils.hasText(username)) {
-            throw new RegistrationException("missing-username");
+            throw new MissingDataException("username");
         }
         String emailAddress = reg.getEmailAddress();
 
@@ -412,7 +413,7 @@ public class InternalIdentityService extends AbstractProvider
         }
 
         if (reg == null) {
-            throw new RegistrationException("empty or incomplete registration");
+            throw new RegistrationException();
         }
 
 //        // we expect subject to be valid

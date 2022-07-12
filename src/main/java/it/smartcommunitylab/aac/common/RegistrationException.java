@@ -27,16 +27,43 @@ public class RegistrationException extends RuntimeException {
 
     public static final String ERROR = "error.registration";
 
-    public RegistrationException(String message, Throwable cause) {
-        super(message, cause);
+    private final String error;
+
+    public RegistrationException() {
+        super();
+        this.error = ERROR;
     }
 
     public RegistrationException(String message) {
         super(message);
+        this.error = ERROR;
+    }
+
+    public RegistrationException(String error, String message) {
+        super(message);
+        this.error = error;
+    }
+
+    public RegistrationException(String message, Throwable cause) {
+        super(message, cause);
+        this.error = ERROR;
+    }
+
+    public RegistrationException(String error, String message, Throwable cause) {
+        super(message, cause);
+        this.error = error;
     }
 
     public String getError() {
-        return ERROR;
+        return error;
     }
 
+    @Override
+    public String getMessage() {
+        if (super.getMessage() != null) {
+            return getError().concat(".").concat(super.getMessage());
+        }
+
+        return getError();
+    }
 }

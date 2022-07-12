@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:fragment="header">
+</head>
+
+<body>
+   <div th:fragment="message">
+      <p>
+         Dear <span data-th-text="${user.name}">Mario</span> <span data-th-text="${user.surname}">Rossi</span>,
+         <br>
+         You password for <b th:text="${realm.name}">AAC</b> has been reset.
+         <br>
+         In order to update your credentials, follow the link below or click <a href="#"
+            th:href="${action.url}">here</a>.
+      </p>
+      <p>If you did not request to reset your password, ignore this email and the link will automatically expire.</p>
+      <p>
+         Please contact <a href="mailto:" th:href="'mailto:'+${application.email}">support</a>
+         should you face any problem with the access.
+      </p>
+   </div>
+</body>
+
+</html>

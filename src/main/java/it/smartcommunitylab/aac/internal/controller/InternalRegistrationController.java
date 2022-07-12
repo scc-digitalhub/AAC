@@ -19,6 +19,7 @@ package it.smartcommunitylab.aac.internal.controller;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -26,11 +27,12 @@ import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 //import org.springframework.security.oauth2.common.util.OAuth2Utils;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,17 +40,18 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.DuplicatedDataException;
 import it.smartcommunitylab.aac.common.InvalidDataException;
+import it.smartcommunitylab.aac.common.MissingDataException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.RealmManager;
-import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.dto.UserRegistrationBean;
-import it.smartcommunitylab.aac.dto.UserEmailBean;
 import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
+import it.smartcommunitylab.aac.internal.dto.PasswordPolicy;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
 import it.smartcommunitylab.aac.internal.provider.InternalPasswordService;
@@ -69,6 +72,9 @@ public class InternalRegistrationController {
     @Autowired
     private RealmManager realmManager;
 
+    @Autowired
+    private MessageSource messageSource;
+
     /**
      * Redirect to registration page
      */
@@ -82,7 +88,7 @@ public class InternalRegistrationController {
         InternalIdentityService idp = internalAuthority.getIdentityService(providerId);
 
         if (!idp.getConfig().isEnableRegistration()) {
-            throw new RegistrationException("registration is disabled");
+            throw new RegistrationException("unsupported_operation");
         }
 
         model.addAttribute("providerId", providerId);
@@ -120,10 +126,21 @@ public class InternalRegistrationController {
 //            model.addAllAttributes(customizations);
 //        }
 
+        // fetch credentials service if available
+        InternalPasswordService service = idp.getCredentialsService();
+        if (service != null) {
+            // expose password policy by passing idp config
+            PasswordPolicy policy = service.getPasswordPolicy();
+            model.addAttribute("policy", policy);
+            String passwordPattern = service.getPasswordPattern();
+            model.addAttribute("passwordPattern", passwordPattern);
+        }
+
         // build url
         // TODO handle via urlBuilder or entryPoint
         model.addAttribute("registrationUrl", "/auth/internal/register/" + providerId);
-        model.addAttribute("loginUrl", "/-/" + realm + "/login");
+        // set idp form as login url
+        model.addAttribute("loginUrl", "/auth/internal/form/" + providerId);
 
         return "registration/register";
     }
@@ -145,7 +162,7 @@ public class InternalRegistrationController {
             InternalIdentityService idp = internalAuthority.getIdentityService(providerId);
 
             if (!idp.getConfig().isEnableRegistration()) {
-                throw new RegistrationException("registration is disabled");
+                throw new RegistrationException("unsupported_operation");
             }
 
             String realm = idp.getRealm();
@@ -173,11 +190,33 @@ public class InternalRegistrationController {
             model.addAttribute("displayName", displayName);
             model.addAttribute("customization", resources);
 
+            // fetch credentials service if available
+            InternalPasswordService service = idp.getCredentialsService();
+            if (service != null) {
+                // expose password policy by passing idp config
+                PasswordPolicy policy = service.getPasswordPolicy();
+                model.addAttribute("policy", policy);
+                String passwordPattern = service.getPasswordPattern();
+                model.addAttribute("passwordPattern", passwordPattern);
+            }
+
             model.addAttribute("registrationUrl", "/auth/internal/register/" + providerId);
-            model.addAttribute("loginUrl", "/-/" + realm + "/login");
+
+            // set idp form as login url
+            model.addAttribute("loginUrl", "/auth/internal/form/" + providerId);
 
             if (result.hasErrors()) {
                 model.addAttribute("error", InvalidDataException.ERROR);
+                // check if custom msg available
+                Optional<FieldError> fieldError = Optional.ofNullable(result.getFieldError());
+                if (fieldError.isPresent()) {
+                    String errorMsg = fieldError.get().getDefaultMessage();
+
+                    if (errorMsg != null && errorMsg.startsWith("error.")) {
+                        model.addAttribute("error", errorMsg);
+                    }
+                }
+
                 return "registration/register";
             }
 
@@ -211,9 +250,16 @@ public class InternalRegistrationController {
 
             // WRONG, should send redirect to success page to avoid double POST
             return "registration/regsuccess";
+        } catch (InvalidDataException | MissingDataException | DuplicatedDataException e) {
+            StringBuilder msg = new StringBuilder();
+            msg.append(messageSource.getMessage(e.getMessage(), null, req.getLocale()));
+            msg.append(": ");
+            msg.append(messageSource.getMessage("field." + e.getField(), null, req.getLocale()));
+
+            model.addAttribute("error", msg.toString());
+            return "attributes/form";
         } catch (RegistrationException e) {
-            String error = e.getError();
-            model.addAttribute("error", error);
+            model.addAttribute("error", e.getMessage());
             return "registration/register";
         } catch (Exception e) {
             logger.error(e.getMessage(), e);

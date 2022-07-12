@@ -27,13 +27,17 @@ public class AlreadyRegisteredException extends RegistrationException {
     private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
     public final static String ERROR = "error.already_registered";
 
-    public AlreadyRegisteredException(String string) {
-        super(string);
+    public AlreadyRegisteredException() {
+        super();
+    }
+
+    public AlreadyRegisteredException(String message) {
+        super(ERROR, message);
     }
 
     @Override
     public String getError() {
-        return AlreadyRegisteredException.ERROR;
+        return ERROR;
     }
 
 }

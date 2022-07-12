@@ -20,6 +20,7 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
+import it.smartcommunitylab.aac.common.InvalidDataException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.persistence.RealmEntity;
@@ -73,9 +74,9 @@ public class RealmService implements InitializingBean {
     }
 
     public Realm addRealm(String slug, String name, boolean isEditable, boolean isPublic)
-            throws AlreadyRegisteredException {
+            throws RegistrationException {
         if (!StringUtils.hasText(slug)) {
-            throw new RegistrationException("a valid slug is required");
+            throw new InvalidDataException("slug");
         }
 
         if (SystemKeys.REALM_GLOBAL.equals(slug) || SystemKeys.REALM_SYSTEM.equals(slug)) {
@@ -83,7 +84,7 @@ public class RealmService implements InitializingBean {
         }
 
         if (RESERVED_SLUG.contains(slug)) {
-            throw new RegistrationException("slug is reserved");
+            throw new InvalidDataException("slug");
         }
 
         if (!StringUtils.hasText(name)) {
@@ -92,7 +93,7 @@ public class RealmService implements InitializingBean {
 
         RealmEntity r = realmRepository.findBySlug(slug);
         if (r != null) {
-            throw new AlreadyRegisteredException("slug already exists");
+            throw new AlreadyRegisteredException();
         }
 
         r = new RealmEntity();

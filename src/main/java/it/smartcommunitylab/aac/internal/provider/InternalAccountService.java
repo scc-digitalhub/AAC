@@ -3,7 +3,6 @@ package it.smartcommunitylab.aac.internal.provider;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import javax.mail.MessagingException;
 import javax.validation.Valid;
@@ -18,7 +17,9 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
-import it.smartcommunitylab.aac.common.InvalidInputException;
+import it.smartcommunitylab.aac.common.DuplicatedDataException;
+import it.smartcommunitylab.aac.common.InvalidDataException;
+import it.smartcommunitylab.aac.common.MissingDataException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
@@ -34,8 +35,6 @@ import it.smartcommunitylab.aac.utils.MailService;
 
 @Transactional
 public class InternalAccountService extends AbstractProvider implements AccountService<InternalUserAccount> {
-
-    private static final String LANG_UNDEFINED = "en";
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -159,7 +158,7 @@ public class InternalAccountService extends AbstractProvider implements AccountS
 
         // we expect user to be valid
         if (!StringUtils.hasText(userId)) {
-            throw new RegistrationException("missing-user");
+            throw new MissingDataException("user");
         }
 
         String provider = getProvider();
@@ -170,12 +169,12 @@ public class InternalAccountService extends AbstractProvider implements AccountS
 
         // validate username
         if (!StringUtils.hasText(username)) {
-            throw new RegistrationException("missing-username");
+            throw new MissingDataException("username");
         }
 
         InternalUserAccount account = userAccountService.findAccountByUsername(provider, username);
         if (account != null) {
-            throw new AlreadyRegisteredException("duplicate-registration");
+            throw new AlreadyRegisteredException();
         }
 
         // check type and extract our parameters if present
@@ -214,12 +213,12 @@ public class InternalAccountService extends AbstractProvider implements AccountS
         }
 
         if (!confirmed && config.isConfirmationRequired() && !StringUtils.hasText(email)) {
-            throw new IllegalArgumentException("missing-email");
+            throw new MissingDataException("email");
         }
 
         // we require unique email
         if (StringUtils.hasText(email) && userAccountService.findAccountByEmail(provider, email).size() > 0) {
-            throw new AlreadyRegisteredException("duplicate-registration");
+            throw new DuplicatedDataException("email");
         }
 
         boolean changeOnFirstAccess = false;
@@ -355,7 +354,7 @@ public class InternalAccountService extends AbstractProvider implements AccountS
             // if set to value, check if unique
             if (StringUtils.hasText(email)) {
                 if (userAccountService.findAccountByEmail(provider, email).size() > 0) {
-                    throw new AlreadyRegisteredException("duplicate-registration");
+                    throw new DuplicatedDataException("email");
                 }
 
                 emailConfirm = true;
@@ -400,7 +399,7 @@ public class InternalAccountService extends AbstractProvider implements AccountS
 
         // we expect subject to be valid
         if (!StringUtils.hasText(userId)) {
-            throw new RegistrationException("missing-user");
+            throw new MissingDataException("user");
         }
 
         String provider = getProvider();
@@ -582,7 +581,7 @@ public class InternalAccountService extends AbstractProvider implements AccountS
 
             if (!isMatch) {
                 logger.error("invalid key, not matching");
-                throw new InvalidInputException("invalid-key");
+                throw new InvalidDataException("key");
             }
 
             // validate deadline
@@ -590,7 +589,7 @@ public class InternalAccountService extends AbstractProvider implements AccountS
             if (account.getConfirmationDeadline() == null) {
                 logger.error("corrupt or used key, missing deadline");
                 // do not leak reason
-                throw new InvalidInputException("invalid-key");
+                throw new InvalidDataException("key");
             }
 
             boolean isExpired = calendar.after(account.getConfirmationDeadline());
@@ -598,7 +597,7 @@ public class InternalAccountService extends AbstractProvider implements AccountS
             if (isExpired) {
                 logger.error("expired key on " + String.valueOf(account.getConfirmationDeadline()));
                 // do not leak reason
-                throw new InvalidInputException("invalid-key");
+                throw new InvalidDataException("key");
             }
 
             isValid = isMatch && !isExpired;
@@ -628,23 +627,19 @@ public class InternalAccountService extends AbstractProvider implements AccountS
             if (uriBuilder != null) {
                 loginUrl = uriBuilder.buildUrl(realm, loginUrl);
             }
-            String lang = (account.getLang() != null ? account.getLang() : LANG_UNDEFINED);
+
+            Map<String, String> action = new HashMap<>();
+            action.put("url", loginUrl);
+            action.put("text", "action.login");
 
             Map<String, Object> vars = new HashMap<>();
             vars.put("user", account);
             vars.put("password", password);
-            vars.put("url", loginUrl);
+            vars.put("action", action);
+            vars.put("realm", account.getRealm());
 
-            String template = "mail/password";
-            if (StringUtils.hasText(lang)) {
-                template = template + "_" + lang;
-            }
-
-            String subject = mailService.getMessageSource().getMessage(
-                    "mail.password_subject", null,
-                    Locale.forLanguageTag(lang));
-
-            mailService.sendEmail(account.getEmail(), template, subject, vars);
+            String template = "password";
+            mailService.sendEmail(account.getEmail(), template, account.getLang(), vars);
         }
     }
 
@@ -652,61 +647,51 @@ public class InternalAccountService extends AbstractProvider implements AccountS
             throws MessagingException {
         if (mailService != null) {
             // action is handled by global filter
-            String realm = null;
             String provider = getProvider();
-
             String confirmUrl = InternalIdentityAuthority.AUTHORITY_URL + "confirm/" + provider + "?code="
                     + key;
             if (uriBuilder != null) {
-                confirmUrl = uriBuilder.buildUrl(realm, confirmUrl);
+                confirmUrl = uriBuilder.buildUrl(null, confirmUrl);
             }
-            String lang = (account.getLang() != null ? account.getLang() : LANG_UNDEFINED);
+
+            Map<String, String> action = new HashMap<>();
+            action.put("url", confirmUrl);
+            action.put("text", "action.confirm");
 
             Map<String, Object> vars = new HashMap<>();
             vars.put("user", account);
             vars.put("password", password);
-            vars.put("url", confirmUrl);
+            vars.put("action", action);
+            vars.put("realm", account.getRealm());
 
-            String template = "mail/passwordconfirmation";
-            if (StringUtils.hasText(lang)) {
-                template = template + "_" + lang;
-            }
-
-            String subject = mailService.getMessageSource().getMessage(
-                    "mail.confirmation_subject", null,
-                    Locale.forLanguageTag(lang));
-
-            mailService.sendEmail(account.getEmail(), template, subject, vars);
+            // use confirm template and avoid sending temporary password
+            // TODO evaluate with credentials refactoring
+            String template = "confirmation";
+            mailService.sendEmail(account.getEmail(), template, account.getLang(), vars);
         }
     }
 
     private void sendConfirmationMail(InternalUserAccount account, String key) throws MessagingException {
         if (mailService != null) {
             // action is handled by global filter
-            String realm = null;
             String provider = getProvider();
 
             String confirmUrl = InternalIdentityAuthority.AUTHORITY_URL + "confirm/" + provider + "?code=" + key;
             if (uriBuilder != null) {
-                confirmUrl = uriBuilder.buildUrl(realm, confirmUrl);
+                confirmUrl = uriBuilder.buildUrl(null, confirmUrl);
             }
 
-            String lang = (account.getLang() != null ? account.getLang() : LANG_UNDEFINED);
+            Map<String, String> action = new HashMap<>();
+            action.put("url", confirmUrl);
+            action.put("text", "action.confirm");
 
             Map<String, Object> vars = new HashMap<>();
             vars.put("user", account);
-            vars.put("url", confirmUrl);
+            vars.put("action", action);
+            vars.put("realm", account.getRealm());
 
-            String template = "mail/confirmation";
-            if (StringUtils.hasText(lang)) {
-                template = template + "_" + lang;
-            }
-
-            String subject = mailService.getMessageSource().getMessage(
-                    "mail.confirmation_subject", null,
-                    Locale.forLanguageTag(lang));
-
-            mailService.sendEmail(account.getEmail(), template, subject, vars);
+            String template = "confirmation";
+            mailService.sendEmail(account.getEmail(), template, account.getLang(), vars);
         }
     }
 

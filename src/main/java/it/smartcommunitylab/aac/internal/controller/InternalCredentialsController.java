@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
 
@@ -19,9 +20,8 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 
-import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.InvalidPasswordException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
@@ -65,8 +65,10 @@ public class InternalCredentialsController {
     public String changepwd(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid,
+            HttpServletRequest request,
             Model model)
             throws NoSuchProviderException, NoSuchUserException {
+
         // first check userid vs user
         UserDetails user = authHelper.getUserDetails();
         if (user == null) {
@@ -122,6 +124,11 @@ public class InternalCredentialsController {
         model.addAttribute("policy", policy);
         model.addAttribute("accountUrl", "/account");
         model.addAttribute("changeUrl", "/changepwd/" + providerId + "/" + uuid);
+
+        String code = (String) request.getSession().getAttribute("resetCode");
+        if (code != null) {
+            model.addAttribute("resetCode", code);
+        }
         return "registration/changepwd";
     }
 
@@ -131,6 +138,7 @@ public class InternalCredentialsController {
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid,
             Model model,
             @ModelAttribute("reg") @Valid UserPasswordBean reg,
+            HttpServletRequest request,
             BindingResult result)
             throws NoSuchProviderException, NoSuchUserException {
 
@@ -185,6 +193,11 @@ public class InternalCredentialsController {
             PasswordPolicy policy = service.getPasswordPolicy();
             model.addAttribute("policy", policy);
 
+            String code = (String) request.getSession().getAttribute("resetCode");
+            if (code != null) {
+                model.addAttribute("resetCode", code);
+            }
+
             model.addAttribute("accountUrl", "/account");
             model.addAttribute("changeUrl", "/changepwd/" + providerId + "/" + uuid);
 
@@ -192,10 +205,12 @@ public class InternalCredentialsController {
                 return "registration/changepwd";
             }
 
-            // check curPassword match
-            String curPassword = reg.getCurPassword();
-            if (!service.verifyPassword(username, curPassword)) {
-                throw new RegistrationException("error.wrong_password");
+            if (request.getSession().getAttribute("resetCode") == null) {
+                // check curPassword match
+                String curPassword = reg.getCurPassword();
+                if (!service.verifyPassword(username, curPassword)) {
+                    throw new RegistrationException("wrong_password");
+                }
             }
 
             String password = reg.getPassword();
@@ -203,7 +218,7 @@ public class InternalCredentialsController {
 
             if (!password.equals(verifyPassword)) {
                 // error
-                throw new RegistrationException("error.mismatch_passwords");
+                throw new RegistrationException("mismatch_passwords");
             }
 
 //            // if cur has changeOnFirstAccess we skip verification
@@ -220,17 +235,14 @@ public class InternalCredentialsController {
             pwd.setPassword(password);
             pwd = service.setCredentials(username, pwd);
 
+            request.getSession().removeAttribute("resetCode");
+
             return "registration/changesuccess";
-        } catch (InvalidPasswordException e) {
-            String msg = e.getError() + "." + e.getMessage();
-            model.addAttribute("error", msg);
-            return "registration/changepwd";
         } catch (RegistrationException e) {
-            String msg = e.getMessage();
-            model.addAttribute("error", msg);
+            model.addAttribute("error", e.getMessage());
             return "registration/changepwd";
         } catch (Exception e) {
-            model.addAttribute("error", RegistrationException.class.getSimpleName());
+            model.addAttribute("error", RegistrationException.ERROR);
             return "registration/changepwd";
         }
     }
@@ -248,7 +260,7 @@ public class InternalCredentialsController {
         InternalIdentityService idp = internalAuthority.getIdentityService(providerId);
 
         if (!idp.getCredentialsService().canReset()) {
-            throw new RegistrationException("error.unsupported_operation");
+            throw new RegistrationException("unsupported_operation");
         }
 
         model.addAttribute("providerId", providerId);
@@ -281,7 +293,8 @@ public class InternalCredentialsController {
         // build url
         // TODO handle via urlBuilder or entryPoint
         model.addAttribute("resetUrl", "/auth/internal/reset/" + providerId);
-        model.addAttribute("loginUrl", "/-/" + realm + "/login");
+        // set idp form as login url
+        model.addAttribute("loginUrl", "/auth/internal/form/" + providerId);
 
         return "registration/resetpwd";
     }
@@ -298,7 +311,7 @@ public class InternalCredentialsController {
             // resolve provider
             InternalIdentityService idp = internalAuthority.getIdentityService(providerId);
             if (!idp.getCredentialsService().canReset()) {
-                throw new RegistrationException("reset is disabled");
+                throw new RegistrationException("unsupported_operation");
             }
 
             String realm = idp.getRealm();
@@ -307,7 +320,8 @@ public class InternalCredentialsController {
             model.addAttribute("providerId", providerId);
             model.addAttribute("realm", realm);
             model.addAttribute("resetUrl", "/auth/internal/reset/" + providerId);
-            model.addAttribute("loginUrl", "/-/" + realm + "/login");
+            // set idp form as login url
+            model.addAttribute("loginUrl", "/auth/internal/form/" + providerId);
 
             String displayName = null;
             Realm re = null;
@@ -340,10 +354,11 @@ public class InternalCredentialsController {
 
             // resolve user
             InternalUserAccount account = idp.getAccountProvider().findAccountByEmail(email);
-            if (account == null) {
+            if (account == null || (!account.isConfirmed() && idp.getConfig().isConfirmationRequired())) {
                 // don't leak error
-                result.rejectValue("email", "error.invalid_email");
-                return "registration/resetpwd";
+//                result.rejectValue("email", "error.invalid_email");
+//                return "registration/resetpwd";
+                throw new RegistrationException("bad_credentials");
 
             } else {
                 // direct call to reset
@@ -355,7 +370,7 @@ public class InternalCredentialsController {
                 return "registration/resetsuccess";
             }
         } catch (RegistrationException e) {
-            model.addAttribute("error", e.getError());
+            model.addAttribute("error", e.getMessage());
             return "registration/resetpwd";
         } catch (Exception e) {
             model.addAttribute("error", RegistrationException.ERROR);

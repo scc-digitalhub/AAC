@@ -13,6 +13,7 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
+import it.smartcommunitylab.aac.common.MissingDataException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
@@ -192,7 +193,7 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
 
         // we expect subject to be valid
         if (!StringUtils.hasText(userId)) {
-            throw new RegistrationException("missing-user");
+            throw new MissingDataException("user");
         }
 
         String provider = getProvider();
@@ -228,14 +229,14 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
 
         // we expect user to be valid
         if (!StringUtils.hasText(userId)) {
-            throw new RegistrationException("missing-user");
+            throw new MissingDataException("user");
         }
 
         // check if already registered
         String subject = clean(reg.getSubject());
         OIDCUserAccount account = accountRepository.findOne(new OIDCUserAccountId(provider, subject));
         if (account != null) {
-            throw new AlreadyRegisteredException("duplicate-registration");
+            throw new AlreadyRegisteredException();
         }
 
         String realm = getRealm();
@@ -246,10 +247,10 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
 
         // validate
         if (!StringUtils.hasText(subject)) {
-            throw new RegistrationException("missing-subject");
+            throw new MissingDataException("subject");
         }
         if (!StringUtils.hasText(email) && config.requireEmailAddress()) {
-            throw new RegistrationException("missing-email");
+            throw new MissingDataException("email");
         }
 
         // extract attributes
@@ -311,7 +312,7 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
 
         // validate email
         if (!StringUtils.hasText(email) && config.requireEmailAddress()) {
-            throw new RegistrationException("missing-email");
+            throw new MissingDataException("email");
         }
 
         // extract attributes

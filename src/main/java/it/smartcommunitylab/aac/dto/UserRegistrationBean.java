@@ -17,9 +17,12 @@
 package it.smartcommunitylab.aac.dto;
 
 import javax.validation.Valid;
+import javax.validation.constraints.AssertTrue;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
+
+import org.springframework.util.StringUtils;
 
 /**
  * @author raman
@@ -36,8 +39,12 @@ public class UserRegistrationBean {
     @NotEmpty
     private String surname;
     @NotEmpty
-    @Size(min = 6, message = "{validation.pwdlength}")
+    @Size(min = 5, message = "{validation.pwdlength}")
     private String password;
+
+    @NotEmpty
+    @Size(min = 5, message = "{validation.pwdlength}")
+    private String verifyPassword;
 
     private String lang;
 
@@ -108,6 +115,19 @@ public class UserRegistrationBean {
         this.password = password;
     }
 
+    public String getVerifyPassword() {
+        return verifyPassword;
+    }
+
+    public void setVerifyPassword(String verifyPassword) {
+        this.verifyPassword = verifyPassword;
+    }
+
+    @AssertTrue(message = "error.mismatch_passwords")
+    private boolean isValid() {
+        return StringUtils.hasText(password) && password.equals(verifyPassword);
+    }
+
     /**
      * @return the lang
      */
@@ -120,6 +140,12 @@ public class UserRegistrationBean {
      */
     public void setLang(String lang) {
         this.lang = lang;
+    }
+
+    @Override
+    public String toString() {
+        return "UserRegistrationBean [email=" + email + ", name=" + name + ", surname=" + surname + ", password="
+                + password + ", verifyPassword=" + verifyPassword + ", lang=" + lang + "]";
     }
 
 }

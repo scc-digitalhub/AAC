@@ -22,12 +22,12 @@ import it.smartcommunitylab.aac.SystemKeys;
  * @author raman
  *
  */
-public class InvalidDataException extends RegistrationFieldException {
+public class MissingDataException extends RegistrationFieldException {
 
     private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
-    public final static String ERROR = "error.invalid_data";
+    public final static String ERROR = "error.missing_data";
 
-    public InvalidDataException(String field) {
+    public MissingDataException(String field) {
         super(field);
     }
 

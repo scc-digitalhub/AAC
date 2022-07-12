@@ -11,6 +11,7 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
+import it.smartcommunitylab.aac.common.MissingDataException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
@@ -138,7 +139,7 @@ public class SpidAccountProvider extends AbstractProvider implements AccountProv
 
         // we expect userId to be valid
         if (!StringUtils.hasText(userId)) {
-            throw new RegistrationException("missing-user");
+            throw new MissingDataException("user");
         }
 
         String provider = getProvider();
@@ -170,14 +171,14 @@ public class SpidAccountProvider extends AbstractProvider implements AccountProv
 
         // we expect userId to be valid
         if (!StringUtils.hasText(userId)) {
-            throw new RegistrationException("missing-user");
+            throw new MissingDataException("user");
         }
 
         // check if already registered
         String subjectId = clean(reg.getSubjectId());
         SpidUserAccount account = accountRepository.findOne(new SpidUserAccountId(provider, subjectId));
         if (account != null) {
-            throw new AlreadyRegisteredException("duplicate-registration");
+            throw new AlreadyRegisteredException();
         }
 
         String realm = getRealm();
@@ -191,27 +192,27 @@ public class SpidAccountProvider extends AbstractProvider implements AccountProv
         String ivaCode = clean(reg.getIvaCode());
 
         if (SpidUserAttribute.EMAIL == config.getIdAttribute() && !StringUtils.hasText(email)) {
-            throw new RegistrationException("missing-email");
+            throw new MissingDataException("email");
         }
         if (SpidUserAttribute.USERNAME == config.getIdAttribute() && !StringUtils.hasText(username)) {
-            throw new RegistrationException("missing-username");
+            throw new MissingDataException("username");
         }
         if (SpidUserAttribute.SPID_CODE == config.getIdAttribute() && !StringUtils.hasText(spidCode)) {
-            throw new RegistrationException("missing-spid-code");
+            throw new MissingDataException("spid-code");
         }
         if (SpidUserAttribute.MOBILE_PHONE == config.getIdAttribute() && !StringUtils.hasText(phone)) {
-            throw new RegistrationException("missing-mobile-phone");
+            throw new MissingDataException("mobile-phone");
         }
         if (SpidUserAttribute.FISCAL_NUMBER == config.getIdAttribute() && !StringUtils.hasText(fiscalNumber)) {
-            throw new RegistrationException("missing-fiscal-number");
+            throw new MissingDataException("fiscal-number");
         }
         if (SpidUserAttribute.IVA_CODE == config.getIdAttribute() && !StringUtils.hasText(ivaCode)) {
-            throw new RegistrationException("missing-iva-code");
+            throw new MissingDataException("iva-code");
         }
 
         // validate
         if (!StringUtils.hasText(subjectId)) {
-            throw new RegistrationException("missing-subject-identifier");
+            throw new MissingDataException("subject-identifier");
         }
 
         // extract attributes
@@ -272,22 +273,22 @@ public class SpidAccountProvider extends AbstractProvider implements AccountProv
         String ivaCode = clean(reg.getIvaCode());
 
         if (SpidUserAttribute.EMAIL == config.getIdAttribute() && !StringUtils.hasText(email)) {
-            throw new RegistrationException("missing-email");
+            throw new MissingDataException("email");
         }
         if (SpidUserAttribute.USERNAME == config.getIdAttribute() && !StringUtils.hasText(username)) {
-            throw new RegistrationException("missing-username");
+            throw new MissingDataException("username");
         }
         if (SpidUserAttribute.SPID_CODE == config.getIdAttribute() && !StringUtils.hasText(spidCode)) {
-            throw new RegistrationException("missing-spid-code");
+            throw new MissingDataException("spid-code");
         }
         if (SpidUserAttribute.MOBILE_PHONE == config.getIdAttribute() && !StringUtils.hasText(phone)) {
-            throw new RegistrationException("missing-mobile-phone");
+            throw new MissingDataException("mobile-phone");
         }
         if (SpidUserAttribute.FISCAL_NUMBER == config.getIdAttribute() && !StringUtils.hasText(fiscalNumber)) {
-            throw new RegistrationException("missing-fiscal-number");
+            throw new MissingDataException("fiscal-number");
         }
         if (SpidUserAttribute.IVA_CODE == config.getIdAttribute() && !StringUtils.hasText(ivaCode)) {
-            throw new RegistrationException("missing-iva-code");
+            throw new MissingDataException("iva-code");
         }
 
         // extract attributes

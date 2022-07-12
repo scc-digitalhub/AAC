@@ -142,7 +142,7 @@ public class InternalResetKeyAuthenticationFilter extends AbstractAuthentication
 
         // fetch account
         // TODO remove, let authProvider handle
-        InternalUserAccount account = userAccountService.findAccountByResetKey(realm, code);
+        InternalUserAccount account = userAccountService.findAccountByResetKey(providerId, code);
         if (account == null) {
             // don't leak user does not exists
             throw new BadCredentialsException("invalid confirm code");
@@ -151,14 +151,11 @@ public class InternalResetKeyAuthenticationFilter extends AbstractAuthentication
         String username = account.getUsername();
 
         HttpSession session = request.getSession(true);
-        if (session != null) {
-            // check if user needs to reset password, and add redirect
-            if (account.isChangeOnFirstAccess()) {
-                // TODO build url
-                session.setAttribute(RequestAwareAuthenticationSuccessHandler.SAVED_REQUEST,
-                        "/changepwd/" + providerId + "/" + username);
-            }
-        }
+        // user always needs to update password from here, if successful
+        session.setAttribute("resetCode", code);
+        // TODO build url
+        session.setAttribute(RequestAwareAuthenticationSuccessHandler.SAVED_REQUEST,
+                "/changepwd/" + providerId + "/" + account.getUuid());
 
         // build a request
         ResetKeyAuthenticationToken authenticationRequest = new ResetKeyAuthenticationToken(username,

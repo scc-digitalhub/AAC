@@ -13,6 +13,7 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
+import it.smartcommunitylab.aac.common.MissingDataException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
@@ -187,7 +188,7 @@ public class SamlAccountProvider extends AbstractProvider implements AccountProv
 
         // we expect userId to be valid
         if (!StringUtils.hasText(userId)) {
-            throw new RegistrationException("missing-user");
+            throw new MissingDataException("user");
         }
 
         String provider = getProvider();
@@ -219,14 +220,14 @@ public class SamlAccountProvider extends AbstractProvider implements AccountProv
 
         // we expect userId to be valid
         if (!StringUtils.hasText(userId)) {
-            throw new RegistrationException("missing-user");
+            throw new MissingDataException("user");
         }
 
         // check if already registered
         String subjectId = clean(reg.getSubjectId());
         SamlUserAccount account = accountRepository.findOne(new SamlUserAccountId(provider, subjectId));
         if (account != null) {
-            throw new AlreadyRegisteredException("duplicate-registration");
+            throw new AlreadyRegisteredException();
         }
 
         String realm = getRealm();
@@ -237,10 +238,10 @@ public class SamlAccountProvider extends AbstractProvider implements AccountProv
 
         // validate
         if (!StringUtils.hasText(subjectId)) {
-            throw new RegistrationException("missing-subject-identifier");
+            throw new MissingDataException("subject-identifier");
         }
         if (!StringUtils.hasText(email) && config.requireEmailAddress()) {
-            throw new RegistrationException("missing-email");
+            throw new MissingDataException("email");
         }
 
         // extract attributes
@@ -296,7 +297,7 @@ public class SamlAccountProvider extends AbstractProvider implements AccountProv
 
         // validate email
         if (!StringUtils.hasText(email) && config.requireEmailAddress()) {
-            throw new RegistrationException("missing-email");
+            throw new MissingDataException("email");
         }
 
         // extract attributes

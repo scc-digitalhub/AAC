@@ -17,7 +17,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.common.InvalidInputException;
+import it.smartcommunitylab.aac.common.InvalidDataException;
 import it.smartcommunitylab.aac.common.InvalidPasswordException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.SystemException;
@@ -95,6 +95,29 @@ public class InternalPasswordService extends AbstractProvider implements UserCre
         policy.setPasswordRequireSpecial(config.isPasswordRequireSpecial());
         policy.setPasswordSupportWhitespace(config.isPasswordSupportWhitespace());
         return policy;
+    }
+
+    public String getPasswordPattern() {
+        // translate policy to input pattern
+        StringBuilder sb = new StringBuilder();
+        if (config.isPasswordRequireAlpha()) {
+            // require alpha means both
+            sb.append("(?=.*[a-z])(?=.*[A-Z])");
+        }
+        if (config.isPasswordRequireNumber()) {
+            sb.append("(?=.*\\d)");
+        }
+        if (config.isPasswordRequireSpecial()) {
+            // TODO
+        }
+
+        // add length
+        sb
+                .append(".{")
+                .append(config.getPasswordMinLength()).append(",").append(config.getPasswordMaxLength())
+                .append("}");
+
+        return sb.toString();
     }
 
     @Override
@@ -290,7 +313,7 @@ public class InternalPasswordService extends AbstractProvider implements UserCre
 
         if (!isMatch) {
             logger.error("invalid key, not matching");
-            throw new InvalidInputException("invalid-key");
+            throw new InvalidDataException("key");
         }
 
         // validate deadline
@@ -298,7 +321,7 @@ public class InternalPasswordService extends AbstractProvider implements UserCre
         if (account.getResetDeadline() == null) {
             logger.error("corrupt or used key, missing deadline");
             // do not leak reason
-            throw new InvalidInputException("invalid-key");
+            throw new InvalidDataException("key");
         }
 
         boolean isExpired = calendar.after(account.getResetDeadline());
@@ -306,13 +329,13 @@ public class InternalPasswordService extends AbstractProvider implements UserCre
         if (isExpired) {
             logger.error("expired key on " + String.valueOf(account.getResetDeadline()));
             // do not leak reason
-            throw new InvalidInputException("invalid-key");
+            throw new InvalidDataException("key");
         }
 
         isValid = isMatch && !isExpired;
 
         if (!isValid) {
-            throw new InvalidInputException("invalid-key");
+            throw new InvalidDataException("key");
         }
 
         // we clear keys and reset password to lock login
@@ -403,51 +426,42 @@ public class InternalPasswordService extends AbstractProvider implements UserCre
             if (uriBuilder != null) {
                 loginUrl = uriBuilder.buildUrl(realm, loginUrl);
             }
-            String lang = (account.getLang() != null ? account.getLang() : "en");
+
+            Map<String, String> action = new HashMap<>();
+            action.put("url", loginUrl);
+            action.put("text", "action.login");
 
             Map<String, Object> vars = new HashMap<>();
             vars.put("user", account);
             vars.put("password", password);
-            vars.put("url", loginUrl);
+            vars.put("action", action);
+            vars.put("realm", account.getRealm());
 
-            String template = "mail/password";
-            if (StringUtils.hasText(lang)) {
-                template = template + "_" + lang;
-            }
-
-            String subject = mailService.getMessageSource().getMessage(
-                    "mail.password_subject", null,
-                    Locale.forLanguageTag(lang));
-
-            mailService.sendEmail(account.getEmail(), template, subject, vars);
+            String template = "password";
+            mailService.sendEmail(account.getEmail(), template, account.getLang(), vars);
         }
     }
 
     private void sendResetMail(InternalUserAccount account, String key) throws MessagingException {
         if (mailService != null) {
             // action is handled by global filter
-            String realm = null;
             String provider = getProvider();
-            String confirmUrl = InternalIdentityAuthority.AUTHORITY_URL + "doreset/" + provider + "?code=" + key;
+            String resetUrl = InternalIdentityAuthority.AUTHORITY_URL + "doreset/" + provider + "?code=" + key;
             if (uriBuilder != null) {
-                confirmUrl = uriBuilder.buildUrl(realm, confirmUrl);
+                resetUrl = uriBuilder.buildUrl(null, resetUrl);
             }
-            String lang = (account.getLang() != null ? account.getLang() : "en");
+
+            Map<String, String> action = new HashMap<>();
+            action.put("url", resetUrl);
+            action.put("text", "action.reset");
 
             Map<String, Object> vars = new HashMap<>();
             vars.put("user", account);
-            vars.put("url", confirmUrl);
+            vars.put("action", action);
+            vars.put("realm", account.getRealm());
 
-            String template = "mail/reset";
-            if (StringUtils.hasText(lang)) {
-                template = template + "_" + lang;
-            }
-
-            String subject = mailService.getMessageSource().getMessage(
-                    "mail.reset_subject", null,
-                    Locale.forLanguageTag(lang));
-
-            mailService.sendEmail(account.getEmail(), template, subject, vars);
+            String template = "reset";
+            mailService.sendEmail(account.getEmail(), template, account.getLang(), vars);
         }
     }
 
