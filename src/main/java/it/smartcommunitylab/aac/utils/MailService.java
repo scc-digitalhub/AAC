@@ -19,6 +19,7 @@ package it.smartcommunitylab.aac.utils;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 
@@ -38,6 +39,9 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
+
+import it.smartcommunitylab.aac.core.service.RealmService;
+import it.smartcommunitylab.aac.model.Realm;
 
 /**
  * Mail send utilities
@@ -78,6 +82,12 @@ public class MailService {
     @Value("${application.email}")
     private String applicationEmail;
 
+    @Value("${application.logo}")
+    private String applicationLogo;
+
+    @Value("${application.lang}")
+    private String defaultLang;
+
     @Value("classpath:/javamail.properties")
     private org.springframework.core.io.Resource mailProps;
 
@@ -86,6 +96,9 @@ public class MailService {
 
     @Autowired
     private TemplateEngine templateEngine;
+
+    @Autowired
+    private RealmService realmService;
 
     public MailService() throws IOException {
         mailSender = new org.springframework.mail.javamail.JavaMailSenderImpl();
@@ -105,42 +118,54 @@ public class MailService {
 
     }
 
-    public MessageSource getMessageSource() {
-        return messageSource;
-    }
-
-    /**
-     * Send email based on specified template
-     * 
-     * @param email    recepient
-     * @param template Thymeleaf template reference
-     * @param subject  mail subject
-     * @param vars     template variables
-     * @throws MessagingException
-     */
-    public void sendEmail(String email, String template, String subject, Map<String, Object> vars)
+    public void sendEmail(String email, String template, String lang, Map<String, Object> vars)
             throws MessagingException {
 
+        logger.debug("send mail for " + String.valueOf(template) + " to " + String.valueOf(email));
+
         final Context ctx = new Context();
+        Locale locale = lang != null ? Locale.forLanguageTag(lang) : Locale.forLanguageTag(defaultLang);
+        Realm realm = new Realm("", applicationName);
 
         // set app context
         Map<String, String> application = new HashMap<>();
         application.put("name", applicationName);
         application.put("url", applicationUrl);
+        application.put("logo", applicationLogo);
         application.put("email", applicationEmail);
         ctx.setVariable("application", application);
 
-        // set template vars
+        // set template context
+        String templatePath = "mail/messages/" + template + "_" + locale.getLanguage();
+        ctx.setVariable("template", templatePath);
+
+        String subjectKey = "mail." + template + ".subject";
+        String subject = messageSource.getMessage(subjectKey, null, locale);
+
+        ctx.setVariable("subject", subject);
+
         // note: we let template override app context vars
         if (vars != null) {
             for (String var : vars.keySet()) {
                 ctx.setVariable(var, vars.get(var));
             }
+
+            // check if realm context available
+            Object slug = vars.get("realm");
+            if (slug != null) {
+                realm = realmService.findRealm((String) slug);
+            }
         }
 
-        final MimeMessage mimeMessage = mailSender.createMimeMessage();
-        final MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-        message.setSubject(subject);
+        // set realm context
+        ctx.setVariable("realm", realm);
+
+        // build message
+        MimeMessage mimeMessage = mailSender.createMimeMessage();
+        MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+
+        String subjectText = realm.getName() + ": " + subject;
+        message.setSubject(subjectText);
         try {
             message.setFrom(mailUser, applicationEmail);
         } catch (UnsupportedEncodingException | MessagingException e) {
@@ -149,11 +174,14 @@ public class MailService {
         message.setReplyTo(applicationEmail);
         message.setTo(email);
 
-        // Create the HTML body using Thymeleaf
-        final String htmlContent = this.templateEngine.process(template, ctx);
+        // render html mail from base template and message
+        String htmlContent = this.templateEngine.process("mail/template", ctx);
         message.setText(htmlContent, true);
-        // Send mail
-        mailSender.send(mimeMessage);
+        if (logger.isTraceEnabled()) {
+            logger.trace("send mail for " + String.valueOf(template) + " content:\n " + htmlContent);
+        }
 
+        // send
+        mailSender.send(mimeMessage);
     }
 }

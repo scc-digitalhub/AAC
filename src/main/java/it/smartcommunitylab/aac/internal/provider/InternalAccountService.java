@@ -3,7 +3,6 @@ package it.smartcommunitylab.aac.internal.provider;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import javax.mail.MessagingException;
 import javax.validation.Valid;
@@ -36,8 +35,6 @@ import it.smartcommunitylab.aac.utils.MailService;
 
 @Transactional
 public class InternalAccountService extends AbstractProvider implements AccountService<InternalUserAccount> {
-
-    private static final String LANG_UNDEFINED = "en";
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -630,23 +627,19 @@ public class InternalAccountService extends AbstractProvider implements AccountS
             if (uriBuilder != null) {
                 loginUrl = uriBuilder.buildUrl(realm, loginUrl);
             }
-            String lang = (account.getLang() != null ? account.getLang() : LANG_UNDEFINED);
+
+            Map<String, String> action = new HashMap<>();
+            action.put("url", loginUrl);
+            action.put("text", "action.login");
 
             Map<String, Object> vars = new HashMap<>();
             vars.put("user", account);
             vars.put("password", password);
-            vars.put("url", loginUrl);
+            vars.put("action", action);
+            vars.put("realm", account.getRealm());
 
-            String template = "mail/password";
-            if (StringUtils.hasText(lang)) {
-                template = template + "_" + lang;
-            }
-
-            String subject = mailService.getMessageSource().getMessage(
-                    "mail.password_subject", null,
-                    Locale.forLanguageTag(lang));
-
-            mailService.sendEmail(account.getEmail(), template, subject, vars);
+            String template = "password";
+            mailService.sendEmail(account.getEmail(), template, account.getLang(), vars);
         }
     }
 
@@ -654,61 +647,51 @@ public class InternalAccountService extends AbstractProvider implements AccountS
             throws MessagingException {
         if (mailService != null) {
             // action is handled by global filter
-            String realm = null;
             String provider = getProvider();
-
             String confirmUrl = InternalIdentityAuthority.AUTHORITY_URL + "confirm/" + provider + "?code="
                     + key;
             if (uriBuilder != null) {
-                confirmUrl = uriBuilder.buildUrl(realm, confirmUrl);
+                confirmUrl = uriBuilder.buildUrl(null, confirmUrl);
             }
-            String lang = (account.getLang() != null ? account.getLang() : LANG_UNDEFINED);
+
+            Map<String, String> action = new HashMap<>();
+            action.put("url", confirmUrl);
+            action.put("text", "action.confirm");
 
             Map<String, Object> vars = new HashMap<>();
             vars.put("user", account);
             vars.put("password", password);
-            vars.put("url", confirmUrl);
+            vars.put("action", action);
+            vars.put("realm", account.getRealm());
 
-            String template = "mail/passwordconfirmation";
-            if (StringUtils.hasText(lang)) {
-                template = template + "_" + lang;
-            }
-
-            String subject = mailService.getMessageSource().getMessage(
-                    "mail.confirmation_subject", null,
-                    Locale.forLanguageTag(lang));
-
-            mailService.sendEmail(account.getEmail(), template, subject, vars);
+            // use confirm template and avoid sending temporary password
+            // TODO evaluate with credentials refactoring
+            String template = "confirmation";
+            mailService.sendEmail(account.getEmail(), template, account.getLang(), vars);
         }
     }
 
     private void sendConfirmationMail(InternalUserAccount account, String key) throws MessagingException {
         if (mailService != null) {
             // action is handled by global filter
-            String realm = null;
             String provider = getProvider();
 
             String confirmUrl = InternalIdentityAuthority.AUTHORITY_URL + "confirm/" + provider + "?code=" + key;
             if (uriBuilder != null) {
-                confirmUrl = uriBuilder.buildUrl(realm, confirmUrl);
+                confirmUrl = uriBuilder.buildUrl(null, confirmUrl);
             }
 
-            String lang = (account.getLang() != null ? account.getLang() : LANG_UNDEFINED);
+            Map<String, String> action = new HashMap<>();
+            action.put("url", confirmUrl);
+            action.put("text", "action.confirm");
 
             Map<String, Object> vars = new HashMap<>();
             vars.put("user", account);
-            vars.put("url", confirmUrl);
+            vars.put("action", action);
+            vars.put("realm", account.getRealm());
 
-            String template = "mail/confirmation";
-            if (StringUtils.hasText(lang)) {
-                template = template + "_" + lang;
-            }
-
-            String subject = mailService.getMessageSource().getMessage(
-                    "mail.confirmation_subject", null,
-                    Locale.forLanguageTag(lang));
-
-            mailService.sendEmail(account.getEmail(), template, subject, vars);
+            String template = "confirmation";
+            mailService.sendEmail(account.getEmail(), template, account.getLang(), vars);
         }
     }
 

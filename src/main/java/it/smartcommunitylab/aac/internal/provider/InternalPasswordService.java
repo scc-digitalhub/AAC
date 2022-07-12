@@ -426,51 +426,42 @@ public class InternalPasswordService extends AbstractProvider implements UserCre
             if (uriBuilder != null) {
                 loginUrl = uriBuilder.buildUrl(realm, loginUrl);
             }
-            String lang = (account.getLang() != null ? account.getLang() : "en");
+
+            Map<String, String> action = new HashMap<>();
+            action.put("url", loginUrl);
+            action.put("text", "action.login");
 
             Map<String, Object> vars = new HashMap<>();
             vars.put("user", account);
             vars.put("password", password);
-            vars.put("url", loginUrl);
+            vars.put("action", action);
+            vars.put("realm", account.getRealm());
 
-            String template = "mail/password";
-            if (StringUtils.hasText(lang)) {
-                template = template + "_" + lang;
-            }
-
-            String subject = mailService.getMessageSource().getMessage(
-                    "mail.password_subject", null,
-                    Locale.forLanguageTag(lang));
-
-            mailService.sendEmail(account.getEmail(), template, subject, vars);
+            String template = "password";
+            mailService.sendEmail(account.getEmail(), template, account.getLang(), vars);
         }
     }
 
     private void sendResetMail(InternalUserAccount account, String key) throws MessagingException {
         if (mailService != null) {
             // action is handled by global filter
-            String realm = null;
             String provider = getProvider();
-            String confirmUrl = InternalIdentityAuthority.AUTHORITY_URL + "doreset/" + provider + "?code=" + key;
+            String resetUrl = InternalIdentityAuthority.AUTHORITY_URL + "doreset/" + provider + "?code=" + key;
             if (uriBuilder != null) {
-                confirmUrl = uriBuilder.buildUrl(realm, confirmUrl);
+                resetUrl = uriBuilder.buildUrl(null, resetUrl);
             }
-            String lang = (account.getLang() != null ? account.getLang() : "en");
+
+            Map<String, String> action = new HashMap<>();
+            action.put("url", resetUrl);
+            action.put("text", "action.reset");
 
             Map<String, Object> vars = new HashMap<>();
             vars.put("user", account);
-            vars.put("url", confirmUrl);
+            vars.put("action", action);
+            vars.put("realm", account.getRealm());
 
-            String template = "mail/reset";
-            if (StringUtils.hasText(lang)) {
-                template = template + "_" + lang;
-            }
-
-            String subject = mailService.getMessageSource().getMessage(
-                    "mail.reset_subject", null,
-                    Locale.forLanguageTag(lang));
-
-            mailService.sendEmail(account.getEmail(), template, subject, vars);
+            String template = "reset";
+            mailService.sendEmail(account.getEmail(), template, account.getLang(), vars);
         }
     }
 
