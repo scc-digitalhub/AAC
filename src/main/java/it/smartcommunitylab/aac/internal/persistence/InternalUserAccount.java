@@ -32,25 +32,26 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
     // account id
     @Id
     @NotBlank
-    @Column(name = "provider_id")
+    @Column(name = "provider_id", length = 128)
     private String provider;
 
     @Id
     @NotBlank
-    @Column(name = "username")
+    @Column(name = "username", length = 128)
     private String username;
 
     // unique uuid (subject entity)
     @NotBlank
-    @Column(unique = true)
+    @Column(unique = true, length = 128)
     private String uuid;
 
     // user id
     @NotNull
-    @Column(name = "user_id")
+    @Column(name = "user_id", length = 128)
     private String userId;
 
     @NotBlank
+    @Column(length = 128)
     private String realm;
 
     // login
@@ -63,6 +64,7 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
     private String name;
     private String surname;
 
+    @Column(length = 32)
     private String lang;
 
     // registration

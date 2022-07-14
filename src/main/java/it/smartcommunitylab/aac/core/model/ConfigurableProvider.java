@@ -6,6 +6,7 @@ import java.util.Map;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 
 import org.springframework.boot.context.properties.ConstructorBinding;
 import org.springframework.util.StringUtils;
@@ -24,11 +25,14 @@ import it.smartcommunitylab.aac.SystemKeys;
 public class ConfigurableProvider implements ConfigurableProperties {
 
     @NotBlank
+    @Size(max = 128)
     private String authority;
 
+    @Size(max = 128)
     @Pattern(regexp = SystemKeys.SLUG_PATTERN)
     private String realm;
 
+    @Size(max = 128)
     @Pattern(regexp = SystemKeys.SLUG_PATTERN)
     private String provider;
 

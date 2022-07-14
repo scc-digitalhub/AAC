@@ -21,20 +21,21 @@ public class InternalAttributeEntity {
     private Long id;
 
     @NotNull
+    @Column(length = 128)
     private String provider;
 
     @NotNull
-    @Column(name = "subject_id")
+    @Column(name = "subject_id", length = 128)
     private String subjectId;
 
     @NotNull
-    @Column(name = "attribute_set")
+    @Column(name = "attribute_set", length = 128)
     private String set;
 
-    @Column(name = "attr_key")
+    @Column(name = "attr_key", length = 128)
     private String key;
 
-    @Column(name = "attr_type")
+    @Column(name = "attr_type", length = 32)
     private String type;
 
     @Lob

@@ -19,16 +19,18 @@ public class SpaceRoleEntity {
 
     // user
     @NotNull
-    @Column(name = "subject_id")
+    @Column(name = "subject_id", length = 128)
     private String subject;
 
     // role definition
     private String context;
-    
+
     @NotNull
+    @Column(length = 128)
     private String space;
-    
+
     @NotNull
+    @Column(length = 128)
     private String role;
 
     public Long getId() {

@@ -29,7 +29,8 @@ import javax.validation.constraints.NotNull;
  *
  */
 @Entity
-@Table(name = "group_members", uniqueConstraints = @UniqueConstraint(columnNames = { "subject_id", "realm", "group_key" }))
+@Table(name = "group_members", uniqueConstraints = @UniqueConstraint(columnNames = { "subject_id", "realm",
+        "group_key" }))
 public class GroupMemberEntity {
 
     @Id
@@ -37,14 +38,15 @@ public class GroupMemberEntity {
     private Long id;
 
     @NotNull
-    @Column(name = "subject_id")
+    @Column(name = "subject_id", length = 128)
     private String subject;
 
     @NotNull
+    @Column(length = 128)
     private String realm;
 
     @NotNull
-    @Column(name = "group_key")
+    @Column(name = "group_key", length = 128)
     private String group;
 
     public Long getId() {

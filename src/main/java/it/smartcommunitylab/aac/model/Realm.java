@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -18,6 +19,7 @@ public class Realm {
     private String name;
 
     @NotBlank
+    @Size(max = 128)
     private String slug;
 
     private boolean isEditable = true;

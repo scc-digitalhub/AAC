@@ -2,6 +2,8 @@ package it.smartcommunitylab.aac.model;
 
 import java.io.Serializable;
 
+import javax.validation.constraints.Size;
+
 import org.springframework.security.core.AuthenticatedPrincipal;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -13,9 +15,14 @@ public class Subject implements AuthenticatedPrincipal, Serializable {
 
     private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
 
+    @Size(max = 128)
     private final String subjectId;
+
+    @Size(max = 128)
     private final String realm;
+
     private final String name;
+
     private final String type;
 
     public Subject(String subject, String realm, String name, String type) {

@@ -31,37 +31,40 @@ public class SpidUserAccount extends AbstractAccount {
 
     @Id
     @NotBlank
-    @Column(name = "provider_id")
+    @Column(name = "provider_id", length = 128)
     private String provider;
 
     // subject identifier from external provider
     @Id
     @NotBlank
-    @Column(name = "subject")
+    @Column(name = "subject", length = 128)
     private String subjectId;
 
     // unique uuid (subject entity)
     @NotBlank
-    @Column(unique = true)
+    @Column(unique = true, length = 128)
     private String uuid;
 
     // reference to user
     @NotNull
-    @Column(name = "user_id")
+    @Column(name = "user_id", length = 128)
     private String userId;
 
     @NotBlank
+    @Column(length = 128)
     private String realm;
 
     // login
+    @Column(length = 32)
     private String status;
 
     // attributes
-    @Column(name = "username")
+    @Column(name = "username", length = 128)
     private String username;
+
     private String idp;
 
-    @Column(name = "spid_code")
+    @Column(name = "spid_code", length = 128)
     private String spidCode;
 
     private String email;

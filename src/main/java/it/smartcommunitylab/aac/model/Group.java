@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -40,19 +41,23 @@ public class Group {
     /*
      * system-wide uuid
      */
+    @Size(max = 128)
     private String groupId;
 
+    @Size(max = 128)
     private String realm;
 
     /*
      * realm group id
      */
     @NotBlank
+    @Size(max = 128)
     private String group;
 
     /*
      * parent group id
      */
+    @Size(max = 128)
     private String parentGroup;
 
     private String name;

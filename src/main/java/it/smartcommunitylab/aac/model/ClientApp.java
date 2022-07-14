@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.StringUtils;
@@ -31,9 +32,11 @@ import it.smartcommunitylab.aac.SystemKeys;
 @JsonInclude(Include.NON_NULL)
 public class ClientApp {
 
+    @Size(max = 128)
     @Pattern(regexp = SystemKeys.SLUG_PATTERN)
     private String clientId;
 
+    @Size(max = 128)
     @Pattern(regexp = SystemKeys.SLUG_PATTERN)
     private String realm;
 

@@ -14,18 +14,18 @@ public class ServiceClientEntity {
 
     @Id
     @GeneratedValue
-    @Column(name = "claim_id")
+    @Column(name = "claim_id", length = 128)
     private Long id;
 
     @NotNull
-    @Column(name = "service_id")
+    @Column(name = "service_id", length = 128)
     private String serviceId;
 
     @NotNull
-    @Column(name = "client_id")
+    @Column(name = "client_id", length = 128)
     private String clientId;
 
-    @Column(name = "client_type")
+    @Column(name = "client_type", length = 64)
     private String type;
 
     public Long getId() {

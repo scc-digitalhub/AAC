@@ -27,10 +27,11 @@ public class IdentityProviderEntity {
 
     @Id
     @NotNull
-    @Column(name = "provider_id", unique = true)
+    @Column(name = "provider_id", length = 128, unique = true)
     private String providerId;
 
     @NotNull
+    @Column(length = 128)
     private String realm;
 
 //    @NotNull
@@ -49,10 +50,10 @@ public class IdentityProviderEntity {
     @Column(name = "linkable")
     private boolean linkable = true;
 
-    @Column(name = "persistence_level")
+    @Column(name = "persistence_level", length = 32)
     private String persistence;
 
-    @Column(name = "event_level")
+    @Column(name = "event_level", length = 32)
     private String events;
 
     // key-based configuration for persistence

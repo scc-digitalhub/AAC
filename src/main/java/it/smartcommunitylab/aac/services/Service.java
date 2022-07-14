@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 
 import org.springframework.util.StringUtils;
 
@@ -30,9 +31,11 @@ import it.smartcommunitylab.aac.SystemKeys;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Service {
 
+    @Size(max = 128)
     @Pattern(regexp = SystemKeys.SLUG_PATTERN)
     private String serviceId;
 
+    @Size(max = 128)
     private String realm;
 
     private String name;

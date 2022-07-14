@@ -25,7 +25,7 @@ public class OAuth2ClientEntity {
     @GeneratedValue
     private Long id;
 
-    @Column(name = "client_id", unique = true)
+    @Column(name = "client_id", length = 128, unique = true)
     private String clientId;
 
     /*
@@ -65,13 +65,13 @@ public class OAuth2ClientEntity {
     @Column(name = "authentication_methods")
     private String authenticationMethods;
 
-    @Column(name = "application_type")
+    @Column(name = "application_type", length = 64)
     private String applicationType;
 
-    @Column(name = "subject_type")
+    @Column(name = "subject_type", length = 64)
     private String subjectType;
 
-    @Column(name = "token_type")
+    @Column(name = "token_type", length = 64)
     private String tokenType;
 
     @Column(name = "id_token_claims")

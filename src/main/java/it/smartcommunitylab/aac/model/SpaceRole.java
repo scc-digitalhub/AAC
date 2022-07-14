@@ -1,5 +1,7 @@
 package it.smartcommunitylab.aac.model;
 
+import javax.validation.constraints.Size;
+
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
@@ -8,7 +10,9 @@ public class SpaceRole {
 
     // role definition
     private String context;
+    @Size(max = 128)
     private String space;
+    @Size(max = 128)
     private String role;
 
     public SpaceRole(String context, String space, String role) {

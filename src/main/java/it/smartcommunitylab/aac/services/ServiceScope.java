@@ -4,6 +4,7 @@ import java.util.Base64;
 import java.util.Set;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Size;
 
 import org.springframework.util.StringUtils;
 
@@ -22,6 +23,7 @@ import it.smartcommunitylab.aac.services.persistence.ServiceScopeEntity;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ServiceScope extends Scope {
 
+    @Size(max = 128)
     private String serviceId;
 
     private Set<String> claims;

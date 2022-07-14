@@ -5,6 +5,7 @@ import java.util.Set;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
 import org.springframework.util.StringUtils;
 
@@ -17,12 +18,15 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @JsonInclude(Include.NON_NULL)
 public class RealmRole {
 
+    @Size(max = 128)
     private String roleId;
 
 //    @NotBlank
+    @Size(max = 128)
     private String realm;
 
     @NotBlank
+    @Size(max = 128)
     private String role;
 
     private String name;

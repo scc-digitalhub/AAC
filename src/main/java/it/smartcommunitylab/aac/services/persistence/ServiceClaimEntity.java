@@ -36,10 +36,10 @@ public class ServiceClaimEntity {
 
     @Id
     @GeneratedValue
-    @Column(name = "claim_id")
+    @Column(name = "claim_id", length = 128)
     private Long claimId;
 
-    @Column(name = "claim_key")
+    @Column(name = "claim_key", length = 128)
     private String key;
 
     /**
@@ -50,7 +50,7 @@ public class ServiceClaimEntity {
 //    @JoinColumn(nullable = false, name = "service_id", referencedColumnName = "service_id")
 //    private ServiceEntity service;
     @NotNull
-    @Column(name = "service_id")
+    @Column(name = "service_id", length = 128)
     private String serviceId;
 
     /**
@@ -68,7 +68,7 @@ public class ServiceClaimEntity {
 //    @Enumerated(EnumType.STRING)
 //    private AttributeType type;
 
-    @Column(name = "claim_type")
+    @Column(name = "claim_type", length = 32)
     private String type;
 
     public Long getClaimId() {

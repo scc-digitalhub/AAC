@@ -46,23 +46,24 @@ public class GroupEntity {
      */
     @Id
     @NotNull
-    @Column(unique = true)
+    @Column(length = 128, unique = true)
     private String uuid;
 
     @NotNull
+    @Column(length = 128)
     private String realm;
 
     /*
      * group is user-defined key, unique per realm
      */
     @NotNull
-    @Column(name = "group_key", unique = true)
+    @Column(name = "group_key", length = 128, unique = true)
     private String group;
 
     /*
      * parent group supports hierarchy, refers to group key
      */
-    @Column(name = "parent_group")
+    @Column(name = "parent_group", length = 128)
     private String parentGroup;
 
     private String name;

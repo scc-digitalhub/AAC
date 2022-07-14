@@ -24,15 +24,17 @@ public class UserEntity {
 
     @Id
     @NotNull
-    @Column(unique = true)
+    @Column(length = 128, unique = true)
     private String uuid;
 
     @NotNull
+    @Column(length = 128)
     private String realm;
 
+    @Column(length = 128)
     private String username;
 
-    @Column(name = "email_address")
+    @Column(name = "email_address", length = 128)
     private String emailAddress;
 
     @Column(name = "email_verified")

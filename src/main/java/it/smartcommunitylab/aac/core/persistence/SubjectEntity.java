@@ -16,13 +16,15 @@ public class SubjectEntity {
 
     @Id
     @NotNull
-    @Column(name = "subject_id", unique = true)
+    @Column(name = "subject_id", length = 128, unique = true)
     private String subjectId;
 
     @NotNull
+    @Column(length = 128)
     private String realm;
 
     // base
+    @Column(length = 32)
     private String type;
     private String name;
 
