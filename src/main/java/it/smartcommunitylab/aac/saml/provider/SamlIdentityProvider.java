@@ -304,6 +304,20 @@ public class SamlIdentityProvider extends AbstractProvider
 
     @Override
     @Transactional(readOnly = false)
+    public SamlUserIdentity linkIdentity(String userId, String username) throws NoSuchUserException {
+        // get the internal account entity
+        SamlUserAccount account = accountProvider.getAccount(username);
+
+        // re-link to new userId
+        account = accountProvider.linkAccount(username, userId);
+
+        // use builder, skip attributes
+        SamlUserIdentity identity = new SamlUserIdentity(getProvider(), getRealm(), account);
+        return identity;
+    }
+
+    @Override
+    @Transactional(readOnly = false)
     public void deleteIdentity(String subjectId) throws NoSuchUserException {
         // cleanup attributes
         attributeProvider.deleteAccountAttributes(subjectId);

@@ -49,7 +49,11 @@ import it.smartcommunitylab.aac.core.service.IdentityProviderService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.crypto.PasswordHash;
+import it.smartcommunitylab.aac.internal.model.CredentialsType;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
+import it.smartcommunitylab.aac.internal.provider.InternalPasswordIdentityService;
+import it.smartcommunitylab.aac.internal.provider.InternalPasswordService;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
@@ -146,8 +150,10 @@ public class AACBootstrap {
             // use first active internal provider for system
             systemProviders.values().stream()
                     .filter(idp -> SystemKeys.AUTHORITY_INTERNAL.equals(idp.getAuthority()))
+                    .map(idp -> ((InternalIdentityService<?>) idp))
+                    .filter(idp -> CredentialsType.PASSWORD == idp.getCredentialsType())
                     .findFirst().ifPresent(idp -> {
-                        bootstrapAdminUser(idp.getProvider());
+                        bootstrapAdminUser((InternalPasswordIdentityService) idp);
                     });
 
             // bootstrap realm providers
@@ -288,8 +294,15 @@ public class AACBootstrap {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    private void bootstrapAdminUser(String providerId) {
+    private void bootstrapAdminUser(InternalPasswordIdentityService idp) {
+        String providerId = idp.getProvider();
+        if (CredentialsType.PASSWORD != idp.getConfig().getCredentialsType()) {
+            // not supported
+            return;
+        }
+
         // create admin as superuser for system
+        // TODO rewrite via idp
         logger.debug("create internal admin user " + adminUsername);
         UserEntity user = null;
         InternalUserAccount account = internalUserService.findAccountByUsername(providerId, adminUsername);
@@ -317,6 +330,7 @@ public class AACBootstrap {
             // register as new
             user = userService.addUser(userService.createUser(SystemKeys.REALM_SYSTEM).getUuid(),
                     SystemKeys.REALM_SYSTEM, adminUsername, adminEmail);
+            String userId = user.getUuid();
 
             // generate uuid and register as subject
             String uuid = subjectService.generateUuid(SystemKeys.RESOURCE_ACCOUNT);
@@ -325,13 +339,13 @@ public class AACBootstrap {
 
             account = new InternalUserAccount();
             account.setProvider(providerId);
-            account.setUserId(user.getUuid());
+            account.setUserId(userId);
             account.setUuid(s.getSubjectId());
             account.setRealm(SystemKeys.REALM_SYSTEM);
             account.setUsername(adminUsername);
             account.setEmail(adminEmail);
             account.setStatus(UserStatus.ACTIVE.getValue());
-            account = internalUserService.addAccount(account);
+            account = internalUserService.addAccount(providerId, adminUsername, account);
         }
 
         String userId = account.getUserId();
@@ -342,19 +356,19 @@ public class AACBootstrap {
             // ensure user is active
             user = userService.activateUser(userId);
 
-            // re-set password
-            PasswordHash hasher = new PasswordHash();
-            String hash = hasher.createHash(adminPassword);
-            account.setPassword(hash);
-            account.setChangeOnFirstAccess(false);
+            // re-set password if needed
+            InternalPasswordService passwordService = idp.getCredentialsService();
+            if (!passwordService.verifyPassword(adminUsername, adminPassword)) {
+                // set as non-expirable
+                passwordService.setPassword(adminUsername, adminPassword, false, null);
+            }
 
             // ensure account is active and unlocked
             account.setStatus(UserStatus.ACTIVE.getValue());
             account.setConfirmed(true);
             account.setConfirmationKey(null);
             account.setConfirmationDeadline(null);
-            account.setResetKey(null);
-            account.setResetDeadline(null);
+
             account = internalUserService.updateAccount(providerId, account.getUsername(), account);
 
             // assign authorities to subject
@@ -385,9 +399,6 @@ public class AACBootstrap {
             logger.debug("admin account " + account.toString());
         } catch (NoSuchUserException | NoSuchSubjectException e) {
             logger.error("error updating admin account: " + e.getMessage());
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-            logger.error("error updating admin password: " + e.getMessage());
-
         }
     }
 

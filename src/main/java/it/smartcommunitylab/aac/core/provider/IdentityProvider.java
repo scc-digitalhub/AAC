@@ -1,7 +1,6 @@
 package it.smartcommunitylab.aac.core.provider;
 
 import java.util.Collection;
-import java.util.Map;
 
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
@@ -89,6 +88,13 @@ public interface IdentityProvider<I extends UserIdentity>
     public Collection<I> listIdentities(String userId);
 
     public Collection<I> listIdentities(String userId, boolean fetchAttributes);
+
+    /*
+     * Link account
+     * 
+     * Providers must expose the ability to link/relink identities to a given user
+     */
+    public I linkIdentity(String userId, String identityId) throws NoSuchUserException;
 
     /*
      * Delete accounts.

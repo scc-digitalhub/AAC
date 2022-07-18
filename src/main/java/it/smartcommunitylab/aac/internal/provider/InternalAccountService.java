@@ -4,6 +4,8 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+
 import javax.mail.MessagingException;
 import javax.validation.Valid;
 
@@ -38,8 +40,8 @@ public class InternalAccountService extends AbstractProvider implements AccountS
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    // use password service to handle password
-    private final InternalPasswordService passwordService;
+//    // use password service to handle password
+//    private final InternalPasswordService passwordService;
 
     // provider configuration
     private final InternalIdentityProviderConfig config;
@@ -62,21 +64,21 @@ public class InternalAccountService extends AbstractProvider implements AccountS
         this.subjectService = subjectService;
         this.config = providerConfig;
 
-        this.passwordService = new InternalPasswordService(providerId, userAccountService, providerConfig, realm);
+//        this.passwordService = new InternalPasswordService(providerId, userAccountService, providerConfig, realm);
     }
 
     public void setMailService(MailService mailService) {
         this.mailService = mailService;
 
-        // also assign to passwordService to be consistent
-        this.passwordService.setMailService(mailService);
+//        // also assign to passwordService to be consistent
+//        this.passwordService.setMailService(mailService);
     }
 
     public void setUriBuilder(RealmAwareUriBuilder uriBuilder) {
         this.uriBuilder = uriBuilder;
-
-        // also assign to passwordService to be consistent
-        this.passwordService.setUriBuilder(uriBuilder);
+//
+//        // also assign to passwordService to be consistent
+//        this.passwordService.setUriBuilder(uriBuilder);
     }
 
     @Override
@@ -87,7 +89,7 @@ public class InternalAccountService extends AbstractProvider implements AccountS
     @Override
     @Transactional(readOnly = true)
     public List<InternalUserAccount> listAccounts(String userId) {
-        return userAccountService.findByUser(userId, getProvider());
+        return userAccountService.findByUser(getProvider(), userId);
     }
 
     @Override
@@ -178,22 +180,22 @@ public class InternalAccountService extends AbstractProvider implements AccountS
         }
 
         // check type and extract our parameters if present
-        String password = null;
+//        String password = null;
         String email = null;
         String name = null;
         String surname = null;
         String lang = null;
         boolean confirmed = !config.isConfirmationRequired();
 
-        password = reg.getPassword();
+//        password = reg.getPassword();
         email = reg.getEmail();
         name = reg.getName();
         surname = reg.getSurname();
         lang = reg.getLang();
-
-        if (StringUtils.hasText(password)) {
-            password = Jsoup.clean(password, Safelist.none());
-        }
+//
+//        if (StringUtils.hasText(password)) {
+//            password = Jsoup.clean(password, Safelist.none());
+//        }
         if (StringUtils.hasText(email)) {
             email = Jsoup.clean(email, Safelist.none());
         }
@@ -222,12 +224,12 @@ public class InternalAccountService extends AbstractProvider implements AccountS
         }
 
         boolean changeOnFirstAccess = false;
-        if (!StringUtils.hasText(password)) {
-            password = passwordService.generatePassword();
-            changeOnFirstAccess = true;
-        } else {
-            passwordService.validatePassword(password);
-        }
+//        if (!StringUtils.hasText(password)) {
+//            password = passwordService.generatePassword();
+//            changeOnFirstAccess = true;
+//        } else {
+//            passwordService.validatePassword(password);
+//        }
 
         // generate uuid and register as subject
         String uuid = subjectService.generateUuid(SystemKeys.RESOURCE_ACCOUNT);
@@ -241,7 +243,7 @@ public class InternalAccountService extends AbstractProvider implements AccountS
         account.setUserId(userId);
         account.setRealm(realm);
         // by default disable login
-        account.setPassword(null);
+//        account.setPassword(null);
         // set account as active
         account.setStatus(UserStatus.ACTIVE.getValue());
         account.setEmail(email);
@@ -253,7 +255,7 @@ public class InternalAccountService extends AbstractProvider implements AccountS
 
         if (!confirmed) {
             // build key
-            String confirmationKey = passwordService.generateKey();
+            String confirmationKey = generateKey();
 
             // we set deadline as +N seconds
             Calendar calendar = Calendar.getInstance();
@@ -267,20 +269,20 @@ public class InternalAccountService extends AbstractProvider implements AccountS
 //        account.setResetKey(null);
         account.setChangeOnFirstAccess(changeOnFirstAccess);
 
-        account = userAccountService.addAccount(account);
+        account = userAccountService.addAccount(provider, username, account);
 
-        account = passwordService.setPassword(username, password, changeOnFirstAccess);
+//        account = passwordService.setPassword(username, password, changeOnFirstAccess);
 
         // send mail
         try {
             if (changeOnFirstAccess) {
-                // we need to send single-use password
-                if (account.isConfirmed()) {
-                    sendPasswordMail(account, password);
-                } else {
-                    // also send confirmation link
-                    sendPasswordAndConfirmationMail(account, password, account.getConfirmationKey());
-                }
+//                // we need to send single-use password
+//                if (account.isConfirmed()) {
+//                    sendPasswordMail(account, password);
+//                } else {
+//                    // also send confirmation link
+//                    sendPasswordAndConfirmationMail(account, password, account.getConfirmationKey());
+//                }
             } else if (!account.isConfirmed()) {
                 // send only confirmation link
                 sendConfirmationMail(account, account.getConfirmationKey());
@@ -372,7 +374,7 @@ public class InternalAccountService extends AbstractProvider implements AccountS
 
         if (emailConfirm && config.isConfirmationRequired()) {
             // build confirm key
-            String confirmationKey = passwordService.generateKey();
+            String confirmationKey = generateKey();
 
             // we set deadline as +N seconds
             Calendar calendar = Calendar.getInstance();
@@ -614,6 +616,12 @@ public class InternalAccountService extends AbstractProvider implements AccountS
 
         return account;
 
+    }
+
+    public String generateKey() {
+        // TODO evaluate usage of a secure key generator
+        String rnd = UUID.randomUUID().toString();
+        return rnd;
     }
 
     /*

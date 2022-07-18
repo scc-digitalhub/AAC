@@ -55,7 +55,7 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
     private String realm;
 
     // login
-    private String password;
+//    private String password;
     private String status;
 
     // attributes
@@ -175,13 +175,13 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
         this.username = username;
     }
 
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
+//    public String getPassword() {
+//        return password;
+//    }
+//
+//    public void setPassword(String password) {
+//        this.password = password;
+//    }
 
     public String getStatus() {
         return status;
@@ -293,7 +293,7 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
 
     @Override
     public void eraseCredentials() {
-        this.password = null;
+//        this.password = null;
         this.resetKey = null;
         this.confirmationKey = null;
     }

@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.dto;
+package it.smartcommunitylab.aac.internal.dto;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;

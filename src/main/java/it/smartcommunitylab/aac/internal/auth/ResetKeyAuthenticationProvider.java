@@ -22,8 +22,8 @@ import it.smartcommunitylab.aac.internal.provider.InternalPasswordService;
 public class ResetKeyAuthenticationProvider implements AuthenticationProvider {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final String realm;
-    private final String providerId;
+//    private final String realm;
+//    private final String providerId;
 
     private final InternalAccountService accountService;
     private final InternalPasswordService passwordService;
@@ -35,8 +35,8 @@ public class ResetKeyAuthenticationProvider implements AuthenticationProvider {
         Assert.notNull(accountService, "account service is mandatory");
         Assert.notNull(passwordService, "password service is mandatory");
 
-        this.realm = realm;
-        this.providerId = providerId;
+//        this.realm = realm;
+//        this.providerId = providerId;
 
         this.accountService = accountService;
         this.passwordService = passwordService;
@@ -62,16 +62,11 @@ public class ResetKeyAuthenticationProvider implements AuthenticationProvider {
                 throw new BadCredentialsException("invalid request");
             }
 
-            // check this account is ours
-            if (!account.getRealm().equals(this.realm) || !account.getProvider().equals(this.providerId)) {
-                throw new BadCredentialsException("invalid request");
-            }
-
             // do confirm
-            account = passwordService.confirmReset(key);
-            if (!account.isChangeOnFirstAccess()) {
-                throw new BadCredentialsException("invalid request");
-            }
+            passwordService.confirmReset(key);
+//            if (!account.isChangeOnFirstAccess()) {
+//                throw new BadCredentialsException("invalid request");
+//            }
 
             // always grant user role
             // we really don't have any additional role on accounts, aac roles are set on

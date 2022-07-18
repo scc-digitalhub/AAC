@@ -27,6 +27,9 @@ import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
+import it.smartcommunitylab.aac.internal.provider.InternalPasswordIdentityService;
+import it.smartcommunitylab.aac.internal.model.CredentialsType;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserPasswordRepository;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
@@ -45,6 +48,7 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
 
     // internal account persistence service
     private final InternalUserAccountService userAccountService;
+    private final InternalUserPasswordRepository passwordRepository;
 
     // configuration provider
     private InternalIdentityConfigurationProvider configProvider;
@@ -60,42 +64,49 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
     // loading cache for idps
     // TODO replace with external loadableProviderRepository for
     // ProviderRepository<InternalIdentityProvider>
-    private final LoadingCache<String, InternalIdentityService> providers = CacheBuilder.newBuilder()
+    private final LoadingCache<String, InternalIdentityService<?>> providers = CacheBuilder.newBuilder()
             .expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
             .maximumSize(100)
-            .build(new CacheLoader<String, InternalIdentityService>() {
+            .build(new CacheLoader<String, InternalIdentityService<?>>() {
                 @Override
-                public InternalIdentityService load(final String id) throws Exception {
+                public InternalIdentityService<?> load(final String id) throws Exception {
                     InternalIdentityProviderConfig config = registrationRepository.findByProviderId(id);
 
                     if (config == null) {
                         throw new IllegalArgumentException("no configuration matching the given provider id");
                     }
 
-                    InternalIdentityService idp = new InternalIdentityService(
-                            id,
-                            userAccountService, userEntityService, subjectService,
-                            config, config.getRealm());
+                    if (config.getCredentialsType() == CredentialsType.PASSWORD) {
 
-                    // set services
-                    idp.setMailService(mailService);
-                    idp.setUriBuilder(uriBuilder);
+                        InternalPasswordIdentityService idp = new InternalPasswordIdentityService(
+                                id,
+                                userAccountService, userEntityService, subjectService,
+                                passwordRepository,
+                                config, config.getRealm());
 
-                    return idp;
+                        // set services
+                        idp.setMailService(mailService);
+                        idp.setUriBuilder(uriBuilder);
+                        return idp;
+                    }
+
+                    throw new IllegalArgumentException("no configuration matching the given provider id");
 
                 }
             });
 
     public InternalIdentityAuthority(
-            InternalUserAccountService userAccountService,
+            InternalUserAccountService userAccountService, InternalUserPasswordRepository passwordRepository,
             UserEntityService userEntityService, SubjectService subjectService,
             ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository) {
         Assert.notNull(userAccountService, "user account service is mandatory");
+        Assert.notNull(passwordRepository, "password repository is mandatory");
         Assert.notNull(userEntityService, "user service is mandatory");
         Assert.notNull(subjectService, "subject service is mandatory");
         Assert.notNull(registrationRepository, "provider registration repository is mandatory");
 
         this.userAccountService = userAccountService;
+        this.passwordRepository = passwordRepository;
         this.userEntityService = userEntityService;
         this.subjectService = subjectService;
         this.registrationRepository = registrationRepository;
@@ -139,7 +150,7 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
     }
 
     @Override
-    public InternalIdentityService getIdentityProvider(String providerId) {
+    public InternalIdentityService<?> getIdentityProvider(String providerId) {
         Assert.hasText(providerId, "provider id can not be null or empty");
 
         try {
@@ -150,7 +161,7 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
     }
 
     @Override
-    public List<InternalIdentityService> getIdentityProviders(
+    public List<InternalIdentityService<?>> getIdentityProviders(
             String realm) {
         // we need to fetch registrations and get idp from cache, with optional load
         Collection<InternalIdentityProviderConfig> registrations = registrationRepository.findByRealm(realm);
@@ -172,7 +183,7 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
 //    }
 
     @Override
-    public InternalIdentityService registerIdentityProvider(ConfigurableIdentityProvider cp) {
+    public InternalIdentityService<?> registerIdentityProvider(ConfigurableIdentityProvider cp) {
         // we support only identity provider as resource providers
         if (cp != null
                 && getAuthorityId().equals(cp.getAuthority())
@@ -236,12 +247,12 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
     }
 
     @Override
-    public InternalIdentityService getIdentityService(String providerId) {
+    public InternalIdentityService<?> getIdentityService(String providerId) {
         return getIdentityProvider(providerId);
     }
 
     @Override
-    public List<InternalIdentityService> getIdentityServices(
+    public List<InternalIdentityService<?>> getIdentityServices(
             String realm) {
         // we need to fetch registrations and get idp from cache, with optional load
         Collection<InternalIdentityProviderConfig> registrations = registrationRepository.findByRealm(realm);

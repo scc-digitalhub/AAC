@@ -26,6 +26,7 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.config.SpidProperties;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.SubjectService;
@@ -234,13 +235,13 @@ public class SpidIdentityAuthority implements IdentityAuthority, InitializingBea
     }
 
     @Override
-    public IdentityService<SpidUserIdentity, SpidUserAccount> getIdentityService(
+    public IdentityService<SpidUserIdentity, SpidUserAccount, ? extends UserCredentials> getIdentityService(
             String providerId) {
         return null;
     }
 
     @Override
-    public List<IdentityService<SpidUserIdentity, SpidUserAccount>> getIdentityServices(
+    public List<IdentityService<SpidUserIdentity, SpidUserAccount, ? extends UserCredentials>> getIdentityServices(
             String realm) {
         return Collections.emptyList();
     }

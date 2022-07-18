@@ -43,6 +43,7 @@ import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.UserCredentialsService;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
@@ -220,11 +221,11 @@ public class UserAccountController {
 
         // fetch provider
         String providerId = identity.getProvider();
-        IdentityService<? extends UserIdentity, ? extends UserAccount> idp = authorityManager
+        IdentityService<? extends UserIdentity, ? extends UserAccount, ? extends UserCredentials> idp = authorityManager
                 .getIdentityService(providerId);
 
         // fetch credentials service if available
-        UserCredentialsService service = idp.getCredentialsService();
+        UserCredentialsService<? extends UserCredentials> service = idp.getCredentialsService();
 
         if (service == null) {
             throw new IllegalArgumentException("credentials are immutable");
@@ -234,7 +235,7 @@ public class UserAccountController {
             throw new IllegalArgumentException("credentials are immutable");
         }
 
-        String url = service.getSetUrl() + "/" + providerId + "/" + account.getUserId();
+        String url = service.getSetUrl() + "/" + service.getProvider() + "/" + account.getUserId();
         return new ModelAndView("redirect:" + url);
     }
 

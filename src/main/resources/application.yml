@@ -93,6 +93,7 @@ authorities:
       enableRegistration: true
       confirmationRequired: true
       passwordRequireSpecial: false   
+      passwordKeepNumber: 1
 #      confirmation:
 #        required: true
 #        validity: 86400

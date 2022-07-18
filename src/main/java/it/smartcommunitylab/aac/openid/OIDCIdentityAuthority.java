@@ -32,6 +32,7 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.config.ProvidersProperties;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.SubjectService;
@@ -270,13 +271,13 @@ public class OIDCIdentityAuthority implements IdentityAuthority, InitializingBea
     }
 
     @Override
-    public IdentityService<OIDCUserIdentity, OIDCUserAccount> getIdentityService(
+    public IdentityService<OIDCUserIdentity, OIDCUserAccount, ? extends UserCredentials> getIdentityService(
             String providerId) {
         return null;
     }
 
     @Override
-    public List<IdentityService<OIDCUserIdentity, OIDCUserAccount>> getIdentityServices(
+    public List<IdentityService<OIDCUserIdentity, OIDCUserAccount, ? extends UserCredentials>> getIdentityServices(
             String realm) {
         return Collections.emptyList();
     }

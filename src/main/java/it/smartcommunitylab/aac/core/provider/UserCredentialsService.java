@@ -1,38 +1,61 @@
 package it.smartcommunitylab.aac.core.provider;
 
+import java.util.Collection;
+
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
 
 /*
  * Credentials service handles credentials associated to a single user account
- * 
- * credentials are *always* 1-to-1 with a user account.
- * A user may have multiple credentials within a given provider by registering multiple accounts
  */
 
-public interface UserCredentialsService extends ResourceProvider {
+public interface UserCredentialsService<C extends UserCredentials> extends ResourceProvider {
 
     /*
      * Capabilities
      */
 
-    public boolean canRead();
+//    public boolean canRead();
 
     public boolean canSet();
 
     public boolean canReset();
 
+    public boolean canRevoke();
+
     /*
-     * Implementations may not support getter/setters
+     * Set current credential (if only one is allowed)
      */
 
-    public UserCredentials getCredentials(String accountId) throws NoSuchUserException;
+    public C getCredentials(String accountId) throws NoSuchUserException;
 
-    public UserCredentials setCredentials(String accountId, UserCredentials credentials) throws NoSuchUserException;
+    public C setCredentials(String accountId, UserCredentials credentials) throws NoSuchUserException;
 
-//    // userId is globally addressable
-//    public Collection<? extends UserCredentials> listCredentials(String userId);
+    public C resetCredentials(String accountId) throws NoSuchUserException;
 
+    public C revokeCredentials(String accountId) throws NoSuchUserException;
+
+    public void deleteCredentials(String accountId) throws NoSuchUserException;
+
+    /*
+     * Set specific credentials when more than one is allowed
+     */
+    public Collection<C> listCredentials(String accountId) throws NoSuchUserException;
+
+    public C getCredentials(String accountId, String credentialsId) throws NoSuchUserException;
+
+    public C setCredentials(String accountId, String credentialsId, UserCredentials credentials)
+            throws NoSuchUserException;
+
+    public C resetCredentials(String accountId, String credentialsId) throws NoSuchUserException;
+
+    public C revokeCredentials(String accountId, String credentialsId) throws NoSuchUserException;
+
+    public void deleteCredentials(String accountId, String credentialsId) throws NoSuchUserException;
+
+    /*
+     * Action urls
+     */
     public String getSetUrl() throws NoSuchUserException;
 
     /*
@@ -40,7 +63,5 @@ public interface UserCredentialsService extends ResourceProvider {
      * reset. Credentials used for login should be resettable
      */
     public String getResetUrl();
-
-    public UserCredentials resetCredentials(String accountId) throws NoSuchUserException;
 
 }

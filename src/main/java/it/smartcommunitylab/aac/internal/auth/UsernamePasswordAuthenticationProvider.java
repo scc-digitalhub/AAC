@@ -18,32 +18,31 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountService;
+import it.smartcommunitylab.aac.internal.provider.InternalPasswordService;
 
 public class UsernamePasswordAuthenticationProvider implements AuthenticationProvider {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final String realm;
-    private final String providerId;
+//    private final String realm;
+//    private final String providerId;
 
     private final InternalAccountService accountService;
-    private PasswordEncoder passwordEncoder;
+    private final InternalPasswordService passwordService;
 
     public UsernamePasswordAuthenticationProvider(String providerId,
-            InternalAccountService accountService,
+            InternalAccountService accountService, InternalPasswordService passwordService,
             String realm) {
         Assert.hasText(providerId, "provider can not be null or empty");
         Assert.notNull(accountService, "account service is mandatory");
+        Assert.notNull(passwordService, "password service is mandatory");
 
-        this.realm = realm;
-        this.providerId = providerId;
+//        this.realm = realm;
+//        this.providerId = providerId;
 
         this.accountService = accountService;
-        this.passwordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
-    }
-
-    public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
-        this.passwordEncoder = passwordEncoder;
+        this.passwordService = passwordService;
     }
 
     @Override
@@ -66,13 +65,8 @@ public class UsernamePasswordAuthenticationProvider implements AuthenticationPro
                 throw new BadCredentialsException("invalid request");
             }
 
-            // check this account is ours
-            if (!account.getRealm().equals(this.realm) || !account.getProvider().equals(this.providerId)) {
-                throw new BadCredentialsException("invalid request");
-            }
-
-            // do password check
-            if (!this.passwordEncoder.matches(password, account.getPassword())) {
+            // delegate password check
+            if (!passwordService.verifyPassword(username, password)) {
                 throw new BadCredentialsException("invalid request");
             }
 

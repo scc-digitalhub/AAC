@@ -296,6 +296,20 @@ public class SpidIdentityProvider extends AbstractProvider
 
     @Override
     @Transactional(readOnly = false)
+    public SpidUserIdentity linkIdentity(String userId, String username) throws NoSuchUserException {
+        // get the internal account entity
+        SpidUserAccount account = accountProvider.getAccount(username);
+
+        // re-link to new userId
+        account = accountProvider.linkAccount(username, userId);
+
+        // use builder, skip attributes
+        SpidUserIdentity identity = new SpidUserIdentity(getProvider(), getRealm(), account);
+        return identity;
+    }
+
+    @Override
+    @Transactional(readOnly = false)
     public void deleteIdentity(String subjectId) throws NoSuchUserException {
         // cleanup attributes
         // attributes are not persisted as default policy

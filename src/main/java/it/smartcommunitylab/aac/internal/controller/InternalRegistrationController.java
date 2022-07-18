@@ -31,6 +31,7 @@ import org.springframework.context.MessageSource;
 //import org.springframework.security.oauth2.common.util.OAuth2Utils;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -49,11 +50,14 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.dto.CustomizationBean;
-import it.smartcommunitylab.aac.dto.UserRegistrationBean;
 import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
-import it.smartcommunitylab.aac.internal.dto.PasswordPolicy;
+import it.smartcommunitylab.aac.internal.dto.UserRegistrationBean;
+import it.smartcommunitylab.aac.internal.model.CredentialsType;
+import it.smartcommunitylab.aac.internal.model.PasswordPolicy;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
+import it.smartcommunitylab.aac.internal.provider.InternalPasswordIdentityService;
 import it.smartcommunitylab.aac.internal.provider.InternalPasswordService;
 import it.smartcommunitylab.aac.model.Realm;
 
@@ -85,7 +89,7 @@ public class InternalRegistrationController {
             Model model) throws NoSuchProviderException, NoSuchRealmException {
 
         // resolve provider
-        InternalIdentityService idp = internalAuthority.getIdentityService(providerId);
+        InternalIdentityService<?> idp = internalAuthority.getIdentityService(providerId);
 
         if (!idp.getConfig().isEnableRegistration()) {
             throw new RegistrationException("unsupported_operation");
@@ -126,14 +130,16 @@ public class InternalRegistrationController {
 //            model.addAllAttributes(customizations);
 //        }
 
-        // fetch credentials service if available
-        InternalPasswordService service = idp.getCredentialsService();
-        if (service != null) {
-            // expose password policy by passing idp config
-            PasswordPolicy policy = service.getPasswordPolicy();
-            model.addAttribute("policy", policy);
-            String passwordPattern = service.getPasswordPattern();
-            model.addAttribute("passwordPattern", passwordPattern);
+        // fetch password service if available
+        if (CredentialsType.PASSWORD == idp.getCredentialsType()) {
+            InternalPasswordService service = ((InternalPasswordIdentityService) idp).getCredentialsService();
+            if (service != null) {
+                // expose password policy by passing idp config
+                PasswordPolicy policy = service.getPasswordPolicy();
+                model.addAttribute("policy", policy);
+                String passwordPattern = service.getPasswordPattern();
+                model.addAttribute("passwordPattern", passwordPattern);
+            }
         }
 
         // build url
@@ -159,7 +165,7 @@ public class InternalRegistrationController {
         try {
 
             // resolve provider
-            InternalIdentityService idp = internalAuthority.getIdentityService(providerId);
+            InternalIdentityService<?> idp = internalAuthority.getIdentityService(providerId);
 
             if (!idp.getConfig().isEnableRegistration()) {
                 throw new RegistrationException("unsupported_operation");
@@ -190,13 +196,17 @@ public class InternalRegistrationController {
             model.addAttribute("displayName", displayName);
             model.addAttribute("customization", resources);
 
-            // fetch credentials service if available
-            InternalPasswordService service = idp.getCredentialsService();
-            if (service != null) {
+            // fetch password service if available
+            InternalPasswordService passwordService = null;
+            if (CredentialsType.PASSWORD == idp.getCredentialsType()) {
+                passwordService = ((InternalPasswordIdentityService) idp).getCredentialsService();
+            }
+
+            if (passwordService != null) {
                 // expose password policy by passing idp config
-                PasswordPolicy policy = service.getPasswordPolicy();
+                PasswordPolicy policy = passwordService.getPasswordPolicy();
                 model.addAttribute("policy", policy);
-                String passwordPattern = service.getPasswordPattern();
+                String passwordPattern = passwordService.getPasswordPattern();
                 model.addAttribute("passwordPattern", passwordPattern);
             }
 
@@ -227,10 +237,16 @@ public class InternalRegistrationController {
             String surname = reg.getSurname();
             String lang = reg.getLang();
 
+            // validate password
+            // TODO rework flow
+            if (passwordService != null && StringUtils.hasText(password)) {
+                passwordService.validatePassword(password);
+            }
+
             // convert registration model to internal model
             InternalUserAccount account = new InternalUserAccount();
             account.setUsername(username);
-            account.setPassword(password);
+//            account.setPassword(password);
             account.setEmail(email);
             account.setName(name);
             account.setSurname(surname);
@@ -246,9 +262,18 @@ public class InternalRegistrationController {
             // register
             UserIdentity identity = idp.registerIdentity(subjectId, account, Collections.emptyList());
 
+            // register password
+            if (passwordService != null && StringUtils.hasText(password)) {
+                InternalUserPassword pwd = new InternalUserPassword();
+                pwd.setUserId(identity.getUserId());
+                pwd.setUsername(username);
+                pwd.setPassword(password);
+
+                passwordService.setCredentials(username, pwd);
+            }
+
             model.addAttribute("identity", identity);
 
-            // WRONG, should send redirect to success page to avoid double POST
             return "registration/regsuccess";
         } catch (InvalidDataException | MissingDataException | DuplicatedDataException e) {
             StringBuilder msg = new StringBuilder();

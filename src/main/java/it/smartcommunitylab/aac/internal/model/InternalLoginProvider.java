@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.internal.dto;
+package it.smartcommunitylab.aac.internal.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.dto.LoginProvider;

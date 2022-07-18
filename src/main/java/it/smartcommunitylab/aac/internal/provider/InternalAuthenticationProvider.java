@@ -57,9 +57,9 @@ public class InternalAuthenticationProvider
         this.passwordEncoder = new InternalPasswordEncoder();
 
         // build our internal auth provider
-        authProvider = new UsernamePasswordAuthenticationProvider(providerId, accountService, realm);
-        // we use our password encoder
-        authProvider.setPasswordEncoder(passwordEncoder);
+        authProvider = new UsernamePasswordAuthenticationProvider(providerId, accountService, passwordService, realm);
+//        // we use our password encoder
+//        authProvider.setPasswordEncoder(passwordEncoder);
 
         // build additional providers
         // TODO check config to see if these are available

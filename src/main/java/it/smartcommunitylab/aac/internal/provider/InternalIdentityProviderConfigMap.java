@@ -19,6 +19,7 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
+import it.smartcommunitylab.aac.internal.model.CredentialsType;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -31,6 +32,8 @@ public class InternalIdentityProviderConfigMap implements ConfigurableProperties
     };
 
     private int maxSessionDuration = 24 * 60 * 60; // 24h
+
+    private CredentialsType credentialsType;
 
     private Boolean enableRegistration;
     private Boolean enableDelete;
@@ -47,6 +50,7 @@ public class InternalIdentityProviderConfigMap implements ConfigurableProperties
     private Integer confirmationValidity;
 
     // password policy, optional
+    // TODO move to dedicated configMap
     @Min(1)
     @Max(35)
     private Integer passwordMinLength;
@@ -57,10 +61,13 @@ public class InternalIdentityProviderConfigMap implements ConfigurableProperties
     private Boolean passwordRequireNumber;
     private Boolean passwordRequireSpecial;
     private Boolean passwordSupportWhitespace;
+    private Integer passwordKeepNumber;
+    private Integer passwordMaxDays;
 
     private Boolean displayAsButton;
 
     public InternalIdentityProviderConfigMap() {
+        this.credentialsType = CredentialsType.PASSWORD;
     }
 
     public int getMaxSessionDuration() {
@@ -69,6 +76,14 @@ public class InternalIdentityProviderConfigMap implements ConfigurableProperties
 
     public void setMaxSessionDuration(int maxSessionDuration) {
         this.maxSessionDuration = maxSessionDuration;
+    }
+
+    public CredentialsType getCredentialsType() {
+        return credentialsType;
+    }
+
+    public void setCredentialsType(CredentialsType credentialsType) {
+        this.credentialsType = credentialsType;
     }
 
     public Boolean getEnableRegistration() {
@@ -183,6 +198,22 @@ public class InternalIdentityProviderConfigMap implements ConfigurableProperties
         this.passwordSupportWhitespace = passwordSupportWhitespace;
     }
 
+    public Integer getPasswordKeepNumber() {
+        return passwordKeepNumber;
+    }
+
+    public void setPasswordKeepNumber(Integer passwordKeepNumber) {
+        this.passwordKeepNumber = passwordKeepNumber;
+    }
+
+    public Integer getPasswordMaxDays() {
+        return passwordMaxDays;
+    }
+
+    public void setPasswordMaxDays(Integer passwordMaxDays) {
+        this.passwordMaxDays = passwordMaxDays;
+    }
+
     public Boolean getDisplayAsButton() {
         return displayAsButton;
     }
@@ -208,6 +239,8 @@ public class InternalIdentityProviderConfigMap implements ConfigurableProperties
 
         this.maxSessionDuration = map.getMaxSessionDuration();
 
+        this.credentialsType = map.getCredentialsType();
+
         this.confirmationRequired = map.getConfirmationRequired();
         this.enableRegistration = map.getEnableRegistration();
         this.enableDelete = map.getEnableDelete();
@@ -227,6 +260,8 @@ public class InternalIdentityProviderConfigMap implements ConfigurableProperties
         this.passwordRequireNumber = map.getPasswordRequireNumber();
         this.passwordRequireSpecial = map.getPasswordRequireSpecial();
         this.passwordSupportWhitespace = map.getPasswordSupportWhitespace();
+        this.passwordKeepNumber = map.getPasswordKeepNumber();
+        this.passwordMaxDays = map.getPasswordMaxDays();
 
         this.displayAsButton = map.getDisplayAsButton();
     }

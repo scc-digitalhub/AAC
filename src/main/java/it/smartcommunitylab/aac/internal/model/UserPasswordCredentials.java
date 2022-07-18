@@ -18,6 +18,7 @@ public class UserPasswordCredentials extends AbstractUserCredentials {
     }
 
     private String password;
+    private Boolean changeOnFirstAccess;
 
     public String getPassword() {
         return password;
@@ -25,6 +26,23 @@ public class UserPasswordCredentials extends AbstractUserCredentials {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public Boolean getChangeOnFirstAccess() {
+        return changeOnFirstAccess;
+    }
+
+    public void setChangeOnFirstAccess(Boolean changeOnFirstAccess) {
+        this.changeOnFirstAccess = changeOnFirstAccess;
+    }
+
+    public boolean isChangeOnFirstAccess() {
+        return changeOnFirstAccess != null ? changeOnFirstAccess.booleanValue() : false;
+    }
+
+    @Override
+    public String getType() {
+        return SystemKeys.RESOURCE_CREDENTIALS + "_" + CredentialsType.PASSWORD.getValue();
     }
 
     @Override

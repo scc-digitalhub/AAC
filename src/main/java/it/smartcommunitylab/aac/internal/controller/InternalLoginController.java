@@ -21,7 +21,7 @@ import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.dto.LoginProvider;
 import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
 import it.smartcommunitylab.aac.internal.auth.InternalAuthenticationException;
-import it.smartcommunitylab.aac.internal.dto.InternalLoginProvider;
+import it.smartcommunitylab.aac.internal.model.InternalLoginProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
 import it.smartcommunitylab.aac.model.Realm;
 
@@ -42,7 +42,7 @@ public class InternalLoginController {
             Model model,
             HttpServletRequest req, HttpServletResponse res) throws Exception {
         // resolve provider
-        InternalIdentityService idp = internalAuthority.getIdentityService(providerId);
+        InternalIdentityService<?> idp = internalAuthority.getIdentityService(providerId);
         model.addAttribute("providerId", providerId);
 
         String realm = idp.getRealm();
@@ -72,7 +72,11 @@ public class InternalLoginController {
         InternalLoginProvider a = idp.getLoginProvider();
         // make sure we show the form
         // it should also point to login
-        a.setTemplate("form");
+        String form = idp.getLoginForm();
+        if (form == null) {
+            throw new IllegalArgumentException("unsupported-operation");
+        }
+        a.setTemplate(form);
         a.setLoginUrl(idp.getLoginUrl());
         model.addAttribute("authorities", Collections.singleton(a));
 
