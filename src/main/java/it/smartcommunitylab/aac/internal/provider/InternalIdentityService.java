@@ -335,6 +335,19 @@ public abstract class InternalIdentityService<C extends UserCredentials> extends
             throw new IllegalArgumentException("registration is disabled for this provider");
         }
 
+        // registration is create but user-initiated
+        return createIdentity(userId, registration, attributes);
+    }
+
+    @Override
+    @Transactional(readOnly = false)
+    public InternalUserIdentity createIdentity(
+            String userId, UserAccount registration,
+            Collection<UserAttributes> attributes)
+            throws NoSuchUserException, RegistrationException {
+
+        // create is always enabled
+
         if (registration == null) {
             throw new RegistrationException();
         }

@@ -117,8 +117,8 @@ angular.module('aac.controllers.realmusers', [])
             });
         }
 
-        service.inviteUser = function (slug, invitation, roles) {
-            var data = { roles: roles, username: invitation.external ? null : invitation.username, subjectId: invitation.external ? invitation.subjectId : null };
+        service.inviteUser = function (slug, email) {
+            var data = { email: email };
             return $http.post('console/dev/realms/' + slug + '/users/invite', data).then(function (data) {
                 return data.data;
             });
@@ -399,33 +399,19 @@ angular.module('aac.controllers.realmusers', [])
         }
 
         $scope.inviteUser = function () {
-            var systemRoles = $scope.systemRoles.map(r => {
-                return {
-                    'text': r,
-                    'value': false
-                };
-            });
 
             $scope.invitation = {
-                'external': false,
-                'username': null,
-                'subjectId': null,
-                'systemRoles': systemRoles,
-                'customRoles': []
+                'email': null
             }
 
             $('#inviteModal').modal({ backdrop: 'static', focus: true })
         }
+
         $scope.invite = function () {
             $('#inviteModal').modal('hide');
 
             if ($scope.invitation) {
-                var systemRoles = $scope.invitation.systemRoles.filter(r => r.value).map(r => r.text);
-                var customRoles = $scope.invitation.customRoles.map(r => r.text);
-
-                var roles = systemRoles.concat(customRoles);
-
-                RealmUsers.inviteUser($scope.realm.slug, $scope.invitation, roles).then(function () {
+                RealmUsers.inviteUser($scope.realm.slug, $scope.invitation.email).then(function () {
                     $scope.load();
                     Utils.showSuccess();
                 }).catch(function (err) {
@@ -434,9 +420,6 @@ angular.module('aac.controllers.realmusers', [])
 
                 $scope.invitation = null;
             }
-
-
-
         }
 
 

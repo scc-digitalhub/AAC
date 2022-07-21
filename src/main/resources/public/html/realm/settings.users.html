@@ -127,10 +127,10 @@
                 <form name="userForm" novalidate class="was-validated">
                     <div class="row">
                         <div class="form-group col mb-0">
-                            <label for="username">User (email)*</label>
-                            <input type="email" required name="username" class="form-control form-control-sm"
-                                id="username" ng-model="modInvite.username" ng-disabled="modInvite.external">
-                            <div ng-if="!modInvite.external && userForm.username.$invalid" class="invalid-feedback">
+                            <label for="email">Email address*</label>
+                            <input type="email" required name="email" class="form-control form-control-sm"
+                                id="email" ng-model="modInvite.email" ng-disabled="modInvite.external">
+                            <div ng-if="!modInvite.external && userForm.email.$invalid" class="invalid-feedback">
                                 Valid email address required</div><br>
                         </div>
                         <div class="form-check">
@@ -157,7 +157,7 @@
             <div class="modal-footer">
                 <button class="btn btn-default" type="button" data-dismiss="modal">Cancel</button>
                 <button class="btn btn-primary" type="button" ng-click="inviteDeveloper()"
-                    ng-disabled="!modInvite.external && userForm.username.$invalid || modInvite.external && userForm.subjectId.$invalid ">Invite</button>
+                    ng-disabled="!modInvite.external && userForm.email.$invalid || modInvite.external && userForm.subjectId.$invalid ">Invite</button>
             </div>
         </div>
     </div>

@@ -49,6 +49,7 @@ import it.smartcommunitylab.aac.core.UserManager;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.dto.ConnectedAppProfile;
+import it.smartcommunitylab.aac.dto.UserEmailBean;
 import it.smartcommunitylab.aac.groups.GroupManager;
 import it.smartcommunitylab.aac.model.Group;
 import it.smartcommunitylab.aac.model.RealmRole;
@@ -165,9 +166,9 @@ public class DevUsersController {
     @PostMapping("/realms/{realm}/users/invite")
     public ResponseEntity<Void> inviteRealmUser(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestBody @Valid @NotNull InvitationBean bean)
+            @RequestBody @Valid @NotNull UserEmailBean bean)
             throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException {
-        userManager.inviteUser(realm, bean.getUsername(), bean.getSubjectId());
+        userManager.inviteUser(realm, bean.getEmail());
         return ResponseEntity.ok(null);
     }
 
@@ -409,44 +410,6 @@ public class DevUsersController {
             throws NoSuchRealmException, NoSuchUserException {
         Collection<OAuth2AccessToken> result = userManager.getAccessTokens(realm, subjectId);
         return ResponseEntity.ok(result);
-    }
-
-    /*
-     * DTO
-     * 
-     * TODO cleanup
-     */
-
-    public static class InvitationBean {
-
-        private String username, subjectId;
-
-        private List<String> roles;
-
-        public List<String> getRoles() {
-            return roles;
-        }
-
-        public void setRoles(List<String> roles) {
-            this.roles = roles;
-        }
-
-        public String getUsername() {
-            return username;
-        }
-
-        public void setUsername(String username) {
-            this.username = username;
-        }
-
-        public String getSubjectId() {
-            return subjectId;
-        }
-
-        public void setSubjectId(String subjectId) {
-            this.subjectId = subjectId;
-        }
-
     }
 
 }

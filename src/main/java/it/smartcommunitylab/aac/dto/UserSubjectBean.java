@@ -2,18 +2,35 @@ package it.smartcommunitylab.aac.dto;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Email;
-import javax.validation.constraints.NotBlank;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class UserEmailBean {
+public class UserSubjectBean {
+
+    private String subjectId;
+
+    private String username;
 
     @Email(message = "{validation.email}")
     private String email;
+
+    public String getSubjectId() {
+        return subjectId;
+    }
+
+    public void setSubjectId(String subjectId) {
+        this.subjectId = subjectId;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
 
     public String getEmail() {
         return email;

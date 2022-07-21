@@ -29,6 +29,9 @@ public interface IdentityService<I extends UserIdentity, U extends UserAccount, 
      * 
      * userId is globally addressable
      */
+    public I createIdentity(
+            String userId, UserAccount account,
+            Collection<UserAttributes> attributes) throws NoSuchUserException, RegistrationException;
 
     public I registerIdentity(
             String userId, UserAccount account,

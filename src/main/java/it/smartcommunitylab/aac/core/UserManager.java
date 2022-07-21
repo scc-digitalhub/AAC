@@ -33,6 +33,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.mapper.ExactAttributesMapper;
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
 import it.smartcommunitylab.aac.audit.store.AuditEventStore;
+import it.smartcommunitylab.aac.common.MissingDataException;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
@@ -257,51 +258,50 @@ public class UserManager {
         userService.deleteUser(subjectId);
     }
 
-    public String inviteUser(String realm, String username, String subjectId)
+    public String inviteUser(String realm, String emailAddress)
             throws NoSuchRealmException, NoSuchProviderException, RegistrationException, NoSuchUserException {
-
-        logger.debug("invite user to realm {}", realm);
+        logger.debug("invite user {} to realm {}", String.valueOf(emailAddress), realm);
 
         Realm r = realmService.getRealm(realm);
 
-        if (StringUtils.hasText(username)) {
-            Collection<IdentityProvider<? extends UserIdentity>> providers = authorityManager
-                    .getIdentityProviders(r.getSlug());
-
-            // Assume internal provider exists and is unique
-            // TODO rework, register only subject + dedicated "invite" model with
-            // link/code/expire etc? or register internalUser without password
-            Optional<IdentityProvider<? extends UserIdentity>> internalProvider = providers
-                    .stream()
-                    .filter(p -> p.getAuthority().equals(SystemKeys.AUTHORITY_INTERNAL)).findFirst();
-            if (!internalProvider.isPresent()) {
-                throw new NoSuchProviderException("No internal provider available");
-            }
-
-            InternalIdentityService<?> identityService = (InternalIdentityService<?>) authorityManager
-                    .getIdentityService(internalProvider.get().getProvider());
-
-            InternalUserAccount account = new InternalUserAccount();
-            account.setUsername(username);
-            account.setEmail(username);
-            account.setRealm(realm);
-
-            UserIdentity identity = identityService.registerIdentity(null, account,
-                    Collections.emptyList());
-//            updateRoles(realm, ((InternalUserAccount) identity.getAccount()).getSubject(), roles);
-            logger.debug("invite user new identity {} in realm {}", identity.getUserId(), realm);
-            return identity.getUserId();
+        if (!StringUtils.hasText(emailAddress)) {
+            throw new MissingDataException("email");
         }
 
-        if (StringUtils.hasText(subjectId)) {
-            User user = userService.findUser(subjectId);
-            if (user == null) {
-                throw new NoSuchUserException("No user with specified subjectId exist");
-            }
-            return user.getSubjectId();
-//            updateRoles(realm, subjectId, roles);
+        Collection<IdentityProvider<? extends UserIdentity>> providers = authorityManager
+                .getIdentityProviders(r.getSlug());
+        Collection<InternalIdentityService<?>> internalProviders = providers
+                .stream()
+                .filter(p -> p.getAuthority().equals(SystemKeys.AUTHORITY_INTERNAL))
+                .map(p -> (InternalIdentityService<?>) p)
+                .collect(Collectors.toList());
+
+        // try to pick an internal idp bounded to realm (not isolated)
+        Optional<InternalIdentityService<?>> internalProvider = internalProviders.stream()
+                .filter(p -> !p.getConfig().isolateData()).findFirst();
+
+        if (internalProvider.isEmpty()) {
+            // fall back to any internal idp
+            internalProvider = internalProviders.stream().findFirst();
         }
-        return null;
+
+        if (internalProvider.isEmpty()) {
+            throw new NoSuchProviderException("No internal provider available");
+        }
+
+        InternalIdentityService<?> identityService = internalProvider.get();
+
+        InternalUserAccount account = new InternalUserAccount();
+        account.setUsername(emailAddress);
+        account.setEmail(emailAddress);
+        account.setRealm(realm);
+
+        // use create which is always available
+        UserIdentity identity = identityService.createIdentity(null, account,
+                Collections.emptyList());
+        logger.debug("invite user new identity {} in realm {}", identity.getUserId(), realm);
+        return identity.getUserId();
+
     }
 
     @Transactional(readOnly = false)

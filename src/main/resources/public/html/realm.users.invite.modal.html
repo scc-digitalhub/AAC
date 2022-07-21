@@ -10,47 +10,11 @@
                 <form name="userForm" novalidate class="was-validated">
                     <div class="row">
                         <div class="form-group col mb-0">
-                            <label for="username">Local User (email)*</label>
-                            <input type="email" required name="username" class="form-control form-control-sm"
-                                id="username" ng-model="invitation.username" ng-disabled="invitation.external">
-                            <div ng-if="!invitation.external && userForm.username.$invalid" class="invalid-feedback">
+                            <label for="email">Email address*</label>
+                            <input type="email" required name="email" class="form-control form-control-sm" id="email"
+                                ng-model="invitation.email">
+                            <div ng-if="userForm.email.$invalid" class="invalid-feedback">
                                 Valid email address required</div><br>
-                        </div>
-                        <div class="form-check">
-                            <div class="toggles">
-                                <label for="toggletype">
-                                    <input type="checkbox" name="invtype" id="toggletype"
-                                        ng-model="invitation.external">
-                                    <span class="lever"></span>
-                                </label>
-                            </div>
-                        </div>
-                        <div class="form-group col mb-0">
-                            <label for="subjectid">External Realm User (subjectId)*</label>
-                            <input type="text" required name="subjectid" class="form-control form-control-sm"
-                                id="subjectid" ng-model="invitation.subjectId" ng-disabled="!invitation.external">
-                            <div ng-if="invitation.external && userForm.subjectid.$invalid" class="invalid-feedback">
-                                Subject ID required</div><br>
-                        </div>
-                    </div>
-
-                    <div>
-                        <div class="form-group col">
-                            <div class="pt-3 pb-3">System roles</div>
-                            <fieldset class="form-group mb-2">
-                                <div class="form-check" ng-repeat="r in invitation.systemRoles"
-                                    ng-click="r.value = !r.value">
-                                    <input class="form-check-input" type="checkbox" ng-model="r.value">
-                                    <label>{{r.text}}</label>
-                                </div>
-                            </fieldset>
-
-
-                        </div>
-                        <div class="form-group col">
-                            <label class="active">Custom roles</label>
-                            <tags-input type="text" placeholder="Add custom roles" ng-model="invitation.customRoles">
-                            </tags-input>
                         </div>
                     </div>
 
@@ -62,7 +26,7 @@
             <div class="modal-footer">
                 <button class="btn btn-default" type="button" data-dismiss="modal">Cancel</button>
                 <button class="btn btn-primary" type="button" ng-click="invite()"
-                    ng-disabled="!invitation.external && userForm.username.$invalid || invitation.external && userForm.subjectid.$invalid ">Update</button>
+                    ng-disabled="userForm.email.$invalid">Update</button>
             </div>
         </div>
     </div>
