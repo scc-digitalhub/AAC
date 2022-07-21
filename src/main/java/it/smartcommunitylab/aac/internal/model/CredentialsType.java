@@ -5,9 +5,9 @@ import org.springframework.util.Assert;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum CredentialsType {
-    NONE("none"),
     PASSWORD("password"),
-    LINK("link");
+//    LINK("link"),
+    NONE("none");
 
     private final String value;
 

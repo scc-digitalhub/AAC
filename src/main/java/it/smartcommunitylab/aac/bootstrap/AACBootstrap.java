@@ -295,7 +295,7 @@ public class AACBootstrap {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     private void bootstrapAdminUser(InternalPasswordIdentityService idp) {
-        String providerId = idp.getProvider();
+        String repositoryId = idp.getConfig().getRepositoryId();
         if (CredentialsType.PASSWORD != idp.getConfig().getCredentialsType()) {
             // not supported
             return;
@@ -305,7 +305,7 @@ public class AACBootstrap {
         // TODO rewrite via idp
         logger.debug("create internal admin user " + adminUsername);
         UserEntity user = null;
-        InternalUserAccount account = internalUserService.findAccountByUsername(providerId, adminUsername);
+        InternalUserAccount account = internalUserService.findAccountByUsername(repositoryId, adminUsername);
         if (account != null) {
             // check if sub exists, recreate if needed
             String uuid = account.getUuid();
@@ -338,14 +338,14 @@ public class AACBootstrap {
                     adminUsername);
 
             account = new InternalUserAccount();
-            account.setProvider(providerId);
+            account.setProvider(repositoryId);
             account.setUserId(userId);
             account.setUuid(s.getSubjectId());
             account.setRealm(SystemKeys.REALM_SYSTEM);
             account.setUsername(adminUsername);
             account.setEmail(adminEmail);
             account.setStatus(UserStatus.ACTIVE.getValue());
-            account = internalUserService.addAccount(providerId, adminUsername, account);
+            account = internalUserService.addAccount(repositoryId, adminUsername, account);
         }
 
         String userId = account.getUserId();
@@ -369,7 +369,7 @@ public class AACBootstrap {
             account.setConfirmationKey(null);
             account.setConfirmationDeadline(null);
 
-            account = internalUserService.updateAccount(providerId, account.getUsername(), account);
+            account = internalUserService.updateAccount(repositoryId, account.getUsername(), account);
 
             // assign authorities to subject
             String subjectId = user.getUuid();

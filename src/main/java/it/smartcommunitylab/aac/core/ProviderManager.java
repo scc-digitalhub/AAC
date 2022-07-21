@@ -273,6 +273,11 @@ public class ProviderManager {
 
         // check if active, we don't support update for active providers
         boolean isActive = authorityManager.isIdentityProviderRegistered(ip.getAuthority(), ip.getProvider());
+        if (isActive) {
+            // make a quick unload
+            authorityManager.unregisterIdentityProvider(ip);
+            isActive = authorityManager.isIdentityProviderRegistered(ip.getAuthority(), ip.getProvider());
+        }
 
         if (isActive) {
             throw new IllegalArgumentException("active providers can not be registered again");

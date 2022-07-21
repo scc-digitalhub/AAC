@@ -158,7 +158,8 @@ public class InternalResetKeyAuthenticationFilter extends AbstractAuthentication
             throw new BadCredentialsException("invalid-key");
         }
 
-        InternalUserAccount account = userAccountService.findAccountByUsername(providerId, password.getUsername());
+        String repositoryId = providerConfig.getRepositoryId();
+        InternalUserAccount account = userAccountService.findAccountByUsername(repositoryId, password.getUsername());
         if (account == null) {
             // don't leak user does not exists
             throw new BadCredentialsException("invalid-key");

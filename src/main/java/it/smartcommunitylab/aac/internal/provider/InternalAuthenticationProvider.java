@@ -32,6 +32,7 @@ public class InternalAuthenticationProvider
 
     // provider configuration
     private final InternalIdentityProviderConfig config;
+    private final String repositoryId;
 
     private final InternalUserAccountService userAccountService;
     private final UsernamePasswordAuthenticationProvider authProvider;
@@ -52,6 +53,8 @@ public class InternalAuthenticationProvider
         Assert.notNull(providerConfig, "provider config is mandatory");
         this.config = providerConfig;
         this.userAccountService = userAccountService;
+
+        this.repositoryId = config.getRepositoryId();
 
         // build a password encoder
         this.passwordEncoder = new InternalPasswordEncoder();
@@ -82,7 +85,7 @@ public class InternalAuthenticationProvider
         String credentials = String
                 .valueOf(authentication.getCredentials());
 
-        InternalUserAccount account = userAccountService.findAccountByUsername(getProvider(), username);
+        InternalUserAccount account = userAccountService.findAccountByUsername(repositoryId, username);
         if (account == null) {
             // mitigate timing attacks to encode the provider password if usernamePassword
             if (authentication instanceof UsernamePasswordAuthenticationToken

@@ -17,6 +17,9 @@
          <li th:if="${policy.passwordRequireAlpha}">
             <em th:text="#{field.pwd.require_alpha}"></em>
          </li>
+         <li th:if="${policy.passwordRequireUppercaseAlpha}">
+            <em th:text="#{field.pwd.require_uppercase_alpha}"></em>
+         </li>
          <li th:if="${policy.passwordRequireNumber}">
             <em th:text="#{field.pwd.require_number}"></em>
          </li>

@@ -25,6 +25,15 @@
         <div class="row">
             <div class="col">
                 <div class="form-check">
+                    <input class="form-check-input" name="isolateData" id="isolateData" type="checkbox"
+                        ng-model="idp.configuration.isolateData">
+                    <label for="isolateData">Isolate data</label>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <div class="form-check">
                     <input class="form-check-input" name="enableRegistration" id="enableRegistration" type="checkbox"
                         ng-model="idp.configuration.enableRegistration">
                     <label for="enableRegistration">Enable Registration</label>
@@ -126,6 +135,14 @@
                         <input class="form-check-input" name="passwordRequireAlpha" id="passwordRequireAlpha"
                             type="checkbox" ng-model="idp.configuration.passwordRequireAlpha">
                         <label for="passwordRequireAlpha">Require letters</label>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-check">
+                        <input class="form-check-input" name="passwordRequireUppercaseAlpha"
+                            id="passwordRequireUppercaseAlpha" type="checkbox"
+                            ng-model="idp.configuration.passwordRequireUppercaseAlpha">
+                        <label for="passwordRequireUppercaseAlpha">Require uppercase letters</label>
                     </div>
                 </div>
                 <div class="col">

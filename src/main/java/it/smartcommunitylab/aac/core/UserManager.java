@@ -278,7 +278,7 @@ public class UserManager {
                 throw new NoSuchProviderException("No internal provider available");
             }
 
-            InternalIdentityService identityService = (InternalIdentityService) authorityManager
+            InternalIdentityService<?> identityService = (InternalIdentityService<?>) authorityManager
                     .getIdentityService(internalProvider.get().getProvider());
 
             InternalUserAccount account = new InternalUserAccount();

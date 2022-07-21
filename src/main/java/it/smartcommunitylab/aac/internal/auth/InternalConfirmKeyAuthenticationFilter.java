@@ -160,7 +160,8 @@ public class InternalConfirmKeyAuthenticationFilter extends AbstractAuthenticati
 
         // fetch account
         // TODO remove, let authProvider handle
-        InternalUserAccount account = userAccountService.findAccountByConfirmationKey(providerId, code);
+        String repositoryId = providerConfig.getRepositoryId();
+        InternalUserAccount account = userAccountService.findAccountByConfirmationKey(repositoryId, code);
         if (account == null) {
             // don't leak user does not exists
             throw new BadCredentialsException("invalid confirm code");

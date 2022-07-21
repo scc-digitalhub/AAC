@@ -78,6 +78,7 @@ jwt:
 #EXTERNAL PROVIDERS
 authorities:
    internal:
+      isolateData: false
       passwordResetValidity: 86400
       confirmationValidity: 86400
       enablePasswordReset: true
@@ -90,6 +91,7 @@ authorities:
       maxSessionDuration: 86400
       enableUpdate: true
       passwordRequireAlpha: true
+      passwordRequireUppercaseAlpha: false
       enableRegistration: true
       confirmationRequired: true
       passwordRequireSpecial: false   

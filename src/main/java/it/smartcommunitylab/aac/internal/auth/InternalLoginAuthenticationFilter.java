@@ -144,7 +144,8 @@ public class InternalLoginAuthenticationFilter extends AbstractAuthenticationPro
         // if this does not exists we'll let authProvider handle the error to ensure
         // proper audit
         // TODO rework, this should be handled post login by adding another filter
-        InternalUserAccount account = userAccountService.findAccountByUsername(providerId, username);
+        String repositoryId = providerConfig.getRepositoryId();
+        InternalUserAccount account = userAccountService.findAccountByUsername(repositoryId, username);
         if (account != null) {
             HttpSession session = request.getSession(true);
             if (session != null) {

@@ -51,8 +51,22 @@ public class InternalIdentityProviderConfig extends AbstractIdentityProviderConf
         configMap.setConfiguration(props);
     }
 
+    public String getRepositoryId() {
+        // isolated providers will use their id as providerId for data repositories
+        // otherwise they'll expose realm slug as id
+        if (isolateData()) {
+            return this.getProvider();
+        } else {
+            return this.getRealm();
+        }
+    }
+
     public CredentialsType getCredentialsType() {
         return configMap.getCredentialsType() != null ? configMap.getCredentialsType() : CredentialsType.PASSWORD;
+    }
+
+    public boolean isolateData() {
+        return configMap.getIsolateData() != null ? configMap.getIsolateData().booleanValue() : false;
     }
 
     /*
@@ -80,6 +94,12 @@ public class InternalIdentityProviderConfig extends AbstractIdentityProviderConf
 
     public boolean isPasswordRequireAlpha() {
         return configMap.getPasswordRequireAlpha() != null ? configMap.getPasswordRequireAlpha().booleanValue() : false;
+    }
+
+    public boolean isPasswordRequireUppercaseAlpha() {
+        return configMap.getPasswordRequireUppercaseAlpha() != null
+                ? configMap.getPasswordRequireUppercaseAlpha().booleanValue()
+                : false;
     }
 
     public boolean isPasswordRequireNumber() {

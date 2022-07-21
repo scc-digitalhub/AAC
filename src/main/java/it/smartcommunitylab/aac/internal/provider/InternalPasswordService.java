@@ -9,7 +9,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -55,6 +54,7 @@ public class InternalPasswordService extends AbstractProvider
 
     // provider configuration
     private final InternalIdentityProviderConfig config;
+    private final String repositoryId;
 
     private MailService mailService;
     private RealmAwareUriBuilder uriBuilder;
@@ -72,6 +72,8 @@ public class InternalPasswordService extends AbstractProvider
         this.accountService = userAccountService;
         this.passwordRepository = passwordRepository;
         this.config = providerConfig;
+        this.repositoryId = config.getRepositoryId();
+
         this.hasher = new PasswordHash();
 
         // use a secure string generator for keys of length 20
@@ -116,6 +118,7 @@ public class InternalPasswordService extends AbstractProvider
         policy.setPasswordMinLength(config.getPasswordMinLength());
         policy.setPasswordMaxLength(config.getPasswordMaxLength());
         policy.setPasswordRequireAlpha(config.isPasswordRequireAlpha());
+        policy.setPasswordRequireUppercaseAlpha(config.isPasswordRequireUppercaseAlpha());
         policy.setPasswordRequireNumber(config.isPasswordRequireNumber());
         policy.setPasswordRequireSpecial(config.isPasswordRequireSpecial());
         policy.setPasswordSupportWhitespace(config.isPasswordSupportWhitespace());
@@ -126,8 +129,12 @@ public class InternalPasswordService extends AbstractProvider
         // translate policy to input pattern
         StringBuilder sb = new StringBuilder();
         if (config.isPasswordRequireAlpha()) {
-            // require alpha means both
-            sb.append("(?=.*[a-z])(?=.*[A-Z])");
+            // require alpha means any, we add pattern for [a-z]
+            // TODO fix pattern
+            sb.append("(?=.*[a-z])");
+        }
+        if (config.isPasswordRequireUppercaseAlpha()) {
+            sb.append("(?=.*[A-Z])");
         }
         if (config.isPasswordRequireNumber()) {
             sb.append("(?=.*\\d)");
@@ -150,9 +157,8 @@ public class InternalPasswordService extends AbstractProvider
      */
     public InternalUserPassword findPassword(String username) throws NoSuchUserException {
         // fetch active password
-        String provider = getProvider();
         InternalUserPassword password = passwordRepository.findByProviderAndUsernameAndStatusOrderByCreateDateDesc(
-                provider, username,
+                repositoryId, username,
                 CredentialsStatus.ACTIVE.getValue());
         if (password != null) {
             // password are encrypted, return as is
@@ -164,9 +170,8 @@ public class InternalPasswordService extends AbstractProvider
 
     public InternalUserPassword getPassword(String username) throws NoSuchUserException {
         // fetch active password
-        String provider = getProvider();
         InternalUserPassword password = passwordRepository.findByProviderAndUsernameAndStatusOrderByCreateDateDesc(
-                provider, username,
+                repositoryId, username,
                 CredentialsStatus.ACTIVE.getValue());
         if (password == null) {
             throw new NoSuchUserException();
@@ -194,8 +199,6 @@ public class InternalPasswordService extends AbstractProvider
             Date expirationDate)
             throws NoSuchUserException, RegistrationException {
         // fetch active password
-        String provider = getProvider();
-
         try {
             // encode password
             String hash = hasher.createHash(password);
@@ -205,7 +208,7 @@ public class InternalPasswordService extends AbstractProvider
             // invalidate all old active/inactive passwords up to keep number, delete others
             // note: we keep revoked passwords in DB
             List<InternalUserPassword> oldPasswords = passwordRepository
-                    .findByProviderAndUsernameOrderByCreateDateDesc(provider, username).stream()
+                    .findByProviderAndUsernameOrderByCreateDateDesc(repositoryId, username).stream()
                     .collect(Collectors.toList());
 
             // validate new password is NEW
@@ -244,7 +247,7 @@ public class InternalPasswordService extends AbstractProvider
             // create password already hashed
             InternalUserPassword newPassword = new InternalUserPassword();
             newPassword.setId(UUID.randomUUID().toString());
-            newPassword.setProvider(provider);
+            newPassword.setProvider(repositoryId);
             newPassword.setUsername(username);
             newPassword.setPassword(hash);
             newPassword.setStatus(STATUS_ACTIVE);
@@ -263,10 +266,9 @@ public class InternalPasswordService extends AbstractProvider
     }
 
     public boolean verifyPassword(String username, String password) throws NoSuchUserException {
-        // fetch user
-        String provider = getProvider();
-
-        InternalUserPassword pass = passwordRepository.findByProviderAndUsernameAndStatusOrderByCreateDateDesc(provider,
+        // fetch active password
+        InternalUserPassword pass = passwordRepository.findByProviderAndUsernameAndStatusOrderByCreateDateDesc(
+                repositoryId,
                 username, STATUS_ACTIVE);
         if (pass == null) {
             return false;
@@ -295,9 +297,8 @@ public class InternalPasswordService extends AbstractProvider
         // TODO add locking for atomic operation
 
         // delete all passwords
-        String provider = getProvider();
         List<InternalUserPassword> toDelete = passwordRepository
-                .findByProviderAndUsernameOrderByCreateDateDesc(provider, username);
+                .findByProviderAndUsernameOrderByCreateDateDesc(repositoryId, username);
         passwordRepository.deleteAllInBatch(toDelete);
     }
 
@@ -305,12 +306,10 @@ public class InternalPasswordService extends AbstractProvider
 
         try {
             // fetch matching password
-            String provider = getProvider();
-
             // encode password
             String hash = hasher.createHash(password);
 
-            InternalUserPassword pass = passwordRepository.findByProviderAndUsernameAndPassword(provider, username,
+            InternalUserPassword pass = passwordRepository.findByProviderAndUsernameAndPassword(repositoryId, username,
                     hash);
             if (pass == null) {
                 throw new NoSuchUserException();
@@ -335,10 +334,9 @@ public class InternalPasswordService extends AbstractProvider
             throw new IllegalArgumentException("reset is disabled for this provider");
         }
 
-        String provider = getProvider();
         // fetch last active password
         InternalUserPassword password = passwordRepository.findByProviderAndUsernameAndStatusOrderByCreateDateDesc(
-                provider, username, STATUS_ACTIVE);
+                repositoryId, username, STATUS_ACTIVE);
         if (password == null) {
             // generate and set active a temporary password
             password = setPassword(username, generatePassword(), true);
@@ -366,8 +364,7 @@ public class InternalPasswordService extends AbstractProvider
             throw new IllegalArgumentException("empty-key");
         }
 
-        String provider = getProvider();
-        InternalUserPassword password = passwordRepository.findByProviderAndResetKey(provider, resetKey);
+        InternalUserPassword password = passwordRepository.findByProviderAndResetKey(repositoryId, resetKey);
         if (password == null) {
             throw new NoSuchUserException();
         }
@@ -435,8 +432,7 @@ public class InternalPasswordService extends AbstractProvider
     @Override
     public InternalUserPassword getCredentials(String username) throws NoSuchUserException {
         // fetch user
-        String provider = getProvider();
-        InternalUserAccount account = accountService.findAccountByUsername(provider, username);
+        InternalUserAccount account = accountService.findAccountByUsername(repositoryId, username);
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -468,8 +464,7 @@ public class InternalPasswordService extends AbstractProvider
             throw new IllegalArgumentException("invalid credentials");
         }
 
-        String provider = getProvider();
-        InternalUserAccount account = accountService.findAccountByUsername(provider, username);
+        InternalUserAccount account = accountService.findAccountByUsername(repositoryId, username);
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -502,8 +497,7 @@ public class InternalPasswordService extends AbstractProvider
             throw new IllegalArgumentException("reset is disabled for this provider");
         }
 
-        String provider = getProvider();
-        InternalUserAccount account = accountService.findAccountByUsername(provider, username);
+        InternalUserAccount account = accountService.findAccountByUsername(repositoryId, username);
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -527,8 +521,7 @@ public class InternalPasswordService extends AbstractProvider
 
     @Override
     public InternalUserPassword revokeCredentials(String username) throws NoSuchUserException {
-        String provider = getProvider();
-        InternalUserAccount account = accountService.findAccountByUsername(provider, username);
+        InternalUserAccount account = accountService.findAccountByUsername(repositoryId, username);
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -551,8 +544,7 @@ public class InternalPasswordService extends AbstractProvider
 
     @Override
     public void deleteCredentials(String username) throws NoSuchUserException {
-        String provider = getProvider();
-        InternalUserAccount account = accountService.findAccountByUsername(provider, username);
+        InternalUserAccount account = accountService.findAccountByUsername(repositoryId, username);
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -601,6 +593,12 @@ public class InternalPasswordService extends AbstractProvider
         if (config.isPasswordRequireAlpha()) {
             if (!password.chars().anyMatch(c -> Character.isLetter(c))) {
                 throw new InvalidPasswordException("require-alpha");
+            }
+        }
+
+        if (config.isPasswordRequireUppercaseAlpha()) {
+            if (!password.chars().anyMatch(c -> Character.isUpperCase(c))) {
+                throw new InvalidPasswordException("require-capital-alpha");
             }
         }
 

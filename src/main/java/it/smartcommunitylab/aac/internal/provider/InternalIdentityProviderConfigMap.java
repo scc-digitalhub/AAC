@@ -34,6 +34,7 @@ public class InternalIdentityProviderConfigMap implements ConfigurableProperties
     private int maxSessionDuration = 24 * 60 * 60; // 24h
 
     private CredentialsType credentialsType;
+    private Boolean isolateData;
 
     private Boolean enableRegistration;
     private Boolean enableDelete;
@@ -58,6 +59,7 @@ public class InternalIdentityProviderConfigMap implements ConfigurableProperties
     @Max(35)
     private Integer passwordMaxLength;
     private Boolean passwordRequireAlpha;
+    private Boolean passwordRequireUppercaseAlpha;
     private Boolean passwordRequireNumber;
     private Boolean passwordRequireSpecial;
     private Boolean passwordSupportWhitespace;
@@ -68,6 +70,7 @@ public class InternalIdentityProviderConfigMap implements ConfigurableProperties
 
     public InternalIdentityProviderConfigMap() {
         this.credentialsType = CredentialsType.PASSWORD;
+        this.isolateData = false;
     }
 
     public int getMaxSessionDuration() {
@@ -84,6 +87,14 @@ public class InternalIdentityProviderConfigMap implements ConfigurableProperties
 
     public void setCredentialsType(CredentialsType credentialsType) {
         this.credentialsType = credentialsType;
+    }
+
+    public Boolean getIsolateData() {
+        return isolateData;
+    }
+
+    public void setIsolateData(Boolean isolateData) {
+        this.isolateData = isolateData;
     }
 
     public Boolean getEnableRegistration() {
@@ -174,6 +185,14 @@ public class InternalIdentityProviderConfigMap implements ConfigurableProperties
         this.passwordRequireAlpha = passwordRequireAlpha;
     }
 
+    public Boolean getPasswordRequireUppercaseAlpha() {
+        return passwordRequireUppercaseAlpha;
+    }
+
+    public void setPasswordRequireUppercaseAlpha(Boolean passwordRequireUppercaseAlpha) {
+        this.passwordRequireUppercaseAlpha = passwordRequireUppercaseAlpha;
+    }
+
     public Boolean getPasswordRequireNumber() {
         return passwordRequireNumber;
     }
@@ -240,6 +259,7 @@ public class InternalIdentityProviderConfigMap implements ConfigurableProperties
         this.maxSessionDuration = map.getMaxSessionDuration();
 
         this.credentialsType = map.getCredentialsType();
+        this.isolateData = map.getIsolateData();
 
         this.confirmationRequired = map.getConfirmationRequired();
         this.enableRegistration = map.getEnableRegistration();
@@ -257,6 +277,7 @@ public class InternalIdentityProviderConfigMap implements ConfigurableProperties
         this.passwordMinLength = map.getPasswordMinLength();
         this.passwordMaxLength = map.getPasswordMaxLength();
         this.passwordRequireAlpha = map.getPasswordRequireAlpha();
+        this.passwordRequireUppercaseAlpha = map.getPasswordRequireUppercaseAlpha();
         this.passwordRequireNumber = map.getPasswordRequireNumber();
         this.passwordRequireSpecial = map.getPasswordRequireSpecial();
         this.passwordSupportWhitespace = map.getPasswordSupportWhitespace();
