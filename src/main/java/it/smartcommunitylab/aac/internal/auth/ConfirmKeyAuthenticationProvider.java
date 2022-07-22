@@ -59,7 +59,7 @@ public class ConfirmKeyAuthenticationProvider implements AuthenticationProvider 
             }
 
             // do confirm
-            account = accountService.confirmAccount(key);
+            account = accountService.confirmAccountViaKey(key);
             if (!account.isConfirmed()) {
                 throw new BadCredentialsException("invalid request");
             }

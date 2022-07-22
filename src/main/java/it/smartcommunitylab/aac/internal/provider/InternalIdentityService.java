@@ -16,12 +16,13 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
-import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
+import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
+import it.smartcommunitylab.aac.core.provider.ScopeableProvider;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
@@ -34,7 +35,7 @@ import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.utils.MailService;
 
 public abstract class InternalIdentityService<C extends UserCredentials> extends AbstractProvider
-        implements IdentityService<InternalUserIdentity, InternalUserAccount, C> {
+        implements IdentityService<InternalUserIdentity, InternalUserAccount, C>, ScopeableProvider {
 
     // services
     protected final UserEntityService userEntityService;
@@ -85,6 +86,20 @@ public abstract class InternalIdentityService<C extends UserCredentials> extends
 
     public CredentialsType getCredentialsType() {
         return config.getCredentialsType();
+    }
+
+    @Override
+    public String getScope() {
+        if (config.isolateData()) {
+            return SystemKeys.RESOURCE_PROVIDER;
+        }
+
+        return SystemKeys.RESOURCE_REALM;
+    }
+
+    @Override
+    public String getScopeId() {
+        return config.getRepositoryId();
     }
 
     public abstract String getLoginForm();
@@ -328,36 +343,36 @@ public abstract class InternalIdentityService<C extends UserCredentials> extends
     @Override
     @Transactional(readOnly = false)
     public InternalUserIdentity registerIdentity(
-            String userId, UserAccount registration,
-            Collection<UserAttributes> attributes)
+            String userId, UserIdentity registration)
             throws NoSuchUserException, RegistrationException {
         if (!config.isEnableRegistration()) {
             throw new IllegalArgumentException("registration is disabled for this provider");
         }
 
         // registration is create but user-initiated
-        return createIdentity(userId, registration, attributes);
+        return createIdentity(userId, registration);
     }
 
     @Override
     @Transactional(readOnly = false)
     public InternalUserIdentity createIdentity(
-            String userId, UserAccount registration,
-            Collection<UserAttributes> attributes)
+            String userId, UserIdentity registration)
             throws NoSuchUserException, RegistrationException {
 
         // create is always enabled
-
         if (registration == null) {
             throw new RegistrationException();
         }
 
-        Assert.isInstanceOf(InternalUserAccount.class, registration,
-                "registration must be an instance of internal user account");
+        Assert.isInstanceOf(InternalUserIdentity.class, registration,
+                "registration must be an instance of internal user identity");
+        InternalUserIdentity reg = (InternalUserIdentity) registration;
 
-        InternalUserAccount reg = (InternalUserAccount) registration;
-
-        String realm = getRealm();
+        // check for account details
+        InternalUserAccount account = reg.getAccount();
+        if (account == null) {
+            throw new MissingDataException("account");
+        }
 
         // validate base param, nothing to do when missing
         String username = reg.getUsername();
@@ -369,9 +384,13 @@ public abstract class InternalIdentityService<C extends UserCredentials> extends
         }
         String emailAddress = reg.getEmailAddress();
 
+        // no additional attributes supported
+
         // we expect subject to be valid, or null if we need to create
         UserEntity user = null;
         if (!StringUtils.hasText(userId)) {
+            String realm = getRealm();
+
             userId = userEntityService.createUser(realm).getUuid();
             user = userEntityService.addUser(userId, realm, username, emailAddress);
             userId = user.getUuid();
@@ -382,7 +401,7 @@ public abstract class InternalIdentityService<C extends UserCredentials> extends
 
         try {
             // create internal account
-            InternalUserAccount account = accountService.registerAccount(userId, reg);
+            account = accountService.createAccount(userId, account);
 
             // store and update attributes
             // we shouldn't have additional attributes for internal
@@ -396,7 +415,6 @@ public abstract class InternalIdentityService<C extends UserCredentials> extends
 
             // this identity has credentials
             return identity;
-
         } catch (RegistrationException | IllegalArgumentException e) {
             // cleanup subject if we created it
             if (user != null) {
@@ -405,15 +423,13 @@ public abstract class InternalIdentityService<C extends UserCredentials> extends
 
             throw e;
         }
-
     }
 
     @Override
     @Transactional(readOnly = false)
     public InternalUserIdentity updateIdentity(
             String userId,
-            String username, UserAccount registration,
-            Collection<UserAttributes> attributes)
+            String username, UserIdentity registration)
             throws NoSuchUserException, RegistrationException {
         if (!config.isEnableUpdate()) {
             throw new IllegalArgumentException("update is disabled for this provider");
@@ -423,10 +439,12 @@ public abstract class InternalIdentityService<C extends UserCredentials> extends
             throw new RegistrationException();
         }
 
-        Assert.isInstanceOf(InternalUserAccount.class, registration,
-                "registration must be an instance of internal user account");
-
-        InternalUserAccount reg = (InternalUserAccount) registration;
+        Assert.isInstanceOf(InternalUserIdentity.class, registration,
+                "registration must be an instance of internal user identity");
+        InternalUserIdentity reg = (InternalUserIdentity) registration;
+        if (reg.getAccount() == null) {
+            throw new MissingDataException("account");
+        }
 
         // get the internal account entity
         InternalUserAccount account = accountService.getAccount(username);
@@ -436,7 +454,8 @@ public abstract class InternalIdentityService<C extends UserCredentials> extends
             throw new RegistrationException("userid-mismatch");
         }
 
-        account = accountService.updateAccount(username, reg);
+        // update account
+        account = accountService.updateAccount(username, reg.getAccount());
 
         // store and update attributes
         // we shouldn't have additional attributes for internal
@@ -447,9 +466,6 @@ public abstract class InternalIdentityService<C extends UserCredentials> extends
         // convert attribute sets
         Collection<UserAttributes> identityAttributes = attributeProvider.getAccountAttributes(account);
         identity.setAttributes(identityAttributes);
-
-//        // this identity has credentials, erase
-//        identity.eraseCredentials();
 
         return identity;
     }

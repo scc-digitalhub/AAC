@@ -1,11 +1,8 @@
 package it.smartcommunitylab.aac.core.provider;
 
-import java.util.Collection;
-
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.model.UserAccount;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 
@@ -30,17 +27,14 @@ public interface IdentityService<I extends UserIdentity, U extends UserAccount, 
      * userId is globally addressable
      */
     public I createIdentity(
-            String userId, UserAccount account,
-            Collection<UserAttributes> attributes) throws NoSuchUserException, RegistrationException;
+            String userId, UserIdentity identity) throws NoSuchUserException, RegistrationException;
 
     public I registerIdentity(
-            String userId, UserAccount account,
-            Collection<UserAttributes> attributes) throws NoSuchUserException, RegistrationException;
+            String userId, UserIdentity identity) throws NoSuchUserException, RegistrationException;
 
     public I updateIdentity(
             String userId,
-            String identityId, UserAccount account,
-            Collection<UserAttributes> attributes) throws NoSuchUserException, RegistrationException;
+            String identityId, UserIdentity identity) throws NoSuchUserException, RegistrationException;
 
     /*
      * Registration

@@ -17,6 +17,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractAccount;
 import it.smartcommunitylab.aac.model.UserStatus;
@@ -25,6 +27,7 @@ import it.smartcommunitylab.aac.model.UserStatus;
 @IdClass(InternalUserAccountId.class)
 @Table(name = "internal_users")
 @EntityListeners(AuditingEntityListener.class)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class InternalUserAccount extends AbstractAccount implements CredentialsContainer {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;

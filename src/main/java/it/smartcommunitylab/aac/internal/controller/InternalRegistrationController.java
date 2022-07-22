@@ -53,6 +53,7 @@ import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
 import it.smartcommunitylab.aac.internal.dto.UserRegistrationBean;
 import it.smartcommunitylab.aac.internal.model.CredentialsType;
+import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.model.PasswordPolicy;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserPassword;
@@ -259,8 +260,11 @@ public class InternalRegistrationController {
             // TODO force require confirmation if linking
             String subjectId = null;
 
+            // build reg model
+            InternalUserIdentity identity = new InternalUserIdentity(idp.getProvider(), idp.getRealm(), account);
+
             // register
-            UserIdentity identity = idp.registerIdentity(subjectId, account, Collections.emptyList());
+            identity = idp.registerIdentity(subjectId, identity);
 
             // register password
             if (passwordService != null && StringUtils.hasText(password)) {
