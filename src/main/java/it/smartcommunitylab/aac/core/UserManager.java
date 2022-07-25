@@ -265,8 +265,8 @@ public class UserManager {
         userService.deleteUser(subjectId);
     }
 
-    public String inviteUser(String realm, String emailAddress)
-            throws NoSuchRealmException, NoSuchProviderException, RegistrationException, NoSuchUserException {
+    public User inviteUser(String realm, String emailAddress)
+            throws NoSuchRealmException, NoSuchProviderException, RegistrationException {
         logger.debug("invite user {} to realm {}", String.valueOf(emailAddress), realm);
 
         Realm r = realmService.getRealm(realm);
@@ -299,13 +299,18 @@ public class UserManager {
         InternalUserIdentity reg = new InternalUserIdentity(idp.getProvider(), idp.getRealm(),
                 account);
 
-        // use create which is always available
-        UserIdentity identity = idp.createIdentity(null, reg);
+        try {
+            // use create which is always available
+            UserIdentity identity = idp.createIdentity(null, reg);
+            String userId = identity.getUserId();
 
-        logger.debug("invite user new identity {} in realm {}", identity.getUserId(), realm);
+            logger.debug("invite user new identity {} in realm {}", userId, realm);
 
-        return identity.getUserId();
-
+            return userService.getUser(userId, r.getSlug());
+        } catch (NoSuchUserException e) {
+            logger.error(e.getMessage(), e);
+            throw new RegistrationException();
+        }
     }
 
     /*
@@ -457,7 +462,7 @@ public class UserManager {
     }
 
     @Transactional(readOnly = false)
-    public void verifyUserIdentity(String realm, String userId, String providerId, String identityId)
+    public UserIdentity verifyUserIdentity(String realm, String userId, String providerId, String identityId)
             throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException, RegistrationException {
         logger.debug("verify user identity {} in realm {}", String.valueOf(identityId), realm);
 
@@ -472,10 +477,12 @@ public class UserManager {
         }
 
         ids.getAccountService().verifyAccount(identityId);
+
+        return ids.getIdentity(identityId, false);
     }
 
     @Transactional(readOnly = false)
-    public void confirmUserIdentity(String realm, String userId, String providerId, String identityId)
+    public UserIdentity confirmUserIdentity(String realm, String userId, String providerId, String identityId)
             throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException, RegistrationException {
         logger.debug("confirm user identity {} in realm {}", String.valueOf(identityId), realm);
 
@@ -490,10 +497,12 @@ public class UserManager {
         }
 
         ids.getAccountService().confirmAccount(identityId);
+
+        return ids.getIdentity(identityId, false);
     }
 
     @Transactional(readOnly = false)
-    public void unconfirmUserIdentity(String realm, String userId, String providerId, String identityId)
+    public UserIdentity unconfirmUserIdentity(String realm, String userId, String providerId, String identityId)
             throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException, RegistrationException {
         logger.debug("unconfirm user identity {} in realm {}", String.valueOf(identityId), realm);
 
@@ -508,6 +517,8 @@ public class UserManager {
         }
 
         ids.getAccountService().unconfirmAccount(identityId);
+
+        return ids.getIdentity(identityId, false);
     }
 
     private IdentityProvider<? extends UserIdentity> searchIdp(String realm, String authority, String scope)
@@ -635,67 +646,91 @@ public class UserManager {
 //    }
 
     @Transactional(readOnly = false)
-    public User blockUser(String realm, String subjectId) throws NoSuchUserException, NoSuchRealmException {
-        logger.debug("block user {} from realm {}", String.valueOf(subjectId), realm);
+    public User blockUser(String realm, String userId) throws NoSuchUserException, NoSuchRealmException {
+        logger.debug("block user {} from realm {}", String.valueOf(userId), realm);
 
-//        Realm r = realmService.getRealm(realm);
-//
-//        // get user source realm
-//        String source = userService.getUserRealm(subjectId);
-//        if (source.equals(r.getSlug())) {
-//            // lock account
-//            userEntityService.blockUser(subjectId);
-//        }
+        Realm r = realmService.getRealm(realm);
 
-        return userService.getUser(subjectId, realm);
+        // get user source realm
+        String source = userService.getUserRealm(userId);
+        if (source.equals(r.getSlug())) {
+            // block user
+            return userService.blockUser(userId);
+        }
+
+        return userService.getUser(userId, realm);
     }
 
     @Transactional(readOnly = false)
-    public User unblockUser(String realm, String subjectId) throws NoSuchUserException, NoSuchRealmException {
-        logger.debug("unblock user {} from realm {}", String.valueOf(subjectId), realm);
+    public User activateUser(String realm, String userId) throws NoSuchUserException, NoSuchRealmException {
+        logger.debug("activate user {} from realm {}", String.valueOf(userId), realm);
 
-//        Realm r = realmService.getRealm(realm);
-//
-//        // get user source realm
-//        String source = userService.getUserRealm(subjectId);
-//        if (source.equals(r.getSlug())) {
-//            // lock account
-//            userEntityService.unblockUser(subjectId);
-//        }
+        Realm r = realmService.getRealm(realm);
 
-        return userService.getUser(subjectId, realm);
+        // get user source realm
+        String source = userService.getUserRealm(userId);
+        if (source.equals(r.getSlug())) {
+            // unblock user
+            return userService.activateUser(userId);
+        }
+
+        return userService.getUser(userId, realm);
     }
 
     @Transactional(readOnly = false)
-    public User lockUser(String realm, String subjectId) throws NoSuchUserException, NoSuchRealmException {
-        logger.debug("lock user {} from realm {}", String.valueOf(subjectId), realm);
+    public User inactivateUser(String realm, String userId) throws NoSuchUserException, NoSuchRealmException {
+        logger.debug("inactivate user {} from realm {}", String.valueOf(userId), realm);
 
-//        Realm r = realmService.getRealm(realm);
-//
-//        // get user source realm
-//        String source = userService.getUserRealm(subjectId);
-//        if (source.equals(r.getSlug())) {
-//            // lock account
-//            userEntityService.lockUser(subjectId);
-//        }
+        Realm r = realmService.getRealm(realm);
 
-        return userService.getUser(subjectId, realm);
+        // get user source realm
+        String source = userService.getUserRealm(userId);
+        if (source.equals(r.getSlug())) {
+            // unblock user
+            return userService.inactivateUser(userId);
+        }
+
+        return userService.getUser(userId, realm);
     }
 
     @Transactional(readOnly = false)
-    public User unlockUser(String realm, String subjectId) throws NoSuchUserException, NoSuchRealmException {
+    public UserIdentity lockUserIdentity(String realm, String userId, String providerId, String identityId)
+            throws NoSuchUserException, NoSuchRealmException, NoSuchProviderException {
+        logger.debug("lock user {} from realm {}", String.valueOf(userId), realm);
+
+        Realm r = realmService.getRealm(realm);
+
+        IdentityService<? extends UserIdentity, ? extends UserAccount, ? extends UserCredentials> ids = authorityManager
+                .getIdentityService(providerId);
+
+        // check provider belongs to realm
+        if (!r.getSlug().equals(ids.getRealm())) {
+            throw new IllegalArgumentException("realm-mismatch");
+        }
+
+        ids.getAccountService().lockAccount(identityId);
+
+        return ids.getIdentity(identityId, false);
+    }
+
+    @Transactional(readOnly = false)
+    public UserIdentity unlockUserIdentity(String realm, String userId, String providerId, String identityId)
+            throws NoSuchUserException, NoSuchRealmException, NoSuchProviderException {
         logger.debug("unlock user {} from realm {}", realm);
-//
-//        Realm r = realmService.getRealm(realm);
-//
-//        // get user source realm
-//        String source = userService.getUserRealm(subjectId);
-//        if (source.equals(r.getSlug())) {
-//            // lock account
-//            userEntityService.unlockUser(subjectId);
-//        }
 
-        return userService.getUser(subjectId, realm);
+        Realm r = realmService.getRealm(realm);
+
+        IdentityService<? extends UserIdentity, ? extends UserAccount, ? extends UserCredentials> ids = authorityManager
+                .getIdentityService(providerId);
+
+        // check provider belongs to realm
+        if (!r.getSlug().equals(ids.getRealm())) {
+            throw new IllegalArgumentException("realm-mismatch");
+        }
+
+        ids.getAccountService().unlockAccount(identityId);
+
+        return ids.getIdentity(identityId, false);
     }
 
 //    /*

@@ -1,7 +1,9 @@
 package it.smartcommunitylab.aac.internal.provider;
 
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
+import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
@@ -55,6 +57,16 @@ public class InternalPasswordIdentityService extends InternalIdentityService<Int
     @Override
     public InternalPasswordService getCredentialsService() {
         return passwordService;
+    }
+
+    @Override
+    @Transactional(readOnly = false)
+    public void deleteIdentity(String username) throws NoSuchUserException {
+        // remove all credentials
+        passwordService.deleteCredentials(username);
+
+        // call super to remove account
+        super.deleteIdentity(username);
     }
 
     @Override

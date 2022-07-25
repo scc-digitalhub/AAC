@@ -17,10 +17,6 @@ public interface AccountService<U extends UserAccount> extends AccountProvider<U
             String userId,
             U account) throws NoSuchUserException, RegistrationException;
 
-    public U registerAccount(
-            String userId,
-            U account) throws NoSuchUserException, RegistrationException;
-
     public U updateAccount(
             String accountId,
             U account) throws NoSuchUserException, RegistrationException;

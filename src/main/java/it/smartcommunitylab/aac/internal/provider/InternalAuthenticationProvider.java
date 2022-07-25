@@ -111,6 +111,15 @@ public class InternalAuthenticationProvider
                     e.getMessage());
         }
 
+        // check whether account is locked
+        if (account.isLocked()) {
+            logger.debug("account is locked");
+            // throw generic error to avoid account status leak
+            AuthenticationException e = new BadCredentialsException("invalid request");
+            throw new InternalAuthenticationException(subject, username, credentials, "password", e,
+                    e.getMessage());
+        }
+
         // TODO check if providers are available
         if (authentication instanceof UsernamePasswordAuthenticationToken) {
             try {

@@ -139,39 +139,6 @@ public class InternalAccountService extends AbstractProvider implements AccountS
     }
 
     @Override
-    public InternalUserAccount registerAccount(String userId, @Valid InternalUserAccount reg)
-            throws NoSuchUserException, RegistrationException {
-        if (!config.isEnableRegistration()) {
-            throw new IllegalArgumentException("registration is disabled for this provider");
-        }
-
-        if (reg == null) {
-            throw new RegistrationException();
-        }
-
-        // check email for confirmation when required
-        if (config.isConfirmationRequired()) {
-            if (reg.getEmail() == null) {
-                throw new MissingDataException("email");
-            }
-
-            String email = Jsoup.clean(reg.getEmail(), Safelist.none());
-            if (!StringUtils.hasText(email)) {
-                throw new MissingDataException("email");
-            }
-        }
-
-        InternalUserAccount account = createAccount(userId, reg);
-        String username = account.getUsername();
-
-        if (config.isConfirmationRequired() && !account.isConfirmed() && !account.isChangeOnFirstAccess()) {
-            account = verifyAccount(username);
-        }
-
-        return account;
-    }
-
-    @Override
     public InternalUserAccount createAccount(String userId, @Valid InternalUserAccount reg)
             throws NoSuchUserException, RegistrationException {
         if (reg == null) {
@@ -392,6 +359,9 @@ public class InternalAccountService extends AbstractProvider implements AccountS
         account.setConfirmationDeadline(calendar.getTime());
         account.setConfirmationKey(confirmationKey);
 
+        // override confirm
+        account.setConfirmed(false);
+
         account = userAccountService.updateAccount(repositoryId, username, account);
 
         // send mail
@@ -414,7 +384,7 @@ public class InternalAccountService extends AbstractProvider implements AccountS
             throw new NoSuchUserException();
         }
 
-        // verify will override confirm
+        // override confirm
         account.setConfirmed(true);
         account.setConfirmationDeadline(null);
         account.setConfirmationKey(null);
@@ -432,7 +402,7 @@ public class InternalAccountService extends AbstractProvider implements AccountS
             throw new NoSuchUserException();
         }
 
-        // reset will override confirm
+        // override confirm
         account.setConfirmed(false);
         account.setConfirmationDeadline(null);
         account.setConfirmationKey(null);

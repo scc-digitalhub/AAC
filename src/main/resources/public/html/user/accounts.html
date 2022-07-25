@@ -18,7 +18,13 @@
 							</div>
 							<div class="extra-text">
 								<span class="h6">{{item.username}}</span>
-								<br><small class=""> {{item.provider.name}}</small>
+								
+								<svg ng-if="(item.account && item.account.confirmed)" aria-hidden="true" class="icon icon-sm icon-success mx-3">
+									<use xlink:href="./italia/svg/sprite.svg#it-check-circle"></use>
+									<title>Verified</title>
+								</svg>
+
+								<br><small class=""> {{item.authority}}</small>
 							</div>
 						</div>
 					</td>
@@ -32,7 +38,22 @@
 					</td>
 					<td class="text-right">
 						<button class="btn btn-secondary btn-sm" ng-click="inspectDlg(item)">Inspect</button>
-						<button class="btn btn-danger btn-sm" ng-click="deleteAccount(item)">Delete</button>
+						<span ng-if="item.authority == 'internal' && item.account">
+							<button class="btn btn-warning btn-sm  text-right" ng-if="!item.account.locked"
+								ng-click="lockUserAccountDlg(item.uuid)">Lock</button>
+							<button class="btn btn-success btn-sm  text-right" ng-if="item.account.locked"
+								ng-click="unlockUserAccount(item.uuid)">Unlock</button>
+
+							<button class="btn btn-success btn-sm  text-right" ng-disabled="item.account.locked"
+								ng-click="verifyUserAccountDlg(item.uuid)">Verify</button>
+							<button class="btn btn-success btn-sm  text-right" ng-if="!item.account.confirmed"
+								ng-disabled="item.account.locked"
+								ng-click="confirmUserAccountDlg(item.uuid)">Confirm</button>
+							<button class="btn btn-warning btn-sm  text-right" ng-if="item.account.confirmed"
+								ng-disabled="item.account.locked"
+								ng-click="unconfirmUserAccount(item.uuid)">Un-confirm</button>
+						</span>
+						<button class="btn btn-danger btn-sm" ng-click="deleteUserAccountDlg(item.uuid)">Delete</button>
 					</td>
 				</tr>
 			</table>

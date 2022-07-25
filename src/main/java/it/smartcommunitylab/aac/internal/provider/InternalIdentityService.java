@@ -318,7 +318,7 @@ public abstract class InternalIdentityService<C extends UserCredentials> extends
         List<InternalUserAccount> accounts = accountService.listAccounts(userId);
         for (InternalUserAccount account : accounts) {
             try {
-                accountService.deleteAccount(account.getUsername());
+                deleteIdentity(account.getUsername());
             } catch (NoSuchUserException e) {
             }
         }
@@ -349,8 +349,36 @@ public abstract class InternalIdentityService<C extends UserCredentials> extends
             throw new IllegalArgumentException("registration is disabled for this provider");
         }
 
+        if (registration == null) {
+            throw new RegistrationException();
+        }
+
+        Assert.isInstanceOf(InternalUserIdentity.class, registration,
+                "registration must be an instance of internal user identity");
+        InternalUserIdentity reg = (InternalUserIdentity) registration;
+
+        // check email for confirmation when required
+        if (config.isConfirmationRequired()) {
+            if (reg.getEmailAddress() == null) {
+                throw new MissingDataException("email");
+            }
+
+            String email = Jsoup.clean(reg.getEmailAddress(), Safelist.none());
+            if (!StringUtils.hasText(email)) {
+                throw new MissingDataException("email");
+            }
+        }
+
         // registration is create but user-initiated
-        return createIdentity(userId, registration);
+        InternalUserIdentity identity = createIdentity(userId, registration);
+        InternalUserAccount account = identity.getAccount();
+        String username = account.getUsername();
+
+        if (config.isConfirmationRequired() && !account.isConfirmed() && !account.isChangeOnFirstAccess()) {
+            account = accountService.verifyAccount(username);
+        }
+
+        return identity;
     }
 
     @Override

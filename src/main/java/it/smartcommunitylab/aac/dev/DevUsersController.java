@@ -45,6 +45,7 @@ import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.controller.BaseUserController;
 import it.smartcommunitylab.aac.core.UserManager;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
@@ -61,12 +62,12 @@ import it.smartcommunitylab.aac.roles.SpaceRoleManager;
 @RestController
 @Hidden
 @RequestMapping("/console/dev")
-public class DevUsersController {
+public class DevUsersController extends BaseUserController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Autowired
-    private UserManager userManager;
-
+//    @Autowired
+//    private UserManager userManager;
+//
     @Autowired
     protected GroupManager groupManager;
 
@@ -77,123 +78,25 @@ public class DevUsersController {
     private SpaceRoleManager spaceRoleManager;
 
     /*
-     * Users
-     */
-    @GetMapping("/realms/{realm}/users")
-    public ResponseEntity<Page<User>> getRealmUsers(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestParam(required = false) String q, Pageable pageRequest) throws NoSuchRealmException {
-        return ResponseEntity.ok(userManager.searchUsers(realm, q, pageRequest));
-    }
-
-    @GetMapping("/realms/{realm}/users/{subjectId}")
-    public ResponseEntity<User> getRealmUser(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
-            throws NoSuchRealmException, NoSuchUserException {
-        User user = userManager.getUser(realm, subjectId);
-        return ResponseEntity.ok(user);
-    }
-
-    @DeleteMapping("/realms/{realm}/users/{subjectId}")
-    public ResponseEntity<Void> deleteRealmUser(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId,
-            Authentication authentication)
-            throws NoSuchRealmException, NoSuchUserException {
-        // check if current user is the same subject
-        if (authentication.getName().equals(subjectId)) {
-            throw new IllegalArgumentException("Cannot delete current user");
-        }
-        userManager.removeUser(realm, subjectId);
-        return ResponseEntity.ok(null);
-    }
-
-    @PutMapping("/realms/{realm}/users/{subjectId}/block")
-    public ResponseEntity<User> blockRealmUser(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
-            throws NoSuchRealmException, NoSuchUserException {
-        User user = userManager.blockUser(realm, subjectId);
-        return ResponseEntity.ok(user);
-    }
-
-    @DeleteMapping("/realms/{realm}/users/{subjectId}/block")
-    public ResponseEntity<User> unblockRealmUser(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
-            throws NoSuchRealmException, NoSuchUserException {
-        User user = userManager.unblockUser(realm, subjectId);
-        return ResponseEntity.ok(user);
-    }
-
-    @PutMapping("/realms/{realm}/users/{subjectId}/lock")
-    public ResponseEntity<User> lockRealmUser(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
-            throws NoSuchRealmException, NoSuchUserException {
-        User user = userManager.lockUser(realm, subjectId);
-        return ResponseEntity.ok(user);
-    }
-
-    @DeleteMapping("/realms/{realm}/users/{subjectId}/lock")
-    public ResponseEntity<User> unlockRealmUser(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
-            throws NoSuchRealmException, NoSuchUserException {
-        User user = userManager.unlockUser(realm, subjectId);
-        return ResponseEntity.ok(user);
-    }
-
-    @PutMapping("/realms/{realm}/users/{subjectId}/confirm")
-    public ResponseEntity<User> verifyRealmUser(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
-            throws NoSuchRealmException, NoSuchUserException {
-//        User user = userManager.confirmUser(realm, subjectId);
-//        return ResponseEntity.ok(user);
-        return ResponseEntity.ok(null);
-    }
-
-    @DeleteMapping("/realms/{realm}/users/{subjectId}/unconfirm")
-    public ResponseEntity<User> unverifyRealmUser(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
-            throws NoSuchRealmException, NoSuchUserException {
-//        User user = userManager.unconfirmUser(realm, subjectId);
-//        return ResponseEntity.ok(user);
-        return ResponseEntity.ok(null);
-    }
-
-    @PostMapping("/realms/{realm}/users/invite")
-    public ResponseEntity<Void> inviteRealmUser(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestBody @Valid @NotNull UserEmailBean bean)
-            throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException {
-        userManager.inviteUser(realm, bean.getEmail());
-        return ResponseEntity.ok(null);
-    }
-
-    /*
      * Groups
      */
-    @GetMapping("/realms/{realm}/users/{subjectId}/groups")
-    public ResponseEntity<Collection<Group>> getRealmUserGroups(
+    @GetMapping("/users/{realm}/{userId}/groups")
+    public ResponseEntity<Collection<Group>> getUserGroups(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
             throws NoSuchRealmException, NoSuchUserException {
         try {
-            Collection<Group> groups = groupManager.getSubjectGroups(realm, subjectId);
+            Collection<Group> groups = groupManager.getSubjectGroups(realm, userId);
             return ResponseEntity.ok(groups);
         } catch (NoSuchSubjectException e) {
             throw new NoSuchUserException();
         }
     }
 
-    @PutMapping("/realms/{realm}/users/{subjectId}/groups")
-    public ResponseEntity<Collection<Group>> updateRealmUserGroups(
+    @PutMapping("/users/{realm}/{userId}/groups")
+    public ResponseEntity<Collection<Group>> updateUserGroups(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
             @RequestBody @Valid @NotNull Collection<Group> groups)
             throws NoSuchRealmException, NoSuchUserException, NoSuchGroupException {
         // filter groups, make sure they belong to the current realm
@@ -201,7 +104,7 @@ public class DevUsersController {
                 .filter(a -> a.getRealm() == null || realm.equals(a.getRealm()))
                 .collect(Collectors.toSet());
         try {
-            Collection<Group> result = groupManager.setSubjectGroups(realm, subjectId,
+            Collection<Group> result = groupManager.setSubjectGroups(realm, userId,
                     values);
             return ResponseEntity.ok(result);
         } catch (NoSuchSubjectException e) {
@@ -213,19 +116,19 @@ public class DevUsersController {
      * Roles
      */
 
-    @GetMapping("/realms/{realm}/users/{subjectId}/authorities")
-    public ResponseEntity<Collection<GrantedAuthority>> getRealmUserAuthorities(
+    @GetMapping("/users/{realm}/{userId}/authorities")
+    public ResponseEntity<Collection<GrantedAuthority>> getUserAuthorities(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
             throws NoSuchRealmException, NoSuchUserException {
-        Collection<GrantedAuthority> authorities = userManager.getAuthorities(realm, subjectId);
+        Collection<GrantedAuthority> authorities = userManager.getAuthorities(realm, userId);
         return ResponseEntity.ok(authorities);
     }
 
-    @PutMapping("/realms/{realm}/users/{subjectId}/authorities")
-    public ResponseEntity<Collection<GrantedAuthority>> updateRealmUserAuthorities(
+    @PutMapping("/users/{realm}/{userId}/authorities")
+    public ResponseEntity<Collection<GrantedAuthority>> updateUserAuthorities(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
             @RequestBody @Valid @NotNull Collection<RealmGrantedAuthority> roles)
             throws NoSuchRealmException, NoSuchUserException {
         // filter roles, make sure they belong to the current realm
@@ -234,25 +137,25 @@ public class DevUsersController {
                 .map(a -> a.getRole())
                 .collect(Collectors.toSet());
 
-        Collection<GrantedAuthority> authorities = userManager.setAuthorities(realm, subjectId,
+        Collection<GrantedAuthority> authorities = userManager.setAuthorities(realm, userId,
                 values);
 
         return ResponseEntity.ok(authorities);
     }
 
-    @GetMapping("/realms/{realm}/users/{subjectId}/roles")
-    public ResponseEntity<Collection<RealmRole>> getRealmUserRoles(
+    @GetMapping("/users/{realm}/{userId}/roles")
+    public ResponseEntity<Collection<RealmRole>> getUserRoles(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
             throws NoSuchRealmException, NoSuchUserException {
-        Collection<RealmRole> roles = userManager.getUserRealmRoles(realm, subjectId);
+        Collection<RealmRole> roles = userManager.getUserRealmRoles(realm, userId);
         return ResponseEntity.ok(roles);
     }
 
-    @PutMapping("/realms/{realm}/users/{subjectId}/roles")
-    public ResponseEntity<Collection<RealmRole>> updateRealmUserRoles(
+    @PutMapping("/users/{realm}/{userId}/roles")
+    public ResponseEntity<Collection<RealmRole>> updateUserRoles(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
             @RequestBody @Valid @NotNull Collection<RealmRole> roles)
             throws NoSuchRealmException, NoSuchUserException {
         // filter roles, make sure they belong to the current realm
@@ -260,7 +163,7 @@ public class DevUsersController {
                 .filter(a -> a.getRealm() == null || realm.equals(a.getRealm()))
                 .collect(Collectors.toSet());
         try {
-            Collection<RealmRole> result = roleManager.setSubjectRoles(realm, subjectId,
+            Collection<RealmRole> result = roleManager.setSubjectRoles(realm, userId,
                     values);
             return ResponseEntity.ok(result);
         } catch (NoSuchSubjectException e) {
@@ -268,28 +171,28 @@ public class DevUsersController {
         }
     }
 
-    @GetMapping("/realms/{realm}/users/{subjectId}/spaceroles")
-    public ResponseEntity<Collection<SpaceRole>> getRealmUserSpaceRoles(
+    @GetMapping("/users/{realm}/{userId}/spaceroles")
+    public ResponseEntity<Collection<SpaceRole>> getUserSpaceRoles(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
             throws NoSuchRealmException, NoSuchUserException {
         try {
-            Collection<SpaceRole> roles = spaceRoleManager.getRoles(subjectId);
+            Collection<SpaceRole> roles = spaceRoleManager.getRoles(userId);
             return ResponseEntity.ok(roles);
         } catch (NoSuchSubjectException e) {
             throw new NoSuchUserException();
         }
     }
 
-    @PutMapping("/realms/{realm}/users/{subjectId}/spaceroles")
-    public ResponseEntity<Collection<SpaceRole>> updateRealmUserSpaceRoles(
+    @PutMapping("/users/{realm}/{userId}/spaceroles")
+    public ResponseEntity<Collection<SpaceRole>> updateUserSpaceRoles(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
             @RequestBody @Valid @NotNull Collection<String> roles)
             throws NoSuchRealmException, NoSuchUserException {
         try {
             Set<SpaceRole> spaceRoles = roles.stream().map(r -> SpaceRole.parse(r)).collect(Collectors.toSet());
-            Collection<SpaceRole> result = spaceRoleManager.setRoles(subjectId, spaceRoles);
+            Collection<SpaceRole> result = spaceRoleManager.setRoles(userId, spaceRoles);
 
             return ResponseEntity.ok(result);
         } catch (NoSuchSubjectException e) {
@@ -301,19 +204,19 @@ public class DevUsersController {
      * Attributes
      */
 
-    @GetMapping("/realms/{realm}/users/{subjectId}/attributes")
+    @GetMapping("/users/{realm}/{userId}/attributes")
     public ResponseEntity<Collection<UserAttributes>> getRealmUserAttributes(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
             throws NoSuchRealmException, NoSuchUserException {
-        Collection<UserAttributes> attributes = userManager.getUserAttributes(realm, subjectId);
+        Collection<UserAttributes> attributes = userManager.getUserAttributes(realm, userId);
         return ResponseEntity.ok(attributes);
     }
 
-    @PutMapping("/realms/{realm}/users/{subjectId}/attributes/{provider}/{identifier}")
+    @PutMapping("/users/{realm}/{userId}/attributes/{provider}/{identifier}")
     public ResponseEntity<UserAttributes> addRealmUserAttributes(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String provider,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String identifier,
             @RequestBody @Valid @NotNull Map<String, Serializable> attributes)
@@ -329,30 +232,30 @@ public class DevUsersController {
         }
 
         // register
-        UserAttributes ua = userManager.setUserAttributes(realm, subjectId, provider, identifier, attributes);
+        UserAttributes ua = userManager.setUserAttributes(realm, userId, provider, identifier, attributes);
 
         return ResponseEntity.ok(ua);
     }
 
-    @GetMapping("/realms/{realm}/users/{subjectId}/attributes/{provider}/{identifier}")
+    @GetMapping("/users/{realm}/{userId}/attributes/{provider}/{identifier}")
     public ResponseEntity<UserAttributes> getRealmUserAttributes(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String provider,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String identifier)
             throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException, NoSuchAttributeSetException {
-        UserAttributes ua = userManager.getUserAttributes(realm, subjectId, provider, identifier);
+        UserAttributes ua = userManager.getUserAttributes(realm, userId, provider, identifier);
         return ResponseEntity.ok(ua);
     }
 
-    @DeleteMapping("/realms/{realm}/users/{subjectId}/attributes/{provider}/{identifier}")
+    @DeleteMapping("/users/{realm}/{userId}/attributes/{provider}/{identifier}")
     public ResponseEntity<Void> removeRealmUserAttributes(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String provider,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String identifier)
             throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException, NoSuchAttributeSetException {
-        userManager.removeUserAttributes(realm, subjectId, provider, identifier);
+        userManager.removeUserAttributes(realm, userId, provider, identifier);
         return ResponseEntity.ok(null);
     }
 
@@ -360,57 +263,57 @@ public class DevUsersController {
      * Service approvals (permissions)
      */
 
-    @GetMapping("/realms/{realm}/users/{subjectId}/approvals")
+    @GetMapping("/users/{realm}/{userId}/approvals")
     public ResponseEntity<Collection<Approval>> getRealmUserApprovals(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
             throws NoSuchRealmException, NoSuchUserException {
-        Collection<Approval> approvals = userManager.getApprovals(realm, subjectId);
+        Collection<Approval> approvals = userManager.getApprovals(realm, userId);
         return ResponseEntity.ok(approvals);
     }
 
-    @GetMapping("/realms/{realm}/users/{subjectId}/apps")
+    @GetMapping("/users/{realm}/{userId}/apps")
     public ResponseEntity<Collection<ConnectedAppProfile>> getRealmUserApps(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
             throws NoSuchRealmException, NoSuchUserException {
-        Collection<ConnectedAppProfile> result = userManager.getConnectedApps(realm, subjectId);
+        Collection<ConnectedAppProfile> result = userManager.getConnectedApps(realm, userId);
         return ResponseEntity.ok(result);
     }
 
-    @DeleteMapping("/realms/{realm}/users/{subjectId}/apps/{clientId}")
+    @DeleteMapping("/users/{realm}/{userId}/apps/{clientId}")
     public ResponseEntity<Void> revokeRealmUserApps(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
             throws NoSuchRealmException, NoSuchUserException, NoSuchClientException {
-        userManager.deleteConnectedApp(realm, subjectId, clientId);
+        userManager.deleteConnectedApp(realm, userId, clientId);
         return ResponseEntity.ok(null);
     }
 
     /*
      * Audit
      */
-    @GetMapping("/realms/{realm}/users/{subjectId}/audit")
+    @GetMapping("/users/{realm}/{userId}/audit")
     public ResponseEntity<Collection<AuditEvent>> getRealmUserAudit(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
             @RequestParam(required = false, name = "after") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Optional<Date> after,
             @RequestParam(required = false, name = "before") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Optional<Date> before)
             throws NoSuchRealmException, NoSuchUserException {
-        Collection<AuditEvent> result = userManager.getAudit(realm, subjectId, after.orElse(null), before.orElse(null));
+        Collection<AuditEvent> result = userManager.getAudit(realm, userId, after.orElse(null), before.orElse(null));
         return ResponseEntity.ok(result);
     }
 
     /*
      * Tokens
      */
-    @GetMapping("/realms/{realm}/users/{subjectId}/tokens")
+    @GetMapping("/users/{realm}/{userId}/tokens")
     public ResponseEntity<Collection<OAuth2AccessToken>> getRealmUserTokens(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
             throws NoSuchRealmException, NoSuchUserException {
-        Collection<OAuth2AccessToken> result = userManager.getAccessTokens(realm, subjectId);
+        Collection<OAuth2AccessToken> result = userManager.getAccessTokens(realm, userId);
         return ResponseEntity.ok(result);
     }
 

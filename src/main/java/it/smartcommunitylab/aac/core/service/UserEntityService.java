@@ -178,10 +178,6 @@ public class UserEntityService {
         return updateStatus(uuid, UserStatus.BLOCKED);
     }
 
-    public UserEntity unblockUser(String uuid) throws NoSuchUserException {
-        return updateStatus(uuid, UserStatus.ACTIVE);
-    }
-
     public UserEntity updateStatus(String uuid, UserStatus newStatus) throws NoSuchUserException {
         UserEntity u = getUser(uuid);
 
