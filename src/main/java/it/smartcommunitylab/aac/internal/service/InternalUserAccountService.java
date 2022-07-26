@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.DuplicatedDataException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
@@ -59,16 +58,6 @@ public class InternalUserAccountService implements UserAccountService {
     }
 
     @Transactional(readOnly = true)
-    public InternalUserAccount findAccountByResetKey(String provider, String key) {
-        InternalUserAccount account = accountRepository.findByProviderAndResetKey(provider, key);
-        if (account == null) {
-            return null;
-        }
-
-        return accountRepository.detach(account);
-    }
-
-    @Transactional(readOnly = true)
     public InternalUserAccount findAccountByUuid(String provider, String uuid) {
         InternalUserAccount account = accountRepository.findByProviderAndUuid(provider, uuid);
         if (account == null) {
@@ -107,7 +96,6 @@ public class InternalUserAccountService implements UserAccountService {
             account.setUuid(reg.getUuid());
             account.setUserId(reg.getUserId());
             account.setRealm(reg.getRealm());
-//            account.setPassword(reg.getPassword());
             account.setStatus(reg.getStatus());
             account.setEmail(reg.getEmail());
             account.setName(reg.getName());
@@ -116,9 +104,6 @@ public class InternalUserAccountService implements UserAccountService {
             account.setConfirmed(reg.isConfirmed());
             account.setConfirmationDeadline(reg.getConfirmationDeadline());
             account.setConfirmationKey(reg.getConfirmationKey());
-            account.setResetDeadline(reg.getResetDeadline());
-            account.setResetKey(reg.getResetKey());
-            account.setChangeOnFirstAccess(reg.getChangeOnFirstAccess());
 
             account = accountRepository.saveAndFlush(account);
             account = accountRepository.detach(account);
@@ -149,7 +134,6 @@ public class InternalUserAccountService implements UserAccountService {
             account.setUuid(reg.getUuid());
             account.setUserId(reg.getUserId());
             account.setRealm(reg.getRealm());
-//            account.setPassword(reg.getPassword());
             account.setStatus(reg.getStatus());
             account.setEmail(reg.getEmail());
             account.setName(reg.getName());
@@ -158,9 +142,6 @@ public class InternalUserAccountService implements UserAccountService {
             account.setConfirmed(reg.isConfirmed());
             account.setConfirmationDeadline(reg.getConfirmationDeadline());
             account.setConfirmationKey(reg.getConfirmationKey());
-            account.setResetDeadline(reg.getResetDeadline());
-            account.setResetKey(reg.getResetKey());
-            account.setChangeOnFirstAccess(reg.getChangeOnFirstAccess());
 
             account = accountRepository.saveAndFlush(account);
             account = accountRepository.detach(account);

@@ -108,6 +108,25 @@ public class InternalUserPassword extends AbstractUserCredentials
         return password;
     }
 
+    @Override
+    public boolean isActive() {
+        return CredentialsStatus.ACTIVE.getValue().equals(status);
+    }
+
+    public boolean isExpired() {
+        return expirationDate == null ? false : expirationDate.before(new Date());
+    }
+
+    @Override
+    public boolean isRevoked() {
+        return CredentialsStatus.REVOKED.getValue().equals(status);
+    }
+
+    @Override
+    public boolean isChangeOnFirstAccess() {
+        return changeOnFirstAccess != null ? changeOnFirstAccess.booleanValue() : false;
+    }
+
     public void setProvider(String provider) {
         this.provider = provider;
     }
@@ -188,15 +207,6 @@ public class InternalUserPassword extends AbstractUserCredentials
     public void eraseCredentials() {
         this.password = null;
         this.resetKey = null;
-    }
-
-    @Override
-    public boolean isActive() {
-        return CredentialsStatus.ACTIVE.getValue().equals(status);
-    }
-
-    public boolean isExpired() {
-        return expirationDate == null ? false : expirationDate.before(new Date());
     }
 
 }

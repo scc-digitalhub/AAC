@@ -363,13 +363,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         List<Filter> filters = new ArrayList<>();
 
         InternalLoginAuthenticationFilter loginFilter = new InternalLoginAuthenticationFilter(
-                userAccountService, providerRepository);
+                userAccountService, passwordRepository, providerRepository);
         loginFilter.setAuthenticationManager(authManager);
         loginFilter.setAuthenticationSuccessHandler(successHandler());
         filters.add(loginFilter);
 
         InternalConfirmKeyAuthenticationFilter confirmKeyFilter = new InternalConfirmKeyAuthenticationFilter(
-                userAccountService, providerRepository);
+                userAccountService, passwordRepository, providerRepository);
         confirmKeyFilter.setAuthenticationManager(authManager);
         confirmKeyFilter.setAuthenticationSuccessHandler(successHandler());
 

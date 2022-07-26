@@ -74,6 +74,11 @@ angular.module('aac.controllers.realmusers', [])
                 return data.data;
             });
         }
+        service.listUserAccount = function (slug, subject) {
+            return $http.get('console/dev/users/' + slug + '/' + subject + '/identity').then(function (data) {
+                return data.data;
+            });
+        }
         service.getUserAccount = function (slug, subject, identityUuid) {
             return $http.get('console/dev/users/' + slug + '/' + subject + '/identity/' + identityUuid).then(function (data) {
                 return data.data;
@@ -662,6 +667,12 @@ angular.module('aac.controllers.realmusers', [])
 
         init();
 
+        $scope.inspectDlg = function (obj) {
+            $scope.modObj = obj;
+            $scope.modObj.json = JSON.stringify(obj, null, 3);
+            $('#inspectModal').modal({ keyboard: false });
+        }
+
 
         $scope.deleteUserDlg = function () {
             $scope.doDelete = function () {
@@ -702,88 +713,19 @@ angular.module('aac.controllers.realmusers', [])
                 });
         }
 
-        $scope.lockUserAccountDlg = function (uuid) {
-            $scope.lockUserAccount = function () {
-                $('#lockConfirm').modal('hide');
-                RealmUsers.lockUserAccount(slug, subjectId, uuid)
-                    .then(function (data) {
-                        $scope.load();
-                        Utils.showSuccess();
-                    }).catch(function (err) {
-                        Utils.showError(err.data.message);
-                    });
-            }
-            $('#lockConfirm').modal({ keyboard: false });
-        }
+        /*
+        * user accounts
+        */
+        $scope.loadIdentities = function () {
 
-        $scope.unlockUserAccount = function (uuid) {
-            RealmUsers.unlockUserAccount(slug, subjectId, uuid)
+            RealmUsers.listUserAccounts(slug, subjectId)
                 .then(function (data) {
-                    $scope.load();
-                    Utils.showSuccess();
-                }).catch(function (err) {
-                    Utils.showError(err.data.message);
+                    $scope.reloadIdentities(data);
+                })
+                .catch(function (err) {
+                    Utils.showError('Failed to load user identities: ' + err.data.message);
                 });
         }
-
-        $scope.verifyUserAccountDlg = function (uuid) {
-            $scope.verifyUserAccount = function () {
-                $('#verifyConfirm').modal('hide');
-                RealmUsers.verifyUserAccount(slug, subjectId, uuid)
-                    .then(function (data) {
-                        $scope.load();
-                        Utils.showSuccess();
-                    }).catch(function (err) {
-                        Utils.showError(err.data.message);
-                    });
-            }
-            $('#verifyConfirm').modal({ keyboard: false });
-        }
-
-        $scope.confirmUserAccountDlg = function (uuid) {
-            $scope.confirmUserAccount = function () {
-                $('#confirmConfirm').modal('hide');
-                RealmUsers.confirmUserAccount(slug, subjectId, uuid)
-                    .then(function (data) {
-                        $scope.load();
-                        Utils.showSuccess();
-                    }).catch(function (err) {
-                        Utils.showError(err.data.message);
-                    });
-            }
-            $('#confirmConfirm').modal({ keyboard: false });
-        }
-
-        $scope.unconfirmUserAccount = function (uuid) {
-            RealmUsers.unconfirmUserAccount(slug, subjectId, uuid)
-                .then(function (data) {
-                    $scope.load();
-                    Utils.showSuccess();
-                }).catch(function (err) {
-                    Utils.showError(err.data.message);
-                });
-        }
-
-        $scope.deleteUserAccountDlg = function (uuid) {
-            $scope.deleteUserAccount = function () {
-                $('#deleteAccountConfirm').modal('hide');
-                RealmUsers.removeUserAccount(slug, subjectId, uuid)
-                    .then(function (data) {
-                        $scope.load();
-                        Utils.showSuccess();
-                    }).catch(function (err) {
-                        Utils.showError(err.data.message);
-                    });
-            }
-            $('#deleteAccountConfirm').modal({ keyboard: false });
-        }
-
-        $scope.inspectDlg = function (obj) {
-            $scope.modObj = obj;
-            $scope.modObj.json = JSON.stringify(obj, null, 3);
-            $('#inspectModal').modal({ keyboard: false });
-        }
-
 
         $scope.reloadIdentities = function (data) {
             // var idps = $scope.idps;
@@ -801,6 +743,166 @@ angular.module('aac.controllers.realmusers', [])
 
             $scope.identities = identities;
         }
+
+        $scope.loadIdentity = function (uuid) {
+
+            RealmUsers.getUserAccount(slug, subjectId, uuid)
+                .then(function (data) {
+                    $scope.reloadIdentity(data);
+                })
+                .catch(function (err) {
+                    Utils.showError('Failed to load user identities: ' + err.data.message);
+                });
+        }
+
+        $scope.reloadIdentity = function (data) {
+            // var idps = $scope.idps;
+            if (data && $scope.identities) {
+                //map to Map to update, then back
+                // workaround since ng-repeat doesn't support Map...
+                var identities = new Map($scope.identities.map(i => [i.uuid, i]));
+                identities.set(data.uuid,
+                    {
+                        ...data,
+                        // providerId: i.provider,
+                        // provider: idps.get(i.providerId),
+                        icon: iconIdp(data.provider)
+                    }
+                );
+
+                //note: could lose previous ordering...
+                $scope.identities = Array.from(identities.values());
+            }
+        }
+
+
+        $scope.lockUserAccountDlg = function (uuid) {
+            $scope.lockUserAccount = function () {
+                $('#lockConfirm').modal('hide');
+                RealmUsers.lockUserAccount(slug, subjectId, uuid)
+                    .then(function (data) {
+                        $scope.reloadIdentity(data);
+                        Utils.showSuccess();
+                    }).catch(function (err) {
+                        Utils.showError(err.data.message);
+                    });
+            }
+            $('#lockConfirm').modal({ keyboard: false });
+        }
+
+        $scope.unlockUserAccount = function (uuid) {
+            RealmUsers.unlockUserAccount(slug, subjectId, uuid)
+                .then(function (data) {
+                    $scope.reloadIdentity(data);
+                    Utils.showSuccess();
+                }).catch(function (err) {
+                    Utils.showError(err.data.message);
+                });
+        }
+
+        $scope.verifyUserAccountDlg = function (uuid) {
+            $scope.verifyUserAccount = function () {
+                $('#verifyConfirm').modal('hide');
+                RealmUsers.verifyUserAccount(slug, subjectId, uuid)
+                    .then(function (data) {
+                        $scope.reloadIdentity(data);
+                        Utils.showSuccess();
+                    }).catch(function (err) {
+                        Utils.showError(err.data.message);
+                    });
+            }
+            $('#verifyConfirm').modal({ keyboard: false });
+        }
+
+        $scope.confirmUserAccountDlg = function (uuid) {
+            $scope.confirmUserAccount = function () {
+                $('#confirmConfirm').modal('hide');
+                RealmUsers.confirmUserAccount(slug, subjectId, uuid)
+                    .then(function (data) {
+                        $scope.reloadIdentity(data);
+                        Utils.showSuccess();
+                    }).catch(function (err) {
+                        Utils.showError(err.data.message);
+                    });
+            }
+            $('#confirmConfirm').modal({ keyboard: false });
+        }
+
+        $scope.unconfirmUserAccount = function (uuid) {
+            RealmUsers.unconfirmUserAccount(slug, subjectId, uuid)
+                .then(function (data) {
+                    $scope.reloadIdentity(data);
+                    Utils.showSuccess();
+                }).catch(function (err) {
+                    Utils.showError(err.data.message);
+                });
+        }
+
+        $scope.deleteUserAccountDlg = function (uuid) {
+            $scope.deleteUserAccount = function () {
+                $('#deleteAccountConfirm').modal('hide');
+                RealmUsers.removeUserAccount(slug, subjectId, uuid)
+                    .then(function () {
+                        $scope.loadIdentities();
+                        Utils.showSuccess();
+                    }).catch(function (err) {
+                        Utils.showError(err.data.message);
+                    });
+            }
+            $('#deleteAccountConfirm').modal({ keyboard: false });
+        }
+
+
+        $scope.editUserAccountDlg = function (uuid) {
+            var identity = $scope.identities.find(i => i.uuid === uuid);
+            if (identity && identity.account) {
+                $scope.modAccount = {
+                    ...identity.account,
+                    realm: slug
+                };
+
+                $('#editAccountModal').modal({ keyboard: false });
+                Utils.refreshFormBS(300);
+            }
+        }
+
+
+        $scope.updateUserAccount = function () {
+            $('#editAccountModal').modal('hide');
+            if ($scope.modAccount) {
+                var uuid = $scope.modAccount.uuid;
+
+                //extract only base editable props
+                //TODO handle per authority
+                var identity = $scope.identities.find(i => i.uuid === uuid);
+                if (identity && identity.account) {
+                    var account = {
+                        ...identity.account,
+                        name: $scope.modAccount.name,
+                        surname: $scope.modAccount.surname,
+                        email: $scope.modAccount.email
+                    };
+
+                    var data = {
+                        ...identity,
+                        account: account,
+                        attributes: []
+                    };
+
+                    RealmUsers.updateUserAccount(slug, subjectId, uuid, data)
+                        .then(function (data) {
+                            $scope.reloadIdentity(data);
+                            Utils.showSuccess();
+                        }).catch(function (err) {
+                            Utils.showError(err.data.message);
+                        });
+
+                }
+            }
+        }
+
+
+
 
 
         /*

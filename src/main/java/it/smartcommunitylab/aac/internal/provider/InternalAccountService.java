@@ -226,7 +226,6 @@ public class InternalAccountService extends AbstractProvider implements AccountS
 
         // set confirmed
         account.setConfirmed(confirmed);
-        account.setChangeOnFirstAccess(false);
 
         account = userAccountService.addAccount(repositoryId, username, account);
 
@@ -251,6 +250,8 @@ public class InternalAccountService extends AbstractProvider implements AccountS
         if (UserStatus.INACTIVE == curStatus) {
             throw new IllegalArgumentException("account is inactive, activate first to update status");
         }
+
+        // TODO evaluate username change (will require alignment of related model)
 
         String email = reg.getEmail();
         String name = reg.getName();
@@ -279,7 +280,7 @@ public class InternalAccountService extends AbstractProvider implements AccountS
         } else if (account.getEmail() == null && email != null) {
             // new email, check
             emailChanged = true;
-        } else if (account.getEmail() == null && email != null) {
+        } else if (account.getEmail() != null && email != null) {
             // check if new
             emailChanged = !account.getEmail().equals(email);
         }

@@ -58,7 +58,6 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
     private String realm;
 
     // login
-//    private String password;
     private String status;
 
     // attributes
@@ -77,15 +76,6 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
 
     @Column(name = "confirmation_key", unique = true, nullable = true)
     private String confirmationKey;
-
-    @Column(name = "reset_deadline")
-    private Date resetDeadline;
-
-    @Column(name = "reset_key", unique = true, nullable = true)
-    private String resetKey;
-
-    @Column(name = "change_first_access")
-    private Boolean changeOnFirstAccess;
 
     // audit
     @CreatedDate
@@ -250,34 +240,6 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
         this.confirmationKey = confirmationKey;
     }
 
-    public Date getResetDeadline() {
-        return resetDeadline;
-    }
-
-    public void setResetDeadline(Date resetDeadline) {
-        this.resetDeadline = resetDeadline;
-    }
-
-    public String getResetKey() {
-        return resetKey;
-    }
-
-    public void setResetKey(String resetKey) {
-        this.resetKey = resetKey;
-    }
-
-    public Boolean getChangeOnFirstAccess() {
-        return changeOnFirstAccess;
-    }
-
-    public void setChangeOnFirstAccess(Boolean changeOnFirstAccess) {
-        this.changeOnFirstAccess = changeOnFirstAccess;
-    }
-
-    public Boolean isChangeOnFirstAccess() {
-        return changeOnFirstAccess != null && changeOnFirstAccess;
-    }
-
     public Date getCreateDate() {
         return createDate;
     }
@@ -296,8 +258,6 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
 
     @Override
     public void eraseCredentials() {
-//        this.password = null;
-        this.resetKey = null;
         this.confirmationKey = null;
     }
 

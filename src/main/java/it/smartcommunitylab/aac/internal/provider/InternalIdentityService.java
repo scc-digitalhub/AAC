@@ -342,47 +342,6 @@ public abstract class InternalIdentityService<C extends UserCredentials> extends
 
     @Override
     @Transactional(readOnly = false)
-    public InternalUserIdentity registerIdentity(
-            String userId, UserIdentity registration)
-            throws NoSuchUserException, RegistrationException {
-        if (!config.isEnableRegistration()) {
-            throw new IllegalArgumentException("registration is disabled for this provider");
-        }
-
-        if (registration == null) {
-            throw new RegistrationException();
-        }
-
-        Assert.isInstanceOf(InternalUserIdentity.class, registration,
-                "registration must be an instance of internal user identity");
-        InternalUserIdentity reg = (InternalUserIdentity) registration;
-
-        // check email for confirmation when required
-        if (config.isConfirmationRequired()) {
-            if (reg.getEmailAddress() == null) {
-                throw new MissingDataException("email");
-            }
-
-            String email = Jsoup.clean(reg.getEmailAddress(), Safelist.none());
-            if (!StringUtils.hasText(email)) {
-                throw new MissingDataException("email");
-            }
-        }
-
-        // registration is create but user-initiated
-        InternalUserIdentity identity = createIdentity(userId, registration);
-        InternalUserAccount account = identity.getAccount();
-        String username = account.getUsername();
-
-        if (config.isConfirmationRequired() && !account.isConfirmed() && !account.isChangeOnFirstAccess()) {
-            account = accountService.verifyAccount(username);
-        }
-
-        return identity;
-    }
-
-    @Override
-    @Transactional(readOnly = false)
     public InternalUserIdentity createIdentity(
             String userId, UserIdentity registration)
             throws NoSuchUserException, RegistrationException {

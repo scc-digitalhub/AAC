@@ -371,7 +371,8 @@ public class UserManager {
     }
 
     @Transactional(readOnly = false)
-    public UserIdentity registerUserIdentity(String realm, String userId, String providerId, UserIdentity reg)
+    public UserIdentity registerUserIdentity(String realm, String userId, String providerId, UserIdentity reg,
+            UserCredentials credentials)
             throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException, RegistrationException {
         logger.debug("register user identity {} in realm {}", String.valueOf(reg), realm);
 
@@ -383,7 +384,7 @@ public class UserManager {
             ids = authorityManager.getIdentityService(providerId);
         } else {
             // discover type and try to fetch by authority
-            // TODO refactor
+            // TODO refactor and support credentials
             String authority = null;
             if (reg instanceof InternalUserIdentity) {
                 authority = SystemKeys.AUTHORITY_INTERNAL;
@@ -414,7 +415,8 @@ public class UserManager {
             throw new IllegalArgumentException("realm-mismatch");
         }
 
-        UserIdentity identity = ids.registerIdentity(userId, reg);
+        // TODO support credentials
+        UserIdentity identity = ids.registerIdentity(userId, reg, null);
         userId = identity.getUserId();
 
         logger.debug("register user new identity {} in realm {}", userId, realm);

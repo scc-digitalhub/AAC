@@ -30,7 +30,7 @@ public interface IdentityService<I extends UserIdentity, U extends UserAccount, 
             String userId, UserIdentity identity) throws NoSuchUserException, RegistrationException;
 
     public I registerIdentity(
-            String userId, UserIdentity identity) throws NoSuchUserException, RegistrationException;
+            String userId, UserIdentity identity, UserCredentials credentials) throws NoSuchUserException, RegistrationException;
 
     public I updateIdentity(
             String userId,

@@ -48,6 +48,7 @@ import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.RealmManager;
+import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
@@ -263,18 +264,19 @@ public class InternalRegistrationController {
             // build reg model
             InternalUserIdentity identity = new InternalUserIdentity(idp.getProvider(), idp.getRealm(), account);
 
-            // register
-            identity = idp.registerIdentity(subjectId, identity);
-
             // register password
+            UserCredentials credentials = null;
             if (passwordService != null && StringUtils.hasText(password)) {
                 InternalUserPassword pwd = new InternalUserPassword();
                 pwd.setUserId(identity.getUserId());
                 pwd.setUsername(username);
                 pwd.setPassword(password);
 
-                passwordService.setCredentials(username, pwd);
+                credentials = pwd;
             }
+
+            // register
+            identity = idp.registerIdentity(subjectId, identity, credentials);
 
             model.addAttribute("identity", identity);
 

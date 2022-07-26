@@ -50,6 +50,7 @@ public class InternalPasswordService extends AbstractProvider
 
     private final InternalUserAccountService accountService;
 
+    // TODO replace with service
     private final InternalUserPasswordRepository passwordRepository;
 
     // provider configuration

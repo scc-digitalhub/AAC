@@ -173,6 +173,27 @@ public class BaseUserController {
         return userManager.createUserIdentity(realm, userId, provider, reg);
     }
 
+    @GetMapping("/users/{realm}/{userId}/identity")
+    public Collection<UserIdentity> getUserIdentity(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
+            throws NoSuchUserException, NoSuchRealmException {
+        logger.debug("get identities for user {} for realm {}",
+                StringUtils.trimAllWhitespace(userId), StringUtils.trimAllWhitespace(realm));
+        // fetch from user
+        // TODO refactor
+        User user = userManager.getUser(realm, userId);
+        Collection<UserIdentity> identities = user.getIdentities();
+        identities.forEach(identity -> {
+            // clear credentials if loaded
+            if (identity instanceof CredentialsContainer) {
+                ((CredentialsContainer) identity).eraseCredentials();
+            }
+        });
+
+        return identities;
+    }
+
     @GetMapping("/users/{realm}/{userId}/identity/{identityUuid}")
     public UserIdentity getUserIdentity(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,

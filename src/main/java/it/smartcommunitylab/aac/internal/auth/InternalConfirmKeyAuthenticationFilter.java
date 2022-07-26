@@ -29,7 +29,11 @@ import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
+import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
+import it.smartcommunitylab.aac.internal.model.CredentialsType;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserPassword;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserPasswordRepository;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 
@@ -54,24 +58,33 @@ public class InternalConfirmKeyAuthenticationFilter extends AbstractAuthenticati
 //    private final RequestMatcher providerRealmRequestMatcher;
 
     private AuthenticationEntryPoint authenticationEntryPoint;
+
+    // TODO remove
     private final InternalUserAccountService userAccountService;
+    // TODO replace with service
+    private final InternalUserPasswordRepository passwordRepository;
 
     public InternalConfirmKeyAuthenticationFilter(InternalUserAccountService userAccountService,
+            InternalUserPasswordRepository passwordRepository,
             ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository) {
-        this(userAccountService, registrationRepository, DEFAULT_FILTER_URI, null);
+        this(userAccountService, passwordRepository, registrationRepository, DEFAULT_FILTER_URI, null);
     }
 
     public InternalConfirmKeyAuthenticationFilter(InternalUserAccountService userAccountService,
+            InternalUserPasswordRepository passwordRepository,
             ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository,
             String filterProcessingUrl, AuthenticationEntryPoint authenticationEntryPoint) {
         super(filterProcessingUrl);
         Assert.notNull(userAccountService, "user account service is required");
+        Assert.notNull(passwordRepository, "password repository is required");
+
         Assert.notNull(registrationRepository, "provider registration repository cannot be null");
         Assert.hasText(filterProcessingUrl, "filterProcessesUrl must contain a URL pattern");
         Assert.isTrue(filterProcessingUrl.contains("{registrationId}"),
                 "filterProcessesUrl must contain a {registrationId} match variable");
 
         this.userAccountService = userAccountService;
+        this.passwordRepository = passwordRepository;
         this.registrationRepository = registrationRepository;
 
 //        // build a matcher for all requests
@@ -169,13 +182,22 @@ public class InternalConfirmKeyAuthenticationFilter extends AbstractAuthenticati
 
         String username = account.getUsername();
 
-        HttpSession session = request.getSession(true);
-        if (session != null) {
-            // check if user needs to reset password, and add redirect
-            if (account.isChangeOnFirstAccess()) {
-                // TODO build url
-                session.setAttribute(RequestAwareAuthenticationSuccessHandler.SAVED_REQUEST,
-                        "/changepwd/" + providerId + "/" + account.getUuid());
+        if (CredentialsType.PASSWORD == providerConfig.getCredentialsType()) {
+            // fetch active password
+            InternalUserPassword credentials = passwordRepository
+                    .findByProviderAndUsernameAndStatusOrderByCreateDateDesc(
+                            repositoryId, username,
+                            CredentialsStatus.ACTIVE.getValue());
+            if (credentials != null) {
+                HttpSession session = request.getSession(true);
+                if (session != null) {
+                    // check if user needs to reset password, and add redirect
+                    if (credentials.isChangeOnFirstAccess()) {
+                        // TODO build url
+                        session.setAttribute(RequestAwareAuthenticationSuccessHandler.SAVED_REQUEST,
+                                "/changepwd/" + providerId + "/" + account.getUuid());
+                    }
+                }
             }
         }
 

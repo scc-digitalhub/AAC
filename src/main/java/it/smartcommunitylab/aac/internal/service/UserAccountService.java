@@ -11,8 +11,6 @@ public interface UserAccountService {
 
     public InternalUserAccount findAccountByConfirmationKey(String provider, String key);
 
-    public InternalUserAccount findAccountByResetKey(String provider, String key);
-
     public InternalUserAccount findAccountByUuid(String provider, String uuid);
 
     public List<InternalUserAccount> findAccountByEmail(String provider, String email);
