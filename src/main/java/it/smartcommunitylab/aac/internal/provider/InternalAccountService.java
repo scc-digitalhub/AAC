@@ -237,7 +237,7 @@ public class InternalAccountService extends AbstractProvider implements AccountS
             throws NoSuchUserException, RegistrationException {
         // TODO remove check here, should be on idp only
         if (!config.isEnableUpdate()) {
-            throw new IllegalArgumentException("delete is disabled for this provider");
+            throw new IllegalArgumentException("update is disabled for this provider");
         }
 
         InternalUserAccount account = userAccountService.findAccountByUsername(repositoryId, username);

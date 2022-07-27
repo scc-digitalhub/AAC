@@ -118,15 +118,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private InternalUserAccountService internalUserAccountService;
-    
-    @Qualifier("webAuthnRpRegistrationRepository")
-    private WebAuthnRpRegistrationRepository webAuthnRpRegistrationRepository;
-
-    @Autowired
-    private OAuth2ClientDetailsService oauth2ClientDetailsService;
-
-    @Autowired
-    private OAuth2ClientService oauth2ClientService;
 
     @Autowired
     private InternalUserPasswordRepository passwordRepository;
