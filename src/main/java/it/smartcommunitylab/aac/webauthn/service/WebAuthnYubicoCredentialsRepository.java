@@ -13,44 +13,42 @@ import com.yubico.webauthn.data.AuthenticatorTransport;
 import com.yubico.webauthn.data.ByteArray;
 import com.yubico.webauthn.data.PublicKeyCredentialDescriptor;
 import com.yubico.webauthn.data.PublicKeyCredentialType;
+import com.yubico.webauthn.data.exception.Base64UrlException;
 
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredential;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccount;
 
-/**
- * DEPRECATED: username is unique per provider
- * 
- * For this class, everytime we should use the 'username', we will instead use a
- * string in the following format: 'realmname{@link #separator}username'. This
- * is due to the fact that yubico's library assumes that two distinct users can
- * not have the same username (https://git.io/JD5Vr).
- */
 public class WebAuthnYubicoCredentialsRepository implements CredentialRepository {
 
     private final String providerId;
-    private final WebAuthnUserAccountService userAccountService;
+    private final InternalUserAccountService userAccountService;
+    private final WebAuthnCredentialsService credentialsService;
 
-    public WebAuthnYubicoCredentialsRepository(String provider,
-            WebAuthnUserAccountService webAuthnUserAccountService) {
-        Assert.hasText(provider, "provider identifier is required");
-        Assert.notNull(webAuthnUserAccountService, "WebAuthn account service is mandatory");
-        this.userAccountService = webAuthnUserAccountService;
-        this.providerId = provider;
+    public WebAuthnYubicoCredentialsRepository(String providerId,
+            InternalUserAccountService userAccountService,
+            WebAuthnCredentialsService credentialsService) {
+        Assert.hasText(providerId, "provider identifier is required");
+        Assert.notNull(userAccountService, "account service is mandatory");
+        Assert.notNull(credentialsService, "credentials service is mandatory");
+
+        this.userAccountService = userAccountService;
+        this.credentialsService = credentialsService;
+        this.providerId = providerId;
     }
 
     @Override
     public Set<PublicKeyCredentialDescriptor> getCredentialIdsForUsername(String username) {
-        WebAuthnUserAccount account = userAccountService.findAccountByUsername(providerId, username);
+        InternalUserAccount account = userAccountService.findAccountByUsername(providerId, username);
         if (account == null) {
             return Collections.emptySet();
         }
 
-        // fetch all credentials for this user
-        List<WebAuthnCredential> credentials = userAccountService.findCredentialsByUserHandle(providerId,
-                account.getUserHandle());
+        // fetch all active credentials for this user
+        List<WebAuthnCredential> credentials = credentialsService.findActiveCredentialsByUsername(providerId, username);
 
         // build descriptors
         Set<PublicKeyCredentialDescriptor> descriptors = new HashSet<>();
@@ -71,24 +69,32 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
 
     @Override
     public Optional<ByteArray> getUserHandleForUsername(String username) {
-        WebAuthnUserAccount account = userAccountService.findAccountByUsername(providerId, username);
+        InternalUserAccount account = userAccountService.findAccountByUsername(providerId, username);
         if (account == null) {
             return Optional.empty();
         }
 
-        // yubico userhandle is base64
-        return Optional.of(ByteArray.fromBase64(account.getUserHandle()));
+//         yubico userhandle is uuid as base64
+//        String userHandle = Base64.getUrlEncoder().withoutPadding().encodeToString(account.getUuid().getBytes());
+//        return Optional.of(ByteArray.fromBase64(userHandle));
+
+        // yubico userhandle is uuid
+        return Optional.of(new ByteArray(account.getUuid().getBytes()));
     }
 
     @Override
-    public Optional<String> getUsernameForUserHandle(ByteArray userHandle) {
-        if (userHandle == null) {
+    public Optional<String> getUsernameForUserHandle(ByteArray bytes) {
+        if (bytes == null) {
             return Optional.empty();
         }
 
-        // yubico userhandle is base64
-        String uId = userHandle.getBase64();
-        WebAuthnUserAccount account = userAccountService.findAccountByUserHandle(providerId, uId);
+//        // yubico userhandle is base64
+//        String userHandle = bytes.getBase64Url();
+//        String uuid = new String(Base64.getUrlDecoder().decode(userHandle.getBytes()));
+
+        // yubico userhandle is uuid
+        String uuid = new String(bytes.getBytes());
+        InternalUserAccount account = userAccountService.findAccountByUuid(providerId, uuid);
         if (account == null) {
             return Optional.empty();
         }
@@ -102,23 +108,19 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
             return Optional.empty();
         }
 
-        // yubico userhandle is base64
-        String uId = userHandle.getBase64();
-        WebAuthnUserAccount account = userAccountService.findAccountByUserHandle(providerId, uId);
-        if (account == null) {
-            return Optional.empty();
-        }
-
-        // fetch credentials
-        String cId = credentialId.getBase64();
-        WebAuthnCredential credential = userAccountService.findByCredentialByUserHandleAndId(providerId,
-                account.getUserHandle(), cId);
+        // we use yubico ids as base64
+        WebAuthnCredential credential = credentialsService.findCredentialByUserHandleAndCredentialId(providerId,
+                credentialId.getBase64Url(), userHandle.getBase64Url());
         if (credential == null) {
             return Optional.empty();
         }
 
         // convert model to yubico
-        return Optional.of(getRegisteredCredential(credential));
+        try {
+            return Optional.of(toRegisteredCredential(credential));
+        } catch (Base64UrlException e) {
+            return Optional.empty();
+        }
     }
 
     @Override
@@ -127,23 +129,28 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
             return Collections.emptySet();
         }
 
-        // yubico userhandle is base64
-        String cId = credentialId.getBase64();
+        // we use yubico ids as base64
+        List<WebAuthnCredential> credentials = credentialsService.findCredentialsByCredentialId(providerId,
+                credentialId.getBase64Url());
+        return credentials.stream()
+                .map(c -> {
+                    try {
+                        return toRegisteredCredential(c);
+                    } catch (Base64UrlException e) {
+                        return null;
+                    }
+                })
+                .filter(c -> c != null)
+                .collect(Collectors.toSet());
 
-        // In our database the credentialID already has a unique constraint
-        WebAuthnCredential credential = userAccountService.findCredentialById(providerId, cId);
-        if (credential == null) {
-            return Collections.emptySet();
-        }
-
-        // convert model to yubico
-        return Collections.singleton(getRegisteredCredential(credential));
     }
 
-    private RegisteredCredential getRegisteredCredential(WebAuthnCredential credential) {
-        return RegisteredCredential.builder().credentialId(ByteArray.fromBase64(credential.getCredentialId()))
-                .userHandle(ByteArray.fromBase64(credential.getUserHandle()))
+    private RegisteredCredential toRegisteredCredential(WebAuthnCredential credential) throws Base64UrlException {
+        return RegisteredCredential.builder()
+                .credentialId(ByteArray.fromBase64Url(credential.getCredentialId()))
+                .userHandle(ByteArray.fromBase64Url(credential.getUserHandle()))
                 .publicKeyCose(ByteArray.fromBase64(credential.getPublicKeyCose()))
-                .signatureCount(credential.getSignatureCount()).build();
+                .signatureCount(credential.getSignatureCount())
+                .build();
     }
 }

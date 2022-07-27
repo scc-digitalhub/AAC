@@ -1,33 +1,60 @@
 package it.smartcommunitylab.aac.webauthn.persistence;
 
+import java.io.Serializable;
 import java.util.Date;
+import java.util.Map;
 
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
 import javax.persistence.Id;
-import javax.persistence.IdClass;
+import javax.persistence.Lob;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotBlank;
 
-@Entity
-@IdClass(WebAuthnCredentialId.class)
-@Table(name = "webauthn_credentials")
-public class WebAuthnCredential {
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.security.core.CredentialsContainer;
 
-    // credential id
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.base.AbstractUserCredentials;
+import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
+import it.smartcommunitylab.aac.internal.model.CredentialsType;
+import it.smartcommunitylab.aac.internal.model.InternalUserCredential;
+import it.smartcommunitylab.aac.repository.HashMapConverter;
+
+@Entity
+@Table(name = "internal_users_webauthn_credentials", uniqueConstraints = @UniqueConstraint(columnNames = {
+        "provider_id", "user_handle", "credential_id" }))
+@EntityListeners(AuditingEntityListener.class)
+public class WebAuthnCredential extends AbstractUserCredentials
+        implements InternalUserCredential, CredentialsContainer, Serializable {
+
+    private static final long serialVersionUID = SystemKeys.AAC_WEBAUTHN_SERIAL_VERSION;
+
+    // id is internal
     @Id
     @NotBlank
-    @Column(name = "provider_id")
+    @Column(name = "id", length = 128)
+    private String id;
+
+    @NotBlank
+    @Column(name = "provider_id", length = 128)
     private String provider;
 
-    @Id
+    // account id (with the same provider)
     @NotBlank
-    @Column(name = "credential_id")
-    private String credentialId;
+    @Column(name = "username", length = 128)
+    private String username;
 
-    @Column(name = "user_handle", nullable = false)
+    @NotBlank
+    @Column(name = "user_handle")
     private String userHandle;
 
     /**
@@ -43,80 +70,139 @@ public class WebAuthnCredential {
     /**
      * Public key of this credential
      */
+    @NotBlank
+    @Column(name = "credential_id", length = 128)
+    private String credentialId;
+
+    @NotBlank
     @Column(name = "public_key_cose")
     private String publicKeyCose;
 
     @Column(name = "signature_count")
     private long signatureCount = 0L;
 
-    /**
-     * Comma-separated list of the transports
-     */
     @Column(name = "transports")
     private String transports;
 
+    @Column(name = "discoverable")
+    private Boolean discoverable;
+
+    @Column(name = "status", length = 32)
+    private String status;
+
+    /*
+     * Additional fields
+     */
+    @Lob
+    @Column(name = "attestation_object")
+    @Convert(converter = HashMapConverter.class)
+    private Map<String, Serializable> attestationObject;
+
+    @Lob
+    @Column(name = "client_data")
+    @Convert(converter = HashMapConverter.class)
+    private Map<String, Serializable> clientData;
+
+    /*
+     * Audit
+     */
+
+    @CreatedDate
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "created_on")
-    private Date createdOn;
+    @Column(name = "created_date")
+    private Date createDate;
 
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "last_used_on")
-    private Date lastUsedOn;
+    @Column(name = "last_used_date")
+    private Date lastUsedDate;
 
+    private transient String realm;
+
+    public WebAuthnCredential() {
+        super(SystemKeys.AUTHORITY_INTERNAL, null, null, null);
+    }
+
+    @Override
     public String getProvider() {
         return provider;
+    }
+
+    @Override
+    public String getId() {
+        return id;
+    }
+
+    @Override
+    public CredentialsType getCredentialsType() {
+        return CredentialsType.PASSWORD;
+    }
+
+    @Override
+    public String getType() {
+        return SystemKeys.RESOURCE_CREDENTIALS + "_" + CredentialsType.PASSWORD.getValue();
+    }
+
+    @Override
+    public String getUuid() {
+        return credentialId;
+    }
+
+    @Override
+    @JsonIgnore
+    public String getCredentials() {
+        return publicKeyCose;
+    }
+
+    @Override
+    public boolean isActive() {
+        return CredentialsStatus.ACTIVE.getValue().equals(status);
+    }
+
+    @Override
+    public boolean isExpired() {
+        return false;
+    }
+
+    @Override
+    public boolean isRevoked() {
+        return CredentialsStatus.REVOKED.getValue().equals(status);
+    }
+
+    @Override
+    public boolean isChangeOnFirstAccess() {
+        return false;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public void setProvider(String provider) {
         this.provider = provider;
     }
 
-    public void setCredentialId(String credentialId) {
-        this.credentialId = credentialId;
-    }
-
     public String getCredentialId() {
         return credentialId;
     }
 
-    public Date getCreatedOn() {
-        return createdOn;
+    public void setCredentialId(String credentialId) {
+        this.credentialId = credentialId;
     }
 
-    public Date getLastUsedOn() {
-        return lastUsedOn;
+    public String getUsername() {
+        return username;
     }
 
-    public void setCreatedOn(Date createdOn) {
-        this.createdOn = createdOn;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
-    public void setLastUsedOn(Date lastUsedOn) {
-        this.lastUsedOn = lastUsedOn;
+    public String getUserHandle() {
+        return userHandle;
     }
 
-    public void setPublicKeyCose(String publicKeyCose) {
-        this.publicKeyCose = publicKeyCose;
-    }
-
-    public String getPublicKeyCose() {
-        return publicKeyCose;
-    }
-
-    public String getTransports() {
-        return transports;
-    }
-
-    public void setTransports(String transports) {
-        this.transports = transports;
-    }
-
-    public void setSignatureCount(long signatureCount) {
-        this.signatureCount = signatureCount;
-    }
-
-    public long getSignatureCount() {
-        return signatureCount;
+    public void setUserHandle(String userHandle) {
+        this.userHandle = userHandle;
     }
 
     public String getDisplayName() {
@@ -127,11 +213,92 @@ public class WebAuthnCredential {
         this.displayName = displayName;
     }
 
-    public String getUserHandle() {
-        return userHandle;
+    public String getPublicKeyCose() {
+        return publicKeyCose;
     }
 
-    public void setUserHandle(String userHandle) {
-        this.userHandle = userHandle;
+    public void setPublicKeyCose(String publicKeyCose) {
+        this.publicKeyCose = publicKeyCose;
+    }
+
+    public long getSignatureCount() {
+        return signatureCount;
+    }
+
+    public void setSignatureCount(long signatureCount) {
+        this.signatureCount = signatureCount;
+    }
+
+    public String getTransports() {
+        return transports;
+    }
+
+    public void setTransports(String transports) {
+        this.transports = transports;
+    }
+
+    public Boolean getDiscoverable() {
+        return discoverable;
+    }
+
+    public void setDiscoverable(Boolean discoverable) {
+        this.discoverable = discoverable;
+    }
+
+    public boolean isDiscoverable() {
+        return this.discoverable != null ? this.discoverable.booleanValue() : true;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public Date getCreateDate() {
+        return createDate;
+    }
+
+    public void setCreateDate(Date createDate) {
+        this.createDate = createDate;
+    }
+
+    public Date getLastUsedDate() {
+        return lastUsedDate;
+    }
+
+    public void setLastUsedDate(Date lastUsedDate) {
+        this.lastUsedDate = lastUsedDate;
+    }
+
+    public String getRealm() {
+        return realm;
+    }
+
+    public void setRealm(String realm) {
+        this.realm = realm;
+    }
+
+    public Map<String, Serializable> getAttestationObject() {
+        return attestationObject;
+    }
+
+    public void setAttestationObject(Map<String, Serializable> attestationObject) {
+        this.attestationObject = attestationObject;
+    }
+
+    public Map<String, Serializable> getClientData() {
+        return clientData;
+    }
+
+    public void setClientData(Map<String, Serializable> clientData) {
+        this.clientData = clientData;
+    }
+
+    @Override
+    public void eraseCredentials() {
+        this.publicKeyCose = null;
     }
 }

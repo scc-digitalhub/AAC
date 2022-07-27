@@ -9,11 +9,16 @@ import it.smartcommunitylab.aac.repository.DetachableJpaRepository;
 
 @Repository
 public interface WebAuthnCredentialsRepository
-        extends CustomJpaRepository<WebAuthnCredential, WebAuthnCredentialId>,
+        extends CustomJpaRepository<WebAuthnCredential, String>,
         DetachableJpaRepository<WebAuthnCredential> {
-
-    List<WebAuthnCredential> findByProviderAndUserHandle(String provider, String userHandle);
 
     WebAuthnCredential findByProviderAndUserHandleAndCredentialId(String provider, String userHandle,
             String credentialId);
+
+    List<WebAuthnCredential> findByProviderAndCredentialId(String provider, String credentialId);
+
+    List<WebAuthnCredential> findByProviderAndUsername(String provider, String username);
+
+    List<WebAuthnCredential> findByProviderAndUserHandle(String provider, String userHandle);
+
 }
