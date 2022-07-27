@@ -10,8 +10,4 @@ public abstract class AbstractUserCredentials extends AbstractBaseUserResource i
         super(authority, provider, realm, userId);
     }
 
-    @Override
-    public final String getType() {
-        return SystemKeys.RESOURCE_CREDENTIALS;
-    }
 }

@@ -30,7 +30,10 @@ import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserPassword;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserPasswordRepository;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
+import it.smartcommunitylab.aac.internal.provider.InternalPasswordService;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 
 /*
@@ -55,24 +58,31 @@ public class InternalResetKeyAuthenticationFilter extends AbstractAuthentication
 //    private final RequestMatcher providerRealmRequestMatcher;
 
     private AuthenticationEntryPoint authenticationEntryPoint;
+
+    // TODO remove services and build resetPassword action url after auth success
     private final InternalUserAccountService userAccountService;
+    private final InternalUserPasswordRepository passwordRepository;
 
     public InternalResetKeyAuthenticationFilter(InternalUserAccountService userAccountService,
+            InternalUserPasswordRepository passwordRepository,
             ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository) {
-        this(userAccountService, registrationRepository, DEFAULT_FILTER_URI, null);
+        this(userAccountService, passwordRepository, registrationRepository, DEFAULT_FILTER_URI, null);
     }
 
     public InternalResetKeyAuthenticationFilter(InternalUserAccountService userAccountService,
+            InternalUserPasswordRepository passwordRepository,
             ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository,
             String filterProcessingUrl, AuthenticationEntryPoint authenticationEntryPoint) {
         super(filterProcessingUrl);
         Assert.notNull(userAccountService, "user account service is required");
+        Assert.notNull(passwordRepository, "password repository is mandatory");
         Assert.notNull(registrationRepository, "provider registration repository cannot be null");
         Assert.hasText(filterProcessingUrl, "filterProcessesUrl must contain a URL pattern");
         Assert.isTrue(filterProcessingUrl.contains("{registrationId}"),
                 "filterProcessesUrl must contain a {registrationId} match variable");
 
         this.userAccountService = userAccountService;
+        this.passwordRepository = passwordRepository;
         this.registrationRepository = registrationRepository;
 
         // we need to build a custom requestMatcher to extract variables from url
@@ -142,10 +152,17 @@ public class InternalResetKeyAuthenticationFilter extends AbstractAuthentication
 
         // fetch account
         // TODO remove, let authProvider handle
-        InternalUserAccount account = userAccountService.findAccountByResetKey(providerId, code);
+        InternalUserPassword password = passwordRepository.findByProviderAndResetKey(providerId, code);
+        if (password == null) {
+            // don't leak user does not exists
+            throw new BadCredentialsException("invalid-key");
+        }
+
+        String repositoryId = providerConfig.getRepositoryId();
+        InternalUserAccount account = userAccountService.findAccountByUsername(repositoryId, password.getUsername());
         if (account == null) {
             // don't leak user does not exists
-            throw new BadCredentialsException("invalid confirm code");
+            throw new BadCredentialsException("invalid-key");
         }
 
         String username = account.getUsername();

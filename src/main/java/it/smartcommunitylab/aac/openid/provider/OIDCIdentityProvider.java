@@ -338,6 +338,20 @@ public class OIDCIdentityProvider extends AbstractProvider
 
     @Override
     @Transactional(readOnly = false)
+    public OIDCUserIdentity linkIdentity(String userId, String username) throws NoSuchUserException {
+        // get the internal account entity
+        OIDCUserAccount account = accountProvider.getAccount(username);
+
+        // re-link to new userId
+        account = accountProvider.linkAccount(username, userId);
+
+        // use builder, skip attributes
+        OIDCUserIdentity identity = new OIDCUserIdentity(getAuthority(), getProvider(), getRealm(), account);
+        return identity;
+    }
+
+    @Override
+    @Transactional(readOnly = false)
     public void deleteIdentity(String subject) throws NoSuchUserException {
         // cleanup attributes
         attributeProvider.deleteAccountAttributes(subject);

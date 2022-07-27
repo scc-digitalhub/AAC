@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.internal.model.CredentialsType;
 
 public class InternalIdentityProviderConfig extends AbstractIdentityProviderConfig {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
@@ -50,6 +51,24 @@ public class InternalIdentityProviderConfig extends AbstractIdentityProviderConf
         configMap.setConfiguration(props);
     }
 
+    public String getRepositoryId() {
+        // isolated providers will use their id as providerId for data repositories
+        // otherwise they'll expose realm slug as id
+        if (isolateData()) {
+            return this.getProvider();
+        } else {
+            return this.getRealm();
+        }
+    }
+
+    public CredentialsType getCredentialsType() {
+        return configMap.getCredentialsType() != null ? configMap.getCredentialsType() : CredentialsType.PASSWORD;
+    }
+
+    public boolean isolateData() {
+        return configMap.getIsolateData() != null ? configMap.getIsolateData().booleanValue() : false;
+    }
+
     /*
      * config flags
      */
@@ -75,6 +94,12 @@ public class InternalIdentityProviderConfig extends AbstractIdentityProviderConf
 
     public boolean isPasswordRequireAlpha() {
         return configMap.getPasswordRequireAlpha() != null ? configMap.getPasswordRequireAlpha().booleanValue() : false;
+    }
+
+    public boolean isPasswordRequireUppercaseAlpha() {
+        return configMap.getPasswordRequireUppercaseAlpha() != null
+                ? configMap.getPasswordRequireUppercaseAlpha().booleanValue()
+                : false;
     }
 
     public boolean isPasswordRequireNumber() {
@@ -124,6 +149,16 @@ public class InternalIdentityProviderConfig extends AbstractIdentityProviderConf
     public int getPasswordMaxLength() {
         return configMap.getPasswordMaxLength() != null ? configMap.getPasswordMaxLength().intValue()
                 : PASSWORD_MAX_LENGTH;
+    }
+
+    public int getPasswordKeepNumber() {
+        return configMap.getPasswordKeepNumber() != null ? configMap.getPasswordKeepNumber().intValue()
+                : 0;
+    }
+
+    public int getPasswordMaxDays() {
+        return configMap.getPasswordMaxDays() != null ? configMap.getPasswordMaxDays().intValue()
+                : -1;
     }
     /*
      * builders

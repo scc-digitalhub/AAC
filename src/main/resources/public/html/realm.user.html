@@ -8,21 +8,10 @@
             <button class="btn btn-secondary btn-sm  text-right" ng-click="inspectDlg(user)">Inspect</button>
             <button class="btn btn-primary btn-sm  text-right" ng-click="manageAuthoritiesDlg()">Authorities</button>
 
-            <button class="btn btn-warning btn-sm  text-right" ng-if="!user.locked" ng-disabled="user.blocked"
-                ng-click="lockUserDlg()">Lock</button>
-            <button class="btn btn-success btn-sm  text-right" ng-if="user.locked" ng-disabled="user.blocked"
-                ng-click="unlockUser()">Unlock</button>
-
-
-            <button class="btn btn-warning btn-sm  text-right" ng-if="!user.blocked"
+            <button class="btn btn-warning btn-sm  text-right" ng-if="user.status == 'active'"
                 ng-click="blockUserDlg()">Block</button>
-            <button class="btn btn-success btn-sm  text-right" ng-if="user.blocked"
+            <button class="btn btn-success btn-sm  text-right" ng-if="user.status == 'blocked'"
                 ng-click="unblockUser()">Unblock</button>
-
-            <button class="btn btn-success btn-sm  text-right" ng-if="!user.emailVerified" ng-disabled="user.blocked"
-                ng-click="verifyUserDlg()">Verify</button>
-            <button class="btn btn-warning btn-sm  text-right" ng-if="user.emailVerified" ng-disabled="user.blocked"
-                ng-click="unverifyUser()">Un-verify</button>
 
             <button class="btn btn-danger btn-sm  text-right" ng-click="deleteUserDlg()">Delete</button>
         </div>
@@ -78,7 +67,7 @@
         </li>
         <li class="nav-item">
             <a class="nav-link {{activeView('groups')}}" href ng-click="switchView('groups')">Groups</a>
-        </li>        
+        </li>
         <li class="nav-item">
             <a class="nav-link {{activeView('roles')}}" href ng-click="switchView('roles')">Roles</a>
         </li>
@@ -125,7 +114,7 @@
                     will keep working until expiration.</p>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-danger btn-sm" ng-click="lockUser()" type="button">Lock</button>
+                <button class="btn btn-danger btn-sm" ng-click="lockUserAccount()" type="button">Lock</button>
                 <button class="btn btn-outline-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
             </div>
         </div>
@@ -154,10 +143,41 @@
         <div class="modal-content">
             <div class="modal-body">
                 <p>Are you sure you want to proceed?</p>
-                <p class="text-danger">Verifying a user account will trust the provided emailAddress.</p>
+                <p class="text-danger">Verifying a user account will un-confirm email and send a confirm link for
+                    verification</p>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-danger btn-sm" ng-click="verifyUser()" type="button">Verify</button>
+                <button class="btn btn-danger btn-sm" ng-click="verifyUserAccount()" type="button">Verify</button>
+                <button class="btn btn-outline-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="confirmConfirm">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <p>Are you sure you want to proceed?</p>
+                <p class="text-danger">Confirming a user account will trust the provided emailAddress.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger btn-sm" ng-click="confirmUserAccount()" type="button">Confirm</button>
+                <button class="btn btn-outline-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="deleteAccountConfirm">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <p>Are you sure you want to delete?</p>
+                <p class="text-danger">ATTENTION: This operation cannot be undone!</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger btn-sm" ng-click="deleteUserAccount()" type="button">Delete</button>
                 <button class="btn btn-outline-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
             </div>
         </div>

@@ -59,6 +59,7 @@ import it.smartcommunitylab.aac.crypto.InternalPasswordEncoder;
 import it.smartcommunitylab.aac.internal.auth.InternalConfirmKeyAuthenticationFilter;
 import it.smartcommunitylab.aac.internal.auth.InternalLoginAuthenticationFilter;
 import it.smartcommunitylab.aac.internal.auth.InternalResetKeyAuthenticationFilter;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserPasswordRepository;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.openid.apple.AppleIdentityAuthority;
@@ -117,6 +118,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private InternalUserAccountService internalUserAccountService;
+
+    @Autowired
+    private InternalUserPasswordRepository passwordRepository;
 
     @Autowired
     private ExtendedUserAuthenticationManager authManager;
@@ -250,7 +254,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //                // TODO replace with filterRegistrationBean and explicitely map urls
                 .addFilterBefore(
                         getInternalAuthorityFilters(authManager, internalProviderRepository,
-                                internalUserAccountService),
+                                internalUserAccountService, passwordRepository),
                         BasicAuthenticationFilter.class)
                 .addFilterBefore(
                         getSamlAuthorityFilters(authManager, samlProviderRepository,
@@ -354,25 +358,25 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     public CompositeFilter getInternalAuthorityFilters(AuthenticationManager authManager,
             ProviderConfigRepository<InternalIdentityProviderConfig> providerRepository,
-            InternalUserAccountService userAccountService) {
+            InternalUserAccountService userAccountService, InternalUserPasswordRepository passwordRepository) {
 
         List<Filter> filters = new ArrayList<>();
 
         InternalLoginAuthenticationFilter loginFilter = new InternalLoginAuthenticationFilter(
-                userAccountService, providerRepository);
+                userAccountService, passwordRepository, providerRepository);
         loginFilter.setAuthenticationManager(authManager);
         loginFilter.setAuthenticationSuccessHandler(successHandler());
         filters.add(loginFilter);
 
         InternalConfirmKeyAuthenticationFilter confirmKeyFilter = new InternalConfirmKeyAuthenticationFilter(
-                userAccountService, providerRepository);
+                userAccountService, passwordRepository, providerRepository);
         confirmKeyFilter.setAuthenticationManager(authManager);
         confirmKeyFilter.setAuthenticationSuccessHandler(successHandler());
 
         filters.add(confirmKeyFilter);
 
         InternalResetKeyAuthenticationFilter resetKeyFilter = new InternalResetKeyAuthenticationFilter(
-                userAccountService, providerRepository);
+                userAccountService, passwordRepository, providerRepository);
         resetKeyFilter.setAuthenticationManager(authManager);
         resetKeyFilter.setAuthenticationSuccessHandler(successHandler());
         filters.add(resetKeyFilter);

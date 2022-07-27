@@ -415,14 +415,23 @@ public class RealmManager {
             user = userService.findUser(subjectId);
         }
         if (user == null && StringUtils.hasText(email)) {
-            // lookup by email
+            // lookup by email in system
             user = userService.findUsersByEmailAddress(SystemKeys.REALM_SYSTEM, email).stream().findFirst()
                     .orElse(null);
         }
 
+        if (user == null && StringUtils.hasText(email)) {
+            // invite in sys realm by email
+            try {
+                user = userManager.inviteUser(SystemKeys.REALM_SYSTEM, email);
+            } catch (NoSuchRealmException | NoSuchProviderException e) {
+                // nothing we can do, registration is unavailable
+            }
+        }
+
         if (user == null) {
-            // TODO invite in sys realm by email
-            throw new IllegalArgumentException("user must already exists");
+            // error
+            throw new IllegalArgumentException("user must already exists or provide a valid email");
         }
 
         // assign developer role

@@ -98,7 +98,15 @@ angular.module('aac.controllers.main', [])
 //         //split userid and redirect
 //         var path = userId.replaceAll("|", "/");
       }
-
+      $scope.updateAccount = function(authority, provider, uuid) {
+        if(authority == 'internal') {
+           //redirect to changeaccount
+           //TODO handle in service
+           window.location.href = './changeaccount/'+provider+'/' + uuid;
+        }
+//         //split userid and redirect
+//         var path = userId.replaceAll("|", "/");
+     }
       $scope.confirmDeleteAccount = function() {
          $('#deleteConfirm').modal({ keyboard: false });
       }

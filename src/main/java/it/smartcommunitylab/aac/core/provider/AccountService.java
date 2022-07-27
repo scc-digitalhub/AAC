@@ -13,7 +13,7 @@ public interface AccountService<U extends UserAccount> extends AccountProvider<U
      * 
      * userId is globally addressable
      */
-    public U registerAccount(
+    public U createAccount(
             String userId,
             U account) throws NoSuchUserException, RegistrationException;
 
@@ -21,8 +21,18 @@ public interface AccountService<U extends UserAccount> extends AccountProvider<U
             String accountId,
             U account) throws NoSuchUserException, RegistrationException;
 
+    /*
+     * Account confirmation
+     * 
+     * verify will trigger account verification via provider
+     * 
+     * confirm/unconfirm directly change status
+     */
+
     public U verifyAccount(String accountId) throws NoSuchUserException, RegistrationException;
 
-    public U unverifyAccount(String accountId) throws NoSuchUserException, RegistrationException;
+    public U confirmAccount(String accountId) throws NoSuchUserException, RegistrationException;
+
+    public U unconfirmAccount(String accountId) throws NoSuchUserException, RegistrationException;
 
 }

@@ -1,9 +1,10 @@
-package it.smartcommunitylab.aac.internal.dto;
+package it.smartcommunitylab.aac.internal.model;
 
 public class PasswordPolicy {
     private int passwordMinLength = 5;
     private int passwordMaxLength = 12;
     private boolean passwordRequireAlpha = true;
+    private boolean passwordRequireUppercaseAlpha = false;
     private boolean passwordRequireNumber = true;
     private boolean passwordRequireSpecial = false;
     private boolean passwordSupportWhitespace = false;
@@ -30,6 +31,14 @@ public class PasswordPolicy {
 
     public void setPasswordRequireAlpha(boolean passwordRequireAlpha) {
         this.passwordRequireAlpha = passwordRequireAlpha;
+    }
+
+    public boolean isPasswordRequireUppercaseAlpha() {
+        return passwordRequireUppercaseAlpha;
+    }
+
+    public void setPasswordRequireUppercaseAlpha(boolean passwordRequireUppercaseAlpha) {
+        this.passwordRequireUppercaseAlpha = passwordRequireUppercaseAlpha;
     }
 
     public boolean isPasswordRequireNumber() {

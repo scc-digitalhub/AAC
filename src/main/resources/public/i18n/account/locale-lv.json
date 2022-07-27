@@ -27,6 +27,7 @@
     "internal_subtitle": "Jūsu personas informācija reģistrācijas brīdī",
     "internal_missing": "Reģistrācijas dati nav pieejami. Izveidojiet to šeit!",
     "internal_edit": "Mainīt reģistrācijas datus",
+    "credentials_edit": "Update credentials",    
     "delete_title": "Dzēst kontu",
     "delete_subtitle": "Noņemiet savu kontu un visu saistīto informāciju",
     "delete_delete": "Dzēst",

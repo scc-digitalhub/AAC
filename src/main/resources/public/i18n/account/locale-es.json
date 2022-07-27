@@ -27,6 +27,7 @@
     "internal_subtitle": "Su información personal al registrarse",
     "internal_missing": "No hay datos de registro disponibles. ¡Créalo aquí!",
     "internal_edit": "Cambiar datos de registro",
+    "credentials_edit": "Update credentials",    
     "delete_title": "Eliminar cuenta",
     "delete_subtitle": "Elimina tu cuenta y toda la información asociada",
     "delete_delete": "Eliminar",

@@ -17,8 +17,21 @@
 								</svg>
 							</div>
 							<div class="extra-text">
-								<span class="h6">{{item.username}}</span>
-								<br><small class=""> {{item.provider.name}}</small>
+								<div>
+									<span class="h6">{{item.username}}</span>
+
+									<svg ng-if="(item.account && item.account.confirmed)" aria-hidden="true"
+										class="icon icon-sm icon-success mx-3">
+										<use xlink:href="./italia/svg/sprite.svg#it-check-circle"></use>
+										<title>Verified</title>
+									</svg>
+								</div>
+								<div ng-if="item.emailAddress">
+									<span class="text-secondary">
+										&lsaquo;{{item.emailAddress}}&rsaquo;
+									</span>
+								</div>
+								<small class=""> {{item.authority}}</small>
 							</div>
 						</div>
 					</td>
@@ -32,10 +45,73 @@
 					</td>
 					<td class="text-right">
 						<button class="btn btn-secondary btn-sm" ng-click="inspectDlg(item)">Inspect</button>
-						<button class="btn btn-danger btn-sm" ng-click="deleteAccount(item)">Delete</button>
+						<span ng-if="item.authority == 'internal' && item.account">
+							<button class="btn btn-warning btn-sm  text-right" ng-if="!item.account.locked"
+								ng-click="lockUserAccountDlg(item.uuid)">Lock</button>
+							<button class="btn btn-success btn-sm  text-right" ng-if="item.account.locked"
+								ng-click="unlockUserAccount(item.uuid)">Unlock</button>
+
+							<button class="btn btn-success btn-sm  text-right" ng-disabled="item.account.locked"
+								ng-click="verifyUserAccountDlg(item.uuid)">Verify</button>
+							<button class="btn btn-success btn-sm  text-right" ng-if="!item.account.confirmed"
+								ng-disabled="item.account.locked"
+								ng-click="confirmUserAccountDlg(item.uuid)">Confirm</button>
+							<button class="btn btn-warning btn-sm  text-right" ng-if="item.account.confirmed"
+								ng-disabled="item.account.locked"
+								ng-click="unconfirmUserAccount(item.uuid)">Un-confirm</button>
+							<button class="btn btn-secondary btn-sm  text-right" ng-disabled="item.account.locked"
+								ng-click="editUserAccountDlg(item.uuid)">Edit</button>
+						</span>
+						<button class="btn btn-danger btn-sm" ng-click="deleteUserAccountDlg(item.uuid)">Delete</button>
 					</td>
 				</tr>
 			</table>
 		</div>
 	</fieldset>
+</div>
+
+
+<div class="modal fade bs-modal-lg" id="editAccountModal" tabindex="-1" role="dialog" aria-labelledby=""
+	aria-hidden="true">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+			<div class="modal-header bg-primary text-white">
+				<h3 class="modal-title" id="modal-title">Edit account</h3>
+			</div>
+			<div class="modal-body" id="modal-body">
+
+				<form name="accountForm" novalidate class="was-validated">
+					<div class="row">
+						<div class="form-group col mb-0">
+							<label for="email">Email address*</label>
+							<input type="email" required name="email" class="form-control form-control-sm" id="email"
+								ng-model="modAccount.email">
+							<div ng-if="accountForm.email.$invalid" class="invalid-feedback">
+								Valid email address required</div><br>
+						</div>
+					</div>
+					<div class="row">
+						<div class="form-group col mb-0">
+							<label for="name">Name</label>
+							<input type="text" name="name" class="form-control form-control-sm" id="name"
+								ng-model="modAccount.name">
+						</div>
+						<div class="form-group col mb-0">
+							<label for="surname">Surname</label>
+							<input type="text" name="surname" class="form-control form-control-sm" id="surname"
+								ng-model="modAccount.surname">
+						</div>
+					</div>
+				</form>
+
+
+
+			</div>
+			<div class="modal-footer">
+				<button class="btn btn-default" type="button" data-dismiss="modal">Cancel</button>
+				<button class="btn btn-primary" type="button" ng-click="updateUserAccount()"
+					ng-disabled="accountForm.email.$invalid">Update</button>
+			</div>
+		</div>
+	</div>
 </div>

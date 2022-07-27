@@ -18,8 +18,6 @@ public interface InternalUserAccountRepository
 
     InternalUserAccount findByProviderAndConfirmationKey(String provider, String key);
 
-    InternalUserAccount findByProviderAndResetKey(String provider, String key);
-
     List<InternalUserAccount> findByRealm(String realm);
 
     List<InternalUserAccount> findByProvider(String provider);

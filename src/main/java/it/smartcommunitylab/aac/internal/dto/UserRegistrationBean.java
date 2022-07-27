@@ -14,7 +14,7 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.dto;
+package it.smartcommunitylab.aac.internal.dto;
 
 import javax.validation.Valid;
 import javax.validation.constraints.AssertTrue;
@@ -38,11 +38,10 @@ public class UserRegistrationBean {
     private String name;
     @NotEmpty
     private String surname;
-    @NotEmpty
+
     @Size(min = 5, message = "{validation.pwdlength}")
     private String password;
 
-    @NotEmpty
     @Size(min = 5, message = "{validation.pwdlength}")
     private String verifyPassword;
 
@@ -125,7 +124,7 @@ public class UserRegistrationBean {
 
     @AssertTrue(message = "error.mismatch_passwords")
     private boolean isValid() {
-        return StringUtils.hasText(password) && password.equals(verifyPassword);
+        return password == null || (StringUtils.hasText(password) && password.equals(verifyPassword));
     }
 
     /**

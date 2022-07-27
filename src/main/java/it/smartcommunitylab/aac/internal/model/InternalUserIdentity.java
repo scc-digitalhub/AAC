@@ -3,14 +3,21 @@ package it.smartcommunitylab.aac.internal.model;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import org.springframework.security.core.CredentialsContainer;
+
+import javax.validation.Valid;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractIdentity;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 
-public class InternalUserIdentity extends AbstractIdentity implements CredentialsContainer {
+@Valid
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class InternalUserIdentity extends AbstractIdentity {
 
     // use a global version as serial uid
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
@@ -21,8 +28,18 @@ public class InternalUserIdentity extends AbstractIdentity implements Credential
     // internal user account
     private final InternalUserAccount account;
 
+    // credentials (when available)
+    // TODO evaluate exposing on identity model for all providers
+    private List<InternalUserCredential> credentials;
+
     // attributes map for sets associated with this identity
     private Map<String, UserAttributes> attributes;
+
+    protected InternalUserIdentity() {
+        super(SystemKeys.AUTHORITY_INTERNAL, null, null);
+        this.principal = null;
+        this.account = null;
+    }
 
     public InternalUserIdentity(String provider, String realm, InternalUserAccount account) {
         super(SystemKeys.AUTHORITY_INTERNAL, provider, realm);
@@ -76,18 +93,26 @@ public class InternalUserIdentity extends AbstractIdentity implements Credential
         return account.getEmail();
     }
 
-    @Override
-    public void eraseCredentials() {
-        if (this.account != null) {
-            this.account.eraseCredentials();
-        }
-        if (this.principal != null) {
-            this.principal.eraseCredentials();
-        }
+    public List<InternalUserCredential> getCredentials() {
+        return credentials;
     }
 
-    public Object getCredentials() {
-        return this.account != null ? this.account.getPassword() : null;
+    public void setCredentials(List<InternalUserCredential> credentials) {
+        this.credentials = credentials;
     }
+
+//    @Override
+//    public void eraseCredentials() {
+//        if (this.account != null) {
+//            this.account.eraseCredentials();
+//        }
+//        if (this.principal != null) {
+//            this.principal.eraseCredentials();
+//        }
+//    }
+//
+//    public Object getCredentials() {
+//        return this.account != null ? this.account.getPassword() : null;
+//    }
 
 }

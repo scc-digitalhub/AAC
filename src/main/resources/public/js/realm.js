@@ -528,6 +528,7 @@ angular.module('aac.controllers.realm', [])
             external: false,
             username: null,
             subjectId: null,
+            email: null,
          };
          $('#inviteModal').modal({ keyboard: false });
       }
@@ -535,10 +536,9 @@ angular.module('aac.controllers.realm', [])
       $scope.inviteDeveloper = function () {
          $('#inviteModal').modal('hide');
          if ($scope.modInvite) {
-            var { username, subjectId } = $scope.modInvite;
+            var { email, subjectId } = $scope.modInvite;
             var data = {
-               username, subjectId,
-               roles: ['ROLE_DEVELOPER']
+               email, subjectId
             };
 
             RealmData.inviteDeveloper(slug, data)

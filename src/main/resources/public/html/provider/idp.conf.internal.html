@@ -2,7 +2,35 @@
 
     <fieldset>
         <legend class="mb-4">Internal IdP Configuration</legend>
+        <div class="pt-3 pb-3">Credentials Management</div>
+        <div class="row">
+            <div class="col">
+                <div class="form-group col">
+                    <div class="bootstrap-select-wrapper border-bottom-0">
+                        <label>Type</label>
+                        <select required title="Select" ng-model="idp.configuration.credentialsType">
+                            <option ng-repeat="c in idp.schema.properties.credentialsType.enum" value="{{c}}"
+                                ng-selected="idp.configuration.credentialsType == c">{{c}}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+
+
         <div class="pt-3 pb-3">User Management</div>
+        <div class="row">
+            <div class="col">
+                <div class="form-check">
+                    <input class="form-check-input" name="isolateData" id="isolateData" type="checkbox"
+                        ng-model="idp.configuration.isolateData">
+                    <label for="isolateData">Isolate data</label>
+                </div>
+            </div>
+        </div>
         <div class="row">
             <div class="col">
                 <div class="form-check">
@@ -36,18 +64,18 @@
                     <label for="displayAsButton">Show as button</label>
                 </div>
             </div>
-        </div>    
-        
+        </div>
+
         <div class="pt-3 pb-3">Session Management</div>
         <div class="row">
             <div class="col">
                 <div class="form-check">
                     <input type="number" name="maxSessionDuration" min="1" class="form-control form-control-sm"
-                       id="maxSessionDuration" ng-model="idp.configuration.maxSessionDuration">
+                        id="maxSessionDuration" ng-model="idp.configuration.maxSessionDuration">
                     <label for="maxSessionDuration">Max session duration</label>
                 </div>
             </div>
-        </div>        
+        </div>
 
         <div class="pt-3 pb-3">Confirmation Management</div>
         <div class="row">
@@ -64,72 +92,95 @@
                     id="confirmationValidity" ng-model="idp.configuration.confirmationValidity">
             </div>
         </div>
+        <div ng-if="idp.configuration.credentialsType == 'password'">
+            <div class="pt-3 pb-3">Password Reset Management</div>
+            <div class="row">
+                <div class="col">
+                    <div class="form-check">
+                        <input class="form-check-input" name="enablePasswordReset" id="enablePasswordReset"
+                            type="checkbox" ng-model="idp.configuration.enablePasswordReset">
+                        <label for="enablePasswordReset">Reset Enabled</label>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-check">
+                        <input class="form-check-input" name="enablePasswordSet" id="enablePasswordSet" type="checkbox"
+                            ng-model="idp.configuration.enablePasswordSet">
+                        <label for="enablePasswordSet">Allow password set</label>
+                    </div>
+                </div>
+                <div class="form-group col mb-0">
+                    <label for="passwordResetValidity">Reset duration (seconds)</label>
+                    <input type="number" name="passwordResetValidity" min="0" class="form-control form-control-sm"
+                        id="passwordResetValidity" ng-model="idp.configuration.passwordResetValidity">
+                </div>
+            </div>
 
-        <div class="pt-3 pb-3">Password Reset Management</div>
-        <div class="row">
-            <div class="col">
-                <div class="form-check">
-                    <input class="form-check-input" name="enablePasswordReset" id="enablePasswordReset" type="checkbox"
-                        ng-model="idp.configuration.enablePasswordReset">
-                    <label for="enablePasswordReset">Reset Enabled</label>
+            <div class="pt-3 pb-3">Password Policies</div>
+            <div class="row">
+                <div class="form-group col mb-0">
+                    <label for="passwordMinLength">Min length</label>
+                    <input required type="number" name="passwordMinLength" min="1" class="form-control form-control-sm"
+                        id="passwordMinLength" ng-model="idp.configuration.passwordMinLength">
+                </div>
+                <div class="form-group col mb-0">
+                    <label for="passwordMaxLength">Max length</label>
+                    <input type="number" name="passwordMaxLength" min="1" class="form-control form-control-sm"
+                        id="passwordMaxLength" ng-model="idp.configuration.passwordMaxLength">
                 </div>
             </div>
-            <div class="col">
-                <div class="form-check">
-                    <input class="form-check-input" name="enablePasswordSet" id="enablePasswordSet" type="checkbox"
-                        ng-model="idp.configuration.enablePasswordSet">
-                    <label for="enablePasswordSet">Allow password set</label>
+            <div class="row">
+                <div class="col">
+                    <div class="form-check">
+                        <input class="form-check-input" name="passwordRequireAlpha" id="passwordRequireAlpha"
+                            type="checkbox" ng-model="idp.configuration.passwordRequireAlpha">
+                        <label for="passwordRequireAlpha">Require letters</label>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-check">
+                        <input class="form-check-input" name="passwordRequireUppercaseAlpha"
+                            id="passwordRequireUppercaseAlpha" type="checkbox"
+                            ng-model="idp.configuration.passwordRequireUppercaseAlpha">
+                        <label for="passwordRequireUppercaseAlpha">Require uppercase letters</label>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-check">
+                        <input class="form-check-input" name="passwordRequireNumber" id="passwordRequireNumber"
+                            type="checkbox" ng-model="idp.configuration.passwordRequireNumber">
+                        <label for="passwordRequireNumber">Require numbers</label>
+                    </div>
                 </div>
             </div>
-            <div class="form-group col mb-0">
-                <label for="passwordResetValidity">Reset duration (seconds)</label>
-                <input type="number" name="passwordResetValidity" min="0" class="form-control form-control-sm"
-                    id="passwordResetValidity" ng-model="idp.configuration.passwordResetValidity">
+            <div class="row">
+                <div class="col">
+                    <div class="form-check">
+                        <input class="form-check-input" name="passwordRequireSpecial" id="passwordRequireSpecial"
+                            type="checkbox" ng-model="idp.configuration.passwordRequireSpecial">
+                        <label for="passwordRequireSpecial">Require special chars</label>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-check">
+                        <input class="form-check-input" name="passwordSupportWhitespace" id="passwordSupportWhitespace"
+                            type="checkbox" ng-model="idp.configuration.passwordSupportWhitespace">
+                        <label for="passwordSupportWhitespace">Support whitespace</label>
+                    </div>
+                </div>
             </div>
-        </div>
 
-        <div class="pt-3 pb-3">Password Policies</div>
-        <div class="row">
-            <div class="form-group col mb-0">
-                <label for="passwordMinLength">Min length</label>
-                <input required type="number" name="passwordMinLength" min="1" class="form-control form-control-sm"
-                    id="passwordMinLength" ng-model="idp.configuration.passwordMinLength">
-            </div>
-            <div class="form-group col mb-0">
-                <label for="passwordMaxLength">Max length</label>
-                <input type="number" name="passwordMaxLength" min="1" class="form-control form-control-sm"
-                    id="passwordMaxLength" ng-model="idp.configuration.passwordMaxLength">
-            </div>
-        </div>
-        <div class="row">
-            <div class="col">
-                <div class="form-check">
-                    <input class="form-check-input" name="passwordRequireAlpha" id="passwordRequireAlpha"
-                        type="checkbox" ng-model="idp.configuration.passwordRequireAlpha">
-                    <label for="passwordRequireAlpha">Require letters</label>
+            <div class="pt-3 pb-3">Password Security</div>
+            <div class="row">
+                <div class="form-group col mb-0">
+                    <label for="passwordMaxDays">Max duration (days)</label>
+                    <input type="number" name="passwordMaxDays" class="form-control form-control-sm"
+                        id="passwordMaxDays" ng-model="idp.configuration.passwordMaxDays">
                 </div>
-            </div>
-            <div class="col">
-                <div class="form-check">
-                    <input class="form-check-input" name="passwordRequireNumber" id="passwordRequireNumber"
-                        type="checkbox" ng-model="idp.configuration.passwordRequireNumber">
-                    <label for="passwordRequireNumber">Require numbers</label>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col">
-                <div class="form-check">
-                    <input class="form-check-input" name="passwordRequireSpecial" id="passwordRequireSpecial"
-                        type="checkbox" ng-model="idp.configuration.passwordRequireSpecial">
-                    <label for="passwordRequireSpecial">Require special chars</label>
-                </div>
-            </div>
-            <div class="col">
-                <div class="form-check">
-                    <input class="form-check-input" name="passwordSupportWhitespace" id="passwordSupportWhitespace"
-                        type="checkbox" ng-model="idp.configuration.passwordSupportWhitespace">
-                    <label for="passwordSupportWhitespace">Support whitespace</label>
+                <div class="form-group col mb-0">
+                    <label for="passwordKeepNumber">Old passwords to keep (reuse protection)</label>
+                    <input type="number" name="passwordKeepNumber" min="0" class="form-control form-control-sm"
+                        id="passwordKeepNumber" ng-model="idp.configuration.passwordKeepNumber">
                 </div>
             </div>
         </div>

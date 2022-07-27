@@ -8,10 +8,13 @@ import org.springframework.security.core.CredentialsContainer;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class InternalUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincipal implements CredentialsContainer {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;

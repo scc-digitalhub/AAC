@@ -225,7 +225,7 @@ public class LoginController {
         // TODO rework with comparable on model
         List<LoginProvider> loginAuthorities = new ArrayList<>();
         loginAuthorities.addAll(authorities.stream()
-                .filter(a -> "form".equals(a.getTemplate()))
+                .filter(a -> a.getTemplate().endsWith("form"))
                 .collect(Collectors.toList()));
         loginAuthorities.addAll(authorities.stream()
                 .filter(a -> "spid".equals(a.getTemplate()))

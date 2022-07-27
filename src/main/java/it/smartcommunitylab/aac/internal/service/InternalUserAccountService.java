@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import it.smartcommunitylab.aac.common.DuplicatedDataException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
@@ -22,7 +23,7 @@ import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountReposito
  */
 @Service
 @Transactional
-public class InternalUserAccountService {
+public class InternalUserAccountService implements UserAccountService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
@@ -57,16 +58,6 @@ public class InternalUserAccountService {
     }
 
     @Transactional(readOnly = true)
-    public InternalUserAccount findAccountByResetKey(String provider, String key) {
-        InternalUserAccount account = accountRepository.findByProviderAndResetKey(provider, key);
-        if (account == null) {
-            return null;
-        }
-
-        return accountRepository.detach(account);
-    }
-
-    @Transactional(readOnly = true)
     public InternalUserAccount findAccountByUuid(String provider, String uuid) {
         InternalUserAccount account = accountRepository.findByProviderAndUuid(provider, uuid);
         if (account == null) {
@@ -77,15 +68,7 @@ public class InternalUserAccountService {
     }
 
     @Transactional(readOnly = true)
-    public List<InternalUserAccount> findByUser(String userId) {
-        List<InternalUserAccount> accounts = accountRepository.findByUserId(userId);
-        return accounts.stream().map(a -> {
-            return accountRepository.detach(a);
-        }).collect(Collectors.toList());
-    }
-
-    @Transactional(readOnly = true)
-    public List<InternalUserAccount> findByUser(String userId, String provider) {
+    public List<InternalUserAccount> findByUser(String provider, String userId) {
         List<InternalUserAccount> accounts = accountRepository.findByUserIdAndProvider(userId, provider);
         return accounts.stream().map(a -> {
             return accountRepository.detach(a);
@@ -96,17 +79,23 @@ public class InternalUserAccountService {
      * CRUD
      */
     public InternalUserAccount addAccount(
+            String provider, String username,
             InternalUserAccount reg) throws RegistrationException {
 
         try {
+            InternalUserAccount account = accountRepository.findOne(new InternalUserAccountId(provider, username));
+            if (account != null) {
+                throw new DuplicatedDataException("username");
+            }
+
             // we explode model
-            InternalUserAccount account = new InternalUserAccount();
-            account.setProvider(reg.getProvider());
-            account.setUsername(reg.getUsername());
+            account = new InternalUserAccount();
+            account.setProvider(provider);
+            account.setUsername(username);
+
             account.setUuid(reg.getUuid());
             account.setUserId(reg.getUserId());
             account.setRealm(reg.getRealm());
-            account.setPassword(reg.getPassword());
             account.setStatus(reg.getStatus());
             account.setEmail(reg.getEmail());
             account.setName(reg.getName());
@@ -115,9 +104,6 @@ public class InternalUserAccountService {
             account.setConfirmed(reg.isConfirmed());
             account.setConfirmationDeadline(reg.getConfirmationDeadline());
             account.setConfirmationKey(reg.getConfirmationKey());
-            account.setResetDeadline(reg.getResetDeadline());
-            account.setResetKey(reg.getResetKey());
-            account.setChangeOnFirstAccess(reg.getChangeOnFirstAccess());
 
             account = accountRepository.saveAndFlush(account);
             account = accountRepository.detach(account);
@@ -148,7 +134,6 @@ public class InternalUserAccountService {
             account.setUuid(reg.getUuid());
             account.setUserId(reg.getUserId());
             account.setRealm(reg.getRealm());
-            account.setPassword(reg.getPassword());
             account.setStatus(reg.getStatus());
             account.setEmail(reg.getEmail());
             account.setName(reg.getName());
@@ -157,9 +142,6 @@ public class InternalUserAccountService {
             account.setConfirmed(reg.isConfirmed());
             account.setConfirmationDeadline(reg.getConfirmationDeadline());
             account.setConfirmationKey(reg.getConfirmationKey());
-            account.setResetDeadline(reg.getResetDeadline());
-            account.setResetKey(reg.getResetKey());
-            account.setChangeOnFirstAccess(reg.getChangeOnFirstAccess());
 
             account = accountRepository.saveAndFlush(account);
             account = accountRepository.detach(account);

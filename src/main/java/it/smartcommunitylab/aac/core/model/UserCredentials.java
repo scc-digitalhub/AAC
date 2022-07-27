@@ -7,7 +7,13 @@ import it.smartcommunitylab.aac.model.Credentials;
 
 public interface UserCredentials extends Credentials, UserResource, Serializable {
 
+    boolean isChangeOnFirstAccess();
+
     default String getType() {
         return SystemKeys.RESOURCE_CREDENTIALS;
+    }
+
+    default boolean isEditable() {
+        return true;
     }
 }

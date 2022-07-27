@@ -8,6 +8,7 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.UserAccount;
+import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
@@ -62,10 +63,10 @@ public interface IdentityAuthority {
      * identities are not manageable, but at minimum they should return a service
      * with delete. When not provided, identities will be immutable.
      */
-    public IdentityService<? extends UserIdentity, ? extends UserAccount> getIdentityService(
+    public IdentityService<? extends UserIdentity, ? extends UserAccount, ? extends UserCredentials> getIdentityService(
             String providerId);
 
-    public List<? extends IdentityService<? extends UserIdentity, ? extends UserAccount>> getIdentityServices(
+    public List<? extends IdentityService<? extends UserIdentity, ? extends UserAccount, ? extends UserCredentials>> getIdentityServices(
             String realm);
 
     /*

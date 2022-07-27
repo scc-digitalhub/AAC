@@ -32,6 +32,7 @@ public class InternalAuthenticationProvider
 
     // provider configuration
     private final InternalIdentityProviderConfig config;
+    private final String repositoryId;
 
     private final InternalUserAccountService userAccountService;
     private final UsernamePasswordAuthenticationProvider authProvider;
@@ -53,13 +54,15 @@ public class InternalAuthenticationProvider
         this.config = providerConfig;
         this.userAccountService = userAccountService;
 
+        this.repositoryId = config.getRepositoryId();
+
         // build a password encoder
         this.passwordEncoder = new InternalPasswordEncoder();
 
         // build our internal auth provider
-        authProvider = new UsernamePasswordAuthenticationProvider(providerId, accountService, realm);
-        // we use our password encoder
-        authProvider.setPasswordEncoder(passwordEncoder);
+        authProvider = new UsernamePasswordAuthenticationProvider(providerId, accountService, passwordService, realm);
+//        // we use our password encoder
+//        authProvider.setPasswordEncoder(passwordEncoder);
 
         // build additional providers
         // TODO check config to see if these are available
@@ -82,7 +85,7 @@ public class InternalAuthenticationProvider
         String credentials = String
                 .valueOf(authentication.getCredentials());
 
-        InternalUserAccount account = userAccountService.findAccountByUsername(getProvider(), username);
+        InternalUserAccount account = userAccountService.findAccountByUsername(repositoryId, username);
         if (account == null) {
             // mitigate timing attacks to encode the provider password if usernamePassword
             if (authentication instanceof UsernamePasswordAuthenticationToken
@@ -102,6 +105,15 @@ public class InternalAuthenticationProvider
         if (!(authentication instanceof ConfirmKeyAuthenticationToken) && config.isConfirmationRequired()
                 && !account.isConfirmed()) {
             logger.debug("account is not verified and confirmation is required to login");
+            // throw generic error to avoid account status leak
+            AuthenticationException e = new BadCredentialsException("invalid request");
+            throw new InternalAuthenticationException(subject, username, credentials, "password", e,
+                    e.getMessage());
+        }
+
+        // check whether account is locked
+        if (account.isLocked()) {
+            logger.debug("account is locked");
             // throw generic error to avoid account status leak
             AuthenticationException e = new BadCredentialsException("invalid request");
             throw new InternalAuthenticationException(subject, username, credentials, "password", e,

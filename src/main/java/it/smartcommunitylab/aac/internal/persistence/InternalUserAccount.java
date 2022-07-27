@@ -17,6 +17,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractAccount;
 import it.smartcommunitylab.aac.model.UserStatus;
@@ -25,6 +27,7 @@ import it.smartcommunitylab.aac.model.UserStatus;
 @IdClass(InternalUserAccountId.class)
 @Table(name = "internal_users")
 @EntityListeners(AuditingEntityListener.class)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class InternalUserAccount extends AbstractAccount implements CredentialsContainer {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
@@ -55,7 +58,6 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
     private String realm;
 
     // login
-    private String password;
     private String status;
 
     // attributes
@@ -74,15 +76,6 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
 
     @Column(name = "confirmation_key", unique = true, nullable = true)
     private String confirmationKey;
-
-    @Column(name = "reset_deadline")
-    private Date resetDeadline;
-
-    @Column(name = "reset_key", unique = true, nullable = true)
-    private String resetKey;
-
-    @Column(name = "change_first_access")
-    private Boolean changeOnFirstAccess;
 
     // audit
     @CreatedDate
@@ -175,13 +168,13 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
         this.username = username;
     }
 
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
+//    public String getPassword() {
+//        return password;
+//    }
+//
+//    public void setPassword(String password) {
+//        this.password = password;
+//    }
 
     public String getStatus() {
         return status;
@@ -247,34 +240,6 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
         this.confirmationKey = confirmationKey;
     }
 
-    public Date getResetDeadline() {
-        return resetDeadline;
-    }
-
-    public void setResetDeadline(Date resetDeadline) {
-        this.resetDeadline = resetDeadline;
-    }
-
-    public String getResetKey() {
-        return resetKey;
-    }
-
-    public void setResetKey(String resetKey) {
-        this.resetKey = resetKey;
-    }
-
-    public Boolean getChangeOnFirstAccess() {
-        return changeOnFirstAccess;
-    }
-
-    public void setChangeOnFirstAccess(Boolean changeOnFirstAccess) {
-        this.changeOnFirstAccess = changeOnFirstAccess;
-    }
-
-    public Boolean isChangeOnFirstAccess() {
-        return changeOnFirstAccess != null && changeOnFirstAccess;
-    }
-
     public Date getCreateDate() {
         return createDate;
     }
@@ -293,8 +258,6 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
 
     @Override
     public void eraseCredentials() {
-        this.password = null;
-        this.resetKey = null;
         this.confirmationKey = null;
     }
 

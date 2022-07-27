@@ -238,13 +238,13 @@ public class AppleIdentityAuthority implements IdentityAuthority, InitializingBe
     }
 
     @Override
-    public IdentityService<OIDCUserIdentity, OIDCUserAccount> getIdentityService(
+    public IdentityService<OIDCUserIdentity, OIDCUserAccount, ?> getIdentityService(
             String providerId) {
         return null;
     }
 
     @Override
-    public List<IdentityService<OIDCUserIdentity, OIDCUserAccount>> getIdentityServices(
+    public List<IdentityService<OIDCUserIdentity, OIDCUserAccount, ?>> getIdentityServices(
             String realm) {
         return Collections.emptyList();
     }
