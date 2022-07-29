@@ -32,14 +32,14 @@ import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.dto.UserEmailBean;
-import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
+import it.smartcommunitylab.aac.internal.AbstractInternalIdentityAuthority;
 import it.smartcommunitylab.aac.internal.dto.UserPasswordBean;
 import it.smartcommunitylab.aac.internal.model.CredentialsType;
 import it.smartcommunitylab.aac.internal.model.PasswordPolicy;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
-import it.smartcommunitylab.aac.internal.provider.InternalPasswordIdentityService;
+import it.smartcommunitylab.aac.internal.provider.PasswordIdentityService;
 import it.smartcommunitylab.aac.internal.provider.InternalPasswordService;
 import it.smartcommunitylab.aac.model.Realm;
 
@@ -51,7 +51,7 @@ public class InternalCredentialsController {
     private AuthenticationHelper authHelper;
 
     @Autowired
-    private InternalIdentityAuthority internalAuthority;
+    private AbstractInternalIdentityAuthority internalAuthority;
 
     @Autowired
     private RealmManager realmManager;
@@ -96,7 +96,7 @@ public class InternalCredentialsController {
         }
 
         // fetch credentials service if available
-        InternalPasswordService service = ((InternalPasswordIdentityService) idp).getCredentialsService();
+        InternalPasswordService service = ((PasswordIdentityService) idp).getCredentialsService();
 
         if (service == null) {
             throw new IllegalArgumentException("error.unsupported_operation");
@@ -173,7 +173,7 @@ public class InternalCredentialsController {
             }
 
             // fetch credentials service if available
-            InternalPasswordService service = ((InternalPasswordIdentityService) idp).getCredentialsService();
+            InternalPasswordService service = ((PasswordIdentityService) idp).getCredentialsService();
 
             if (service == null) {
                 throw new IllegalArgumentException("error.unsupported_operation");
@@ -374,7 +374,7 @@ public class InternalCredentialsController {
 
             } else {
                 // direct call to reset
-                InternalPasswordService service = ((InternalPasswordIdentityService) idp)
+                InternalPasswordService service = ((PasswordIdentityService) idp)
                         .getCredentialsService();
                 service.resetCredentials(account.getUsername());
 

@@ -24,7 +24,7 @@ import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipa
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 
-public class InternalAuthenticationProvider
+public class PasswordAuthenticationProvider
         extends ExtendedAuthenticationProvider<InternalUserAuthenticatedPrincipal, InternalUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -44,7 +44,7 @@ public class InternalAuthenticationProvider
     private volatile String userNotFoundEncodedPassword;
     private final PasswordEncoder passwordEncoder;
 
-    public InternalAuthenticationProvider(String providerId,
+    public PasswordAuthenticationProvider(String providerId,
             InternalUserAccountService userAccountService,
             InternalAccountService accountService, InternalPasswordService passwordService,
             InternalIdentityProviderConfig providerConfig, String realm) {
@@ -85,7 +85,7 @@ public class InternalAuthenticationProvider
         String credentials = String
                 .valueOf(authentication.getCredentials());
 
-        InternalUserAccount account = userAccountService.findAccountByUsername(repositoryId, username);
+        InternalUserAccount account = userAccountService.findAccountById(repositoryId, username);
         if (account == null) {
             // mitigate timing attacks to encode the provider password if usernamePassword
             if (authentication instanceof UsernamePasswordAuthenticationToken

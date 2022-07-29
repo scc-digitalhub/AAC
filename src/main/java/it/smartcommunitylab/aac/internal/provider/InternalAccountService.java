@@ -27,8 +27,9 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.provider.AccountService;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
-import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
+import it.smartcommunitylab.aac.internal.AbstractInternalIdentityAuthority;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.model.Subject;
@@ -84,7 +85,7 @@ public class InternalAccountService extends AbstractProvider implements AccountS
     @Override
     @Transactional(readOnly = true)
     public List<InternalUserAccount> listAccounts(String userId) {
-        return userAccountService.findByUser(repositoryId, userId);
+        return userAccountService.findAccountByUser(repositoryId, userId);
     }
 
     @Override
@@ -597,7 +598,7 @@ public class InternalAccountService extends AbstractProvider implements AccountS
         if (mailService != null) {
             // action is handled by global filter
             String provider = getProvider();
-            String confirmUrl = InternalIdentityAuthority.AUTHORITY_URL + "confirm/" + provider + "?code="
+            String confirmUrl = AbstractInternalIdentityAuthority.AUTHORITY_URL + "confirm/" + provider + "?code="
                     + key;
             if (uriBuilder != null) {
                 confirmUrl = uriBuilder.buildUrl(null, confirmUrl);
@@ -625,7 +626,8 @@ public class InternalAccountService extends AbstractProvider implements AccountS
             // action is handled by global filter
             String provider = getProvider();
 
-            String confirmUrl = InternalIdentityAuthority.AUTHORITY_URL + "confirm/" + provider + "?code=" + key;
+            String confirmUrl = AbstractInternalIdentityAuthority.AUTHORITY_URL + "confirm/" + provider + "?code="
+                    + key;
             if (uriBuilder != null) {
                 confirmUrl = uriBuilder.buildUrl(null, confirmUrl);
             }

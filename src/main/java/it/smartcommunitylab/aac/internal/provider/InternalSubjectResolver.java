@@ -38,7 +38,7 @@ public class InternalSubjectResolver extends AbstractProvider
     @Override
     public Subject resolveByUsername(String username) {
         logger.debug("resolve by username " + username);
-        InternalUserAccount account = accountService.findAccountByUsername(repositoryId, username);
+        InternalUserAccount account = accountService.findAccountById(repositoryId, username);
         if (account == null) {
             return null;
         }

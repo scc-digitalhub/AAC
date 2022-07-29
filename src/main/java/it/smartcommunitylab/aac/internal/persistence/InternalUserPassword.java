@@ -21,7 +21,6 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractUserCredentials;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
 import it.smartcommunitylab.aac.internal.model.CredentialsType;
-import it.smartcommunitylab.aac.internal.model.InternalUserCredential;
 
 @Entity
 @Table(name = "internal_users_passwords", uniqueConstraints = @UniqueConstraint(columnNames = {
@@ -30,7 +29,7 @@ import it.smartcommunitylab.aac.internal.model.InternalUserCredential;
 
 @EntityListeners(AuditingEntityListener.class)
 public class InternalUserPassword extends AbstractUserCredentials
-        implements InternalUserCredential, CredentialsContainer, Serializable {
+        implements CredentialsContainer, Serializable {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
@@ -86,11 +85,6 @@ public class InternalUserPassword extends AbstractUserCredentials
     @Override
     public CredentialsType getCredentialsType() {
         return CredentialsType.PASSWORD;
-    }
-
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_CREDENTIALS + "_" + CredentialsType.PASSWORD.getValue();
     }
 
     @Override

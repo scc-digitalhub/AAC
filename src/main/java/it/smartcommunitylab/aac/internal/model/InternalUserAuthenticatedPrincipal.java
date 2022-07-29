@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.security.core.CredentialsContainer;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -15,26 +14,26 @@ import it.smartcommunitylab.aac.core.base.AbstractAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class InternalUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincipal implements CredentialsContainer {
+public class InternalUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincipal {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
-    private final String username;
-
-    private String uuid;
-
     private String name;
-    private String email;
     private Boolean confirmed;
 
     // internal attributes from account
     private Map<String, String> attributes;
 
-    public InternalUserAuthenticatedPrincipal(String provider, String realm, String userId, String username) {
-        super(SystemKeys.AUTHORITY_INTERNAL, provider, realm, userId);
+    public InternalUserAuthenticatedPrincipal(String authority, String provider, String realm, String userId,
+            String username) {
+        super(authority, provider, realm, userId);
         Assert.hasText(username, "username can not be null or empty");
         this.username = username;
 
+    }
+
+    public InternalUserAuthenticatedPrincipal(String provider, String realm, String userId, String username) {
+        this(SystemKeys.AUTHORITY_INTERNAL, provider, realm, userId, username);
     }
 
     @Override
@@ -43,23 +42,8 @@ public class InternalUserAuthenticatedPrincipal extends AbstractAuthenticatedPri
     }
 
     @Override
-    public String getUuid() {
-        return uuid;
-    }
-
-    @Override
     public String getName() {
         return name;
-    }
-
-    @Override
-    public String getUsername() {
-        return username;
-    }
-
-    @Override
-    public String getEmailAddress() {
-        return email;
     }
 
     @Override
@@ -89,8 +73,8 @@ public class InternalUserAuthenticatedPrincipal extends AbstractAuthenticatedPri
         }
 
         // override if set
-        if (StringUtils.hasText(email)) {
-            map.put("email", email);
+        if (StringUtils.hasText(emailAddress)) {
+            map.put("email", emailAddress);
         }
         if (confirmed != null) {
             map.put("confirmed", Boolean.toString(confirmed.booleanValue()));
@@ -104,16 +88,16 @@ public class InternalUserAuthenticatedPrincipal extends AbstractAuthenticatedPri
     }
 
     public String getEmail() {
-        return email;
+        return emailAddress;
     }
 
     public void setEmail(String email) {
-        this.email = email;
+        this.emailAddress = email;
     }
 
     public boolean isEmailConfirmed() {
         boolean verified = confirmed != null ? confirmed.booleanValue() : false;
-        return StringUtils.hasText(email) && verified;
+        return StringUtils.hasText(emailAddress) && verified;
     }
 
     public Boolean getConfirmed() {
@@ -126,7 +110,7 @@ public class InternalUserAuthenticatedPrincipal extends AbstractAuthenticatedPri
 
     public void setAccountAttributes(InternalUserAccount account) {
         if (account != null) {
-            this.email = account.getEmail();
+            this.emailAddress = account.getEmail();
             this.confirmed = account.isConfirmed();
 
             // map base attributes, these will be available for custom mapping
@@ -151,14 +135,6 @@ public class InternalUserAuthenticatedPrincipal extends AbstractAuthenticatedPri
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    @Override
-    public void eraseCredentials() {
-        if (this.attributes != null) {
-            // make sure password is not exposed in attributes
-            this.attributes.remove("password");
-        }
     }
 
 }

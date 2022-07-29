@@ -27,12 +27,12 @@ import it.smartcommunitylab.aac.core.auth.RequestAwareAuthenticationSuccessHandl
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
+import it.smartcommunitylab.aac.internal.PasswordIdentityAuthority;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserPasswordRepository;
-import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
+import it.smartcommunitylab.aac.internal.provider.PasswordIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 
 /*
@@ -40,12 +40,12 @@ import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
  */
 public class InternalLoginAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
-    public static final String DEFAULT_FILTER_URI = InternalIdentityAuthority.AUTHORITY_URL + "login/{registrationId}";
-    public static final String DEFAULT_LOGIN_URI = InternalIdentityAuthority.AUTHORITY_URL + "form/{registrationId}";
+    public static final String DEFAULT_FILTER_URI = PasswordIdentityAuthority.AUTHORITY_URL + "login/{registrationId}";
+    public static final String DEFAULT_LOGIN_URI = PasswordIdentityAuthority.AUTHORITY_URL + "form/{registrationId}";
 
     private final RequestMatcher requestMatcher;
 
-    private final ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository;
+    private final ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository;
 
     private AuthenticationEntryPoint authenticationEntryPoint;
 
@@ -57,13 +57,13 @@ public class InternalLoginAuthenticationFilter extends AbstractAuthenticationPro
 
     public InternalLoginAuthenticationFilter(InternalUserAccountService userAccountService,
             InternalUserPasswordRepository passwordRepository,
-            ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository) {
+            ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository) {
         this(userAccountService, passwordRepository, registrationRepository, DEFAULT_FILTER_URI, null);
     }
 
     public InternalLoginAuthenticationFilter(InternalUserAccountService userAccountService,
             InternalUserPasswordRepository passwordRepository,
-            ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository,
+            ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository,
             String filterProcessingUrl, AuthenticationEntryPoint authenticationEntryPoint) {
         super(filterProcessingUrl);
         Assert.notNull(userAccountService, "user account service is required");
@@ -131,7 +131,7 @@ public class InternalLoginAuthenticationFilter extends AbstractAuthenticationPro
 
         // fetch registrationId
         String providerId = requestMatcher.matcher(request).getVariables().get("registrationId");
-        InternalIdentityProviderConfig providerConfig = registrationRepository.findByProviderId(providerId);
+        PasswordIdentityProviderConfig providerConfig = registrationRepository.findByProviderId(providerId);
 
         if (providerConfig == null) {
             throw new ProviderNotFoundException("no provider or realm found for this request");
@@ -156,7 +156,7 @@ public class InternalLoginAuthenticationFilter extends AbstractAuthenticationPro
         // proper audit
         // TODO rework, this should be handled post login by adding another filter
         String repositoryId = providerConfig.getRepositoryId();
-        InternalUserAccount account = userAccountService.findAccountByUsername(repositoryId, username);
+        InternalUserAccount account = userAccountService.findAccountById(repositoryId, username);
         // fetch active password
         InternalUserPassword credentials = passwordRepository.findByProviderAndUsernameAndStatusOrderByCreateDateDesc(
                 repositoryId, username,

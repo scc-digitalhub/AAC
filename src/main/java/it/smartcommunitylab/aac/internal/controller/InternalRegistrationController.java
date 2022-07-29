@@ -61,7 +61,7 @@ import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.dto.CustomizationBean;
-import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
+import it.smartcommunitylab.aac.internal.AbstractInternalIdentityAuthority;
 import it.smartcommunitylab.aac.internal.dto.UserRegistrationBean;
 import it.smartcommunitylab.aac.internal.model.CredentialsType;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
@@ -70,7 +70,7 @@ import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountService;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
-import it.smartcommunitylab.aac.internal.provider.InternalPasswordIdentityService;
+import it.smartcommunitylab.aac.internal.provider.PasswordIdentityService;
 import it.smartcommunitylab.aac.internal.provider.InternalPasswordService;
 import it.smartcommunitylab.aac.model.Realm;
 
@@ -87,7 +87,7 @@ public class InternalRegistrationController {
     private AuthenticationHelper authHelper;
 
     @Autowired
-    private InternalIdentityAuthority internalAuthority;
+    private AbstractInternalIdentityAuthority internalAuthority;
 
     @Autowired
     private RealmManager realmManager;
@@ -336,7 +336,7 @@ public class InternalRegistrationController {
 
         // fetch password service if available
         if (CredentialsType.PASSWORD == idp.getCredentialsType()) {
-            InternalPasswordService service = ((InternalPasswordIdentityService) idp).getCredentialsService();
+            InternalPasswordService service = ((PasswordIdentityService) idp).getCredentialsService();
             if (service != null) {
                 // expose password policy by passing idp config
                 PasswordPolicy policy = service.getPasswordPolicy();
@@ -403,7 +403,7 @@ public class InternalRegistrationController {
             // fetch password service if available
             InternalPasswordService passwordService = null;
             if (CredentialsType.PASSWORD == idp.getCredentialsType()) {
-                passwordService = ((InternalPasswordIdentityService) idp).getCredentialsService();
+                passwordService = ((PasswordIdentityService) idp).getCredentialsService();
             }
 
             if (passwordService != null) {

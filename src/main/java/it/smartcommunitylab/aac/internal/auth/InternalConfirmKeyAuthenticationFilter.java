@@ -28,7 +28,7 @@ import it.smartcommunitylab.aac.core.auth.RequestAwareAuthenticationSuccessHandl
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
+import it.smartcommunitylab.aac.internal.AbstractInternalIdentityAuthority;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
 import it.smartcommunitylab.aac.internal.model.CredentialsType;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
@@ -42,7 +42,7 @@ import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
  */
 public class InternalConfirmKeyAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
-    public static final String DEFAULT_FILTER_URI = InternalIdentityAuthority.AUTHORITY_URL
+    public static final String DEFAULT_FILTER_URI = AbstractInternalIdentityAuthority.AUTHORITY_URL
             + "confirm/{registrationId}";
 
     private final ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository;

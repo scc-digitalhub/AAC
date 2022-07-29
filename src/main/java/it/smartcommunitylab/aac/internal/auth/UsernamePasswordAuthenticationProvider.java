@@ -11,22 +11,16 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.crypto.factory.PasswordEncoderFactories;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountService;
 import it.smartcommunitylab.aac.internal.provider.InternalPasswordService;
 
 public class UsernamePasswordAuthenticationProvider implements AuthenticationProvider {
     private final Logger logger = LoggerFactory.getLogger(getClass());
-
-//    private final String realm;
-//    private final String providerId;
 
     private final InternalAccountService accountService;
     private final InternalPasswordService passwordService;
@@ -37,9 +31,6 @@ public class UsernamePasswordAuthenticationProvider implements AuthenticationPro
         Assert.hasText(providerId, "provider can not be null or empty");
         Assert.notNull(accountService, "account service is mandatory");
         Assert.notNull(passwordService, "password service is mandatory");
-
-//        this.realm = realm;
-//        this.providerId = providerId;
 
         this.accountService = accountService;
         this.passwordService = passwordService;

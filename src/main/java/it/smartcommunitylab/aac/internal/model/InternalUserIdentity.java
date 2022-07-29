@@ -13,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractIdentity;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 
 @Valid
@@ -30,28 +31,43 @@ public class InternalUserIdentity extends AbstractIdentity {
 
     // credentials (when available)
     // TODO evaluate exposing on identity model for all providers
-    private List<InternalUserCredential> credentials;
+    private List<UserCredentials> credentials;
 
     // attributes map for sets associated with this identity
     private Map<String, UserAttributes> attributes;
 
     protected InternalUserIdentity() {
-        super(SystemKeys.AUTHORITY_INTERNAL, null, null);
+        this(SystemKeys.AUTHORITY_INTERNAL);
+    }
+
+    protected InternalUserIdentity(String authority) {
+        super(authority, null, null);
         this.principal = null;
         this.account = null;
     }
 
+    @Deprecated
     public InternalUserIdentity(String provider, String realm, InternalUserAccount account) {
-        super(SystemKeys.AUTHORITY_INTERNAL, provider, realm);
+        this(SystemKeys.AUTHORITY_INTERNAL, provider, realm, account);
+    }
+
+    public InternalUserIdentity(String authority, String provider, String realm, InternalUserAccount account) {
+        super(authority, provider, realm);
         this.account = account;
         this.principal = null;
         this.attributes = Collections.emptyMap();
         super.setUserId(account.getUserId());
     }
 
+    @Deprecated
     public InternalUserIdentity(String provider, String realm, InternalUserAccount account,
             InternalUserAuthenticatedPrincipal principal) {
-        super(SystemKeys.AUTHORITY_INTERNAL, provider, realm);
+        this(SystemKeys.AUTHORITY_INTERNAL, provider, realm, account, principal);
+    }
+
+    public InternalUserIdentity(String authority, String provider, String realm, InternalUserAccount account,
+            InternalUserAuthenticatedPrincipal principal) {
+        super(authority, provider, realm);
         this.account = account;
         this.principal = principal;
         this.attributes = Collections.emptyMap();
@@ -66,11 +82,6 @@ public class InternalUserIdentity extends AbstractIdentity {
     @Override
     public InternalUserAccount getAccount() {
         return account;
-    }
-
-    @Override
-    public String getAuthority() {
-        return SystemKeys.AUTHORITY_INTERNAL;
     }
 
     @Override
@@ -93,11 +104,11 @@ public class InternalUserIdentity extends AbstractIdentity {
         return account.getEmail();
     }
 
-    public List<InternalUserCredential> getCredentials() {
+    public List<UserCredentials> getCredentials() {
         return credentials;
     }
 
-    public void setCredentials(List<InternalUserCredential> credentials) {
+    public void setCredentials(List<UserCredentials> credentials) {
         this.credentials = credentials;
     }
 

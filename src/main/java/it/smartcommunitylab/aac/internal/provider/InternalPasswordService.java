@@ -33,7 +33,7 @@ import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.provider.UserCredentialsService;
 import it.smartcommunitylab.aac.crypto.PasswordHash;
-import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
+import it.smartcommunitylab.aac.internal.AbstractInternalIdentityAuthority;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
 import it.smartcommunitylab.aac.internal.model.PasswordPolicy;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
@@ -54,7 +54,7 @@ public class InternalPasswordService extends AbstractProvider
     private final InternalUserPasswordRepository passwordRepository;
 
     // provider configuration
-    private final InternalIdentityProviderConfig config;
+    private final PasswordIdentityProviderConfig config;
     private final String repositoryId;
 
     private MailService mailService;
@@ -64,7 +64,7 @@ public class InternalPasswordService extends AbstractProvider
 
     public InternalPasswordService(String providerId, InternalUserAccountService userAccountService,
             InternalUserPasswordRepository passwordRepository,
-            InternalIdentityProviderConfig providerConfig,
+            PasswordIdentityProviderConfig providerConfig,
             String realm) {
         super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
         Assert.notNull(userAccountService, "user account service is mandatory");
@@ -433,7 +433,7 @@ public class InternalPasswordService extends AbstractProvider
     @Override
     public InternalUserPassword getCredentials(String username) throws NoSuchUserException {
         // fetch user
-        InternalUserAccount account = accountService.findAccountByUsername(repositoryId, username);
+        InternalUserAccount account = accountService.findAccountById(repositoryId, username);
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -465,7 +465,7 @@ public class InternalPasswordService extends AbstractProvider
             throw new IllegalArgumentException("invalid credentials");
         }
 
-        InternalUserAccount account = accountService.findAccountByUsername(repositoryId, username);
+        InternalUserAccount account = accountService.findAccountById(repositoryId, username);
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -498,7 +498,7 @@ public class InternalPasswordService extends AbstractProvider
             throw new IllegalArgumentException("reset is disabled for this provider");
         }
 
-        InternalUserAccount account = accountService.findAccountByUsername(repositoryId, username);
+        InternalUserAccount account = accountService.findAccountById(repositoryId, username);
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -522,7 +522,7 @@ public class InternalPasswordService extends AbstractProvider
 
     @Override
     public InternalUserPassword revokeCredentials(String username) throws NoSuchUserException {
-        InternalUserAccount account = accountService.findAccountByUsername(repositoryId, username);
+        InternalUserAccount account = accountService.findAccountById(repositoryId, username);
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -545,7 +545,7 @@ public class InternalPasswordService extends AbstractProvider
 
     @Override
     public void deleteCredentials(String username) throws NoSuchUserException {
-        InternalUserAccount account = accountService.findAccountByUsername(repositoryId, username);
+        InternalUserAccount account = accountService.findAccountById(repositoryId, username);
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -560,7 +560,7 @@ public class InternalPasswordService extends AbstractProvider
     @Override
     public String getResetUrl() {
         // return link for resetting credentials
-        return InternalIdentityAuthority.AUTHORITY_URL + "reset/" + getProvider();
+        return AbstractInternalIdentityAuthority.AUTHORITY_URL + "reset/" + getProvider();
     }
 
     @Override
@@ -655,7 +655,7 @@ public class InternalPasswordService extends AbstractProvider
         if (mailService != null) {
             // action is handled by global filter
             String provider = getProvider();
-            String resetUrl = InternalIdentityAuthority.AUTHORITY_URL + "doreset/" + provider + "?code=" + key;
+            String resetUrl = AbstractInternalIdentityAuthority.AUTHORITY_URL + "doreset/" + provider + "?code=" + key;
             if (uriBuilder != null) {
                 resetUrl = uriBuilder.buildUrl(null, resetUrl);
             }

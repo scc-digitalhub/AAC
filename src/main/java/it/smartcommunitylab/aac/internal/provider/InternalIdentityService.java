@@ -23,15 +23,14 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.provider.ScopeableProvider;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
-import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
+import it.smartcommunitylab.aac.internal.AbstractInternalIdentityAuthority;
 import it.smartcommunitylab.aac.internal.model.CredentialsType;
-import it.smartcommunitylab.aac.internal.model.InternalLoginProvider;
 import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.utils.MailService;
 
 public abstract class InternalIdentityService<C extends UserCredentials> extends AbstractProvider
@@ -41,7 +40,7 @@ public abstract class InternalIdentityService<C extends UserCredentials> extends
     protected final UserEntityService userEntityService;
 
     // provider configuration
-    protected final InternalIdentityProviderConfig config;
+    private final InternalIdentityProviderConfig config;
 
     // providers
     protected final InternalAccountService accountService;
@@ -50,11 +49,24 @@ public abstract class InternalIdentityService<C extends UserCredentials> extends
 
     public InternalIdentityService(
             String providerId,
-            InternalUserAccountService userAccountService,
+            UserAccountService userAccountService,
             UserEntityService userEntityService, SubjectService subjectService,
             InternalIdentityProviderConfig config,
             String realm) {
-        super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
+        this(SystemKeys.AUTHORITY_INTERNAL, providerId,
+                userAccountService,
+                userEntityService, subjectService,
+                config,
+                realm);
+    }
+
+    public InternalIdentityService(
+            String authority, String providerId,
+            UserAccountService userAccountService,
+            UserEntityService userEntityService, SubjectService subjectService,
+            InternalIdentityProviderConfig config,
+            String realm) {
+        super(authority, providerId, realm);
         Assert.notNull(userAccountService, "user account service is mandatory");
         Assert.notNull(userEntityService, "user service is mandatory");
         Assert.notNull(subjectService, "subject service is mandatory");
@@ -102,20 +114,18 @@ public abstract class InternalIdentityService<C extends UserCredentials> extends
         return config.getRepositoryId();
     }
 
-    public abstract String getLoginForm();
-
     @Override
     public final String getType() {
         return SystemKeys.RESOURCE_IDENTITY;
     }
 
     @Override
-    public InternalIdentityProviderConfig getConfig() {
-        return config;
+    public InternalAccountService getAccountProvider() {
+        return accountService;
     }
 
     @Override
-    public InternalAccountService getAccountProvider() {
+    public InternalAccountService getAccountService() {
         return accountService;
     }
 
@@ -138,6 +148,11 @@ public abstract class InternalIdentityService<C extends UserCredentials> extends
 
         // extract account and attributes in raw format from authenticated principal
         InternalUserAuthenticatedPrincipal principal = (InternalUserAuthenticatedPrincipal) userPrincipal;
+
+        // sanity check for same authority
+        if (!getAuthority().equals(principal.getAuthority())) {
+            throw new IllegalArgumentException("authority mismatch");
+        }
 
         // username binds all identity pieces together
         String username = principal.getUsername();
@@ -174,7 +189,8 @@ public abstract class InternalIdentityService<C extends UserCredentials> extends
         // TODO, we shouldn't have additional attributes for internal
 
         // use builder to properly map attributes
-        InternalUserIdentity identity = new InternalUserIdentity(getProvider(), getRealm(), account, principal);
+        InternalUserIdentity identity = new InternalUserIdentity(getAuthority(), getProvider(), getRealm(), account,
+                principal);
 
         // convert attribute sets
         Collection<UserAttributes> identityAttributes = attributeProvider.convertPrincipalAttributes(principal,
@@ -198,7 +214,7 @@ public abstract class InternalIdentityService<C extends UserCredentials> extends
             return null;
         }
         // build identity without attributes
-        InternalUserIdentity identity = new InternalUserIdentity(getProvider(), getRealm(), account);
+        InternalUserIdentity identity = new InternalUserIdentity(getAuthority(), getProvider(), getRealm(), account);
         return identity;
     }
 
@@ -211,7 +227,7 @@ public abstract class InternalIdentityService<C extends UserCredentials> extends
             return null;
         }
         // build identity without attributes
-        InternalUserIdentity identity = new InternalUserIdentity(getProvider(), getRealm(), account);
+        InternalUserIdentity identity = new InternalUserIdentity(getAuthority(), getProvider(), getRealm(), account);
         return identity;
     }
 
@@ -238,7 +254,7 @@ public abstract class InternalIdentityService<C extends UserCredentials> extends
         // we shouldn't have additional attributes for internal
 
         // use builder to properly map attributes
-        InternalUserIdentity identity = new InternalUserIdentity(getProvider(), getRealm(), account);
+        InternalUserIdentity identity = new InternalUserIdentity(getAuthority(), getProvider(), getRealm(), account);
         if (fetchAttributes) {
             // convert attribute sets
             Collection<UserAttributes> identityAttributes = attributeProvider.getAccountAttributes(account);
@@ -273,7 +289,8 @@ public abstract class InternalIdentityService<C extends UserCredentials> extends
             // TODO, we shouldn't have additional attributes for internal
 
             // use builder to properly map attributes
-            InternalUserIdentity identity = new InternalUserIdentity(getProvider(), getRealm(), account);
+            InternalUserIdentity identity = new InternalUserIdentity(getAuthority(), getProvider(), getRealm(),
+                    account);
             if (fetchAttributes) {
                 // convert attribute sets
                 Collection<UserAttributes> identityAttributes = attributeProvider.getAccountAttributes(account);
@@ -324,20 +341,9 @@ public abstract class InternalIdentityService<C extends UserCredentials> extends
         }
     }
 
-    @Override
-    public String getAuthenticationUrl() {
-        // display url for internal form
-        return getFormUrl();
-    }
-
     public void shutdown() {
         // cleanup ourselves
         // nothing to do
-    }
-
-    @Override
-    public InternalAccountService getAccountService() {
-        return accountService;
     }
 
     @Override
@@ -394,7 +400,8 @@ public abstract class InternalIdentityService<C extends UserCredentials> extends
             // we shouldn't have additional attributes for internal
 
             // use builder to properly map attributes
-            InternalUserIdentity identity = new InternalUserIdentity(getProvider(), getRealm(), account);
+            InternalUserIdentity identity = new InternalUserIdentity(getAuthority(), getProvider(), getRealm(),
+                    account);
 
             // convert attribute sets
             Collection<UserAttributes> identityAttributes = attributeProvider.getAccountAttributes(account);
@@ -448,7 +455,7 @@ public abstract class InternalIdentityService<C extends UserCredentials> extends
         // we shouldn't have additional attributes for internal
 
         // use builder to properly map attributes
-        InternalUserIdentity identity = new InternalUserIdentity(getProvider(), getRealm(), account);
+        InternalUserIdentity identity = new InternalUserIdentity(getAuthority(), getProvider(), getRealm(), account);
 
         // convert attribute sets
         Collection<UserAttributes> identityAttributes = attributeProvider.getAccountAttributes(account);
@@ -466,7 +473,7 @@ public abstract class InternalIdentityService<C extends UserCredentials> extends
         account = accountService.linkAccount(username, userId);
 
         // use builder, skip attributes
-        InternalUserIdentity identity = new InternalUserIdentity(getProvider(), getRealm(), account);
+        InternalUserIdentity identity = new InternalUserIdentity(getAuthority(), getProvider(), getRealm(), account);
         return identity;
     }
 
@@ -474,20 +481,7 @@ public abstract class InternalIdentityService<C extends UserCredentials> extends
     public String getRegistrationUrl() {
         // TODO filter
         // TODO build a realm-bound url, need updates on filters
-        return InternalIdentityAuthority.AUTHORITY_URL + "register/" + getProvider();
-    }
-
-    public String getResetUrl() {
-        return getCredentialsService().getResetUrl();
-    }
-
-    public String getLoginUrl() {
-        // we use an address bound to provider, no reason to expose realm
-        return InternalIdentityAuthority.AUTHORITY_URL + "login/" + getProvider();
-    }
-
-    public String getFormUrl() {
-        return InternalIdentityAuthority.AUTHORITY_URL + "form/" + getProvider();
+        return AbstractInternalIdentityAuthority.AUTHORITY_URL + "register/" + getProvider();
     }
 
     @Override
@@ -498,26 +492,6 @@ public abstract class InternalIdentityService<C extends UserCredentials> extends
     @Override
     public String getDescription() {
         return config.getDescription();
-    }
-
-    @Override
-    public InternalLoginProvider getLoginProvider() {
-        InternalLoginProvider ilp = new InternalLoginProvider(getProvider(), getRealm());
-        ilp.setName(getName());
-        ilp.setDescription(getDescription());
-
-        // login url is always form display
-        ilp.setLoginUrl(getFormUrl());
-        ilp.setRegistrationUrl(getRegistrationUrl());
-        ilp.setResetUrl(getResetUrl());
-
-        // form action is always login action
-        ilp.setFormUrl(getLoginUrl());
-
-        String template = config.displayAsButton() ? "button" : getLoginForm();
-        ilp.setTemplate(template);
-
-        return ilp;
     }
 
 }
