@@ -32,7 +32,7 @@ import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.config.ProvidersProperties;
-import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
+import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
@@ -48,7 +48,7 @@ import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfigMap;
 
 @Service
-public class SamlIdentityAuthority implements IdentityAuthority, InitializingBean {
+public class SamlIdentityAuthority implements IdentityProviderAuthority, InitializingBean {
 
     // TODO make consistent with global config
     public static final String AUTHORITY_URL = "/auth/saml/";

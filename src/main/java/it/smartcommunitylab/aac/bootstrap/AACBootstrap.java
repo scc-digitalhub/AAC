@@ -37,7 +37,7 @@ import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.UserManager;
 import it.smartcommunitylab.aac.core.authorities.AttributeAuthority;
-import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
+import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
@@ -52,7 +52,7 @@ import it.smartcommunitylab.aac.crypto.PasswordHash;
 import it.smartcommunitylab.aac.internal.model.CredentialsType;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
-import it.smartcommunitylab.aac.internal.provider.InternalPasswordIdentityService;
+import it.smartcommunitylab.aac.internal.provider.PasswordIdentityService;
 import it.smartcommunitylab.aac.internal.provider.InternalPasswordService;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.model.ClientApp;
@@ -153,7 +153,7 @@ public class AACBootstrap {
                     .map(idp -> ((InternalIdentityService<?>) idp))
                     .filter(idp -> CredentialsType.PASSWORD == idp.getCredentialsType())
                     .findFirst().ifPresent(idp -> {
-                        bootstrapAdminUser((InternalPasswordIdentityService) idp);
+                        bootstrapAdminUser((PasswordIdentityService) idp);
                     });
 
             // bootstrap realm providers
@@ -176,7 +176,7 @@ public class AACBootstrap {
 
     private Map<String, IdentityProvider<? extends UserIdentity>> bootstrapSystemProviders()
             throws NoSuchRealmException {
-        Map<String, IdentityAuthority> ias = authorityManager.listIdentityAuthorities().stream()
+        Map<String, IdentityProviderAuthority> ias = authorityManager.listIdentityAuthorities().stream()
                 .collect(Collectors.toMap(a -> a.getAuthorityId(), a -> a));
 
         Collection<ConfigurableIdentityProvider> idps = identityProviderService.listProviders(SystemKeys.REALM_SYSTEM);
@@ -189,7 +189,7 @@ public class AACBootstrap {
 //                        authorityManager.registerIdentityProvider(idp);
 
                     // register directly with authority
-                    IdentityAuthority ia = ias.get(idp.getAuthority());
+                    IdentityProviderAuthority ia = ias.get(idp.getAuthority());
                     if (ia == null) {
                         throw new IllegalArgumentException(
                                 "no authority for " + String.valueOf(idp.getAuthority()));
@@ -213,7 +213,7 @@ public class AACBootstrap {
     }
 
     private void bootstrapIdentityProviders() {
-        Map<String, IdentityAuthority> ias = authorityManager.listIdentityAuthorities().stream()
+        Map<String, IdentityProviderAuthority> ias = authorityManager.listIdentityAuthorities().stream()
                 .collect(Collectors.toMap(a -> a.getAuthorityId(), a -> a));
 
         // load all realm providers from storage
@@ -232,7 +232,7 @@ public class AACBootstrap {
 //                        authorityManager.registerIdentityProvider(idp);
 
                         // register directly with authority
-                        IdentityAuthority ia = ias.get(idp.getAuthority());
+                        IdentityProviderAuthority ia = ias.get(idp.getAuthority());
                         if (ia == null) {
                             throw new IllegalArgumentException(
                                     "no authority for " + String.valueOf(idp.getAuthority()));
@@ -294,7 +294,7 @@ public class AACBootstrap {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    private void bootstrapAdminUser(InternalPasswordIdentityService idp) {
+    private void bootstrapAdminUser(PasswordIdentityService idp) {
         String repositoryId = idp.getConfig().getRepositoryId();
         if (CredentialsType.PASSWORD != idp.getConfig().getCredentialsType()) {
             // not supported

@@ -24,7 +24,7 @@ import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.config.SpidProperties;
-import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
+import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
@@ -41,7 +41,7 @@ import it.smartcommunitylab.aac.spid.service.LocalSpidRegistry;
 import it.smartcommunitylab.aac.spid.service.SpidRegistry;
 
 @Service
-public class SpidIdentityAuthority implements IdentityAuthority, InitializingBean {
+public class SpidIdentityAuthority implements IdentityProviderAuthority, InitializingBean {
 
     public static final String AUTHORITY_URL = "/auth/spid/";
 
