@@ -9,31 +9,35 @@ import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
-import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountId;
-import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
+import it.smartcommunitylab.aac.openid.service.OIDCUserAccountService;
 
 @Transactional
 public class OIDCSubjectResolver extends AbstractProvider implements SubjectResolver<OIDCUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final OIDCUserAccountRepository accountRepository;
+    private final OIDCUserAccountService accountService;
     private final OIDCIdentityProviderConfig config;
 
-    public OIDCSubjectResolver(String providerId, OIDCUserAccountRepository accountRepository,
+    private final String repositoryId;
+
+    public OIDCSubjectResolver(String providerId, OIDCUserAccountService userAccountService,
             OIDCIdentityProviderConfig config,
             String realm) {
-        this(SystemKeys.AUTHORITY_OIDC, providerId, accountRepository, config, realm);
+        this(SystemKeys.AUTHORITY_OIDC, providerId, userAccountService, config, realm);
     }
 
-    public OIDCSubjectResolver(String authority, String providerId, OIDCUserAccountRepository accountRepository,
+    public OIDCSubjectResolver(String authority, String providerId, OIDCUserAccountService userAccountService,
             OIDCIdentityProviderConfig config,
             String realm) {
         super(authority, providerId, realm);
-        Assert.notNull(accountRepository, "account repository is mandatory");
+        Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(config, "provider config is mandatory");
 
-        this.accountRepository = accountRepository;
+        this.accountService = userAccountService;
         this.config = config;
+
+        // repositoryId is always providerId, oidc isolates data per provider
+        this.repositoryId = providerId;
     }
 
     @Override
@@ -44,7 +48,7 @@ public class OIDCSubjectResolver extends AbstractProvider implements SubjectReso
     @Transactional(readOnly = true)
     public Subject resolveBySubject(String sub) {
         logger.debug("resolve by sub " + sub);
-        OIDCUserAccount account = accountRepository.findOne(new OIDCUserAccountId(getProvider(), sub));
+        OIDCUserAccount account = accountService.findAccountById(repositoryId, sub);
         if (account == null) {
             return null;
         }
@@ -75,7 +79,7 @@ public class OIDCSubjectResolver extends AbstractProvider implements SubjectReso
     @Transactional(readOnly = true)
     public Subject resolveByUsername(String username) {
         logger.debug("resolve by username " + username);
-        OIDCUserAccount account = accountRepository.findByProviderAndUsername(getProvider(), username).stream()
+        OIDCUserAccount account = accountService.findAccountByUsername(repositoryId, username).stream()
                 .findFirst()
                 .orElse(null);
         if (account == null) {
@@ -94,10 +98,11 @@ public class OIDCSubjectResolver extends AbstractProvider implements SubjectReso
         }
 
         logger.debug("resolve by email " + email);
-        OIDCUserAccount account = accountRepository.findByProviderAndEmail(getProvider(), email).stream()
+        OIDCUserAccount account = accountService.findAccountByEmail(repositoryId, email).stream()
                 .filter(a -> a.isEmailVerified())
                 .findFirst()
                 .orElse(null);
+
         if (account == null) {
             return null;
         }

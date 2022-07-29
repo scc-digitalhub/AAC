@@ -1,13 +1,6 @@
 package it.smartcommunitylab.aac.openid.provider;
 
-import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,76 +11,69 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.OpenIdAttributesSet;
-import it.smartcommunitylab.aac.attributes.mapper.OpenIdAttributesMapper;
 import it.smartcommunitylab.aac.attributes.store.AttributeStore;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
-import it.smartcommunitylab.aac.common.NoSuchUserException;
-import it.smartcommunitylab.aac.core.base.AbstractProvider;
-import it.smartcommunitylab.aac.core.model.AttributeSet;
+import it.smartcommunitylab.aac.core.base.AbstractIdentityProvider;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.service.SubjectService;
+import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.dto.LoginProvider;
 import it.smartcommunitylab.aac.openid.model.OIDCUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.openid.model.OIDCUserIdentity;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
-import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
+import it.smartcommunitylab.aac.openid.service.OIDCUserAccountService;
 
-public class OIDCIdentityProvider extends AbstractProvider
-        implements
-        IdentityProvider<OIDCUserIdentity> {
+@Transactional
+public class OIDCIdentityProvider
+        extends AbstractIdentityProvider<OIDCUserIdentity, OIDCUserAccount, OIDCUserAuthenticatedPrincipal> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // provider configuration
     private final OIDCIdentityProviderConfig config;
 
     // providers
-    protected final OIDCAccountProvider accountProvider;
-    protected final OIDCAttributeProvider attributeProvider;
-    protected final OIDCAuthenticationProvider authenticationProvider;
-    protected final OIDCSubjectResolver subjectResolver;
+    private final OIDCAccountProvider accountProvider;
+    private final OIDCAttributeProvider attributeProvider;
+    private final OIDCAuthenticationProvider authenticationProvider;
+    private final OIDCSubjectResolver subjectResolver;
 
-    // attributes
-    protected final OpenIdAttributesMapper openidMapper;
+//    // attributes
+//    protected final OpenIdAttributesMapper openidMapper;
 
     public OIDCIdentityProvider(
             String providerId,
-            OIDCUserAccountRepository accountRepository, AttributeStore attributeStore, SubjectService subjectService,
+            UserEntityService userEntityService, OIDCUserAccountService userAccountService,
+            SubjectService subjectService,
+            AttributeStore attributeStore,
             OIDCIdentityProviderConfig config,
             String realm) {
-        this(SystemKeys.AUTHORITY_OIDC, providerId, accountRepository, attributeStore, subjectService, config, realm);
+        this(SystemKeys.AUTHORITY_OIDC, providerId, userEntityService, userAccountService, subjectService,
+                attributeStore, config, realm);
     }
 
+    @Deprecated
     public OIDCIdentityProvider(
             String authority, String providerId,
-            OIDCUserAccountRepository accountRepository, AttributeStore attributeStore, SubjectService subjectService,
+            UserEntityService userEntityService, OIDCUserAccountService userAccountService,
+            SubjectService subjectService,
+            AttributeStore attributeStore,
             OIDCIdentityProviderConfig config,
             String realm) {
-        super(authority, providerId, realm);
-        Assert.notNull(accountRepository, "account repository is mandatory");
+        super(authority, providerId, userEntityService, userAccountService, subjectService, config, realm);
         Assert.notNull(attributeStore, "attribute store is mandatory");
-        Assert.notNull(subjectService, "subject service is mandatory");
-        Assert.notNull(config, "provider config is mandatory");
 
-        // check configuration
-        Assert.isTrue(providerId.equals(config.getProvider()),
-                "configuration does not match this provider");
-        Assert.isTrue(realm.equals(config.getRealm()), "configuration does not match this provider");
-
+        logger.debug("create oidc provider for authority {} with id {}", String.valueOf(authority),
+                String.valueOf(providerId));
         this.config = config;
 
         // build resource providers, we use our providerId to ensure consistency
-        this.accountProvider = new OIDCAccountProvider(authority, providerId, accountRepository, subjectService, config,
+        this.accountProvider = new OIDCAccountProvider(authority, providerId, userAccountService, config, realm);
+        this.attributeProvider = new OIDCAttributeProvider(authority, providerId, attributeStore, config, realm);
+        this.authenticationProvider = new OIDCAuthenticationProvider(authority, providerId, userAccountService, config,
                 realm);
-        this.attributeProvider = new OIDCAttributeProvider(authority, providerId, attributeStore,
-                config,
-                realm);
-        this.authenticationProvider = new OIDCAuthenticationProvider(authority, providerId, accountRepository, config,
-                realm);
-        this.subjectResolver = new OIDCSubjectResolver(authority, providerId, accountRepository, config, realm);
+        this.subjectResolver = new OIDCSubjectResolver(authority, providerId, userAccountService, config, realm);
 
-        this.openidMapper = new OpenIdAttributesMapper();
+//        this.openidMapper = new OpenIdAttributesMapper();
 
         // function hooks from config
         if (config.getHookFunctions() != null
@@ -100,11 +86,6 @@ public class OIDCIdentityProvider extends AbstractProvider
 
     public void setExecutionService(ScriptExecutionService executionService) {
         this.authenticationProvider.setExecutionService(executionService);
-    }
-
-    @Override
-    public final String getType() {
-        return SystemKeys.RESOURCE_IDENTITY;
     }
 
     @Override
@@ -133,260 +114,142 @@ public class OIDCIdentityProvider extends AbstractProvider
     }
 
     @Override
-    @Transactional(readOnly = false)
-    public OIDCUserIdentity convertIdentity(UserAuthenticatedPrincipal userPrincipal, String userId)
-            throws NoSuchUserException {
-        // we expect an instance of our model
-        Assert.isInstanceOf(OIDCUserAuthenticatedPrincipal.class, userPrincipal,
-                "principal must be an instance of internal authenticated principal");
-        OIDCUserAuthenticatedPrincipal principal = (OIDCUserAuthenticatedPrincipal) userPrincipal;
-
-        // we use upstream subject for accounts
-        String subject = principal.getSubject();
-        String provider = getProvider();
-
-        if (userId == null) {
-            // this better exists
-            throw new NoSuchUserException();
-        }
-
-        // attributes from provider
-        String username = principal.getUsername();
-        Map<String, Serializable> attributes = principal.getAttributes();
-
-        // map attributes to openid set and flatten to string
-        AttributeSet oidcAttributeSet = openidMapper.mapAttributes(attributes);
-        Map<String, String> oidcAttributes = oidcAttributeSet.getAttributes()
-                .stream()
-                .collect(Collectors.toMap(
-                        a -> a.getKey(),
-                        a -> a.exportValue()));
-
-        String email = oidcAttributes.get(OpenIdAttributesSet.EMAIL);
-        username = StringUtils.hasText(oidcAttributes.get(OpenIdAttributesSet.PREFERRED_USERNAME))
-                ? oidcAttributes.get(OpenIdAttributesSet.PREFERRED_USERNAME)
-                : principal.getUsername();
-
-        principal.setUsername(username);
-        principal.setEmail(email);
-
-        // TODO handle not persisted configuration
-        //
-        // look in repo or create
-        OIDCUserAccount account = accountProvider.findAccount(subject);
-
-        if (account == null) {
-            // create
-            account = new OIDCUserAccount();
-            account.setSubject(subject);
-            account.setUsername(username);
-            account.setEmail(email);
-            account = accountProvider.registerAccount(userId, account);
-        }
-
-        // uuid is available for persisted accounts
-        String uuid = account.getUuid();
-        principal.setUuid(uuid);
-
-        // userId is always present, is derived from the same account table
-        String curUserId = account.getUserId();
-
-        if (!curUserId.equals(userId)) {
-//            // force link
-//            // TODO re-evaluate
-//            account.setSubject(subjectId);
-//            account = accountRepository.save(account);
-            throw new IllegalArgumentException("user mismatch");
-        }
-
-        // update additional attributes
-        String issuer = attributes.containsKey(IdTokenClaimNames.ISS) ? attributes.get(IdTokenClaimNames.ISS).toString()
-                : null;
-        if (!StringUtils.hasText(issuer)) {
-            issuer = provider;
-        }
-
-        String name = StringUtils.hasText(oidcAttributes.get(OpenIdAttributesSet.NAME))
-                ? oidcAttributes.get(OpenIdAttributesSet.NAME)
-                : username;
-
-        String familyName = oidcAttributes.get(OpenIdAttributesSet.FAMILY_NAME);
-        String givenName = oidcAttributes.get(OpenIdAttributesSet.GIVEN_NAME);
-
-        boolean defaultVerifiedStatus = config.getConfigMap().getTrustEmailAddress() != null
-                ? config.getConfigMap().getTrustEmailAddress()
-                : false;
-        boolean emailVerified = StringUtils.hasText(oidcAttributes.get(OpenIdAttributesSet.EMAIL_VERIFIED))
-                ? Boolean.parseBoolean(oidcAttributes.get(OpenIdAttributesSet.EMAIL_VERIFIED))
-                : defaultVerifiedStatus;
-
-        if (Boolean.TRUE.equals(config.getConfigMap().getAlwaysTrustEmailAddress())) {
-            emailVerified = true;
-        }
-        principal.setEmailVerified(emailVerified);
-
-        String lang = oidcAttributes.get(OpenIdAttributesSet.LOCALE);
-        // TODO evaluate how to handle external pictureURI
-        String picture = oidcAttributes.get(OpenIdAttributesSet.PICTURE);
-
-        // we override these every time
-        account.setIssuer(issuer);
-        account.setUsername(username);
-        account.setName(name);
-        account.setFamilyName(familyName);
-        account.setGivenName(givenName);
-        account.setEmail(email);
-        account.setEmailVerified(emailVerified);
-        account.setLang(lang);
-        account.setPicture(picture);
-
-        account = accountProvider.updateAccount(subject, account);
-
-        // convert attribute sets via provider, will update store
-        Collection<UserAttributes> identityAttributes = attributeProvider.convertPrincipalAttributes(principal,
-                account);
-
+    protected OIDCUserIdentity buildIdentity(OIDCUserAccount account, OIDCUserAuthenticatedPrincipal principal,
+            Collection<UserAttributes> attributes) {
         // build identity
-        OIDCUserIdentity identity = new OIDCUserIdentity(getAuthority(), getProvider(), getRealm(), account, principal);
-        identity.setAttributes(identityAttributes);
+        OIDCUserIdentity identity = new OIDCUserIdentity(getAuthority(), getProvider(), getRealm(), account,
+                principal);
+        identity.setAttributes(attributes);
 
         return identity;
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public OIDCUserIdentity findIdentityByUuid(String uuid) {
-        // lookup a matching account
-        OIDCUserAccount account = accountProvider.findAccountByUuid(uuid);
-        if (account == null) {
-            return null;
-        }
-        // build identity without attributes
-        OIDCUserIdentity identity = new OIDCUserIdentity(getAuthority(), getProvider(), getRealm(), account);
-        return identity;
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public OIDCUserIdentity findIdentity(String subject) {
-        // lookup a matching account
-        OIDCUserAccount account = accountProvider.findAccount(subject);
-        if (account == null) {
-            return null;
-        }
-        // build identity without attributes
-        OIDCUserIdentity identity = new OIDCUserIdentity(getAuthority(), getProvider(), getRealm(), account);
-        return identity;
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public OIDCUserIdentity getIdentity(String subject) throws NoSuchUserException {
-        return getIdentity(subject, true);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public OIDCUserIdentity getIdentity(String subject, boolean fetchAttributes)
-            throws NoSuchUserException {
-        // lookup a matching account
-        OIDCUserAccount account = accountProvider.getAccount(subject);
-
-        // build identity
-        OIDCUserIdentity identity = new OIDCUserIdentity(getAuthority(), getProvider(), getRealm(), account);
-        if (fetchAttributes) {
-            // convert attribute sets
-            Collection<UserAttributes> identityAttributes = attributeProvider.getAccountAttributes(account);
-            identity.setAttributes(identityAttributes);
-        }
-
-        return identity;
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Collection<OIDCUserIdentity> listIdentities(String userId) {
-        return listIdentities(userId, true);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Collection<OIDCUserIdentity> listIdentities(String userId, boolean fetchAttributes) {
-        // TODO handle not persisted configuration
-        // lookup for matching accounts
-        List<OIDCUserAccount> accounts = accountProvider.listAccounts(userId);
-        if (accounts.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        List<OIDCUserIdentity> identities = new ArrayList<>();
-
-        for (OIDCUserAccount account : accounts) {
-            // build identity
-            OIDCUserIdentity identity = new OIDCUserIdentity(getAuthority(), getProvider(), getRealm(), account);
-            if (fetchAttributes) {
-                // convert attribute sets
-                Collection<UserAttributes> identityAttributes = attributeProvider.getAccountAttributes(account);
-                identity.setAttributes(identityAttributes);
-            }
-
-            identities.add(identity);
-        }
-
-        return identities;
-    }
-
-    @Override
-    @Transactional(readOnly = false)
-    public OIDCUserIdentity linkIdentity(String userId, String username) throws NoSuchUserException {
-        // get the internal account entity
-        OIDCUserAccount account = accountProvider.getAccount(username);
-
-        // re-link to new userId
-        account = accountProvider.linkAccount(username, userId);
-
-        // use builder, skip attributes
-        OIDCUserIdentity identity = new OIDCUserIdentity(getAuthority(), getProvider(), getRealm(), account);
-        return identity;
-    }
-
-    @Override
-    @Transactional(readOnly = false)
-    public void deleteIdentity(String subject) throws NoSuchUserException {
-        // cleanup attributes
-        attributeProvider.deleteAccountAttributes(subject);
-
-        // delete account
-        accountProvider.deleteAccount(subject);
-    }
-
-    @Override
-    @Transactional(readOnly = false)
-    public void deleteIdentities(String userId) {
-        Collection<OIDCUserAccount> accounts = accountProvider.listAccounts(userId);
-        for (OIDCUserAccount account : accounts) {
-            try {
-                deleteIdentity(account.getSubject());
-            } catch (NoSuchUserException e) {
-            }
-        }
-    }
+//    @Override
+//    @Transactional(readOnly = false)
+//    public OIDCUserIdentity convertIdentity(UserAuthenticatedPrincipal userPrincipal, String userId)
+//            throws NoSuchUserException {
+//        // we expect an instance of our model
+//        Assert.isInstanceOf(OIDCUserAuthenticatedPrincipal.class, userPrincipal,
+//                "principal must be an instance of internal authenticated principal");
+//        OIDCUserAuthenticatedPrincipal principal = (OIDCUserAuthenticatedPrincipal) userPrincipal;
+//
+//        // we use upstream subject for accounts
+//        String subject = principal.getSubject();
+//        String provider = getProvider();
+//
+//        if (userId == null) {
+//            // this better exists
+//            throw new NoSuchUserException();
+//        }
+//
+//        // attributes from provider
+//        String username = principal.getUsername();
+//        Map<String, Serializable> attributes = principal.getAttributes();
+//
+//        // map attributes to openid set and flatten to string
+//        AttributeSet oidcAttributeSet = openidMapper.mapAttributes(attributes);
+//        Map<String, String> oidcAttributes = oidcAttributeSet.getAttributes()
+//                .stream()
+//                .collect(Collectors.toMap(
+//                        a -> a.getKey(),
+//                        a -> a.exportValue()));
+//
+//        String email = oidcAttributes.get(OpenIdAttributesSet.EMAIL);
+//        username = StringUtils.hasText(oidcAttributes.get(OpenIdAttributesSet.PREFERRED_USERNAME))
+//                ? oidcAttributes.get(OpenIdAttributesSet.PREFERRED_USERNAME)
+//                : principal.getUsername();
+//
+//        principal.setUsername(username);
+//        principal.setEmail(email);
+//
+//        // TODO handle not persisted configuration
+//        //
+//        // look in repo or create
+//        OIDCUserAccount account = accountProvider.findAccount(subject);
+//
+//        if (account == null) {
+//            // create
+//            account = new OIDCUserAccount();
+//            account.setSubject(subject);
+//            account.setUsername(username);
+//            account.setEmail(email);
+//            account = accountProvider.registerAccount(userId, account);
+//        }
+//
+//        // uuid is available for persisted accounts
+//        String uuid = account.getUuid();
+//        principal.setUuid(uuid);
+//
+//        // userId is always present, is derived from the same account table
+//        String curUserId = account.getUserId();
+//
+//        if (!curUserId.equals(userId)) {
+////            // force link
+////            // TODO re-evaluate
+////            account.setSubject(subjectId);
+////            account = accountRepository.save(account);
+//            throw new IllegalArgumentException("user mismatch");
+//        }
+//
+//        // update additional attributes
+//        String issuer = attributes.containsKey(IdTokenClaimNames.ISS) ? attributes.get(IdTokenClaimNames.ISS).toString()
+//                : null;
+//        if (!StringUtils.hasText(issuer)) {
+//            issuer = provider;
+//        }
+//
+//        String name = StringUtils.hasText(oidcAttributes.get(OpenIdAttributesSet.NAME))
+//                ? oidcAttributes.get(OpenIdAttributesSet.NAME)
+//                : username;
+//
+//        String familyName = oidcAttributes.get(OpenIdAttributesSet.FAMILY_NAME);
+//        String givenName = oidcAttributes.get(OpenIdAttributesSet.GIVEN_NAME);
+//
+//        boolean defaultVerifiedStatus = config.getConfigMap().getTrustEmailAddress() != null
+//                ? config.getConfigMap().getTrustEmailAddress()
+//                : false;
+//        boolean emailVerified = StringUtils.hasText(oidcAttributes.get(OpenIdAttributesSet.EMAIL_VERIFIED))
+//                ? Boolean.parseBoolean(oidcAttributes.get(OpenIdAttributesSet.EMAIL_VERIFIED))
+//                : defaultVerifiedStatus;
+//
+//        if (Boolean.TRUE.equals(config.getConfigMap().getAlwaysTrustEmailAddress())) {
+//            emailVerified = true;
+//        }
+//        principal.setEmailVerified(emailVerified);
+//
+//        String lang = oidcAttributes.get(OpenIdAttributesSet.LOCALE);
+//        // TODO evaluate how to handle external pictureURI
+//        String picture = oidcAttributes.get(OpenIdAttributesSet.PICTURE);
+//
+//        // we override these every time
+//        account.setIssuer(issuer);
+//        account.setUsername(username);
+//        account.setName(name);
+//        account.setFamilyName(familyName);
+//        account.setGivenName(givenName);
+//        account.setEmail(email);
+//        account.setEmailVerified(emailVerified);
+//        account.setLang(lang);
+//        account.setPicture(picture);
+//
+//        account = accountProvider.updateAccount(subject, account);
+//
+//        // convert attribute sets via provider, will update store
+//        Collection<UserAttributes> identityAttributes = attributeProvider.convertPrincipalAttributes(principal,
+//                account);
+//
+//        // build identity
+//        OIDCUserIdentity identity = new OIDCUserIdentity(getAuthority(), getProvider(), getRealm(), account, principal);
+//        identity.setAttributes(identityAttributes);
+//
+//        return identity;
+//    }
 
     @Override
     public String getAuthenticationUrl() {
         // TODO build a realm-bound url, need updates on filters
         // TODO move url build to helper class
         return "/auth/" + getAuthority() + "/authorize/" + getProvider();
-    }
-
-    @Override
-    public String getName() {
-        return config.getName();
-    }
-
-    @Override
-    public String getDescription() {
-        return config.getDescription();
     }
 
     @Override

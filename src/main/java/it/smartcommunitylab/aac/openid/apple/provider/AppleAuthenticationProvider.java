@@ -42,18 +42,17 @@ import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticationException;
 import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticationToken;
 import it.smartcommunitylab.aac.openid.model.OIDCUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
-import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountId;
-import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
 import it.smartcommunitylab.aac.openid.provider.OIDCAuthenticationProvider;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProvider;
 import it.smartcommunitylab.aac.openid.service.IdTokenOidcUserService;
+import it.smartcommunitylab.aac.openid.service.OIDCUserAccountService;
 
 public class AppleAuthenticationProvider
         extends OIDCAuthenticationProvider {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final OIDCUserAccountRepository accountRepository;
-    private final AppleIdentityProviderConfig config;
+    private final OIDCUserAccountService accountService;
+    private final String repositoryId;
 
     private final OidcAuthorizationCodeAuthenticationProvider oidcProvider;
 
@@ -61,15 +60,16 @@ public class AppleAuthenticationProvider
 
     public AppleAuthenticationProvider(
             String providerId,
-            OIDCUserAccountRepository accountRepository,
+            OIDCUserAccountService accountService,
             AppleIdentityProviderConfig config,
             String realm) {
-        super(SystemKeys.AUTHORITY_APPLE, providerId, accountRepository, config.toOidcProviderConfig(), realm);
-        Assert.notNull(accountRepository, "account repository is mandatory");
+        super(SystemKeys.AUTHORITY_APPLE, providerId, accountService, config.toOidcProviderConfig(), realm);
         Assert.notNull(config, "provider config is mandatory");
 
-        this.config = config;
-        this.accountRepository = accountRepository;
+        this.accountService = accountService;
+
+        // repositoryId is always providerId, oidc isolates data per provider
+        this.repositoryId = providerId;
 
         // build appropriate client auth request converter
         OAuth2AuthorizationCodeGrantRequestEntityConverter requestEntityConverter = new OAuth2AuthorizationCodeGrantRequestEntityConverter();
@@ -116,7 +116,7 @@ public class AppleAuthenticationProvider
                 }
 
                 // check if account is present and locked
-                OIDCUserAccount account = accountRepository.findOne(new OIDCUserAccountId(getProvider(), subject));
+                OIDCUserAccount account = accountService.findAccountById(repositoryId, subject);
                 if (account != null && account.isLocked()) {
                     throw new OIDCAuthenticationException(new OAuth2Error("invalid_request"), "account not available",
                             authorizationRequestUri,
@@ -195,7 +195,7 @@ public class AppleAuthenticationProvider
         String lastName = oauthDetails.getAttribute("lastName");
 
         // need account to load saved attributes
-        OIDCUserAccount account = accountRepository.findOne(new OIDCUserAccountId(getProvider(), subject));
+        OIDCUserAccount account = accountService.findAccountById(repositoryId, subject);
         if (account != null) {
             firstName = firstName != null ? firstName : account.getGivenName();
             lastName = lastName != null ? lastName : account.getFamilyName();
