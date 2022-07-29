@@ -19,7 +19,7 @@ import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
+import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
@@ -538,7 +538,7 @@ public class ProviderManager {
         if (TYPE_IDENTITY.equals(type)) {
             // we support only idp templates
             List<ConfigurableProvider> templates = new ArrayList<>();
-            for (IdentityAuthority ia : authorityManager
+            for (IdentityProviderAuthority ia : authorityManager
                     .listIdentityAuthorities()) {
                 templates.addAll(ia.getConfigurableProviderTemplates());
             }

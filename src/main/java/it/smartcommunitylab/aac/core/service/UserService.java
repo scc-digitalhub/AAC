@@ -27,7 +27,7 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.authorities.AttributeAuthority;
-import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
+import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
@@ -278,7 +278,7 @@ public class UserService {
 
         // same realm, fetch all idps
         // TODO we need an order criteria
-        for (IdentityAuthority ia : authorityManager
+        for (IdentityProviderAuthority ia : authorityManager
                 .listIdentityAuthorities()) {
             List<? extends IdentityProvider<? extends UserIdentity>> idps = ia
                     .getIdentityProviders(realm);
@@ -344,7 +344,7 @@ public class UserService {
 
         // fetch all identities from source realm
         // TODO we need an order criteria
-        for (IdentityAuthority ia : authorityManager
+        for (IdentityProviderAuthority ia : authorityManager
                 .listIdentityAuthorities()) {
             List<? extends IdentityProvider<? extends UserIdentity>> idps = ia
                     .getIdentityProviders(source);
@@ -355,7 +355,7 @@ public class UserService {
         if (!source.equals(realm)) {
             // also fetch identities from destination realm
             // TODO we need an order criteria
-            for (IdentityAuthority ia : authorityManager
+            for (IdentityProviderAuthority ia : authorityManager
                     .listIdentityAuthorities()) {
                 List<? extends IdentityProvider<? extends UserIdentity>> idps = ia
                         .getIdentityProviders(realm);
@@ -534,7 +534,7 @@ public class UserService {
         String realm = user.getRealm();
 
         // delete identities via providers
-        for (IdentityAuthority ia : authorityManager.listIdentityAuthorities()) {
+        for (IdentityProviderAuthority ia : authorityManager.listIdentityAuthorities()) {
             List<? extends IdentityProvider<? extends UserIdentity>> idps = ia.getIdentityProviders(realm);
             for (IdentityProvider<? extends UserIdentity> idp : idps) {
                 // remove all identities

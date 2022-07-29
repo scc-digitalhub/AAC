@@ -39,4 +39,6 @@ public abstract class AbstractAccount extends AbstractBaseUserResource implement
         return SystemKeys.RESOURCE_ACCOUNT;
     }
 
+    public abstract void setUuid(String uuid);
+
 }
