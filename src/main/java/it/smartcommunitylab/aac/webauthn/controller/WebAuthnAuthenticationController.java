@@ -24,7 +24,7 @@ import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccount;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityService;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpService;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserAccountService;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnRequestStore;
+import it.smartcommunitylab.aac.webauthn.store.InMemoryWebAuthnRequestStore;
 
 /**
  * Manages the endpoint connected to the authentication ceremony of WebAuthn.
@@ -44,7 +44,7 @@ public class WebAuthnAuthenticationController {
     private WebAuthnRpService rpService;
 
     @Autowired
-    private WebAuthnRequestStore requestStore;
+    private InMemoryWebAuthnRequestStore requestStore;
 
     /**
      * Serves the page to start a new WebAuthn authentication ceremony. Ensure the
@@ -78,7 +78,7 @@ public class WebAuthnAuthenticationController {
 
         // fetch user
         String username = body.getUsername();
-        WebAuthnUserAccount account = userAccountService.findAccountByUsername(providerId, username);
+        WebAuthnUserAccount account = userAccountService.findAccountById(providerId, username);
         if (account == null) {
             // TODO review exception to avoid disclosing user existence
             throw new NoSuchUserException();

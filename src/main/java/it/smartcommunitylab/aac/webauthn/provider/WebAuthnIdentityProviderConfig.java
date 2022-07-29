@@ -82,7 +82,6 @@ public class WebAuthnIdentityProviderConfig extends AbstractIdentityProviderConf
         ip.name = cp.getName();
         ip.description = cp.getDescription();
         ip.icon = cp.getIcon();
-        ip.displayMode = cp.getDisplayMode();
 
         ip.persistence = cp.getPersistence();
         ip.linkable = cp.isLinkable();

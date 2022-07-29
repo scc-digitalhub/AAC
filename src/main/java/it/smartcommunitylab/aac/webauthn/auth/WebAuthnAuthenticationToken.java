@@ -11,7 +11,7 @@ import com.yubico.webauthn.AssertionRequest;
 import com.yubico.webauthn.AssertionResult;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccount;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 
 public class WebAuthnAuthenticationToken extends AbstractAuthenticationToken {
 
@@ -22,7 +22,7 @@ public class WebAuthnAuthenticationToken extends AbstractAuthenticationToken {
     private final AssertionResult assertionResult;
 
     private String assertion;
-    private WebAuthnUserAccount account;
+    private InternalUserAccount account;
 
     public WebAuthnAuthenticationToken(String userHandle, AssertionRequest assertionRequest) {
         super(null);
@@ -63,7 +63,7 @@ public class WebAuthnAuthenticationToken extends AbstractAuthenticationToken {
     }
 
     public WebAuthnAuthenticationToken(String userHandle, AssertionRequest assertionRequest, String assertion,
-            AssertionResult assertionResult, WebAuthnUserAccount account,
+            AssertionResult assertionResult, InternalUserAccount account,
             Collection<? extends GrantedAuthority> authorities) {
         super(authorities);
         this.userHandle = userHandle;
@@ -78,7 +78,7 @@ public class WebAuthnAuthenticationToken extends AbstractAuthenticationToken {
         return userHandle;
     }
 
-    public WebAuthnUserAccount getAccount() {
+    public InternalUserAccount getAccount() {
         return account;
     }
 

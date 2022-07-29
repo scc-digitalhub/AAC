@@ -26,7 +26,6 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractUserCredentials;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
 import it.smartcommunitylab.aac.internal.model.CredentialsType;
-import it.smartcommunitylab.aac.internal.model.InternalUserCredential;
 import it.smartcommunitylab.aac.repository.HashMapConverter;
 
 @Entity
@@ -34,7 +33,7 @@ import it.smartcommunitylab.aac.repository.HashMapConverter;
         "provider_id", "user_handle", "credential_id" }))
 @EntityListeners(AuditingEntityListener.class)
 public class WebAuthnCredential extends AbstractUserCredentials
-        implements InternalUserCredential, CredentialsContainer, Serializable {
+        implements CredentialsContainer, Serializable {
 
     private static final long serialVersionUID = SystemKeys.AAC_WEBAUTHN_SERIAL_VERSION;
 
@@ -119,7 +118,7 @@ public class WebAuthnCredential extends AbstractUserCredentials
     private transient String realm;
 
     public WebAuthnCredential() {
-        super(SystemKeys.AUTHORITY_INTERNAL, null, null, null);
+        super(SystemKeys.AUTHORITY_WEBAUTHN, null, null, null);
     }
 
     @Override
@@ -134,12 +133,7 @@ public class WebAuthnCredential extends AbstractUserCredentials
 
     @Override
     public CredentialsType getCredentialsType() {
-        return CredentialsType.PASSWORD;
-    }
-
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_CREDENTIALS + "_" + CredentialsType.PASSWORD.getValue();
+        return CredentialsType.WEBAUTHN;
     }
 
     @Override
