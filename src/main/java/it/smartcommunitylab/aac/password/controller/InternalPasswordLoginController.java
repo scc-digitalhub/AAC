@@ -18,31 +18,30 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.LoginException;
 import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.dto.CustomizationBean;
-import it.smartcommunitylab.aac.dto.LoginProvider;
-import it.smartcommunitylab.aac.internal.AbstractInternalIdentityAuthority;
 import it.smartcommunitylab.aac.internal.auth.InternalAuthenticationException;
 import it.smartcommunitylab.aac.internal.model.InternalLoginProvider;
-import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
 import it.smartcommunitylab.aac.model.Realm;
+import it.smartcommunitylab.aac.password.InternalPasswordIdentityAuthority;
+import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProvider;
 
 @Controller
 @RequestMapping
-public class InternalLoginController {
+public class InternalPasswordLoginController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
-    private AbstractInternalIdentityAuthority internalAuthority;
+    private InternalPasswordIdentityAuthority internalAuthority;
 
     @Autowired
     private RealmManager realmManager;
 
-    @RequestMapping(value = "/auth/internal/form/{providerId}", method = RequestMethod.GET)
+    @RequestMapping(value = "/auth/password/form/{providerId}", method = RequestMethod.GET)
     public String login(
             @PathVariable("providerId") String providerId,
             Model model,
             HttpServletRequest req, HttpServletResponse res) throws Exception {
         // resolve provider
-        InternalIdentityService<?> idp = internalAuthority.getIdentityService(providerId);
+        InternalPasswordIdentityProvider idp = internalAuthority.getProvider(providerId);
         model.addAttribute("providerId", providerId);
 
         String realm = idp.getRealm();

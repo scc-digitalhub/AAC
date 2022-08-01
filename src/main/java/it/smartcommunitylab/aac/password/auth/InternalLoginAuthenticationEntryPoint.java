@@ -14,12 +14,12 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponents;
 
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
-import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
+import it.smartcommunitylab.aac.password.InternalPasswordIdentityAuthority;
 
 public class InternalLoginAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPoint {
 
-    public static final String DEFAULT_FILTER_URI = PasswordIdentityAuthority.AUTHORITY_URL + "login/{registrationId}";
-    public static final String DEFAULT_LOGIN_URI = PasswordIdentityAuthority.AUTHORITY_URL + "form/{registrationId}";
+    public static final String DEFAULT_FILTER_URI = InternalPasswordIdentityAuthority.AUTHORITY_URL + "login/{registrationId}";
+    public static final String DEFAULT_LOGIN_URI = InternalPasswordIdentityAuthority.AUTHORITY_URL + "form/{registrationId}";
     public static final String SUPER_LOGIN_URI = "/login";
 
     public static final String PROVIDER_URI_VARIABLE_NAME = "registrationId";

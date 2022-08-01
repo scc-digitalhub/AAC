@@ -65,14 +65,14 @@ import it.smartcommunitylab.aac.internal.AbstractInternalIdentityAuthority;
 import it.smartcommunitylab.aac.internal.dto.UserRegistrationBean;
 import it.smartcommunitylab.aac.internal.model.CredentialsType;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
-import it.smartcommunitylab.aac.internal.model.PasswordPolicy;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountService;
-import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
-import it.smartcommunitylab.aac.internal.provider.PasswordIdentityService;
-import it.smartcommunitylab.aac.internal.provider.InternalPasswordService;
+import it.smartcommunitylab.aac.internal.provider.AbstractInternalIdentityProvider;
 import it.smartcommunitylab.aac.model.Realm;
+import it.smartcommunitylab.aac.password.model.PasswordPolicy;
+import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
+import it.smartcommunitylab.aac.password.provider.PasswordIdentityService;
+import it.smartcommunitylab.aac.password.service.InternalPasswordService;
 
 /**
  * @author raman
@@ -131,7 +131,7 @@ public class InternalRegistrationController {
         InternalUserAccount account = identity.getAccount();
 
         // fetch provider
-        InternalIdentityService<?> idp = internalAuthority.getIdentityService(providerId);
+        AbstractInternalIdentityProvider<?> idp = internalAuthority.getIdentityService(providerId);
         if (!idp.getConfig().isEnableUpdate()) {
             throw new IllegalArgumentException("error.unsupported_operation");
         }
@@ -214,7 +214,7 @@ public class InternalRegistrationController {
             InternalUserAccount account = identity.getAccount();
 
             // fetch provider
-            InternalIdentityService<?> idp = internalAuthority.getIdentityService(providerId);
+            AbstractInternalIdentityProvider<?> idp = internalAuthority.getIdentityService(providerId);
             if (!idp.getConfig().isEnableUpdate()) {
                 throw new IllegalArgumentException("error.unsupported_operation");
             }
@@ -293,7 +293,7 @@ public class InternalRegistrationController {
             Model model) throws NoSuchProviderException, NoSuchRealmException {
 
         // resolve provider
-        InternalIdentityService<?> idp = internalAuthority.getIdentityService(providerId);
+        AbstractInternalIdentityProvider<?> idp = internalAuthority.getIdentityService(providerId);
 
         if (!idp.getConfig().isEnableRegistration()) {
             throw new RegistrationException("unsupported_operation");
@@ -369,7 +369,7 @@ public class InternalRegistrationController {
         try {
 
             // resolve provider
-            InternalIdentityService<?> idp = internalAuthority.getIdentityService(providerId);
+            AbstractInternalIdentityProvider<?> idp = internalAuthority.getIdentityService(providerId);
 
             if (!idp.getConfig().isEnableRegistration()) {
                 throw new RegistrationException("unsupported_operation");

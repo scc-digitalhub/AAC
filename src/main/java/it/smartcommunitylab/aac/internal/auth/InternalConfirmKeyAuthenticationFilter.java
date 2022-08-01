@@ -28,24 +28,25 @@ import it.smartcommunitylab.aac.core.auth.RequestAwareAuthenticationSuccessHandl
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.internal.AbstractInternalIdentityAuthority;
+import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
 import it.smartcommunitylab.aac.internal.model.CredentialsType;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserPassword;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserPasswordRepository;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
+import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
+import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
 
 /*
  * Handles login requests for internal authority, via extended auth manager
  */
-public class InternalConfirmKeyAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
+public class InternalConfirmKeyAuthenticationFilter<C extends InternalIdentityProviderConfig>
+        extends AbstractAuthenticationProcessingFilter {
 
-    public static final String DEFAULT_FILTER_URI = AbstractInternalIdentityAuthority.AUTHORITY_URL
+    public static final String DEFAULT_FILTER_URI = InternalIdentityAuthority.AUTHORITY_URL
             + "confirm/{registrationId}";
 
-    private final ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository;
+    private final ProviderConfigRepository<C> registrationRepository;
 
 //    public static final String DEFAULT_FILTER_URI = "/auth/internal/";
 //    public static final String ACTION = "confirm";
@@ -61,22 +62,17 @@ public class InternalConfirmKeyAuthenticationFilter extends AbstractAuthenticati
 
     // TODO remove
     private final InternalUserAccountService userAccountService;
-    // TODO replace with service
-    private final InternalUserPasswordRepository passwordRepository;
 
     public InternalConfirmKeyAuthenticationFilter(InternalUserAccountService userAccountService,
-            InternalUserPasswordRepository passwordRepository,
-            ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository) {
-        this(userAccountService, passwordRepository, registrationRepository, DEFAULT_FILTER_URI, null);
+            ProviderConfigRepository<C> registrationRepository) {
+        this(userAccountService, registrationRepository, DEFAULT_FILTER_URI, null);
     }
 
     public InternalConfirmKeyAuthenticationFilter(InternalUserAccountService userAccountService,
-            InternalUserPasswordRepository passwordRepository,
-            ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository,
+            ProviderConfigRepository<C> registrationRepository,
             String filterProcessingUrl, AuthenticationEntryPoint authenticationEntryPoint) {
         super(filterProcessingUrl);
         Assert.notNull(userAccountService, "user account service is required");
-        Assert.notNull(passwordRepository, "password repository is required");
 
         Assert.notNull(registrationRepository, "provider registration repository cannot be null");
         Assert.hasText(filterProcessingUrl, "filterProcessesUrl must contain a URL pattern");
@@ -84,7 +80,6 @@ public class InternalConfirmKeyAuthenticationFilter extends AbstractAuthenticati
                 "filterProcessesUrl must contain a {registrationId} match variable");
 
         this.userAccountService = userAccountService;
-        this.passwordRepository = passwordRepository;
         this.registrationRepository = registrationRepository;
 
 //        // build a matcher for all requests
@@ -182,24 +177,25 @@ public class InternalConfirmKeyAuthenticationFilter extends AbstractAuthenticati
 
         String username = account.getUsername();
 
-        if (CredentialsType.PASSWORD == providerConfig.getCredentialsType()) {
-            // fetch active password
-            InternalUserPassword credentials = passwordRepository
-                    .findByProviderAndUsernameAndStatusOrderByCreateDateDesc(
-                            repositoryId, username,
-                            CredentialsStatus.ACTIVE.getValue());
-            if (credentials != null) {
-                HttpSession session = request.getSession(true);
-                if (session != null) {
-                    // check if user needs to reset password, and add redirect
-                    if (credentials.isChangeOnFirstAccess()) {
-                        // TODO build url
-                        session.setAttribute(RequestAwareAuthenticationSuccessHandler.SAVED_REQUEST,
-                                "/changepwd/" + providerId + "/" + account.getUuid());
-                    }
-                }
-            }
-        }
+        // TODO refactor!
+//        if (CredentialsType.PASSWORD == providerConfig.getCredentialsType()) {
+//            // fetch active password
+//            InternalUserPassword credentials = passwordRepository
+//                    .findByProviderAndUsernameAndStatusOrderByCreateDateDesc(
+//                            repositoryId, username,
+//                            CredentialsStatus.ACTIVE.getValue());
+//            if (credentials != null) {
+//                HttpSession session = request.getSession(true);
+//                if (session != null) {
+//                    // check if user needs to reset password, and add redirect
+//                    if (credentials.isChangeOnFirstAccess()) {
+//                        // TODO build url
+//                        session.setAttribute(RequestAwareAuthenticationSuccessHandler.SAVED_REQUEST,
+//                                "/changepwd/" + providerId + "/" + account.getUuid());
+//                    }
+//                }
+//            }
+//        }
 
         // build a request
         ConfirmKeyAuthenticationToken authenticationRequest = new ConfirmKeyAuthenticationToken(username,

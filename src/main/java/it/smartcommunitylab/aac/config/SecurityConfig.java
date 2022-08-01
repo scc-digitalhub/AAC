@@ -57,9 +57,6 @@ import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.crypto.InternalPasswordEncoder;
 import it.smartcommunitylab.aac.internal.auth.InternalConfirmKeyAuthenticationFilter;
-import it.smartcommunitylab.aac.internal.auth.InternalLoginAuthenticationFilter;
-import it.smartcommunitylab.aac.internal.auth.InternalResetKeyAuthenticationFilter;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserPasswordRepository;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.openid.apple.AppleIdentityAuthority;
@@ -69,6 +66,11 @@ import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.openid.auth.OIDCLoginAuthenticationFilter;
 import it.smartcommunitylab.aac.openid.auth.OIDCRedirectAuthenticationFilter;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
+import it.smartcommunitylab.aac.password.InternalPasswordIdentityAuthority;
+import it.smartcommunitylab.aac.password.auth.InternalLoginAuthenticationFilter;
+import it.smartcommunitylab.aac.password.auth.InternalResetKeyAuthenticationFilter;
+import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
+import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProviderConfig;
 import it.smartcommunitylab.aac.saml.auth.Saml2AuthenticationRequestRepository;
 import it.smartcommunitylab.aac.saml.auth.SamlMetadataFilter;
 import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository;
@@ -129,7 +131,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private RealmAwarePathUriBuilder realmUriBuilder;
 
     @Autowired
-    private ProviderConfigRepository<InternalIdentityProviderConfig> internalProviderRepository;
+    private ProviderConfigRepository<InternalPasswordIdentityProviderConfig> internalPasswordProviderRepository;
 
     @Autowired
     private ProviderConfigRepository<OIDCIdentityProviderConfig> oidcProviderRepository;
@@ -253,7 +255,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
 //                // TODO replace with filterRegistrationBean and explicitely map urls
                 .addFilterBefore(
-                        getInternalAuthorityFilters(authManager, internalProviderRepository,
+                        getInternalPasswordAuthorityFilters(authManager, internalPasswordProviderRepository,
                                 internalUserAccountService, passwordRepository),
                         BasicAuthenticationFilter.class)
                 .addFilterBefore(
@@ -356,8 +358,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
      * Internal auth
      */
 
-    public CompositeFilter getInternalAuthorityFilters(AuthenticationManager authManager,
-            ProviderConfigRepository<InternalIdentityProviderConfig> providerRepository,
+    public CompositeFilter getInternalPasswordAuthorityFilters(AuthenticationManager authManager,
+            ProviderConfigRepository<InternalPasswordIdentityProviderConfig> providerRepository,
             InternalUserAccountService userAccountService, InternalUserPasswordRepository passwordRepository) {
 
         List<Filter> filters = new ArrayList<>();
@@ -368,8 +370,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         loginFilter.setAuthenticationSuccessHandler(successHandler());
         filters.add(loginFilter);
 
-        InternalConfirmKeyAuthenticationFilter confirmKeyFilter = new InternalConfirmKeyAuthenticationFilter(
-                userAccountService, passwordRepository, providerRepository);
+        InternalConfirmKeyAuthenticationFilter<InternalPasswordIdentityProviderConfig> confirmKeyFilter = new InternalConfirmKeyAuthenticationFilter<>(
+                userAccountService, providerRepository,
+                InternalPasswordIdentityAuthority.AUTHORITY_URL + "confirm/{registrationId}", null);
         confirmKeyFilter.setAuthenticationManager(authManager);
         confirmKeyFilter.setAuthenticationSuccessHandler(successHandler());
 

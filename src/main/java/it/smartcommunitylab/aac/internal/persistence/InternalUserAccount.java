@@ -53,6 +53,8 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
     @Column(name = "user_id", length = 128)
     private String userId;
 
+    private transient String authority;
+
     @NotBlank
     @Column(length = 128)
     private String realm;
@@ -90,9 +92,14 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
         super(SystemKeys.AUTHORITY_INTERNAL, null, null);
     }
 
+    public InternalUserAccount(String authority) {
+        super(authority, null, null);
+        this.authority = authority;
+    }
+
     @Override
     public String getAuthority() {
-        return SystemKeys.AUTHORITY_INTERNAL;
+        return authority != null ? authority : super.getAuthority();
     }
 
     @Override
@@ -154,6 +161,10 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
 
     public void setUuid(String uuid) {
         this.uuid = uuid;
+    }
+
+    public void setAuthority(String authority) {
+        this.authority = authority;
     }
 
     public void setRealm(String realm) {
@@ -259,6 +270,14 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
     @Override
     public void eraseCredentials() {
         this.confirmationKey = null;
+    }
+
+    @Override
+    public String toString() {
+        return "InternalUserAccount [provider=" + provider + ", username=" + username + ", uuid=" + uuid + ", userId="
+                + userId + ", authority=" + authority + ", realm=" + realm + ", status=" + status + ", email=" + email
+                + ", name=" + name + ", surname=" + surname + ", lang=" + lang + ", confirmed=" + confirmed
+                + ", createDate=" + createDate + ", modifiedDate=" + modifiedDate + "]";
     }
 
 }

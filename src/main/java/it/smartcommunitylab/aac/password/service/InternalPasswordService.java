@@ -29,19 +29,20 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
+import it.smartcommunitylab.aac.core.base.AbstractProviderConfig;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.provider.UserCredentialsService;
 import it.smartcommunitylab.aac.crypto.PasswordHash;
-import it.smartcommunitylab.aac.internal.AbstractInternalIdentityAuthority;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.oauth.common.SecureStringKeyGenerator;
+import it.smartcommunitylab.aac.password.InternalPasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.model.PasswordPolicy;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
-import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
+import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProviderConfig;
 import it.smartcommunitylab.aac.utils.MailService;
 
 @Transactional
@@ -55,7 +56,7 @@ public class InternalPasswordService extends AbstractProvider
     private final InternalUserPasswordRepository passwordRepository;
 
     // provider configuration
-    private final PasswordIdentityProviderConfig config;
+    private final InternalPasswordIdentityProviderConfig config;
     private final String repositoryId;
 
     private MailService mailService;
@@ -65,7 +66,7 @@ public class InternalPasswordService extends AbstractProvider
 
     public InternalPasswordService(String providerId, InternalUserAccountService userAccountService,
             InternalUserPasswordRepository passwordRepository,
-            PasswordIdentityProviderConfig providerConfig,
+            InternalPasswordIdentityProviderConfig providerConfig,
             String realm) {
         super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
         Assert.notNull(userAccountService, "user account service is mandatory");
@@ -99,17 +100,14 @@ public class InternalPasswordService extends AbstractProvider
         return SystemKeys.RESOURCE_CREDENTIALS;
     }
 
-    @Override
     public boolean canSet() {
         return config.isEnablePasswordSet();
     }
 
-    @Override
     public boolean canReset() {
         return config.isEnablePasswordReset();
     }
 
-    @Override
     public boolean canRevoke() {
         return true;
     }
@@ -561,7 +559,7 @@ public class InternalPasswordService extends AbstractProvider
     @Override
     public String getResetUrl() {
         // return link for resetting credentials
-        return AbstractInternalIdentityAuthority.AUTHORITY_URL + "reset/" + getProvider();
+        return InternalPasswordIdentityAuthority.AUTHORITY_URL + "reset/" + getProvider();
     }
 
     @Override
@@ -656,7 +654,7 @@ public class InternalPasswordService extends AbstractProvider
         if (mailService != null) {
             // action is handled by global filter
             String provider = getProvider();
-            String resetUrl = AbstractInternalIdentityAuthority.AUTHORITY_URL + "doreset/" + provider + "?code=" + key;
+            String resetUrl = InternalPasswordIdentityAuthority.AUTHORITY_URL + "doreset/" + provider + "?code=" + key;
             if (uriBuilder != null) {
                 resetUrl = uriBuilder.buildUrl(null, resetUrl);
             }
@@ -709,6 +707,21 @@ public class InternalPasswordService extends AbstractProvider
     @Override
     public void deleteCredentials(String accountId, String credentialsId)
             throws NoSuchUserException {
+    }
+
+    @Override
+    public AbstractProviderConfig getConfig() {
+        return config;
+    }
+
+    @Override
+    public String getName() {
+        return config.getName();
+    }
+
+    @Override
+    public String getDescription() {
+        return config.getDescription();
     }
 
     /*

@@ -16,7 +16,6 @@ import it.smartcommunitylab.aac.crypto.InternalPasswordEncoder;
 import it.smartcommunitylab.aac.internal.auth.ConfirmKeyAuthenticationProvider;
 import it.smartcommunitylab.aac.internal.auth.ConfirmKeyAuthenticationToken;
 import it.smartcommunitylab.aac.internal.auth.InternalAuthenticationException;
-import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountService;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
@@ -25,10 +24,11 @@ import it.smartcommunitylab.aac.password.auth.ResetKeyAuthenticationProvider;
 import it.smartcommunitylab.aac.password.auth.ResetKeyAuthenticationToken;
 import it.smartcommunitylab.aac.password.auth.UsernamePasswordAuthenticationProvider;
 import it.smartcommunitylab.aac.password.auth.UsernamePasswordAuthenticationToken;
+import it.smartcommunitylab.aac.password.model.InternalPasswordUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.password.service.InternalPasswordService;
 
-public class PasswordAuthenticationProvider
-        extends ExtendedAuthenticationProvider<InternalUserAuthenticatedPrincipal, InternalUserAccount> {
+public class InternalPasswordAuthenticationProvider
+        extends ExtendedAuthenticationProvider<InternalPasswordUserAuthenticatedPrincipal, InternalUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private static final String ACCOUNT_NOT_FOUND_PASSWORD = "internalAccountNotFoundPassword";
@@ -47,9 +47,10 @@ public class PasswordAuthenticationProvider
     private volatile String userNotFoundEncodedPassword;
     private final PasswordEncoder passwordEncoder;
 
-    public PasswordAuthenticationProvider(String providerId,
+    public InternalPasswordAuthenticationProvider(String providerId,
             InternalUserAccountService userAccountService,
-            InternalAccountService accountService, InternalPasswordService passwordService,
+            InternalAccountService<InternalPasswordUserAuthenticatedPrincipal> accountService,
+            InternalPasswordService passwordService,
             InternalIdentityProviderConfig providerConfig, String realm) {
         super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
         Assert.notNull(userAccountService, "user account service is mandatory");
@@ -158,7 +159,7 @@ public class PasswordAuthenticationProvider
     }
 
     @Override
-    protected InternalUserAuthenticatedPrincipal createUserPrincipal(Object principal) {
+    protected InternalPasswordUserAuthenticatedPrincipal createUserPrincipal(Object principal) {
         InternalUserAccount account = (InternalUserAccount) principal;
         String userId = account.getUserId();
         String username = account.getUsername();
@@ -170,7 +171,8 @@ public class PasswordAuthenticationProvider
 //            name = username;
 //        }
 
-        InternalUserAuthenticatedPrincipal user = new InternalUserAuthenticatedPrincipal(getProvider(), getRealm(),
+        InternalPasswordUserAuthenticatedPrincipal user = new InternalPasswordUserAuthenticatedPrincipal(getProvider(),
+                getRealm(),
                 userId, username);
         // set principal name as username
         user.setName(username);

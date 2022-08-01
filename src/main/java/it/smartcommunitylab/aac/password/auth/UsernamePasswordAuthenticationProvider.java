@@ -16,23 +16,25 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.provider.InternalAccountService;
+import it.smartcommunitylab.aac.internal.provider.InternalAccountProvider;
+import it.smartcommunitylab.aac.password.model.InternalPasswordUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.password.service.InternalPasswordService;
 
 public class UsernamePasswordAuthenticationProvider implements AuthenticationProvider {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final InternalAccountService accountService;
+    private final InternalAccountProvider<InternalPasswordUserAuthenticatedPrincipal> accountProvider;
     private final InternalPasswordService passwordService;
 
     public UsernamePasswordAuthenticationProvider(String providerId,
-            InternalAccountService accountService, InternalPasswordService passwordService,
+            InternalAccountProvider<InternalPasswordUserAuthenticatedPrincipal> accountProvider,
+            InternalPasswordService passwordService,
             String realm) {
         Assert.hasText(providerId, "provider can not be null or empty");
-        Assert.notNull(accountService, "account service is mandatory");
+        Assert.notNull(accountProvider, "account provider is mandatory");
         Assert.notNull(passwordService, "password service is mandatory");
 
-        this.accountService = accountService;
+        this.accountProvider = accountProvider;
         this.passwordService = passwordService;
     }
 
@@ -51,7 +53,7 @@ public class UsernamePasswordAuthenticationProvider implements AuthenticationPro
         }
 
         try {
-            InternalUserAccount account = accountService.findAccountByUsername(username);
+            InternalUserAccount account = accountProvider.findAccountByUsername(username);
             if (account == null) {
                 throw new BadCredentialsException("invalid request");
             }

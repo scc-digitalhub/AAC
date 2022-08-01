@@ -19,6 +19,7 @@ public class InternalSubjectResolver extends AbstractProvider
 
     private final InternalUserAccountService accountService;
     private final InternalIdentityProviderConfig config;
+
     private final String repositoryId;
 
     public InternalSubjectResolver(String providerId, InternalUserAccountService userAccountService,
@@ -27,6 +28,7 @@ public class InternalSubjectResolver extends AbstractProvider
         Assert.notNull(userAccountService, "user account service is mandatory");
         this.accountService = userAccountService;
         this.config = providerConfig;
+
         this.repositoryId = config.getRepositoryId();
     }
 

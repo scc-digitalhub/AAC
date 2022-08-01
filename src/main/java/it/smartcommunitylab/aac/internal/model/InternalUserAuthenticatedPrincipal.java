@@ -54,6 +54,7 @@ public class InternalUserAuthenticatedPrincipal extends AbstractAuthenticatedPri
     @Override
     public Map<String, Serializable> getAttributes() {
         Map<String, Serializable> map = new HashMap<>();
+        map.put("authority", getAuthority());
         map.put("provider", getProvider());
         map.put("username", username);
         map.put("id", username);

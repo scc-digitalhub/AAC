@@ -9,7 +9,7 @@ import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
 
-public class PasswordIdentityProviderConfig extends InternalIdentityProviderConfig {
+public class InternalPasswordIdentityProviderConfig extends InternalIdentityProviderConfig {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     private final static int MIN_DURATION = 300;
@@ -17,18 +17,18 @@ public class PasswordIdentityProviderConfig extends InternalIdentityProviderConf
     private final static int PASSWORD_MAX_LENGTH = 75;
 
     // map capabilities
-    private PasswordIdentityProviderConfigMap configMap;
+    private InternalPasswordIdentityProviderConfigMap configMap;
 
-    public PasswordIdentityProviderConfig(String provider, String realm) {
+    public InternalPasswordIdentityProviderConfig(String provider, String realm) {
         super(SystemKeys.AUTHORITY_PASSWORD, provider, realm);
-        this.configMap = new PasswordIdentityProviderConfigMap();
+        this.configMap = new InternalPasswordIdentityProviderConfigMap();
     }
 
     public InternalIdentityProviderConfigMap getConfigMap() {
         return configMap;
     }
 
-    public void setConfigMap(PasswordIdentityProviderConfigMap configMap) {
+    public void setConfigMap(InternalPasswordIdentityProviderConfigMap configMap) {
         this.configMap = configMap;
         super.setConfigMap(configMap);
     }
@@ -40,7 +40,7 @@ public class PasswordIdentityProviderConfig extends InternalIdentityProviderConf
 
     @Override
     public void setConfiguration(Map<String, Serializable> props) {
-        configMap = new PasswordIdentityProviderConfigMap();
+        configMap = new InternalPasswordIdentityProviderConfigMap();
         configMap.setConfiguration(props);
 
         super.setConfigMap(configMap);
@@ -129,9 +129,9 @@ public class PasswordIdentityProviderConfig extends InternalIdentityProviderConf
     /*
      * Static parser
      */
-    public static PasswordIdentityProviderConfig fromConfigurableProvider(ConfigurableIdentityProvider cp) {
-        PasswordIdentityProviderConfig ip = new PasswordIdentityProviderConfig(cp.getProvider(), cp.getRealm());
-        ip.configMap = new PasswordIdentityProviderConfigMap();
+    public static InternalPasswordIdentityProviderConfig fromConfigurableProvider(ConfigurableIdentityProvider cp) {
+        InternalPasswordIdentityProviderConfig ip = new InternalPasswordIdentityProviderConfig(cp.getProvider(), cp.getRealm());
+        ip.configMap = new InternalPasswordIdentityProviderConfigMap();
         ip.configMap.setConfiguration(cp.getConfiguration());
 
         ip.name = cp.getName();

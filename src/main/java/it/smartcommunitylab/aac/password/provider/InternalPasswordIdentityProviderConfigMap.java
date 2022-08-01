@@ -20,7 +20,7 @@ import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class PasswordIdentityProviderConfigMap extends InternalIdentityProviderConfigMap {
+public class InternalPasswordIdentityProviderConfigMap extends InternalIdentityProviderConfigMap {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
@@ -50,7 +50,7 @@ public class PasswordIdentityProviderConfigMap extends InternalIdentityProviderC
     private Integer passwordKeepNumber;
     private Integer passwordMaxDays;
 
-    public PasswordIdentityProviderConfigMap() {
+    public InternalPasswordIdentityProviderConfigMap() {
         super();
         this.credentialsType = CredentialsType.PASSWORD;
     }
@@ -180,7 +180,7 @@ public class PasswordIdentityProviderConfigMap extends InternalIdentityProviderC
 
         // use mapper for local
         mapper.setSerializationInclusion(Include.NON_EMPTY);
-        PasswordIdentityProviderConfigMap map = mapper.convertValue(props, PasswordIdentityProviderConfigMap.class);
+        InternalPasswordIdentityProviderConfigMap map = mapper.convertValue(props, InternalPasswordIdentityProviderConfigMap.class);
         this.credentialsType = CredentialsType.PASSWORD;
 
         this.enablePasswordReset = map.getEnablePasswordReset();
@@ -204,6 +204,6 @@ public class PasswordIdentityProviderConfigMap extends InternalIdentityProviderC
     @JsonIgnore
     public static JsonSchema getConfigurationSchema() throws JsonMappingException {
         JsonSchemaGenerator schemaGen = new JsonSchemaGenerator(mapper);
-        return schemaGen.generateSchema(PasswordIdentityProviderConfigMap.class);
+        return schemaGen.generateSchema(InternalPasswordIdentityProviderConfigMap.class);
     }
 }

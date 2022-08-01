@@ -3,9 +3,9 @@ package it.smartcommunitylab.aac.config;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
-import it.smartcommunitylab.aac.internal.provider.PasswordIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
+import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfigMap;
 
@@ -16,7 +16,7 @@ public class AuthoritiesProperties {
     private InternalIdentityProviderConfigMap internal;
 
     @NestedConfigurationProperty
-    private PasswordIdentityProviderConfigMap password;
+    private InternalPasswordIdentityProviderConfigMap password;
 
     @NestedConfigurationProperty
     private OIDCIdentityProviderConfigMap oidc;
@@ -38,11 +38,11 @@ public class AuthoritiesProperties {
         this.internal = internal;
     }
 
-    public PasswordIdentityProviderConfigMap getPassword() {
+    public InternalPasswordIdentityProviderConfigMap getPassword() {
         return password;
     }
 
-    public void setPassword(PasswordIdentityProviderConfigMap password) {
+    public void setPassword(InternalPasswordIdentityProviderConfigMap password) {
         this.password = password;
     }
 

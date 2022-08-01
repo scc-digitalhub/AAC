@@ -18,8 +18,8 @@ import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 
-public class InternalAttributeProvider
-        extends AbstractIdentityAttributeProvider<InternalUserAuthenticatedPrincipal, InternalUserAccount> {
+public class InternalAttributeProvider<P extends InternalUserAuthenticatedPrincipal>
+        extends AbstractIdentityAttributeProvider<P, InternalUserAccount> {
 
     public InternalAttributeProvider(
             String providerId,

@@ -7,12 +7,12 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class PasswordUserAuthenticatedPrincipal extends InternalUserAuthenticatedPrincipal
+public class InternalPasswordUserAuthenticatedPrincipal extends InternalUserAuthenticatedPrincipal
         implements CredentialsContainer {
 
     private static final long serialVersionUID = SystemKeys.AAC_WEBAUTHN_SERIAL_VERSION;
 
-    public PasswordUserAuthenticatedPrincipal(String provider, String realm, String userId, String username) {
+    public InternalPasswordUserAuthenticatedPrincipal(String provider, String realm, String userId, String username) {
         super(SystemKeys.AUTHORITY_PASSWORD, provider, realm, userId, username);
     }
 

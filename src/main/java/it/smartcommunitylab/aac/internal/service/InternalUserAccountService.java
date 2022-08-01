@@ -132,7 +132,7 @@ public class InternalUserAccountService implements UserAccountService<InternalUs
             }
 
             // we explode model
-            account = new InternalUserAccount();
+            account = new InternalUserAccount(reg.getAuthority());
             account.setProvider(repository);
             account.setUsername(username);
 
@@ -185,6 +185,7 @@ public class InternalUserAccountService implements UserAccountService<InternalUs
             account.setUsername(reg.getUsername());
 
             // we explode model and update every field
+            account.setAuthority(reg.getAuthority());
             account.setUuid(reg.getUuid());
             account.setUserId(reg.getUserId());
             account.setRealm(reg.getRealm());

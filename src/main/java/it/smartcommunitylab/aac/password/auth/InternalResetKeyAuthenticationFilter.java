@@ -30,20 +30,20 @@ import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
-import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
+import it.smartcommunitylab.aac.password.InternalPasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
-import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
+import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProviderConfig;
 
 /*
  * Handles login requests for internal authority, via extended auth manager
  */
 public class InternalResetKeyAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
-    public static final String DEFAULT_FILTER_URI = PasswordIdentityAuthority.AUTHORITY_URL
+    public static final String DEFAULT_FILTER_URI = InternalPasswordIdentityAuthority.AUTHORITY_URL
             + "doreset/{registrationId}";
 
-    private final ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository;
+    private final ProviderConfigRepository<InternalPasswordIdentityProviderConfig> registrationRepository;
 
 //    public static final String DEFAULT_FILTER_URI = "/auth/internal/";
 //    public static final String ACTION = "doreset";
@@ -64,13 +64,13 @@ public class InternalResetKeyAuthenticationFilter extends AbstractAuthentication
 
     public InternalResetKeyAuthenticationFilter(InternalUserAccountService userAccountService,
             InternalUserPasswordRepository passwordRepository,
-            ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository) {
+            ProviderConfigRepository<InternalPasswordIdentityProviderConfig> registrationRepository) {
         this(userAccountService, passwordRepository, registrationRepository, DEFAULT_FILTER_URI, null);
     }
 
     public InternalResetKeyAuthenticationFilter(InternalUserAccountService userAccountService,
             InternalUserPasswordRepository passwordRepository,
-            ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository,
+            ProviderConfigRepository<InternalPasswordIdentityProviderConfig> registrationRepository,
             String filterProcessingUrl, AuthenticationEntryPoint authenticationEntryPoint) {
         super(filterProcessingUrl);
         Assert.notNull(userAccountService, "user account service is required");
@@ -133,7 +133,7 @@ public class InternalResetKeyAuthenticationFilter extends AbstractAuthentication
 
         // fetch registrationId
         String providerId = requestMatcher.matcher(request).getVariables().get("registrationId");
-        PasswordIdentityProviderConfig providerConfig = registrationRepository.findByProviderId(providerId);
+        InternalPasswordIdentityProviderConfig providerConfig = registrationRepository.findByProviderId(providerId);
 
         if (providerConfig == null) {
             throw new ProviderNotFoundException("no provider or realm found for this request");

@@ -32,15 +32,13 @@ import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.dto.UserEmailBean;
-import it.smartcommunitylab.aac.internal.AbstractInternalIdentityAuthority;
-import it.smartcommunitylab.aac.internal.model.CredentialsType;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
 import it.smartcommunitylab.aac.model.Realm;
+import it.smartcommunitylab.aac.password.InternalPasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.dto.UserPasswordBean;
 import it.smartcommunitylab.aac.password.model.PasswordPolicy;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
-import it.smartcommunitylab.aac.password.provider.PasswordIdentityService;
+import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProvider;
 import it.smartcommunitylab.aac.password.service.InternalPasswordService;
 
 @Controller
@@ -51,7 +49,7 @@ public class InternalCredentialsController {
     private AuthenticationHelper authHelper;
 
     @Autowired
-    private AbstractInternalIdentityAuthority internalAuthority;
+    private InternalPasswordIdentityAuthority internalAuthority;
 
     @Autowired
     private RealmManager realmManager;
@@ -90,13 +88,10 @@ public class InternalCredentialsController {
         UserAccount account = identity.getAccount();
 
         // fetch provider
-        InternalIdentityService<?> idp = internalAuthority.getIdentityService(providerId);
-        if (idp.getCredentialsType() != CredentialsType.PASSWORD) {
-            throw new NoSuchProviderException();
-        }
+        InternalPasswordIdentityProvider idp = internalAuthority.getProvider(providerId);
 
         // fetch credentials service if available
-        InternalPasswordService service = ((PasswordIdentityService) idp).getCredentialsService();
+        InternalPasswordService service = idp.getCredentialsService();
 
         if (service == null) {
             throw new IllegalArgumentException("error.unsupported_operation");
@@ -167,13 +162,10 @@ public class InternalCredentialsController {
             UserAccount account = identity.getAccount();
 
             // fetch provider
-            InternalIdentityService<?> idp = internalAuthority.getIdentityService(providerId);
-            if (idp.getCredentialsType() != CredentialsType.PASSWORD) {
-                throw new NoSuchProviderException();
-            }
+            InternalPasswordIdentityProvider idp = internalAuthority.getProvider(providerId);
 
             // fetch credentials service if available
-            InternalPasswordService service = ((PasswordIdentityService) idp).getCredentialsService();
+            InternalPasswordService service = idp.getCredentialsService();
 
             if (service == null) {
                 throw new IllegalArgumentException("error.unsupported_operation");
@@ -262,10 +254,8 @@ public class InternalCredentialsController {
             Model model) throws NoSuchProviderException, NoSuchRealmException {
 
         // resolve provider
-        InternalIdentityService<?> idp = internalAuthority.getIdentityService(providerId);
-        if (idp.getCredentialsType() != CredentialsType.PASSWORD) {
-            throw new NoSuchProviderException();
-        }
+        // fetch provider
+        InternalPasswordIdentityProvider idp = internalAuthority.getProvider(providerId);
 
         if (!idp.getCredentialsService().canReset()) {
             throw new RegistrationException("unsupported_operation");
@@ -317,10 +307,8 @@ public class InternalCredentialsController {
         try {
 
             // resolve provider
-            InternalIdentityService<?> idp = internalAuthority.getIdentityService(providerId);
-            if (idp.getCredentialsType() != CredentialsType.PASSWORD) {
-                throw new NoSuchProviderException();
-            }
+            // fetch provider
+            InternalPasswordIdentityProvider idp = internalAuthority.getProvider(providerId);
 
             if (!idp.getCredentialsService().canReset()) {
                 throw new RegistrationException("unsupported_operation");
@@ -374,8 +362,7 @@ public class InternalCredentialsController {
 
             } else {
                 // direct call to reset
-                InternalPasswordService service = ((PasswordIdentityService) idp)
-                        .getCredentialsService();
+                InternalPasswordService service = idp.getCredentialsService();
                 service.resetCredentials(account.getUsername());
 
                 model.addAttribute("reg", reg);

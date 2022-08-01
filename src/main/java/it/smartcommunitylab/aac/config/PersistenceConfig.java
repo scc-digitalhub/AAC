@@ -39,6 +39,7 @@ import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfig;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
+import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProviderConfig;
 import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
 import it.smartcommunitylab.aac.scope.InMemoryScopeRegistry;
@@ -183,6 +184,11 @@ public class PersistenceConfig {
     @Bean
     public InMemoryProviderConfigRepository<InternalIdentityProviderConfig> internalProviderConfigRepository() {
         return new InMemoryProviderConfigRepository<InternalIdentityProviderConfig>();
+    }
+
+    @Bean
+    public InMemoryProviderConfigRepository<InternalPasswordIdentityProviderConfig> internalPasswordProviderConfigRepository() {
+        return new InMemoryProviderConfigRepository<InternalPasswordIdentityProviderConfig>();
     }
 
     @Bean

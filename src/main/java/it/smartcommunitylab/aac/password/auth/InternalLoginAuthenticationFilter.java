@@ -31,22 +31,22 @@ import it.smartcommunitylab.aac.internal.auth.InternalAuthenticationException;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
-import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
+import it.smartcommunitylab.aac.password.InternalPasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
-import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
+import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProviderConfig;
 
 /*
  * Handles login requests for internal authority, via extended auth manager
  */
 public class InternalLoginAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
-    public static final String DEFAULT_FILTER_URI = PasswordIdentityAuthority.AUTHORITY_URL + "login/{registrationId}";
-    public static final String DEFAULT_LOGIN_URI = PasswordIdentityAuthority.AUTHORITY_URL + "form/{registrationId}";
+    public static final String DEFAULT_FILTER_URI = InternalPasswordIdentityAuthority.AUTHORITY_URL + "login/{registrationId}";
+    public static final String DEFAULT_LOGIN_URI = InternalPasswordIdentityAuthority.AUTHORITY_URL + "form/{registrationId}";
 
     private final RequestMatcher requestMatcher;
 
-    private final ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository;
+    private final ProviderConfigRepository<InternalPasswordIdentityProviderConfig> registrationRepository;
 
     private AuthenticationEntryPoint authenticationEntryPoint;
 
@@ -58,13 +58,13 @@ public class InternalLoginAuthenticationFilter extends AbstractAuthenticationPro
 
     public InternalLoginAuthenticationFilter(InternalUserAccountService userAccountService,
             InternalUserPasswordRepository passwordRepository,
-            ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository) {
+            ProviderConfigRepository<InternalPasswordIdentityProviderConfig> registrationRepository) {
         this(userAccountService, passwordRepository, registrationRepository, DEFAULT_FILTER_URI, null);
     }
 
     public InternalLoginAuthenticationFilter(InternalUserAccountService userAccountService,
             InternalUserPasswordRepository passwordRepository,
-            ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository,
+            ProviderConfigRepository<InternalPasswordIdentityProviderConfig> registrationRepository,
             String filterProcessingUrl, AuthenticationEntryPoint authenticationEntryPoint) {
         super(filterProcessingUrl);
         Assert.notNull(userAccountService, "user account service is required");
@@ -132,7 +132,7 @@ public class InternalLoginAuthenticationFilter extends AbstractAuthenticationPro
 
         // fetch registrationId
         String providerId = requestMatcher.matcher(request).getVariables().get("registrationId");
-        PasswordIdentityProviderConfig providerConfig = registrationRepository.findByProviderId(providerId);
+        InternalPasswordIdentityProviderConfig providerConfig = registrationRepository.findByProviderId(providerId);
 
         if (providerConfig == null) {
             throw new ProviderNotFoundException("no provider or realm found for this request");

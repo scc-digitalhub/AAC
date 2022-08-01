@@ -16,14 +16,14 @@ import it.smartcommunitylab.aac.core.provider.IdentityConfigurationProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
 
 @Service
-public class PasswordIdentityConfigurationProvider
+public class InternalPasswordIdentityConfigurationProvider
         implements
-        IdentityConfigurationProvider<PasswordIdentityProviderConfig, PasswordIdentityProviderConfigMap> {
+        IdentityConfigurationProvider<InternalPasswordIdentityProviderConfig, InternalPasswordIdentityProviderConfigMap> {
 
-    private PasswordIdentityProviderConfigMap defaultConfig;
+    private InternalPasswordIdentityProviderConfigMap defaultConfig;
 
-    public PasswordIdentityConfigurationProvider(AuthoritiesProperties authoritiesProperties) {
-        defaultConfig = new PasswordIdentityProviderConfigMap();
+    public InternalPasswordIdentityConfigurationProvider(AuthoritiesProperties authoritiesProperties) {
+        defaultConfig = new InternalPasswordIdentityProviderConfigMap();
         InternalIdentityProviderConfigMap internalConfig = new InternalIdentityProviderConfigMap();
 
         // read internal as base
@@ -48,7 +48,7 @@ public class PasswordIdentityConfigurationProvider
     }
 
     @Override
-    public PasswordIdentityProviderConfig getConfig(ConfigurableIdentityProvider cp, boolean mergeDefault) {
+    public InternalPasswordIdentityProviderConfig getConfig(ConfigurableIdentityProvider cp, boolean mergeDefault) {
         if (mergeDefault) {
             // merge configMap with default on missing values
             Map<String, Serializable> map = new HashMap<>();
@@ -62,24 +62,24 @@ public class PasswordIdentityConfigurationProvider
             cp.setConfiguration(map);
         }
 
-        return PasswordIdentityProviderConfig.fromConfigurableProvider(cp);
+        return InternalPasswordIdentityProviderConfig.fromConfigurableProvider(cp);
 
     }
 
     @Override
-    public PasswordIdentityProviderConfig getConfig(ConfigurableIdentityProvider cp) {
+    public InternalPasswordIdentityProviderConfig getConfig(ConfigurableIdentityProvider cp) {
         return getConfig(cp, true);
     }
 
     @Override
-    public PasswordIdentityProviderConfigMap getDefaultConfigMap() {
+    public InternalPasswordIdentityProviderConfigMap getDefaultConfigMap() {
         return defaultConfig;
     }
 
     @Override
-    public PasswordIdentityProviderConfigMap getConfigMap(Map<String, Serializable> map) {
+    public InternalPasswordIdentityProviderConfigMap getConfigMap(Map<String, Serializable> map) {
         // return a valid config from props
-        PasswordIdentityProviderConfigMap config = new PasswordIdentityProviderConfigMap();
+        InternalPasswordIdentityProviderConfigMap config = new InternalPasswordIdentityProviderConfigMap();
         config.setConfiguration(map);
         return config;
     }
@@ -87,7 +87,7 @@ public class PasswordIdentityConfigurationProvider
     @Override
     public JsonSchema getSchema() {
         try {
-            return PasswordIdentityProviderConfigMap.getConfigurationSchema();
+            return InternalPasswordIdentityProviderConfigMap.getConfigurationSchema();
         } catch (JsonMappingException e) {
             return null;
         }

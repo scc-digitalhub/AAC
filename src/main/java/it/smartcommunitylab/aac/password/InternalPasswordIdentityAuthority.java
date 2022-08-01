@@ -1,47 +1,55 @@
 package it.smartcommunitylab.aac.password;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.base.AbstractIdentityAuthority;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
-import it.smartcommunitylab.aac.internal.AbstractInternalIdentityAuthority;
+import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
-import it.smartcommunitylab.aac.password.provider.PasswordIdentityConfigurationProvider;
-import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
-import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfigMap;
-import it.smartcommunitylab.aac.password.provider.PasswordIdentityService;
+import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityConfigurationProvider;
+import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProvider;
+import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProviderConfig;
+import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.utils.MailService;
 
 @Service
-public class PasswordIdentityAuthority
-        extends
-        AbstractInternalIdentityAuthority<PasswordIdentityService, PasswordIdentityProviderConfig, PasswordIdentityProviderConfigMap> {
+public class InternalPasswordIdentityAuthority extends
+        AbstractIdentityAuthority<InternalUserIdentity, InternalPasswordIdentityProvider, InternalPasswordIdentityProviderConfig, InternalPasswordIdentityProviderConfigMap>
+        implements InitializingBean {
 
     public static final String AUTHORITY_URL = "/auth/password/";
 
-    // internal persistence service
+    // internal account service
+    private final InternalUserAccountService accountService;
+
+    // password repository
     private final InternalUserPasswordRepository passwordRepository;
 
     // services
     protected MailService mailService;
     protected RealmAwareUriBuilder uriBuilder;
 
-    public PasswordIdentityAuthority(
-            InternalUserAccountService userAccountService, InternalUserPasswordRepository passwordRepository,
+    public InternalPasswordIdentityAuthority(
             UserEntityService userEntityService, SubjectService subjectService,
-            ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository) {
-        super(userAccountService, userEntityService, subjectService, registrationRepository);
+            InternalUserAccountService userAccountService, InternalUserPasswordRepository passwordRepository,
+            ProviderConfigRepository<InternalPasswordIdentityProviderConfig> registrationRepository) {
+        super(userEntityService, subjectService, registrationRepository);
+        Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(passwordRepository, "password repository is mandatory");
+
+        this.accountService = userAccountService;
         this.passwordRepository = passwordRepository;
     }
 
     @Autowired
-    public void setConfigProvider(PasswordIdentityConfigurationProvider configProvider) {
+    public void setConfigProvider(InternalPasswordIdentityConfigurationProvider configProvider) {
         Assert.notNull(configProvider, "config provider is mandatory");
         this.configProvider = configProvider;
     }
@@ -57,15 +65,20 @@ public class PasswordIdentityAuthority
     }
 
     @Override
+    public void afterPropertiesSet() throws Exception {
+        super.afterPropertiesSet();
+    }
+
+    @Override
     public String getAuthorityId() {
         return SystemKeys.AUTHORITY_PASSWORD;
     }
 
     @Override
-    public PasswordIdentityService build(PasswordIdentityProviderConfig config) {
-        PasswordIdentityService idp = new PasswordIdentityService(
+    public InternalPasswordIdentityProvider buildProvider(InternalPasswordIdentityProviderConfig config) {
+        InternalPasswordIdentityProvider idp = new InternalPasswordIdentityProvider(
                 config.getProvider(),
-                userAccountService, userEntityService, subjectService,
+                userEntityService, accountService, subjectService,
                 passwordRepository,
                 config, config.getRealm());
 
