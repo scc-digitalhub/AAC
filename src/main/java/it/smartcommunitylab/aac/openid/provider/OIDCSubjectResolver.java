@@ -47,7 +47,7 @@ public class OIDCSubjectResolver extends AbstractProvider implements SubjectReso
 
     @Transactional(readOnly = true)
     public Subject resolveBySubject(String sub) {
-        logger.debug("resolve by sub " + sub);
+        logger.debug("resolve by sub {}", String.valueOf(sub));
         OIDCUserAccount account = accountService.findAccountById(repositoryId, sub);
         if (account == null) {
             return null;
@@ -78,7 +78,7 @@ public class OIDCSubjectResolver extends AbstractProvider implements SubjectReso
     @Override
     @Transactional(readOnly = true)
     public Subject resolveByUsername(String username) {
-        logger.debug("resolve by username " + username);
+        logger.debug("resolve by username {}", String.valueOf(username));
         OIDCUserAccount account = accountService.findAccountByUsername(repositoryId, username).stream()
                 .findFirst()
                 .orElse(null);
@@ -97,7 +97,7 @@ public class OIDCSubjectResolver extends AbstractProvider implements SubjectReso
             return null;
         }
 
-        logger.debug("resolve by email " + email);
+        logger.debug("resolve by email {}", String.valueOf(email));
         OIDCUserAccount account = accountService.findAccountByEmail(repositoryId, email).stream()
                 .filter(a -> a.isEmailVerified())
                 .findFirst()

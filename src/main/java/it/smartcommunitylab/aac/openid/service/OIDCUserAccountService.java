@@ -174,6 +174,7 @@ public class OIDCUserAccountService implements UserAccountService<OIDCUserAccoun
             account.setSubject(reg.getSubject());
 
             // extract attributes and update model
+            account.setAuthority(reg.getAuthority());
             account.setUuid(reg.getUuid());
             account.setUserId(reg.getUserId());
             account.setRealm(reg.getRealm());

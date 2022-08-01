@@ -96,6 +96,7 @@ public class OIDCUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
         }
 
         // make sure these are never overridden
+        result.put("authority", getAuthority());
         result.put("provider", getProvider());
         result.put("sub", subject);
         result.put("id", subject);

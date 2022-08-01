@@ -49,9 +49,7 @@ public class OIDCUserAccount extends AbstractAccount {
     @Column(name = "user_id", length = 128)
     private String userId;
 
-    @NotBlank
-    @Column(name = "authority", length = 128)
-    private String authority;
+    private transient String authority;
 
     @NotBlank
     @Column(length = 128)
@@ -105,7 +103,7 @@ public class OIDCUserAccount extends AbstractAccount {
 
     @Override
     public String getAuthority() {
-        return authority;
+        return authority != null ? authority : super.getAuthority();
     }
 
     @Override
@@ -279,6 +277,15 @@ public class OIDCUserAccount extends AbstractAccount {
 
     public void setModifiedDate(Date modifiedDate) {
         this.modifiedDate = modifiedDate;
+    }
+
+    @Override
+    public String toString() {
+        return "OIDCUserAccount [provider=" + provider + ", subject=" + subject + ", uuid=" + uuid + ", userId="
+                + userId + ", authority=" + authority + ", realm=" + realm + ", status=" + status + ", username="
+                + username + ", issuer=" + issuer + ", email=" + email + ", emailVerified=" + emailVerified + ", name="
+                + name + ", givenName=" + givenName + ", familyName=" + familyName + ", lang=" + lang + ", picture="
+                + picture + ", createDate=" + createDate + ", modifiedDate=" + modifiedDate + "]";
     }
 
 }

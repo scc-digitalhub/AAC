@@ -146,7 +146,11 @@ public class OIDCAccountProvider extends AbstractProvider
     @Override
     @Transactional(readOnly = true)
     public List<OIDCUserAccount> listAccounts(String userId) {
-        return accountService.findAccountByUser(repositoryId, userId);
+        List<OIDCUserAccount> accounts = accountService.findAccountByUser(repositoryId, userId);
+
+        // map to our authority
+        accounts.forEach(a -> a.setAuthority(getAuthority()));
+        return accounts;
     }
 
     @Transactional(readOnly = true)
@@ -171,6 +175,9 @@ public class OIDCAccountProvider extends AbstractProvider
             return null;
         }
 
+        // map to our authority
+        account.setAuthority(getAuthority());
+
         return account;
     }
 
@@ -181,6 +188,9 @@ public class OIDCAccountProvider extends AbstractProvider
         if (account == null) {
             return null;
         }
+
+        // map to our authority
+        account.setAuthority(getAuthority());
 
         return account;
     }
@@ -218,6 +228,10 @@ public class OIDCAccountProvider extends AbstractProvider
         // re-link to user
         account.setUserId(userId);
         account = accountService.updateAccount(repositoryId, subject, account);
+
+        // map to our authority
+        account.setAuthority(getAuthority());
+
         return account;
     }
 
@@ -238,6 +252,10 @@ public class OIDCAccountProvider extends AbstractProvider
         // update status
         account.setStatus(newStatus.getValue());
         account = accountService.updateAccount(repositoryId, subject, account);
+
+        // map to our authority
+        account.setAuthority(getAuthority());
+
         return account;
     }
 
