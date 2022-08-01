@@ -41,7 +41,7 @@ import it.smartcommunitylab.aac.spid.service.LocalSpidRegistry;
 import it.smartcommunitylab.aac.spid.service.SpidRegistry;
 
 @Service
-public class SpidIdentityAuthority implements IdentityProviderAuthority, InitializingBean {
+public class SpidIdentityAuthority implements IdentityProviderAuthority<SpidUserIdentity>, InitializingBean {
 
     public static final String AUTHORITY_URL = "/auth/spid/";
 
@@ -135,13 +135,13 @@ public class SpidIdentityAuthority implements IdentityProviderAuthority, Initial
     }
 
     @Override
-    public boolean hasIdentityProvider(String providerId) {
+    public boolean hasProvider(String providerId) {
         SpidIdentityProviderConfig registration = registrationRepository.findByProviderId(providerId);
         return (registration != null);
     }
 
     @Override
-    public SpidIdentityProvider getIdentityProvider(String providerId) {
+    public SpidIdentityProvider getProvider(String providerId) {
         Assert.hasText(providerId, "provider id can not be null or empty");
 
         try {
@@ -152,16 +152,16 @@ public class SpidIdentityAuthority implements IdentityProviderAuthority, Initial
     }
 
     @Override
-    public List<SpidIdentityProvider> getIdentityProviders(
+    public List<SpidIdentityProvider> getProviders(
             String realm) {
         // we need to fetch registrations and get idp from cache, with optional load
         Collection<SpidIdentityProviderConfig> registrations = registrationRepository.findByRealm(realm);
-        return registrations.stream().map(r -> getIdentityProvider(r.getProvider()))
+        return registrations.stream().map(r -> getProvider(r.getProvider()))
                 .filter(p -> (p != null)).collect(Collectors.toList());
     }
 
     @Override
-    public SpidIdentityProvider registerIdentityProvider(ConfigurableIdentityProvider cp) {
+    public SpidIdentityProvider registerProvider(ConfigurableIdentityProvider cp) {
         // we support only identity provider as resource providers
         if (cp != null
                 && getAuthorityId().equals(cp.getAuthority())
@@ -207,7 +207,7 @@ public class SpidIdentityAuthority implements IdentityProviderAuthority, Initial
     }
 
     @Override
-    public void unregisterIdentityProvider(String providerId) {
+    public void unregisterProvider(String providerId) {
         SpidIdentityProviderConfig registration = registrationRepository.findByProviderId(providerId);
 
         if (registration != null) {
@@ -232,29 +232,6 @@ public class SpidIdentityAuthority implements IdentityProviderAuthority, Initial
 
         }
 
-    }
-
-    @Override
-    public IdentityService<SpidUserIdentity, SpidUserAccount, ? extends UserCredentials> getIdentityService(
-            String providerId) {
-        return null;
-    }
-
-    @Override
-    public List<IdentityService<SpidUserIdentity, SpidUserAccount, ? extends UserCredentials>> getIdentityServices(
-            String realm) {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public Collection<ConfigurableIdentityProvider> getConfigurableProviderTemplates() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public ConfigurableIdentityProvider getConfigurableProviderTemplate(String templateId)
-            throws NoSuchProviderException {
-        throw new NoSuchProviderException();
     }
 
 }
