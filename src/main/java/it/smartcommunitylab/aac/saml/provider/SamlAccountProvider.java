@@ -1,6 +1,8 @@
 package it.smartcommunitylab.aac.saml.provider;
 
+import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.jsoup.Jsoup;
@@ -12,40 +14,39 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.MissingDataException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.provider.AccountProvider;
-import it.smartcommunitylab.aac.core.service.SubjectService;
-import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.model.UserStatus;
+import it.smartcommunitylab.aac.saml.model.SamlUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
-import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountId;
-import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
+import it.smartcommunitylab.aac.saml.service.SamlUserAccountService;
 
 @Transactional
-public class SamlAccountProvider extends AbstractProvider implements AccountProvider<SamlUserAccount> {
+public class SamlAccountProvider extends AbstractProvider
+        implements AccountProvider<SamlUserAccount, SamlUserAuthenticatedPrincipal> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final SamlUserAccountRepository accountRepository;
+    private final SamlUserAccountService accountService;
+    private final String repositoryId;
+
     private final SamlIdentityProviderConfig config;
 
-    private final SubjectService subjectService;
-
-    protected SamlAccountProvider(String providerId, SamlUserAccountRepository accountRepository,
-            SubjectService subjectService,
+    protected SamlAccountProvider(String providerId,
+            SamlUserAccountService accountService,
             SamlIdentityProviderConfig config,
             String realm) {
         super(SystemKeys.AUTHORITY_SAML, providerId, realm);
-        Assert.notNull(accountRepository, "account repository is mandatory");
-        Assert.notNull(subjectService, "subject service is mandatory");
+        Assert.notNull(accountService, "account service is mandatory");
         Assert.notNull(config, "provider config is mandatory");
 
         this.config = config;
-        this.accountRepository = accountRepository;
-        this.subjectService = subjectService;
+        this.accountService = accountService;
+
+        // repositoryId is always providerId, saml isolates data per provider
+        this.repositoryId = providerId;
     }
 
     @Override
@@ -54,14 +55,67 @@ public class SamlAccountProvider extends AbstractProvider implements AccountProv
     }
 
     @Override
+    public SamlUserAccount convertAccount(SamlUserAuthenticatedPrincipal principal, String userId) {
+        // we use upstream subject for accounts
+        // TODO handle transient ids, for example with session persistence
+        String subjectId = principal.getSubjectId();
+
+        // attributes from provider
+        String username = principal.getUsername();
+        Map<String, Serializable> attributes = principal.getAttributes();
+
+        // re-read attributes as-is, transform to strings
+        // TODO evaluate using a custom mapper to given profile
+        Map<String, String> samlAttributes = attributes.entrySet().stream()
+                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().toString()));
+
+        String email = samlAttributes.get("email");
+        username = StringUtils.hasText(samlAttributes.get("username"))
+                ? samlAttributes.get("username")
+                : principal.getUsername();
+
+        // update additional attributes
+        String issuer = samlAttributes.get("issuer");
+        if (!StringUtils.hasText(issuer)) {
+            issuer = config.getRelyingPartyRegistration().getAssertingPartyDetails().getEntityId();
+        }
+
+        String name = StringUtils.hasText(samlAttributes.get("name")) ? samlAttributes.get("name") : username;
+
+        boolean defaultVerifiedStatus = config.getConfigMap().getTrustEmailAddress() != null
+                ? config.getConfigMap().getTrustEmailAddress()
+                : false;
+        boolean emailVerified = StringUtils.hasText(samlAttributes.get("emailVerified"))
+                ? Boolean.parseBoolean(samlAttributes.get("emailVerified"))
+                : defaultVerifiedStatus;
+
+        if (Boolean.TRUE.equals(config.getConfigMap().getAlwaysTrustEmailAddress())) {
+            emailVerified = true;
+        }
+
+        // build model from scratch
+        SamlUserAccount account = new SamlUserAccount(getAuthority());
+        account.setProvider(repositoryId);
+        account.setSubjectId(subjectId);
+        account.setUserId(userId);
+
+        account.setUsername(username);
+        account.setIssuer(issuer);
+        account.setName(name);
+        account.setEmail(email);
+        account.setEmailVerified(emailVerified);
+
+        return account;
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public List<SamlUserAccount> listAccounts(String userId) {
-        List<SamlUserAccount> accounts = accountRepository.findByUserIdAndProvider(userId, getProvider());
+        List<SamlUserAccount> accounts = accountService.findAccountByUser(repositoryId, userId);
 
-        // we need to detach
-        return accounts.stream().map(a -> {
-            return accountRepository.detach(a);
-        }).collect(Collectors.toList());
+        // map to our authority
+        accounts.forEach(a -> a.setAuthority(getAuthority()));
+        return accounts;
     }
 
     @Transactional(readOnly = true)
@@ -81,109 +135,43 @@ public class SamlAccountProvider extends AbstractProvider implements AccountProv
 
     @Transactional(readOnly = true)
     public SamlUserAccount findAccountBySubjectId(String subjectId) {
-        String provider = getProvider();
-
-        SamlUserAccount account = accountRepository.findOne(new SamlUserAccountId(provider, subjectId));
+        SamlUserAccount account = accountService.findAccountById(repositoryId, subjectId);
         if (account == null) {
             return null;
         }
 
-        // detach the entity, we don't want modifications to be persisted via a
-        // read-only interface
-        // for example eraseCredentials will reset the password in db
-        return accountRepository.detach(account);
+        // map to our authority
+        account.setAuthority(getAuthority());
+
+        return account;
     }
 
     @Override
     @Transactional(readOnly = true)
     public SamlUserAccount findAccountByUuid(String uuid) {
-        String provider = getProvider();
-
-        SamlUserAccount account = accountRepository.findByProviderAndUuid(provider, uuid);
+        SamlUserAccount account = accountService.findAccountByUuid(repositoryId, uuid);
         if (account == null) {
             return null;
         }
 
-        // detach the entity, we don't want modifications to be persisted via a
-        // read-only interface
-        // for example eraseCredentials will reset the password in db
-        return accountRepository.detach(account);
-    }
+        // map to our authority
+        account.setAuthority(getAuthority());
 
-//    @Override
-//    @Transactional(readOnly = true)
-//    public SamlUserAccount getByIdentifyingAttributes(Map<String, String> attributes) throws NoSuchUserException {
-//        String realm = getRealm();
-//        String provider = getProvider();
-//
-//        // check if passed map contains at least one valid set and fetch account
-//        // TODO rewrite less hardcoded
-//        // note AVOID reflection, we want native image support
-//        SamlUserAccount account = null;
-//        if (attributes.containsKey("userId")) {
-//            String userId = parseResourceId(attributes.get("userId"));
-//            account = accountRepository.findByRealmAndProviderAndUserId(realm, provider, userId);
-//        }
-//
-//        if (account == null
-//                && attributes.keySet().containsAll(Arrays.asList("realm", "provider", "userId"))
-//                && realm.equals(attributes.get("realm"))
-//                && provider.equals(attributes.get("provider"))) {
-//            String userId = parseResourceId(attributes.get("userId"));
-//            account = accountRepository.findByRealmAndProviderAndUserId(realm, provider, userId);
-//        }
-//
-//        if (account == null
-//                && attributes.keySet().containsAll(Arrays.asList("realm", "provider", "email"))
-//                && realm.equals(attributes.get("realm"))
-//                && provider.equals(attributes.get("provider"))) {
-//            account = accountRepository.findByRealmAndProviderAndEmail(realm, provider, attributes.get("email"));
-//        }
-//
-//        // TODO add find by usernameAttribute as set in providerConfig
-//
-//        if (account == null) {
-//            throw new NoSuchUserException("No user found matching attributes");
-//        }
-//
-//        // detach the entity, we don't want modifications to be persisted via a
-//        // read-only interface
-//        // for example eraseCredentials will reset the password in db
-//        account = accountRepository.detach(account);
-//
-//        // rewrite internal userId
-//        account.setUserId(exportInternalId(account.getUserId()));
-//
-//        return account;
-//    }
-
-    @Override
-    public void deleteAccount(String subjectId) throws NoSuchUserException {
-        SamlUserAccount account = findAccountBySubjectId(subjectId);
-
-        if (account != null) {
-            String uuid = account.getUuid();
-            if (uuid != null) {
-                // remove subject if exists
-                subjectService.deleteSubject(uuid);
-            }
-
-            accountRepository.delete(account);
-        }
+        return account;
     }
 
     @Override
-    public SamlUserAccount lockAccount(String sub) throws NoSuchUserException, RegistrationException {
-        return updateStatus(sub, UserStatus.LOCKED);
+    public SamlUserAccount lockAccount(String subjectId) throws NoSuchUserException, RegistrationException {
+        return updateStatus(subjectId, UserStatus.LOCKED);
     }
 
     @Override
-    public SamlUserAccount unlockAccount(String sub) throws NoSuchUserException, RegistrationException {
-        return updateStatus(sub, UserStatus.ACTIVE);
+    public SamlUserAccount unlockAccount(String subjectId) throws NoSuchUserException, RegistrationException {
+        return updateStatus(subjectId, UserStatus.ACTIVE);
     }
 
     @Override
-    public SamlUserAccount linkAccount(String sub, String userId)
+    public SamlUserAccount linkAccount(String subjectId, String userId)
             throws NoSuchUserException, RegistrationException {
 
         // we expect userId to be valid
@@ -191,9 +179,7 @@ public class SamlAccountProvider extends AbstractProvider implements AccountProv
             throw new MissingDataException("user");
         }
 
-        String provider = getProvider();
-
-        SamlUserAccount account = accountRepository.findOne(new SamlUserAccountId(provider, sub));
+        SamlUserAccount account = findAccountBySubjectId(subjectId);
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -206,122 +192,17 @@ public class SamlAccountProvider extends AbstractProvider implements AccountProv
 
         // re-link to user
         account.setUserId(userId);
-        account = accountRepository.save(account);
-        return accountRepository.detach(account);
+        account = accountService.updateAccount(repositoryId, subjectId, account);
+
+        // map to our authority
+        account.setAuthority(getAuthority());
+
+        return account;
     }
 
-    /*
-     * operations
-     */
-
-    public SamlUserAccount registerAccount(String userId, SamlUserAccount reg)
+    private SamlUserAccount updateStatus(String subjectId, UserStatus newStatus)
             throws NoSuchUserException, RegistrationException {
-        String provider = getProvider();
-
-        // we expect userId to be valid
-        if (!StringUtils.hasText(userId)) {
-            throw new MissingDataException("user");
-        }
-
-        // check if already registered
-        String subjectId = clean(reg.getSubjectId());
-        SamlUserAccount account = accountRepository.findOne(new SamlUserAccountId(provider, subjectId));
-        if (account != null) {
-            throw new AlreadyRegisteredException();
-        }
-
-        String realm = getRealm();
-
-        // extract id fields
-        String email = clean(reg.getEmail());
-        String username = clean(reg.getUsername());
-
-        // validate
-        if (!StringUtils.hasText(subjectId)) {
-            throw new MissingDataException("subject-identifier");
-        }
-        if (!StringUtils.hasText(email) && config.requireEmailAddress()) {
-            throw new MissingDataException("email");
-        }
-
-        // extract attributes
-        String issuer = reg.getIssuer();
-        Boolean emailVerified = reg.getEmailVerified();
-        String name = clean(reg.getName());
-        String lang = clean(reg.getLang());
-
-        // generate uuid and register as subject
-        String uuid = subjectService.generateUuid(SystemKeys.RESOURCE_ACCOUNT);
-        Subject s = subjectService.addSubject(uuid, realm, SystemKeys.RESOURCE_ACCOUNT, subjectId);
-
-        account = new SamlUserAccount();
-        account.setProvider(provider);
-        account.setSubjectId(subjectId);
-        account.setUuid(s.getSubjectId());
-
-        account.setUserId(userId);
-        account.setRealm(realm);
-
-        account.setIssuer(issuer);
-        account.setUsername(username);
-        account.setEmail(email);
-        account.setEmailVerified(emailVerified);
-        account.setName(name);
-        account.setLang(lang);
-
-        // set account as active
-        account.setStatus(UserStatus.ACTIVE.getValue());
-
-        account = accountRepository.save(account);
-        return accountRepository.detach(account);
-    }
-
-    public SamlUserAccount updateAccount(String sub, SamlUserAccount reg)
-            throws NoSuchUserException, RegistrationException {
-        String provider = getProvider();
-
-        SamlUserAccount account = accountRepository.findOne(new SamlUserAccountId(provider, sub));
-        if (account == null) {
-            throw new NoSuchUserException();
-        }
-
-        // check if active, inactive accounts can not be changed except for activation
-        UserStatus curStatus = UserStatus.parse(account.getStatus());
-        if (UserStatus.INACTIVE == curStatus) {
-            throw new IllegalArgumentException("account is inactive, activate first to update status");
-        }
-
-        // id attributes
-        String username = clean(reg.getUsername());
-        String email = clean(reg.getEmail());
-
-        // validate email
-        if (!StringUtils.hasText(email) && config.requireEmailAddress()) {
-            throw new MissingDataException("email");
-        }
-
-        // extract attributes
-        String issuer = reg.getIssuer();
-        Boolean emailVerified = reg.getEmailVerified();
-        String name = clean(reg.getName());
-        String lang = clean(reg.getLang());
-
-        account.setIssuer(issuer);
-        account.setUsername(username);
-        account.setEmail(email);
-        account.setEmailVerified(emailVerified);
-        account.setName(name);
-        account.setLang(lang);
-
-        account = accountRepository.save(account);
-        return accountRepository.detach(account);
-    }
-
-    private SamlUserAccount updateStatus(String sub, UserStatus newStatus)
-            throws NoSuchUserException, RegistrationException {
-        String provider = getProvider();
-
-        SamlUserAccount account = accountRepository.findOne(new SamlUserAccountId(provider, sub));
+        SamlUserAccount account = findAccountBySubjectId(subjectId);
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -334,8 +215,12 @@ public class SamlAccountProvider extends AbstractProvider implements AccountProv
 
         // update status
         account.setStatus(newStatus.getValue());
-        account = accountRepository.save(account);
-        return accountRepository.detach(account);
+        account = accountService.updateAccount(repositoryId, subjectId, account);
+
+        // map to our authority
+        account.setAuthority(getAuthority());
+
+        return account;
     }
 
     private String clean(String input) {

@@ -84,6 +84,7 @@ public class SamlUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
         }
 
         // make sure these are never overridden
+        result.put("authority", getAuthority());
         result.put("provider", getProvider());
         result.put("subjectId", subjectId);
         result.put("id", subjectId);

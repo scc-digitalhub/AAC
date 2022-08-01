@@ -1,39 +1,37 @@
 package it.smartcommunitylab.aac.saml.provider;
 
-import java.util.HashMap;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
-import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
 import it.smartcommunitylab.aac.model.Subject;
-import it.smartcommunitylab.aac.saml.model.SamlUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
-import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountId;
-import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
+import it.smartcommunitylab.aac.saml.service.SamlUserAccountService;
 
 @Transactional
 public class SamlSubjectResolver extends AbstractProvider implements SubjectResolver<SamlUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final SamlUserAccountRepository accountRepository;
+    private final SamlUserAccountService accountService;
     private final SamlIdentityProviderConfig config;
 
-    protected SamlSubjectResolver(String providerId, SamlUserAccountRepository accountRepository,
+    private final String repositoryId;
+
+    protected SamlSubjectResolver(String providerId, SamlUserAccountService accountService,
             SamlIdentityProviderConfig config,
             String realm) {
         super(SystemKeys.AUTHORITY_SAML, providerId, realm);
-        Assert.notNull(accountRepository, "account repository is mandatory");
+        Assert.notNull(accountService, "account service is mandatory");
         Assert.notNull(config, "provider config is mandatory");
 
-        this.accountRepository = accountRepository;
+        this.accountService = accountService;
         this.config = config;
+
+        // repositoryId is always providerId, saml isolates data per provider
+        this.repositoryId = providerId;
     }
 
     @Override
@@ -43,8 +41,8 @@ public class SamlSubjectResolver extends AbstractProvider implements SubjectReso
 
     @Transactional(readOnly = true)
     public Subject resolveBySubjectId(String subjectId) {
-        logger.debug("resolve by subjectId " + subjectId);
-        SamlUserAccount account = accountRepository.findOne(new SamlUserAccountId(getProvider(), subjectId));
+        logger.debug("resolve by subjectId {}", String.valueOf(subjectId));
+        SamlUserAccount account = accountService.findAccountById(repositoryId, subjectId);
         if (account == null) {
             return null;
         }
@@ -74,8 +72,8 @@ public class SamlSubjectResolver extends AbstractProvider implements SubjectReso
     @Override
     @Transactional(readOnly = true)
     public Subject resolveByUsername(String username) {
-        logger.debug("resolve by username " + username);
-        SamlUserAccount account = accountRepository.findByProviderAndUsername(getProvider(), username).stream()
+        logger.debug("resolve by username {}", String.valueOf(username));
+        SamlUserAccount account = accountService.findAccountByUsername(repositoryId, username).stream()
                 .findFirst()
                 .orElse(null);
         if (account == null) {
@@ -93,8 +91,8 @@ public class SamlSubjectResolver extends AbstractProvider implements SubjectReso
             return null;
         }
 
-        logger.debug("resolve by email " + email);
-        SamlUserAccount account = accountRepository.findByProviderAndEmail(getProvider(), email).stream()
+        logger.debug("resolve by email {}", String.valueOf(email));
+        SamlUserAccount account = accountService.findAccountByEmail(repositoryId, email).stream()
                 .filter(a -> a.isEmailVerified())
                 .findFirst()
                 .orElse(null);
