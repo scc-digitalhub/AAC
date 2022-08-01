@@ -1,9 +1,10 @@
-package it.smartcommunitylab.aac.internal.model;
+package it.smartcommunitylab.aac.password.model;
 
 import org.springframework.security.core.CredentialsContainer;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PasswordUserAuthenticatedPrincipal extends InternalUserAuthenticatedPrincipal

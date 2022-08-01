@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.internal.model;
+package it.smartcommunitylab.aac.password.model;
 
 public class PasswordPolicy {
     private int passwordMinLength = 5;

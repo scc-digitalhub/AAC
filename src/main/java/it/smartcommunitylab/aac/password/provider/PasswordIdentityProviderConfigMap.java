@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.internal.provider;
+package it.smartcommunitylab.aac.password.provider;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -16,6 +16,7 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.internal.model.CredentialsType;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)

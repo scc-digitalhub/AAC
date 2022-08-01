@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.internal.auth;
+package it.smartcommunitylab.aac.password.auth;
 
 import java.util.Collections;
 import java.util.Set;
@@ -17,26 +17,20 @@ import org.springframework.util.StringUtils;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountService;
-import it.smartcommunitylab.aac.internal.provider.InternalPasswordService;
+import it.smartcommunitylab.aac.password.service.InternalPasswordService;
 
-public class ResetKeyAuthenticationProvider implements AuthenticationProvider {
+public class UsernamePasswordAuthenticationProvider implements AuthenticationProvider {
     private final Logger logger = LoggerFactory.getLogger(getClass());
-
-//    private final String realm;
-//    private final String providerId;
 
     private final InternalAccountService accountService;
     private final InternalPasswordService passwordService;
 
-    public ResetKeyAuthenticationProvider(String providerId,
+    public UsernamePasswordAuthenticationProvider(String providerId,
             InternalAccountService accountService, InternalPasswordService passwordService,
             String realm) {
         Assert.hasText(providerId, "provider can not be null or empty");
         Assert.notNull(accountService, "account service is mandatory");
         Assert.notNull(passwordService, "password service is mandatory");
-
-//        this.realm = realm;
-//        this.providerId = providerId;
 
         this.accountService = accountService;
         this.passwordService = passwordService;
@@ -44,15 +38,15 @@ public class ResetKeyAuthenticationProvider implements AuthenticationProvider {
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        Assert.isInstanceOf(ResetKeyAuthenticationToken.class, authentication,
-                "Only ResetKeyAuthenticationToken is supported");
+        Assert.isInstanceOf(UsernamePasswordAuthenticationToken.class, authentication,
+                "Only UsernamePasswordAuthenticationToken is supported");
 
-        ResetKeyAuthenticationToken authRequest = (ResetKeyAuthenticationToken) authentication;
+        UsernamePasswordAuthenticationToken authRequest = (UsernamePasswordAuthenticationToken) authentication;
 
         String username = authRequest.getUsername();
-        String key = authRequest.getKey();
+        String password = authRequest.getPassword();
 
-        if (!StringUtils.hasText(username) || !StringUtils.hasText(key)) {
+        if (!StringUtils.hasText(username) || !StringUtils.hasText(password)) {
             throw new BadCredentialsException("missing required parameters in request");
         }
 
@@ -62,11 +56,10 @@ public class ResetKeyAuthenticationProvider implements AuthenticationProvider {
                 throw new BadCredentialsException("invalid request");
             }
 
-            // do confirm
-            passwordService.confirmReset(key);
-//            if (!account.isChangeOnFirstAccess()) {
-//                throw new BadCredentialsException("invalid request");
-//            }
+            // delegate password check
+            if (!passwordService.verifyPassword(username, password)) {
+                throw new BadCredentialsException("invalid request");
+            }
 
             // always grant user role
             // we really don't have any additional role on accounts, aac roles are set on
@@ -74,7 +67,8 @@ public class ResetKeyAuthenticationProvider implements AuthenticationProvider {
             Set<GrantedAuthority> authorities = Collections.singleton(new SimpleGrantedAuthority(Config.R_USER));
 
             // build a valid token
-            ResetKeyAuthenticationToken auth = new ResetKeyAuthenticationToken(username, key, account, authorities);
+            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(username, password,
+                    account, authorities);
 
             return auth;
 
@@ -88,7 +82,7 @@ public class ResetKeyAuthenticationProvider implements AuthenticationProvider {
 
     @Override
     public boolean supports(Class<?> authentication) {
-        return (ResetKeyAuthenticationToken.class.isAssignableFrom(authentication));
+        return (UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication));
     }
 
 }

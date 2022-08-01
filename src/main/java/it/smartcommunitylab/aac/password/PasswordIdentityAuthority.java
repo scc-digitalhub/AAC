@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.internal;
+package it.smartcommunitylab.aac.password;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -8,12 +8,13 @@ import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
-import it.smartcommunitylab.aac.internal.provider.PasswordIdentityConfigurationProvider;
-import it.smartcommunitylab.aac.internal.provider.PasswordIdentityProviderConfig;
-import it.smartcommunitylab.aac.internal.provider.PasswordIdentityProviderConfigMap;
-import it.smartcommunitylab.aac.internal.provider.PasswordIdentityService;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserPasswordRepository;
+import it.smartcommunitylab.aac.internal.AbstractInternalIdentityAuthority;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
+import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
+import it.smartcommunitylab.aac.password.provider.PasswordIdentityConfigurationProvider;
+import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
+import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfigMap;
+import it.smartcommunitylab.aac.password.provider.PasswordIdentityService;
 import it.smartcommunitylab.aac.utils.MailService;
 
 @Service

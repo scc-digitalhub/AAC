@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.internal.controller;
+package it.smartcommunitylab.aac.password.controller;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,15 +33,15 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.dto.UserEmailBean;
 import it.smartcommunitylab.aac.internal.AbstractInternalIdentityAuthority;
-import it.smartcommunitylab.aac.internal.dto.UserPasswordBean;
 import it.smartcommunitylab.aac.internal.model.CredentialsType;
-import it.smartcommunitylab.aac.internal.model.PasswordPolicy;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
-import it.smartcommunitylab.aac.internal.provider.PasswordIdentityService;
-import it.smartcommunitylab.aac.internal.provider.InternalPasswordService;
 import it.smartcommunitylab.aac.model.Realm;
+import it.smartcommunitylab.aac.password.dto.UserPasswordBean;
+import it.smartcommunitylab.aac.password.model.PasswordPolicy;
+import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
+import it.smartcommunitylab.aac.password.provider.PasswordIdentityService;
+import it.smartcommunitylab.aac.password.service.InternalPasswordService;
 
 @Controller
 @RequestMapping

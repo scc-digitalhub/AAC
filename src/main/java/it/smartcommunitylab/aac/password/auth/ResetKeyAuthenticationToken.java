@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.internal.auth;
+package it.smartcommunitylab.aac.password.auth;
 
 import java.util.Collection;
 
@@ -9,35 +9,35 @@ import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 
-public class UsernamePasswordAuthenticationToken extends AbstractAuthenticationToken {
+public class ResetKeyAuthenticationToken extends AbstractAuthenticationToken {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     private final String username;
-    private String password;
+    private String key;
 
     private InternalUserAccount account;
 
-    public UsernamePasswordAuthenticationToken(String username, String password) {
+    public ResetKeyAuthenticationToken(String username, String key) {
         super(null);
         this.username = username;
-        this.password = password;
+        this.key = key;
         setAuthenticated(false);
     }
 
-    public UsernamePasswordAuthenticationToken(String username, String password,
+    public ResetKeyAuthenticationToken(String username, String key,
             Collection<? extends GrantedAuthority> authorities) {
         super(authorities);
         this.username = username;
-        this.password = password;
+        this.key = key;
         super.setAuthenticated(true);
     }
 
-    public UsernamePasswordAuthenticationToken(String username, String password, InternalUserAccount account,
+    public ResetKeyAuthenticationToken(String username, String key, InternalUserAccount account,
             Collection<? extends GrantedAuthority> authorities) {
         super(authorities);
         this.username = username;
-        this.password = password;
+        this.key = key;
         this.account = account;
         super.setAuthenticated(true);
     }
@@ -46,8 +46,8 @@ public class UsernamePasswordAuthenticationToken extends AbstractAuthenticationT
         return username;
     }
 
-    public String getPassword() {
-        return password;
+    public String getKey() {
+        return key;
     }
 
     public InternalUserAccount getAccount() {
@@ -56,7 +56,7 @@ public class UsernamePasswordAuthenticationToken extends AbstractAuthenticationT
 
     @Override
     public Object getCredentials() {
-        return this.password;
+        return this.key;
     }
 
     @Override
@@ -79,7 +79,7 @@ public class UsernamePasswordAuthenticationToken extends AbstractAuthenticationT
     @Override
     public void eraseCredentials() {
         super.eraseCredentials();
-        this.password = null;
+        this.key = null;
         if (this.account != null) {
             this.account.eraseCredentials();
         }

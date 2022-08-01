@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.internal.provider;
+package it.smartcommunitylab.aac.password.provider;
 
 import java.time.Instant;
 
@@ -16,13 +16,16 @@ import it.smartcommunitylab.aac.crypto.InternalPasswordEncoder;
 import it.smartcommunitylab.aac.internal.auth.ConfirmKeyAuthenticationProvider;
 import it.smartcommunitylab.aac.internal.auth.ConfirmKeyAuthenticationToken;
 import it.smartcommunitylab.aac.internal.auth.InternalAuthenticationException;
-import it.smartcommunitylab.aac.internal.auth.ResetKeyAuthenticationProvider;
-import it.smartcommunitylab.aac.internal.auth.ResetKeyAuthenticationToken;
-import it.smartcommunitylab.aac.internal.auth.UsernamePasswordAuthenticationProvider;
-import it.smartcommunitylab.aac.internal.auth.UsernamePasswordAuthenticationToken;
 import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.provider.InternalAccountService;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
+import it.smartcommunitylab.aac.password.auth.ResetKeyAuthenticationProvider;
+import it.smartcommunitylab.aac.password.auth.ResetKeyAuthenticationToken;
+import it.smartcommunitylab.aac.password.auth.UsernamePasswordAuthenticationProvider;
+import it.smartcommunitylab.aac.password.auth.UsernamePasswordAuthenticationToken;
+import it.smartcommunitylab.aac.password.service.InternalPasswordService;
 
 public class PasswordAuthenticationProvider
         extends ExtendedAuthenticationProvider<InternalUserAuthenticatedPrincipal, InternalUserAccount> {

@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.internal.persistence;
+package it.smartcommunitylab.aac.password.persistence;
 
 import java.util.List;
 

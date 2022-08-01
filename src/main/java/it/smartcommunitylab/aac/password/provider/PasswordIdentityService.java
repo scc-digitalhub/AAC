@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.internal.provider;
+package it.smartcommunitylab.aac.password.provider;
 
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
@@ -19,9 +19,12 @@ import it.smartcommunitylab.aac.internal.AbstractInternalIdentityAuthority;
 import it.smartcommunitylab.aac.internal.model.InternalLoginProvider;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserPassword;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserPasswordRepository;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
+import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
+import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
+import it.smartcommunitylab.aac.password.service.InternalPasswordService;
 import it.smartcommunitylab.aac.utils.MailService;
 
 public class PasswordIdentityService extends InternalIdentityService<InternalUserPassword> {

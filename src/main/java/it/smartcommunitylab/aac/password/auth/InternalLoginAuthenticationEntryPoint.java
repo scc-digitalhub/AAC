@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.internal.auth;
+package it.smartcommunitylab.aac.password.auth;
 
 import java.util.Collections;
 import java.util.Map;
@@ -14,7 +14,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponents;
 
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
-import it.smartcommunitylab.aac.internal.PasswordIdentityAuthority;
+import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
 
 public class InternalLoginAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPoint {
 

@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.internal.auth;
+package it.smartcommunitylab.aac.password.auth;
 
 import java.io.IOException;
 import javax.servlet.ServletException;
@@ -28,12 +28,12 @@ import it.smartcommunitylab.aac.core.auth.RequestAwareAuthenticationSuccessHandl
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.internal.PasswordIdentityAuthority;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserPassword;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserPasswordRepository;
-import it.smartcommunitylab.aac.internal.provider.PasswordIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
+import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
+import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
+import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
+import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
 
 /*
  * Handles login requests for internal authority, via extended auth manager

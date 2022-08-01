@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.internal.controller;
+package it.smartcommunitylab.aac.password.controller;
 
 import java.util.Collections;
 import java.util.HashMap;

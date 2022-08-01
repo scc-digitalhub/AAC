@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.internal.provider;
+package it.smartcommunitylab.aac.password.service;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
@@ -35,12 +35,13 @@ import it.smartcommunitylab.aac.core.provider.UserCredentialsService;
 import it.smartcommunitylab.aac.crypto.PasswordHash;
 import it.smartcommunitylab.aac.internal.AbstractInternalIdentityAuthority;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
-import it.smartcommunitylab.aac.internal.model.PasswordPolicy;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserPassword;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserPasswordRepository;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.oauth.common.SecureStringKeyGenerator;
+import it.smartcommunitylab.aac.password.model.PasswordPolicy;
+import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
+import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
+import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
 import it.smartcommunitylab.aac.utils.MailService;
 
 @Transactional

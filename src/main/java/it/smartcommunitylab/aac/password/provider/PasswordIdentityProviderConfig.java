@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.internal.provider;
+package it.smartcommunitylab.aac.password.provider;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -6,6 +6,8 @@ import java.util.Map;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
 
 public class PasswordIdentityProviderConfig extends InternalIdentityProviderConfig {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;

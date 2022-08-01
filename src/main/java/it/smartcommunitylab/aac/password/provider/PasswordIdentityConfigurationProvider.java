@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.internal.provider;
+package it.smartcommunitylab.aac.password.provider;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -13,6 +13,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.config.AuthoritiesProperties;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityConfigurationProvider;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
 
 @Service
 public class PasswordIdentityConfigurationProvider
