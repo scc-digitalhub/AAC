@@ -96,10 +96,6 @@ public class InternalPasswordIdentityProviderConfig extends InternalIdentityProv
     /*
      * default config
      */
-    public int getConfirmationValidity() {
-        return configMap.getConfirmationValidity() != null ? configMap.getConfirmationValidity().intValue()
-                : MIN_DURATION;
-    }
 
     public int getPasswordResetValidity() {
         return configMap.getPasswordResetValidity() != null ? configMap.getPasswordResetValidity().intValue()
@@ -130,7 +126,8 @@ public class InternalPasswordIdentityProviderConfig extends InternalIdentityProv
      * Static parser
      */
     public static InternalPasswordIdentityProviderConfig fromConfigurableProvider(ConfigurableIdentityProvider cp) {
-        InternalPasswordIdentityProviderConfig ip = new InternalPasswordIdentityProviderConfig(cp.getProvider(), cp.getRealm());
+        InternalPasswordIdentityProviderConfig ip = new InternalPasswordIdentityProviderConfig(cp.getProvider(),
+                cp.getRealm());
         ip.configMap = new InternalPasswordIdentityProviderConfigMap();
         ip.configMap.setConfiguration(cp.getConfiguration());
 

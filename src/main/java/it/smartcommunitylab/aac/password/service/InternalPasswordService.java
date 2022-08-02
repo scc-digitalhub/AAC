@@ -155,6 +155,7 @@ public class InternalPasswordService extends AbstractProvider
     /*
      * Password handling
      */
+    @Transactional(readOnly = true)
     public InternalUserPassword findPassword(String username) throws NoSuchUserException {
         // fetch active password
         InternalUserPassword password = passwordRepository.findByProviderAndUsernameAndStatusOrderByCreateDateDesc(
@@ -168,6 +169,7 @@ public class InternalPasswordService extends AbstractProvider
         return password;
     }
 
+    @Transactional(readOnly = true)
     public InternalUserPassword getPassword(String username) throws NoSuchUserException {
         // fetch active password
         InternalUserPassword password = passwordRepository.findByProviderAndUsernameAndStatusOrderByCreateDateDesc(
@@ -430,6 +432,7 @@ public class InternalPasswordService extends AbstractProvider
      */
 
     @Override
+    @Transactional(readOnly = true)
     public InternalUserPassword getCredentials(String username) throws NoSuchUserException {
         // fetch user
         InternalUserAccount account = accountService.findAccountById(repositoryId, username);
@@ -492,7 +495,7 @@ public class InternalPasswordService extends AbstractProvider
     }
 
     @Override
-    public InternalUserPassword resetCredentials(String username) throws NoSuchUserException {
+    public void resetCredentials(String username) throws NoSuchUserException {
         if (!config.isEnablePasswordReset()) {
             throw new IllegalArgumentException("reset is disabled for this provider");
         }
@@ -512,15 +515,10 @@ public class InternalPasswordService extends AbstractProvider
             logger.error(e.getMessage());
         }
 
-        // password are encrypted, can't read
-        // we return a placeholder to describe status
-        pass.eraseCredentials();
-        return pass;
-
     }
 
     @Override
-    public InternalUserPassword revokeCredentials(String username) throws NoSuchUserException {
+    public void revokeCredentials(String username) throws NoSuchUserException {
         InternalUserAccount account = accountService.findAccountById(repositoryId, username);
         if (account == null) {
             throw new NoSuchUserException();
@@ -533,13 +531,7 @@ public class InternalPasswordService extends AbstractProvider
         }
 
         // revoke this
-        InternalUserPassword pass = revokePassword(username, password.getPassword());
-
-        // password are encrypted, can't read
-        // we return a placeholder to describe status
-        pass.eraseCredentials();
-        return pass;
-
+        revokePassword(username, password.getPassword());
     }
 
     @Override
@@ -694,14 +686,12 @@ public class InternalPasswordService extends AbstractProvider
     }
 
     @Override
-    public InternalUserPassword resetCredentials(String accountId, String credentialsId) throws NoSuchUserException {
-        return null;
+    public void resetCredentials(String accountId, String credentialsId) throws NoSuchUserException {
     }
 
     @Override
-    public InternalUserPassword revokeCredentials(String accountId, String credentialsId)
+    public void revokeCredentials(String accountId, String credentialsId)
             throws NoSuchUserException {
-        return null;
     }
 
     @Override

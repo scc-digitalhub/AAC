@@ -17,17 +17,16 @@ import org.springframework.util.StringUtils;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountProvider;
-import it.smartcommunitylab.aac.password.model.InternalPasswordUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.password.service.InternalPasswordService;
 
 public class ResetKeyAuthenticationProvider implements AuthenticationProvider {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final InternalAccountProvider<InternalPasswordUserAuthenticatedPrincipal> accountProvider;
+    private final InternalAccountProvider accountProvider;
     private final InternalPasswordService passwordService;
 
     public ResetKeyAuthenticationProvider(String providerId,
-            InternalAccountProvider<InternalPasswordUserAuthenticatedPrincipal> accountProvider,
+            InternalAccountProvider accountProvider,
             InternalPasswordService passwordService,
             String realm) {
         Assert.hasText(providerId, "provider can not be null or empty");

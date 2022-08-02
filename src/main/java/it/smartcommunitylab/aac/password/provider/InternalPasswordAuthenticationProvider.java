@@ -18,7 +18,6 @@ import it.smartcommunitylab.aac.internal.auth.ConfirmKeyAuthenticationToken;
 import it.smartcommunitylab.aac.internal.auth.InternalAuthenticationException;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountService;
-import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.password.auth.ResetKeyAuthenticationProvider;
 import it.smartcommunitylab.aac.password.auth.ResetKeyAuthenticationToken;
@@ -34,7 +33,7 @@ public class InternalPasswordAuthenticationProvider
     private static final String ACCOUNT_NOT_FOUND_PASSWORD = "internalAccountNotFoundPassword";
 
     // provider configuration
-    private final InternalIdentityProviderConfig config;
+    private final InternalPasswordIdentityProviderConfig config;
     private final String repositoryId;
 
     private final InternalUserAccountService userAccountService;
@@ -49,10 +48,10 @@ public class InternalPasswordAuthenticationProvider
 
     public InternalPasswordAuthenticationProvider(String providerId,
             InternalUserAccountService userAccountService,
-            InternalAccountService<InternalPasswordUserAuthenticatedPrincipal> accountService,
+            InternalAccountService accountService,
             InternalPasswordService passwordService,
-            InternalIdentityProviderConfig providerConfig, String realm) {
-        super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
+            InternalPasswordIdentityProviderConfig providerConfig, String realm) {
+        super(SystemKeys.AUTHORITY_PASSWORD, providerId, realm);
         Assert.notNull(userAccountService, "user account service is mandatory");
         Assert.notNull(providerConfig, "provider config is mandatory");
         this.config = providerConfig;
@@ -185,6 +184,6 @@ public class InternalPasswordAuthenticationProvider
     @Override
     protected Instant expiresAt(Authentication auth) {
         // build expiration with maxAge
-        return Instant.now().plusSeconds(config.getConfigMap().getMaxSessionDuration());
+        return Instant.now().plusSeconds(config.getMaxSessionDuration());
     }
 }
