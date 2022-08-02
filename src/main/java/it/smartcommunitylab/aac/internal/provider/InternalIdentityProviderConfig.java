@@ -21,6 +21,7 @@ public class InternalIdentityProviderConfig extends AbstractIdentityProviderConf
     };
 
     private final static int MIN_DURATION = 300;
+    private final static int MAX_SESSION_DURATION = 24 * 60 * 60; // 24h
 
     // map capabilities
     private InternalIdentityProviderConfigMap configMap;
@@ -92,6 +93,11 @@ public class InternalIdentityProviderConfig extends AbstractIdentityProviderConf
     public int getConfirmationValidity() {
         return configMap.getConfirmationValidity() != null ? configMap.getConfirmationValidity().intValue()
                 : MIN_DURATION;
+    }
+
+    public int getMaxSessionDuration() {
+        return configMap.getMaxSessionDuration() != null ? configMap.getMaxSessionDuration().intValue()
+                : MAX_SESSION_DURATION;
     }
 
     /*

@@ -12,6 +12,7 @@ import it.smartcommunitylab.aac.common.MissingDataException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
+import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.AccountProvider;
 import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
@@ -19,8 +20,7 @@ import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.model.UserStatus;
 
 @Transactional
-public class InternalAccountProvider<P extends InternalUserAuthenticatedPrincipal> extends AbstractProvider
-        implements AccountProvider<InternalUserAccount, P> {
+public class InternalAccountProvider extends AbstractProvider implements AccountProvider<InternalUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final InternalUserAccountService accountService;
@@ -54,7 +54,11 @@ public class InternalAccountProvider<P extends InternalUserAuthenticatedPrincipa
     }
 
     @Override
-    public InternalUserAccount convertAccount(P principal, String userId) {
+    public InternalUserAccount convertAccount(UserAuthenticatedPrincipal userPrincipal, String userId) {
+        // we expect an instance of our model
+        Assert.isInstanceOf(InternalUserAuthenticatedPrincipal.class, userPrincipal,
+                "principal must be an instance of internal authenticated principal");
+        InternalUserAuthenticatedPrincipal principal = (InternalUserAuthenticatedPrincipal) userPrincipal;
 
         // sanity check for same authority
         if (!getAuthority().equals(principal.getAuthority())) {

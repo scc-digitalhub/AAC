@@ -15,7 +15,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountService;
 
@@ -25,10 +24,10 @@ public class ConfirmKeyAuthenticationProvider implements AuthenticationProvider 
 //    private final String realm;
 //    private final String providerId;
 
-    private final InternalAccountService<? extends InternalUserAuthenticatedPrincipal> accountService;
+    private final InternalAccountService accountService;
 
     public ConfirmKeyAuthenticationProvider(String providerId,
-            InternalAccountService<? extends InternalUserAuthenticatedPrincipal> accountService,
+            InternalAccountService accountService,
             String realm) {
         Assert.hasText(providerId, "provider can not be null or empty");
         Assert.notNull(accountService, "account service is mandatory");

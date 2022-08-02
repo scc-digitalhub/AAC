@@ -12,7 +12,8 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
  * Accounts managed by services are eventually used by IdentityProviders
  */
 
-public interface IdentityService<I extends UserIdentity, U extends UserAccount> extends ResourceProvider {
+public interface IdentityService<I extends UserIdentity, U extends UserAccount>
+        extends ResourceProvider {
 
     /*
      * Config
@@ -46,6 +47,9 @@ public interface IdentityService<I extends UserIdentity, U extends UserAccount> 
             String userId,
             String identityId, UserIdentity identity) throws NoSuchUserException, RegistrationException;
 
+    public void deleteIdentity(
+            String userId,
+            String identityId) throws NoSuchUserException, RegistrationException;
     /*
      * Registration
      */

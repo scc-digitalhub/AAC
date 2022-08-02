@@ -86,7 +86,7 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
     public abstract ExtendedAuthenticationProvider<P, U> getAuthenticationProvider();
 
     @Override
-    public abstract AccountProvider<U, P> getAccountProvider();
+    public abstract AccountProvider<U> getAccountProvider();
 
     @Override
     public abstract IdentityAttributeProvider<P, U> getAttributeProvider();

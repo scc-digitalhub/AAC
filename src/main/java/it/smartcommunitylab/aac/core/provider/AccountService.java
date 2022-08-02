@@ -4,7 +4,8 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 
-public interface AccountService<U extends UserAccount> extends AccountProvider<U> {
+public interface AccountService<U extends UserAccount>
+        extends AccountProvider<U> {
 
     /*
      * Manage accounts from this provider
@@ -20,6 +21,9 @@ public interface AccountService<U extends UserAccount> extends AccountProvider<U
     public U updateAccount(
             String accountId,
             U account) throws NoSuchUserException, RegistrationException;
+
+    public void deleteAccount(
+            String accountId) throws NoSuchUserException;
 
     /*
      * Account confirmation

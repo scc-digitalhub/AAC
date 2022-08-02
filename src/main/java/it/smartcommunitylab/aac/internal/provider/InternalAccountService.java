@@ -26,7 +26,6 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.provider.AccountService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
-import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.model.Subject;
@@ -34,8 +33,8 @@ import it.smartcommunitylab.aac.model.UserStatus;
 import it.smartcommunitylab.aac.utils.MailService;
 
 @Transactional
-public class InternalAccountService<P extends InternalUserAuthenticatedPrincipal> extends InternalAccountProvider<P>
-        implements AccountService<InternalUserAccount, P> {
+public class InternalAccountService extends InternalAccountProvider
+        implements AccountService<InternalUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // provider configuration
@@ -122,34 +121,16 @@ public class InternalAccountService<P extends InternalUserAuthenticatedPrincipal
         }
 
         // check type and extract our parameters if present
-//        String password = null;
         String email = null;
         String name = null;
         String surname = null;
         String lang = null;
         boolean confirmed = !config.isConfirmationRequired();
 
-//        password = reg.getPassword();
-        email = reg.getEmail();
-        name = reg.getName();
-        surname = reg.getSurname();
-        lang = reg.getLang();
-//
-//        if (StringUtils.hasText(password)) {
-//            password = Jsoup.clean(password, Safelist.none());
-//        }
-        if (StringUtils.hasText(email)) {
-            email = Jsoup.clean(email, Safelist.none());
-        }
-        if (StringUtils.hasText(name)) {
-            name = Jsoup.clean(name, Safelist.none());
-        }
-        if (StringUtils.hasText(surname)) {
-            surname = Jsoup.clean(surname, Safelist.none());
-        }
-        if (StringUtils.hasText(lang)) {
-            lang = Jsoup.clean(lang, Safelist.none());
-        }
+        email = clean(reg.getEmail());
+        name = clean(reg.getName());
+        surname = clean(reg.getSurname());
+        lang = clean(reg.getLang());
 
         // we accept confirmed accounts
         if (!confirmed) {
@@ -209,23 +190,10 @@ public class InternalAccountService<P extends InternalUserAuthenticatedPrincipal
 
         // TODO evaluate username change (will require alignment of related model)
 
-        String email = reg.getEmail();
-        String name = reg.getName();
-        String surname = reg.getSurname();
-        String lang = reg.getLang();
-
-        if (StringUtils.hasText(email)) {
-            email = Jsoup.clean(email, Safelist.none());
-        }
-        if (StringUtils.hasText(name)) {
-            name = Jsoup.clean(name, Safelist.none());
-        }
-        if (StringUtils.hasText(surname)) {
-            surname = Jsoup.clean(surname, Safelist.none());
-        }
-        if (StringUtils.hasText(lang)) {
-            lang = Jsoup.clean(lang, Safelist.none());
-        }
+        String email = clean(reg.getEmail());
+        String name = clean(reg.getName());
+        String surname = clean(reg.getSurname());
+        String lang = clean(reg.getLang());
 
         // check if email changes
         boolean emailChanged = false;
@@ -546,4 +514,19 @@ public class InternalAccountService<P extends InternalUserAuthenticatedPrincipal
         }
     }
 
+    /*
+     * string cleanup
+     */
+
+    private String clean(String input) {
+        return clean(input, Safelist.none());
+    }
+
+    private String clean(String input, Safelist safe) {
+        if (StringUtils.hasText(input)) {
+            return Jsoup.clean(input, safe);
+        }
+        return null;
+
+    }
 }

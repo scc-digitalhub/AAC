@@ -6,7 +6,6 @@ import java.util.Map;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -31,7 +30,8 @@ public class InternalIdentityProviderConfigMap implements ConfigurableProperties
     protected final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
     };
 
-    protected int maxSessionDuration = 24 * 60 * 60; // 24h
+    @Max(3 * 24 * 60 * 60)
+    protected Integer maxSessionDuration;
 
     protected CredentialsType credentialsType;
     protected Boolean isolateData;
@@ -49,11 +49,11 @@ public class InternalIdentityProviderConfigMap implements ConfigurableProperties
         this.isolateData = false;
     }
 
-    public int getMaxSessionDuration() {
+    public Integer getMaxSessionDuration() {
         return maxSessionDuration;
     }
 
-    public void setMaxSessionDuration(int maxSessionDuration) {
+    public void setMaxSessionDuration(Integer maxSessionDuration) {
         this.maxSessionDuration = maxSessionDuration;
     }
 

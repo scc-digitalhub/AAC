@@ -529,35 +529,35 @@ public class ProviderManager {
 //
 //    }
 
-    /*
-     * Configuration templates TODO drop templates and rework as custom authorities
-     * extending a base
-     */
+//    /*
+//     * Configuration templates TODO drop templates and rework as custom authorities
+//     * extending a base
+//     */
+//
+//    private Collection<ConfigurableProvider> listProviderConfigurationTemplates(String type) {
+//        if (TYPE_IDENTITY.equals(type)) {
+//            // we support only idp templates
+//            List<ConfigurableProvider> templates = new ArrayList<>();
+//            for (IdentityProviderAuthority ia : authorityManager
+//                    .listIdentityAuthorities()) {
+//                templates.addAll(ia.getConfigurableProviderTemplates());
+//            }
+//
+//            return templates;
+//
+//        }
+//        return Collections.emptyList();
+//
+//    }
 
-    private Collection<ConfigurableProvider> listProviderConfigurationTemplates(String type) {
-        if (TYPE_IDENTITY.equals(type)) {
-            // we support only idp templates
-            List<ConfigurableProvider> templates = new ArrayList<>();
-            for (IdentityProviderAuthority ia : authorityManager
-                    .listIdentityAuthorities()) {
-                templates.addAll(ia.getConfigurableProviderTemplates());
-            }
-
-            return templates;
-
-        }
-        return Collections.emptyList();
-
-    }
-
-    public Collection<ConfigurableProvider> listProviderConfigurationTemplates(String realm, String type) {
-        Collection<ConfigurableProvider> templates = listProviderConfigurationTemplates(type);
-        // keep only those matching realm or with realm == null
-        return templates.stream().filter(t -> (t.getRealm() == null
-                || realm.equals(t.getRealm())
-                || SystemKeys.REALM_GLOBAL.equals(t.getRealm()))).collect(Collectors.toList());
-
-    }
+//    public Collection<ConfigurableProvider> listProviderConfigurationTemplates(String realm, String type) {
+//        Collection<ConfigurableProvider> templates = listProviderConfigurationTemplates(type);
+//        // keep only those matching realm or with realm == null
+//        return templates.stream().filter(t -> (t.getRealm() == null
+//                || realm.equals(t.getRealm())
+//                || SystemKeys.REALM_GLOBAL.equals(t.getRealm()))).collect(Collectors.toList());
+//
+//    }
 
     /*
      * Configuration schemas

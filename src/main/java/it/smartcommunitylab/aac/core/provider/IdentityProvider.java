@@ -45,7 +45,7 @@ public interface IdentityProvider<I extends UserIdentity>
      * persisted in the provider or available for requests. Do note that idps are
      * not required to persist accounts.
      */
-    public AccountProvider<? extends UserAccount, ? extends UserAuthenticatedPrincipal> getAccountProvider();
+    public AccountProvider<? extends UserAccount> getAccountProvider();
 
     /*
      * Attribute providers retrieve and format user properties available to the

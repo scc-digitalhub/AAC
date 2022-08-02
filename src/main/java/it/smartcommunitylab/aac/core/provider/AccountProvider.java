@@ -7,7 +7,7 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 
-public interface AccountProvider<U extends UserAccount, P extends UserAuthenticatedPrincipal> extends ResourceProvider {
+public interface AccountProvider<U extends UserAccount> extends ResourceProvider {
 
     /*
      * Fetch accounts from this provider
@@ -29,7 +29,7 @@ public interface AccountProvider<U extends UserAccount, P extends UserAuthentica
     /*
      * Build account from principal attributes
      */
-    public U convertAccount(P principal, String userId);
+    public U convertAccount(UserAuthenticatedPrincipal principal, String userId);
 
     /*
      * Actions on accounts

@@ -61,7 +61,7 @@ import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.dto.ConnectedAppProfile;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
+import it.smartcommunitylab.aac.internal.provider.AbstractInternalIdentityProvider;
 import it.smartcommunitylab.aac.model.Group;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.RealmRole;
@@ -288,7 +288,7 @@ public class UserManager {
             throw new NoSuchProviderException("No internal provider available");
         }
 
-        InternalIdentityService<?> idp = (InternalIdentityService<?>) provider;
+        AbstractInternalIdentityProvider<?> idp = (AbstractInternalIdentityProvider<?>) provider;
 
         // build only base identity
         InternalUserAccount account = new InternalUserAccount();

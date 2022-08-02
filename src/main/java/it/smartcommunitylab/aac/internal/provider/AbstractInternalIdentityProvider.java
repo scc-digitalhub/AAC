@@ -33,7 +33,7 @@ public abstract class AbstractInternalIdentityProvider<P extends InternalUserAut
     protected final InternalUserAccountService userAccountService;
 
     // providers
-    protected final InternalAccountService<P> accountService;
+    protected final InternalAccountService accountService;
     protected final InternalAttributeProvider<P> attributeProvider;
     protected final InternalSubjectResolver subjectResolver;
 
@@ -64,7 +64,7 @@ public abstract class AbstractInternalIdentityProvider<P extends InternalUserAut
 
         // build resource providers, we use our providerId to ensure consistency
         this.attributeProvider = new InternalAttributeProvider<P>(providerId, config, realm);
-        this.accountService = new InternalAccountService<P>(providerId, userAccountService, subjectService, config,
+        this.accountService = new InternalAccountService(providerId, userAccountService, subjectService, config,
                 realm);
         this.subjectResolver = new InternalSubjectResolver(providerId, userAccountService, config, realm);
     }
@@ -98,7 +98,7 @@ public abstract class AbstractInternalIdentityProvider<P extends InternalUserAut
     }
 
     @Override
-    public InternalAccountProvider<P> getAccountProvider() {
+    public InternalAccountProvider getAccountProvider() {
         return accountService;
     }
 
