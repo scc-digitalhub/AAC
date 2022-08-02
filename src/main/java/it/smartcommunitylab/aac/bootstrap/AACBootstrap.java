@@ -51,15 +51,15 @@ import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.crypto.PasswordHash;
 import it.smartcommunitylab.aac.internal.model.CredentialsType;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
-import it.smartcommunitylab.aac.internal.provider.PasswordIdentityService;
-import it.smartcommunitylab.aac.internal.provider.InternalPasswordService;
+import it.smartcommunitylab.aac.internal.provider.AbstractInternalIdentityProvider;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.model.UserStatus;
+import it.smartcommunitylab.aac.password.provider.PasswordIdentityService;
+import it.smartcommunitylab.aac.password.service.InternalPasswordService;
 import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
 import it.smartcommunitylab.aac.services.Service;
 import it.smartcommunitylab.aac.services.ServicesManager;
@@ -150,7 +150,7 @@ public class AACBootstrap {
             // use first active internal provider for system
             systemProviders.values().stream()
                     .filter(idp -> SystemKeys.AUTHORITY_INTERNAL.equals(idp.getAuthority()))
-                    .map(idp -> ((InternalIdentityService<?>) idp))
+                    .map(idp -> ((AbstractInternalIdentityProvider<?>) idp))
                     .filter(idp -> CredentialsType.PASSWORD == idp.getCredentialsType())
                     .findFirst().ifPresent(idp -> {
                         bootstrapAdminUser((PasswordIdentityService) idp);

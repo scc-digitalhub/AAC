@@ -22,6 +22,7 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
+import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.AccountProvider;
 import it.smartcommunitylab.aac.model.UserStatus;
 import it.smartcommunitylab.aac.openid.model.OIDCUserAuthenticatedPrincipal;
@@ -29,8 +30,7 @@ import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.openid.service.OIDCUserAccountService;
 
 @Transactional
-public class OIDCAccountProvider extends AbstractProvider
-        implements AccountProvider<OIDCUserAccount, OIDCUserAuthenticatedPrincipal> {
+public class OIDCAccountProvider extends AbstractProvider implements AccountProvider<OIDCUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final OIDCUserAccountService accountService;
@@ -72,7 +72,11 @@ public class OIDCAccountProvider extends AbstractProvider
     }
 
     @Override
-    public OIDCUserAccount convertAccount(OIDCUserAuthenticatedPrincipal principal, String userId) {
+    public OIDCUserAccount convertAccount(UserAuthenticatedPrincipal userPrincipal, String userId) {
+        // we expect an instance of our model
+        Assert.isInstanceOf(OIDCUserAuthenticatedPrincipal.class, userPrincipal,
+                "principal must be an instance of oidc authenticated principal");
+        OIDCUserAuthenticatedPrincipal principal = (OIDCUserAuthenticatedPrincipal) userPrincipal;
 
         // we use upstream subject for accounts
         String subject = principal.getSubject();
@@ -83,6 +87,7 @@ public class OIDCAccountProvider extends AbstractProvider
         Map<String, Serializable> attributes = principal.getAttributes();
 
         // map attributes to openid set and flatten to string
+        // we also clean every attribute and allow only plain text
         AttributeSet oidcAttributeSet = openidMapper.mapAttributes(attributes);
         Map<String, String> oidcAttributes = oidcAttributeSet.getAttributes()
                 .stream()
@@ -90,24 +95,25 @@ public class OIDCAccountProvider extends AbstractProvider
                         a -> a.getKey(),
                         a -> a.exportValue()));
 
-        String email = oidcAttributes.get(OpenIdAttributesSet.EMAIL);
+        String email = clean(oidcAttributes.get(OpenIdAttributesSet.EMAIL));
         username = StringUtils.hasText(oidcAttributes.get(OpenIdAttributesSet.PREFERRED_USERNAME))
-                ? oidcAttributes.get(OpenIdAttributesSet.PREFERRED_USERNAME)
+                ? clean(oidcAttributes.get(OpenIdAttributesSet.PREFERRED_USERNAME))
                 : principal.getUsername();
 
         // update additional attributes
-        String issuer = attributes.containsKey(IdTokenClaimNames.ISS) ? attributes.get(IdTokenClaimNames.ISS).toString()
+        String issuer = attributes.containsKey(IdTokenClaimNames.ISS)
+                ? clean(attributes.get(IdTokenClaimNames.ISS).toString())
                 : null;
         if (!StringUtils.hasText(issuer)) {
             issuer = provider;
         }
 
         String name = StringUtils.hasText(oidcAttributes.get(OpenIdAttributesSet.NAME))
-                ? oidcAttributes.get(OpenIdAttributesSet.NAME)
+                ? clean(oidcAttributes.get(OpenIdAttributesSet.NAME))
                 : username;
 
-        String familyName = oidcAttributes.get(OpenIdAttributesSet.FAMILY_NAME);
-        String givenName = oidcAttributes.get(OpenIdAttributesSet.GIVEN_NAME);
+        String familyName = clean(oidcAttributes.get(OpenIdAttributesSet.FAMILY_NAME));
+        String givenName = clean(oidcAttributes.get(OpenIdAttributesSet.GIVEN_NAME));
 
         boolean defaultVerifiedStatus = config.getConfigMap().getTrustEmailAddress() != null
                 ? config.getConfigMap().getTrustEmailAddress()
@@ -120,9 +126,9 @@ public class OIDCAccountProvider extends AbstractProvider
             emailVerified = true;
         }
 
-        String lang = oidcAttributes.get(OpenIdAttributesSet.LOCALE);
+        String lang = clean(oidcAttributes.get(OpenIdAttributesSet.LOCALE));
         // TODO evaluate how to handle external pictureURI
-        String picture = oidcAttributes.get(OpenIdAttributesSet.PICTURE);
+        String picture = clean(oidcAttributes.get(OpenIdAttributesSet.PICTURE));
 
         // build model from scratch
         OIDCUserAccount account = new OIDCUserAccount(getAuthority());

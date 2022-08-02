@@ -18,6 +18,7 @@ import it.smartcommunitylab.aac.common.MissingDataException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
+import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.AccountProvider;
 import it.smartcommunitylab.aac.model.UserStatus;
 import it.smartcommunitylab.aac.saml.model.SamlUserAuthenticatedPrincipal;
@@ -26,7 +27,7 @@ import it.smartcommunitylab.aac.saml.service.SamlUserAccountService;
 
 @Transactional
 public class SamlAccountProvider extends AbstractProvider
-        implements AccountProvider<SamlUserAccount, SamlUserAuthenticatedPrincipal> {
+        implements AccountProvider<SamlUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final SamlUserAccountService accountService;
@@ -55,7 +56,12 @@ public class SamlAccountProvider extends AbstractProvider
     }
 
     @Override
-    public SamlUserAccount convertAccount(SamlUserAuthenticatedPrincipal principal, String userId) {
+    public SamlUserAccount convertAccount(UserAuthenticatedPrincipal userPrincipal, String userId) {
+        // we expect an instance of our model
+        Assert.isInstanceOf(SamlUserAuthenticatedPrincipal.class, userPrincipal,
+                "principal must be an instance of saml authenticated principal");
+        SamlUserAuthenticatedPrincipal principal = (SamlUserAuthenticatedPrincipal) userPrincipal;
+
         // we use upstream subject for accounts
         // TODO handle transient ids, for example with session persistence
         String subjectId = principal.getSubjectId();
@@ -65,9 +71,10 @@ public class SamlAccountProvider extends AbstractProvider
         Map<String, Serializable> attributes = principal.getAttributes();
 
         // re-read attributes as-is, transform to strings
+        // we also clean every attribute and allow only plain text
         // TODO evaluate using a custom mapper to given profile
         Map<String, String> samlAttributes = attributes.entrySet().stream()
-                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().toString()));
+                .collect(Collectors.toMap(e -> e.getKey(), e -> clean(e.getValue().toString())));
 
         String email = samlAttributes.get("email");
         username = StringUtils.hasText(samlAttributes.get("username"))
