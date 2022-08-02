@@ -14,42 +14,33 @@ import com.yubico.webauthn.RelyingParty;
 import com.yubico.webauthn.data.RelyingPartyIdentity;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.InMemoryProviderConfigRepository;
+import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
+import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredentialsRepository;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 
 /*
  * Local registration repository
+ * deprecated, no real gain from keeping a cache of already built rp
  */
-
+//@Service
+@Deprecated
 public class WebAuthnRpRegistrationRepository {
 
     @Value("${application.url}")
     private String applicationUrl;
 
-    private final WebAuthnUserAccountService userAccountService;
-    private ProviderConfigRepository<WebAuthnIdentityProviderConfig> registrationRepository;
-
-    public WebAuthnRpRegistrationRepository(
-            WebAuthnUserAccountService userAccountService) {
-        Assert.notNull(userAccountService, "user account service is mandatory");
-
-        this.userAccountService = userAccountService;
-
-        // build a local in memory repository to hold active provider configs
-        this.registrationRepository = new InMemoryProviderConfigRepository<>();
-    }
-
-    public void setRegistrationRepository(
-            ProviderConfigRepository<WebAuthnIdentityProviderConfig> registrationRepository) {
-        Assert.notNull(registrationRepository, "registrationRepository is mandatory");
-        this.registrationRepository = registrationRepository;
-    }
+    private final InternalUserAccountService userAccountService;
+    private final WebAuthnCredentialsRepository credentialsRepository;
+    private final ProviderConfigRepository<WebAuthnIdentityProviderConfig> registrationRepository;
 
     // leverage a local cache for fetching rps
+    // TODO cache invalidation or check on load or drop cache
     private final LoadingCache<String, RelyingParty> registrations = CacheBuilder.newBuilder()
             .expireAfterWrite(5, TimeUnit.MINUTES)
             .maximumSize(100)
@@ -66,6 +57,19 @@ public class WebAuthnRpRegistrationRepository {
 
                 }
             });
+
+    public WebAuthnRpRegistrationRepository(
+            InternalUserAccountService userAccountService,
+            WebAuthnCredentialsRepository credentialsRepository,
+            ProviderConfigRepository<WebAuthnIdentityProviderConfig> registrationRepository) {
+        Assert.notNull(userAccountService, "user account service is mandatory");
+        Assert.notNull(credentialsRepository, "credentials repository is mandatory");
+        Assert.notNull(registrationRepository, "provider registration repository is mandatory");
+
+        this.userAccountService = userAccountService;
+        this.credentialsRepository = credentialsRepository;
+        this.registrationRepository = registrationRepository;
+    }
 
     public RelyingParty findByRegistrationId(String registrationId) {
         Assert.hasText(registrationId, "registrationId cannot be empty");
@@ -103,7 +107,7 @@ public class WebAuthnRpRegistrationRepository {
                 .build();
 
         WebAuthnYubicoCredentialsRepository webauthnRepository = new WebAuthnYubicoCredentialsRepository(
-                providerId, userAccountService);
+                config.getRepositoryId(), userAccountService, credentialsRepository);
 
         RelyingParty rp = RelyingParty.builder()
                 .identity(rpIdentity)

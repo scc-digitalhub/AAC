@@ -18,28 +18,41 @@ import com.yubico.webauthn.AssertionResult;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchCredentialException;
+import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.webauthn.auth.WebAuthnAuthenticationException;
 import it.smartcommunitylab.aac.webauthn.auth.WebAuthnAuthenticationToken;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccount;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserAccountService;
+import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredential;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnCredentialsService;
 
 public class WebAuthnAuthenticationProvider
-        extends ExtendedAuthenticationProvider<WebAuthnUserAuthenticatedPrincipal, WebAuthnUserAccount> {
+        extends ExtendedAuthenticationProvider<WebAuthnUserAuthenticatedPrincipal, InternalUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    // provider configuration
     private final WebAuthnIdentityProviderConfig config;
+    private final String repositoryId;
 
-    private final WebAuthnUserAccountService userAccountService;
+    private final InternalUserAccountService userAccountService;
+    private final WebAuthnCredentialsService credentialsService;
 
-    public WebAuthnAuthenticationProvider(String providerId, WebAuthnUserAccountService userAccountService,
+    public WebAuthnAuthenticationProvider(String providerId,
+            InternalUserAccountService userAccountService,
+            WebAuthnCredentialsService credentialsService,
             WebAuthnIdentityProviderConfig providerConfig, String realm) {
         super(SystemKeys.AUTHORITY_WEBAUTHN, providerId, realm);
         Assert.notNull(userAccountService, "user account service is mandatory");
+        Assert.notNull(credentialsService, "credentials service is mandatory");
         Assert.notNull(providerConfig, "provider config is mandatory");
         this.config = providerConfig;
         this.userAccountService = userAccountService;
+        this.credentialsService = credentialsService;
+
+        this.repositoryId = config.getRepositoryId();
     }
 
     @Override
@@ -56,14 +69,31 @@ public class WebAuthnAuthenticationProvider
 
         try {
             // make sure assertion is valid
+            // result is already built by filter
             if (!assertionResult.isSuccess()) {
                 throw new BadCredentialsException("assertion failed");
             }
 
             // check if account is present and locked
-            WebAuthnUserAccount account = userAccountService.findAccountByUserHandle(getProvider(), userHandle);
+            InternalUserAccount account = userAccountService.findAccountByUuid(repositoryId, userHandle);
             if (account == null || account.isLocked()) {
                 throw new BadCredentialsException("invalid user");
+            }
+            // fetch associated credential
+            String credentialId = assertionResult.getCredentialId().getBase64();
+            WebAuthnCredential credential = credentialsService.findCredentialByUserHandleAndCredentialId(userHandle,
+                    credentialId);
+            if (credential == null) {
+                throw new WebAuthnAuthenticationException(account.getUserId(), "invalid credentials");
+            }
+
+            // update usage counter
+            try {
+                credential = credentialsService.updateCredentialCounter(userHandle, credentialId,
+                        assertionResult.getSignatureCount());
+            } catch (RegistrationException | NoSuchCredentialException e) {
+                // don't leak counter is invalid
+                throw new WebAuthnAuthenticationException(account.getUserId(), "invalid credentials");
             }
 
             // userId is equal to subject
@@ -93,7 +123,7 @@ public class WebAuthnAuthenticationProvider
 
     @Override
     protected WebAuthnUserAuthenticatedPrincipal createUserPrincipal(Object principal) {
-        WebAuthnUserAccount account = (WebAuthnUserAccount) principal;
+        InternalUserAccount account = (InternalUserAccount) principal;
         String userId = account.getUserId();
         String username = account.getUsername();
 //        StringBuilder fullName = new StringBuilder();

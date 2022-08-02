@@ -22,6 +22,8 @@ public class WebAuthnIdentityProviderConfigMap extends InternalIdentityProviderC
 
     private static final long serialVersionUID = SystemKeys.AAC_WEBAUTHN_SERIAL_VERSION;
 
+    private Boolean displayAsButton;
+
     private Boolean trustUnverifiedAuthenticatorResponses;
 
     public WebAuthnIdentityProviderConfigMap() {
@@ -32,6 +34,14 @@ public class WebAuthnIdentityProviderConfigMap extends InternalIdentityProviderC
     @Override
     public CredentialsType getCredentialsType() {
         return CredentialsType.WEBAUTHN;
+    }
+
+    public Boolean getDisplayAsButton() {
+        return displayAsButton;
+    }
+
+    public void setDisplayAsButton(Boolean displayAsButton) {
+        this.displayAsButton = displayAsButton;
     }
 
     public Boolean getTrustUnverifiedAuthenticatorResponses() {
@@ -60,6 +70,7 @@ public class WebAuthnIdentityProviderConfigMap extends InternalIdentityProviderC
         WebAuthnIdentityProviderConfigMap map = mapper.convertValue(props, WebAuthnIdentityProviderConfigMap.class);
         this.credentialsType = CredentialsType.WEBAUTHN;
 
+        this.displayAsButton = map.getDisplayAsButton();
         this.trustUnverifiedAuthenticatorResponses = map.getTrustUnverifiedAuthenticatorResponses();
     }
 

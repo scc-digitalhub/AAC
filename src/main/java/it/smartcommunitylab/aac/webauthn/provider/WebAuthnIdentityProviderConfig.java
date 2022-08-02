@@ -5,10 +5,10 @@ import java.util.Collections;
 import java.util.Map;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 
-public class WebAuthnIdentityProviderConfig extends AbstractIdentityProviderConfig {
+public class WebAuthnIdentityProviderConfig extends InternalIdentityProviderConfig {
     private static final long serialVersionUID = SystemKeys.AAC_WEBAUTHN_SERIAL_VERSION;
 
     private final static int MIN_LINK_DURATION = 3600;
@@ -43,26 +43,6 @@ public class WebAuthnIdentityProviderConfig extends AbstractIdentityProviderConf
     /*
      * config flags
      */
-    public boolean isEnableRegistration() {
-        return configMap.getEnableRegistration() != null ? configMap.getEnableRegistration().booleanValue() : true;
-    }
-
-    public boolean isEnableUpdate() {
-        return configMap.getEnableUpdate() != null ? configMap.getEnableUpdate().booleanValue() : true;
-    }
-
-    public boolean isEnableReset() {
-        return configMap.getEnableReset() != null ? configMap.getEnableReset().booleanValue() : false;
-    }
-
-    public boolean isEnableConfirmation() {
-        return configMap.getEnableConfirmation() != null ? configMap.getEnableConfirmation().booleanValue() : false;
-    }
-
-    public int getConfirmationValidity() {
-        return configMap.getConfirmationValidity() != null ? configMap.getConfirmationValidity().intValue()
-                : MIN_LINK_DURATION;
-    }
 
     public boolean isAllowedUnstrustedAssertions() {
         return configMap.getTrustUnverifiedAuthenticatorResponses() != null
@@ -70,10 +50,19 @@ public class WebAuthnIdentityProviderConfig extends AbstractIdentityProviderConf
                 : false;
     }
 
-    public int getMaxSessionDuration() {
-        return configMap.getMaxSessionDuration();
+    /*
+     * display mode
+     */
+
+    public boolean displayAsButton() {
+        return configMap.getDisplayAsButton() != null
+                ? configMap.getDisplayAsButton().booleanValue()
+                : false;
     }
 
+    /*
+     * Static parser
+     */
     public static WebAuthnIdentityProviderConfig fromConfigurableProvider(ConfigurableIdentityProvider cp) {
         WebAuthnIdentityProviderConfig ip = new WebAuthnIdentityProviderConfig(cp.getProvider(), cp.getRealm());
         ip.configMap = new WebAuthnIdentityProviderConfigMap();

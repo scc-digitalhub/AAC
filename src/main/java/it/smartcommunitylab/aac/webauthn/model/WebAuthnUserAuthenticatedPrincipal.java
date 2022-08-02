@@ -1,18 +1,14 @@
 package it.smartcommunitylab.aac.webauthn.model;
 
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.security.core.CredentialsContainer;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccount;
 
 public class WebAuthnUserAuthenticatedPrincipal extends InternalUserAuthenticatedPrincipal
         implements CredentialsContainer {

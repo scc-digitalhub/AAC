@@ -20,10 +20,8 @@ import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnAuthenticationStartRequest;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnLoginResponse;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccount;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityService;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpService;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserAccountService;
 import it.smartcommunitylab.aac.webauthn.store.InMemoryWebAuthnRequestStore;
 
 /**
@@ -36,9 +34,6 @@ import it.smartcommunitylab.aac.webauthn.store.InMemoryWebAuthnRequestStore;
 @Controller
 @RequestMapping
 public class WebAuthnAuthenticationController {
-
-    @Autowired
-    private WebAuthnUserAccountService userAccountService;
 
     @Autowired
     private WebAuthnRpService rpService;
@@ -76,15 +71,11 @@ public class WebAuthnAuthenticationController {
             @RequestBody @Valid WebAuthnAuthenticationStartRequest body)
             throws NoSuchProviderException, NoSuchUserException {
 
-        // fetch user
+        // build request for user
         String username = body.getUsername();
-        WebAuthnUserAccount account = userAccountService.findAccountById(providerId, username);
-        if (account == null) {
-            // TODO review exception to avoid disclosing user existence
-            throw new NoSuchUserException();
-        }
+        // TODO evaluate displayName support
 
-        AssertionRequest assertionRequest = rpService.startLogin(providerId, account.getUserHandle(), username);
+        AssertionRequest assertionRequest = rpService.startLogin(providerId, username, username);
 
         // store request
         String key = requestStore.store(assertionRequest);
