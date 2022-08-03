@@ -242,7 +242,7 @@ public class WebAuthnRegistrationController {
      * @throws WebAuthnAuthenticationException
      */
     @Hidden
-    @PostMapping(value = "/auth/webauthn/attestations/{providerId}}/{uuid}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/auth/webauthn/attestations/{providerId}/{uuid}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public String verifyAttestation(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,

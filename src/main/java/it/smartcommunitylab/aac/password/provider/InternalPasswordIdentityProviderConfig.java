@@ -128,8 +128,10 @@ public class InternalPasswordIdentityProviderConfig extends InternalIdentityProv
     public static InternalPasswordIdentityProviderConfig fromConfigurableProvider(ConfigurableIdentityProvider cp) {
         InternalPasswordIdentityProviderConfig ip = new InternalPasswordIdentityProviderConfig(cp.getProvider(),
                 cp.getRealm());
-        ip.configMap = new InternalPasswordIdentityProviderConfigMap();
-        ip.configMap.setConfiguration(cp.getConfiguration());
+        // parse and use setter to properly propagate config to super
+        InternalPasswordIdentityProviderConfigMap configMap = new InternalPasswordIdentityProviderConfigMap();
+        configMap.setConfiguration(cp.getConfiguration());
+        ip.setConfigMap(configMap);
 
         ip.name = cp.getName();
         ip.description = cp.getDescription();

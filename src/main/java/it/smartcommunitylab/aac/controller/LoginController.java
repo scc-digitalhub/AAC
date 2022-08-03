@@ -173,11 +173,11 @@ public class LoginController {
         model.addAttribute("customization", resources);
 
         // fetch providers for given realm
-        Collection<IdentityProvider<? extends UserIdentity>> providers = authorityManager
+        Collection<IdentityProvider<UserIdentity>> providers = authorityManager
                 .getIdentityProviders(realm);
 
         if (StringUtils.hasText(providerId)) {
-            IdentityProvider<? extends UserIdentity> idp = authorityManager
+            IdentityProvider<UserIdentity> idp = authorityManager
                     .getIdentityProvider(providerId);
             if (idp.getRealm().equals(realm)) {
                 providers = Collections.singleton(idp);

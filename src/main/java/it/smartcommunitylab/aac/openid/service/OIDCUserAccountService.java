@@ -136,7 +136,8 @@ public class OIDCUserAccountService implements UserAccountService<OIDCUserAccoun
             // set account as active
             account.setStatus(UserStatus.ACTIVE.getValue());
 
-            account = accountRepository.save(account);
+            // note: use flush because we detach the entity!
+            account = accountRepository.saveAndFlush(account);
             account = accountRepository.detach(account);
 
             if (logger.isTraceEnabled()) {

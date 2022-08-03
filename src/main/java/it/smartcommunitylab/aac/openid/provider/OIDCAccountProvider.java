@@ -135,6 +135,7 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
         account.setProvider(repositoryId);
         account.setSubject(subject);
         account.setUserId(userId);
+        account.setRealm(getRealm());
 
         account.setUsername(username);
         account.setIssuer(issuer);

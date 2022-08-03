@@ -59,7 +59,7 @@ public class InternalPasswordIdentityProvider
     }
 
     @Override
-    public InternalIdentityProviderConfig getConfig() {
+    public InternalPasswordIdentityProviderConfig getConfig() {
         return config;
     }
 

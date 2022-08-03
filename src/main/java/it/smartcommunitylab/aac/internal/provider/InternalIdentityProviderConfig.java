@@ -65,7 +65,7 @@ public class InternalIdentityProviderConfig extends AbstractIdentityProviderConf
     }
 
     public CredentialsType getCredentialsType() {
-        return configMap.getCredentialsType() != null ? configMap.getCredentialsType() : CredentialsType.PASSWORD;
+        return configMap.getCredentialsType() != null ? configMap.getCredentialsType() : CredentialsType.NONE;
     }
 
     public boolean isolateData() {

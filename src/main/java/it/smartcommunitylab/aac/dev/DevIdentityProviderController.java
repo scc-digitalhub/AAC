@@ -50,7 +50,6 @@ import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.controller.BaseIdentityProviderController;
 import it.smartcommunitylab.aac.core.ClientManager;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.model.ClientApp;
 
 @RestController
@@ -73,16 +72,16 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
      * Providers
      */
 
-    @GetMapping("/idptemplates/{realm}")
-    public Collection<ConfigurableProvider> getRealmProviderTemplates(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
-            throws NoSuchRealmException {
-
-        Collection<ConfigurableProvider> providers = providerManager
-                .listProviderConfigurationTemplates(realm, ConfigurableProvider.TYPE_IDENTITY);
-
-        return providers;
-    }
+//    @GetMapping("/idptemplates/{realm}")
+//    public Collection<ConfigurableProvider> getRealmProviderTemplates(
+//            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
+//            throws NoSuchRealmException {
+//
+//        Collection<ConfigurableProvider> providers = providerManager
+//                .listProviderConfigurationTemplates(realm, ConfigurableProvider.TYPE_IDENTITY);
+//
+//        return providers;
+//    }
 
     @Override
     @GetMapping("/idp/{realm}/{providerId}")

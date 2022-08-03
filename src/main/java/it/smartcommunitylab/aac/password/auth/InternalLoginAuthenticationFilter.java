@@ -41,8 +41,10 @@ import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProvid
  */
 public class InternalLoginAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
-    public static final String DEFAULT_FILTER_URI = InternalPasswordIdentityAuthority.AUTHORITY_URL + "login/{registrationId}";
-    public static final String DEFAULT_LOGIN_URI = InternalPasswordIdentityAuthority.AUTHORITY_URL + "form/{registrationId}";
+    public static final String DEFAULT_FILTER_URI = InternalPasswordIdentityAuthority.AUTHORITY_URL
+            + "login/{registrationId}";
+    public static final String DEFAULT_LOGIN_URI = InternalPasswordIdentityAuthority.AUTHORITY_URL
+            + "form/{registrationId}";
 
     private final RequestMatcher requestMatcher;
 
@@ -181,7 +183,7 @@ public class InternalLoginAuthenticationFilter extends AbstractAuthenticationPro
 
         ProviderWrappedAuthenticationToken wrappedAuthRequest = new ProviderWrappedAuthenticationToken(
                 authenticationRequest,
-                providerId, SystemKeys.AUTHORITY_INTERNAL);
+                providerId, SystemKeys.AUTHORITY_PASSWORD);
 
         // also collect request details
         WebAuthenticationDetails webAuthenticationDetails = new WebAuthenticationDetails(request);

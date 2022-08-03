@@ -179,7 +179,7 @@ public class InternalResetKeyAuthenticationFilter extends AbstractAuthentication
 
         ProviderWrappedAuthenticationToken wrappedAuthRequest = new ProviderWrappedAuthenticationToken(
                 authenticationRequest,
-                providerId, SystemKeys.AUTHORITY_INTERNAL);
+                providerId, SystemKeys.AUTHORITY_PASSWORD);
 
         // also collect request details
         WebAuthenticationDetails webAuthenticationDetails = new WebAuthenticationDetails(request);

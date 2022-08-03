@@ -19,6 +19,9 @@
         <div class="link-list-wrapper">
           <ul class="link-list">
             <li><a class="list-item" href="" ng-click="createProviderDlg('internal')"><span>Internal</span></a></li>
+            <li><a class="list-item" href="" ng-click="createProviderDlg('password')"><span>Password</span></a></li>
+            <li><a class="list-item" href="" ng-click="createProviderDlg('webauthn')"><span>WebAuthn</span></a></li>
+
             <li ng-repeat="template in providerTemplates">
               <a class="list-item" href=""
                 ng-click="createProviderDlg(template.authority, template.name)"><span>{{template.name}}</span></a>
@@ -27,7 +30,6 @@
             <li><a class="list-item" href="" ng-click="createProviderDlg('saml')"><span>SAML</span></a></li>
             <li><a class="list-item" href="" ng-click="createProviderDlg('spid')"><span>SPID</span></a></li>
             <li><a class="list-item" href="" ng-click="createProviderDlg('apple')">Apple</a></li>
-            <li><a class="list-item" href="" ng-click="webAuthnProviderDlg()"><span>WebAuthn</span></a></li>
 
           </ul>
         </div>

@@ -6,6 +6,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
@@ -19,6 +21,7 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
+import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.IdentityConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
@@ -27,7 +30,8 @@ import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 
 public abstract class AbstractIdentityAuthority<I extends UserIdentity, S extends IdentityProvider<I>, C extends AbstractProviderConfig, P extends ConfigurableProperties>
-        implements IdentityProviderAuthority<I>, InitializingBean {
+        implements IdentityProviderAuthority<I, S>, InitializingBean {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // user service
     protected final UserEntityService userEntityService;
@@ -91,13 +95,23 @@ public abstract class AbstractIdentityAuthority<I extends UserIdentity, S extend
     }
 
     @Override
-    public S registerProvider(ConfigurableIdentityProvider cp) {
+    public S registerProvider(ConfigurableProvider cp) {
+        // cast config and handle errors
+        ConfigurableIdentityProvider cip = null;
+        try {
+            ConfigurableIdentityProvider c = (ConfigurableIdentityProvider) cp;
+            cip = c;
+        } catch (ClassCastException e) {
+            logger.error("Wrong config class: " + e.getMessage());
+            throw new IllegalArgumentException("unsupported config");
+        }
+
         // we support only identity provider as resource providers
-        if (cp != null
-                && getAuthorityId().equals(cp.getAuthority())
-                && SystemKeys.RESOURCE_IDENTITY.equals(cp.getType())) {
-            String providerId = cp.getProvider();
-            String realm = cp.getRealm();
+        if (cip != null
+                && getAuthorityId().equals(cip.getAuthority())
+                && SystemKeys.RESOURCE_IDENTITY.equals(cip.getType())) {
+            String providerId = cip.getProvider();
+            String realm = cip.getRealm();
 
             // check if exists or id clashes with another provider from a different realm
             C e = registrationRepository.findByProviderId(providerId);
@@ -111,7 +125,7 @@ public abstract class AbstractIdentityAuthority<I extends UserIdentity, S extend
 
             try {
                 // build config
-                C providerConfig = configProvider.getConfig(cp);
+                C providerConfig = configProvider.getConfig(cip);
 
                 // register, we defer loading
                 registrationRepository.addRegistration(providerConfig);

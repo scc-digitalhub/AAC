@@ -17,11 +17,11 @@ angular.module('aac.controllers.realmproviders', [])
             });
         }
 
-        service.getIdentityProviderTemplates = function (slug) {
-            return $http.get('console/dev/idptemplates/' + slug).then(function (data) {
-                return data.data;
-            });
-        }
+        // service.getIdentityProviderTemplates = function (slug) {
+        //     return $http.get('console/dev/idptemplates/' + slug).then(function (data) {
+        //         return data.data;
+        //     });
+        // }
 
         service.removeIdentityProvider = function (slug, providerId) {
             return $http.delete('console/dev/idp/' + slug + '/' + providerId).then(function (data) {
@@ -194,10 +194,10 @@ angular.module('aac.controllers.realmproviders', [])
          * Initialize the app: load list of the providers
          */
         var init = function () {
-            RealmProviders.getIdentityProviderTemplates(slug)
-                .then(function (data) {
-                    $scope.providerTemplates = data.filter(function (pt) { return pt.authority != 'internal' });
-                })
+            // RealmProviders.getIdentityProviderTemplates(slug)
+            //     .then(function (data) {
+            //         $scope.providerTemplates = data.filter(function (pt) { return pt.authority != 'internal' });
+            //     })
             $scope.load();
         };
 
@@ -521,9 +521,9 @@ angular.module('aac.controllers.realmproviders', [])
                 .then(function (data) {
                     $scope.realmUrls = data;
                 })
-                .then(function () {
-                    return RealmProviders.getIdentityProviderTemplates(slug);
-                })
+                // .then(function () {
+                //     return RealmProviders.getIdentityProviderTemplates(slug);
+                // })
                 .then(function (data) {
                     $scope.providerTemplates = data;
 

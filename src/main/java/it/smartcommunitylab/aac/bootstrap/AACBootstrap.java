@@ -1,12 +1,11 @@
 package it.smartcommunitylab.aac.bootstrap;
 
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
 import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -45,20 +44,20 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.service.AttributeProviderService;
+import it.smartcommunitylab.aac.core.service.IdentityProviderAuthorityService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
-import it.smartcommunitylab.aac.crypto.PasswordHash;
 import it.smartcommunitylab.aac.internal.model.CredentialsType;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.provider.AbstractInternalIdentityProvider;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.model.UserStatus;
-import it.smartcommunitylab.aac.password.provider.PasswordIdentityService;
+import it.smartcommunitylab.aac.password.InternalPasswordIdentityAuthority;
+import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProvider;
 import it.smartcommunitylab.aac.password.service.InternalPasswordService;
 import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
 import it.smartcommunitylab.aac.services.Service;
@@ -124,6 +123,9 @@ public class AACBootstrap {
     private InternalUserAccountService internalUserService;
 
     @Autowired
+    private IdentityProviderAuthorityService identityProviderAuthorityService;
+
+    @Autowired
     private IdentityProviderService identityProviderService;
 
     @Autowired
@@ -131,6 +133,9 @@ public class AACBootstrap {
 
     @Autowired
     private SpaceRoleService roleService;
+
+    @Autowired
+    private InternalPasswordIdentityAuthority passwordIdentityAuthority;
 
     @EventListener
     public void onApplicationEvent(ApplicationReadyEvent event) {
@@ -144,17 +149,24 @@ public class AACBootstrap {
 
             // bootstrap providers
             // TODO use a dedicated thread, or a multithread
-            Map<String, IdentityProvider<? extends UserIdentity>> systemProviders = bootstrapSystemProviders();
+            bootstrapSystemProviders();
 
             // bootstrap admin account
-            // use first active internal provider for system
-            systemProviders.values().stream()
-                    .filter(idp -> SystemKeys.AUTHORITY_INTERNAL.equals(idp.getAuthority()))
-                    .map(idp -> ((AbstractInternalIdentityProvider<?>) idp))
-                    .filter(idp -> CredentialsType.PASSWORD == idp.getCredentialsType())
-                    .findFirst().ifPresent(idp -> {
-                        bootstrapAdminUser((PasswordIdentityService) idp);
-                    });
+            // use first active password provider for system, from authority
+            Optional<InternalPasswordIdentityProvider> sysPasswordIdp = passwordIdentityAuthority
+                    .getProviders(SystemKeys.REALM_SYSTEM).stream()
+                    .filter(i -> SystemKeys.RESOURCE_REALM.equals(i.getScope()))
+                    .findFirst();
+
+            if (sysPasswordIdp.isPresent()) {
+                bootstrapAdminUser(sysPasswordIdp.get());
+            }
+
+//            systemProviders.values().stream()
+//                    .filter(idp -> SystemKeys.AUTHORITY_PASSWORD.equals(idp.getAuthority()))
+//                    .findFirst().ifPresent(idp -> {
+//                        bootstrapAdminUser((InternalPasswordIdentityProvider) idp);
+//                    });
 
             // bootstrap realm providers
             bootstrapIdentityProviders();
@@ -174,13 +186,14 @@ public class AACBootstrap {
         }
     }
 
-    private Map<String, IdentityProvider<? extends UserIdentity>> bootstrapSystemProviders()
+    private Map<String, IdentityProvider<UserIdentity>> bootstrapSystemProviders()
             throws NoSuchRealmException {
-        Map<String, IdentityProviderAuthority> ias = authorityManager.listIdentityAuthorities().stream()
+        Map<String, IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>>> ias = identityProviderAuthorityService
+                .getAuthorities().stream()
                 .collect(Collectors.toMap(a -> a.getAuthorityId(), a -> a));
 
         Collection<ConfigurableIdentityProvider> idps = identityProviderService.listProviders(SystemKeys.REALM_SYSTEM);
-        Map<String, IdentityProvider<? extends UserIdentity>> providers = new HashMap<>();
+        Map<String, IdentityProvider<UserIdentity>> providers = new HashMap<>();
         for (ConfigurableIdentityProvider idp : idps) {
             // try register
             if (idp.isEnabled()) {
@@ -189,14 +202,14 @@ public class AACBootstrap {
 //                        authorityManager.registerIdentityProvider(idp);
 
                     // register directly with authority
-                    IdentityProviderAuthority ia = ias.get(idp.getAuthority());
+                    IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>> ia = ias
+                            .get(idp.getAuthority());
                     if (ia == null) {
                         throw new IllegalArgumentException(
                                 "no authority for " + String.valueOf(idp.getAuthority()));
                     }
 
-                    IdentityProvider<? extends UserIdentity> p = ia
-                            .registerIdentityProvider(idp);
+                    IdentityProvider<UserIdentity> p = ia.registerProvider(idp);
                     providers.put(p.getProvider(), p);
                 } catch (Exception e) {
                     logger.error("error registering provider " + idp.getProvider() + " for realm "
@@ -213,7 +226,8 @@ public class AACBootstrap {
     }
 
     private void bootstrapIdentityProviders() {
-        Map<String, IdentityProviderAuthority> ias = authorityManager.listIdentityAuthorities().stream()
+        Map<String, IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>>> ias = identityProviderAuthorityService
+                .getAuthorities().stream()
                 .collect(Collectors.toMap(a -> a.getAuthorityId(), a -> a));
 
         // load all realm providers from storage
@@ -232,13 +246,14 @@ public class AACBootstrap {
 //                        authorityManager.registerIdentityProvider(idp);
 
                         // register directly with authority
-                        IdentityProviderAuthority ia = ias.get(idp.getAuthority());
+                        IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>> ia = ias
+                                .get(idp.getAuthority());
                         if (ia == null) {
                             throw new IllegalArgumentException(
                                     "no authority for " + String.valueOf(idp.getAuthority()));
                         }
 
-                        ia.registerIdentityProvider(idp);
+                        ia.registerProvider(idp);
                     } catch (Exception e) {
                         logger.error("error registering provider " + idp.getProvider() + " for realm "
                                 + idp.getRealm() + ": " + e.getMessage());
@@ -294,10 +309,11 @@ public class AACBootstrap {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    private void bootstrapAdminUser(PasswordIdentityService idp) {
+    private void bootstrapAdminUser(InternalPasswordIdentityProvider idp) {
         String repositoryId = idp.getConfig().getRepositoryId();
         if (CredentialsType.PASSWORD != idp.getConfig().getCredentialsType()) {
             // not supported
+            logger.error("wrong idp config for system provider {}", idp.getConfig().getCredentialsType().getValue());
             return;
         }
 
@@ -305,7 +321,7 @@ public class AACBootstrap {
         // TODO rewrite via idp
         logger.debug("create internal admin user " + adminUsername);
         UserEntity user = null;
-        InternalUserAccount account = internalUserService.findAccountByUsername(repositoryId, adminUsername);
+        InternalUserAccount account = internalUserService.findAccountById(repositoryId, adminUsername);
         if (account != null) {
             // check if sub exists, recreate if needed
             String uuid = account.getUuid();

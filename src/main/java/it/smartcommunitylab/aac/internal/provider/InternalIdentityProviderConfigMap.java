@@ -45,8 +45,6 @@ public class InternalIdentityProviderConfigMap implements ConfigurableProperties
     protected Integer confirmationValidity;
 
     public InternalIdentityProviderConfigMap() {
-        this.credentialsType = CredentialsType.NONE;
-        this.isolateData = false;
     }
 
     public Integer getMaxSessionDuration() {

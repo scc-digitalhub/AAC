@@ -158,7 +158,8 @@ public class SpidAccountProvider extends AbstractProvider
 
         // re-link to user
         account.setUserId(userId);
-        account = accountRepository.save(account);
+        // note: use flush because we detach the entity!
+        account = accountRepository.saveAndFlush(account);
         return accountRepository.detach(account);
     }
 
@@ -246,7 +247,8 @@ public class SpidAccountProvider extends AbstractProvider
         // set account as active
         account.setStatus(UserStatus.ACTIVE.getValue());
 
-        account = accountRepository.save(account);
+        // note: use flush because we detach the entity!
+        account = accountRepository.saveAndFlush(account);
         return accountRepository.detach(account);
     }
 
@@ -307,7 +309,8 @@ public class SpidAccountProvider extends AbstractProvider
         account.setName(name);
         account.setSurname(surname);
 
-        account = accountRepository.save(account);
+        // note: use flush because we detach the entity!
+        account = accountRepository.saveAndFlush(account);
         return accountRepository.detach(account);
     }
 
@@ -328,7 +331,8 @@ public class SpidAccountProvider extends AbstractProvider
 
         // update status
         account.setStatus(newStatus.getValue());
-        account = accountRepository.save(account);
+        // note: use flush because we detach the entity!
+        account = accountRepository.saveAndFlush(account);
         return accountRepository.detach(account);
     }
 

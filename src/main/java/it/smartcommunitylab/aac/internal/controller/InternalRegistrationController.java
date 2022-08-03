@@ -61,7 +61,6 @@ import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.dto.CustomizationBean;
-import it.smartcommunitylab.aac.internal.AbstractInternalIdentityAuthority;
 import it.smartcommunitylab.aac.internal.dto.UserRegistrationBean;
 import it.smartcommunitylab.aac.internal.model.CredentialsType;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
@@ -71,7 +70,6 @@ import it.smartcommunitylab.aac.internal.provider.AbstractInternalIdentityProvid
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.password.model.PasswordPolicy;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
-import it.smartcommunitylab.aac.password.provider.PasswordIdentityService;
 import it.smartcommunitylab.aac.password.service.InternalPasswordService;
 
 /**
@@ -86,8 +84,8 @@ public class InternalRegistrationController {
     @Autowired
     private AuthenticationHelper authHelper;
 
-    @Autowired
-    private AbstractInternalIdentityAuthority internalAuthority;
+//    @Autowired
+//    private AbstractInternalIdentityAuthority internalAuthority;
 
     @Autowired
     private RealmManager realmManager;
@@ -106,74 +104,74 @@ public class InternalRegistrationController {
             Model model)
             throws NoSuchProviderException, NoSuchUserException, NoSuchRealmException {
 
-        // first check userid vs user
-        UserDetails user = authHelper.getUserDetails();
-        if (user == null) {
-            throw new InsufficientAuthenticationException("error.unauthenticated_user");
-        }
-
-        // fetch internal identities matching provider
-        Set<InternalUserIdentity> identities = user.getIdentities().stream()
-                .filter(i -> SystemKeys.AUTHORITY_INTERNAL.equals(i.getAuthority())
-                        && i.getProvider().equals(providerId))
-                .map(i -> (InternalUserIdentity) i)
-                .collect(Collectors.toSet());
-
-        // pick matching by uuid
-        InternalUserIdentity identity = identities.stream()
-                .filter(i -> i.getAccount().getUuid().equals(uuid))
-                .findFirst().orElse(null);
-        if (identity == null) {
-            throw new IllegalArgumentException("error.invalid_user");
-        }
-
-        String userId = identity.getUserId();
-        InternalUserAccount account = identity.getAccount();
-
-        // fetch provider
-        AbstractInternalIdentityProvider<?> idp = internalAuthority.getIdentityService(providerId);
-        if (!idp.getConfig().isEnableUpdate()) {
-            throw new IllegalArgumentException("error.unsupported_operation");
-        }
-
-        String realm = idp.getRealm();
-        model.addAttribute("realm", realm);
-
-        Realm re = realmManager.getRealm(realm);
-        String displayName = re.getName();
-        Map<String, String> resources = new HashMap<>();
-        if (!realm.equals(SystemKeys.REALM_COMMON)) {
-            re = realmManager.getRealm(realm);
-            displayName = re.getName();
-            CustomizationBean gcb = re.getCustomization("global");
-            if (gcb != null) {
-                resources.putAll(gcb.getResources());
-            }
-            CustomizationBean rcb = re.getCustomization("registration");
-            if (rcb != null) {
-                resources.putAll(rcb.getResources());
-            }
-        }
-
-        model.addAttribute("displayName", displayName);
-        model.addAttribute("customization", resources);
-
-        // for internal username is accountId
-        String username = account.getAccountId();
-        UserRegistrationBean reg = new UserRegistrationBean();
-        reg.setEmail(account.getEmail());
-        reg.setName(account.getName());
-        reg.setSurname(account.getSurname());
-        reg.setLang(account.getLang());
-
-        // build model
-        model.addAttribute("userId", userId);
-        model.addAttribute("username", account.getUsername());
-        model.addAttribute("uuid", account.getUuid());
-        model.addAttribute("account", account);
-        model.addAttribute("reg", reg);
-        model.addAttribute("accountUrl", "/account");
-        model.addAttribute("changeUrl", "/changeaccount/" + providerId + "/" + uuid);
+//        // first check userid vs user
+//        UserDetails user = authHelper.getUserDetails();
+//        if (user == null) {
+//            throw new InsufficientAuthenticationException("error.unauthenticated_user");
+//        }
+//
+//        // fetch internal identities matching provider
+//        Set<InternalUserIdentity> identities = user.getIdentities().stream()
+//                .filter(i -> SystemKeys.AUTHORITY_INTERNAL.equals(i.getAuthority())
+//                        && i.getProvider().equals(providerId))
+//                .map(i -> (InternalUserIdentity) i)
+//                .collect(Collectors.toSet());
+//
+//        // pick matching by uuid
+//        InternalUserIdentity identity = identities.stream()
+//                .filter(i -> i.getAccount().getUuid().equals(uuid))
+//                .findFirst().orElse(null);
+//        if (identity == null) {
+//            throw new IllegalArgumentException("error.invalid_user");
+//        }
+//
+//        String userId = identity.getUserId();
+//        InternalUserAccount account = identity.getAccount();
+//
+//        // fetch provider
+//        AbstractInternalIdentityProvider<?> idp = internalAuthority.getIdentityService(providerId);
+//        if (!idp.getConfig().isEnableUpdate()) {
+//            throw new IllegalArgumentException("error.unsupported_operation");
+//        }
+//
+//        String realm = idp.getRealm();
+//        model.addAttribute("realm", realm);
+//
+//        Realm re = realmManager.getRealm(realm);
+//        String displayName = re.getName();
+//        Map<String, String> resources = new HashMap<>();
+//        if (!realm.equals(SystemKeys.REALM_COMMON)) {
+//            re = realmManager.getRealm(realm);
+//            displayName = re.getName();
+//            CustomizationBean gcb = re.getCustomization("global");
+//            if (gcb != null) {
+//                resources.putAll(gcb.getResources());
+//            }
+//            CustomizationBean rcb = re.getCustomization("registration");
+//            if (rcb != null) {
+//                resources.putAll(rcb.getResources());
+//            }
+//        }
+//
+//        model.addAttribute("displayName", displayName);
+//        model.addAttribute("customization", resources);
+//
+//        // for internal username is accountId
+//        String username = account.getAccountId();
+//        UserRegistrationBean reg = new UserRegistrationBean();
+//        reg.setEmail(account.getEmail());
+//        reg.setName(account.getName());
+//        reg.setSurname(account.getSurname());
+//        reg.setLang(account.getLang());
+//
+//        // build model
+//        model.addAttribute("userId", userId);
+//        model.addAttribute("username", account.getUsername());
+//        model.addAttribute("uuid", account.getUuid());
+//        model.addAttribute("account", account);
+//        model.addAttribute("reg", reg);
+//        model.addAttribute("accountUrl", "/account");
+//        model.addAttribute("changeUrl", "/changeaccount/" + providerId + "/" + uuid);
 
         return "registration/changeaccount";
     }
@@ -195,83 +193,83 @@ public class InternalRegistrationController {
                 throw new InsufficientAuthenticationException("error.unauthenticated_user");
             }
 
-            // fetch internal identities matching provider
-            Set<InternalUserIdentity> identities = user.getIdentities().stream()
-                    .filter(i -> SystemKeys.AUTHORITY_INTERNAL.equals(i.getAuthority())
-                            && i.getProvider().equals(providerId))
-                    .map(i -> (InternalUserIdentity) i)
-                    .collect(Collectors.toSet());
-
-            // pick matching by username
-            InternalUserIdentity identity = identities.stream()
-                    .filter(i -> i.getAccount().getUuid().equals(uuid))
-                    .findFirst().orElse(null);
-            if (identity == null) {
-                throw new IllegalArgumentException("error.invalid_user");
-            }
-
-            String userId = identity.getUserId();
-            InternalUserAccount account = identity.getAccount();
-
-            // fetch provider
-            AbstractInternalIdentityProvider<?> idp = internalAuthority.getIdentityService(providerId);
-            if (!idp.getConfig().isEnableUpdate()) {
-                throw new IllegalArgumentException("error.unsupported_operation");
-            }
-
-            InternalAccountService service = idp.getAccountService();
-
-            String realm = idp.getRealm();
-            model.addAttribute("realm", realm);
-
-            Realm re = realmManager.getRealm(realm);
-            String displayName = re.getName();
-            Map<String, String> resources = new HashMap<>();
-            if (!realm.equals(SystemKeys.REALM_COMMON)) {
-                re = realmManager.getRealm(realm);
-                displayName = re.getName();
-                CustomizationBean gcb = re.getCustomization("global");
-                if (gcb != null) {
-                    resources.putAll(gcb.getResources());
-                }
-                CustomizationBean rcb = re.getCustomization("registration");
-                if (rcb != null) {
-                    resources.putAll(rcb.getResources());
-                }
-            }
-
-            model.addAttribute("displayName", displayName);
-            model.addAttribute("customization", resources);
-
-            // for internal username is accountId
-            String username = account.getAccountId();
-
-            // extract props
-            String email = reg.getEmail();
-            String name = reg.getName();
-            String surname = reg.getSurname();
-            String lang = reg.getLang();
-
-            // update
-            account.setEmail(email);
-            account.setName(name);
-            account.setSurname(surname);
-            account.setLang(lang);
-
-            // build model
-            model.addAttribute("userId", userId);
-            model.addAttribute("username", account.getUsername());
-            model.addAttribute("uuid", account.getUuid());
-            model.addAttribute("account", account);
-            model.addAttribute("accountUrl", "/account");
-            model.addAttribute("changeUrl", "/changeaccount/" + providerId + "/" + uuid);
-
-            if (result.hasErrors()) {
-                return "registration/changeaccount";
-            }
-
-            account = service.updateAccount(username, account);
-            model.addAttribute("account", account);
+//            // fetch internal identities matching provider
+//            Set<InternalUserIdentity> identities = user.getIdentities().stream()
+//                    .filter(i -> SystemKeys.AUTHORITY_INTERNAL.equals(i.getAuthority())
+//                            && i.getProvider().equals(providerId))
+//                    .map(i -> (InternalUserIdentity) i)
+//                    .collect(Collectors.toSet());
+//
+//            // pick matching by username
+//            InternalUserIdentity identity = identities.stream()
+//                    .filter(i -> i.getAccount().getUuid().equals(uuid))
+//                    .findFirst().orElse(null);
+//            if (identity == null) {
+//                throw new IllegalArgumentException("error.invalid_user");
+//            }
+//
+//            String userId = identity.getUserId();
+//            InternalUserAccount account = identity.getAccount();
+//
+//            // fetch provider
+//            AbstractInternalIdentityProvider<?> idp = internalAuthority.getIdentityService(providerId);
+//            if (!idp.getConfig().isEnableUpdate()) {
+//                throw new IllegalArgumentException("error.unsupported_operation");
+//            }
+//
+//            InternalAccountService service = idp.getAccountService();
+//
+//            String realm = idp.getRealm();
+//            model.addAttribute("realm", realm);
+//
+//            Realm re = realmManager.getRealm(realm);
+//            String displayName = re.getName();
+//            Map<String, String> resources = new HashMap<>();
+//            if (!realm.equals(SystemKeys.REALM_COMMON)) {
+//                re = realmManager.getRealm(realm);
+//                displayName = re.getName();
+//                CustomizationBean gcb = re.getCustomization("global");
+//                if (gcb != null) {
+//                    resources.putAll(gcb.getResources());
+//                }
+//                CustomizationBean rcb = re.getCustomization("registration");
+//                if (rcb != null) {
+//                    resources.putAll(rcb.getResources());
+//                }
+//            }
+//
+//            model.addAttribute("displayName", displayName);
+//            model.addAttribute("customization", resources);
+//
+//            // for internal username is accountId
+//            String username = account.getAccountId();
+//
+//            // extract props
+//            String email = reg.getEmail();
+//            String name = reg.getName();
+//            String surname = reg.getSurname();
+//            String lang = reg.getLang();
+//
+//            // update
+//            account.setEmail(email);
+//            account.setName(name);
+//            account.setSurname(surname);
+//            account.setLang(lang);
+//
+//            // build model
+//            model.addAttribute("userId", userId);
+//            model.addAttribute("username", account.getUsername());
+//            model.addAttribute("uuid", account.getUuid());
+//            model.addAttribute("account", account);
+//            model.addAttribute("accountUrl", "/account");
+//            model.addAttribute("changeUrl", "/changeaccount/" + providerId + "/" + uuid);
+//
+//            if (result.hasErrors()) {
+//                return "registration/changeaccount";
+//            }
+//
+//            account = service.updateAccount(username, account);
+//            model.addAttribute("account", account);
 
             return "registration/changesuccess";
         } catch (RegistrationException e) {
@@ -292,65 +290,65 @@ public class InternalRegistrationController {
             @PathVariable("providerId") String providerId,
             Model model) throws NoSuchProviderException, NoSuchRealmException {
 
-        // resolve provider
-        AbstractInternalIdentityProvider<?> idp = internalAuthority.getIdentityService(providerId);
-
-        if (!idp.getConfig().isEnableRegistration()) {
-            throw new RegistrationException("unsupported_operation");
-        }
-
-        model.addAttribute("providerId", providerId);
-
-        String realm = idp.getRealm();
-        model.addAttribute("realm", realm);
-
-        Realm re = realmManager.getRealm(realm);
-        String displayName = re.getName();
-        Map<String, String> resources = new HashMap<>();
-        if (!realm.equals(SystemKeys.REALM_COMMON)) {
-            re = realmManager.getRealm(realm);
-            displayName = re.getName();
-            CustomizationBean gcb = re.getCustomization("global");
-            if (gcb != null) {
-                resources.putAll(gcb.getResources());
-            }
-            CustomizationBean rcb = re.getCustomization("registration");
-            if (rcb != null) {
-                resources.putAll(rcb.getResources());
-            }
-        }
-
-        model.addAttribute("displayName", displayName);
-        model.addAttribute("customization", resources);
-
-        // build model
-        model.addAttribute("reg", new UserRegistrationBean());
-
-//        // check if we have a clientId
-//        String clientId = (String) req.getSession().getAttribute(OAuth2Utils.CLIENT_ID);
-//        if (clientId != null) {
-//            // fetch client customizations for login screen
-//            Map<String, String> customizations = clientDetailsAdapter.getClientCustomizations(clientId);
-//            model.addAllAttributes(customizations);
+//        // resolve provider
+//        AbstractInternalIdentityProvider<?> idp = internalAuthority.getIdentityService(providerId);
+//
+//        if (!idp.getConfig().isEnableRegistration()) {
+//            throw new RegistrationException("unsupported_operation");
 //        }
-
-        // fetch password service if available
-        if (CredentialsType.PASSWORD == idp.getCredentialsType()) {
-            InternalPasswordService service = ((PasswordIdentityService) idp).getCredentialsService();
-            if (service != null) {
-                // expose password policy by passing idp config
-                PasswordPolicy policy = service.getPasswordPolicy();
-                model.addAttribute("policy", policy);
-                String passwordPattern = service.getPasswordPattern();
-                model.addAttribute("passwordPattern", passwordPattern);
-            }
-        }
-
-        // build url
-        // TODO handle via urlBuilder or entryPoint
-        model.addAttribute("registrationUrl", "/auth/internal/register/" + providerId);
-        // set idp form as login url
-        model.addAttribute("loginUrl", "/auth/internal/form/" + providerId);
+//
+//        model.addAttribute("providerId", providerId);
+//
+//        String realm = idp.getRealm();
+//        model.addAttribute("realm", realm);
+//
+//        Realm re = realmManager.getRealm(realm);
+//        String displayName = re.getName();
+//        Map<String, String> resources = new HashMap<>();
+//        if (!realm.equals(SystemKeys.REALM_COMMON)) {
+//            re = realmManager.getRealm(realm);
+//            displayName = re.getName();
+//            CustomizationBean gcb = re.getCustomization("global");
+//            if (gcb != null) {
+//                resources.putAll(gcb.getResources());
+//            }
+//            CustomizationBean rcb = re.getCustomization("registration");
+//            if (rcb != null) {
+//                resources.putAll(rcb.getResources());
+//            }
+//        }
+//
+//        model.addAttribute("displayName", displayName);
+//        model.addAttribute("customization", resources);
+//
+//        // build model
+//        model.addAttribute("reg", new UserRegistrationBean());
+//
+////        // check if we have a clientId
+////        String clientId = (String) req.getSession().getAttribute(OAuth2Utils.CLIENT_ID);
+////        if (clientId != null) {
+////            // fetch client customizations for login screen
+////            Map<String, String> customizations = clientDetailsAdapter.getClientCustomizations(clientId);
+////            model.addAllAttributes(customizations);
+////        }
+//
+//        // fetch password service if available
+//        if (CredentialsType.PASSWORD == idp.getCredentialsType()) {
+//            InternalPasswordService service = ((PasswordIdentityService) idp).getCredentialsService();
+//            if (service != null) {
+//                // expose password policy by passing idp config
+//                PasswordPolicy policy = service.getPasswordPolicy();
+//                model.addAttribute("policy", policy);
+//                String passwordPattern = service.getPasswordPattern();
+//                model.addAttribute("passwordPattern", passwordPattern);
+//            }
+//        }
+//
+//        // build url
+//        // TODO handle via urlBuilder or entryPoint
+//        model.addAttribute("registrationUrl", "/auth/internal/register/" + providerId);
+//        // set idp form as login url
+//        model.addAttribute("loginUrl", "/auth/internal/form/" + providerId);
 
         return "registration/register";
     }
@@ -368,119 +366,119 @@ public class InternalRegistrationController {
 
         try {
 
-            // resolve provider
-            AbstractInternalIdentityProvider<?> idp = internalAuthority.getIdentityService(providerId);
-
-            if (!idp.getConfig().isEnableRegistration()) {
-                throw new RegistrationException("unsupported_operation");
-            }
-
-            String realm = idp.getRealm();
-
-            // build model for result
-            model.addAttribute("providerId", providerId);
-            model.addAttribute("realm", realm);
-
-            Realm re = realmManager.getRealm(realm);
-            String displayName = re.getName();
-            Map<String, String> resources = new HashMap<>();
-            if (!realm.equals(SystemKeys.REALM_COMMON)) {
-                re = realmManager.getRealm(realm);
-                displayName = re.getName();
-                CustomizationBean gcb = re.getCustomization("global");
-                if (gcb != null) {
-                    resources.putAll(gcb.getResources());
-                }
-                CustomizationBean rcb = re.getCustomization("registration");
-                if (rcb != null) {
-                    resources.putAll(rcb.getResources());
-                }
-            }
-
-            model.addAttribute("displayName", displayName);
-            model.addAttribute("customization", resources);
-
-            // fetch password service if available
-            InternalPasswordService passwordService = null;
-            if (CredentialsType.PASSWORD == idp.getCredentialsType()) {
-                passwordService = ((PasswordIdentityService) idp).getCredentialsService();
-            }
-
-            if (passwordService != null) {
-                // expose password policy by passing idp config
-                PasswordPolicy policy = passwordService.getPasswordPolicy();
-                model.addAttribute("policy", policy);
-                String passwordPattern = passwordService.getPasswordPattern();
-                model.addAttribute("passwordPattern", passwordPattern);
-            }
-
-            model.addAttribute("registrationUrl", "/auth/internal/register/" + providerId);
-
-            // set idp form as login url
-            model.addAttribute("loginUrl", "/auth/internal/form/" + providerId);
-
-            if (result.hasErrors()) {
-                model.addAttribute("error", InvalidDataException.ERROR);
-                // check if custom msg available
-                Optional<FieldError> fieldError = Optional.ofNullable(result.getFieldError());
-                if (fieldError.isPresent()) {
-                    String errorMsg = fieldError.get().getDefaultMessage();
-
-                    if (errorMsg != null && errorMsg.startsWith("error.")) {
-                        model.addAttribute("error", errorMsg);
-                    }
-                }
-
-                return "registration/register";
-            }
-
-            String username = reg.getEmail();
-            String password = reg.getPassword();
-            String email = reg.getEmail();
-            String name = reg.getName();
-            String surname = reg.getSurname();
-            String lang = reg.getLang();
-
-            // validate password
-            // TODO rework flow
-            if (passwordService != null && StringUtils.hasText(password)) {
-                passwordService.validatePassword(password);
-            }
-
-            // convert registration model to internal model
-            InternalUserAccount account = new InternalUserAccount();
-            account.setUsername(username);
-//            account.setPassword(password);
-            account.setEmail(email);
-            account.setName(name);
-            account.setSurname(surname);
-            account.setLang(lang);
-
-            // TODO handle additional attributes from registration
-
-            // TODO handle subject resolution to link with existing accounts
-            // either via current session or via providers from same realm
-            // TODO force require confirmation if linking
-            String subjectId = null;
-
-            // build reg model
-            InternalUserIdentity identity = new InternalUserIdentity(idp.getProvider(), idp.getRealm(), account);
-
-            // register password
-            UserCredentials credentials = null;
-            if (passwordService != null && StringUtils.hasText(password)) {
-                InternalUserPassword pwd = new InternalUserPassword();
-                pwd.setUserId(identity.getUserId());
-                pwd.setUsername(username);
-                pwd.setPassword(password);
-
-                credentials = pwd;
-            }
-
-            // register
-            identity = idp.registerIdentity(subjectId, identity, credentials);
-
-            model.addAttribute("identity", identity);
+//            // resolve provider
+//            AbstractInternalIdentityProvider<?> idp = internalAuthority.getIdentityService(providerId);
+//
+//            if (!idp.getConfig().isEnableRegistration()) {
+//                throw new RegistrationException("unsupported_operation");
+//            }
+//
+//            String realm = idp.getRealm();
+//
+//            // build model for result
+//            model.addAttribute("providerId", providerId);
+//            model.addAttribute("realm", realm);
+//
+//            Realm re = realmManager.getRealm(realm);
+//            String displayName = re.getName();
+//            Map<String, String> resources = new HashMap<>();
+//            if (!realm.equals(SystemKeys.REALM_COMMON)) {
+//                re = realmManager.getRealm(realm);
+//                displayName = re.getName();
+//                CustomizationBean gcb = re.getCustomization("global");
+//                if (gcb != null) {
+//                    resources.putAll(gcb.getResources());
+//                }
+//                CustomizationBean rcb = re.getCustomization("registration");
+//                if (rcb != null) {
+//                    resources.putAll(rcb.getResources());
+//                }
+//            }
+//
+//            model.addAttribute("displayName", displayName);
+//            model.addAttribute("customization", resources);
+//
+//            // fetch password service if available
+//            InternalPasswordService passwordService = null;
+//            if (CredentialsType.PASSWORD == idp.getCredentialsType()) {
+//                passwordService = ((PasswordIdentityService) idp).getCredentialsService();
+//            }
+//
+//            if (passwordService != null) {
+//                // expose password policy by passing idp config
+//                PasswordPolicy policy = passwordService.getPasswordPolicy();
+//                model.addAttribute("policy", policy);
+//                String passwordPattern = passwordService.getPasswordPattern();
+//                model.addAttribute("passwordPattern", passwordPattern);
+//            }
+//
+//            model.addAttribute("registrationUrl", "/auth/internal/register/" + providerId);
+//
+//            // set idp form as login url
+//            model.addAttribute("loginUrl", "/auth/internal/form/" + providerId);
+//
+//            if (result.hasErrors()) {
+//                model.addAttribute("error", InvalidDataException.ERROR);
+//                // check if custom msg available
+//                Optional<FieldError> fieldError = Optional.ofNullable(result.getFieldError());
+//                if (fieldError.isPresent()) {
+//                    String errorMsg = fieldError.get().getDefaultMessage();
+//
+//                    if (errorMsg != null && errorMsg.startsWith("error.")) {
+//                        model.addAttribute("error", errorMsg);
+//                    }
+//                }
+//
+//                return "registration/register";
+//            }
+//
+//            String username = reg.getEmail();
+//            String password = reg.getPassword();
+//            String email = reg.getEmail();
+//            String name = reg.getName();
+//            String surname = reg.getSurname();
+//            String lang = reg.getLang();
+//
+//            // validate password
+//            // TODO rework flow
+//            if (passwordService != null && StringUtils.hasText(password)) {
+//                passwordService.validatePassword(password);
+//            }
+//
+//            // convert registration model to internal model
+//            InternalUserAccount account = new InternalUserAccount();
+//            account.setUsername(username);
+////            account.setPassword(password);
+//            account.setEmail(email);
+//            account.setName(name);
+//            account.setSurname(surname);
+//            account.setLang(lang);
+//
+//            // TODO handle additional attributes from registration
+//
+//            // TODO handle subject resolution to link with existing accounts
+//            // either via current session or via providers from same realm
+//            // TODO force require confirmation if linking
+//            String subjectId = null;
+//
+//            // build reg model
+//            InternalUserIdentity identity = new InternalUserIdentity(idp.getProvider(), idp.getRealm(), account);
+//
+//            // register password
+//            UserCredentials credentials = null;
+//            if (passwordService != null && StringUtils.hasText(password)) {
+//                InternalUserPassword pwd = new InternalUserPassword();
+//                pwd.setUserId(identity.getUserId());
+//                pwd.setUsername(username);
+//                pwd.setPassword(password);
+//
+//                credentials = pwd;
+//            }
+//
+//            // register
+//            identity = idp.registerIdentity(subjectId, identity, credentials);
+//
+//            model.addAttribute("identity", identity);
 
             return "registration/regsuccess";
         } catch (InvalidDataException | MissingDataException | DuplicatedDataException e) {
