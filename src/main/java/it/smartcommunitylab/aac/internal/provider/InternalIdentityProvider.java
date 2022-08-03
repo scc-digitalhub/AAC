@@ -14,7 +14,7 @@ public interface InternalIdentityProvider<I extends UserIdentity, U extends User
 
     public String getRegistrationUrl();
 
-    public String getLoginForm();
+//    public String getLoginForm();
 
 //    public String getCredentialsUrl();
 }

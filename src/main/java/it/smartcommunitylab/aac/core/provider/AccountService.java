@@ -11,11 +11,8 @@ public interface AccountService<U extends UserAccount>
      * Manage accounts from this provider
      * 
      * accountId is local to provider
-     * 
-     * userId is globally addressable
      */
     public U createAccount(
-            String userId,
             U account) throws NoSuchUserException, RegistrationException;
 
     public U updateAccount(

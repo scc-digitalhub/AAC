@@ -229,9 +229,9 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
         return identity;
     }
 
-    @Override
+//    @Override
     @Transactional(readOnly = true)
-    public I findIdentityByUuid(String uuid) {
+    public I findIdentityByUuid(String userId, String uuid) {
         logger.debug("find identity for uuid {}", String.valueOf(uuid));
 
         // lookup a matching account
@@ -240,23 +240,8 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
             return null;
         }
 
-        // build identity without attributes or principal
-        I identity = buildIdentity(account, null);
-        if (logger.isTraceEnabled()) {
-            logger.trace("identity: {}", String.valueOf(identity));
-        }
-
-        return identity;
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public I findIdentity(String accountId) {
-        logger.debug("find identity for id {}", String.valueOf(accountId));
-
-        // lookup a matching account
-        U account = getAccountProvider().findAccount(accountId);
-        if (account == null) {
+        // check userId matches
+        if (!account.getUserId().equals(userId)) {
             return null;
         }
 
@@ -271,19 +256,49 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
 
     @Override
     @Transactional(readOnly = true)
-    public I getIdentity(String accountId) throws NoSuchUserException {
-        return getIdentity(accountId, true);
+    public I findIdentity(String userId, String accountId) {
+        logger.debug("find identity for id {}", String.valueOf(accountId));
+
+        // lookup a matching account
+        U account = getAccountProvider().findAccount(accountId);
+        if (account == null) {
+            return null;
+        }
+
+        // check userId matches
+        if (!account.getUserId().equals(userId)) {
+            return null;
+        }
+
+        // build identity without attributes or principal
+        I identity = buildIdentity(account, null);
+        if (logger.isTraceEnabled()) {
+            logger.trace("identity: {}", String.valueOf(identity));
+        }
+
+        return identity;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public I getIdentity(String accountId, boolean fetchAttributes)
+    public I getIdentity(String userId, String accountId) throws NoSuchUserException {
+        return getIdentity(userId, accountId, true);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public I getIdentity(String userId, String accountId, boolean fetchAttributes)
             throws NoSuchUserException {
-        logger.debug("get identity for id {} attributes {}", String.valueOf(accountId),
-                String.valueOf(fetchAttributes));
+        logger.debug("get identity for id {} user {} with attributes {}", String.valueOf(accountId),
+                String.valueOf(userId), String.valueOf(fetchAttributes));
 
         // lookup a matching account
         U account = getAccountProvider().getAccount(accountId);
+
+        // check userId matches
+        if (!account.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("user mismatch");
+        }
 
         Collection<UserAttributes> attributes = null;
         if (fetchAttributes) {
@@ -359,17 +374,19 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
 
     @Override
     @Transactional(readOnly = false)
-    public void deleteIdentity(String accountId) throws NoSuchUserException {
+    public void deleteIdentity(String userId, String accountId) throws NoSuchUserException {
         logger.debug("delete identity with id {}", String.valueOf(accountId));
-
-        // cleanup attributes
-        getAttributeProvider().deleteAccountAttributes(accountId);
 
         // delete account
         // TODO evaluate with shared accounts who deletes the registration
         String repositoryId = getRepositoryId();
         U account = userAccountService.findAccountById(repositoryId, accountId);
         if (account != null) {
+            // check userId matches
+            if (!account.getUserId().equals(userId)) {
+                throw new IllegalArgumentException("user mismatch");
+            }
+
             String uuid = account.getUuid();
             if (uuid != null) {
                 // remove subject if exists
@@ -379,6 +396,9 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
             // remove account
             userAccountService.deleteAccount(repositoryId, accountId);
         }
+
+        // cleanup attributes
+        getAttributeProvider().deleteAccountAttributes(accountId);
     }
 
     @Override
@@ -389,7 +409,7 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
         Collection<U> accounts = getAccountProvider().listAccounts(userId);
         for (U account : accounts) {
             try {
-                deleteIdentity(account.getAccountId());
+                deleteIdentity(userId, account.getAccountId());
             } catch (NoSuchUserException e) {
             }
         }

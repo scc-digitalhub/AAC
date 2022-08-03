@@ -47,6 +47,7 @@ public class InternalConfirmKeyAuthenticationFilter<C extends InternalIdentityPr
             + "confirm/{registrationId}";
 
     private final ProviderConfigRepository<C> registrationRepository;
+    private final String authority;
 
 //    public static final String DEFAULT_FILTER_URI = "/auth/internal/";
 //    public static final String ACTION = "confirm";
@@ -65,10 +66,11 @@ public class InternalConfirmKeyAuthenticationFilter<C extends InternalIdentityPr
 
     public InternalConfirmKeyAuthenticationFilter(InternalUserAccountService userAccountService,
             ProviderConfigRepository<C> registrationRepository) {
-        this(userAccountService, registrationRepository, DEFAULT_FILTER_URI, null);
+        this(SystemKeys.AUTHORITY_INTERNAL, userAccountService, registrationRepository, DEFAULT_FILTER_URI, null);
     }
 
-    public InternalConfirmKeyAuthenticationFilter(InternalUserAccountService userAccountService,
+    public InternalConfirmKeyAuthenticationFilter(String authority,
+            InternalUserAccountService userAccountService,
             ProviderConfigRepository<C> registrationRepository,
             String filterProcessingUrl, AuthenticationEntryPoint authenticationEntryPoint) {
         super(filterProcessingUrl);
@@ -79,8 +81,12 @@ public class InternalConfirmKeyAuthenticationFilter<C extends InternalIdentityPr
         Assert.isTrue(filterProcessingUrl.contains("{registrationId}"),
                 "filterProcessesUrl must contain a {registrationId} match variable");
 
+        Assert.hasText(authority, "authority must be set");
+
         this.userAccountService = userAccountService;
         this.registrationRepository = registrationRepository;
+
+        this.authority = authority;
 
 //        // build a matcher for all requests
 //        RequestMatcher baseRequestMatcher = new AntPathRequestMatcher(filterProcessingUrl + ACTION);
@@ -203,7 +209,7 @@ public class InternalConfirmKeyAuthenticationFilter<C extends InternalIdentityPr
 
         ProviderWrappedAuthenticationToken wrappedAuthRequest = new ProviderWrappedAuthenticationToken(
                 authenticationRequest,
-                providerId, SystemKeys.AUTHORITY_INTERNAL);
+                providerId, authority);
 
         // also collect request details
         WebAuthenticationDetails webAuthenticationDetails = new WebAuthenticationDetails(request);

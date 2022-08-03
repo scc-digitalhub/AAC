@@ -146,7 +146,6 @@ public class WebAuthnIdentityProvider
         return getFormUrl();
     }
 
-    @Override
     public String getLoginForm() {
         return "webauthn_form";
     }
@@ -173,7 +172,7 @@ public class WebAuthnIdentityProvider
         // form action is always login action
         ilp.setFormUrl(getLoginUrl());
 
-        String template = config.displayAsButton() ? "button" : "webauthn_form";
+        String template = config.displayAsButton() ? "button" : getLoginForm();
         ilp.setTemplate(template);
 
         return ilp;

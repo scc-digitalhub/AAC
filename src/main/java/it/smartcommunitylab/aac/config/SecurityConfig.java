@@ -49,6 +49,7 @@ import org.springframework.security.web.header.writers.ClearSiteDataHeaderWriter
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.filter.CompositeFilter;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.ExtendedUserAuthenticationManager;
 import it.smartcommunitylab.aac.core.auth.ExtendedLogoutSuccessHandler;
 import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
@@ -129,6 +130,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private RealmAwarePathUriBuilder realmUriBuilder;
+
+    @Autowired
+    private ProviderConfigRepository<InternalIdentityProviderConfig> internalProviderRepository;
 
     @Autowired
     private ProviderConfigRepository<InternalPasswordIdentityProviderConfig> internalPasswordProviderRepository;
@@ -255,6 +259,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
 //                // TODO replace with filterRegistrationBean and explicitely map urls
                 .addFilterBefore(
+                        getInternalAuthorityFilters(authManager, internalProviderRepository,
+                                internalUserAccountService),
+                        BasicAuthenticationFilter.class)
+                .addFilterBefore(
                         getInternalPasswordAuthorityFilters(authManager, internalPasswordProviderRepository,
                                 internalUserAccountService, passwordRepository),
                         BasicAuthenticationFilter.class)
@@ -357,6 +365,24 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     /*
      * Internal auth
      */
+    public CompositeFilter getInternalAuthorityFilters(AuthenticationManager authManager,
+            ProviderConfigRepository<InternalIdentityProviderConfig> providerRepository,
+            InternalUserAccountService userAccountService) {
+
+        List<Filter> filters = new ArrayList<>();
+
+        InternalConfirmKeyAuthenticationFilter<InternalIdentityProviderConfig> confirmKeyFilter = new InternalConfirmKeyAuthenticationFilter<>(
+                userAccountService, providerRepository);
+        confirmKeyFilter.setAuthenticationManager(authManager);
+        confirmKeyFilter.setAuthenticationSuccessHandler(successHandler());
+
+        filters.add(confirmKeyFilter);
+
+        CompositeFilter filter = new CompositeFilter();
+        filter.setFilters(filters);
+
+        return filter;
+    }
 
     public CompositeFilter getInternalPasswordAuthorityFilters(AuthenticationManager authManager,
             ProviderConfigRepository<InternalPasswordIdentityProviderConfig> providerRepository,
@@ -371,6 +397,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         filters.add(loginFilter);
 
         InternalConfirmKeyAuthenticationFilter<InternalPasswordIdentityProviderConfig> confirmKeyFilter = new InternalConfirmKeyAuthenticationFilter<>(
+                SystemKeys.AUTHORITY_PASSWORD,
                 userAccountService, providerRepository,
                 InternalPasswordIdentityAuthority.AUTHORITY_URL + "confirm/{registrationId}", null);
         confirmKeyFilter.setAuthenticationManager(authManager);

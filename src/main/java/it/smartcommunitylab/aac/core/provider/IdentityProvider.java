@@ -79,15 +79,15 @@ public interface IdentityProvider<I extends UserIdentity>
      * Do note that implementations are not required to support this.
      */
 
-    // uuid is global
-    public I findIdentityByUuid(String uuid);
+//    // uuid is global
+//    public I findIdentityByUuid(String uuid);
 
     // identityId is provider-specific
-    public I findIdentity(String identityId);
+    public I findIdentity(String userId, String identityId);
 
-    public I getIdentity(String identityId) throws NoSuchUserException;
+    public I getIdentity(String userId, String identityId) throws NoSuchUserException;
 
-    public I getIdentity(String identityId, boolean fetchAttributes)
+    public I getIdentity(String userId, String identityId, boolean fetchAttributes)
             throws NoSuchUserException;
 
     /*
@@ -117,7 +117,7 @@ public interface IdentityProvider<I extends UserIdentity>
      * Implementations are required to implement this, even as a no-op. At minimum
      * we expect providers to clean up any local registration or cache.
      */
-    public void deleteIdentity(String identityId) throws NoSuchUserException;
+    public void deleteIdentity(String userId, String identityId) throws NoSuchUserException;
 
     public void deleteIdentities(String userId);
 

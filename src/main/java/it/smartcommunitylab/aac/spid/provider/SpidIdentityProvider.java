@@ -211,7 +211,6 @@ public class SpidIdentityProvider extends AbstractProvider
         return identity;
     }
 
-    @Override
     @Transactional(readOnly = true)
     public SpidUserIdentity findIdentityByUuid(String uuid) {
         // lookup a matching account
@@ -226,7 +225,7 @@ public class SpidIdentityProvider extends AbstractProvider
 
     @Override
     @Transactional(readOnly = true)
-    public SpidUserIdentity findIdentity(String subjectId) {
+    public SpidUserIdentity findIdentity(String userId, String subjectId) {
         // lookup a matching account
         SpidUserAccount account = accountProvider.findAccount(subjectId);
         if (account == null) {
@@ -239,13 +238,13 @@ public class SpidIdentityProvider extends AbstractProvider
 
     @Override
     @Transactional(readOnly = true)
-    public SpidUserIdentity getIdentity(String subjectId) throws NoSuchUserException {
-        return getIdentity(subjectId, true);
+    public SpidUserIdentity getIdentity(String userId, String subjectId) throws NoSuchUserException {
+        return getIdentity(userId, subjectId, true);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public SpidUserIdentity getIdentity(String subjectId, boolean fetchAttributes)
+    public SpidUserIdentity getIdentity(String userId, String subjectId, boolean fetchAttributes)
             throws NoSuchUserException {
         // lookup a matching account
         SpidUserAccount account = accountProvider.getAccount(subjectId);
@@ -310,7 +309,7 @@ public class SpidIdentityProvider extends AbstractProvider
 
     @Override
     @Transactional(readOnly = false)
-    public void deleteIdentity(String subjectId) throws NoSuchUserException {
+    public void deleteIdentity(String userId, String subjectId) throws NoSuchUserException {
         // cleanup attributes
         // attributes are not persisted as default policy
         // TODO evaluate an in-memory,per-session attribute store
@@ -326,7 +325,7 @@ public class SpidIdentityProvider extends AbstractProvider
         Collection<SpidUserAccount> accounts = accountProvider.listAccounts(userId);
         for (SpidUserAccount account : accounts) {
             try {
-                deleteIdentity(account.getSubjectId());
+                deleteIdentity(userId, account.getSubjectId());
             } catch (NoSuchUserException e) {
             }
         }

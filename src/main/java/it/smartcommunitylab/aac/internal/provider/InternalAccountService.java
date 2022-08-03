@@ -94,11 +94,13 @@ public class InternalAccountService extends InternalAccountProvider
     }
 
     @Override
-    public InternalUserAccount createAccount(String userId, @Valid InternalUserAccount reg)
+    public InternalUserAccount createAccount(@Valid InternalUserAccount reg)
             throws NoSuchUserException, RegistrationException {
         if (reg == null) {
             throw new RegistrationException();
         }
+
+        String userId = reg.getUserId();
 
         // we expect user to be valid
         if (!StringUtils.hasText(userId)) {

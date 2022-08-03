@@ -2,7 +2,6 @@ package it.smartcommunitylab.aac.core.provider;
 
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.core.base.AbstractProviderConfig;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 
@@ -13,17 +12,17 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
  */
 
 public interface IdentityService<I extends UserIdentity, U extends UserAccount>
-        extends ResourceProvider {
+        extends IdentityProvider<I> {
 
-    /*
-     * Config
-     */
-    public String getName();
-
-    public String getDescription();
-
-    // TODO expose config
-    public AbstractProviderConfig getConfig();
+//    /*
+//     * Config
+//     */
+//    public String getName();
+//
+//    public String getDescription();
+//
+//    // TODO expose config
+//    public AbstractProviderConfig getConfig();
 
     /*
      * Services
@@ -47,9 +46,9 @@ public interface IdentityService<I extends UserIdentity, U extends UserAccount>
             String userId,
             String identityId, UserIdentity identity) throws NoSuchUserException, RegistrationException;
 
-    public void deleteIdentity(
-            String userId,
-            String identityId) throws NoSuchUserException, RegistrationException;
+//    public void deleteIdentity(
+//            String userId,
+//            String identityId) throws NoSuchUserException, RegistrationException;
     /*
      * Registration
      */

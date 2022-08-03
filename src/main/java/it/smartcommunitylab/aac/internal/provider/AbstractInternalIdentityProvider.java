@@ -64,19 +64,20 @@ public abstract class AbstractInternalIdentityProvider<P extends InternalUserAut
 
         // build resource providers, we use our providerId to ensure consistency
         this.attributeProvider = new InternalAttributeProvider<P>(providerId, config, realm);
-        this.accountService = new InternalAccountService(providerId, userAccountService, subjectService, config,
+        this.accountService = new InternalAccountService(authority, providerId, userAccountService, subjectService,
+                config,
                 realm);
         this.subjectResolver = new InternalSubjectResolver(providerId, userAccountService, config, realm);
     }
 
     public void setMailService(MailService mailService) {
         // assign to services
-//        this.accountService.setMailService(mailService);
+        this.accountService.setMailService(mailService);
     }
 
     public void setUriBuilder(RealmAwareUriBuilder uriBuilder) {
         // assign to services
-//        this.accountService.setUriBuilder(uriBuilder);
+        this.accountService.setUriBuilder(uriBuilder);
     }
 
     public CredentialsType getCredentialsType() {
@@ -98,7 +99,12 @@ public abstract class AbstractInternalIdentityProvider<P extends InternalUserAut
     }
 
     @Override
-    public InternalAccountProvider getAccountProvider() {
+    protected String getRepositoryId() {
+        return getScopeId();
+    }
+
+    @Override
+    public InternalAccountService getAccountProvider() {
         return accountService;
     }
 
@@ -300,20 +306,18 @@ public abstract class AbstractInternalIdentityProvider<P extends InternalUserAut
 
     @Override
     @Transactional(readOnly = false)
-    public void deleteIdentity(String username) throws NoSuchUserException {
+    public void deleteIdentity(String userId, String username) throws NoSuchUserException {
         logger.debug("delete identity with username {}", String.valueOf(username));
-
-        // cleanup credentials
-        getCredentialsService().deleteCredentials(username);
-
-        // no attributes, but call delete anyways
-        getAttributeProvider().deleteAccountAttributes(username);
-
         // delete account
         // TODO evaluate with shared accounts who deletes the registration
         String repositoryId = getRepositoryId();
         InternalUserAccount account = userAccountService.findAccountById(repositoryId, username);
         if (account != null) {
+            // check userId matches
+            if (!account.getUserId().equals(userId)) {
+                throw new IllegalArgumentException("user mismatch");
+            }
+
             String uuid = account.getUuid();
             if (uuid != null) {
                 // remove subject if exists
@@ -323,6 +327,12 @@ public abstract class AbstractInternalIdentityProvider<P extends InternalUserAut
             // remove account
             userAccountService.deleteAccount(repositoryId, username);
         }
+
+        // cleanup credentials
+        getCredentialsService().deleteCredentials(username);
+
+        // no attributes, but call delete anyways
+        getAttributeProvider().deleteAccountAttributes(username);
     }
 
 //    @Override
