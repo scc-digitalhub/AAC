@@ -1,0 +1,110 @@
+<div class="pt-3 mb-5">
+
+    <fieldset>
+        <legend class="mb-4">WebAuthn IdP Configuration</legend>
+        <div class="pt-3 pb-3">Credentials Management</div>
+        <div class="row">
+            <div class="col">
+                <div class="form-group col">
+                    <div class="bootstrap-select-wrapper border-bottom-0">
+                        <label for="credentialsType" class="active">Credentials type</label>
+                        <input type="text" class="form-control" id="credentialsType"
+                            ng-model="idp.configuration.credentialsType" readonly>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+
+
+        <div class="pt-3 pb-3">User Management</div>
+        <div class="row">
+            <div class="col">
+                <div class="form-check">
+                    <input class="form-check-input" name="isolateData" id="isolateData" type="checkbox"
+                        ng-model="idp.configuration.isolateData">
+                    <label for="isolateData">Isolate data</label>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <div class="form-check">
+                    <input class="form-check-input" name="enableRegistration" id="enableRegistration" type="checkbox"
+                        ng-model="idp.configuration.enableRegistration">
+                    <label for="enableRegistration">Enable Registration</label>
+                </div>
+            </div>
+            <div class="col">
+                <div class="form-check">
+                    <input class="form-check-input" name="enableDelete" id="enableDelete" type="checkbox"
+                        ng-model="idp.configuration.enableDelete">
+                    <label for="enableDelete">Enable Delete</label>
+                </div>
+            </div>
+            <div class="col">
+                <div class="form-check">
+                    <input class="form-check-input" name="enableUpdate" id="enableUpdate" type="checkbox"
+                        ng-model="idp.configuration.enableUpdate">
+                    <label for="enableUpdate">Enable Update</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="pt-3 pb-3">Display Management</div>
+        <div class="row">
+            <div class="col">
+                <div class="form-check">
+                    <input class="form-check-input" name="displayAsButton" id="displayAsButton" type="checkbox"
+                        ng-model="idp.configuration.displayAsButton">
+                    <label for="displayAsButton">Show as button</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="pt-3 pb-3">Session Management</div>
+        <div class="row">
+            <div class="col">
+                <div class="form-check">
+                    <input type="number" name="maxSessionDuration" min="1" class="form-control form-control-sm"
+                        id="maxSessionDuration" ng-model="idp.configuration.maxSessionDuration">
+                    <label for="maxSessionDuration">Max session duration</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="pt-3 pb-3">Confirmation Management</div>
+        <div class="row">
+            <div class="col">
+                <div class="form-check">
+                    <input class="form-check-input" name="confirmationRequired" id="confirmationRequired"
+                        type="checkbox" ng-model="idp.configuration.confirmationRequired">
+                    <label for="confirmationRequired">Confirmation Required</label>
+                </div>
+            </div>
+            <div class="form-group col col-md-6 mb-0">
+                <label for="confirmationValidity">Confirmation duration (seconds)</label>
+                <input type="number" min="0" name="confirmationValidity" class="form-control form-control-sm"
+                    id="confirmationValidity" ng-model="idp.configuration.confirmationValidity">
+            </div>
+        </div>
+
+        <div class="pt-3 pb-3">Credentials Management</div>
+        <div class="row">
+            <div class="col">
+                <div class="form-check">
+                    <input class="form-check-input" name="trustUnverifiedAuthenticatorResponses"
+                        id="trustUnverifiedAuthenticatorResponses" type="checkbox"
+                        ng-model="idp.configuration.trustUnverifiedAuthenticatorResponses">
+                    <label for="trustUnverifiedAuthenticatorResponses">trustUnverifiedAuthenticatorResponses</label>
+                </div>
+            </div>
+        </div>
+
+
+
+
+    </fieldset>
+
+</div>

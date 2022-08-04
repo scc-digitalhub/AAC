@@ -53,7 +53,11 @@
         <li ng-if="idp.authority == 'password'" class="nav-item">
             <a class="nav-link  {{activeView('conf.password')}}" href ng-click="switchView('conf.password')">Password
                 Configuration</a>
-        </li>        
+        </li>   
+        <li ng-if="idp.authority == 'webauthn'" class="nav-item">
+            <a class="nav-link  {{activeView('conf.webauthn')}}" href ng-click="switchView('conf.webauthn')">WebAuthn
+                Configuration</a>
+        </li>                 
         <li ng-if="idp.authority == 'oidc'" class="nav-item">
             <a class="nav-link  {{activeView('conf.oidc')}}" href ng-click="switchView('conf.oidc')">OIDC
                 Configuration</a>
