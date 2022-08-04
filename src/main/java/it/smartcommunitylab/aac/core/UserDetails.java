@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -47,8 +48,8 @@ public class UserDetails implements CredentialsContainer, Serializable {
     private final String realm;
     private String username;
 
-    // identities are stored with addressable keys (userId)
-    private final Map<String, UserIdentity> identities;
+    // identities are stored in a set to de-duplicate
+    private final Set<UserIdentity> identities;
 
     // we extract attributes from identities
     // sets are bound to realm, stored with addressable keys
@@ -79,7 +80,7 @@ public class UserDetails implements CredentialsContainer, Serializable {
         this.username = identity.getAccount().getUsername();
 
         // identity sets, at minimum we handle first login identity
-        this.identities = new HashMap<>();
+        this.identities = new HashSet<>();
         addIdentity(identity);
 
         // attributes sets (outside identities)
@@ -112,7 +113,7 @@ public class UserDetails implements CredentialsContainer, Serializable {
         this.realm = realm;
 
         // identity sets, at minimum we handle first login identity
-        this.identities = new HashMap<>();
+        this.identities = new HashSet<>();
         for (UserIdentity identity : identities) {
             addIdentity(identity);
         }
@@ -138,12 +139,11 @@ public class UserDetails implements CredentialsContainer, Serializable {
     @Override
     public void eraseCredentials() {
         // clear credentials on every identity
-        identities.values().stream()
+        identities.stream()
                 .forEach(i -> {
                     if (i instanceof CredentialsContainer) {
                         ((CredentialsContainer) i).eraseCredentials();
                     }
-
                 });
     }
 
@@ -203,36 +203,46 @@ public class UserDetails implements CredentialsContainer, Serializable {
      * Identities should match this user realm
      */
 
-    public UserIdentity getIdentity(String userId) {
-        return identities.get(userId);
-    }
+//    public UserIdentity getIdentity(String userId) {
+//        return identities.get(userId);
+//    }
 
     public Collection<UserIdentity> getIdentities() {
-        return Collections.unmodifiableCollection(identities.values());
+        return Collections.unmodifiableCollection(identities);
     }
 
-    public List<UserIdentity> getIdentities(String realm) {
-        return Collections.unmodifiableList(identities.values().stream()
-                .filter(u -> (realm.equals(u.getRealm())))
-                .collect(Collectors.toList()));
-    }
-
-    public List<UserIdentity> getIdentities(String realm, String provider) {
-        return Collections.unmodifiableList(identities.values().stream()
-                .filter(u -> (realm.equals(u.getRealm())
-                        && provider.equals(u.getProvider())))
-                .collect(Collectors.toList()));
-    }
+//    public List<UserIdentity> getIdentities(String realm) {
+//        return Collections.unmodifiableList(identities.values().stream()
+//                .filter(u -> (realm.equals(u.getRealm())))
+//                .collect(Collectors.toList()));
+//    }
+//
+//    public List<UserIdentity> getIdentities(String realm, String provider) {
+//        return Collections.unmodifiableList(identities.values().stream()
+//                .filter(u -> (realm.equals(u.getRealm())
+//                        && provider.equals(u.getProvider())))
+//                .collect(Collectors.toList()));
+//    }
 
     // add a new identity to current user
     public void addIdentity(UserIdentity identity) {
+        addIdentity(identity, true);
+    }
+
+    public void addIdentity(UserIdentity identity, boolean replaceIfExists) {
         // realm should match
         if (!realm.equals(identity.getRealm())) {
             throw new IllegalArgumentException("realm does not match");
         }
 
+        if (!replaceIfExists) {
+            if (identities.contains(identity)) {
+                // skip
+                return;
+            }
+        }
         // we add or replace
-        identities.put(identity.getUuid(), identity);
+        identities.add(identity);
 
 //        // we also check if profile is incomplete
 //        updateProfile(identity.toBasicProfile());
@@ -243,14 +253,14 @@ public class UserDetails implements CredentialsContainer, Serializable {
     }
 
     // remove an identity from user
-    public void eraseIdentity(String userId) {
-        identities.remove(userId);
-    }
-
-    public void eraseIdentity(UserIdentity identity) {
-        identities.remove(identity.getUuid());
-    }
-
+//    public void eraseIdentity(String userId) {
+//        identities.remove(userId);
+//    }
+//
+//    public void eraseIdentity(UserIdentity identity) {
+//        identities.remove(identity.getUuid());
+//    }
+//
 //    private void updateProfile(BasicProfile p) {
 //        if (profile == null) {
 //            profile = p;
@@ -334,7 +344,7 @@ public class UserDetails implements CredentialsContainer, Serializable {
     public Collection<UserAttributes> getAttributeSets() {
         List<UserAttributes> attrs = new ArrayList<>();
         attrs.addAll(attributes.values());
-        identities.values().forEach(i -> {
+        identities.forEach(i -> {
             attrs.addAll(i.getAttributes());
         });
 

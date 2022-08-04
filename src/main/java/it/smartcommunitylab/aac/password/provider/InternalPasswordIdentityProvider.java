@@ -1,5 +1,8 @@
 package it.smartcommunitylab.aac.password.provider;
 
+import java.util.Collection;
+import java.util.Collections;
+
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.springframework.util.Assert;
@@ -10,15 +13,17 @@ import it.smartcommunitylab.aac.common.MissingDataException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
+import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
+import it.smartcommunitylab.aac.core.provider.IdentityCredentialsProvider;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
+import it.smartcommunitylab.aac.internal.model.CredentialsType;
 import it.smartcommunitylab.aac.internal.model.InternalLoginProvider;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.provider.AbstractInternalIdentityProvider;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.password.InternalPasswordIdentityAuthority;
@@ -29,7 +34,8 @@ import it.smartcommunitylab.aac.password.service.InternalPasswordService;
 import it.smartcommunitylab.aac.utils.MailService;
 
 public class InternalPasswordIdentityProvider
-        extends AbstractInternalIdentityProvider<InternalPasswordUserAuthenticatedPrincipal, InternalUserPassword> {
+        extends AbstractInternalIdentityProvider<InternalPasswordUserAuthenticatedPrincipal, InternalUserPassword>
+        implements IdentityCredentialsProvider<InternalUserAccount, InternalUserPassword> {
 
     private final InternalPasswordService passwordService;
     private final InternalPasswordAuthenticationProvider authenticationProvider;
@@ -71,6 +77,16 @@ public class InternalPasswordIdentityProvider
     }
 
     @Override
+    public boolean isAuthoritative() {
+        // password handles only login
+        return false;
+    }
+
+    public CredentialsType getCredentialsType() {
+        return CredentialsType.PASSWORD;
+    }
+
+    @Override
     public InternalPasswordIdentityProviderConfig getConfig() {
         return config;
     }
@@ -83,6 +99,27 @@ public class InternalPasswordIdentityProvider
     @Override
     public InternalPasswordService getCredentialsService() {
         return passwordService;
+    }
+
+    @Override
+    protected InternalUserIdentity buildIdentity(InternalUserAccount account,
+            InternalPasswordUserAuthenticatedPrincipal principal,
+            Collection<UserAttributes> attributes) {
+        // build identity
+        InternalUserIdentity identity = new InternalUserIdentity(getAuthority(), getProvider(), getRealm(), account,
+                principal);
+        identity.setAttributes(attributes);
+
+        // if attributes then load credentials
+        if (attributes != null) {
+            InternalUserPassword password = passwordService.findPassword(account.getUsername());
+            if (password != null) {
+                password.eraseCredentials();
+                identity.setCredentials(Collections.singletonList(password));
+            }
+        }
+
+        return identity;
     }
 
     /*
@@ -218,16 +255,14 @@ public class InternalPasswordIdentityProvider
         }
     }
 
-//
-//    @Override
-//    @Transactional(readOnly = false)
-//    public void deleteIdentity(String username) throws NoSuchUserException {
-//        // remove all credentials
-//        passwordService.deleteCredentials(username);
-//
-//        // call super to remove account
-//        super.deleteIdentity(username);
-//    }
+    @Override
+    public void deleteIdentity(String userId, String username) throws NoSuchUserException {
+        // remove all credentials
+        passwordService.deleteCredentials(username);
+
+        // call super to remove account
+        super.deleteIdentity(userId, username);
+    }
 
     @Override
     public String getAuthenticationUrl() {

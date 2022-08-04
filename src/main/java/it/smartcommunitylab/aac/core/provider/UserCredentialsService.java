@@ -50,7 +50,7 @@ public interface UserCredentialsService<C extends UserCredentials> extends Resou
 
     public void resetCredentials(String accountId) throws NoSuchUserException;
 
-    public void revokeCredentials(String accountId) throws NoSuchUserException;
+    public void revokeCredentials(String accountId) throws NoSuchUserException, NoSuchCredentialException;
 
     public void deleteCredentials(String accountId) throws NoSuchUserException;
 

@@ -140,6 +140,8 @@ public class InternalResetKeyAuthenticationFilter extends AbstractAuthentication
         }
 
         String realm = providerConfig.getRealm();
+        String repositoryId = providerConfig.getRepositoryId();
+
         // set as attribute to enable fallback to login on error
         request.setAttribute("realm", realm);
 
@@ -150,14 +152,12 @@ public class InternalResetKeyAuthenticationFilter extends AbstractAuthentication
         }
 
         // fetch account
-        // TODO remove, let authProvider handle
-        InternalUserPassword password = passwordRepository.findByProviderAndResetKey(providerId, code);
+        InternalUserPassword password = passwordRepository.findByProviderAndResetKey(repositoryId, code);
         if (password == null) {
             // don't leak user does not exists
             throw new BadCredentialsException("invalid-key");
         }
 
-        String repositoryId = providerConfig.getRepositoryId();
         InternalUserAccount account = userAccountService.findAccountById(repositoryId, password.getUsername());
         if (account == null) {
             // don't leak user does not exists

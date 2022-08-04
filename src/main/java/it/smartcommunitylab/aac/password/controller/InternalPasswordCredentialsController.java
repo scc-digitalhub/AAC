@@ -32,6 +32,7 @@ import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.dto.UserEmailBean;
+import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.password.InternalPasswordIdentityAuthority;
@@ -43,7 +44,7 @@ import it.smartcommunitylab.aac.password.service.InternalPasswordService;
 
 @Controller
 @RequestMapping
-public class InternalCredentialsController {
+public class InternalPasswordCredentialsController {
 
     @Autowired
     private AuthenticationHelper authHelper;
@@ -72,9 +73,9 @@ public class InternalCredentialsController {
             throw new InsufficientAuthenticationException("error.unauthenticated_user");
         }
 
-        // fetch internal identities matching provider
-        Set<UserIdentity> identities = user.getIdentities().stream().filter(
-                i -> SystemKeys.AUTHORITY_INTERNAL.equals(i.getAuthority()) && i.getProvider().equals(providerId))
+        // fetch internal identities
+        Set<UserIdentity> identities = user.getIdentities().stream()
+                .filter(i -> (i instanceof InternalUserIdentity))
                 .collect(Collectors.toSet());
 
         // pick matching by uuid
@@ -89,7 +90,9 @@ public class InternalCredentialsController {
 
         // fetch provider
         InternalPasswordIdentityProvider idp = internalAuthority.getProvider(providerId);
-
+        if (idp == null) {
+            throw new NoSuchProviderException();
+        }
         // fetch credentials service if available
         InternalPasswordService service = idp.getCredentialsService();
 
@@ -146,9 +149,9 @@ public class InternalCredentialsController {
                 throw new InsufficientAuthenticationException("error.unauthenticated_user");
             }
 
-            // fetch internal identities matching provider
-            Set<UserIdentity> identities = user.getIdentities().stream().filter(
-                    i -> SystemKeys.AUTHORITY_INTERNAL.equals(i.getAuthority()) && i.getProvider().equals(providerId))
+            // fetch internal identities
+            Set<UserIdentity> identities = user.getIdentities().stream()
+                    .filter(i -> (i instanceof InternalUserIdentity))
                     .collect(Collectors.toSet());
 
             // pick matching by username
@@ -248,7 +251,7 @@ public class InternalCredentialsController {
      * Password reset
      */
 
-    @GetMapping("/auth/internal/reset/{providerId}")
+    @GetMapping("/auth/password/reset/{providerId}")
     public String resetPage(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             Model model) throws NoSuchProviderException, NoSuchRealmException {
@@ -290,14 +293,14 @@ public class InternalCredentialsController {
 
         // build url
         // TODO handle via urlBuilder or entryPoint
-        model.addAttribute("resetUrl", "/auth/internal/reset/" + providerId);
+        model.addAttribute("resetUrl", "/auth/password/reset/" + providerId);
         // set idp form as login url
-        model.addAttribute("loginUrl", "/auth/internal/form/" + providerId);
+        model.addAttribute("loginUrl", "/auth/password/form/" + providerId);
 
         return "registration/resetpwd";
     }
 
-    @PostMapping("/auth/internal/reset/{providerId}")
+    @PostMapping("/auth/password/reset/{providerId}")
     public String reset(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             Model model,
@@ -319,9 +322,9 @@ public class InternalCredentialsController {
             // build model for result
             model.addAttribute("providerId", providerId);
             model.addAttribute("realm", realm);
-            model.addAttribute("resetUrl", "/auth/internal/reset/" + providerId);
+            model.addAttribute("resetUrl", "/auth/password/reset/" + providerId);
             // set idp form as login url
-            model.addAttribute("loginUrl", "/auth/internal/form/" + providerId);
+            model.addAttribute("loginUrl", "/auth/password/form/" + providerId);
 
             String displayName = null;
             Realm re = null;

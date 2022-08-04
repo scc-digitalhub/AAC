@@ -201,7 +201,10 @@ public class LoginController {
         List<LoginProvider> authorities = new ArrayList<>();
         for (IdentityProvider<? extends UserIdentity> idp : providers) {
             LoginProvider a = idp.getLoginProvider();
-            authorities.add(a);
+            // lp is optional
+            if (a != null) {
+                authorities.add(a);
+            }
         }
 
         // bypass idp selection when only 1 is available

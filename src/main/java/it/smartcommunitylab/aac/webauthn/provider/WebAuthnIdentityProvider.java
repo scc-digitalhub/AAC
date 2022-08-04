@@ -1,11 +1,20 @@
 package it.smartcommunitylab.aac.webauthn.provider;
 
+import java.util.Collection;
+import java.util.List;
+
 import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
+import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.core.provider.IdentityCredentialsProvider;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
+import it.smartcommunitylab.aac.internal.model.CredentialsType;
 import it.smartcommunitylab.aac.internal.model.InternalLoginProvider;
+import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.provider.AbstractInternalIdentityProvider;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
@@ -17,7 +26,8 @@ import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredentialsReposito
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnCredentialsService;
 
 public class WebAuthnIdentityProvider
-        extends AbstractInternalIdentityProvider<WebAuthnUserAuthenticatedPrincipal, WebAuthnCredential> {
+        extends AbstractInternalIdentityProvider<WebAuthnUserAuthenticatedPrincipal, WebAuthnCredential>
+        implements IdentityCredentialsProvider<InternalUserAccount, WebAuthnCredential> {
 
     private final WebAuthnCredentialsService credentialsService;
     private final WebAuthnAuthenticationProvider authenticationProvider;
@@ -58,6 +68,16 @@ public class WebAuthnIdentityProvider
     }
 
     @Override
+    public boolean isAuthoritative() {
+        // webauthn handles only login
+        return false;
+    }
+
+    public CredentialsType getCredentialsType() {
+        return CredentialsType.WEBAUTHN;
+    }
+
+    @Override
     public InternalIdentityProviderConfig getConfig() {
         return config;
     }
@@ -70,6 +90,25 @@ public class WebAuthnIdentityProvider
     @Override
     public WebAuthnCredentialsService getCredentialsService() {
         return credentialsService;
+    }
+
+    @Override
+    protected InternalUserIdentity buildIdentity(InternalUserAccount account,
+            WebAuthnUserAuthenticatedPrincipal principal, Collection<UserAttributes> attributes) {
+        // build identity
+        InternalUserIdentity identity = new InternalUserIdentity(getAuthority(), getProvider(), getRealm(), account,
+                principal);
+        identity.setAttributes(attributes);
+
+        // if attributes then load credentials
+        if (attributes != null) {
+            List<WebAuthnCredential> credentials = credentialsService
+                    .findActiveCredentialsByUsername(account.getUsername());
+            credentials.forEach(c -> c.eraseCredentials());
+            identity.setCredentials(credentials);
+        }
+
+        return identity;
     }
 
 //    @Override
@@ -130,15 +169,14 @@ public class WebAuthnIdentityProvider
 //        return identity;
 //    }
 //
-//    @Override
-//    @Transactional(readOnly = false)
-//    public void deleteIdentity(String username) throws NoSuchUserException {
-//        // remove all credentials
-//        passwordService.deleteCredentials(username);
-//
-//        // call super to remove account
-//        super.deleteIdentity(username);
-//    }
+    @Override
+    public void deleteIdentity(String userId, String username) throws NoSuchUserException {
+        // remove all credentials
+        credentialsService.deleteCredentials(username);
+
+        // call super to remove account
+        super.deleteIdentity(userId, username);
+    }
 
     @Override
     public String getAuthenticationUrl() {

@@ -7,11 +7,14 @@ import org.springframework.transaction.annotation.Transactional;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityProvider;
+import it.smartcommunitylab.aac.core.base.NullSubjectResolver;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
+import it.smartcommunitylab.aac.core.provider.IdentityCredentialsProvider;
 import it.smartcommunitylab.aac.core.provider.ScopeableProvider;
+import it.smartcommunitylab.aac.core.provider.SubjectResolver;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.internal.model.CredentialsType;
@@ -23,7 +26,7 @@ import it.smartcommunitylab.aac.utils.MailService;
 
 public abstract class AbstractInternalIdentityProvider<P extends InternalUserAuthenticatedPrincipal, C extends UserCredentials>
         extends AbstractIdentityProvider<InternalUserIdentity, InternalUserAccount, P>
-        implements InternalIdentityProvider<InternalUserIdentity, InternalUserAccount, P, C>, ScopeableProvider {
+        implements ScopeableProvider {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // provider configuration
@@ -35,7 +38,7 @@ public abstract class AbstractInternalIdentityProvider<P extends InternalUserAut
     // providers
     protected final InternalAccountService accountService;
     protected final InternalAttributeProvider<P> attributeProvider;
-    protected final InternalSubjectResolver subjectResolver;
+    protected final SubjectResolver<InternalUserAccount> subjectResolver;
 
     public AbstractInternalIdentityProvider(
             String providerId,
@@ -67,6 +70,9 @@ public abstract class AbstractInternalIdentityProvider<P extends InternalUserAut
         this.accountService = new InternalAccountService(authority, providerId, userAccountService, subjectService,
                 config,
                 realm);
+
+        // always expose a valid resolver to satisfy authenticationManager at post login
+        // TODO refactor to avoid fetching via resolver at this stage
         this.subjectResolver = new InternalSubjectResolver(providerId, userAccountService, config, realm);
     }
 
@@ -78,10 +84,6 @@ public abstract class AbstractInternalIdentityProvider<P extends InternalUserAut
     public void setUriBuilder(RealmAwareUriBuilder uriBuilder) {
         // assign to services
         this.accountService.setUriBuilder(uriBuilder);
-    }
-
-    public CredentialsType getCredentialsType() {
-        return config.getCredentialsType();
     }
 
     @Override
@@ -114,7 +116,7 @@ public abstract class AbstractInternalIdentityProvider<P extends InternalUserAut
     }
 
     @Override
-    public InternalSubjectResolver getSubjectResolver() {
+    public SubjectResolver<InternalUserAccount> getSubjectResolver() {
         return subjectResolver;
     }
 
@@ -304,36 +306,33 @@ public abstract class AbstractInternalIdentityProvider<P extends InternalUserAut
 //        return identities;
 //    }
 
-    @Override
-    @Transactional(readOnly = false)
-    public void deleteIdentity(String userId, String username) throws NoSuchUserException {
-        logger.debug("delete identity with username {}", String.valueOf(username));
-        // delete account
-        // TODO evaluate with shared accounts who deletes the registration
-        String repositoryId = getRepositoryId();
-        InternalUserAccount account = userAccountService.findAccountById(repositoryId, username);
-        if (account != null) {
-            // check userId matches
-            if (!account.getUserId().equals(userId)) {
-                throw new IllegalArgumentException("user mismatch");
-            }
-
-            String uuid = account.getUuid();
-            if (uuid != null) {
-                // remove subject if exists
-                subjectService.deleteSubject(uuid);
-            }
-
-            // remove account
-            userAccountService.deleteAccount(repositoryId, username);
-        }
-
-        // cleanup credentials
-        getCredentialsService().deleteCredentials(username);
-
-        // no attributes, but call delete anyways
-        getAttributeProvider().deleteAccountAttributes(username);
-    }
+//    @Override
+//    @Transactional(readOnly = false)
+//    public void deleteIdentity(String userId, String username) throws NoSuchUserException {
+//        logger.debug("delete identity with username {}", String.valueOf(username));
+//        // delete account
+//        // TODO evaluate with shared accounts who deletes the registration
+//        String repositoryId = getRepositoryId();
+//        InternalUserAccount account = userAccountService.findAccountById(repositoryId, username);
+//        if (account != null) {
+//            // check userId matches
+//            if (!account.getUserId().equals(userId)) {
+//                throw new IllegalArgumentException("user mismatch");
+//            }
+//
+//            String uuid = account.getUuid();
+//            if (uuid != null) {
+//                // remove subject if exists
+//                subjectService.deleteSubject(uuid);
+//            }
+//
+//            // remove account
+//            userAccountService.deleteAccount(repositoryId, username);
+//        }
+//
+//        // no attributes, but call delete anyways
+//        getAttributeProvider().deleteAccountAttributes(username);
+//    }
 
 //    @Override
 //    @Transactional(readOnly = false)
@@ -487,7 +486,6 @@ public abstract class AbstractInternalIdentityProvider<P extends InternalUserAut
 //        return identity;
 //    }
 
-    @Override
     public String getRegistrationUrl() {
         // TODO filter
         // TODO build a realm-bound url, need updates on filters

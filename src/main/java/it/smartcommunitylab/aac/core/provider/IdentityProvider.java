@@ -34,6 +34,15 @@ public interface IdentityProvider<I extends UserIdentity>
     public AbstractIdentityProviderConfig getConfig();
 
     /*
+     * Authoritative for the given identity model
+     * 
+     * only authoritative providers should edit accounts, expose resolvers etc,
+     * while non-authoritative should handle only authentication + credentials +
+     * attributes when available
+     */
+    public boolean isAuthoritative();
+
+    /*
      * Authentication provider handles the processing of AuthenticationTokens and
      * the resolution of UserPrincipal. Optionally they can expose a UserAccount
      * matching the principal, if available in the provider.

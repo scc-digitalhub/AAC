@@ -272,7 +272,7 @@ public class WebAuthnRpService {
      * Login ceremony
      */
 
-    public AssertionRequest startLogin(String registrationId, String userHandle, String username)
+    public AssertionRequest startLogin(String registrationId, String username)
             throws NoSuchUserException, NoSuchProviderException {
         WebAuthnIdentityProviderConfig config = registrationRepository.findByProviderId(registrationId);
         RelyingParty rp = getRelyingParty(registrationId);
@@ -280,9 +280,14 @@ public class WebAuthnRpService {
             throw new NoSuchProviderException();
         }
 
+        Optional<ByteArray> userHandle = rp.getCredentialRepository().getUserHandleForUsername(username);
+        if (userHandle.isEmpty()) {
+            throw new NoSuchUserException();
+        }
+
         // build assertion
         StartAssertionOptions startAssertionOptions = StartAssertionOptions.builder()
-                .userHandle(ByteArray.fromBase64(userHandle))
+                .userHandle(userHandle)
                 .timeout(TIMEOUT)
                 .userVerification(UserVerificationRequirement.REQUIRED)
                 .username(username)

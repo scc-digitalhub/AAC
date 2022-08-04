@@ -31,7 +31,7 @@ public class InternalUserIdentity extends AbstractIdentity {
 
     // credentials (when available)
     // TODO evaluate exposing on identity model for all providers
-    private List<UserCredentials> credentials;
+    private List<? extends UserCredentials> credentials;
 
     // attributes map for sets associated with this identity
     private Map<String, UserAttributes> attributes;
@@ -104,11 +104,11 @@ public class InternalUserIdentity extends AbstractIdentity {
         return account.getEmail();
     }
 
-    public List<UserCredentials> getCredentials() {
+    public List<? extends UserCredentials> getCredentials() {
         return credentials;
     }
 
-    public void setCredentials(List<UserCredentials> credentials) {
+    public void setCredentials(List<? extends UserCredentials> credentials) {
         this.credentials = credentials;
     }
 

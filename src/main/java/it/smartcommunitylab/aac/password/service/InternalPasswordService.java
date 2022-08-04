@@ -25,6 +25,7 @@ import org.springframework.util.StringUtils;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.InvalidDataException;
 import it.smartcommunitylab.aac.common.InvalidPasswordException;
+import it.smartcommunitylab.aac.common.NoSuchCredentialException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
@@ -68,7 +69,7 @@ public class InternalPasswordService extends AbstractProvider
             InternalUserPasswordRepository passwordRepository,
             InternalPasswordIdentityProviderConfig providerConfig,
             String realm) {
-        super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
+        super(SystemKeys.AUTHORITY_PASSWORD, providerId, realm);
         Assert.notNull(userAccountService, "user account service is mandatory");
         Assert.notNull(passwordRepository, "password repository is mandatory");
         Assert.notNull(providerConfig, "provider config is mandatory");
@@ -156,7 +157,7 @@ public class InternalPasswordService extends AbstractProvider
      * Password handling
      */
     @Transactional(readOnly = true)
-    public InternalUserPassword findPassword(String username) throws NoSuchUserException {
+    public InternalUserPassword findPassword(String username) {
         // fetch active password
         InternalUserPassword password = passwordRepository.findByProviderAndUsernameAndStatusOrderByCreateDateDesc(
                 repositoryId, username,
@@ -170,13 +171,13 @@ public class InternalPasswordService extends AbstractProvider
     }
 
     @Transactional(readOnly = true)
-    public InternalUserPassword getPassword(String username) throws NoSuchUserException {
+    public InternalUserPassword getPassword(String username) throws NoSuchCredentialException {
         // fetch active password
         InternalUserPassword password = passwordRepository.findByProviderAndUsernameAndStatusOrderByCreateDateDesc(
                 repositoryId, username,
                 CredentialsStatus.ACTIVE.getValue());
         if (password == null) {
-            throw new NoSuchUserException();
+            throw new NoSuchCredentialException();
         }
 
         // password are encrypted, return as is
@@ -304,7 +305,7 @@ public class InternalPasswordService extends AbstractProvider
         passwordRepository.deleteAllInBatch(toDelete);
     }
 
-    public InternalUserPassword revokePassword(String username, String password) throws NoSuchUserException {
+    public InternalUserPassword revokePassword(String username, String password) throws NoSuchCredentialException {
 
         try {
             // fetch matching password
@@ -314,7 +315,7 @@ public class InternalPasswordService extends AbstractProvider
             InternalUserPassword pass = passwordRepository.findByProviderAndUsernameAndPassword(repositoryId, username,
                     hash);
             if (pass == null) {
-                throw new NoSuchUserException();
+                throw new NoSuchCredentialException();
             }
 
             // we can transition from any status to revoked
@@ -361,14 +362,14 @@ public class InternalPasswordService extends AbstractProvider
         return password;
     }
 
-    public InternalUserPassword confirmReset(String resetKey) throws NoSuchUserException {
+    public InternalUserPassword confirmReset(String resetKey) throws NoSuchCredentialException {
         if (!StringUtils.hasText(resetKey)) {
             throw new IllegalArgumentException("empty-key");
         }
 
         InternalUserPassword password = passwordRepository.findByProviderAndResetKey(repositoryId, resetKey);
         if (password == null) {
-            throw new NoSuchUserException();
+            throw new NoSuchCredentialException();
         }
 
         // validate key, we do it simple
@@ -518,7 +519,7 @@ public class InternalPasswordService extends AbstractProvider
     }
 
     @Override
-    public void revokeCredentials(String username) throws NoSuchUserException {
+    public void revokeCredentials(String username) throws NoSuchUserException, NoSuchCredentialException {
         InternalUserAccount account = accountService.findAccountById(repositoryId, username);
         if (account == null) {
             throw new NoSuchUserException();

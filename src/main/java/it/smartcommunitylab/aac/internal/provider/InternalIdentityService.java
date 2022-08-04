@@ -17,7 +17,6 @@ import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
-import it.smartcommunitylab.aac.core.provider.UserCredentialsService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.dto.LoginProvider;
@@ -250,20 +249,20 @@ public class InternalIdentityService
         return identity;
     }
 
-    @Override
-    public void deleteIdentity(String userId, String username) throws NoSuchUserException, RegistrationException {
-        // get the internal account entity
-        InternalUserAccount account = accountService.getAccount(username);
-        if (account != null) {
-            // check if userId matches account
-            if (!account.getUserId().equals(userId)) {
-                throw new RegistrationException("userid-mismatch");
-            }
-
-            // delete account via service
-            accountService.deleteAccount(username);
-        }
-    }
+//    @Override
+//    public void deleteIdentity(String userId, String username) throws NoSuchUserException, RegistrationException {
+//        // get the internal account entity
+//        InternalUserAccount account = accountService.getAccount(username);
+//        if (account != null) {
+//            // check if userId matches account
+//            if (!account.getUserId().equals(userId)) {
+//                throw new RegistrationException("userid-mismatch");
+//            }
+//
+//            // delete account via service
+//            accountService.deleteAccount(username);
+//        }
+//    }
 
     @Override
     public String getRegistrationUrl() {
@@ -281,12 +280,6 @@ public class InternalIdentityService
     @Override
     public LoginProvider getLoginProvider() {
         // no direct login available
-        return null;
-    }
-
-    @Override
-    public UserCredentialsService<UserCredentials> getCredentialsService() {
-        // no credentials available
         return null;
     }
 

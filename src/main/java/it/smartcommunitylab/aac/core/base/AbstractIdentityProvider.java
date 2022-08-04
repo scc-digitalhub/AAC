@@ -57,6 +57,9 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
                 "configuration does not match this provider");
         Assert.isTrue(realm.equals(config.getRealm()), "configuration does not match this provider");
 
+        logger.debug("create {} idp for realm {} with id {}", String.valueOf(authority), String.valueOf(realm),
+                String.valueOf(providerId));
+
         // internal data repositories
         this.userEntityService = userEntityService;
         this.userAccountService = userAccountService;
@@ -77,6 +80,12 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
     @Override
     public final String getType() {
         return SystemKeys.RESOURCE_IDENTITY;
+    }
+
+    @Override
+    public boolean isAuthoritative() {
+        // by default every provider is authoritative
+        return true;
     }
 
     /*
@@ -360,8 +369,10 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
         // get the internal account entity
         U account = getAccountProvider().getAccount(accountId);
 
-        // re-link to new userId
-        account = getAccountProvider().linkAccount(accountId, userId);
+        if (isAuthoritative()) {
+            // re-link to new userId
+            account = getAccountProvider().linkAccount(accountId, userId);
+        }
 
         // use builder, skip attributes
         I identity = buildIdentity(account, null);
@@ -378,10 +389,10 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
         logger.debug("delete identity with id {}", String.valueOf(accountId));
 
         // delete account
-        // TODO evaluate with shared accounts who deletes the registration
+        // authoritative deletes the registration with shared accounts
         String repositoryId = getRepositoryId();
         U account = userAccountService.findAccountById(repositoryId, accountId);
-        if (account != null) {
+        if (account != null && isAuthoritative()) {
             // check userId matches
             if (!account.getUserId().equals(userId)) {
                 throw new IllegalArgumentException("user mismatch");

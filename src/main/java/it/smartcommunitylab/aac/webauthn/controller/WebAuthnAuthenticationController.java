@@ -47,7 +47,7 @@ public class WebAuthnAuthenticationController {
      * {@link WebAuthnIdentityService#getLoginUrl}
      */
     @Hidden
-    @RequestMapping(value = "/auth/webauthn/form/{providerId}", method = RequestMethod.GET)
+    @RequestMapping(value = "/auth/webauthn/_form/{providerId}", method = RequestMethod.GET)
     public String authenticatePage(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId) {
         return "webauthn/authenticate";
@@ -64,7 +64,7 @@ public class WebAuthnAuthenticationController {
      * @throws NoSuchUserException
      */
     @Hidden
-    @PostMapping(value = "/auth/webauthn/assertionOptions/{providerId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/auth/webauthn/_assertionOptions/{providerId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public WebAuthnLoginResponse generateAssertionOptions(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
@@ -75,7 +75,7 @@ public class WebAuthnAuthenticationController {
         String username = body.getUsername();
         // TODO evaluate displayName support
 
-        AssertionRequest assertionRequest = rpService.startLogin(providerId, username, username);
+        AssertionRequest assertionRequest = rpService.startLogin(providerId,  username);
 
         // store request
         String key = requestStore.store(assertionRequest);

@@ -168,6 +168,10 @@ public class InternalAccountService extends InternalAccountProvider
 
         account = userAccountService.addAccount(repositoryId, username, account);
 
+        // map to our authority
+        account.setAuthority(getAuthority());
+        account.setProvider(getProvider());
+
         return account;
     }
 
@@ -238,6 +242,10 @@ public class InternalAccountService extends InternalAccountProvider
             account = verifyAccount(username);
         }
 
+        // map to our authority
+        account.setAuthority(getAuthority());
+        account.setProvider(getProvider());
+
         return account;
     }
 
@@ -273,6 +281,10 @@ public class InternalAccountService extends InternalAccountProvider
             logger.error(e.getMessage());
         }
 
+        // map to our authority
+        account.setAuthority(getAuthority());
+        account.setProvider(getProvider());
+
         return account;
     }
 
@@ -291,6 +303,11 @@ public class InternalAccountService extends InternalAccountProvider
         account.setConfirmationKey(null);
 
         account = userAccountService.updateAccount(repositoryId, username, account);
+
+        // map to our authority
+        account.setAuthority(getAuthority());
+        account.setProvider(getProvider());
+
         return account;
     }
 
@@ -309,6 +326,11 @@ public class InternalAccountService extends InternalAccountProvider
         account.setConfirmationKey(null);
 
         account = userAccountService.updateAccount(repositoryId, username, account);
+
+        // map to our authority
+        account.setAuthority(getAuthority());
+        account.setProvider(getProvider());
+
         return account;
     }
 
@@ -425,6 +447,10 @@ public class InternalAccountService extends InternalAccountProvider
             }
 
         }
+
+        // map to our authority
+        account.setAuthority(getAuthority());
+        account.setProvider(getProvider());
 
         return account;
 

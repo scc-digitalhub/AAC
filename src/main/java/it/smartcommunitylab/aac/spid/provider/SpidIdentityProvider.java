@@ -81,6 +81,11 @@ public class SpidIdentityProvider extends AbstractProvider
     }
 
     @Override
+    public boolean isAuthoritative() {
+        return true;
+    }
+
+    @Override
     public SpidAuthenticationProvider getAuthenticationProvider() {
         return authenticationProvider;
     }

@@ -46,6 +46,7 @@ import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.dto.CustomizationBean;
+import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
 import it.smartcommunitylab.aac.webauthn.auth.WebAuthnAuthenticationException;
@@ -82,7 +83,7 @@ public class WebAuthnRegistrationController {
     private WebAuthnRpService rpService;
 
     @Hidden
-    @RequestMapping(value = "/auth/webauthn/credentials/{providerId}/{uuid}", method = RequestMethod.GET)
+    @RequestMapping(value = "/webauthn/register/{providerId}/{uuid}", method = RequestMethod.GET)
     public String credentialsRegistrationPage(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid,
@@ -93,9 +94,9 @@ public class WebAuthnRegistrationController {
             throw new InsufficientAuthenticationException("error.unauthenticated_user");
         }
 
-        // fetch internal identities matching provider
-        Set<UserIdentity> identities = user.getIdentities().stream().filter(
-                i -> SystemKeys.AUTHORITY_INTERNAL.equals(i.getAuthority()) && i.getProvider().equals(providerId))
+        // fetch internal identities
+        Set<UserIdentity> identities = user.getIdentities().stream()
+                .filter(i -> (i instanceof InternalUserIdentity))
                 .collect(Collectors.toSet());
 
         // pick matching by uuid
@@ -153,6 +154,8 @@ public class WebAuthnRegistrationController {
         // build model
         WebAuthnRegistrationStartRequest bean = new WebAuthnRegistrationStartRequest();
         bean.setUsername(username);
+        bean.setProvider(providerId);
+        bean.setUserHandle(uuid);
         model.addAttribute("reg", bean);
 
         // build url
@@ -161,7 +164,7 @@ public class WebAuthnRegistrationController {
         model.addAttribute("loginUrl", "/-/" + realm + "/login");
 
         // return credentials registration page
-        return "webauthn/credential";
+        return "webauthn/register";
     }
 
     /**
@@ -176,11 +179,10 @@ public class WebAuthnRegistrationController {
      * @throws RegistrationException
      */
     @Hidden
-    @PostMapping(value = "/auth/webauthn/attestationOptions/{providerId}/{uuid}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/auth/webauthn/attestationOptions/{providerId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public WebAuthnRegistrationResponse generateAttestationOptions(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid,
             @RequestBody @Valid WebAuthnRegistrationStartRequest reg)
             throws NoSuchProviderException, RegistrationException, NoSuchUserException {
 
@@ -190,12 +192,13 @@ public class WebAuthnRegistrationController {
             throw new InsufficientAuthenticationException("error.unauthenticated_user");
         }
 
-        // fetch internal identities matching provider
-        Set<UserIdentity> identities = user.getIdentities().stream().filter(
-                i -> SystemKeys.AUTHORITY_INTERNAL.equals(i.getAuthority()) && i.getProvider().equals(providerId))
+        // fetch internal identities
+        Set<UserIdentity> identities = user.getIdentities().stream()
+                .filter(i -> (i instanceof InternalUserIdentity))
                 .collect(Collectors.toSet());
 
-        // pick matching by uuid
+        // pick matching by uuid == userhandle
+        String uuid = reg.getUserHandle();
         UserIdentity identity = identities.stream().filter(i -> i.getAccount().getUuid().equals(uuid))
                 .findFirst().orElse(null);
         if (identity == null) {
@@ -256,9 +259,9 @@ public class WebAuthnRegistrationController {
             throw new InsufficientAuthenticationException("error.unauthenticated_user");
         }
 
-        // fetch internal identities matching provider
-        Set<UserIdentity> identities = user.getIdentities().stream().filter(
-                i -> SystemKeys.AUTHORITY_INTERNAL.equals(i.getAuthority()) && i.getProvider().equals(providerId))
+        // fetch internal identities
+        Set<UserIdentity> identities = user.getIdentities().stream()
+                .filter(i -> (i instanceof InternalUserIdentity))
                 .collect(Collectors.toSet());
 
         // pick matching by uuid

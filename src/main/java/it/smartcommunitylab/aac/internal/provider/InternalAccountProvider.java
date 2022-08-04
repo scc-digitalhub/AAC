@@ -85,7 +85,10 @@ public class InternalAccountProvider extends AbstractProvider implements Account
         List<InternalUserAccount> accounts = accountService.findAccountByUser(repositoryId, userId);
 
         // map to our authority
-        accounts.forEach(a -> a.setAuthority(getAuthority()));
+        accounts.forEach(a -> {
+            a.setAuthority(getAuthority());
+            a.setProvider(getProvider());
+        });
         return accounts;
     }
 
@@ -113,6 +116,7 @@ public class InternalAccountProvider extends AbstractProvider implements Account
 
         // map to our authority
         account.setAuthority(getAuthority());
+        account.setProvider(getProvider());
 
         return account;
     }
@@ -127,6 +131,7 @@ public class InternalAccountProvider extends AbstractProvider implements Account
 
         // map to our authority
         account.setAuthority(getAuthority());
+        account.setProvider(getProvider());
 
         return account;
     }
@@ -146,6 +151,7 @@ public class InternalAccountProvider extends AbstractProvider implements Account
 
         // map to our authority
         account.setAuthority(getAuthority());
+        account.setProvider(getProvider());
 
         return account;
     }
@@ -186,6 +192,7 @@ public class InternalAccountProvider extends AbstractProvider implements Account
 
         // map to our authority
         account.setAuthority(getAuthority());
+        account.setProvider(getProvider());
 
         return account;
     }
@@ -210,6 +217,7 @@ public class InternalAccountProvider extends AbstractProvider implements Account
 
         // map to our authority
         account.setAuthority(getAuthority());
+        account.setProvider(getProvider());
 
         return account;
     }

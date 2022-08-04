@@ -69,7 +69,7 @@ public class InternalUserPassword extends AbstractUserCredentials
     private transient String realm;
 
     public InternalUserPassword() {
-        super(SystemKeys.AUTHORITY_INTERNAL, null, null, null);
+        super(SystemKeys.AUTHORITY_PASSWORD, null, null, null);
     }
 
     @Override

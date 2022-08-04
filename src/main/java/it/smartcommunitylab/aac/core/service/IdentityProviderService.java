@@ -59,12 +59,19 @@ public class IdentityProviderService {
         // we expect no client/services in global+system realm!
         // note: we let registration with authorities to bootstrap
 
-        // always configure internal password idp for system, required by admin account
+        // always internal idp for system, required by admin account
         ConfigurableIdentityProvider internalIdpConfig = new ConfigurableIdentityProvider(
-                SystemKeys.AUTHORITY_PASSWORD, SystemKeys.AUTHORITY_INTERNAL,
+                SystemKeys.AUTHORITY_INTERNAL, SystemKeys.AUTHORITY_INTERNAL,
                 SystemKeys.REALM_SYSTEM);
         logger.debug("configure internal idp for system realm");
         systemIdps.put(internalIdpConfig.getProvider(), internalIdpConfig);
+
+        // always configure internal password idp for system, required by admin account
+        ConfigurableIdentityProvider internalPasswordIdpConfig = new ConfigurableIdentityProvider(
+                SystemKeys.AUTHORITY_PASSWORD, SystemKeys.AUTHORITY_INTERNAL + "_" + SystemKeys.AUTHORITY_PASSWORD,
+                SystemKeys.REALM_SYSTEM);
+        logger.debug("configure internal password idp for system realm");
+        systemIdps.put(internalPasswordIdpConfig.getProvider(), internalPasswordIdpConfig);
 
         // system providers
         if (providers != null) {

@@ -557,16 +557,17 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
             // fast load, get only idp with persistence
             Collection<IdentityProvider<UserIdentity>> idps = fetchIdentityProviders(realm);
             // ask all providers except the one already used
-            for (IdentityProvider<? extends UserIdentity> ip : idps) {
+            for (IdentityProvider<UserIdentity> ip : idps) {
                 if (!providerId.equals(ip.getProvider())) {
-                    Collection<? extends UserIdentity> identities = ip.listIdentities(subjectId, true);
+                    Collection<UserIdentity> identities = ip.listIdentities(subjectId, true);
                     if (identities == null) {
                         // this idp does not support linking
                         continue;
                     }
                     // add to session
                     for (UserIdentity i : identities) {
-                        result.getUser().addIdentity(i);
+                        // only add new identities
+                        result.getUser().addIdentity(i, false);
                     }
                 }
             }
