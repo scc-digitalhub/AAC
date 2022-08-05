@@ -24,6 +24,11 @@ public class WebAuthnRegistrationResponse {
     @NotNull
     private PublicKeyCredentialCreationOptions options;
 
+    public WebAuthnRegistrationResponse(String key, PublicKeyCredentialCreationOptions options) {
+        this.key = key;
+        this.options = options;
+    }
+
     public String getKey() {
         return this.key;
     }

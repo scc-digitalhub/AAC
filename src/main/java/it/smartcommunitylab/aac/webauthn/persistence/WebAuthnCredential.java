@@ -94,13 +94,11 @@ public class WebAuthnCredential extends AbstractUserCredentials
      */
     @Lob
     @Column(name = "attestation_object")
-    @Convert(converter = HashMapConverter.class)
-    private Map<String, Serializable> attestationObject;
+    private String attestationObject;
 
     @Lob
     @Column(name = "client_data")
-    @Convert(converter = HashMapConverter.class)
-    private Map<String, Serializable> clientData;
+    private String clientData;
 
     /*
      * Audit
@@ -275,19 +273,19 @@ public class WebAuthnCredential extends AbstractUserCredentials
         this.realm = realm;
     }
 
-    public Map<String, Serializable> getAttestationObject() {
+    public String getAttestationObject() {
         return attestationObject;
     }
 
-    public void setAttestationObject(Map<String, Serializable> attestationObject) {
+    public void setAttestationObject(String attestationObject) {
         this.attestationObject = attestationObject;
     }
 
-    public Map<String, Serializable> getClientData() {
+    public String getClientData() {
         return clientData;
     }
 
-    public void setClientData(Map<String, Serializable> clientData) {
+    public void setClientData(String clientData) {
         this.clientData = clientData;
     }
 

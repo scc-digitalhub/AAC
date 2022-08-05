@@ -12,7 +12,9 @@ import javax.validation.constraints.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.web.WebAttributes;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -40,7 +42,8 @@ import it.smartcommunitylab.aac.webauthn.model.WebAuthnAuthenticationStartReques
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnLoginResponse;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProvider;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpService;
-import it.smartcommunitylab.aac.webauthn.store.InMemoryWebAuthnRequestStore;
+import it.smartcommunitylab.aac.webauthn.store.InMemoryWebAuthnAssertionRequestStore;
+import it.smartcommunitylab.aac.webauthn.store.WebAuthnAssertionRequestStore;
 
 @Controller
 @RequestMapping
@@ -57,7 +60,7 @@ public class WebAuthnLoginController {
     private WebAuthnRpService rpService;
 
     @Autowired
-    private InMemoryWebAuthnRequestStore requestStore;
+    private WebAuthnAssertionRequestStore requestStore;
 
     @RequestMapping(value = WebAuthnIdentityAuthority.AUTHORITY_URL + "form/{providerId}", method = RequestMethod.GET)
     public String login(
@@ -134,26 +137,33 @@ public class WebAuthnLoginController {
     @Hidden
     @PostMapping(value = WebAuthnIdentityAuthority.AUTHORITY_URL
             + "assertionOptions/{providerId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseBody
-    public WebAuthnLoginResponse generateAssertionOptions(
+    public ResponseEntity<WebAuthnLoginResponse> generateAssertionOptions(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             @RequestBody @Valid WebAuthnAuthenticationStartRequest body)
             throws NoSuchProviderException, NoSuchUserException {
 
-        // build request for user
-        String username = body.getUsername();
-        // TODO evaluate displayName support
+        try {
+            // build request for user
+            String username = body.getUsername();
+            // TODO evaluate displayName support
 
-        AssertionRequest assertionRequest = rpService.startLogin(providerId, username);
+            AssertionRequest assertionRequest = rpService.startLogin(providerId, username);
 
-        // store request
-        String key = requestStore.store(assertionRequest);
+            // store request
+            String key = requestStore.store(assertionRequest);
 
-        // build response
-        WebAuthnLoginResponse response = new WebAuthnLoginResponse();
-        response.setAssertionRequest(assertionRequest);
-        response.setKey(key);
-        return response;
+            // build response
+            WebAuthnLoginResponse response = new WebAuthnLoginResponse();
+            response.setAssertionRequest(assertionRequest);
+            response.setKey(key);
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            logger.debug("error in assertion options: " + e.getMessage());
+
+            // respond with a generic error
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 
 }

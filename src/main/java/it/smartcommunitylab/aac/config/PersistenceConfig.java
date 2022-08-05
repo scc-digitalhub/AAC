@@ -48,7 +48,6 @@ import it.smartcommunitylab.aac.scope.InMemoryScopeRegistry;
 import it.smartcommunitylab.aac.scope.ScopeProvider;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
-import it.smartcommunitylab.aac.webauthn.store.InMemoryWebAuthnRequestStore;
 
 @Configuration
 @Order(2)
@@ -183,11 +182,6 @@ public class PersistenceConfig {
     @Qualifier("spidRelyingPartyRegistrationRepository")
     public SamlRelyingPartyRegistrationRepository spidRelyingPartyRegistrationRepository() {
         return new SamlRelyingPartyRegistrationRepository();
-    }
-
-    @Bean
-    public InMemoryWebAuthnRequestStore webAuthnRequestStore() {
-        return new InMemoryWebAuthnRequestStore();
     }
 
     /*

@@ -80,7 +80,7 @@ public class WebAuthnAuthenticationProvider
                 throw new BadCredentialsException("invalid user");
             }
             // fetch associated credential
-            String credentialId = assertionResult.getCredentialId().getBase64();
+            String credentialId = assertionResult.getCredentialId().getBase64Url();
             WebAuthnCredential credential = credentialsService.findCredentialByUserHandleAndCredentialId(userHandle,
                     credentialId);
             if (credential == null) {

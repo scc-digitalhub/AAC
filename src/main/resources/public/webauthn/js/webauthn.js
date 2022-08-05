@@ -1,6 +1,122 @@
+/*
+* registration
+*/
+async function requestAttestationOptions(providerId, username, displayName) {
+    console.log("fetch attestation options for " + providerId + " user " + username);
+    const response = await fetch(`/auth/webauthn/attestationOptions/${providerId}`,
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(
+                {
+                    "provider": providerId,
+                    "username": username,
+                    "displayName": displayName
+                }
+            ),
+        }
+    );
 
-async function requestOptions(providerId, username) {
-    console.log("fetch options for " + providerId + " user " + username);
+    if (!response.ok) {
+        throw Error(response.statusText);
+    }
+
+    return response.json();
+}
+
+async function webauthnRegister(form) {
+    const providerId = form.elements.provider.value;
+    const username = form.elements.username.value;
+    var displayName = form.elements.displayName.value;
+
+    if (!username) {
+        return;
+    }
+
+    if (displayName == null || displayName.length == 0) {
+        displayName = username
+    }
+
+    const msg = document.getElementById("webauthn_error_" + providerId);
+    if (msg) {
+        msg.style = "display:none;";
+    }
+
+    try {
+        console.log("start registration");
+        //fetch credential options
+        const optionsAndRegistrationKey = await requestAttestationOptions(providerId, username, displayName);
+        const registrationKey = optionsAndRegistrationKey.key;
+        const credentialCreationOptions = optionsAndRegistrationKey.options;
+
+
+        //build 
+        const decodedChallenge = base64URLStringToBuffer(credentialCreationOptions.publicKey.challenge);
+        const credentialCreateOptions = {
+            publicKey: {
+                ...credentialCreationOptions.publicKey,
+                challenge: decodedChallenge,
+                user: {
+                    ...credentialCreationOptions.publicKey.user,
+                    id: base64URLStringToBuffer(credentialCreationOptions.publicKey.user.id),
+                },
+                excludeCredentials: credentialCreationOptions.publicKey.excludeCredentials.map(credential => ({
+                    ...credential,
+                    id: base64URLStringToBuffer(credential.id),
+                })),
+                // Warning: Extension inputs could also contain binary data that needs encoding
+                extensions: credentialCreationOptions.publicKey.extensions,
+            },
+        }
+
+        console.log(credentialCreateOptions);
+
+        //call browser to load credentials
+        const publicKeyCredential = await navigator.credentials.create(credentialCreateOptions)
+        console.log(publicKeyCredential);
+
+        if (!publicKeyCredential) {
+            throw Error("invalid credential");
+        }
+
+        //build registration response
+        const payload = {
+            type: publicKeyCredential.type,
+            id: publicKeyCredential.id,
+            response: {
+                attestationObject: bufferToBase64URLString(publicKeyCredential.response.attestationObject),
+                clientDataJSON: bufferToBase64URLString(publicKeyCredential.response.clientDataJSON),
+                transports: publicKeyCredential.response.getTransports && publicKeyCredential.response.getTransports() || [],
+            },
+            clientExtensionResults: publicKeyCredential.getClientExtensionResults(),
+        }
+
+        console.log(payload);
+        
+          //update form and submit
+        form.action = form.action+ '/'+ registrationKey;
+        form.elements.attestation.value = JSON.stringify(payload);
+        form.submit();
+    } catch (e) {
+        console.log(e);
+        if (msg) {
+            msg.innerHTML = e;
+            msg.style = "display: block;";
+        }
+    }
+
+    console.log("end");
+    return false;
+}
+
+/*
+* login
+*/
+
+async function requestAssertionOptions(providerId, username) {
+    console.log("fetch assertion options for " + providerId + " user " + username);
     const response = await fetch(`/auth/webauthn/assertionOptions/${providerId}`,
         {
             method: 'POST',
@@ -24,7 +140,7 @@ async function requestOptions(providerId, username) {
 
 
 
-async function webauthnAuthentication(form) {
+async function webauthnLogin(form) {
     const providerId = form.elements.provider.value;
     const username = form.elements.username.value;
     if (!username) {
@@ -38,10 +154,10 @@ async function webauthnAuthentication(form) {
 
     try {
         //fetch options and key
-        const assertionRequestAndKey = await requestOptions(providerId, username);
+        const assertionRequestAndKey = await requestAssertionOptions(providerId, username);
         console.log(assertionRequestAndKey);
 
-        const { loginKey, assertionRequest } = assertionRequestAndKey;
+        const { key, assertionRequest } = assertionRequestAndKey;
 
 
         //build credentials options
@@ -78,28 +194,10 @@ async function webauthnAuthentication(form) {
             clientExtensionResults: publicKeyCredential.getClientExtensionResults(),
         }
 
-        const finishLoginResp = await fetch(
-            `/auth/webauthn/assertions/${providerId}`,
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(
-                    {
-                        "key": loginKey,
-                        "assertion": authenticatorReponse
-                    }
-                ),
-            }
-        );
-
-        if (finishLoginResp.status == 200) {
-            alert(await finishLoginResp.text());
-            window.location.href = "/index.html"
-        } else {
-            alert(finishLoginResp.status, await finishLoginResp.text())
-        }
+        //update form and submit
+        form.elements.key.value = key;
+        form.elements.assertion.value = JSON.stringify(authenticatorReponse);
+        form.submit();
     } catch (e) {
         console.log(e);
         if (msg) {
@@ -112,7 +210,9 @@ async function webauthnAuthentication(form) {
 }
 
 
-
+/*
+* static utils
+*/
 function base64URLStringToBuffer(base64URLString) {//https://git.io/J1zgG
     const base64 = base64URLString.replace(/-/g, '+').replace(/_/g, '/');
     const padLength = (4 - (base64.length % 4)) % 4;

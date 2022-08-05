@@ -1,12 +1,10 @@
 package it.smartcommunitylab.aac.webauthn.service;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import com.google.common.cache.CacheBuilder;
@@ -29,9 +27,7 @@ import com.yubico.webauthn.data.ClientRegistrationExtensionOutputs;
 import com.yubico.webauthn.data.PublicKeyCredential;
 import com.yubico.webauthn.data.PublicKeyCredentialCreationOptions;
 import com.yubico.webauthn.data.RelyingPartyIdentity;
-import com.yubico.webauthn.data.ResidentKeyRequirement;
 import com.yubico.webauthn.data.UserIdentity;
-import com.yubico.webauthn.data.UserVerificationRequirement;
 import com.yubico.webauthn.exception.AssertionFailedException;
 import com.yubico.webauthn.exception.RegistrationFailedException;
 
@@ -49,8 +45,10 @@ import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.webauthn.auth.WebAuthnAuthenticationException;
-import it.smartcommunitylab.aac.webauthn.model.WebAuthnCredentialCreationInfo;
-import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationResponse;
+import it.smartcommunitylab.aac.webauthn.model.AttestationResponse;
+import it.smartcommunitylab.aac.webauthn.model.CredentialCreationInfo;
+import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationRequest;
+import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationStartRequest;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredentialsRepository;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 
@@ -107,10 +105,6 @@ public class WebAuthnRpService {
                 }
             });
 
-    // TODO replace with external store
-    // do note that info is NOT serializable as is
-    private final Map<String, WebAuthnCredentialCreationInfo> activeRegistrations = new ConcurrentHashMap<>();
-
     public WebAuthnRpService(InternalUserAccountService userAccountService,
             WebAuthnCredentialsRepository credentialsRepository,
             ProviderConfigRepository<WebAuthnIdentityProviderConfig> registrationRepository) {
@@ -140,11 +134,8 @@ public class WebAuthnRpService {
      * confirmation link or account link via session
      */
 
-    public WebAuthnCredentialCreationInfo getRegistration(String key) {
-        return activeRegistrations.get(key);
-    }
-
-    public WebAuthnRegistrationResponse startRegistration(String registrationId, String username, String displayName)
+    public CredentialCreationInfo startRegistration(String registrationId,
+            String username, String displayName)
             throws NoSuchUserException, RegistrationException, NoSuchProviderException {
 
         WebAuthnIdentityProviderConfig config = registrationRepository.findByProviderId(registrationId);
@@ -172,11 +163,10 @@ public class WebAuthnRpService {
                 .id(userHandle.get())
                 .build();
 
-        // default config
-        // TODO make configurable
+        // build config
         AuthenticatorSelectionCriteria authenticatorSelection = AuthenticatorSelectionCriteria.builder()
-                .residentKey(ResidentKeyRequirement.REQUIRED)
-                .userVerification(UserVerificationRequirement.REQUIRED)
+                .residentKey(config.getRequireResidentKey())
+                .userVerification(config.getRequireUserVerification())
                 .build();
 
         StartRegistrationOptions startRegistrationOptions = StartRegistrationOptions.builder()
@@ -187,29 +177,17 @@ public class WebAuthnRpService {
 
         PublicKeyCredentialCreationOptions options = rp.startRegistration(startRegistrationOptions);
 
-        WebAuthnCredentialCreationInfo info = new WebAuthnCredentialCreationInfo();
-        info.setUsername(username);
-        info.setDisplayName(userDisplayName);
+        CredentialCreationInfo info = new CredentialCreationInfo();
+        info.setUserHandle(userHandle.get());
         info.setOptions(options);
-        info.setProviderId(registrationId);
 
-        // keep partial registration in memory
-        // TODO remove, we can rebuild it later, otherwise move it to a repo
-        String key = UUID.randomUUID().toString();
-        activeRegistrations.put(key, info);
-
-        // build response
-        // TODO uniform content of response and active registration
-        WebAuthnRegistrationResponse response = new WebAuthnRegistrationResponse();
-        response.setKey(key);
-        response.setOptions(options);
-        return response;
+        return info;
     }
 
     public RegistrationResult finishRegistration(
-            String registrationId, String key,
+            String registrationId, WebAuthnRegistrationRequest request,
             PublicKeyCredential<AuthenticatorAttestationResponse, ClientRegistrationExtensionOutputs> pkc)
-            throws RegistrationException, WebAuthnAuthenticationException, NoSuchUserException,
+            throws RegistrationException, NoSuchUserException,
             NoSuchProviderException {
         WebAuthnIdentityProviderConfig config = registrationRepository.findByProviderId(registrationId);
         RelyingParty rp = getRelyingParty(registrationId);
@@ -217,55 +195,27 @@ public class WebAuthnRpService {
             throw new NoSuchProviderException();
         }
 
-        WebAuthnCredentialCreationInfo info = activeRegistrations.get(key);
-        if (info == null) {
-            throw new RegistrationException("invalid key");
-        }
-
-        // remove, single use
-        info = activeRegistrations.remove(key);
-
-        String username = info.getUsername();
-        Optional<ByteArray> userHandle = rp.getCredentialRepository().getUserHandleForUsername(username);
-        if (userHandle.isEmpty()) {
-            throw new NoSuchUserException();
+        if (request == null) {
+            throw new RegistrationException();
         }
 
         try {
+            CredentialCreationInfo info = request.getCredentialCreationInfo();
+
             // parse response
             PublicKeyCredentialCreationOptions options = info.getOptions();
             RegistrationResult result = rp
                     .finishRegistration(FinishRegistrationOptions.builder().request(options).response(pkc).build());
+
             boolean attestationIsTrusted = result.isAttestationTrusted();
             if (!attestationIsTrusted && !rp.isAllowUntrustedAttestation()) {
                 throw new WebAuthnAuthenticationException("_", "Untrusted attestation");
             }
 
             return result;
-//            // Create credential in the database
-//            WebAuthnCredential credential = new WebAuthnCredential();
-//            credential.setProvider(providerId);
-//            credential.setUserHandle(account.getUserHandle());
-//            credential.setCredentialId(result.getKeyId().getId().getBase64());
-//
-//            credential.setPublicKeyCose(result.getPublicKeyCose().getBase64());
-//            credential.setSignatureCount(result.getSignatureCount());
-//            if (result.getKeyId().getTransports().isPresent()) {
-//                Set<AuthenticatorTransport> transports = result.getKeyId().getTransports().get();
-//                List<String> transportCodes = transports.stream().map(t -> t.getId()).collect(Collectors.toList());
-//                credential.setTransports(StringUtils.collectionToCommaDelimitedString(transportCodes));
-//            }
-//            credential.setCreatedOn(new Date());
-//            credential.setLastUsedOn(new Date());
-//
-//            credential = userAccountService.addCredential(providerId, credential);
-//
-//            return credential;
-        } catch (WebAuthnAuthenticationException | RegistrationFailedException e) {
-            throw new WebAuthnAuthenticationException("_",
-                    "Registration failed");
+        } catch (RegistrationFailedException e) {
+            throw new RegistrationException(e.getMessage());
         }
-
     }
 
     /*
@@ -289,29 +239,20 @@ public class WebAuthnRpService {
         StartAssertionOptions startAssertionOptions = StartAssertionOptions.builder()
                 .userHandle(userHandle)
                 .timeout(TIMEOUT)
-                .userVerification(UserVerificationRequirement.REQUIRED)
+                .userVerification(config.getRequireUserVerification())
+//                .userVerification(UserVerificationRequirement.REQUIRED)
                 .username(username)
                 .build();
 
         AssertionRequest assertionRequest = rp.startAssertion(startAssertionOptions);
         return assertionRequest;
-
-//        // save active session via key
-//        String key = UUID.randomUUID().toString();
-//        activeAuthentications.put(key, startAssertion);
-//
-//        // build response
-//        WebAuthnLoginResponse response = new WebAuthnLoginResponse();
-//        response.setAssertionRequest(startAssertion);
-//        response.setKey(key);
-//
-//        return response;
     }
 
     public AssertionResult finishLogin(
             String registrationId, AssertionRequest assertionRequest,
             PublicKeyCredential<AuthenticatorAssertionResponse, ClientAssertionExtensionOutputs> pkc)
-            throws NoSuchUserException, WebAuthnAuthenticationException, NoSuchProviderException {
+            throws NoSuchUserException, WebAuthnAuthenticationException, NoSuchProviderException,
+            AssertionFailedException {
 
         WebAuthnIdentityProviderConfig config = registrationRepository.findByProviderId(registrationId);
         RelyingParty rp = getRelyingParty(registrationId);
@@ -319,37 +260,16 @@ public class WebAuthnRpService {
             throw new NoSuchProviderException();
         }
 
-        try {
-            // build result
-            AssertionResult result = rp.finishAssertion(FinishAssertionOptions.builder().request(assertionRequest)
-                    .response(pkc).build());
+        // build result
+        AssertionResult result = rp.finishAssertion(FinishAssertionOptions.builder().request(assertionRequest)
+                .response(pkc).build());
 
-            if (!(result.isSuccess() && result.isSignatureCounterValid())) {
-                throw new WebAuthnAuthenticationException("", "Untrusted assertion");
-            }
-
-//            String userHandle = result.getUserHandle().getBase64();
-//            WebAuthnUserAccount account = userAccountService.findAccountByUserHandle(providerId, userHandle);
-//            if (account == null) {
-//                throw new NoSuchUserException();
-//            }
-//
-//            // fetch associated credential
-//            String credentialId = result.getCredentialId().getBase64();
-//            WebAuthnCredential credential = userAccountService.findByCredentialByUserHandleAndId(providerId, userHandle,
-//                    credentialId);
-//            if (credential == null) {
-//                throw new WebAuthnAuthenticationException(account.getUserId(), "invalid credentials");
-//            }
-//
-//            // update usage counter
-//            credential = userAccountService.updateCredentialCounter(providerId, credentialId,
-//                    result.getSignatureCount());
-
-            return result;
-        } catch (WebAuthnAuthenticationException | AssertionFailedException e) {
-            throw new WebAuthnAuthenticationException("_", "Login failed");
+        if (!(result.isSuccess() && result.isSignatureCounterValid())) {
+            throw new WebAuthnAuthenticationException("", "Untrusted assertion");
         }
+
+        return result;
+
     }
 
 }

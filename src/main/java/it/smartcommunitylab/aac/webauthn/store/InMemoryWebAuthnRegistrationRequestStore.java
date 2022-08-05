@@ -8,46 +8,46 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.util.Assert;
 
-import com.yubico.webauthn.AssertionRequest;
+import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationRequest;
 
 /*
  * In memory local request store
  * 
  */
-public class InMemoryWebAuthnRequestStore implements WebAuthnRequestStore {
+public class InMemoryWebAuthnRegistrationRequestStore implements WebAuthnRegistrationRequestStore {
 
-    private final Map<String, AssertionRequest> requests;
+    private final Map<String, WebAuthnRegistrationRequest> requests;
 
-    public InMemoryWebAuthnRequestStore() {
+    public InMemoryWebAuthnRegistrationRequestStore() {
         this.requests = new ConcurrentHashMap<>();
     }
 
     @Override
-    public AssertionRequest find(String key) {
+    public WebAuthnRegistrationRequest find(String key) {
         Assert.hasText(key, "key can not be null or empty");
         return requests.get(key);
     }
 
     @Override
-    public AssertionRequest consume(String key) {
+    public WebAuthnRegistrationRequest consume(String key) {
         Assert.hasText(key, "key can not be null or empty");
         return requests.remove(key);
     }
 
     @Override
-    public Collection<AssertionRequest> findAll() {
+    public Collection<WebAuthnRegistrationRequest> findAll() {
         return Collections.unmodifiableCollection(requests.values());
     }
 
     @Override
-    public String store(AssertionRequest request) {
+    public String store(WebAuthnRegistrationRequest request) {
         String key = extractKey(request);
         requests.put(key, request);
         return key;
     }
 
     @Override
-    public void store(AssertionRequest request, String key) {
+    public void store(WebAuthnRegistrationRequest request, String key) {
         requests.put(key, request);
     }
 
@@ -56,7 +56,7 @@ public class InMemoryWebAuthnRequestStore implements WebAuthnRequestStore {
         requests.remove(key);
     }
 
-    private String extractKey(AssertionRequest request) {
+    private String extractKey(WebAuthnRegistrationRequest request) {
         // TODO evaluate consistent hashing for key generation
         return UUID.randomUUID().toString();
     }

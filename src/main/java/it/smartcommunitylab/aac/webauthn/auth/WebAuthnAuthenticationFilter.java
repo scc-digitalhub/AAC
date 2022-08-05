@@ -27,6 +27,7 @@ import com.yubico.webauthn.AssertionResult;
 import com.yubico.webauthn.data.AuthenticatorAssertionResponse;
 import com.yubico.webauthn.data.ClientAssertionExtensionOutputs;
 import com.yubico.webauthn.data.PublicKeyCredential;
+import com.yubico.webauthn.exception.AssertionFailedException;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
@@ -40,7 +41,7 @@ import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
 import it.smartcommunitylab.aac.webauthn.WebAuthnLoginAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpService;
-import it.smartcommunitylab.aac.webauthn.store.InMemoryWebAuthnRequestStore;
+import it.smartcommunitylab.aac.webauthn.store.WebAuthnAssertionRequestStore;
 
 public class WebAuthnAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
@@ -54,16 +55,16 @@ public class WebAuthnAuthenticationFilter extends AbstractAuthenticationProcessi
     private AuthenticationEntryPoint authenticationEntryPoint;
 
     private final WebAuthnRpService rpService;
-    private final InMemoryWebAuthnRequestStore requestStore;
+    private final WebAuthnAssertionRequestStore requestStore;
 
     public WebAuthnAuthenticationFilter(WebAuthnRpService rpService,
-            InMemoryWebAuthnRequestStore requestStore,
+            WebAuthnAssertionRequestStore requestStore,
             ProviderConfigRepository<WebAuthnIdentityProviderConfig> registrationRepository) {
         this(rpService, requestStore, registrationRepository, DEFAULT_FILTER_URI, null);
     }
 
     public WebAuthnAuthenticationFilter(WebAuthnRpService rpService,
-            InMemoryWebAuthnRequestStore requestStore,
+            WebAuthnAssertionRequestStore requestStore,
             ProviderConfigRepository<WebAuthnIdentityProviderConfig> registrationRepository,
             String filterProcessingUrl, AuthenticationEntryPoint authenticationEntryPoint) {
         super(filterProcessingUrl);
@@ -162,7 +163,7 @@ public class WebAuthnAuthenticationFilter extends AbstractAuthenticationProcessi
                     .parseAssertionResponseJson(assertion);
 
             AssertionResult assertionResult = rpService.finishLogin(providerId, assertionRequest, pkc);
-            String userHandle = assertionResult.getUserHandle().getBase64();
+            String userHandle = new String(assertionResult.getUserHandle().getBytes());
 
             // build a request
             WebAuthnAuthenticationToken authenticationRequest = new WebAuthnAuthenticationToken(userHandle,
@@ -185,7 +186,8 @@ public class WebAuthnAuthenticationFilter extends AbstractAuthenticationProcessi
             // return authentication to be set in security context
             return userAuthentication;
 
-        } catch (IOException ie) {
+        } catch (AssertionFailedException | IOException ie) {
+            logger.debug(ie.getMessage());
             AuthenticationException e = new BadCredentialsException("invalid authentication assertion");
             throw new WebAuthnAuthenticationException(null, null, assertion, e,
                     e.getMessage());

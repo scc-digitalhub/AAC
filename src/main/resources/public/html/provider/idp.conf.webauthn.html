@@ -101,6 +101,28 @@
                 </div>
             </div>
         </div>
+        <div class="row">
+            <div class="form-group col">
+                <div class="bootstrap-select-wrapper border-bottom-0">
+                    <label>User verification</label>
+                    <select required title="Select" ng-model="idp.configuration.requireUserVerification">
+                        <option ng-repeat="c in idp.schema.properties.requireUserVerification.enum" value="{{c}}"
+                            ng-selected="idp.configuration.requireUserVerification == c">{{c}}
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group col">
+                <div class="bootstrap-select-wrapper border-bottom-0">
+                    <label>Resident key</label>
+                    <select required title="Select" ng-model="idp.configuration.requireResidentKey">
+                        <option ng-repeat="c in idp.schema.properties.requireResidentKey.enum" value="{{c}}"
+                            ng-selected="idp.configuration.requireResidentKey == c">{{c}}
+                        </option>
+                    </select>
+                </div>
+            </div>
+        </div>
 
 
 

@@ -4,6 +4,9 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.Map;
 
+import com.yubico.webauthn.data.ResidentKeyRequirement;
+import com.yubico.webauthn.data.UserVerificationRequirement;
+
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
@@ -48,6 +51,16 @@ public class WebAuthnIdentityProviderConfig extends InternalIdentityProviderConf
         return configMap.getTrustUnverifiedAuthenticatorResponses() != null
                 ? configMap.getTrustUnverifiedAuthenticatorResponses().booleanValue()
                 : false;
+    }
+
+    public UserVerificationRequirement getRequireUserVerification() {
+        return configMap.getRequireUserVerification() != null ? configMap.getRequireUserVerification()
+                : UserVerificationRequirement.PREFERRED;
+    }
+
+    public ResidentKeyRequirement getRequireResidentKey() {
+        return configMap.getRequireResidentKey() != null ? configMap.getRequireResidentKey()
+                : ResidentKeyRequirement.PREFERRED;
     }
 
     /*

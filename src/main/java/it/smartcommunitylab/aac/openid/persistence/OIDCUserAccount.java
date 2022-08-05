@@ -8,6 +8,7 @@ import javax.persistence.EntityListeners;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
@@ -15,6 +16,8 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.util.StringUtils;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractAccount;
@@ -49,7 +52,9 @@ public class OIDCUserAccount extends AbstractAccount {
     @Column(name = "user_id", length = 128)
     private String userId;
 
-    private transient String authority;
+    @JsonInclude
+    @Transient
+    private String authority;
 
     @NotBlank
     @Column(length = 128)

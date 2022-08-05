@@ -83,6 +83,11 @@ import it.smartcommunitylab.aac.spid.auth.SpidMetadataFilter;
 import it.smartcommunitylab.aac.spid.auth.SpidWebSsoAuthenticationFilter;
 import it.smartcommunitylab.aac.spid.auth.SpidWebSsoAuthenticationRequestFilter;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
+import it.smartcommunitylab.aac.webauthn.auth.WebAuthnAuthenticationFilter;
+import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpService;
+import it.smartcommunitylab.aac.webauthn.store.InMemoryWebAuthnAssertionRequestStore;
+import it.smartcommunitylab.aac.webauthn.store.WebAuthnAssertionRequestStore;
 
 /*
  * Security config for AAC UI
@@ -120,7 +125,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private SamlRelyingPartyRegistrationRepository spidRelyingPartyRegistrationRepository;
 
     @Autowired
+    private WebAuthnAssertionRequestStore webAuthnRequestStore;
+
+    @Autowired
     private InternalUserAccountService internalUserAccountService;
+
+    @Autowired
+    private WebAuthnRpService webAuthnRpService;
 
     @Autowired
     private InternalUserPasswordRepository passwordRepository;
@@ -136,6 +147,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private ProviderConfigRepository<InternalPasswordIdentityProviderConfig> internalPasswordProviderRepository;
+
+    @Autowired
+    private ProviderConfigRepository<WebAuthnIdentityProviderConfig> webAuthnProviderRepository;
 
     @Autowired
     private ProviderConfigRepository<OIDCIdentityProviderConfig> oidcProviderRepository;
@@ -267,6 +281,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .addFilterBefore(
                         getInternalPasswordAuthorityFilters(authManager, internalPasswordProviderRepository,
                                 internalUserAccountService, passwordRepository),
+                        BasicAuthenticationFilter.class)
+                .addFilterBefore(
+                        getWebAuthnAuthorityFilters(
+                                authManager,
+                                webAuthnRpService,
+                                webAuthnProviderRepository,
+                                internalUserAccountService, webAuthnRequestStore),
                         BasicAuthenticationFilter.class)
                 .addFilterBefore(
                         getSamlAuthorityFilters(authManager, samlProviderRepository,
@@ -412,6 +433,25 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         resetKeyFilter.setAuthenticationManager(authManager);
         resetKeyFilter.setAuthenticationSuccessHandler(successHandler());
         filters.add(resetKeyFilter);
+
+        CompositeFilter filter = new CompositeFilter();
+        filter.setFilters(filters);
+
+        return filter;
+    }
+
+    public CompositeFilter getWebAuthnAuthorityFilters(AuthenticationManager authManager,
+            WebAuthnRpService rpService,
+            ProviderConfigRepository<WebAuthnIdentityProviderConfig> providerRepository,
+            InternalUserAccountService userAccountService, WebAuthnAssertionRequestStore requestStore) {
+
+        List<Filter> filters = new ArrayList<>();
+
+        WebAuthnAuthenticationFilter loginFilter = new WebAuthnAuthenticationFilter(rpService, requestStore,
+                providerRepository);
+        loginFilter.setAuthenticationManager(authManager);
+        loginFilter.setAuthenticationSuccessHandler(successHandler());
+        filters.add(loginFilter);
 
         CompositeFilter filter = new CompositeFilter();
         filter.setFilters(filters);

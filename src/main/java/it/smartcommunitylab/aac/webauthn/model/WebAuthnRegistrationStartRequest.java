@@ -10,16 +10,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class WebAuthnRegistrationStartRequest {
 
-    private String provider;
-
-    @NotNull
-    private String userHandle;
-
-    @JsonProperty("username")
     @NotNull
     private String username;
 
-    @JsonProperty("displayName")
     private String displayName;
 
     public String getUsername() {
@@ -36,22 +29,6 @@ public class WebAuthnRegistrationStartRequest {
 
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
-    }
-
-    public String getProvider() {
-        return provider;
-    }
-
-    public void setProvider(String provider) {
-        this.provider = provider;
-    }
-
-    public String getUserHandle() {
-        return userHandle;
-    }
-
-    public void setUserHandle(String userHandle) {
-        this.userHandle = userHandle;
     }
 
 }

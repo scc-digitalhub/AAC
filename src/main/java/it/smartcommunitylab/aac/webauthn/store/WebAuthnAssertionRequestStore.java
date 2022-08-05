@@ -4,7 +4,7 @@ import java.util.Collection;
 
 import com.yubico.webauthn.AssertionRequest;
 
-public interface WebAuthnRequestStore {
+public interface WebAuthnAssertionRequestStore {
 
     public AssertionRequest find(String key);
 

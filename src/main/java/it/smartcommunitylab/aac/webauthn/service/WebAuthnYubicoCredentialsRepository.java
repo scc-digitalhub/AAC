@@ -53,15 +53,19 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
         // build descriptors
         Set<PublicKeyCredentialDescriptor> descriptors = new HashSet<>();
         for (WebAuthnCredential c : credentials) {
-            Set<AuthenticatorTransport> transports = StringUtils.commaDelimitedListToSet(c.getTransports())
-                    .stream()
-                    .map(t -> AuthenticatorTransport.of(t))
-                    .collect(Collectors.toSet());
-            PublicKeyCredentialDescriptor descriptor = PublicKeyCredentialDescriptor.builder()
-                    .id(ByteArray.fromBase64(c.getCredentialId())).type(PublicKeyCredentialType.PUBLIC_KEY)
-                    .transports(transports)
-                    .build();
-            descriptors.add(descriptor);
+            try {
+                Set<AuthenticatorTransport> transports = StringUtils.commaDelimitedListToSet(c.getTransports())
+                        .stream()
+                        .map(t -> AuthenticatorTransport.of(t))
+                        .collect(Collectors.toSet());
+                PublicKeyCredentialDescriptor descriptor = PublicKeyCredentialDescriptor.builder()
+                        .id(ByteArray.fromBase64Url(c.getCredentialId())).type(PublicKeyCredentialType.PUBLIC_KEY)
+                        .transports(transports)
+                        .build();
+                descriptors.add(descriptor);
+            } catch (Base64UrlException e) {
+                // skip
+            }
         }
 
         return descriptors;
@@ -114,8 +118,11 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
         }
 
         // we use yubico ids as base64
+        String id = credentialId.getBase64Url();
+        // yubico userhandle is uuid
+        String uuid = new String(userHandle.getBytes());
         WebAuthnCredential credential = credentialsRepository.findByProviderAndUserHandleAndCredentialId(repositoryId,
-                credentialId.getBase64Url(), userHandle.getBase64Url());
+                uuid, id);
         if (credential == null) {
             return Optional.empty();
         }
@@ -135,8 +142,9 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
         }
 
         // we use yubico ids as base64
+        String id = credentialId.getBase64Url();
         List<WebAuthnCredential> credentials = credentialsRepository.findByProviderAndCredentialId(repositoryId,
-                credentialId.getBase64Url());
+                id);
         return credentials.stream()
                 .map(c -> {
                     try {
@@ -153,7 +161,7 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
     private RegisteredCredential toRegisteredCredential(WebAuthnCredential credential) throws Base64UrlException {
         return RegisteredCredential.builder()
                 .credentialId(ByteArray.fromBase64Url(credential.getCredentialId()))
-                .userHandle(ByteArray.fromBase64Url(credential.getUserHandle()))
+                .userHandle(new ByteArray(credential.getUserHandle().getBytes()))
                 .publicKeyCose(ByteArray.fromBase64(credential.getPublicKeyCose()))
                 .signatureCount(credential.getSignatureCount())
                 .build();

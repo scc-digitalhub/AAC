@@ -11,6 +11,8 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
+import com.yubico.webauthn.data.ResidentKeyRequirement;
+import com.yubico.webauthn.data.UserVerificationRequirement;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.internal.model.CredentialsType;
@@ -25,6 +27,10 @@ public class WebAuthnIdentityProviderConfigMap extends InternalIdentityProviderC
     private Boolean displayAsButton;
 
     private Boolean trustUnverifiedAuthenticatorResponses;
+
+    private UserVerificationRequirement requireUserVerification;
+
+    private ResidentKeyRequirement requireResidentKey;
 
     public WebAuthnIdentityProviderConfigMap() {
         super();
@@ -52,6 +58,22 @@ public class WebAuthnIdentityProviderConfigMap extends InternalIdentityProviderC
         this.trustUnverifiedAuthenticatorResponses = trustUnverifiedAuthenticatorResponses;
     }
 
+    protected UserVerificationRequirement getRequireUserVerification() {
+        return requireUserVerification;
+    }
+
+    protected void setRequireUserVerification(UserVerificationRequirement requireUserVerification) {
+        this.requireUserVerification = requireUserVerification;
+    }
+
+    protected ResidentKeyRequirement getRequireResidentKey() {
+        return requireResidentKey;
+    }
+
+    protected void setRequireResidentKey(ResidentKeyRequirement requireResidentKey) {
+        this.requireResidentKey = requireResidentKey;
+    }
+
     @Override
     @JsonIgnore
     public Map<String, Serializable> getConfiguration() {
@@ -72,6 +94,8 @@ public class WebAuthnIdentityProviderConfigMap extends InternalIdentityProviderC
 
         this.displayAsButton = map.getDisplayAsButton();
         this.trustUnverifiedAuthenticatorResponses = map.getTrustUnverifiedAuthenticatorResponses();
+        this.requireResidentKey = map.getRequireResidentKey();
+        this.requireUserVerification = map.getRequireUserVerification();
     }
 
     @JsonIgnore
