@@ -4,18 +4,21 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>it.smartcommunitylab</groupId>
 	<artifactId>aac</artifactId>
-	<version>4.0.0-SNAPSHOT</version>
+	<version>4.1.0-SNAPSHOT</version>
 	<name>aac</name>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.6.7</version>
+		<version>2.6.10</version>
 	</parent>
 
 	<properties>
 		<java.version>1.11</java.version>
 		<bouncycastle.version>1.71</bouncycastle.version>
+		<springdoc.version>1.6.9</springdoc.version>
+		<jsoup.version>1.15.2</jsoup.version>
+		<yubico.version>2.0.0</yubico.version>
 		<profile.authorization />
 	</properties>
 
@@ -31,12 +34,7 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
-		<!-- TODO drop obsolete lib -->
-		<!-- <dependency> -->
-		<!-- <groupId>org.springframework.mobile</groupId> -->
-		<!-- <artifactId>spring-mobile-device</artifactId> -->
-		<!-- <version>1.1.5.RELEASE</version> -->
-		<!-- </dependency> -->
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
@@ -44,6 +42,10 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -55,11 +57,7 @@
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<!-- <dependency> -->
-		<!-- <groupId>org.springframework.security</groupId> -->
-		<!-- <artifactId>spring-security-jwt</artifactId> -->
-		<!-- <version>1.0.10.RELEASE</version> -->
-		<!-- </dependency> -->
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-devtools</artifactId>
@@ -129,11 +127,11 @@
 			<artifactId>mysql-connector-java</artifactId>
 		</dependency>
 
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-context-support</artifactId>
-			<type>jar</type>
-		</dependency>
+		<!-- <dependency> -->
+		<!-- <groupId>org.springframework</groupId> -->
+		<!-- <artifactId>spring-context-support</artifactId> -->
+		<!-- <type>jar</type> -->
+		<!-- </dependency> -->
 		<!-- <dependency> -->
 		<!-- <groupId>org.springframework.security.oauth.boot</groupId> -->
 		<!-- <artifactId>spring-security-oauth2-autoconfigure</artifactId> -->
@@ -184,11 +182,11 @@
 		<!-- </dependency> -->
 		<!-- Use to bean validation -->
 
-		<dependency>
-			<groupId>javax.mail</groupId>
-			<artifactId>mail</artifactId>
-			<version>1.4</version>
-		</dependency>
+		<!-- <dependency> -->
+		<!-- <groupId>javax.mail</groupId> -->
+		<!-- <artifactId>mail</artifactId> -->
+		<!-- <version>1.4</version> -->
+		<!-- </dependency> -->
 
 		<!-- <dependency> -->
 		<!-- <groupId>javax.activation</groupId> -->
@@ -207,12 +205,12 @@
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-ui</artifactId>
-			<version>1.5.12</version>
+			<version>${springdoc.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-data-rest</artifactId>
-			<version>1.5.12</version>
+			<version>${springdoc.version}</version>
 		</dependency>
 
 		<!-- <dependency> -->
@@ -222,7 +220,7 @@
 		<dependency>
 			<groupId>org.jsoup</groupId>
 			<artifactId>jsoup</artifactId>
-			<version>1.14.3</version>
+			<version>${jsoup.version}</version>
 		</dependency>
 
 
@@ -252,15 +250,15 @@
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/com.sun.xml.bind/jaxb-impl -->
-		<dependency>
-			<groupId>com.sun.xml.bind</groupId>
-			<artifactId>jaxb-impl</artifactId>
-			<version>2.3.2</version>
-		</dependency>
-		<dependency>
-			<groupId>jakarta.xml.bind</groupId>
-			<artifactId>jakarta.xml.bind-api</artifactId>
-		</dependency>
+<!-- 		<dependency> -->
+<!-- 			<groupId>com.sun.xml.bind</groupId> -->
+<!-- 			<artifactId>jaxb-impl</artifactId> -->
+<!-- 			<version>2.3.2</version> -->
+<!-- 		</dependency> -->
+<!-- 		<dependency> -->
+<!-- 			<groupId>jakarta.xml.bind</groupId> -->
+<!-- 			<artifactId>jakarta.xml.bind-api</artifactId> -->
+<!-- 		</dependency> -->
 		<!-- https://mvnrepository.com/artifact/com.sun.istack/istack-commons-runtime -->
 		<!-- <dependency> -->
 		<!-- <groupId>com.sun.istack</groupId> -->
@@ -276,7 +274,7 @@
 		<dependency>
 			<groupId>com.yubico</groupId>
 			<artifactId>webauthn-server-core</artifactId>
-			<version>2.0.0</version>
+			<version>${yubico.version}</version>
 		</dependency>
 	</dependencies>
 
