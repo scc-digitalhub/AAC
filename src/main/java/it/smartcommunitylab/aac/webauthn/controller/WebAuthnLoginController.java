@@ -23,8 +23,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
-
 import com.yubico.webauthn.AssertionRequest;
 
 import io.swagger.v3.oas.annotations.Hidden;
@@ -42,7 +40,6 @@ import it.smartcommunitylab.aac.webauthn.model.WebAuthnAuthenticationStartReques
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnLoginResponse;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProvider;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpService;
-import it.smartcommunitylab.aac.webauthn.store.InMemoryWebAuthnAssertionRequestStore;
 import it.smartcommunitylab.aac.webauthn.store.WebAuthnAssertionRequestStore;
 
 @Controller

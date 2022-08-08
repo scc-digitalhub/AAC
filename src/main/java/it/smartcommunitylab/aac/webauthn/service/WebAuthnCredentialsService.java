@@ -10,8 +10,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -30,7 +28,6 @@ import it.smartcommunitylab.aac.core.provider.UserCredentialsService;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
-import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredential;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredentialsRepository;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
@@ -100,7 +97,7 @@ public class WebAuthnCredentialsService extends AbstractProvider
     public List<WebAuthnCredential> findActiveCredentialsByUsername(String username) {
         List<WebAuthnCredential> credentials = credentialsRepository.findByProviderAndUsername(repositoryId, username);
         return credentials.stream()
-                .filter(c -> CredentialsStatus.ACTIVE.getValue().equals(c.getStatus()))
+                .filter(c -> STATUS_ACTIVE.equals(c.getStatus()))
                 .map(a -> {
                     return credentialsRepository.detach(a);
                 })
@@ -112,7 +109,7 @@ public class WebAuthnCredentialsService extends AbstractProvider
         List<WebAuthnCredential> credentials = credentialsRepository.findByProviderAndUserHandle(repositoryId,
                 userHandle);
         return credentials.stream()
-                .filter(c -> CredentialsStatus.ACTIVE.getValue().equals(c.getStatus()))
+                .filter(c -> STATUS_ACTIVE.equals(c.getStatus()))
                 .map(a -> {
                     return credentialsRepository.detach(a);
                 })
@@ -490,8 +487,7 @@ public class WebAuthnCredentialsService extends AbstractProvider
      * Status codes
      */
     private static final String STATUS_ACTIVE = CredentialsStatus.ACTIVE.getValue();
-    private static final String STATUS_INACTIVE = CredentialsStatus.INACTIVE.getValue();
     private static final String STATUS_REVOKED = CredentialsStatus.REVOKED.getValue();
-    private static final String STATUS_EXPIRED = CredentialsStatus.EXPIRED.getValue();
+//    private static final String STATUS_EXPIRED = CredentialsStatus.EXPIRED.getValue();
 
 }

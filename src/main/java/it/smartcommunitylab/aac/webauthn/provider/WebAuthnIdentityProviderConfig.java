@@ -14,8 +14,6 @@ import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig
 public class WebAuthnIdentityProviderConfig extends InternalIdentityProviderConfig {
     private static final long serialVersionUID = SystemKeys.AAC_WEBAUTHN_SERIAL_VERSION;
 
-    private final static int MIN_LINK_DURATION = 3600;
-
     // map capabilities
     private WebAuthnIdentityProviderConfigMap configMap;
 

@@ -2,10 +2,7 @@ package it.smartcommunitylab.aac.webauthn.persistence;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.Map;
-
 import javax.persistence.Column;
-import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
 import javax.persistence.Id;
@@ -26,7 +23,6 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractUserCredentials;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
 import it.smartcommunitylab.aac.internal.model.CredentialsType;
-import it.smartcommunitylab.aac.repository.HashMapConverter;
 
 @Entity
 @Table(name = "internal_users_webauthn_credentials", uniqueConstraints = @UniqueConstraint(columnNames = {

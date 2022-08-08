@@ -1,6 +1,5 @@
 package it.smartcommunitylab.aac.webauthn.service;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.Optional;
@@ -45,10 +44,8 @@ import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.webauthn.auth.WebAuthnAuthenticationException;
-import it.smartcommunitylab.aac.webauthn.model.AttestationResponse;
 import it.smartcommunitylab.aac.webauthn.model.CredentialCreationInfo;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationRequest;
-import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationStartRequest;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredentialsRepository;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 
