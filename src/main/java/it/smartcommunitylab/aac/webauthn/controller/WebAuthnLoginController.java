@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.web.WebAttributes;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -144,10 +145,14 @@ public class WebAuthnLoginController {
             String username = body.getUsername();
             // TODO evaluate displayName support
 
+            logger.debug("build login assertionOptions for user {}", StringUtils.trimAllWhitespace(username));
             AssertionRequest assertionRequest = rpService.startLogin(providerId, username);
 
             // store request
             String key = requestStore.store(assertionRequest);
+            if (logger.isTraceEnabled()) {
+                logger.trace("assertion {}: {}", key, String.valueOf(assertionRequest));
+            }
 
             // build response
             WebAuthnLoginResponse response = new WebAuthnLoginResponse();

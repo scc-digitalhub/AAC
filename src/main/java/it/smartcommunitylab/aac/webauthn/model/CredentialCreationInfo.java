@@ -26,4 +26,9 @@ public class CredentialCreationInfo {
         this.options = options;
     }
 
+    @Override
+    public String toString() {
+        return "CredentialCreationInfo [userHandle=" + userHandle + ", options=" + options + "]";
+    }
+
 }

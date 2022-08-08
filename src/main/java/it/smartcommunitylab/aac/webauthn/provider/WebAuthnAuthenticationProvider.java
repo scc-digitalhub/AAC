@@ -27,7 +27,6 @@ import it.smartcommunitylab.aac.webauthn.auth.WebAuthnAuthenticationException;
 import it.smartcommunitylab.aac.webauthn.auth.WebAuthnAuthenticationToken;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredential;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnCredentialsService;
 
 public class WebAuthnAuthenticationProvider
         extends ExtendedAuthenticationProvider<WebAuthnUserAuthenticatedPrincipal, InternalUserAccount> {
@@ -66,6 +65,12 @@ public class WebAuthnAuthenticationProvider
         AssertionResult assertionResult = authRequest.getAssertionResult();
         String assertion = authRequest.getAssertion();
         String subject = null;
+
+        if (logger.isTraceEnabled()) {
+            logger.trace("process token: {}", String.valueOf(authRequest));
+            logger.trace("assertionRequest: {}", String.valueOf(assertionRequest));
+            logger.trace("assertionResult: {}", String.valueOf(assertionResult));
+        }
 
         try {
             // make sure assertion is valid
@@ -110,6 +115,7 @@ public class WebAuthnAuthenticationProvider
 
             return auth;
         } catch (BadCredentialsException e) {
+            logger.debug("invalid request: " + e.getMessage());
             throw new WebAuthnAuthenticationException(subject, userHandle, assertion, e,
                     e.getMessage());
         }

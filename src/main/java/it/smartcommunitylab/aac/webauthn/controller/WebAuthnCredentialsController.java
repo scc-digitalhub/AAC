@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,8 +37,8 @@ import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredential;
+import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsService;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProvider;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnCredentialsService;
 
 @Controller
 @RequestMapping
@@ -76,6 +77,9 @@ public class WebAuthnCredentialsController {
         if (identity == null) {
             throw new IllegalArgumentException("error.invalid_user");
         }
+
+        logger.debug("manage credentials for {} with provider {}", StringUtils.trimAllWhitespace(uuid),
+                StringUtils.trimAllWhitespace(providerId));
 
         UserAccount account = identity.getAccount();
 
@@ -188,6 +192,10 @@ public class WebAuthnCredentialsController {
         if (!username.equals(cred.getUsername())) {
             throw new IllegalArgumentException("error.invalid_user");
         }
+
+        logger.debug("delete credential {} for {} with provider {}", StringUtils.trimAllWhitespace(id),
+                StringUtils.trimAllWhitespace(uuid),
+                StringUtils.trimAllWhitespace(providerId));
 
         // delete
         service.deleteCredentials(username, cred.getCredentialId());

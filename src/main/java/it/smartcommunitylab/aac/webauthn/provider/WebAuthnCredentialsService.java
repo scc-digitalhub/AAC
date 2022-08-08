@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.webauthn.service;
+package it.smartcommunitylab.aac.webauthn.provider;
 
 import java.util.Collection;
 import java.util.List;
@@ -30,7 +30,6 @@ import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredential;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredentialsRepository;
-import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 
 @Transactional
 public class WebAuthnCredentialsService extends AbstractProvider
@@ -198,6 +197,11 @@ public class WebAuthnCredentialsService extends AbstractProvider
 
         c.setStatus(CredentialsStatus.ACTIVE.getValue());
 
+        logger.debug("add credential {} for {}", c.getCredentialId(), String.valueOf(userHandle));
+        if (logger.isTraceEnabled()) {
+            logger.trace("new credential: {}", String.valueOf(c));
+        }
+
         c = credentialsRepository.saveAndFlush(c);
         c = credentialsRepository.detach(c);
 
@@ -228,6 +232,12 @@ public class WebAuthnCredentialsService extends AbstractProvider
         c.setDisplayName(displayName);
         c.setSignatureCount(signatureCount);
 
+        logger.debug("update credential {} displayName {} signature count {}", c.getCredentialId(),
+                String.valueOf(displayName), String.valueOf(signatureCount));
+        if (logger.isTraceEnabled()) {
+            logger.trace("update credential: {}", String.valueOf(c));
+        }
+
         c = credentialsRepository.saveAndFlush(c);
         c = credentialsRepository.detach(c);
 
@@ -252,6 +262,7 @@ public class WebAuthnCredentialsService extends AbstractProvider
 
         // update field
         c.setSignatureCount(count);
+        logger.debug("update credential {} signature count to {}", c.getCredentialId(), String.valueOf(count));
 
         c = credentialsRepository.saveAndFlush(c);
         c = credentialsRepository.detach(c);
@@ -265,6 +276,7 @@ public class WebAuthnCredentialsService extends AbstractProvider
                 userHandle,
                 credentialId);
         if (c != null) {
+            logger.debug("delete credential {} with id {}", c.getCredentialId(), c.getId());
             credentialsRepository.delete(c);
         }
     }
@@ -282,6 +294,8 @@ public class WebAuthnCredentialsService extends AbstractProvider
         if (!STATUS_REVOKED.equals(c.getStatus())) {
             // update status
             c.setStatus(STATUS_REVOKED);
+
+            logger.debug("revoke credential {}", c.getCredentialId());
             c = credentialsRepository.saveAndFlush(c);
         }
 

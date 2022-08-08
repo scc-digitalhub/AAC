@@ -23,7 +23,6 @@ import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredential;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredentialsRepository;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnCredentialsService;
 
 public class WebAuthnIdentityProvider
         extends AbstractInternalIdentityProvider<WebAuthnUserAuthenticatedPrincipal, WebAuthnCredential>

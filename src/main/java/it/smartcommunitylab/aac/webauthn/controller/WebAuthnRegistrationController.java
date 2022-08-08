@@ -53,8 +53,8 @@ import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationRequest;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationResponse;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationStartRequest;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredential;
+import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsService;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProvider;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnCredentialsService;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpService;
 import it.smartcommunitylab.aac.webauthn.store.WebAuthnRegistrationRequestStore;
 
@@ -123,6 +123,9 @@ public class WebAuthnRegistrationController {
         if (!idp.getConfig().isEnableRegistration()) {
             throw new IllegalArgumentException("error.unsupported_operation");
         }
+
+        logger.debug("register credentials for {} with provider {}", StringUtils.trimAllWhitespace(uuid),
+                StringUtils.trimAllWhitespace(providerId));
 
         // for internal username is accountId
         String username = account.getAccountId();
@@ -217,6 +220,8 @@ public class WebAuthnRegistrationController {
 
         String displayName = reg.getDisplayName();
 
+        logger.debug("build registration attestationOptions for user {}", StringUtils.trimAllWhitespace(username));
+
         // build info via service
         CredentialCreationInfo info = rpService.startRegistration(providerId, username, displayName);
         String userHandle = new String(info.getUserHandle().getBytes());
@@ -228,6 +233,9 @@ public class WebAuthnRegistrationController {
 
         // store request
         String key = requestStore.store(request);
+        if (logger.isTraceEnabled()) {
+            logger.trace("request {}: {}", key, String.valueOf(request));
+        }
 
         // build response
         WebAuthnRegistrationResponse response = new WebAuthnRegistrationResponse(
@@ -292,6 +300,8 @@ public class WebAuthnRegistrationController {
         // TODO implement audit
         request.setAttestationResponse(body);
 
+        logger.debug("finish registration {} for user {}", key, StringUtils.trimAllWhitespace(username));
+
         // parse body
         PublicKeyCredential<AuthenticatorAttestationResponse, ClientRegistrationExtensionOutputs> pkc = null;
         try {
@@ -299,7 +309,12 @@ public class WebAuthnRegistrationController {
         } catch (IOException e) {
         }
 
+        if (logger.isTraceEnabled()) {
+            logger.trace("pkc for {}: {}", key, String.valueOf(pkc));
+        }
+
         if (pkc == null) {
+            logger.error("invalid attestation for registration");
             throw new RegistrationException("invalid attestation");
         }
 
@@ -309,6 +324,10 @@ public class WebAuthnRegistrationController {
 
         // register result
         request.setRegistrationResult(result);
+
+        if (logger.isTraceEnabled()) {
+            logger.trace("request {}: {}", key, String.valueOf(request));
+        }
 
         // create a new credential in repository for the result
         WebAuthnCredential credential = new WebAuthnCredential();
@@ -334,6 +353,8 @@ public class WebAuthnRegistrationController {
         credential.setClientData(pkc.getResponse().getClientDataJSON().getBase64());
 
         // register as new
+        logger.debug("register credential {} for user {} via userHandle {}", credential.getCredentialId(),
+                StringUtils.trimAllWhitespace(username), userHandle);
         credential = service.setCredentials(username, credential);
 
         String uuid = userHandle;

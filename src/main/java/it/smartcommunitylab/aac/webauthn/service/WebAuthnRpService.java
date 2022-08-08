@@ -134,6 +134,8 @@ public class WebAuthnRpService {
     public CredentialCreationInfo startRegistration(String registrationId,
             String username, String displayName)
             throws NoSuchUserException, RegistrationException, NoSuchProviderException {
+        logger.debug("start registration for {} with provider {}", StringUtils.trimAllWhitespace(username),
+                StringUtils.trimAllWhitespace(registrationId));
 
         WebAuthnIdentityProviderConfig config = registrationRepository.findByProviderId(registrationId);
         RelyingParty rp = getRelyingParty(registrationId);
@@ -197,6 +199,9 @@ public class WebAuthnRpService {
         }
 
         try {
+            logger.debug("finish registration for {} with provider {}", request.getUserHandle(),
+                    StringUtils.trimAllWhitespace(registrationId));
+
             CredentialCreationInfo info = request.getCredentialCreationInfo();
 
             // parse response
@@ -205,6 +210,8 @@ public class WebAuthnRpService {
                     .finishRegistration(FinishRegistrationOptions.builder().request(options).response(pkc).build());
 
             boolean attestationIsTrusted = result.isAttestationTrusted();
+            logger.debug("registration attestation is trusted: ", String.valueOf(attestationIsTrusted));
+
             if (!attestationIsTrusted && !rp.isAllowUntrustedAttestation()) {
                 throw new WebAuthnAuthenticationException("_", "Untrusted attestation");
             }
@@ -221,6 +228,9 @@ public class WebAuthnRpService {
 
     public AssertionRequest startLogin(String registrationId, String username)
             throws NoSuchUserException, NoSuchProviderException {
+        logger.debug("start login for {} with provider {}", StringUtils.trimAllWhitespace(username),
+                StringUtils.trimAllWhitespace(registrationId));
+
         WebAuthnIdentityProviderConfig config = registrationRepository.findByProviderId(registrationId);
         RelyingParty rp = getRelyingParty(registrationId);
         if (config == null || rp == null) {
@@ -257,9 +267,14 @@ public class WebAuthnRpService {
             throw new NoSuchProviderException();
         }
 
+        logger.debug("finish login for {} with provider {}",
+                StringUtils.trimAllWhitespace(assertionRequest.getUsername().orElse(null)),
+                StringUtils.trimAllWhitespace(registrationId));
+
         // build result
         AssertionResult result = rp.finishAssertion(FinishAssertionOptions.builder().request(assertionRequest)
                 .response(pkc).build());
+        logger.debug("login assertion is success: {}", String.valueOf(result.isSuccess()));
 
         if (!(result.isSuccess() && result.isSignatureCounterValid())) {
             throw new WebAuthnAuthenticationException("", "Untrusted assertion");
