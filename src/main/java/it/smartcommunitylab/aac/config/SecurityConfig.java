@@ -49,6 +49,7 @@ import org.springframework.security.web.header.writers.ClearSiteDataHeaderWriter
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.filter.CompositeFilter;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.ExtendedUserAuthenticationManager;
 import it.smartcommunitylab.aac.core.auth.ExtendedLogoutSuccessHandler;
 import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
@@ -57,9 +58,6 @@ import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.crypto.InternalPasswordEncoder;
 import it.smartcommunitylab.aac.internal.auth.InternalConfirmKeyAuthenticationFilter;
-import it.smartcommunitylab.aac.internal.auth.InternalLoginAuthenticationFilter;
-import it.smartcommunitylab.aac.internal.auth.InternalResetKeyAuthenticationFilter;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserPasswordRepository;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.openid.apple.AppleIdentityAuthority;
@@ -69,6 +67,11 @@ import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.openid.auth.OIDCLoginAuthenticationFilter;
 import it.smartcommunitylab.aac.openid.auth.OIDCRedirectAuthenticationFilter;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
+import it.smartcommunitylab.aac.password.InternalPasswordIdentityAuthority;
+import it.smartcommunitylab.aac.password.auth.InternalLoginAuthenticationFilter;
+import it.smartcommunitylab.aac.password.auth.InternalResetKeyAuthenticationFilter;
+import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
+import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProviderConfig;
 import it.smartcommunitylab.aac.saml.auth.Saml2AuthenticationRequestRepository;
 import it.smartcommunitylab.aac.saml.auth.SamlMetadataFilter;
 import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository;
@@ -80,6 +83,11 @@ import it.smartcommunitylab.aac.spid.auth.SpidMetadataFilter;
 import it.smartcommunitylab.aac.spid.auth.SpidWebSsoAuthenticationFilter;
 import it.smartcommunitylab.aac.spid.auth.SpidWebSsoAuthenticationRequestFilter;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
+import it.smartcommunitylab.aac.webauthn.auth.WebAuthnAuthenticationFilter;
+import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpService;
+import it.smartcommunitylab.aac.webauthn.store.InMemoryWebAuthnAssertionRequestStore;
+import it.smartcommunitylab.aac.webauthn.store.WebAuthnAssertionRequestStore;
 
 /*
  * Security config for AAC UI
@@ -117,7 +125,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private SamlRelyingPartyRegistrationRepository spidRelyingPartyRegistrationRepository;
 
     @Autowired
+    private WebAuthnAssertionRequestStore webAuthnRequestStore;
+
+    @Autowired
     private InternalUserAccountService internalUserAccountService;
+
+    @Autowired
+    private WebAuthnRpService webAuthnRpService;
 
     @Autowired
     private InternalUserPasswordRepository passwordRepository;
@@ -130,6 +144,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private ProviderConfigRepository<InternalIdentityProviderConfig> internalProviderRepository;
+
+    @Autowired
+    private ProviderConfigRepository<InternalPasswordIdentityProviderConfig> internalPasswordProviderRepository;
+
+    @Autowired
+    private ProviderConfigRepository<WebAuthnIdentityProviderConfig> webAuthnProviderRepository;
 
     @Autowired
     private ProviderConfigRepository<OIDCIdentityProviderConfig> oidcProviderRepository;
@@ -206,6 +226,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/img/**").permitAll()
                 .antMatchers("/italia/**").permitAll()
                 .antMatchers("/spid/**").permitAll()
+                .antMatchers("/webauthn/**").permitAll()
                 .antMatchers("/favicon.ico").permitAll()
                 // whitelist swagger
                 .antMatchers(
@@ -249,12 +270,24 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/auth/oidc/**",
                         "/auth/saml/**",
                         "/auth/spid/**",
-                        "/auth/apple/**")
+                        "/auth/apple/**",
+                        "/auth/webauthn/**")
                 .and()
 //                // TODO replace with filterRegistrationBean and explicitely map urls
                 .addFilterBefore(
                         getInternalAuthorityFilters(authManager, internalProviderRepository,
+                                internalUserAccountService),
+                        BasicAuthenticationFilter.class)
+                .addFilterBefore(
+                        getInternalPasswordAuthorityFilters(authManager, internalPasswordProviderRepository,
                                 internalUserAccountService, passwordRepository),
+                        BasicAuthenticationFilter.class)
+                .addFilterBefore(
+                        getWebAuthnAuthorityFilters(
+                                authManager,
+                                webAuthnRpService,
+                                webAuthnProviderRepository,
+                                internalUserAccountService, webAuthnRequestStore),
                         BasicAuthenticationFilter.class)
                 .addFilterBefore(
                         getSamlAuthorityFilters(authManager, samlProviderRepository,
@@ -355,9 +388,27 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     /*
      * Internal auth
      */
-
     public CompositeFilter getInternalAuthorityFilters(AuthenticationManager authManager,
             ProviderConfigRepository<InternalIdentityProviderConfig> providerRepository,
+            InternalUserAccountService userAccountService) {
+
+        List<Filter> filters = new ArrayList<>();
+
+        InternalConfirmKeyAuthenticationFilter<InternalIdentityProviderConfig> confirmKeyFilter = new InternalConfirmKeyAuthenticationFilter<>(
+                userAccountService, providerRepository);
+        confirmKeyFilter.setAuthenticationManager(authManager);
+        confirmKeyFilter.setAuthenticationSuccessHandler(successHandler());
+
+        filters.add(confirmKeyFilter);
+
+        CompositeFilter filter = new CompositeFilter();
+        filter.setFilters(filters);
+
+        return filter;
+    }
+
+    public CompositeFilter getInternalPasswordAuthorityFilters(AuthenticationManager authManager,
+            ProviderConfigRepository<InternalPasswordIdentityProviderConfig> providerRepository,
             InternalUserAccountService userAccountService, InternalUserPasswordRepository passwordRepository) {
 
         List<Filter> filters = new ArrayList<>();
@@ -368,8 +419,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         loginFilter.setAuthenticationSuccessHandler(successHandler());
         filters.add(loginFilter);
 
-        InternalConfirmKeyAuthenticationFilter confirmKeyFilter = new InternalConfirmKeyAuthenticationFilter(
-                userAccountService, passwordRepository, providerRepository);
+        InternalConfirmKeyAuthenticationFilter<InternalPasswordIdentityProviderConfig> confirmKeyFilter = new InternalConfirmKeyAuthenticationFilter<>(
+                SystemKeys.AUTHORITY_PASSWORD,
+                userAccountService, providerRepository,
+                InternalPasswordIdentityAuthority.AUTHORITY_URL + "confirm/{registrationId}", null);
         confirmKeyFilter.setAuthenticationManager(authManager);
         confirmKeyFilter.setAuthenticationSuccessHandler(successHandler());
 
@@ -380,6 +433,25 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         resetKeyFilter.setAuthenticationManager(authManager);
         resetKeyFilter.setAuthenticationSuccessHandler(successHandler());
         filters.add(resetKeyFilter);
+
+        CompositeFilter filter = new CompositeFilter();
+        filter.setFilters(filters);
+
+        return filter;
+    }
+
+    public CompositeFilter getWebAuthnAuthorityFilters(AuthenticationManager authManager,
+            WebAuthnRpService rpService,
+            ProviderConfigRepository<WebAuthnIdentityProviderConfig> providerRepository,
+            InternalUserAccountService userAccountService, WebAuthnAssertionRequestStore requestStore) {
+
+        List<Filter> filters = new ArrayList<>();
+
+        WebAuthnAuthenticationFilter loginFilter = new WebAuthnAuthenticationFilter(rpService, requestStore,
+                providerRepository);
+        loginFilter.setAuthenticationManager(authManager);
+        loginFilter.setAuthenticationSuccessHandler(successHandler());
+        filters.add(loginFilter);
 
         CompositeFilter filter = new CompositeFilter();
         filter.setFilters(filters);

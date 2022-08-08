@@ -3,23 +3,32 @@ package it.smartcommunitylab.aac.core.provider;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.model.UserAccount;
-import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 
 /*
- * An identity provider which persists some data about users
+ * Identity service are r/w repositories for local users.
+ * 
+ * Accounts managed by services are eventually used by IdentityProviders
  */
 
-public interface IdentityService<I extends UserIdentity, U extends UserAccount, C extends UserCredentials>
+public interface IdentityService<I extends UserIdentity, U extends UserAccount>
         extends IdentityProvider<I> {
+
+//    /*
+//     * Config
+//     */
+//    public String getName();
+//
+//    public String getDescription();
+//
+//    // TODO expose config
+//    public AbstractProviderConfig getConfig();
 
     /*
      * Services
      */
 
     public AccountService<U> getAccountService();
-
-    public UserCredentialsService<C> getCredentialsService();
 
     /*
      * Manage identities from this provider
@@ -30,12 +39,16 @@ public interface IdentityService<I extends UserIdentity, U extends UserAccount, 
             String userId, UserIdentity identity) throws NoSuchUserException, RegistrationException;
 
     public I registerIdentity(
-            String userId, UserIdentity identity, UserCredentials credentials) throws NoSuchUserException, RegistrationException;
+            String userId, UserIdentity identity)
+            throws NoSuchUserException, RegistrationException;
 
     public I updateIdentity(
             String userId,
             String identityId, UserIdentity identity) throws NoSuchUserException, RegistrationException;
 
+//    public void deleteIdentity(
+//            String userId,
+//            String identityId) throws NoSuchUserException, RegistrationException;
     /*
      * Registration
      */

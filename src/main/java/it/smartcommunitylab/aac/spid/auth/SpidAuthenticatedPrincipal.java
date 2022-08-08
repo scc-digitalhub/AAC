@@ -27,13 +27,7 @@ public class SpidAuthenticatedPrincipal extends AbstractAuthenticatedPrincipal {
     // spidCode identifier (when available)
     private String spidCode;
 
-    private String username;
-
-    private String uuid;
-
     // link attributes
-    private String email;
-
     private Saml2AuthenticatedPrincipal principal;
 
     // locally set attributes, for example after custom mapping
@@ -55,11 +49,6 @@ public class SpidAuthenticatedPrincipal extends AbstractAuthenticatedPrincipal {
     }
 
     @Override
-    public String getUuid() {
-        return uuid;
-    }
-
-    @Override
     public String getName() {
         return username;
     }
@@ -70,13 +59,8 @@ public class SpidAuthenticatedPrincipal extends AbstractAuthenticatedPrincipal {
     }
 
     @Override
-    public String getEmailAddress() {
-        return email;
-    }
-
-    @Override
     public boolean isEmailVerified() {
-        return StringUtils.hasText(email);
+        return StringUtils.hasText(emailAddress);
     }
 
     @Override
@@ -121,8 +105,8 @@ public class SpidAuthenticatedPrincipal extends AbstractAuthenticatedPrincipal {
             result.put("username", username);
         }
 
-        if (StringUtils.hasText(email)) {
-            result.put("email", email);
+        if (StringUtils.hasText(emailAddress)) {
+            result.put("email", emailAddress);
             // spid email is always trusted
             result.put("emailVerified", true);
         }
@@ -167,11 +151,11 @@ public class SpidAuthenticatedPrincipal extends AbstractAuthenticatedPrincipal {
     }
 
     public String getEmail() {
-        return email;
+        return emailAddress;
     }
 
     public void setEmail(String email) {
-        this.email = email;
+        this.emailAddress = email;
     }
 
 }

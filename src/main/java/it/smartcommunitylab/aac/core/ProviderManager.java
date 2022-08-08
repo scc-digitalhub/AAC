@@ -2,10 +2,7 @@ package it.smartcommunitylab.aac.core;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,11 +12,11 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
@@ -151,7 +148,8 @@ public class ProviderManager {
 
     public ConfigurableProvider registerProvider(
             String realm, String type,
-            String providerId) throws SystemException, NoSuchRealmException, NoSuchProviderException {
+            String providerId) throws SystemException, NoSuchRealmException, NoSuchProviderException,
+            RegistrationException, NoSuchAuthorityException {
         if (TYPE_IDENTITY.equals(type)) {
             return registerIdentityProvider(realm, providerId);
         } else if (TYPE_ATTRIBUTES.equals(type)) {
@@ -163,7 +161,8 @@ public class ProviderManager {
 
     public ConfigurableProvider unregisterProvider(
             String realm, String type,
-            String providerId) throws SystemException, NoSuchRealmException, NoSuchProviderException {
+            String providerId)
+            throws SystemException, NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException {
         if (TYPE_IDENTITY.equals(type)) {
             return unregisterIdentityProvider(realm, providerId);
         } else if (TYPE_ATTRIBUTES.equals(type)) {
@@ -249,7 +248,12 @@ public class ProviderManager {
         }
 
         // check if active, we don't support update for active providers
-        boolean isActive = authorityManager.isIdentityProviderRegistered(ip.getAuthority(), ip.getProvider());
+        boolean isActive = false;
+        try {
+            isActive = authorityManager.isIdentityProviderRegistered(ip.getAuthority(), ip.getProvider());
+        } catch (SystemException | NoSuchAuthorityException e) {
+            logger.error("error fetching authority {}: {}", ip.getAuthority(), e.getMessage());
+        }
 
         if (isActive) {
             throw new IllegalArgumentException("active providers can not be deleted");
@@ -261,7 +265,8 @@ public class ProviderManager {
     //
     public ConfigurableIdentityProvider registerIdentityProvider(
             String realm,
-            String providerId) throws SystemException, NoSuchRealmException, NoSuchProviderException {
+            String providerId) throws SystemException, NoSuchRealmException, NoSuchProviderException,
+            IllegalArgumentException, RegistrationException, NoSuchAuthorityException {
 
         Realm re = realmService.getRealm(realm);
         // fetch, only persisted configurations can be registered
@@ -272,11 +277,16 @@ public class ProviderManager {
         }
 
         // check if active, we don't support update for active providers
-        boolean isActive = authorityManager.isIdentityProviderRegistered(ip.getAuthority(), ip.getProvider());
-        if (isActive) {
-            // make a quick unload
-            authorityManager.unregisterIdentityProvider(ip);
+        boolean isActive = false;
+        try {
             isActive = authorityManager.isIdentityProviderRegistered(ip.getAuthority(), ip.getProvider());
+            if (isActive) {
+                // make a quick unload
+                authorityManager.unregisterIdentityProvider(ip);
+                isActive = authorityManager.isIdentityProviderRegistered(ip.getAuthority(), ip.getProvider());
+            }
+        } catch (SystemException | NoSuchAuthorityException e) {
+            logger.error("error fetching authority {}: {}", ip.getAuthority(), e.getMessage());
         }
 
         if (isActive) {
@@ -290,7 +300,7 @@ public class ProviderManager {
                     ip);
         }
 
-        IdentityProvider<? extends UserIdentity> idp = authorityManager
+        IdentityProvider<UserIdentity> idp = authorityManager
                 .registerIdentityProvider(ip);
         isActive = idp != null;
 
@@ -303,7 +313,8 @@ public class ProviderManager {
 
     public ConfigurableIdentityProvider unregisterIdentityProvider(
             String realm,
-            String providerId) throws SystemException, NoSuchRealmException, NoSuchProviderException {
+            String providerId)
+            throws SystemException, NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException {
 
         Realm re = realmService.getRealm(realm);
         // fetch, only persisted configurations can be registered
@@ -494,11 +505,15 @@ public class ProviderManager {
      * Support checking registration status
      */
     public boolean isProviderRegistered(String realm, ConfigurableProvider provider) throws SystemException {
-        if (TYPE_IDENTITY.equals(provider.getType())) {
-            return authorityManager.isIdentityProviderRegistered(provider.getAuthority(), provider.getProvider());
-        }
-        if (TYPE_ATTRIBUTES.equals(provider.getType())) {
-            return authorityManager.isAttributeProviderRegistered(provider.getAuthority(), provider.getProvider());
+        try {
+            if (TYPE_IDENTITY.equals(provider.getType())) {
+                return authorityManager.isIdentityProviderRegistered(provider.getAuthority(), provider.getProvider());
+            }
+            if (TYPE_ATTRIBUTES.equals(provider.getType())) {
+                return authorityManager.isAttributeProviderRegistered(provider.getAuthority(), provider.getProvider());
+            }
+        } catch (NoSuchAuthorityException e) {
+            return false;
         }
         throw new IllegalArgumentException("invalid type");
     }
@@ -529,35 +544,35 @@ public class ProviderManager {
 //
 //    }
 
-    /*
-     * Configuration templates TODO drop templates and rework as custom authorities
-     * extending a base
-     */
+//    /*
+//     * Configuration templates TODO drop templates and rework as custom authorities
+//     * extending a base
+//     */
+//
+//    private Collection<ConfigurableProvider> listProviderConfigurationTemplates(String type) {
+//        if (TYPE_IDENTITY.equals(type)) {
+//            // we support only idp templates
+//            List<ConfigurableProvider> templates = new ArrayList<>();
+//            for (IdentityProviderAuthority ia : authorityManager
+//                    .listIdentityAuthorities()) {
+//                templates.addAll(ia.getConfigurableProviderTemplates());
+//            }
+//
+//            return templates;
+//
+//        }
+//        return Collections.emptyList();
+//
+//    }
 
-    private Collection<ConfigurableProvider> listProviderConfigurationTemplates(String type) {
-        if (TYPE_IDENTITY.equals(type)) {
-            // we support only idp templates
-            List<ConfigurableProvider> templates = new ArrayList<>();
-            for (IdentityAuthority ia : authorityManager
-                    .listIdentityAuthorities()) {
-                templates.addAll(ia.getConfigurableProviderTemplates());
-            }
-
-            return templates;
-
-        }
-        return Collections.emptyList();
-
-    }
-
-    public Collection<ConfigurableProvider> listProviderConfigurationTemplates(String realm, String type) {
-        Collection<ConfigurableProvider> templates = listProviderConfigurationTemplates(type);
-        // keep only those matching realm or with realm == null
-        return templates.stream().filter(t -> (t.getRealm() == null
-                || realm.equals(t.getRealm())
-                || SystemKeys.REALM_GLOBAL.equals(t.getRealm()))).collect(Collectors.toList());
-
-    }
+//    public Collection<ConfigurableProvider> listProviderConfigurationTemplates(String realm, String type) {
+//        Collection<ConfigurableProvider> templates = listProviderConfigurationTemplates(type);
+//        // keep only those matching realm or with realm == null
+//        return templates.stream().filter(t -> (t.getRealm() == null
+//                || realm.equals(t.getRealm())
+//                || SystemKeys.REALM_GLOBAL.equals(t.getRealm()))).collect(Collectors.toList());
+//
+//    }
 
     /*
      * Configuration schemas

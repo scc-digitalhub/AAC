@@ -17,11 +17,11 @@ angular.module('aac.controllers.realmproviders', [])
             });
         }
 
-        service.getIdentityProviderTemplates = function (slug) {
-            return $http.get('console/dev/idptemplates/' + slug).then(function (data) {
-                return data.data;
-            });
-        }
+        // service.getIdentityProviderTemplates = function (slug) {
+        //     return $http.get('console/dev/idptemplates/' + slug).then(function (data) {
+        //         return data.data;
+        //     });
+        // }
 
         service.removeIdentityProvider = function (slug, providerId) {
             return $http.delete('console/dev/idp/' + slug + '/' + providerId).then(function (data) {
@@ -194,10 +194,10 @@ angular.module('aac.controllers.realmproviders', [])
          * Initialize the app: load list of the providers
          */
         var init = function () {
-            RealmProviders.getIdentityProviderTemplates(slug)
-                .then(function (data) {
-                    $scope.providerTemplates = data.filter(function (pt) { return pt.authority != 'internal' });
-                })
+            // RealmProviders.getIdentityProviderTemplates(slug)
+            //     .then(function (data) {
+            //         $scope.providerTemplates = data.filter(function (pt) { return pt.authority != 'internal' });
+            //     })
             $scope.load();
         };
 
@@ -317,6 +317,23 @@ angular.module('aac.controllers.realmproviders', [])
             $scope.provider.name = provider ? provider.name : null;
             $scope.provider.persistence = provider ? provider.persistence : 'none';
             $('#samlModal').modal({ backdrop: 'static', focus: true })
+            Utils.refreshFormBS();
+        }
+
+        $scope.webAuthnProviderDlg = function (provider) {
+            $scope.providerId = provider ? provider.provider : null;
+            $scope.providerAuthority = 'webauthn';
+            $scope.provider = provider ? Object.assign({}, provider.configuration) :
+                {
+                    rpid: 'localhost',
+                    rpName: 'AAC',
+                    enableRegistration: true,
+                    trustUnverifiedAuthenticatorResponses: false,
+                    enableUpdate: false,
+                    maxSessionDuration: 86400,
+                };
+            $scope.provider.name = provider ? provider.name : null;
+            $('#webAuthnModal').modal({ backdrop: 'static', focus: true })
             Utils.refreshFormBS();
         }
 
@@ -504,9 +521,9 @@ angular.module('aac.controllers.realmproviders', [])
                 .then(function (data) {
                     $scope.realmUrls = data;
                 })
-                .then(function () {
-                    return RealmProviders.getIdentityProviderTemplates(slug);
-                })
+                // .then(function () {
+                //     return RealmProviders.getIdentityProviderTemplates(slug);
+                // })
                 .then(function (data) {
                     $scope.providerTemplates = data;
 

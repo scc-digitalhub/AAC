@@ -8,6 +8,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -23,9 +25,11 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.config.SpidProperties;
-import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
+import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
@@ -41,7 +45,9 @@ import it.smartcommunitylab.aac.spid.service.LocalSpidRegistry;
 import it.smartcommunitylab.aac.spid.service.SpidRegistry;
 
 @Service
-public class SpidIdentityAuthority implements IdentityAuthority, InitializingBean {
+public class SpidIdentityAuthority
+        implements IdentityProviderAuthority<SpidUserIdentity, SpidIdentityProvider>, InitializingBean {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     public static final String AUTHORITY_URL = "/auth/spid/";
 
@@ -135,13 +141,13 @@ public class SpidIdentityAuthority implements IdentityAuthority, InitializingBea
     }
 
     @Override
-    public boolean hasIdentityProvider(String providerId) {
+    public boolean hasProvider(String providerId) {
         SpidIdentityProviderConfig registration = registrationRepository.findByProviderId(providerId);
         return (registration != null);
     }
 
     @Override
-    public SpidIdentityProvider getIdentityProvider(String providerId) {
+    public SpidIdentityProvider getProvider(String providerId) {
         Assert.hasText(providerId, "provider id can not be null or empty");
 
         try {
@@ -152,22 +158,32 @@ public class SpidIdentityAuthority implements IdentityAuthority, InitializingBea
     }
 
     @Override
-    public List<SpidIdentityProvider> getIdentityProviders(
+    public List<SpidIdentityProvider> getProviders(
             String realm) {
         // we need to fetch registrations and get idp from cache, with optional load
         Collection<SpidIdentityProviderConfig> registrations = registrationRepository.findByRealm(realm);
-        return registrations.stream().map(r -> getIdentityProvider(r.getProvider()))
+        return registrations.stream().map(r -> getProvider(r.getProvider()))
                 .filter(p -> (p != null)).collect(Collectors.toList());
     }
 
     @Override
-    public SpidIdentityProvider registerIdentityProvider(ConfigurableIdentityProvider cp) {
+    public SpidIdentityProvider registerProvider(ConfigurableProvider cp) {
+        // cast config and handle errors
+        ConfigurableIdentityProvider cip = null;
+        try {
+            ConfigurableIdentityProvider c = (ConfigurableIdentityProvider) cp;
+            cip = c;
+        } catch (ClassCastException e) {
+            logger.error("Wrong config class: " + e.getMessage());
+            throw new IllegalArgumentException("unsupported config");
+        }
+
         // we support only identity provider as resource providers
-        if (cp != null
-                && getAuthorityId().equals(cp.getAuthority())
-                && SystemKeys.RESOURCE_IDENTITY.equals(cp.getType())) {
-            String providerId = cp.getProvider();
-            String realm = cp.getRealm();
+        if (cip != null
+                && getAuthorityId().equals(cip.getAuthority())
+                && SystemKeys.RESOURCE_IDENTITY.equals(cip.getType())) {
+            String providerId = cip.getProvider();
+            String realm = cip.getRealm();
 
             // check if id clashes with another provider from a different realm
             SpidIdentityProviderConfig e = registrationRepository.findByProviderId(providerId);
@@ -177,7 +193,7 @@ public class SpidIdentityAuthority implements IdentityAuthority, InitializingBea
             }
 
             try {
-                SpidIdentityProviderConfig providerConfig = configProvider.getConfig(cp);
+                SpidIdentityProviderConfig providerConfig = configProvider.getConfig(cip);
                 providerConfig.setIdps(spidRegistry.getIdentityProviders());
 
                 // build registration, will ensure configuration is valid *before* registering
@@ -207,7 +223,7 @@ public class SpidIdentityAuthority implements IdentityAuthority, InitializingBea
     }
 
     @Override
-    public void unregisterIdentityProvider(String providerId) {
+    public void unregisterProvider(String providerId) throws SystemException {
         SpidIdentityProviderConfig registration = registrationRepository.findByProviderId(providerId);
 
         if (registration != null) {
@@ -232,29 +248,6 @@ public class SpidIdentityAuthority implements IdentityAuthority, InitializingBea
 
         }
 
-    }
-
-    @Override
-    public IdentityService<SpidUserIdentity, SpidUserAccount, ? extends UserCredentials> getIdentityService(
-            String providerId) {
-        return null;
-    }
-
-    @Override
-    public List<IdentityService<SpidUserIdentity, SpidUserAccount, ? extends UserCredentials>> getIdentityServices(
-            String realm) {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public Collection<ConfigurableIdentityProvider> getConfigurableProviderTemplates() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public ConfigurableIdentityProvider getConfigurableProviderTemplate(String templateId)
-            throws NoSuchProviderException {
-        throw new NoSuchProviderException();
     }
 
 }

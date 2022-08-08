@@ -16,7 +16,6 @@
 
 package it.smartcommunitylab.aac.internal.controller;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -32,10 +31,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
-//import org.springframework.security.oauth2.common.util.OAuth2Utils;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -57,21 +54,13 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.model.UserAccount;
-import it.smartcommunitylab.aac.core.model.UserCredentials;
-import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
 import it.smartcommunitylab.aac.internal.dto.UserRegistrationBean;
-import it.smartcommunitylab.aac.internal.model.CredentialsType;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
-import it.smartcommunitylab.aac.internal.model.PasswordPolicy;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountService;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
-import it.smartcommunitylab.aac.internal.provider.InternalPasswordIdentityService;
-import it.smartcommunitylab.aac.internal.provider.InternalPasswordService;
 import it.smartcommunitylab.aac.model.Realm;
 
 /**
@@ -131,7 +120,7 @@ public class InternalRegistrationController {
         InternalUserAccount account = identity.getAccount();
 
         // fetch provider
-        InternalIdentityService<?> idp = internalAuthority.getIdentityService(providerId);
+        InternalIdentityService idp = internalAuthority.getProvider(providerId);
         if (!idp.getConfig().isEnableUpdate()) {
             throw new IllegalArgumentException("error.unsupported_operation");
         }
@@ -214,7 +203,7 @@ public class InternalRegistrationController {
             InternalUserAccount account = identity.getAccount();
 
             // fetch provider
-            InternalIdentityService<?> idp = internalAuthority.getIdentityService(providerId);
+            InternalIdentityService idp = internalAuthority.getProvider(providerId);
             if (!idp.getConfig().isEnableUpdate()) {
                 throw new IllegalArgumentException("error.unsupported_operation");
             }
@@ -293,8 +282,7 @@ public class InternalRegistrationController {
             Model model) throws NoSuchProviderException, NoSuchRealmException {
 
         // resolve provider
-        InternalIdentityService<?> idp = internalAuthority.getIdentityService(providerId);
-
+        InternalIdentityService idp = internalAuthority.getProvider(providerId);
         if (!idp.getConfig().isEnableRegistration()) {
             throw new RegistrationException("unsupported_operation");
         }
@@ -334,18 +322,6 @@ public class InternalRegistrationController {
 //            model.addAllAttributes(customizations);
 //        }
 
-        // fetch password service if available
-        if (CredentialsType.PASSWORD == idp.getCredentialsType()) {
-            InternalPasswordService service = ((InternalPasswordIdentityService) idp).getCredentialsService();
-            if (service != null) {
-                // expose password policy by passing idp config
-                PasswordPolicy policy = service.getPasswordPolicy();
-                model.addAttribute("policy", policy);
-                String passwordPattern = service.getPasswordPattern();
-                model.addAttribute("passwordPattern", passwordPattern);
-            }
-        }
-
         // build url
         // TODO handle via urlBuilder or entryPoint
         model.addAttribute("registrationUrl", "/auth/internal/register/" + providerId);
@@ -369,7 +345,7 @@ public class InternalRegistrationController {
         try {
 
             // resolve provider
-            InternalIdentityService<?> idp = internalAuthority.getIdentityService(providerId);
+            InternalIdentityService idp = internalAuthority.getProvider(providerId);
 
             if (!idp.getConfig().isEnableRegistration()) {
                 throw new RegistrationException("unsupported_operation");
@@ -400,20 +376,6 @@ public class InternalRegistrationController {
             model.addAttribute("displayName", displayName);
             model.addAttribute("customization", resources);
 
-            // fetch password service if available
-            InternalPasswordService passwordService = null;
-            if (CredentialsType.PASSWORD == idp.getCredentialsType()) {
-                passwordService = ((InternalPasswordIdentityService) idp).getCredentialsService();
-            }
-
-            if (passwordService != null) {
-                // expose password policy by passing idp config
-                PasswordPolicy policy = passwordService.getPasswordPolicy();
-                model.addAttribute("policy", policy);
-                String passwordPattern = passwordService.getPasswordPattern();
-                model.addAttribute("passwordPattern", passwordPattern);
-            }
-
             model.addAttribute("registrationUrl", "/auth/internal/register/" + providerId);
 
             // set idp form as login url
@@ -435,22 +397,14 @@ public class InternalRegistrationController {
             }
 
             String username = reg.getEmail();
-            String password = reg.getPassword();
             String email = reg.getEmail();
             String name = reg.getName();
             String surname = reg.getSurname();
             String lang = reg.getLang();
 
-            // validate password
-            // TODO rework flow
-            if (passwordService != null && StringUtils.hasText(password)) {
-                passwordService.validatePassword(password);
-            }
-
             // convert registration model to internal model
-            InternalUserAccount account = new InternalUserAccount();
+            InternalUserAccount account = new InternalUserAccount(idp.getAuthority());
             account.setUsername(username);
-//            account.setPassword(password);
             account.setEmail(email);
             account.setName(name);
             account.setSurname(surname);
@@ -464,21 +418,11 @@ public class InternalRegistrationController {
             String subjectId = null;
 
             // build reg model
-            InternalUserIdentity identity = new InternalUserIdentity(idp.getProvider(), idp.getRealm(), account);
-
-            // register password
-            UserCredentials credentials = null;
-            if (passwordService != null && StringUtils.hasText(password)) {
-                InternalUserPassword pwd = new InternalUserPassword();
-                pwd.setUserId(identity.getUserId());
-                pwd.setUsername(username);
-                pwd.setPassword(password);
-
-                credentials = pwd;
-            }
+            InternalUserIdentity identity = new InternalUserIdentity(idp.getAuthority(), idp.getProvider(),
+                    idp.getRealm(), account);
 
             // register
-            identity = idp.registerIdentity(subjectId, identity, credentials);
+            identity = idp.registerIdentity(subjectId, identity);
 
             model.addAttribute("identity", identity);
 

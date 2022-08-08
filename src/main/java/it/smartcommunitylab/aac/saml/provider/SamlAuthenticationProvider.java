@@ -31,8 +31,7 @@ import it.smartcommunitylab.aac.saml.auth.SamlAuthenticationToken;
 import it.smartcommunitylab.aac.saml.auth.SamlAuthenticationException;
 import it.smartcommunitylab.aac.saml.model.SamlUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
-import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountId;
-import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
+import it.smartcommunitylab.aac.saml.service.SamlUserAccountService;
 
 public class SamlAuthenticationProvider
         extends ExtendedAuthenticationProvider<SamlUserAuthenticatedPrincipal, SamlUserAccount> {
@@ -40,8 +39,10 @@ public class SamlAuthenticationProvider
 
     private final static String SUBJECT_ATTRIBUTE = "subject";
 
-    private final SamlUserAccountRepository accountRepository;
+    private final SamlUserAccountService accountService;
     private final SamlIdentityProviderConfig config;
+    private final String repositoryId;
+
     private final String usernameAttributeName;
 
     private final OpenSamlAuthenticationProvider openSamlProvider;
@@ -50,14 +51,17 @@ public class SamlAuthenticationProvider
     private ScriptExecutionService executionService;
 
     public SamlAuthenticationProvider(String providerId,
-            SamlUserAccountRepository accountRepository, SamlIdentityProviderConfig config,
+            SamlUserAccountService accountService, SamlIdentityProviderConfig config,
             String realm) {
         super(SystemKeys.AUTHORITY_SAML, providerId, realm);
-        Assert.notNull(accountRepository, "account repository is mandatory");
+        Assert.notNull(accountService, "account service is mandatory");
         Assert.notNull(config, "provider config is mandatory");
 
         this.config = config;
-        this.accountRepository = accountRepository;
+        this.accountService = accountService;
+
+        // repositoryId is always providerId, saml isolates data per provider
+        this.repositoryId = providerId;
 
         this.usernameAttributeName = StringUtils.hasText(config.getConfigMap().getUserNameAttributeName())
                 ? config.getConfigMap().getUserNameAttributeName()
@@ -139,7 +143,7 @@ public class SamlAuthenticationProvider
                 }
 
                 // check if account is present and locked
-                SamlUserAccount account = accountRepository.findOne(new SamlUserAccountId(getProvider(), subject));
+                SamlUserAccount account = accountService.findAccountById(repositoryId, subject);
                 if (account != null && account.isLocked()) {
                     throw new SamlAuthenticationException(
                             new Saml2Error(Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR, "account_unavailable"),
@@ -238,7 +242,13 @@ public class SamlAuthenticationProvider
             emailVerified = true;
         }
 
+        // read username from attributes, mapper can replace it
+        username = StringUtils.hasText(samlAttributes.get(usernameAttributeName))
+                ? samlAttributes.get(usernameAttributeName)
+                : user.getUsername();
+
         // update principal
+        user.setUsername(username);
         user.setEmail(email);
         user.setEmailVerified(emailVerified);
 

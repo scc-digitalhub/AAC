@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 public enum CredentialsType {
     PASSWORD("password"),
 //    LINK("link"),
+    WEBAUTHN("webauthn"),
     NONE("none");
 
     private final String value;

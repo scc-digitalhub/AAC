@@ -79,6 +79,15 @@ jwt:
 authorities:
    internal:
       isolateData: false
+      confirmationValidity: 86400
+      enableDelete: true
+      maxSessionDuration: 86400
+      enableUpdate: true
+      enableRegistration: true
+      confirmationRequired: true
+
+   password:
+      isolateData: false
       passwordResetValidity: 86400
       confirmationValidity: 86400
       enablePasswordReset: true
@@ -95,7 +104,7 @@ authorities:
       enableRegistration: true
       confirmationRequired: true
       passwordRequireSpecial: false   
-      passwordKeepNumber: 1
+      passwordKeepNumber: 1      
 #      confirmation:
 #        required: true
 #        validity: 86400
@@ -128,6 +137,13 @@ authorities:
    saml:
       signAuthNRequest: true
       ssoServiceBinding: HTTP-POST
+   webauthn:
+      rpid: ${WEBAUTHN_RP_ID:localhost:8080}
+      rpName: ${WEBAUTHN_RP_NAME:AAC}
+      enableRegistration: ${WEBAUTHN_ENABLE_REGISTRATION:true}
+      trustUnverifiedAuthenticatorResponses: ${WEBAUTHN_TRUST_UNVERIFIED_AUTH_RESPONSES:false}
+      enableUpdate: false
+      maxSessionDuration: 86400      
       
 
 

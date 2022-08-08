@@ -12,12 +12,12 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.config.AuthoritiesProperties;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
+import it.smartcommunitylab.aac.core.provider.IdentityConfigurationProvider;
 
 @Service
 public class InternalIdentityConfigurationProvider
         implements
-        ConfigurationProvider<ConfigurableIdentityProvider, InternalIdentityProviderConfig, InternalIdentityProviderConfigMap> {
+        IdentityConfigurationProvider<InternalIdentityProviderConfig, InternalIdentityProviderConfigMap> {
 
     private InternalIdentityProviderConfigMap defaultConfig;
 
@@ -32,11 +32,6 @@ public class InternalIdentityConfigurationProvider
     @Override
     public String getAuthority() {
         return SystemKeys.AUTHORITY_INTERNAL;
-    }
-
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_IDENTITY;
     }
 
     @Override

@@ -205,38 +205,38 @@ public class UserAccountController {
         return ResponseEntity.ok(providers);
     }
 
-    @GetMapping("/credentials/{userId}")
-    public ModelAndView credentials(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.ID_PATTERN) String userId)
-            throws NoSuchProviderException, NoSuchUserException {
-        // first check userid vs user
-        UserDetails user = authHelper.getUserDetails();
-        UserIdentity identity = user.getIdentity(userId);
-
-        if (identity == null) {
-            throw new IllegalArgumentException("userid invalid");
-        }
-
-        UserAccount account = identity.getAccount();
-
-        // fetch provider
-        String providerId = identity.getProvider();
-        IdentityService<? extends UserIdentity, ? extends UserAccount, ? extends UserCredentials> idp = authorityManager
-                .getIdentityService(providerId);
-
-        // fetch credentials service if available
-        UserCredentialsService<? extends UserCredentials> service = idp.getCredentialsService();
-
-        if (service == null) {
-            throw new IllegalArgumentException("credentials are immutable");
-        }
-
-        if (!service.canSet()) {
-            throw new IllegalArgumentException("credentials are immutable");
-        }
-
-        String url = service.getSetUrl() + "/" + service.getProvider() + "/" + account.getUserId();
-        return new ModelAndView("redirect:" + url);
-    }
+//    @GetMapping("/credentials/{userId}")
+//    public ModelAndView credentials(
+//            @PathVariable @Valid @Pattern(regexp = SystemKeys.ID_PATTERN) String userId)
+//            throws NoSuchProviderException, NoSuchUserException {
+//        // first check userid vs user
+//        UserDetails user = authHelper.getUserDetails();
+//        UserIdentity identity = user.getIdentity(userId);
+//
+//        if (identity == null) {
+//            throw new IllegalArgumentException("userid invalid");
+//        }
+//
+//        UserAccount account = identity.getAccount();
+//
+//        // fetch provider
+//        String providerId = identity.getProvider();
+//        IdentityService<? extends UserIdentity, ? extends UserAccount, ? extends UserCredentials> idp = authorityManager
+//                .getIdentityService(providerId);
+//
+//        // fetch credentials service if available
+//        UserCredentialsService<? extends UserCredentials> service = idp.getCredentialsService();
+//
+//        if (service == null) {
+//            throw new IllegalArgumentException("credentials are immutable");
+//        }
+//
+//        if (!service.canSet()) {
+//            throw new IllegalArgumentException("credentials are immutable");
+//        }
+//
+//        String url = service.getSetUrl() + "/" + service.getProvider() + "/" + account.getUserId();
+//        return new ModelAndView("redirect:" + url);
+//    }
 
 }

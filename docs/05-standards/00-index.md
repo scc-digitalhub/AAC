@@ -6,3 +6,4 @@
 * JWT
 * SPID + CIE
 * EIDAS
+* WebAuthn

@@ -27,8 +27,10 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
@@ -151,7 +153,11 @@ public class BaseIdentityProviderController {
         // if force disable provider
         boolean forceRegistration = force.orElse(false);
         if (forceRegistration && providerManager.isProviderRegistered(realm, provider)) {
-            provider = providerManager.unregisterIdentityProvider(realm, providerId);
+            try {
+                provider = providerManager.unregisterIdentityProvider(realm, providerId);
+            } catch (NoSuchAuthorityException e) {
+                // skip
+            }
         }
 
         // we update only configuration
@@ -218,7 +224,7 @@ public class BaseIdentityProviderController {
     public ConfigurableIdentityProvider registerIdp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
-            throws NoSuchProviderException, NoSuchRealmException {
+            throws RegistrationException, NoSuchProviderException, NoSuchRealmException, NoSuchAuthorityException {
         logger.debug("register idp {} for realm {}",
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
@@ -237,7 +243,7 @@ public class BaseIdentityProviderController {
     public ConfigurableIdentityProvider unregisterIdp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
-            throws NoSuchProviderException, NoSuchRealmException {
+            throws NoSuchProviderException, NoSuchRealmException, NoSuchAuthorityException {
         logger.debug("unregister idp {} for realm {}",
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 

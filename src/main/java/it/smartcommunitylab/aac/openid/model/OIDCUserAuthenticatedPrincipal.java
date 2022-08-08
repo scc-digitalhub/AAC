@@ -20,12 +20,8 @@ public class OIDCUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
 
     // subject identifier from external provider is local id
     private final String subject;
-    private String username;
-
-    private String uuid;
 
     // link attributes
-    private String email;
     private Boolean emailVerified;
 
     private OAuth2User principal;
@@ -54,29 +50,14 @@ public class OIDCUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
     }
 
     @Override
-    public String getUuid() {
-        return uuid;
-    }
-
-    @Override
     public String getName() {
         return username;
     }
 
     @Override
-    public String getUsername() {
-        return username;
-    }
-
-    @Override
-    public String getEmailAddress() {
-        return email;
-    }
-
-    @Override
     public boolean isEmailVerified() {
         boolean verified = emailVerified != null ? emailVerified.booleanValue() : false;
-        return StringUtils.hasText(email) && verified;
+        return StringUtils.hasText(emailAddress) && verified;
     }
 
     @Override
@@ -115,6 +96,7 @@ public class OIDCUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
         }
 
         // make sure these are never overridden
+        result.put("authority", getAuthority());
         result.put("provider", getProvider());
         result.put("sub", subject);
         result.put("id", subject);
@@ -123,8 +105,8 @@ public class OIDCUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
             result.put("name", username);
         }
 
-        if (StringUtils.hasText(email)) {
-            result.put("email", email);
+        if (StringUtils.hasText(emailAddress)) {
+            result.put("email", emailAddress);
         }
 
         if (emailVerified != null) {
@@ -170,11 +152,11 @@ public class OIDCUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
     }
 
     public String getEmail() {
-        return email;
+        return emailAddress;
     }
 
     public void setEmail(String email) {
-        this.email = email;
+        this.emailAddress = email;
     }
 
     public Boolean getEmailVerified() {

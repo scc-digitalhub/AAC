@@ -5,14 +5,22 @@ import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
+import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfigMap;
+import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfigMap;
 
 public class AuthoritiesProperties {
     // TODO add enable//disable flag on authorities
 
     @NestedConfigurationProperty
     private InternalIdentityProviderConfigMap internal;
+
+    @NestedConfigurationProperty
+    private InternalPasswordIdentityProviderConfigMap password;
+
+    @NestedConfigurationProperty
+    private WebAuthnIdentityProviderConfigMap webauthn;
 
     @NestedConfigurationProperty
     private OIDCIdentityProviderConfigMap oidc;
@@ -32,6 +40,22 @@ public class AuthoritiesProperties {
 
     public void setInternal(InternalIdentityProviderConfigMap internal) {
         this.internal = internal;
+    }
+
+    public InternalPasswordIdentityProviderConfigMap getPassword() {
+        return password;
+    }
+
+    public void setPassword(InternalPasswordIdentityProviderConfigMap password) {
+        this.password = password;
+    }
+
+    public WebAuthnIdentityProviderConfigMap getWebauthn() {
+        return webauthn;
+    }
+
+    public void setWebauthn(WebAuthnIdentityProviderConfigMap webauthn) {
+        this.webauthn = webauthn;
     }
 
     public OIDCIdentityProviderConfigMap getOidc() {

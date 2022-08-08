@@ -15,6 +15,7 @@ import it.smartcommunitylab.aac.common.MissingDataException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
+import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.AccountProvider;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.model.Subject;
@@ -25,7 +26,8 @@ import it.smartcommunitylab.aac.spid.persistence.SpidUserAccountId;
 import it.smartcommunitylab.aac.spid.persistence.SpidUserAccountRepository;
 
 @Transactional
-public class SpidAccountProvider extends AbstractProvider implements AccountProvider<SpidUserAccount> {
+public class SpidAccountProvider extends AbstractProvider
+        implements AccountProvider<SpidUserAccount> {
 
     private final SpidUserAccountRepository accountRepository;
     private final SpidIdentityProviderConfig config;
@@ -108,7 +110,6 @@ public class SpidAccountProvider extends AbstractProvider implements AccountProv
         return accountRepository.detach(account);
     }
 
-    @Override
     public void deleteAccount(String subjectId) throws NoSuchUserException {
         SpidUserAccount account = findAccountBySubjectId(subjectId);
 
@@ -157,7 +158,8 @@ public class SpidAccountProvider extends AbstractProvider implements AccountProv
 
         // re-link to user
         account.setUserId(userId);
-        account = accountRepository.save(account);
+        // note: use flush because we detach the entity!
+        account = accountRepository.saveAndFlush(account);
         return accountRepository.detach(account);
     }
 
@@ -245,7 +247,8 @@ public class SpidAccountProvider extends AbstractProvider implements AccountProv
         // set account as active
         account.setStatus(UserStatus.ACTIVE.getValue());
 
-        account = accountRepository.save(account);
+        // note: use flush because we detach the entity!
+        account = accountRepository.saveAndFlush(account);
         return accountRepository.detach(account);
     }
 
@@ -306,7 +309,8 @@ public class SpidAccountProvider extends AbstractProvider implements AccountProv
         account.setName(name);
         account.setSurname(surname);
 
-        account = accountRepository.save(account);
+        // note: use flush because we detach the entity!
+        account = accountRepository.saveAndFlush(account);
         return accountRepository.detach(account);
     }
 
@@ -327,7 +331,8 @@ public class SpidAccountProvider extends AbstractProvider implements AccountProv
 
         // update status
         account.setStatus(newStatus.getValue());
-        account = accountRepository.save(account);
+        // note: use flush because we detach the entity!
+        account = accountRepository.saveAndFlush(account);
         return accountRepository.detach(account);
     }
 
@@ -341,6 +346,12 @@ public class SpidAccountProvider extends AbstractProvider implements AccountProv
         }
         return null;
 
+    }
+
+    @Override
+    public SpidUserAccount convertAccount(UserAuthenticatedPrincipal principal, String userId) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }

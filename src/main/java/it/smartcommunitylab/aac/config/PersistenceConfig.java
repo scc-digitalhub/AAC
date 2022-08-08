@@ -32,6 +32,8 @@ import it.smartcommunitylab.aac.claims.ExtractorsRegistry;
 import it.smartcommunitylab.aac.claims.InMemoryExtractorsRegistry;
 import it.smartcommunitylab.aac.claims.ResourceClaimsExtractorProvider;
 import it.smartcommunitylab.aac.claims.ScopeClaimsExtractorProvider;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.core.provider.ProviderRepository;
 import it.smartcommunitylab.aac.core.service.InMemoryProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.InMemoryProviderRepository;
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeProviderConfig;
@@ -39,11 +41,13 @@ import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfig;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
+import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProviderConfig;
 import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
 import it.smartcommunitylab.aac.scope.InMemoryScopeRegistry;
 import it.smartcommunitylab.aac.scope.ScopeProvider;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
+import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 
 @Configuration
 @Order(2)
@@ -180,48 +184,63 @@ public class PersistenceConfig {
         return new SamlRelyingPartyRegistrationRepository();
     }
 
+    /*
+     * TODO make configurable via properties and use builder to obtain
+     * implementation
+     */
     @Bean
-    public InMemoryProviderConfigRepository<InternalIdentityProviderConfig> internalProviderConfigRepository() {
+    public ProviderConfigRepository<InternalIdentityProviderConfig> internalProviderConfigRepository() {
         return new InMemoryProviderConfigRepository<InternalIdentityProviderConfig>();
     }
 
     @Bean
-    public InMemoryProviderConfigRepository<OIDCIdentityProviderConfig> oidcProviderConfigRepository() {
+    public ProviderConfigRepository<InternalPasswordIdentityProviderConfig> internalPasswordProviderConfigRepository() {
+        return new InMemoryProviderConfigRepository<InternalPasswordIdentityProviderConfig>();
+    }
+
+    @Bean
+    public ProviderConfigRepository<OIDCIdentityProviderConfig> oidcProviderConfigRepository() {
         return new InMemoryProviderConfigRepository<OIDCIdentityProviderConfig>();
     }
 
     @Bean
-    public InMemoryProviderConfigRepository<AppleIdentityProviderConfig> appleProviderConfigRepository() {
+    public ProviderConfigRepository<AppleIdentityProviderConfig> appleProviderConfigRepository() {
         return new InMemoryProviderConfigRepository<AppleIdentityProviderConfig>();
     }
 
     @Bean
-    public InMemoryProviderConfigRepository<SamlIdentityProviderConfig> samlProviderConfigRepository() {
+    public ProviderConfigRepository<SamlIdentityProviderConfig> samlProviderConfigRepository() {
         return new InMemoryProviderConfigRepository<SamlIdentityProviderConfig>();
     }
 
     @Bean
-    public InMemoryProviderConfigRepository<SpidIdentityProviderConfig> spidProviderConfigRepository() {
+    public ProviderConfigRepository<SpidIdentityProviderConfig> spidProviderConfigRepository() {
         return new InMemoryProviderConfigRepository<SpidIdentityProviderConfig>();
     }
 
     @Bean
-    public InMemoryProviderRepository<MapperAttributeProviderConfig> mapperProviderConfigRepository() {
+    public ProviderConfigRepository<WebAuthnIdentityProviderConfig> webAuthnProviderConfigRepository() {
+        return new InMemoryProviderConfigRepository<WebAuthnIdentityProviderConfig>();
+    }
+
+    @Bean
+    public ProviderRepository<MapperAttributeProviderConfig> mapperProviderConfigRepository() {
         return new InMemoryProviderRepository<MapperAttributeProviderConfig>();
     }
 
     @Bean
-    public InMemoryProviderRepository<ScriptAttributeProviderConfig> scriptProviderConfigRepository() {
+    public ProviderRepository<ScriptAttributeProviderConfig> scriptProviderConfigRepository() {
         return new InMemoryProviderRepository<ScriptAttributeProviderConfig>();
     }
 
     @Bean
-    public InMemoryProviderRepository<InternalAttributeProviderConfig> internalAttributeProviderConfigRepository() {
+    public ProviderRepository<InternalAttributeProviderConfig> internalAttributeProviderConfigRepository() {
         return new InMemoryProviderRepository<InternalAttributeProviderConfig>();
     }
 
     @Bean
-    public InMemoryProviderRepository<WebhookAttributeProviderConfig> webhookAttributeProviderConfigRepository() {
+    public ProviderRepository<WebhookAttributeProviderConfig> webhookAttributeProviderConfigRepository() {
         return new InMemoryProviderRepository<WebhookAttributeProviderConfig>();
     }
+
 }

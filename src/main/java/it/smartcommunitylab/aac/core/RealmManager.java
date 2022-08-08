@@ -26,6 +26,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.AttributeSetsManager;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
+import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchGroupException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
@@ -34,6 +35,7 @@ import it.smartcommunitylab.aac.common.NoSuchRoleException;
 import it.smartcommunitylab.aac.common.NoSuchServiceException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.Client;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
@@ -255,8 +257,9 @@ public class RealmManager {
                         // remove provider
                         providerManager.deleteProvider(slug, provider.getType(), providerId);
                     }
-                } catch (NoSuchProviderException e) {
+                } catch (NoSuchProviderException | SystemException | NoSuchAuthorityException e) {
                     // skip
+                    logger.error("Error deleting realm for provider {}: {}", provider.getProvider(), e.getMessage());
                 }
 
             }
