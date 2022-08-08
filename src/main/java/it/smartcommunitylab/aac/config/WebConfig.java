@@ -43,6 +43,7 @@ public class WebConfig implements WebMvcConfigurer {
         FilterRegistrationBean<ShallowEtagHeaderFilter> filter = new FilterRegistrationBean<>();
         filter.setFilter(new ShallowEtagHeaderFilter());
         filter.addUrlPatterns("/html/*", "/js/*", "/css/*", "/fonts/*", "/lib/*", "/italia/*");
+        filter.addUrlPatterns("/logo");
 //        frb.setOrder(2);
         return filter;
     }

@@ -54,6 +54,7 @@ import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.config.ApplicationProperties;
 import it.smartcommunitylab.aac.core.ClientManager;
 import it.smartcommunitylab.aac.core.MyUserManager;
 import it.smartcommunitylab.aac.core.ProviderManager;
@@ -83,6 +84,9 @@ public class DevController {
 
     @Value("${application.url}")
     private String applicationUrl;
+
+    @Autowired
+    private ApplicationProperties appProps;
 
     @Autowired
     private MyUserManager myUserManager;
@@ -126,7 +130,12 @@ public class DevController {
             throw new SecurityException();
         }
 
-        return new ModelAndView("index");
+        Map<String, Object> model = new HashMap<String, Object>();
+        String username = user.getUsername();
+        model.put("username", username);
+        model.put("applicationProperties", appProps);
+
+        return new ModelAndView("index", model);
     }
 
     @GetMapping("/console/dev/realms/{realm}/well-known/oauth2")

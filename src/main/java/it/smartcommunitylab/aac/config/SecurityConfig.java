@@ -227,6 +227,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/italia/**").permitAll()
                 .antMatchers("/spid/**").permitAll()
                 .antMatchers("/webauthn/**").permitAll()
+                .antMatchers("/logo", "/-/{realm}/logo").permitAll()
                 .antMatchers("/favicon.ico").permitAll()
                 // whitelist swagger
                 .antMatchers(
