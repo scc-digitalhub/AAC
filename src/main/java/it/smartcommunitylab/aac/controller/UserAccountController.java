@@ -36,6 +36,7 @@ import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.config.ApplicationProperties;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.MyUserManager;
@@ -72,6 +73,9 @@ public class UserAccountController {
     private AuthenticationHelper authHelper;
 
     @Autowired
+    private ApplicationProperties appProps;
+
+    @Autowired
     private MyUserManager userManager;
 
 //    @Autowired
@@ -103,6 +107,7 @@ public class UserAccountController {
         Map<String, Object> model = new HashMap<String, Object>();
         String username = user.getUsername();
         model.put("username", username);
+        model.put("applicationProperties", appProps);
         return new ModelAndView("account", model);
     }
 

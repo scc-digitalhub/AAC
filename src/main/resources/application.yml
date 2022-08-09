@@ -17,7 +17,8 @@ application:
    url: ${APPLICATION_EXT_URL:http://localhost:8080}
    name: ${APPLICATION_NAME:AAC}
    email: ${APPLICATION_EMAIL:info@smartcommunitylab.it}
-   logo: ${APPLICATION_LOGO:${application.url}/img/ds_logo.png}
+   logo: ${APPLICATION_LOGO:classpath:/public/img/ds_logo.png}
+   footer: ${APPLICATION_FOOTER:${application.name} - ${application.url} < ${application.email} >}
    lang: ${APPLICATION_LANG:en}
    
 # DB CONFIGURATION
