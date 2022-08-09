@@ -45,9 +45,9 @@ public class WebAuthnIdentityProviderConfig extends InternalIdentityProviderConf
      * config flags
      */
 
-    public boolean isAllowedUnstrustedAssertions() {
-        return configMap.getTrustUnverifiedAuthenticatorResponses() != null
-                ? configMap.getTrustUnverifiedAuthenticatorResponses().booleanValue()
+    public boolean isAllowedUnstrustedAttestation() {
+        return configMap.getAllowUntrustedAttestation() != null
+                ? configMap.getAllowUntrustedAttestation().booleanValue()
                 : false;
     }
 

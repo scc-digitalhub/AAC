@@ -7,6 +7,7 @@ import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.Assert;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yubico.webauthn.AssertionRequest;
 import com.yubico.webauthn.AssertionResult;
 
@@ -18,8 +19,8 @@ public class WebAuthnAuthenticationToken extends AbstractAuthenticationToken {
     private static final long serialVersionUID = SystemKeys.AAC_WEBAUTHN_SERIAL_VERSION;
 
     private final String userHandle;
-    private final AssertionRequest assertionRequest;
-    private final AssertionResult assertionResult;
+    private final transient AssertionRequest assertionRequest;
+    private final transient AssertionResult assertionResult;
 
     private String assertion;
     private InternalUserAccount account;
@@ -78,6 +79,7 @@ public class WebAuthnAuthenticationToken extends AbstractAuthenticationToken {
         return userHandle;
     }
 
+    @JsonIgnore
     public InternalUserAccount getAccount() {
         return account;
     }
@@ -96,6 +98,7 @@ public class WebAuthnAuthenticationToken extends AbstractAuthenticationToken {
 
     @Override
     public Object getCredentials() {
+        // TODO evaluate removal
         if (assertionRequest != null && assertionResult != null) {
             return Pair.of(assertionRequest, assertionResult);
         } else {

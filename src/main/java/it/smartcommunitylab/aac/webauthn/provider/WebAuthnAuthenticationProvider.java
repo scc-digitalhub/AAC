@@ -113,6 +113,9 @@ public class WebAuthnAuthenticationProvider
             WebAuthnAuthenticationToken auth = new WebAuthnAuthenticationToken(userHandle, assertionRequest, assertion,
                     assertionResult, account, authorities);
 
+            // copy details
+            auth.setDetails(authRequest.getDetails());
+
             return auth;
         } catch (BadCredentialsException e) {
             logger.debug("invalid request: " + e.getMessage());

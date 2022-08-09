@@ -177,6 +177,7 @@ public class WebAuthnAuthenticationFilter extends AbstractAuthenticationProcessi
             WebAuthenticationDetails webAuthenticationDetails = new WebAuthenticationDetails(request);
 
             // set details
+            authenticationRequest.setDetails(webAuthenticationDetails);
             wrappedAuthRequest.setAuthenticationDetails(webAuthenticationDetails);
 
             // authenticate via extended authManager

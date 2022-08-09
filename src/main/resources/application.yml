@@ -138,12 +138,7 @@ authorities:
       signAuthNRequest: true
       ssoServiceBinding: HTTP-POST
    webauthn:
-      rpid: ${WEBAUTHN_RP_ID:localhost:8080}
-      rpName: ${WEBAUTHN_RP_NAME:AAC}
-      enableRegistration: ${WEBAUTHN_ENABLE_REGISTRATION:true}
-      trustUnverifiedAuthenticatorResponses: ${WEBAUTHN_TRUST_UNVERIFIED_AUTH_RESPONSES:false}
-      enableUpdate: false
-      maxSessionDuration: 86400      
+      allowUntrustedAttestation: true
       
 
 

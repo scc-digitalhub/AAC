@@ -26,7 +26,7 @@ public class WebAuthnIdentityProviderConfigMap extends InternalIdentityProviderC
 
     private Boolean displayAsButton;
 
-    private Boolean trustUnverifiedAuthenticatorResponses;
+    private Boolean allowUntrustedAttestation;
 
     private UserVerificationRequirement requireUserVerification;
 
@@ -50,12 +50,12 @@ public class WebAuthnIdentityProviderConfigMap extends InternalIdentityProviderC
         this.displayAsButton = displayAsButton;
     }
 
-    public Boolean getTrustUnverifiedAuthenticatorResponses() {
-        return trustUnverifiedAuthenticatorResponses;
+    public Boolean getAllowUntrustedAttestation() {
+        return allowUntrustedAttestation;
     }
 
-    public void setTrustUnverifiedAuthenticatorResponses(Boolean trustUnverifiedAuthenticatorResponses) {
-        this.trustUnverifiedAuthenticatorResponses = trustUnverifiedAuthenticatorResponses;
+    public void setAllowUntrustedAttestation(Boolean allowUntrustedAttestation) {
+        this.allowUntrustedAttestation = allowUntrustedAttestation;
     }
 
     protected UserVerificationRequirement getRequireUserVerification() {
@@ -93,7 +93,7 @@ public class WebAuthnIdentityProviderConfigMap extends InternalIdentityProviderC
         this.credentialsType = CredentialsType.WEBAUTHN;
 
         this.displayAsButton = map.getDisplayAsButton();
-        this.trustUnverifiedAuthenticatorResponses = map.getTrustUnverifiedAuthenticatorResponses();
+        this.allowUntrustedAttestation = map.getAllowUntrustedAttestation();
         this.requireResidentKey = map.getRequireResidentKey();
         this.requireUserVerification = map.getRequireUserVerification();
     }

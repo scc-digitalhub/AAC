@@ -91,8 +91,8 @@ public class WebAuthnRpService {
                     RelyingParty rp = RelyingParty.builder()
                             .identity(rpIdentity)
                             .credentialRepository(webauthnRepository)
-                            .allowUntrustedAttestation(config.isAllowedUnstrustedAssertions())
-                            .allowOriginPort(true)
+                            .allowUntrustedAttestation(config.isAllowedUnstrustedAttestation())
+                            .allowOriginPort(false)
                             .allowOriginSubdomain(false)
                             .origins(origins)
                             .build();
