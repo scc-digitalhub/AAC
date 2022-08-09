@@ -56,6 +56,29 @@ public class AbstractAuthorityService<R extends ResourceProvider, C extends Conf
         return authority;
     }
 
+    public A registerAuthority(ProviderAuthority<?> pa) {
+        Assert.notNull(pa, "authority can not be null");
+        Assert.hasText(pa.getAuthorityId(), "id is mandatory");
+
+        // cast principal and handle errors
+        A a = null;
+        try {
+            @SuppressWarnings("unchecked")
+            A ac = (A) pa;
+            a = ac;
+        } catch (ClassCastException e) {
+            throw new IllegalArgumentException("wrong provider class");
+        }
+
+        // check if already registered
+        if (this.authorities.containsKey(a.getAuthorityId())) {
+            throw new IllegalArgumentException("already registered");
+        }
+
+        this.authorities.put(a.getAuthorityId(), a);
+        return a;
+    }
+
     public R getProvider(String authorityId, String providerId)
             throws NoSuchAuthorityException, NoSuchProviderException {
         A authority = getAuthority(authorityId);

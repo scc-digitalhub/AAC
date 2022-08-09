@@ -15,7 +15,7 @@ import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 
-@Service
+//@Service
 public class IdentityProviderAuthorityService extends
         AbstractAuthorityService<IdentityProvider<UserIdentity>, ConfigurableIdentityProvider, IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>>>
         implements InitializingBean {

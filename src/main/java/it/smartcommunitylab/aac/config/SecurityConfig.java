@@ -252,36 +252,36 @@ public class SecurityConfig {
                         "/auth/webauthn/**")
                 .and()
 //                // TODO replace with filterRegistrationBean and explicitely map urls
-                .addFilterBefore(
-                        getInternalAuthorityFilters(authManager, internalProviderRepository,
-                                internalUserAccountService),
-                        BasicAuthenticationFilter.class)
-                .addFilterBefore(
-                        getInternalPasswordAuthorityFilters(authManager, internalPasswordProviderRepository,
-                                internalUserAccountService, passwordRepository),
-                        BasicAuthenticationFilter.class)
-                .addFilterBefore(
-                        getWebAuthnAuthorityFilters(
-                                authManager,
-                                webAuthnRpService,
-                                webAuthnProviderRepository,
-                                internalUserAccountService, webAuthnRequestStore),
-                        BasicAuthenticationFilter.class)
-                .addFilterBefore(
-                        getSamlAuthorityFilters(authManager, samlProviderRepository,
-                                samlRelyingPartyRegistrationRepository),
-                        BasicAuthenticationFilter.class)
-                .addFilterBefore(
-                        getSpidAuthorityFilters(authManager, spidProviderRepository,
-                                spidRelyingPartyRegistrationRepository),
-                        BasicAuthenticationFilter.class)
-                .addFilterBefore(
-                        getOIDCAuthorityFilters(authManager, oidcProviderRepository, oidcClientRegistrationRepository),
-                        BasicAuthenticationFilter.class)
-                .addFilterBefore(
-                        getAppleAuthorityFilters(authManager, appleProviderRepository,
-                                appleClientRegistrationRepository),
-                        BasicAuthenticationFilter.class)
+//                .addFilterBefore(
+//                        getInternalAuthorityFilters(authManager, internalProviderRepository,
+//                                internalUserAccountService),
+//                        BasicAuthenticationFilter.class)
+//                .addFilterBefore(
+//                        getInternalPasswordAuthorityFilters(authManager, internalPasswordProviderRepository,
+//                                internalUserAccountService, passwordRepository),
+//                        BasicAuthenticationFilter.class)
+//                .addFilterBefore(
+//                        getWebAuthnAuthorityFilters(
+//                                authManager,
+//                                webAuthnRpService,
+//                                webAuthnProviderRepository,
+//                                internalUserAccountService, webAuthnRequestStore),
+//                        BasicAuthenticationFilter.class)
+//                .addFilterBefore(
+//                        getSamlAuthorityFilters(authManager, samlProviderRepository,
+//                                samlRelyingPartyRegistrationRepository),
+//                        BasicAuthenticationFilter.class)
+//                .addFilterBefore(
+//                        getSpidAuthorityFilters(authManager, spidProviderRepository,
+//                                spidRelyingPartyRegistrationRepository),
+//                        BasicAuthenticationFilter.class)
+//                .addFilterBefore(
+//                        getOIDCAuthorityFilters(authManager, oidcProviderRepository, oidcClientRegistrationRepository),
+//                        BasicAuthenticationFilter.class)
+//                .addFilterBefore(
+//                        getAppleAuthorityFilters(authManager, appleProviderRepository,
+//                                appleClientRegistrationRepository),
+//                        BasicAuthenticationFilter.class)
 //                .addFilterBefore(new ExpiredUserAuthenticationFilter(), BasicAuthenticationFilter.class);
 
                 // we always want a session here
@@ -367,57 +367,57 @@ public class SecurityConfig {
     /*
      * Internal auth
      */
-    public CompositeFilter getInternalAuthorityFilters(AuthenticationManager authManager,
-            ProviderConfigRepository<InternalIdentityProviderConfig> providerRepository,
-            InternalUserAccountService userAccountService) {
-
-        List<Filter> filters = new ArrayList<>();
-
-        InternalConfirmKeyAuthenticationFilter<InternalIdentityProviderConfig> confirmKeyFilter = new InternalConfirmKeyAuthenticationFilter<>(
-                userAccountService, providerRepository);
-        confirmKeyFilter.setAuthenticationManager(authManager);
-        confirmKeyFilter.setAuthenticationSuccessHandler(successHandler());
-
-        filters.add(confirmKeyFilter);
-
-        CompositeFilter filter = new CompositeFilter();
-        filter.setFilters(filters);
-
-        return filter;
-    }
-
-    public CompositeFilter getInternalPasswordAuthorityFilters(AuthenticationManager authManager,
-            ProviderConfigRepository<InternalPasswordIdentityProviderConfig> providerRepository,
-            InternalUserAccountService userAccountService, InternalUserPasswordRepository passwordRepository) {
-
-        List<Filter> filters = new ArrayList<>();
-
-        InternalLoginAuthenticationFilter loginFilter = new InternalLoginAuthenticationFilter(
-                userAccountService, passwordRepository, providerRepository);
-        loginFilter.setAuthenticationManager(authManager);
-        loginFilter.setAuthenticationSuccessHandler(successHandler());
-        filters.add(loginFilter);
-
-        InternalConfirmKeyAuthenticationFilter<InternalPasswordIdentityProviderConfig> confirmKeyFilter = new InternalConfirmKeyAuthenticationFilter<>(
-                SystemKeys.AUTHORITY_PASSWORD,
-                userAccountService, providerRepository,
-                InternalPasswordIdentityAuthority.AUTHORITY_URL + "confirm/{registrationId}", null);
-        confirmKeyFilter.setAuthenticationManager(authManager);
-        confirmKeyFilter.setAuthenticationSuccessHandler(successHandler());
-
-        filters.add(confirmKeyFilter);
-
-        InternalResetKeyAuthenticationFilter resetKeyFilter = new InternalResetKeyAuthenticationFilter(
-                userAccountService, passwordRepository, providerRepository);
-        resetKeyFilter.setAuthenticationManager(authManager);
-        resetKeyFilter.setAuthenticationSuccessHandler(successHandler());
-        filters.add(resetKeyFilter);
-
-        CompositeFilter filter = new CompositeFilter();
-        filter.setFilters(filters);
-
-        return filter;
-    }
+//    public CompositeFilter getInternalAuthorityFilters(AuthenticationManager authManager,
+//            ProviderConfigRepository<InternalIdentityProviderConfig> providerRepository,
+//            InternalUserAccountService userAccountService) {
+//
+//        List<Filter> filters = new ArrayList<>();
+//
+//        InternalConfirmKeyAuthenticationFilter<InternalIdentityProviderConfig> confirmKeyFilter = new InternalConfirmKeyAuthenticationFilter<>(
+//                userAccountService, providerRepository);
+//        confirmKeyFilter.setAuthenticationManager(authManager);
+//        confirmKeyFilter.setAuthenticationSuccessHandler(successHandler());
+//
+//        filters.add(confirmKeyFilter);
+//
+//        CompositeFilter filter = new CompositeFilter();
+//        filter.setFilters(filters);
+//
+//        return filter;
+//    }
+//
+//    public CompositeFilter getInternalPasswordAuthorityFilters(AuthenticationManager authManager,
+//            ProviderConfigRepository<InternalPasswordIdentityProviderConfig> providerRepository,
+//            InternalUserAccountService userAccountService, InternalUserPasswordRepository passwordRepository) {
+//
+//        List<Filter> filters = new ArrayList<>();
+//
+//        InternalLoginAuthenticationFilter loginFilter = new InternalLoginAuthenticationFilter(
+//                userAccountService, passwordRepository, providerRepository);
+//        loginFilter.setAuthenticationManager(authManager);
+//        loginFilter.setAuthenticationSuccessHandler(successHandler());
+//        filters.add(loginFilter);
+//
+//        InternalConfirmKeyAuthenticationFilter<InternalPasswordIdentityProviderConfig> confirmKeyFilter = new InternalConfirmKeyAuthenticationFilter<>(
+//                SystemKeys.AUTHORITY_PASSWORD,
+//                userAccountService, providerRepository,
+//                InternalPasswordIdentityAuthority.AUTHORITY_URL + "confirm/{registrationId}", null);
+//        confirmKeyFilter.setAuthenticationManager(authManager);
+//        confirmKeyFilter.setAuthenticationSuccessHandler(successHandler());
+//
+//        filters.add(confirmKeyFilter);
+//
+//        InternalResetKeyAuthenticationFilter resetKeyFilter = new InternalResetKeyAuthenticationFilter(
+//                userAccountService, passwordRepository, providerRepository);
+//        resetKeyFilter.setAuthenticationManager(authManager);
+//        resetKeyFilter.setAuthenticationSuccessHandler(successHandler());
+//        filters.add(resetKeyFilter);
+//
+//        CompositeFilter filter = new CompositeFilter();
+//        filter.setFilters(filters);
+//
+//        return filter;
+//    }
 
     public CompositeFilter getWebAuthnAuthorityFilters(AuthenticationManager authManager,
             WebAuthnRpService rpService,

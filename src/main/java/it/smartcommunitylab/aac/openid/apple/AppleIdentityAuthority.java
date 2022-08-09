@@ -50,7 +50,7 @@ public class AppleIdentityAuthority extends
             OIDCUserAccountService userAccountService, AutoJdbcAttributeStore jdbcAttributeStore,
             ProviderConfigRepository<AppleIdentityProviderConfig> registrationRepository,
             @Qualifier("appleClientRegistrationRepository") OIDCClientRegistrationRepository clientRegistrationRepository) {
-        super(userEntityService, subjectService, registrationRepository);
+        super(SystemKeys.AUTHORITY_APPLE, userEntityService, subjectService, registrationRepository);
         Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(jdbcAttributeStore, "attribute store is mandatory");
         Assert.notNull(clientRegistrationRepository, "client registration repository is mandatory");
@@ -73,11 +73,6 @@ public class AppleIdentityAuthority extends
     @Override
     public void afterPropertiesSet() throws Exception {
         super.afterPropertiesSet();
-    }
-
-    @Override
-    public String getAuthorityId() {
-        return SystemKeys.AUTHORITY_APPLE;
     }
 
     @Override

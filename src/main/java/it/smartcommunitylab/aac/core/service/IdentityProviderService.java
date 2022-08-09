@@ -83,7 +83,7 @@ public class IdentityProviderService {
                         continue;
                     }
 
-                    if (!providerConfig.isEnabled()) {
+                    if (providerConfig.getEnable() != null && !providerConfig.isEnabled()) {
                         continue;
                     }
 

@@ -23,6 +23,7 @@ import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
+import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
@@ -32,6 +33,8 @@ import it.smartcommunitylab.aac.core.service.UserEntityService;
 public abstract class AbstractIdentityAuthority<I extends UserIdentity, S extends IdentityProvider<I>, C extends AbstractProviderConfig, P extends ConfigurableProperties>
         implements IdentityProviderAuthority<I, S>, InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
+
+    protected final String authorityId;
 
     // user service
     protected final UserEntityService userEntityService;
@@ -65,15 +68,29 @@ public abstract class AbstractIdentityAuthority<I extends UserIdentity, S extend
             });
 
     public AbstractIdentityAuthority(
+            String authorityId,
             UserEntityService userEntityService, SubjectService subjectService,
             ProviderConfigRepository<C> registrationRepository) {
+        Assert.hasText(authorityId, "authority id  is mandatory");
         Assert.notNull(userEntityService, "user service is mandatory");
         Assert.notNull(subjectService, "subject service is mandatory");
         Assert.notNull(registrationRepository, "provider registration repository is mandatory");
 
+        this.authorityId = authorityId;
         this.userEntityService = userEntityService;
         this.subjectService = subjectService;
         this.registrationRepository = registrationRepository;
+    }
+
+    @Override
+    public String getAuthorityId() {
+        return authorityId;
+    }
+
+    @Override
+    public FilterProvider getFilterProvider() {
+        // authorities are not required to expose filters
+        return null;
     }
 
     protected abstract S buildProvider(C config);

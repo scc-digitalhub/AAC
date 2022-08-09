@@ -40,7 +40,7 @@ public class WebAuthnIdentityAuthority extends
             UserEntityService userEntityService, SubjectService subjectService,
             InternalUserAccountService userAccountService, WebAuthnCredentialsRepository credentialsRepository,
             ProviderConfigRepository<WebAuthnIdentityProviderConfig> registrationRepository) {
-        super(userEntityService, subjectService, registrationRepository);
+        super(SystemKeys.AUTHORITY_WEBAUTHN, userEntityService, subjectService, registrationRepository);
         Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(credentialsRepository, "credentials repository is mandatory");
 
@@ -67,11 +67,6 @@ public class WebAuthnIdentityAuthority extends
     @Override
     public void afterPropertiesSet() throws Exception {
         super.afterPropertiesSet();
-    }
-
-    @Override
-    public String getAuthorityId() {
-        return SystemKeys.AUTHORITY_WEBAUTHN;
     }
 
     @Override

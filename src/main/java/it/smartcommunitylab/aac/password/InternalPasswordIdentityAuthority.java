@@ -13,6 +13,7 @@ import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
+import it.smartcommunitylab.aac.password.provider.InternalPasswordFilterProvider;
 import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProvider;
 import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProviderConfig;
@@ -32,6 +33,9 @@ public class InternalPasswordIdentityAuthority extends
     // password repository
     private final InternalUserPasswordRepository passwordRepository;
 
+    // filter provider
+    private final InternalPasswordFilterProvider filterProvider;
+
     // services
     protected MailService mailService;
     protected RealmAwareUriBuilder uriBuilder;
@@ -40,12 +44,16 @@ public class InternalPasswordIdentityAuthority extends
             UserEntityService userEntityService, SubjectService subjectService,
             InternalUserAccountService userAccountService, InternalUserPasswordRepository passwordRepository,
             ProviderConfigRepository<InternalPasswordIdentityProviderConfig> registrationRepository) {
-        super(userEntityService, subjectService, registrationRepository);
+        super(SystemKeys.AUTHORITY_PASSWORD, userEntityService, subjectService, registrationRepository);
         Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(passwordRepository, "password repository is mandatory");
 
         this.accountService = userAccountService;
         this.passwordRepository = passwordRepository;
+
+        // build filter provider
+        this.filterProvider = new InternalPasswordFilterProvider(userAccountService, passwordRepository,
+                registrationRepository);
     }
 
     @Autowired
@@ -70,11 +78,6 @@ public class InternalPasswordIdentityAuthority extends
     }
 
     @Override
-    public String getAuthorityId() {
-        return SystemKeys.AUTHORITY_PASSWORD;
-    }
-
-    @Override
     public InternalPasswordIdentityProvider buildProvider(InternalPasswordIdentityProviderConfig config) {
         InternalPasswordIdentityProvider idp = new InternalPasswordIdentityProvider(
                 config.getProvider(),
@@ -88,4 +91,8 @@ public class InternalPasswordIdentityAuthority extends
         return idp;
     }
 
+    @Override
+    public InternalPasswordFilterProvider getFilterProvider() {
+        return filterProvider;
+    }
 }

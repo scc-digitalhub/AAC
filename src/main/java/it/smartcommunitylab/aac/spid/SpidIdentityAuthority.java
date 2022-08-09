@@ -31,6 +31,7 @@ import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
+import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.SubjectService;
@@ -138,6 +139,12 @@ public class SpidIdentityAuthority
     @Override
     public String getAuthorityId() {
         return SystemKeys.AUTHORITY_SPID;
+    }
+
+    @Override
+    public FilterProvider getFilterProvider() {
+        // authorities are not required to expose filters
+        return null;
     }
 
     @Override

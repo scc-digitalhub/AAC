@@ -51,7 +51,6 @@ public class OIDCIdentityProvider
                 attributeStore, config, realm);
     }
 
-    @Deprecated
     public OIDCIdentityProvider(
             String authority, String providerId,
             UserEntityService userEntityService, OIDCUserAccountService userAccountService,

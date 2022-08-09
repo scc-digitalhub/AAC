@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.core.authorities;
 
 import it.smartcommunitylab.aac.core.model.UserIdentity;
+import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 
 public interface IdentityProviderAuthority<I extends UserIdentity, S extends IdentityProvider<I>>
@@ -37,4 +38,8 @@ public interface IdentityProviderAuthority<I extends UserIdentity, S extends Ide
 //
 //    public void unregisterProvider(String providerId) throws SystemException;
 
+    /*
+     * Filter provider exposes auth filters for registration in filter chain
+     */
+    public FilterProvider getFilterProvider();
 }

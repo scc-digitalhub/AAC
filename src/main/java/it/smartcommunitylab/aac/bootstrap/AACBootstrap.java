@@ -1,9 +1,11 @@
 package it.smartcommunitylab.aac.bootstrap;
 
 import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -27,9 +29,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.attributes.store.AutoJdbcAttributeStore;
+import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.config.ApplicationProperties;
+import it.smartcommunitylab.aac.config.AuthoritiesProperties;
+import it.smartcommunitylab.aac.config.CustomAuthoritiesProperties;
 import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.ClientManager;
 import it.smartcommunitylab.aac.core.ProviderManager;
@@ -37,15 +44,18 @@ import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.UserManager;
 import it.smartcommunitylab.aac.core.authorities.AttributeAuthority;
 import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
+import it.smartcommunitylab.aac.core.authorities.ProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.AttributeProviderService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderAuthorityService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderService;
+import it.smartcommunitylab.aac.core.service.InMemoryProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.internal.model.CredentialsType;
@@ -56,10 +66,19 @@ import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.model.UserStatus;
+import it.smartcommunitylab.aac.openid.OIDCIdentityAuthority;
+import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
+import it.smartcommunitylab.aac.openid.model.OIDCUserIdentity;
+import it.smartcommunitylab.aac.openid.provider.OIDCIdentityConfigurationProvider;
+import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProvider;
+import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
+import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
+import it.smartcommunitylab.aac.openid.service.OIDCUserAccountService;
 import it.smartcommunitylab.aac.password.InternalPasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProvider;
 import it.smartcommunitylab.aac.password.service.InternalPasswordService;
 import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
+import it.smartcommunitylab.aac.saml.service.SamlUserAccountService;
 import it.smartcommunitylab.aac.services.Service;
 import it.smartcommunitylab.aac.services.ServicesManager;
 
@@ -84,6 +103,12 @@ public class AACBootstrap {
 
     @Value("${admin.roles}")
     private String[] adminRoles;
+
+    @Autowired
+    private ApplicationProperties appProps;
+
+    @Autowired
+    private AuthoritiesProperties authoritiesProps;
 
     @Autowired
     private ResourceLoader resourceLoader;
@@ -123,6 +148,12 @@ public class AACBootstrap {
     private InternalUserAccountService internalUserService;
 
     @Autowired
+    private OIDCUserAccountService oidcUserService;
+
+    @Autowired
+    private SamlUserAccountService samlUserService;
+
+    @Autowired
     private IdentityProviderAuthorityService identityProviderAuthorityService;
 
     @Autowired
@@ -137,6 +168,12 @@ public class AACBootstrap {
     @Autowired
     private InternalPasswordIdentityAuthority passwordIdentityAuthority;
 
+    @Autowired
+    private AutoJdbcAttributeStore jdbcAttributeStore;
+
+    @Autowired
+    private ScriptExecutionService executionService;
+
     @EventListener
     public void onApplicationEvent(ApplicationReadyEvent event) {
         try {
@@ -146,6 +183,10 @@ public class AACBootstrap {
 
             // build a security context as admin to bootstrap configs
             // initContext(adminUsername);
+
+//            if (authoritiesProps.getCustom() != null) {
+//                bootstrapCustomAuthorities(authoritiesProps.getCustom());
+//            }
 
             // bootstrap providers
             // TODO use a dedicated thread, or a multithread
@@ -184,6 +225,51 @@ public class AACBootstrap {
             logger.error("error bootstrapping: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    private List<IdentityProviderAuthority<? extends UserIdentity, ? extends IdentityProvider<?>>> bootstrapCustomAuthorities(
+            List<CustomAuthoritiesProperties> customProps) {
+        List<IdentityProviderAuthority<? extends UserIdentity, ? extends IdentityProvider<?>>> customAuthorities = new ArrayList<>();
+
+        for (CustomAuthoritiesProperties authProp : customProps) {
+
+            // read props
+            String id = authProp.getId();
+            String name = authProp.getName();
+            String description = authProp.getDescription();
+
+            if (StringUtils.hasText(id)) {
+                // derive type manually
+                // TODO refactor
+
+                if (authProp.getOidc() != null) {
+                    // buid oidc config provider
+                    OIDCIdentityProviderConfigMap configMap = authProp.getOidc();
+                    OIDCIdentityConfigurationProvider configProvider = new OIDCIdentityConfigurationProvider(id,
+                            configMap);
+
+                    // build config repositories
+                    ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository = new InMemoryProviderConfigRepository<>();
+                    OIDCClientRegistrationRepository clientRegistrationRepository = new OIDCClientRegistrationRepository();
+                    // instantiate authority
+                    OIDCIdentityAuthority auth = new OIDCIdentityAuthority(
+                            id,
+                            userService, subjectService,
+                            oidcUserService, jdbcAttributeStore,
+                            registrationRepository,
+                            clientRegistrationRepository);
+
+                    auth.setConfigProvider(configProvider);
+                    auth.setExecutionService(executionService);
+
+                    // register for manager
+                    identityProviderAuthorityService.registerAuthority(auth);
+                    customAuthorities.add(auth);
+                }
+            }
+        }
+
+        return customAuthorities;
     }
 
     private Map<String, IdentityProvider<UserIdentity>> bootstrapSystemProviders()

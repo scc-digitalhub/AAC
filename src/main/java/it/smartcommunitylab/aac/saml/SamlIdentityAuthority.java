@@ -51,7 +51,7 @@ public class SamlIdentityAuthority extends
             SamlUserAccountService userAccountService, AutoJdbcAttributeStore jdbcAttributeStore,
             ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository,
             @Qualifier("samlRelyingPartyRegistrationRepository") SamlRelyingPartyRegistrationRepository samlRelyingPartyRegistrationRepository) {
-        super(userEntityService, subjectService, registrationRepository);
+        super(SystemKeys.AUTHORITY_SAML, userEntityService, subjectService, registrationRepository);
         Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(jdbcAttributeStore, "attribute store is mandatory");
         Assert.notNull(samlRelyingPartyRegistrationRepository, "relayingParty registration repository is mandatory");
@@ -89,11 +89,6 @@ public class SamlIdentityAuthority extends
 
         idp.setExecutionService(executionService);
         return idp;
-    }
-
-    @Override
-    public String getAuthorityId() {
-        return SystemKeys.AUTHORITY_SAML;
     }
 
     @Override
