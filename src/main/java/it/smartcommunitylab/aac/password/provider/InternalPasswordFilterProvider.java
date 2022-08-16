@@ -1,6 +1,8 @@
 package it.smartcommunitylab.aac.password.provider;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import javax.servlet.Filter;
@@ -81,6 +83,14 @@ public class InternalPasswordFilterProvider implements FilterProvider {
         return filters;
 
     }
+
+    @Override
+    public Collection<String> getCorsIgnoringAntMatchers() {
+        return Arrays.asList(NO_CORS_ENDPOINTS);
+    }
+
+    private static String[] NO_CORS_ENDPOINTS = {
+    };
 
     private RequestAwareAuthenticationSuccessHandler successHandler() {
         return new RequestAwareAuthenticationSuccessHandler();

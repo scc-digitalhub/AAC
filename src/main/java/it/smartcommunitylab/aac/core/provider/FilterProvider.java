@@ -9,4 +9,6 @@ public interface FilterProvider {
 
     public Collection<Filter> getFilters();
 
+    public Collection<String> getCorsIgnoringAntMatchers();
+
 }

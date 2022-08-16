@@ -1,7 +1,10 @@
 package it.smartcommunitylab.aac.saml.provider;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.servlet.Filter;
 
@@ -55,6 +58,7 @@ public class SamlFilterProvider implements FilterProvider {
 
         // build filters
         SamlWebSsoAuthenticationRequestFilter requestFilter = new SamlWebSsoAuthenticationRequestFilter(
+                authorityId,
                 registrationRepository, relyingPartyRegistrationRepository,
                 buildFilterUrl("authenticate/{registrationId}"));
         requestFilter.setAuthenticationRequestRepository(authenticationRequestRepository);
@@ -66,7 +70,7 @@ public class SamlFilterProvider implements FilterProvider {
         // TODO use custom success handler to support auth sagas (disabled for now)
 //        ssoFilter.setAuthenticationSuccessHandler(new RequestAwareAuthenticationSuccessHandler());
 
-        SamlMetadataFilter metadataFilter = new SamlMetadataFilter(relyingPartyRegistrationRepository,
+        SamlMetadataFilter metadataFilter = new SamlMetadataFilter(authorityId, relyingPartyRegistrationRepository,
                 buildFilterUrl("metadata/{registrationId}"));
 
         if (authManager != null) {
@@ -83,9 +87,20 @@ public class SamlFilterProvider implements FilterProvider {
 
     }
 
+    @Override
+    public Collection<String> getCorsIgnoringAntMatchers() {
+        return Arrays.asList(NO_CORS_ENDPOINTS).stream()
+                .map(a -> "/auth/" + authorityId + "/" + a)
+                .collect(Collectors.toList());
+    }
+
     private String buildFilterUrl(String action) {
         // always use same path building logic for saml
         return "/auth/" + authorityId + "/" + action;
     }
+
+    private static String[] NO_CORS_ENDPOINTS = {
+            "authenticate/**", "sso/**"
+    };
 
 }

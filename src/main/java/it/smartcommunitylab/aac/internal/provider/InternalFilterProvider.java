@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.internal.provider;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -52,6 +53,14 @@ public class InternalFilterProvider implements FilterProvider {
 
         return Collections.singletonList(confirmKeyFilter);
     }
+
+    @Override
+    public Collection<String> getCorsIgnoringAntMatchers() {
+        return Arrays.asList(NO_CORS_ENDPOINTS);
+    }
+
+    private static String[] NO_CORS_ENDPOINTS = {
+    };
 
     private RequestAwareAuthenticationSuccessHandler successHandler() {
         return new RequestAwareAuthenticationSuccessHandler();

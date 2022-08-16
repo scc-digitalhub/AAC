@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.openid.auth;
 
+import org.springframework.lang.Nullable;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.util.Assert;
@@ -16,6 +17,8 @@ import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
 public class OIDCRedirectAuthenticationFilter extends OAuth2AuthorizationRequestRedirectFilter {
 
     public static final String DEFAULT_FILTER_URI = OIDCIdentityAuthority.AUTHORITY_URL + "authorize";
+
+    private final String authorityId;
 
 //    // we need to load client registration
 //    private final ClientRegistrationRepository clientRegistrationRepository;
@@ -42,8 +45,14 @@ public class OIDCRedirectAuthenticationFilter extends OAuth2AuthorizationRequest
         Assert.notNull(registrationRepository, "provider registration repository cannot be null");
         Assert.notNull(clientRegistrationRepository, "clientRegistrationRepository cannot be null");
 
+        this.authorityId = authority;
 //        this.registrationRepository = registrationRepository;
 //        this.clientRegistrationRepository = clientRegistrationRepository;
+    }
+
+    @Nullable
+    protected String getFilterName() {
+        return getClass().getName() + "." + authorityId;
     }
 
 }

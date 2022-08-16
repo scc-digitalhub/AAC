@@ -1,5 +1,7 @@
 package it.smartcommunitylab.aac.webauthn.provider;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -12,6 +14,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.RequestAwareAuthenticationSuccessHandler;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
 import it.smartcommunitylab.aac.webauthn.auth.WebAuthnAuthenticationFilter;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpService;
 import it.smartcommunitylab.aac.webauthn.store.WebAuthnAssertionRequestStore;
@@ -61,6 +64,16 @@ public class WebAuthnFilterProvider implements FilterProvider {
 
         return Collections.singletonList(loginFilter);
     }
+
+    @Override
+    public Collection<String> getCorsIgnoringAntMatchers() {
+        return Arrays.asList(NO_CORS_ENDPOINTS);
+    }
+
+    // TODO define in detail urls
+    private static String[] NO_CORS_ENDPOINTS = {
+            WebAuthnIdentityAuthority.AUTHORITY_URL + "**"
+    };
 
     private RequestAwareAuthenticationSuccessHandler successHandler() {
         return new RequestAwareAuthenticationSuccessHandler();

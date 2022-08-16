@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.common.DuplicatedDataException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
@@ -184,9 +185,13 @@ public class InternalUserAccountService implements UserAccountService<InternalUs
             // we support username update
             account.setUsername(reg.getUsername());
 
+            // support uuid change if provided
+            if (StringUtils.hasText(reg.getUuid())) {
+                account.setUuid(reg.getUuid());
+            }
+
             // we explode model and update every field
             account.setAuthority(reg.getAuthority());
-            account.setUuid(reg.getUuid());
             account.setUserId(reg.getUserId());
             account.setRealm(reg.getRealm());
             account.setStatus(reg.getStatus());

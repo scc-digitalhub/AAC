@@ -1,7 +1,10 @@
 package it.smartcommunitylab.aac.openid.provider;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.servlet.Filter;
 
@@ -13,6 +16,7 @@ import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.openid.OIDCIdentityAuthority;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.openid.auth.OIDCLoginAuthenticationFilter;
 import it.smartcommunitylab.aac.openid.auth.OIDCRedirectAuthenticationFilter;
@@ -84,9 +88,20 @@ public class OIDCFilterProvider implements FilterProvider {
 
     }
 
+    @Override
+    public Collection<String> getCorsIgnoringAntMatchers() {
+        return Arrays.asList(NO_CORS_ENDPOINTS).stream()
+                .map(a -> "/auth/" + authorityId + "/" + a)
+                .collect(Collectors.toList());
+    }
+
     private String buildFilterUrl(String action) {
         // always use same path building logic for oidc
         return "/auth/" + authorityId + "/" + action;
     }
+
+    private static String[] NO_CORS_ENDPOINTS = {
+            "login/**"
+    };
 
 }

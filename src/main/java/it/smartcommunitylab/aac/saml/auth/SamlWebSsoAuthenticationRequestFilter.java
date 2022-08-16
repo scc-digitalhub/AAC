@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.http.MediaType;
+import org.springframework.lang.Nullable;
 import org.springframework.security.crypto.keygen.Base64StringKeyGenerator;
 import org.springframework.security.crypto.keygen.StringKeyGenerator;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationRequestContext;
@@ -31,6 +32,7 @@ import org.springframework.web.util.HtmlUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriUtils;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.saml.SamlIdentityAuthority;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
@@ -40,6 +42,8 @@ public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter 
 
     public static final String DEFAULT_FILTER_URI = SamlIdentityAuthority.AUTHORITY_URL
             + "authenticate/{registrationId}";
+
+    private final String authorityId;
 
     private final RequestMatcher requestMatcher;
 
@@ -52,17 +56,20 @@ public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter 
     public SamlWebSsoAuthenticationRequestFilter(
             ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository,
             RelyingPartyRegistrationRepository relyingPartyRegistrationRepository) {
-        this(registrationRepository, relyingPartyRegistrationRepository, DEFAULT_FILTER_URI);
+        this(SystemKeys.AUTHORITY_SAML, registrationRepository, relyingPartyRegistrationRepository, DEFAULT_FILTER_URI);
     }
 
     public SamlWebSsoAuthenticationRequestFilter(
+            String authority,
             ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository,
             RelyingPartyRegistrationRepository relyingPartyRegistrationRepository,
             String filterProcessingUrl) {
+        Assert.hasText(authority, "authority can not be null or empty");
         Assert.notNull(registrationRepository, "registration repository cannot be null");
         Assert.notNull(relyingPartyRegistrationRepository, "relying party repository cannot be null");
 
 //        this.registrationRepository = registrationRepository;
+        this.authorityId = authority;
 
         // use custom implementation to add secure relayState param
         this.authenticationRequestContextResolver = new CustomSaml2AuthenticationRequestContextResolver(
@@ -71,6 +78,11 @@ public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter 
 
         // set redirect to filterUrl
         this.requestMatcher = new AntPathRequestMatcher(filterProcessingUrl);
+    }
+
+    @Nullable
+    protected String getFilterName() {
+        return getClass().getName() + "." + authorityId;
     }
 
     @Override

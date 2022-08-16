@@ -1,6 +1,8 @@
 package it.smartcommunitylab.aac.openid.apple.provider;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import javax.servlet.Filter;
@@ -8,15 +10,14 @@ import javax.servlet.Filter;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.oauth2.client.web.HttpSessionOAuth2AuthorizationRequestRepository;
-import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.auth.RequestAwareAuthenticationSuccessHandler;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.openid.apple.AppleIdentityAuthority;
 import it.smartcommunitylab.aac.openid.apple.auth.AppleLoginAuthenticationFilter;
+import it.smartcommunitylab.aac.openid.apple.auth.AppleRedirectAuthenticationFilter;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 
 public class AppleFilterProvider implements FilterProvider {
@@ -49,8 +50,10 @@ public class AppleFilterProvider implements FilterProvider {
         // build filters bound to shared client + request repos
         AuthorizationRequestRepository<OAuth2AuthorizationRequest> authorizationRequestRepository = new HttpSessionOAuth2AuthorizationRequestRepository();
 
-        OAuth2AuthorizationRequestRedirectFilter redirectFilter = new OAuth2AuthorizationRequestRedirectFilter(
-                clientRegistrationRepository, AppleIdentityAuthority.AUTHORITY_URL + "authorize");
+//        OAuth2AuthorizationRequestRedirectFilter redirectFilter = new OAuth2AuthorizationRequestRedirectFilter(
+//                clientRegistrationRepository, AppleIdentityAuthority.AUTHORITY_URL + "authorize");
+        AppleRedirectAuthenticationFilter redirectFilter = new AppleRedirectAuthenticationFilter(
+                registrationRepository, clientRegistrationRepository);
         redirectFilter.setAuthorizationRequestRepository(authorizationRequestRepository);
 
         AppleLoginAuthenticationFilter loginFilter = new AppleLoginAuthenticationFilter(
@@ -73,4 +76,12 @@ public class AppleFilterProvider implements FilterProvider {
 
     }
 
+    @Override
+    public Collection<String> getCorsIgnoringAntMatchers() {
+        return Arrays.asList(NO_CORS_ENDPOINTS);
+    }
+
+    private static String[] NO_CORS_ENDPOINTS = {
+            AppleIdentityAuthority.AUTHORITY_URL + "login/**"
+    };
 }
