@@ -40,7 +40,7 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
  * 
  */
 @Configuration
-@Order(30)
+@Order(13)
 public class OpenAPIConfig {
 
 //    @Autowired
