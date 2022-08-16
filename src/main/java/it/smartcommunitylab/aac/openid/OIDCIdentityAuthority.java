@@ -21,6 +21,7 @@ import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.openid.model.OIDCUserIdentity;
+import it.smartcommunitylab.aac.openid.provider.OIDCFilterProvider;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProvider;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
@@ -36,6 +37,9 @@ public class OIDCIdentityAuthority extends
 
     // oidc account service
     private final OIDCUserAccountService accountService;
+
+    // filter provider
+    private final OIDCFilterProvider filterProvider;
 
     // system attributes store
     private final AutoJdbcAttributeStore jdbcAttributeStore;
@@ -70,6 +74,10 @@ public class OIDCIdentityAuthority extends
         this.accountService = userAccountService;
         this.jdbcAttributeStore = jdbcAttributeStore;
         this.clientRegistrationRepository = clientRegistrationRepository;
+
+        // build filter provider
+        this.filterProvider = new OIDCFilterProvider(authorityId, clientRegistrationRepository,
+                registrationRepository);
     }
 
     @Autowired
@@ -85,6 +93,11 @@ public class OIDCIdentityAuthority extends
     @Override
     public void afterPropertiesSet() throws Exception {
         super.afterPropertiesSet();
+    }
+
+    @Override
+    public OIDCFilterProvider getFilterProvider() {
+        return this.filterProvider;
     }
 
     @Override

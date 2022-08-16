@@ -7,8 +7,6 @@ import javax.servlet.Filter;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.util.Assert;
-import org.springframework.web.filter.CompositeFilter;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.RequestAwareAuthenticationSuccessHandler;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
@@ -47,7 +45,7 @@ public class InternalPasswordFilterProvider implements FilterProvider {
 
     @Override
     public String getAuthorityId() {
-        return SystemKeys.AUTHORITY_INTERNAL;
+        return SystemKeys.AUTHORITY_PASSWORD;
     }
 
     @Override

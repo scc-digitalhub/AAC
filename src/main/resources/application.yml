@@ -140,6 +140,8 @@ authorities:
       ssoServiceBinding: HTTP-POST
    webauthn:
       allowUntrustedAttestation: true
+   custom:
+
       
 
 

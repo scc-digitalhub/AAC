@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.openid.apple.provider.AppleFilterProvider;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProvider;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfig;
@@ -36,6 +37,9 @@ public class AppleIdentityAuthority extends
     // oidc account service
     private final OIDCUserAccountService accountService;
 
+    // filter provider
+    private final AppleFilterProvider filterProvider;
+
     // system attributes store
     private final AutoJdbcAttributeStore jdbcAttributeStore;
 
@@ -58,6 +62,10 @@ public class AppleIdentityAuthority extends
         this.accountService = userAccountService;
         this.jdbcAttributeStore = jdbcAttributeStore;
         this.clientRegistrationRepository = clientRegistrationRepository;
+
+        // build filter provider
+        this.filterProvider = new AppleFilterProvider(clientRegistrationRepository,
+                registrationRepository);
     }
 
     @Autowired
@@ -73,6 +81,11 @@ public class AppleIdentityAuthority extends
     @Override
     public void afterPropertiesSet() throws Exception {
         super.afterPropertiesSet();
+    }
+
+    @Override
+    public AppleFilterProvider getFilterProvider() {
+        return this.filterProvider;
     }
 
     @Override
