@@ -227,54 +227,54 @@ public class AACBootstrap {
         }
     }
 
-    private List<IdentityProviderAuthority<? extends UserIdentity, ? extends IdentityProvider<?>>> bootstrapCustomAuthorities(
-            List<CustomAuthoritiesProperties> customProps) {
-        List<IdentityProviderAuthority<? extends UserIdentity, ? extends IdentityProvider<?>>> customAuthorities = new ArrayList<>();
-
-        for (CustomAuthoritiesProperties authProp : customProps) {
-
-            // read props
-            String id = authProp.getId();
-            String name = authProp.getName();
-            String description = authProp.getDescription();
-
-            if (StringUtils.hasText(id)) {
-                // derive type manually
-                // TODO refactor
-
-                if (authProp.getOidc() != null) {
-                    // buid oidc config provider
-                    OIDCIdentityProviderConfigMap configMap = authProp.getOidc();
-                    OIDCIdentityConfigurationProvider configProvider = new OIDCIdentityConfigurationProvider(id,
-                            configMap);
-
-                    // build config repositories
-                    ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository = new InMemoryProviderConfigRepository<>();
-                    OIDCClientRegistrationRepository clientRegistrationRepository = new OIDCClientRegistrationRepository();
-                    // instantiate authority
-                    OIDCIdentityAuthority auth = new OIDCIdentityAuthority(
-                            id,
-                            userService, subjectService,
-                            oidcUserService, jdbcAttributeStore,
-                            registrationRepository,
-                            clientRegistrationRepository);
-
-                    auth.setConfigProvider(configProvider);
-                    auth.setExecutionService(executionService);
-
-                    // register for manager
-                    identityProviderAuthorityService.registerAuthority(auth);
-                    customAuthorities.add(auth);
-                }
-            }
-        }
-
-        return customAuthorities;
-    }
+//    private List<IdentityProviderAuthority<? extends UserIdentity, ? extends IdentityProvider<?>>> bootstrapCustomAuthorities(
+//            List<CustomAuthoritiesProperties> customProps) {
+//        List<IdentityProviderAuthority<? extends UserIdentity, ? extends IdentityProvider<?>>> customAuthorities = new ArrayList<>();
+//
+//        for (CustomAuthoritiesProperties authProp : customProps) {
+//
+//            // read props
+//            String id = authProp.getId();
+//            String name = authProp.getName();
+//            String description = authProp.getDescription();
+//
+//            if (StringUtils.hasText(id)) {
+//                // derive type manually
+//                // TODO refactor
+//
+//                if (authProp.getOidc() != null) {
+//                    // buid oidc config provider
+//                    OIDCIdentityProviderConfigMap configMap = authProp.getOidc();
+//                    OIDCIdentityConfigurationProvider configProvider = new OIDCIdentityConfigurationProvider(id,
+//                            configMap);
+//
+//                    // build config repositories
+//                    ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository = new InMemoryProviderConfigRepository<>();
+//                    OIDCClientRegistrationRepository clientRegistrationRepository = new OIDCClientRegistrationRepository();
+//                    // instantiate authority
+//                    OIDCIdentityAuthority auth = new OIDCIdentityAuthority(
+//                            id,
+//                            userService, subjectService,
+//                            oidcUserService, jdbcAttributeStore,
+//                            registrationRepository,
+//                            clientRegistrationRepository);
+//
+//                    auth.setConfigProvider(configProvider);
+//                    auth.setExecutionService(executionService);
+//
+//                    // register for manager
+//                    identityProviderAuthorityService.registerAuthority(auth);
+//                    customAuthorities.add(auth);
+//                }
+//            }
+//        }
+//
+//        return customAuthorities;
+//    }
 
     private Map<String, IdentityProvider<UserIdentity>> bootstrapSystemProviders()
             throws NoSuchRealmException {
-        Map<String, IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>>> ias = identityProviderAuthorityService
+        Map<String, IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>, ?, ?>> ias = identityProviderAuthorityService
                 .getAuthorities().stream()
                 .collect(Collectors.toMap(a -> a.getAuthorityId(), a -> a));
 
@@ -288,7 +288,7 @@ public class AACBootstrap {
 //                        authorityManager.registerIdentityProvider(idp);
 
                     // register directly with authority
-                    IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>> ia = ias
+                    IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>, ?, ?> ia = ias
                             .get(idp.getAuthority());
                     if (ia == null) {
                         throw new IllegalArgumentException(
@@ -312,7 +312,7 @@ public class AACBootstrap {
     }
 
     private void bootstrapIdentityProviders() {
-        Map<String, IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>>> ias = identityProviderAuthorityService
+        Map<String, IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>, ?, ?>> ias = identityProviderAuthorityService
                 .getAuthorities().stream()
                 .collect(Collectors.toMap(a -> a.getAuthorityId(), a -> a));
 
@@ -332,7 +332,7 @@ public class AACBootstrap {
 //                        authorityManager.registerIdentityProvider(idp);
 
                         // register directly with authority
-                        IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>> ia = ias
+                        IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>, ?, ?> ia = ias
                                 .get(idp.getAuthority());
                         if (ia == null) {
                             throw new IllegalArgumentException(

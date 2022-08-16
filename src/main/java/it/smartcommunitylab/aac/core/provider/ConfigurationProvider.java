@@ -5,6 +5,7 @@ import java.util.Map;
 
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractProviderConfig;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
@@ -12,11 +13,21 @@ import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 /*
  * Expose provider configuration outside modules
  */
-public interface ConfigurationProvider<T extends ConfigurableProvider, C extends AbstractProviderConfig, P extends ConfigurableProperties> {
+public interface ConfigurationProvider<T extends ConfigurableProvider, C extends AbstractProviderConfig, P extends ConfigurableProperties>
+        extends ResourceProvider {
 
-    public String getAuthority();
+    default public String getType() {
+        return SystemKeys.RESOURCE_CONFIG;
+    }
 
-    public String getType();
+    default public String getRealm() {
+        // by default provider config models are static across realms
+        return null;
+    }
+
+    default public String getProvider() {
+        return getAuthority();
+    }
 
     /*
      * Translate a configurableProvider with valid props to a valid provider config,

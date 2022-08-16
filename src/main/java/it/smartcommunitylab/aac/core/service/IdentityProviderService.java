@@ -22,6 +22,7 @@ import org.springframework.validation.SmartValidator;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
@@ -43,7 +44,7 @@ public class IdentityProviderService {
     private IdentityProviderEntityService providerService;
 
     @Autowired
-    private ConfigurationService configService;
+    private IdentityProviderAuthorityService authorityService;
 
     @Autowired
     private SmartValidator validator;
@@ -178,7 +179,7 @@ public class IdentityProviderService {
 
     public ConfigurableIdentityProvider addProvider(String realm,
             ConfigurableIdentityProvider provider)
-            throws RegistrationException, SystemException, NoSuchProviderException {
+            throws RegistrationException, SystemException, NoSuchProviderException, NoSuchAuthorityException {
 
         if (SystemKeys.REALM_GLOBAL.equals(realm) || SystemKeys.REALM_SYSTEM.equals(realm)) {
             // we do not persist in db global providers
@@ -253,8 +254,8 @@ public class IdentityProviderService {
         }
 
         // we validate config by converting to specific configMap
-        ConfigurationProvider<? extends ConfigurableProvider, ? extends AbstractProviderConfig, ? extends ConfigurableProperties> configProvider = configService
-                .getProvider(SystemKeys.RESOURCE_IDENTITY, authority);
+        ConfigurationProvider<? extends ConfigurableProvider, ? extends AbstractProviderConfig, ? extends ConfigurableProperties> configProvider = authorityService
+                .getAuthority(authority).getConfigurationProvider();
 
         ConfigurableProperties configurable = configProvider.getConfigMap(provider.getConfiguration());
 
@@ -287,7 +288,7 @@ public class IdentityProviderService {
 
     public ConfigurableIdentityProvider updateProvider(
             String providerId, ConfigurableIdentityProvider provider)
-            throws NoSuchProviderException {
+            throws NoSuchProviderException, NoSuchAuthorityException {
         IdentityProviderEntity pe = providerService.getIdentityProvider(providerId);
 
         if (StringUtils.hasText(provider.getProvider()) && !providerId.equals(provider.getProvider())) {
@@ -338,8 +339,8 @@ public class IdentityProviderService {
         String authority = pe.getAuthority();
 
         // we validate config by converting to specific configMap
-        ConfigurationProvider<? extends ConfigurableProvider, ? extends AbstractProviderConfig, ? extends ConfigurableProperties> configProvider = configService
-                .getProvider(SystemKeys.RESOURCE_IDENTITY, authority);
+        ConfigurationProvider<? extends ConfigurableProvider, ? extends AbstractProviderConfig, ? extends ConfigurableProperties> configProvider = authorityService
+                .getAuthority(authority).getConfigurationProvider();
 
         ConfigurableProperties configurable = configProvider.getConfigMap(provider.getConfiguration());
 
@@ -382,25 +383,16 @@ public class IdentityProviderService {
      * Configuration schemas
      */
 
-    public ConfigurableProperties getConfigurableProperties(String authority) {
-        try {
-            ConfigurationProvider<? extends ConfigurableProvider, ? extends AbstractProviderConfig, ? extends ConfigurableProperties> configProvider = configService
-                    .getProvider(SystemKeys.RESOURCE_IDENTITY, authority);
-            return configProvider.getDefaultConfigMap();
-        } catch (NoSuchProviderException e) {
-            throw new IllegalArgumentException("invalid authority");
-        }
+    public ConfigurableProperties getConfigurableProperties(String authority) throws NoSuchAuthorityException {
+        ConfigurationProvider<? extends ConfigurableProvider, ? extends AbstractProviderConfig, ? extends ConfigurableProperties> configProvider = authorityService
+                .getAuthority(authority).getConfigurationProvider();
+        return configProvider.getDefaultConfigMap();
     }
 
-    public JsonSchema getConfigurationSchema(String authority) {
-        try {
-            ConfigurationProvider<? extends ConfigurableProvider, ? extends AbstractProviderConfig, ? extends ConfigurableProperties> configProvider = configService
-                    .getProvider(SystemKeys.RESOURCE_IDENTITY, authority);
-            return configProvider.getSchema();
-        } catch (NoSuchProviderException e) {
-            throw new IllegalArgumentException("invalid authority");
-        }
-
+    public JsonSchema getConfigurationSchema(String authority) throws NoSuchAuthorityException {
+        ConfigurationProvider<? extends ConfigurableProvider, ? extends AbstractProviderConfig, ? extends ConfigurableProperties> configProvider = authorityService
+                .getAuthority(authority).getConfigurationProvider();
+        return configProvider.getSchema();
     }
 
     /*

@@ -45,6 +45,7 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
@@ -87,8 +88,13 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
         ConfigurableAttributeProvider provider = super.getAp(realm, providerId);
 
         // fetch also configuration schema
-        JsonSchema schema = providerManager.getConfigurationSchema(realm, provider.getType(), provider.getAuthority());
-        provider.setSchema(schema);
+        try {
+            JsonSchema schema = providerManager.getConfigurationSchema(realm, provider.getType(),
+                    provider.getAuthority());
+            provider.setSchema(schema);
+        } catch (NoSuchAuthorityException e) {
+            throw new NoSuchProviderException();
+        }
 
         return provider;
     }
@@ -97,7 +103,8 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
     @PostMapping("/ap/{realm}")
     public ConfigurableAttributeProvider addAp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration) throws NoSuchRealmException {
+            @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration)
+            throws NoSuchRealmException, NoSuchAuthorityException {
         ConfigurableAttributeProvider provider = super.addAp(realm, registration);
 
         // fetch also configuration schema
@@ -114,7 +121,7 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration,
             @RequestParam(required = false, defaultValue = "false") Optional<Boolean> force)
-            throws NoSuchRealmException, NoSuchProviderException {
+            throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException {
         ConfigurableAttributeProvider provider = super.updateAp(realm, providerId, registration, Optional.of(false));
 
         // fetch also configuration schema
@@ -233,7 +240,8 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
         function.setContext(principalAttributes);
 
         try {
-            Collection<UserAttributes> userAttributes = ap.convertPrincipalAttributes(principal, userAuth.getSubjectId());
+            Collection<UserAttributes> userAttributes = ap.convertPrincipalAttributes(principal,
+                    userAuth.getSubjectId());
             if (userAttributes == null) {
                 userAttributes = Collections.emptyList();
             }

@@ -4,6 +4,13 @@ angular.module('aac.controllers.realmproviders', [])
       */
     .service('RealmProviders', function ($http, $window) {
         var service = {};
+        // authorities
+        service.getIdentityProviderAuthorities = function (slug) {
+            return $http.get('console/dev/idp/' + slug + '/authorities').then(function (data) {
+                return data.data;
+            });
+        }
+
         // idps
         service.getIdentityProvider = function (slug, providerId) {
             return $http.get('console/dev/idp/' + slug + '/' + providerId).then(function (data) {
@@ -194,11 +201,11 @@ angular.module('aac.controllers.realmproviders', [])
          * Initialize the app: load list of the providers
          */
         var init = function () {
-            // RealmProviders.getIdentityProviderTemplates(slug)
-            //     .then(function (data) {
-            //         $scope.providerTemplates = data.filter(function (pt) { return pt.authority != 'internal' });
-            //     })
-            $scope.load();
+            RealmProviders.getIdentityProviderAuthorities(slug)
+                .then(function (data) {
+                    $scope.authorities = data;
+                    $scope.load();
+                })
         };
 
         $scope.deleteProviderDlg = function (provider) {
@@ -631,7 +638,7 @@ angular.module('aac.controllers.realmproviders', [])
                 var metadataUrl = $scope.realmUrls.applicationUrl + "/auth/" + data.authority + "/metadata/" + data.provider;
                 $scope.samlMetadataUrl = metadataUrl;
             }
-            if (data.authority == 'oidc' || data.authority == 'apple') {
+            if (data.authority == 'oidc' || data.authority == 'apple' || data.schema.id == 'urn:jsonschema:it:smartcommunitylab:aac:openid:provider:OIDCIdentityProviderConfigMap') {
                 var loginUrl = $scope.realmUrls.applicationUrl + "/auth/" + data.authority + "/login/" + data.provider;
                 $scope.oidcRedirectUrl = loginUrl;
             }

@@ -31,7 +31,7 @@ import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 
 public abstract class AbstractIdentityAuthority<I extends UserIdentity, S extends IdentityProvider<I>, C extends AbstractProviderConfig, P extends ConfigurableProperties>
-        implements IdentityProviderAuthority<I, S>, InitializingBean {
+        implements IdentityProviderAuthority<I, S, C, P>, InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     protected final String authorityId;
@@ -91,6 +91,11 @@ public abstract class AbstractIdentityAuthority<I extends UserIdentity, S extend
     public FilterProvider getFilterProvider() {
         // authorities are not required to expose filters
         return null;
+    }
+
+    @Override
+    public IdentityConfigurationProvider<C, P> getConfigurationProvider() {
+        return configProvider;
     }
 
     protected abstract S buildProvider(C config);

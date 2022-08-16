@@ -145,17 +145,17 @@ public class AuthorityManager implements InitializingBean {
      * we assume that registered providers are a match for stored configuration,
      * since config is immutable in authorities
      */
-    public IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>> findIdentityProviderAuthority(
+    public IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>, ?, ?> findIdentityProviderAuthority(
             String authorityId) {
         return identityProviderAuthorityService.findAuthority(authorityId);
     }
 
-    public IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>> getIdentityProviderAuthority(
+    public IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>, ?, ?> getIdentityProviderAuthority(
             String authorityId) throws NoSuchAuthorityException {
         return identityProviderAuthorityService.getAuthority(authorityId);
     }
 
-    public Collection<IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>>> listIdentityProviderAuthorities() {
+    public Collection<IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>, ?, ?>> listIdentityProviderAuthorities() {
         return identityProviderAuthorityService.getAuthorities();
     }
 
@@ -188,7 +188,7 @@ public class AuthorityManager implements InitializingBean {
     // fast load, skips db lookup, returns null if missing
     public IdentityProvider<UserIdentity> fetchIdentityProvider(String authority, String providerId) {
         // lookup in authority
-        IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>> ia = findIdentityProviderAuthority(
+        IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>, ?, ?> ia = findIdentityProviderAuthority(
                 authority);
         if (ia == null) {
             return null;
@@ -221,7 +221,7 @@ public class AuthorityManager implements InitializingBean {
     public Collection<IdentityProvider<UserIdentity>> fetchIdentityProviders(String realm) {
         List<IdentityProvider<UserIdentity>> providers = new ArrayList<>();
 
-        for (IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>> ia : listIdentityProviderAuthorities()) {
+        for (IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>, ?, ?> ia : listIdentityProviderAuthorities()) {
             providers.addAll(ia.getProviders(realm));
         }
 
@@ -232,7 +232,7 @@ public class AuthorityManager implements InitializingBean {
     // fast load, skips db lookup
     public Collection<IdentityProvider<UserIdentity>> fetchIdentityProviders(String authority, String realm) {
         List<IdentityProvider<UserIdentity>> providers = new ArrayList<>();
-        IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>> ia = findIdentityProviderAuthority(
+        IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>, ?, ?> ia = findIdentityProviderAuthority(
                 authority);
         if (ia != null) {
             providers.addAll(ia.getProviders(realm));
@@ -471,7 +471,7 @@ public class AuthorityManager implements InitializingBean {
 
     public void unregisterIdentityProvider(ConfigurableIdentityProvider provider)
             throws SystemException, NoSuchAuthorityException {
-        IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>> a = getIdentityProviderAuthority(
+        IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>, ?, ?> a = getIdentityProviderAuthority(
                 provider.getAuthority());
         String providerId = provider.getProvider();
 

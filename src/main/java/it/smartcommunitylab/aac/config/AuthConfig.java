@@ -67,10 +67,10 @@ public class AuthConfig {
         List<Filter> filters = new ArrayList<>();
 
         // build filters for every authority
-        Collection<IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>>> authorities = identityProviderAuthorityService
+        Collection<IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>, ?, ?>> authorities = identityProviderAuthorityService
                 .getAuthorities();
 
-        for (IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>> authority : authorities) {
+        for (IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>, ?, ?> authority : authorities) {
             // build filters for this authority via filterProvider from authority itself
             FilterProvider provider = authority.getFilterProvider();
             if (provider != null) {

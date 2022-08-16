@@ -1,7 +1,6 @@
 package it.smartcommunitylab.aac.spid;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -23,31 +22,30 @@ import com.google.common.util.concurrent.UncheckedExecutionException;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
-import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.config.SpidProperties;
 import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
-import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
-import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository;
 import it.smartcommunitylab.aac.spid.model.SpidUserIdentity;
-import it.smartcommunitylab.aac.spid.persistence.SpidUserAccount;
 import it.smartcommunitylab.aac.spid.persistence.SpidUserAccountRepository;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProvider;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
+import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.spid.service.LocalSpidRegistry;
 import it.smartcommunitylab.aac.spid.service.SpidRegistry;
 
 @Service
 public class SpidIdentityAuthority
-        implements IdentityProviderAuthority<SpidUserIdentity, SpidIdentityProvider>, InitializingBean {
+        implements
+        IdentityProviderAuthority<SpidUserIdentity, SpidIdentityProvider, SpidIdentityProviderConfig, SpidIdentityProviderConfigMap>,
+        InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     public static final String AUTHORITY_URL = "/auth/spid/";
@@ -145,6 +143,11 @@ public class SpidIdentityAuthority
     public FilterProvider getFilterProvider() {
         // authorities are not required to expose filters
         return null;
+    }
+
+    @Override
+    public SpidIdentityConfigurationProvider getConfigurationProvider() {
+        return configProvider;
     }
 
     @Override
