@@ -5,12 +5,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
@@ -32,7 +33,7 @@ import it.smartcommunitylab.aac.oauth.endpoint.ClientRegistrationEndpoint;
 
 @Configuration
 @Order(23)
-public class OAuth2DCRSecurityConfig extends WebSecurityConfigurerAdapter {
+public class OAuth2DCRSecurityConfig {
 
     @Autowired
     private InternalOpaqueTokenIntrospector tokenIntrospector;
@@ -40,8 +41,8 @@ public class OAuth2DCRSecurityConfig extends WebSecurityConfigurerAdapter {
     /*
      * Configure a separated security context for API
      */
-    @Override
-    public void configure(HttpSecurity http) throws Exception {
+    @Bean("oauth2DCRSecurityFilterChain")
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         // match only dcr endpoints, do not require any role since we support open
         // registration as anonymous
         http.requestMatcher(getRequestMatcher())
@@ -64,6 +65,8 @@ public class OAuth2DCRSecurityConfig extends WebSecurityConfigurerAdapter {
                 // we don't want a session for these endpoints, each request should be evaluated
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+
+        return http.build();
     }
 
     public RequestMatcher getRequestMatcher() {

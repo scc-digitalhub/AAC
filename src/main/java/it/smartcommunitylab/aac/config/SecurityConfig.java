@@ -31,13 +31,13 @@ import org.springframework.core.annotation.Order;
 import org.springframework.core.io.Resource;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.oauth2.client.web.HttpSessionOAuth2AuthorizationRequestRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationRequestContext;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.logout.CompositeLogoutHandler;
 import org.springframework.security.web.authentication.logout.CookieClearingLogoutHandler;
 import org.springframework.security.web.authentication.logout.HeaderWriterLogoutHandler;
@@ -86,7 +86,6 @@ import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
 import it.smartcommunitylab.aac.webauthn.auth.WebAuthnAuthenticationFilter;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpService;
-import it.smartcommunitylab.aac.webauthn.store.InMemoryWebAuthnAssertionRequestStore;
 import it.smartcommunitylab.aac.webauthn.store.WebAuthnAssertionRequestStore;
 
 /*
@@ -96,9 +95,9 @@ import it.smartcommunitylab.aac.webauthn.store.WebAuthnAssertionRequestStore;
  */
 
 @Configuration
-@Order(29)
+@Order(30)
 @EnableConfigurationProperties
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
+public class SecurityConfig {
 
     @Value("classpath:/testdata.yml")
     private Resource dataMapping;
@@ -203,8 +202,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return new InternalPasswordEncoder();
     }
 
-    @Override
-    public void configure(HttpSecurity http) throws Exception {
+    @Bean("securityFilterChain")
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
                 .authorizeRequests()
@@ -216,31 +215,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/endsession").permitAll()
                 // whitelist auth providers pages (login,registration etc)
                 .antMatchers("/auth/**").permitAll()
-//                // whitelist public
-//                .antMatchers("/.well-known/**").permitAll()
-//                .antMatchers("/jwk").permitAll()
-                // whitelist assets
-                // TODO change path to /assets (and build)
-                .antMatchers("/svg/**").permitAll()
-                .antMatchers("/css/**").permitAll()
-                .antMatchers("/img/**").permitAll()
-                .antMatchers("/italia/**").permitAll()
+                // TODO remove tech-specific paths
                 .antMatchers("/spid/**").permitAll()
                 .antMatchers("/webauthn/**").permitAll()
-                .antMatchers("/logo", "/-/{realm}/logo").permitAll()
-                .antMatchers("/favicon.ico").permitAll()
-                // whitelist swagger
-                .antMatchers(
-                        "/v3/api-docs",
-                        "/v3/api-docs.yaml",
-                        "/v3/api-docs/*",
-                        "/configuration/ui",
-                        "/swagger-resources/**",
-                        "/swagger-ui/**",
-                        "/configuration/**",
-                        "/swagger-ui.html",
-                        "/webjars/**")
-                .permitAll()
                 // anything else requires auth
                 .anyRequest().authenticated()
                 .and()
@@ -311,6 +288,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.ALWAYS);
 
+        return http.build();
     }
 
     /*

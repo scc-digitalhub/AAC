@@ -12,11 +12,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-import org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
@@ -45,7 +44,7 @@ import it.smartcommunitylab.aac.oauth.service.OAuth2ClientService;
 
 @Configuration
 @Order(28)
-public class OAuth2UserSecurityConfig extends WebSecurityConfigurerAdapter {
+public class OAuth2UserSecurityConfig {
 
     @Value("${application.url}")
     private String applicationUrl;
@@ -67,8 +66,8 @@ public class OAuth2UserSecurityConfig extends WebSecurityConfigurerAdapter {
     /*
      * Configure a separated security context for oauth2 tokenEndpoints
      */
-    @Override
-    public void configure(HttpSecurity http) throws Exception {
+    @Bean("oauth2UserSecurityFilterChain")
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         // match only user endpoints
         http.requestMatcher(getRequestMatcher())
 //                .authorizeRequests().anyRequest().authenticated().and()
@@ -88,6 +87,8 @@ public class OAuth2UserSecurityConfig extends WebSecurityConfigurerAdapter {
                 // we do want a valid user session for these endpoints
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
+
+        return http.build();
     }
 
 //    @Bean

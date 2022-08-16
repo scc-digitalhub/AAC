@@ -1,10 +1,11 @@
 package it.smartcommunitylab.aac.config;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
@@ -18,13 +19,13 @@ import it.smartcommunitylab.aac.core.auth.Http401UnauthorizedEntryPoint;
 
 @Configuration
 @Order(25)
-public class ConsoleSecurityConfig extends WebSecurityConfigurerAdapter {
+public class ConsoleSecurityConfig {
 
     /*
      * Configure a separated security context for API
      */
-    @Override
-    public void configure(HttpSecurity http) throws Exception {
+    @Bean("consoleSecurityFilterChain")
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         // match only console endpoints and require user access
         http.requestMatcher(getRequestMatcher())
                 .authorizeRequests((authorizeRequests) -> authorizeRequests
@@ -41,6 +42,8 @@ public class ConsoleSecurityConfig extends WebSecurityConfigurerAdapter {
                 // we want a session for console
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
+
+        return http.build();
     }
 
     public RequestMatcher getRequestMatcher() {
