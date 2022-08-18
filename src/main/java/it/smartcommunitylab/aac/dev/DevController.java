@@ -183,9 +183,9 @@ public class DevController {
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             Authentication authentication)
             throws NoSuchRealmException {
-        boolean isAdmin = authentication.getAuthorities().contains(Config.R_ADMIN)
-                || authentication.getAuthorities().contains(realm + ":" + Config.R_ADMIN);
-
+        boolean isAdmin = authentication.getAuthorities().stream().anyMatch(
+                a -> a.getAuthority().equals(Config.R_ADMIN) || a.getAuthority().equals(realm + ":" + Config.R_ADMIN));
+        
         RealmStatsBean bean = new RealmStatsBean();
 
         Realm realmObj = realmManager.getRealm(realm);
