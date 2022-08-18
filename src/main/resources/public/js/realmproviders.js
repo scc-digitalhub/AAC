@@ -468,6 +468,10 @@ angular.module('aac.controllers.realmproviders', [])
         var iconProvider = function (idp) {
             var icons = ['facebook', 'google', 'microsoft', 'apple', 'instagram', 'github'];
 
+            if (icons.includes(idp.authority.toLowerCase())) {
+                return './svg/sprite.svg#logo-' + idp.authority.toLowerCase();
+            }
+
             if (idp.authority === "oidc" && 'clientName' in idp.configuration) {
                 var logo = null;
                 if (icons.includes(idp.configuration.clientName.toLowerCase())) {
@@ -782,6 +786,10 @@ angular.module('aac.controllers.realmproviders', [])
 
         var iconProvider = function (ap) {
             var icons = ['facebook', 'google', 'microsoft', 'apple', 'instagram', 'github'];
+
+            if (icons.includes(ap.authority.toLowerCase())) {
+                return './svg/sprite.svg#logo-' + ap.authority.toLowerCase();
+            }
 
             if (ap.authority === "oidc" && 'clientName' in ap.configuration) {
                 var logo = null;

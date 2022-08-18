@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.core.base;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -41,6 +42,10 @@ public class AbstractAuthorityService<R extends ResourceProvider, C extends Conf
 
     public Collection<A> getAuthorities() {
         return authorities.values();
+    }
+
+    public Collection<String> getAuthoritiesIds() {
+        return new ArrayList<>(authorities.keySet());
     }
 
     public A findAuthority(String authorityId) {
