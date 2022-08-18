@@ -17,12 +17,12 @@ include:
 
 variables:
   SECURE_LOG_LEVEL: info
-  DS_JAVA_VERSION: 11
+  DS_JAVA_VERSION: 17
   DOCKER_DRIVER: overlay
   CONTAINER_IMAGE: smartcommunitylab/aac:$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA
   CONTAINER_IMAGE_LATEST: smartcommunitylab/aac:$CI_COMMIT_REF_NAME-latest
   # MAVEN_CLI_OPTS: -DskipTests --batch-mode
-  SAST_JAVA_VERSION: 11
+  SAST_JAVA_VERSION: 17
 
 # maven-test:
 #   image: maven:3-openjdk-8
@@ -31,7 +31,7 @@ variables:
 #     - mvn $MAVEN_REPO test
 
 maven-build:
-  image: maven:3-openjdk-11
+  image: maven:3-openjdk-17
   stage: build
   # only:
   #   refs:

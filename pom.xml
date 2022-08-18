@@ -10,11 +10,11 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.6.10</version>
+		<version>2.7.3</version>
 	</parent>
 
 	<properties>
-		<java.version>1.11</java.version>
+		<java.version>17</java.version>
 		<bouncycastle.version>1.71</bouncycastle.version>
 		<springdoc.version>1.6.9</springdoc.version>
 		<jsoup.version>1.15.2</jsoup.version>
@@ -248,17 +248,32 @@
 			<artifactId>delight-graaljs-sandbox</artifactId>
 			<version>0.1.2</version>
 		</dependency>
+		<dependency>
+			<groupId>org.javadelight</groupId>
+			<artifactId>delight-nashorn-sandbox</artifactId>
+			<version>0.2.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.openjdk.nashorn</groupId>
+			<artifactId>nashorn-core</artifactId>
+			<version>15.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.webjars.bower</groupId>
+			<artifactId>js-beautify</artifactId>
+			<version>1.9.0</version>
+		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/com.sun.xml.bind/jaxb-impl -->
-<!-- 		<dependency> -->
-<!-- 			<groupId>com.sun.xml.bind</groupId> -->
-<!-- 			<artifactId>jaxb-impl</artifactId> -->
-<!-- 			<version>2.3.2</version> -->
-<!-- 		</dependency> -->
-<!-- 		<dependency> -->
-<!-- 			<groupId>jakarta.xml.bind</groupId> -->
-<!-- 			<artifactId>jakarta.xml.bind-api</artifactId> -->
-<!-- 		</dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>com.sun.xml.bind</groupId> -->
+		<!-- <artifactId>jaxb-impl</artifactId> -->
+		<!-- <version>2.3.2</version> -->
+		<!-- </dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>jakarta.xml.bind</groupId> -->
+		<!-- <artifactId>jakarta.xml.bind-api</artifactId> -->
+		<!-- </dependency> -->
 		<!-- https://mvnrepository.com/artifact/com.sun.istack/istack-commons-runtime -->
 		<!-- <dependency> -->
 		<!-- <groupId>com.sun.istack</groupId> -->
@@ -318,7 +333,16 @@
 				</executions>
 				<configuration>
 					<addResources>true</addResources>
-					<executable>true</executable>
+					<!-- <executable>true</executable> -->
+					<layers>
+						<enabled>true</enabled>
+					</layers>
+					<image>
+						<name>smartcommunitylab/aac:${project.version}</name>
+						<env>
+							<BP_JVM_VERSION>17</BP_JVM_VERSION>
+						</env>
+					</image>
 				</configuration>
 			</plugin>
 			<!-- <plugin> -->
