@@ -170,11 +170,11 @@ public class SecurityConfig {
      * 1098061598
      * 
      */
-    @Bean
-    public static BeanFactoryPostProcessor removeErrorSecurityFilter() {
-        return beanFactory -> ((DefaultListableBeanFactory) beanFactory)
-                .removeBeanDefinition("errorPageSecurityInterceptor");
-    }
+//    @Bean
+//    public static BeanFactoryPostProcessor removeErrorSecurityFilter() {
+//        return beanFactory -> ((DefaultListableBeanFactory) beanFactory)
+//                .removeBeanDefinition("errorPageSecurityInterceptor");
+//    }
 
     @Bean
     public CompositeLogoutHandler logoutHandler() {
