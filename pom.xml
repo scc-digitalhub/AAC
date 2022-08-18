@@ -14,7 +14,7 @@
 	</parent>
 
 	<properties>
-		<java.version>1.17</java.version>
+		<java.version>17</java.version>
 		<bouncycastle.version>1.71</bouncycastle.version>
 		<springdoc.version>1.6.9</springdoc.version>
 		<jsoup.version>1.15.2</jsoup.version>
@@ -333,10 +333,16 @@
 				</executions>
 				<configuration>
 					<addResources>true</addResources>
-<!-- 					<executable>true</executable> -->
+					<!-- <executable>true</executable> -->
 					<layers>
 						<enabled>true</enabled>
 					</layers>
+					<image>
+						<name>smartcommunitylab/aac:${project.version}</name>
+						<env>
+							<BP_JVM_VERSION>17</BP_JVM_VERSION>
+						</env>
+					</image>
 				</configuration>
 			</plugin>
 			<!-- <plugin> -->
