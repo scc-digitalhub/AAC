@@ -24,9 +24,9 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.auth.ExtendedLoginUrlAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.auth.LoginUrlRequestConverter;
+import it.smartcommunitylab.aac.core.service.IdentityProviderAuthorityService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderService;
 import it.smartcommunitylab.aac.oauth.auth.AuthorizationEndpointFilter;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientAwareLoginUrlConverter;
@@ -58,7 +58,7 @@ public class OAuth2UserSecurityConfig {
     private OAuth2ClientDetailsService clientDetailsService;
 
     @Autowired
-    private AuthorityManager authorityManager;
+    private IdentityProviderAuthorityService authorityService;
 
     @Autowired
     private IdentityProviderService idpProviderService;
@@ -75,13 +75,14 @@ public class OAuth2UserSecurityConfig {
                         .anyRequest().hasAnyAuthority(Config.R_USER))
                 .exceptionHandling()
                 .authenticationEntryPoint(
-                        authEntryPoint(loginPath, authorityManager, idpProviderService, clientDetailsService))
+                        authEntryPoint(loginPath, authorityService, idpProviderService,
+                                clientDetailsService))
                 .accessDeniedPage("/accesserror")
                 .and().cors().configurationSource(corsConfigurationSource())
                 .and().csrf()
                 .and()
                 .addFilterBefore(
-                        getOAuth2UserFilters(authorityManager, idpProviderService, clientDetailsService, clientService,
+                        getOAuth2UserFilters(idpProviderService, clientDetailsService, clientService,
                                 loginPath),
                         BasicAuthenticationFilter.class)
                 // we do want a valid user session for these endpoints
@@ -97,7 +98,7 @@ public class OAuth2UserSecurityConfig {
 //    }
 
     public Filter getOAuth2UserFilters(
-            AuthorityManager authorityManager, IdentityProviderService providerService,
+            IdentityProviderService providerService,
             OAuth2ClientDetailsService oauth2ClientDetailsService, OAuth2ClientService oauth2ClientService,
             String loginUrl) {
 
@@ -113,12 +114,13 @@ public class OAuth2UserSecurityConfig {
     }
 
     private AuthenticationEntryPoint authEntryPoint(String loginUrl,
-            AuthorityManager authorityManager, IdentityProviderService providerService,
+            IdentityProviderAuthorityService authorityService,
+            IdentityProviderService providerService,
             OAuth2ClientDetailsService oauth2ClientDetailsService) {
         ExtendedLoginUrlAuthenticationEntryPoint entryPoint = new ExtendedLoginUrlAuthenticationEntryPoint(loginUrl);
         List<LoginUrlRequestConverter> converters = new ArrayList<>();
         LoginUrlRequestConverter idpAwareConverter = new OAuth2IdpAwareLoginUrlConverter(idpProviderService,
-                authorityManager);
+                authorityService);
         LoginUrlRequestConverter clientAwareConverter = new OAuth2ClientAwareLoginUrlConverter(
                 oauth2ClientDetailsService,
                 loginUrl);

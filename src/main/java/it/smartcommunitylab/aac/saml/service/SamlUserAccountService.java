@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
 import it.smartcommunitylab.aac.common.DuplicatedDataException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
@@ -171,8 +173,12 @@ public class SamlUserAccountService implements UserAccountService<SamlUserAccoun
             // support subjectId update
             account.setSubjectId(reg.getSubjectId());
 
+            // support uuid change if provided
+            if (StringUtils.hasText(reg.getUuid())) {
+                account.setUuid(reg.getUuid());
+            }
+
             // extract attributes and update model
-            account.setUuid(reg.getUuid());
             account.setUserId(reg.getUserId());
             account.setRealm(reg.getRealm());
 

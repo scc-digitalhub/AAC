@@ -57,6 +57,7 @@ public class SystemKeys {
     public static final String RESOURCE_CREDENTIALS_JWKS = "credentials_jwks";
     public static final String RESOURCE_PROVIDER = "provider";
     public static final String RESOURCE_REALM = "realm";
+    public static final String RESOURCE_CONFIG = "config";
 
     public static final String PATH_SEPARATOR = "/-/";
     public static final String ID_SEPARATOR = "|";

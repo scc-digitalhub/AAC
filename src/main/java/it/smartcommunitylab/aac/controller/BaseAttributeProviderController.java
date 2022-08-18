@@ -27,6 +27,7 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.core.ProviderManager;
@@ -89,7 +90,8 @@ public class BaseAttributeProviderController {
     @PostMapping("/ap/{realm}")
     public ConfigurableAttributeProvider addAp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration) throws NoSuchRealmException {
+            @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration)
+            throws NoSuchRealmException, NoSuchAuthorityException {
         logger.debug("add ap to realm {}",
                 StringUtils.trimAllWhitespace(realm));
 
@@ -127,7 +129,7 @@ public class BaseAttributeProviderController {
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration,
             @RequestParam(required = false, defaultValue = "false") Optional<Boolean> force)
-            throws NoSuchRealmException, NoSuchProviderException {
+            throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException {
         logger.debug("update ap {} for realm {}",
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
@@ -239,7 +241,7 @@ public class BaseAttributeProviderController {
     public JsonSchema getApConfigurationSchema(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
-            throws NoSuchProviderException, NoSuchRealmException {
+            throws NoSuchProviderException, NoSuchRealmException, NoSuchAuthorityException {
         logger.debug("get ap config schema for {} for realm {}",
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 

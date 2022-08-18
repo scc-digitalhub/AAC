@@ -14,10 +14,13 @@ import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.utils.MailService;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredentialsRepository;
+import it.smartcommunitylab.aac.webauthn.provider.WebAuthnFilterProvider;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProvider;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfigMap;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpService;
+import it.smartcommunitylab.aac.webauthn.store.WebAuthnAssertionRequestStore;
 
 @Service
 public class WebAuthnIdentityAuthority extends
@@ -32,6 +35,9 @@ public class WebAuthnIdentityAuthority extends
     // key repository
     private final WebAuthnCredentialsRepository credentialsRepository;
 
+    // filter provider
+    private final WebAuthnFilterProvider filterProvider;
+
     // services
     protected MailService mailService;
     protected RealmAwareUriBuilder uriBuilder;
@@ -39,13 +45,19 @@ public class WebAuthnIdentityAuthority extends
     public WebAuthnIdentityAuthority(
             UserEntityService userEntityService, SubjectService subjectService,
             InternalUserAccountService userAccountService, WebAuthnCredentialsRepository credentialsRepository,
+            WebAuthnRpService rpService, WebAuthnAssertionRequestStore requestStore,
             ProviderConfigRepository<WebAuthnIdentityProviderConfig> registrationRepository) {
-        super(userEntityService, subjectService, registrationRepository);
+        super(SystemKeys.AUTHORITY_WEBAUTHN, userEntityService, subjectService, registrationRepository);
         Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(credentialsRepository, "credentials repository is mandatory");
+        Assert.notNull(rpService, "webauthn rp service is mandatory");
+        Assert.notNull(requestStore, "webauthn request store is mandatory");
 
         this.accountService = userAccountService;
         this.credentialsRepository = credentialsRepository;
+
+        // build filter provider
+        this.filterProvider = new WebAuthnFilterProvider(rpService, registrationRepository, requestStore);
     }
 
     @Autowired
@@ -70,11 +82,6 @@ public class WebAuthnIdentityAuthority extends
     }
 
     @Override
-    public String getAuthorityId() {
-        return SystemKeys.AUTHORITY_WEBAUTHN;
-    }
-
-    @Override
     public WebAuthnIdentityProvider buildProvider(WebAuthnIdentityProviderConfig config) {
         WebAuthnIdentityProvider idp = new WebAuthnIdentityProvider(
                 config.getProvider(),
@@ -86,6 +93,11 @@ public class WebAuthnIdentityAuthority extends
         idp.setMailService(mailService);
         idp.setUriBuilder(uriBuilder);
         return idp;
+    }
+
+    @Override
+    public WebAuthnFilterProvider getFilterProvider() {
+        return filterProvider;
     }
 
 }

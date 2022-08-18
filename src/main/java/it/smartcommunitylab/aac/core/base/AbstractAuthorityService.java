@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.core.base;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -43,6 +44,10 @@ public class AbstractAuthorityService<R extends ResourceProvider, C extends Conf
         return authorities.values();
     }
 
+    public Collection<String> getAuthoritiesIds() {
+        return new ArrayList<>(authorities.keySet());
+    }
+
     public A findAuthority(String authorityId) {
         return authorities.get(authorityId);
     }
@@ -54,6 +59,29 @@ public class AbstractAuthorityService<R extends ResourceProvider, C extends Conf
         }
 
         return authority;
+    }
+
+    public A registerAuthority(ProviderAuthority<?> pa) {
+        Assert.notNull(pa, "authority can not be null");
+        Assert.hasText(pa.getAuthorityId(), "id is mandatory");
+
+        // cast principal and handle errors
+        A a = null;
+        try {
+            @SuppressWarnings("unchecked")
+            A ac = (A) pa;
+            a = ac;
+        } catch (ClassCastException e) {
+            throw new IllegalArgumentException("wrong provider class");
+        }
+
+        // check if already registered
+        if (this.authorities.containsKey(a.getAuthorityId())) {
+            throw new IllegalArgumentException("already registered");
+        }
+
+        this.authorities.put(a.getAuthorityId(), a);
+        return a;
     }
 
     public R getProvider(String authorityId, String providerId)

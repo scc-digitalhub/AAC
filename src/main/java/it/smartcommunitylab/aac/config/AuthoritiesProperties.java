@@ -1,5 +1,7 @@
 package it.smartcommunitylab.aac.config;
 
+import java.util.List;
+
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
@@ -33,6 +35,9 @@ public class AuthoritiesProperties {
 
     @NestedConfigurationProperty
     private SpidIdentityProviderConfigMap spid;
+
+    @NestedConfigurationProperty
+    private List<CustomAuthoritiesProperties> custom;
 
     public InternalIdentityProviderConfigMap getInternal() {
         return internal;
@@ -88,6 +93,14 @@ public class AuthoritiesProperties {
 
     public void setSpid(SpidIdentityProviderConfigMap spid) {
         this.spid = spid;
+    }
+
+    public List<CustomAuthoritiesProperties> getCustom() {
+        return custom;
+    }
+
+    public void setCustom(List<CustomAuthoritiesProperties> custom) {
+        this.custom = custom;
     }
 
 }

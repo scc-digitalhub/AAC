@@ -31,9 +31,11 @@ import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
+import it.smartcommunitylab.aac.core.service.IdentityProviderAuthorityService;
 
 /*
  * Base controller for identity providers
@@ -46,8 +48,26 @@ public class BaseIdentityProviderController {
     @Autowired
     protected ProviderManager providerManager;
 
+    @Autowired
+    private IdentityProviderAuthorityService authorityService;
+
     public String getAuthority() {
         return Config.R_USER;
+    }
+
+    /*
+     * Authorities
+     * 
+     * TODO evaluate returning a authority model as result
+     */
+    @GetMapping("/idp/{realm}/authorities")
+    public Collection<String> listAuthorities(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
+            throws NoSuchRealmException {
+        logger.debug("list idp authorities for realm {}",
+                StringUtils.trimAllWhitespace(realm));
+        return authorityService.getAuthorities().stream()
+                .map(a -> a.getAuthorityId()).collect(Collectors.toList());
     }
 
     /*
@@ -74,7 +94,8 @@ public class BaseIdentityProviderController {
     public ConfigurableIdentityProvider addIdp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestBody @Valid @NotNull ConfigurableIdentityProvider registration)
-            throws NoSuchRealmException, NoSuchProviderException {
+            throws NoSuchRealmException, NoSuchProviderException, RegistrationException, SystemException,
+            NoSuchAuthorityException {
         logger.debug("add idp to realm {}",
                 StringUtils.trimAllWhitespace(realm));
 
@@ -114,7 +135,7 @@ public class BaseIdentityProviderController {
     public ConfigurableIdentityProvider getIdp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
-            throws NoSuchProviderException, NoSuchRealmException {
+            throws NoSuchProviderException, NoSuchRealmException, NoSuchAuthorityException {
         logger.debug("get idp {} for realm {}",
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
@@ -144,7 +165,7 @@ public class BaseIdentityProviderController {
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             @RequestBody @Valid @NotNull ConfigurableIdentityProvider registration,
             @RequestParam(required = false, defaultValue = "false") Optional<Boolean> force)
-            throws NoSuchRealmException, NoSuchProviderException {
+            throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException {
         logger.debug("update idp {} for realm {}",
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
@@ -265,7 +286,7 @@ public class BaseIdentityProviderController {
     public JsonSchema getIdpConfigurationSchema(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
-            throws NoSuchProviderException, NoSuchRealmException {
+            throws NoSuchProviderException, NoSuchRealmException, NoSuchAuthorityException {
         logger.debug("get idp config schema for {} for realm {}",
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 

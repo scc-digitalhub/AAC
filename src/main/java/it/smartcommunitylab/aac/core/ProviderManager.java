@@ -112,7 +112,8 @@ public class ProviderManager {
 
     public ConfigurableProvider addProvider(String realm,
             ConfigurableProvider provider)
-            throws RegistrationException, SystemException, NoSuchRealmException, NoSuchProviderException {
+            throws RegistrationException, SystemException, NoSuchRealmException, NoSuchProviderException,
+            NoSuchAuthorityException {
 
         if (provider instanceof ConfigurableIdentityProvider) {
             return addIdentityProvider(realm, (ConfigurableIdentityProvider) provider);
@@ -125,7 +126,7 @@ public class ProviderManager {
 
     public ConfigurableProvider updateProvider(String realm,
             String providerId, ConfigurableProvider provider)
-            throws NoSuchProviderException, NoSuchRealmException {
+            throws NoSuchProviderException, NoSuchRealmException, NoSuchAuthorityException {
         if (provider instanceof ConfigurableIdentityProvider) {
             return updateIdentityProvider(realm, providerId, (ConfigurableIdentityProvider) provider);
         } else if (provider instanceof ConfigurableAttributeProvider) {
@@ -212,7 +213,8 @@ public class ProviderManager {
 
     public ConfigurableIdentityProvider addIdentityProvider(String realm,
             ConfigurableIdentityProvider provider)
-            throws RegistrationException, SystemException, NoSuchRealmException, NoSuchProviderException {
+            throws RegistrationException, SystemException, NoSuchRealmException, NoSuchProviderException,
+            NoSuchAuthorityException {
 
         if (SystemKeys.REALM_GLOBAL.equals(realm) || SystemKeys.REALM_SYSTEM.equals(realm)) {
             // we do not persist in db global providers
@@ -226,7 +228,7 @@ public class ProviderManager {
 
     public ConfigurableIdentityProvider updateIdentityProvider(String realm,
             String providerId, ConfigurableIdentityProvider provider)
-            throws NoSuchProviderException, NoSuchRealmException {
+            throws NoSuchProviderException, NoSuchRealmException, NoSuchAuthorityException {
         Realm re = realmService.getRealm(realm);
         ConfigurableIdentityProvider ip = identityProviderService.getProvider(providerId);
 
@@ -578,7 +580,8 @@ public class ProviderManager {
      * Configuration schemas
      */
 
-    public ConfigurableProperties getConfigurableProperties(String realm, String type, String authority) {
+    public ConfigurableProperties getConfigurableProperties(String realm, String type, String authority)
+            throws NoSuchAuthorityException {
         if (TYPE_IDENTITY.equals(type)) {
             return identityProviderService.getConfigurableProperties(authority);
         } else if (TYPE_ATTRIBUTES.equals(type)) {
@@ -588,7 +591,8 @@ public class ProviderManager {
         throw new IllegalArgumentException("invalid provider type");
     }
 
-    public JsonSchema getConfigurationSchema(String realm, String type, String authority) {
+    public JsonSchema getConfigurationSchema(String realm, String type, String authority)
+            throws NoSuchAuthorityException {
         if (TYPE_IDENTITY.equals(type)) {
             return identityProviderService.getConfigurationSchema(authority);
         } else if (TYPE_ATTRIBUTES.equals(type)) {

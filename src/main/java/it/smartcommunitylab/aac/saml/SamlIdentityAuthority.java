@@ -21,6 +21,7 @@ import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository;
 import it.smartcommunitylab.aac.saml.model.SamlUserIdentity;
+import it.smartcommunitylab.aac.saml.provider.SamlFilterProvider;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProvider;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
@@ -37,6 +38,9 @@ public class SamlIdentityAuthority extends
     // saml account service
     private final SamlUserAccountService accountService;
 
+    // filter provider
+    private final SamlFilterProvider filterProvider;
+
     // system attributes store
     private final AutoJdbcAttributeStore jdbcAttributeStore;
 
@@ -51,7 +55,7 @@ public class SamlIdentityAuthority extends
             SamlUserAccountService userAccountService, AutoJdbcAttributeStore jdbcAttributeStore,
             ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository,
             @Qualifier("samlRelyingPartyRegistrationRepository") SamlRelyingPartyRegistrationRepository samlRelyingPartyRegistrationRepository) {
-        super(userEntityService, subjectService, registrationRepository);
+        super(SystemKeys.AUTHORITY_SAML, userEntityService, subjectService, registrationRepository);
         Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(jdbcAttributeStore, "attribute store is mandatory");
         Assert.notNull(samlRelyingPartyRegistrationRepository, "relayingParty registration repository is mandatory");
@@ -60,6 +64,10 @@ public class SamlIdentityAuthority extends
         this.jdbcAttributeStore = jdbcAttributeStore;
 
         this.relyingPartyRegistrationRepository = samlRelyingPartyRegistrationRepository;
+
+        // build filter provider
+        this.filterProvider = new SamlFilterProvider(authorityId, relyingPartyRegistrationRepository,
+                registrationRepository);
     }
 
     @Autowired
@@ -78,6 +86,11 @@ public class SamlIdentityAuthority extends
     }
 
     @Override
+    public SamlFilterProvider getFilterProvider() {
+        return this.filterProvider;
+    }
+
+    @Override
     public SamlIdentityProvider buildProvider(SamlIdentityProviderConfig config) {
         String id = config.getProvider();
         AttributeStore attributeStore = getAttributeStore(id, config.getPersistence());
@@ -89,11 +102,6 @@ public class SamlIdentityAuthority extends
 
         idp.setExecutionService(executionService);
         return idp;
-    }
-
-    @Override
-    public String getAuthorityId() {
-        return SystemKeys.AUTHORITY_SAML;
     }
 
     @Override

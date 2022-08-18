@@ -105,6 +105,7 @@ public class SamlAccountProvider extends AbstractProvider
         account.setProvider(repositoryId);
         account.setSubjectId(subjectId);
         account.setUserId(userId);
+        account.setRealm(getRealm());
 
         account.setUsername(username);
         account.setIssuer(issuer);

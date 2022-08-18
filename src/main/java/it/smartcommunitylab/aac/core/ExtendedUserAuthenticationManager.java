@@ -630,7 +630,7 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
 
     private IdentityProvider<UserIdentity> fetchIdentityProvider(String authorityId, String providerId) {
         // lookup in authority
-        IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>> ia = identityProviderAuthorityService
+        IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>, ?, ?> ia = identityProviderAuthorityService
                 .findAuthority(authorityId);
         if (ia == null) {
             return null;
@@ -645,7 +645,7 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
     private Collection<IdentityProvider<UserIdentity>> fetchIdentityProviders(String authorityId, String realm) {
         List<IdentityProvider<UserIdentity>> providers = new ArrayList<>();
         // lookup in authority
-        IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>> ia = identityProviderAuthorityService
+        IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>, ?, ?> ia = identityProviderAuthorityService
                 .findAuthority(authorityId);
         if (ia != null) {
             providers.addAll(ia.getProviders(realm));
@@ -658,7 +658,7 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
     private Collection<IdentityProvider<UserIdentity>> fetchIdentityProviders(String realm) {
         List<IdentityProvider<UserIdentity>> providers = new ArrayList<>();
 
-        for (IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>> ia : identityProviderAuthorityService
+        for (IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>, ?, ?> ia : identityProviderAuthorityService
                 .getAuthorities()) {
             providers.addAll(ia.getProviders(realm));
         }

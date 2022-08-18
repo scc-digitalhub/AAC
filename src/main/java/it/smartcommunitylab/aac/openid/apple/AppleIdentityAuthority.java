@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.openid.apple.provider.AppleFilterProvider;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProvider;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfig;
@@ -36,6 +37,9 @@ public class AppleIdentityAuthority extends
     // oidc account service
     private final OIDCUserAccountService accountService;
 
+    // filter provider
+    private final AppleFilterProvider filterProvider;
+
     // system attributes store
     private final AutoJdbcAttributeStore jdbcAttributeStore;
 
@@ -50,7 +54,7 @@ public class AppleIdentityAuthority extends
             OIDCUserAccountService userAccountService, AutoJdbcAttributeStore jdbcAttributeStore,
             ProviderConfigRepository<AppleIdentityProviderConfig> registrationRepository,
             @Qualifier("appleClientRegistrationRepository") OIDCClientRegistrationRepository clientRegistrationRepository) {
-        super(userEntityService, subjectService, registrationRepository);
+        super(SystemKeys.AUTHORITY_APPLE, userEntityService, subjectService, registrationRepository);
         Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(jdbcAttributeStore, "attribute store is mandatory");
         Assert.notNull(clientRegistrationRepository, "client registration repository is mandatory");
@@ -58,6 +62,10 @@ public class AppleIdentityAuthority extends
         this.accountService = userAccountService;
         this.jdbcAttributeStore = jdbcAttributeStore;
         this.clientRegistrationRepository = clientRegistrationRepository;
+
+        // build filter provider
+        this.filterProvider = new AppleFilterProvider(clientRegistrationRepository,
+                registrationRepository);
     }
 
     @Autowired
@@ -76,8 +84,8 @@ public class AppleIdentityAuthority extends
     }
 
     @Override
-    public String getAuthorityId() {
-        return SystemKeys.AUTHORITY_APPLE;
+    public AppleFilterProvider getFilterProvider() {
+        return this.filterProvider;
     }
 
     @Override

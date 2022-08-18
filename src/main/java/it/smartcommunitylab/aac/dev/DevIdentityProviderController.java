@@ -41,6 +41,7 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
@@ -88,7 +89,7 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
     public ConfigurableIdentityProvider getIdp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
-            throws NoSuchProviderException, NoSuchRealmException {
+            throws NoSuchProviderException, NoSuchRealmException, NoSuchAuthorityException {
         ConfigurableIdentityProvider provider = super.getIdp(realm, providerId);
 
         // fetch also configuration schema
@@ -103,7 +104,8 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
     public ConfigurableIdentityProvider addIdp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestBody @Valid @NotNull ConfigurableIdentityProvider registration)
-            throws NoSuchRealmException, NoSuchProviderException {
+            throws NoSuchRealmException, NoSuchProviderException, RegistrationException, SystemException,
+            NoSuchAuthorityException {
         ConfigurableIdentityProvider provider = super.addIdp(realm, registration);
 
         // fetch also configuration schema
@@ -120,7 +122,7 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             @RequestBody @Valid @NotNull ConfigurableIdentityProvider registration,
             @RequestParam(required = false, defaultValue = "false") Optional<Boolean> force)
-            throws NoSuchRealmException, NoSuchProviderException {
+            throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException {
         ConfigurableIdentityProvider provider = super.updateIdp(realm, providerId, registration, Optional.of(false));
 
         // fetch also configuration schema

@@ -16,12 +16,12 @@ import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.provider.InternalFilterProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
-import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
 import it.smartcommunitylab.aac.utils.MailService;
 
 @Service
@@ -36,19 +36,25 @@ public class InternalIdentityAuthority
 
     // internal account service
     private final InternalUserAccountService accountService;
+
+    // filter provider
+    private final InternalFilterProvider filterProvider;
+
     // services
     protected MailService mailService;
     protected RealmAwareUriBuilder uriBuilder;
 
     public InternalIdentityAuthority(
             UserEntityService userEntityService, SubjectService subjectService,
-            InternalUserAccountService userAccountService, InternalUserPasswordRepository passwordRepository,
+            InternalUserAccountService userAccountService,
             ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository) {
-        super(userEntityService, subjectService, registrationRepository);
+        super(SystemKeys.AUTHORITY_INTERNAL, userEntityService, subjectService, registrationRepository);
         Assert.notNull(userAccountService, "account service is mandatory");
-        Assert.notNull(passwordRepository, "password repository is mandatory");
 
         this.accountService = userAccountService;
+
+        // build filter provider
+        this.filterProvider = new InternalFilterProvider(userAccountService, registrationRepository);
     }
 
     @Autowired
@@ -73,11 +79,6 @@ public class InternalIdentityAuthority
     }
 
     @Override
-    public String getAuthorityId() {
-        return SystemKeys.AUTHORITY_INTERNAL;
-    }
-
-    @Override
     public InternalIdentityService buildProvider(InternalIdentityProviderConfig config) {
         InternalIdentityService idp = new InternalIdentityService(
                 config.getProvider(),
@@ -88,6 +89,11 @@ public class InternalIdentityAuthority
         idp.setMailService(mailService);
         idp.setUriBuilder(uriBuilder);
         return idp;
+    }
+
+    @Override
+    public InternalFilterProvider getFilterProvider() {
+        return filterProvider;
     }
 
 }

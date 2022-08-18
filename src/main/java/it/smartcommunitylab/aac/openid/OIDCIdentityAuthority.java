@@ -21,6 +21,7 @@ import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.openid.model.OIDCUserIdentity;
+import it.smartcommunitylab.aac.openid.provider.OIDCFilterProvider;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProvider;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
@@ -37,6 +38,9 @@ public class OIDCIdentityAuthority extends
     // oidc account service
     private final OIDCUserAccountService accountService;
 
+    // filter provider
+    private final OIDCFilterProvider filterProvider;
+
     // system attributes store
     private final AutoJdbcAttributeStore jdbcAttributeStore;
 
@@ -46,12 +50,23 @@ public class OIDCIdentityAuthority extends
     // execution service for custom attributes mapping
     private ScriptExecutionService executionService;
 
+    @Autowired
     public OIDCIdentityAuthority(
             UserEntityService userEntityService, SubjectService subjectService,
             OIDCUserAccountService userAccountService, AutoJdbcAttributeStore jdbcAttributeStore,
             ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository,
             @Qualifier("oidcClientRegistrationRepository") OIDCClientRegistrationRepository clientRegistrationRepository) {
-        super(userEntityService, subjectService, registrationRepository);
+        this(SystemKeys.AUTHORITY_OIDC, userEntityService, subjectService, userAccountService, jdbcAttributeStore,
+                registrationRepository, clientRegistrationRepository);
+    }
+
+    public OIDCIdentityAuthority(
+            String authorityId,
+            UserEntityService userEntityService, SubjectService subjectService,
+            OIDCUserAccountService userAccountService, AutoJdbcAttributeStore jdbcAttributeStore,
+            ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository,
+            OIDCClientRegistrationRepository clientRegistrationRepository) {
+        super(authorityId, userEntityService, subjectService, registrationRepository);
         Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(jdbcAttributeStore, "attribute store is mandatory");
         Assert.notNull(clientRegistrationRepository, "client registration repository is mandatory");
@@ -59,6 +74,10 @@ public class OIDCIdentityAuthority extends
         this.accountService = userAccountService;
         this.jdbcAttributeStore = jdbcAttributeStore;
         this.clientRegistrationRepository = clientRegistrationRepository;
+
+        // build filter provider
+        this.filterProvider = new OIDCFilterProvider(authorityId, clientRegistrationRepository,
+                registrationRepository);
     }
 
     @Autowired
@@ -77,22 +96,22 @@ public class OIDCIdentityAuthority extends
     }
 
     @Override
+    public OIDCFilterProvider getFilterProvider() {
+        return this.filterProvider;
+    }
+
+    @Override
     public OIDCIdentityProvider buildProvider(OIDCIdentityProviderConfig config) {
         String id = config.getProvider();
         AttributeStore attributeStore = getAttributeStore(id, config.getPersistence());
 
         OIDCIdentityProvider idp = new OIDCIdentityProvider(
-                id,
+                authorityId, id,
                 userEntityService, accountService, subjectService,
                 attributeStore, config, config.getRealm());
 
         idp.setExecutionService(executionService);
         return idp;
-    }
-
-    @Override
-    public String getAuthorityId() {
-        return SystemKeys.AUTHORITY_OIDC;
     }
 
     @Override
