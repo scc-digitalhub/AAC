@@ -6,9 +6,8 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.common.DuplicatedDataException;
@@ -24,13 +23,18 @@ import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountReposito
  * 
  *  We enforce detach on fetch to keep internal datasource isolated.
  */
-@Service
+
 @Transactional
-public class InternalUserAccountService implements UserAccountService<InternalUserAccount> {
+public class InternalUserAccountService
+        implements UserAccountService<InternalUserAccount>, InternalUserConfirmKeyService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Autowired
-    private InternalUserAccountRepository accountRepository;
+    private final InternalUserAccountRepository accountRepository;
+
+    public InternalUserAccountService(InternalUserAccountRepository accountRepository) {
+        Assert.notNull(accountRepository, "account repository is required");
+        this.accountRepository = accountRepository;
+    }
 
     @Transactional(readOnly = true)
     public InternalUserAccount findAccountById(String repository, String username) {

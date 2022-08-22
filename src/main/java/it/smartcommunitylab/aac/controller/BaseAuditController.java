@@ -10,9 +10,11 @@ import javax.validation.constraints.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,11 +30,20 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
  */
 
 @PreAuthorize("hasAuthority(this.authority)")
-public class BaseAuditController {
+public class BaseAuditController implements InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    protected AuditManager auditManager;
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        Assert.notNull(auditManager, "audit manager is required");
+    }
+
     @Autowired
-    private AuditManager auditManager;
+    public void setAuditManager(AuditManager auditManager) {
+        this.auditManager = auditManager;
+    }
 
     public String getAuthority() {
         return Config.R_USER;

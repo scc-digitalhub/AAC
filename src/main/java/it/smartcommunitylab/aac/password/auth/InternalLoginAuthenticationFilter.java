@@ -27,10 +27,10 @@ import it.smartcommunitylab.aac.core.auth.RequestAwareAuthenticationSuccessHandl
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.auth.InternalAuthenticationException;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.password.InternalPasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
@@ -53,18 +53,18 @@ public class InternalLoginAuthenticationFilter extends AbstractAuthenticationPro
     private AuthenticationEntryPoint authenticationEntryPoint;
 
     // TODO remove
-    private final InternalUserAccountService userAccountService;
+    private final UserAccountService<InternalUserAccount> userAccountService;
 
     // TODO replace with service
     private final InternalUserPasswordRepository passwordRepository;
 
-    public InternalLoginAuthenticationFilter(InternalUserAccountService userAccountService,
+    public InternalLoginAuthenticationFilter(UserAccountService<InternalUserAccount> userAccountService,
             InternalUserPasswordRepository passwordRepository,
             ProviderConfigRepository<InternalPasswordIdentityProviderConfig> registrationRepository) {
         this(userAccountService, passwordRepository, registrationRepository, DEFAULT_FILTER_URI, null);
     }
 
-    public InternalLoginAuthenticationFilter(InternalUserAccountService userAccountService,
+    public InternalLoginAuthenticationFilter(UserAccountService<InternalUserAccount> userAccountService,
             InternalUserPasswordRepository passwordRepository,
             ProviderConfigRepository<InternalPasswordIdentityProviderConfig> registrationRepository,
             String filterProcessingUrl, AuthenticationEntryPoint authenticationEntryPoint) {

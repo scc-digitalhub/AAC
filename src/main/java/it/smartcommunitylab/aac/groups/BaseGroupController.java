@@ -11,9 +11,11 @@ import javax.validation.constraints.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,12 +25,10 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
-import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.NoSuchGroupException;
 import it.smartcommunitylab.aac.model.Group;
 import it.smartcommunitylab.aac.model.RealmRole;
@@ -37,17 +37,30 @@ import it.smartcommunitylab.aac.roles.RealmRoleManager;
 /*
  * Base controller for realm groups
  */
-@Tag(name = "Groups", description = "Manage realm groups and group membership")
 @PreAuthorize("hasAuthority(this.authority)")
-public class BaseGroupController {
+public class BaseGroupController implements InitializingBean {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Autowired
     protected GroupManager groupManager;
 
+    protected RealmRoleManager roleManager;
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        Assert.notNull(groupManager, "group manager is required");
+        Assert.notNull(roleManager, "role manager is required");
+    }
+
     @Autowired
-    private RealmRoleManager roleManager;
+    public void setGroupManager(GroupManager groupManager) {
+        this.groupManager = groupManager;
+    }
+
+    @Autowired
+    public void setRoleManager(RealmRoleManager roleManager) {
+        this.roleManager = roleManager;
+    }
 
     public String getAuthority() {
         return Config.R_USER;

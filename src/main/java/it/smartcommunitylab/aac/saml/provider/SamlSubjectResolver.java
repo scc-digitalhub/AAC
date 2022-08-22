@@ -7,6 +7,7 @@ import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import it.smartcommunitylab.aac.saml.service.SamlUserAccountService;
@@ -15,12 +16,12 @@ import it.smartcommunitylab.aac.saml.service.SamlUserAccountService;
 public class SamlSubjectResolver extends AbstractProvider implements SubjectResolver<SamlUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final SamlUserAccountService accountService;
+    private final UserAccountService<SamlUserAccount> accountService;
     private final SamlIdentityProviderConfig config;
 
     private final String repositoryId;
 
-    protected SamlSubjectResolver(String providerId, SamlUserAccountService accountService,
+    protected SamlSubjectResolver(String providerId, UserAccountService<SamlUserAccount> accountService,
             SamlIdentityProviderConfig config,
             String realm) {
         super(SystemKeys.AUTHORITY_SAML, providerId, realm);

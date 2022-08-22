@@ -15,6 +15,7 @@ import it.smartcommunitylab.aac.attributes.store.AttributeStore;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityProvider;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.dto.LoginProvider;
@@ -42,7 +43,7 @@ public class OIDCIdentityProvider
 
     public OIDCIdentityProvider(
             String providerId,
-            UserEntityService userEntityService, OIDCUserAccountService userAccountService,
+            UserEntityService userEntityService, UserAccountService<OIDCUserAccount> userAccountService,
             SubjectService subjectService,
             AttributeStore attributeStore,
             OIDCIdentityProviderConfig config,
@@ -53,7 +54,7 @@ public class OIDCIdentityProvider
 
     public OIDCIdentityProvider(
             String authority, String providerId,
-            UserEntityService userEntityService, OIDCUserAccountService userAccountService,
+            UserEntityService userEntityService, UserAccountService<OIDCUserAccount> userAccountService,
             SubjectService subjectService,
             AttributeStore attributeStore,
             OIDCIdentityProviderConfig config,

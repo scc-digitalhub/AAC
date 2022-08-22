@@ -18,20 +18,20 @@ import com.yubico.webauthn.data.exception.Base64UrlException;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredential;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredentialsRepository;
 
 public class WebAuthnYubicoCredentialsRepository implements CredentialRepository {
 
     private final String repositoryId;
-    private final InternalUserAccountService userAccountService;
+    private final UserAccountService<InternalUserAccount> userAccountService;
     private final WebAuthnCredentialsRepository credentialsRepository;
 
     public WebAuthnYubicoCredentialsRepository(String repositoryId,
-            InternalUserAccountService userAccountService,
+            UserAccountService<InternalUserAccount> userAccountService,
             WebAuthnCredentialsRepository credentialsRepository) {
         Assert.hasText(repositoryId, "repository identifier is required");
         Assert.notNull(userAccountService, "account service is mandatory");

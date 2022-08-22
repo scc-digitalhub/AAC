@@ -6,13 +6,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityAuthority;
-import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
-import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
-import it.smartcommunitylab.aac.utils.MailService;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredentialsRepository;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnFilterProvider;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityConfigurationProvider;
@@ -30,7 +29,7 @@ public class WebAuthnIdentityAuthority extends
     public static final String AUTHORITY_URL = "/auth/webauthn/";
 
     // internal account service
-    private final InternalUserAccountService accountService;
+    private final UserAccountService<InternalUserAccount> accountService;
 
     // key repository
     private final WebAuthnCredentialsRepository credentialsRepository;
@@ -38,13 +37,10 @@ public class WebAuthnIdentityAuthority extends
     // filter provider
     private final WebAuthnFilterProvider filterProvider;
 
-    // services
-    protected MailService mailService;
-    protected RealmAwareUriBuilder uriBuilder;
-
     public WebAuthnIdentityAuthority(
             UserEntityService userEntityService, SubjectService subjectService,
-            InternalUserAccountService userAccountService, WebAuthnCredentialsRepository credentialsRepository,
+            UserAccountService<InternalUserAccount> userAccountService,
+            WebAuthnCredentialsRepository credentialsRepository,
             WebAuthnRpService rpService, WebAuthnAssertionRequestStore requestStore,
             ProviderConfigRepository<WebAuthnIdentityProviderConfig> registrationRepository) {
         super(SystemKeys.AUTHORITY_WEBAUTHN, userEntityService, subjectService, registrationRepository);
@@ -66,16 +62,6 @@ public class WebAuthnIdentityAuthority extends
         this.configProvider = configProvider;
     }
 
-    @Autowired
-    public void setMailService(MailService mailService) {
-        this.mailService = mailService;
-    }
-
-    @Autowired
-    public void setUriBuilder(RealmAwareUriBuilder uriBuilder) {
-        this.uriBuilder = uriBuilder;
-    }
-
     @Override
     public void afterPropertiesSet() throws Exception {
         super.afterPropertiesSet();
@@ -89,9 +75,6 @@ public class WebAuthnIdentityAuthority extends
                 credentialsRepository,
                 config, config.getRealm());
 
-        // set services
-        idp.setMailService(mailService);
-        idp.setUriBuilder(uriBuilder);
         return idp;
     }
 

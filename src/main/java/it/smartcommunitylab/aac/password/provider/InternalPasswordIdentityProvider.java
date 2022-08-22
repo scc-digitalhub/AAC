@@ -18,6 +18,7 @@ import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.provider.IdentityCredentialsProvider;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.internal.model.CredentialsType;
@@ -25,7 +26,9 @@ import it.smartcommunitylab.aac.internal.model.InternalLoginProvider;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.AbstractInternalIdentityProvider;
-import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
+import it.smartcommunitylab.aac.internal.provider.InternalAccountProvider;
+import it.smartcommunitylab.aac.internal.provider.InternalAccountService;
+import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
 import it.smartcommunitylab.aac.password.InternalPasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.model.InternalPasswordUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
@@ -40,12 +43,16 @@ public class InternalPasswordIdentityProvider
     private final InternalPasswordService passwordService;
     private final InternalPasswordAuthenticationProvider authenticationProvider;
 
+    // TODO remove, registration should go via no credentials provider
+    protected final InternalAccountService accountService;
+
     // provider configuration
     private final InternalPasswordIdentityProviderConfig config;
 
     public InternalPasswordIdentityProvider(
             String providerId,
-            UserEntityService userEntityService, InternalUserAccountService userAccountService,
+            UserEntityService userEntityService,
+            UserAccountService<InternalUserAccount> userAccountService, InternalUserConfirmKeyService confirmKeyService,
             SubjectService subjectService,
             InternalUserPasswordRepository passwordRepository,
             InternalPasswordIdentityProviderConfig config,
@@ -58,21 +65,24 @@ public class InternalPasswordIdentityProvider
         this.config = config;
 
         // build providers
+
+        this.accountService = new InternalAccountService(SystemKeys.AUTHORITY_PASSWORD, providerId,
+                userAccountService, confirmKeyService, subjectService,
+                config, realm);
+
         this.passwordService = new InternalPasswordService(providerId, userAccountService, passwordRepository, config,
                 realm);
         this.authenticationProvider = new InternalPasswordAuthenticationProvider(providerId, userAccountService,
                 accountService, passwordService, config, realm);
     }
 
-    @Override
     public void setMailService(MailService mailService) {
-        super.setMailService(mailService);
+        this.accountService.setMailService(mailService);
         this.passwordService.setMailService(mailService);
     }
 
-    @Override
     public void setUriBuilder(RealmAwareUriBuilder uriBuilder) {
-        super.setUriBuilder(uriBuilder);
+        this.accountService.setUriBuilder(uriBuilder);
         this.passwordService.setUriBuilder(uriBuilder);
     }
 

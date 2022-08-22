@@ -20,6 +20,7 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.AccountProvider;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.model.UserStatus;
 import it.smartcommunitylab.aac.saml.model.SamlUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
@@ -30,13 +31,13 @@ public class SamlAccountProvider extends AbstractProvider
         implements AccountProvider<SamlUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final SamlUserAccountService accountService;
+    private final UserAccountService<SamlUserAccount> accountService;
     private final String repositoryId;
 
     private final SamlIdentityProviderConfig config;
 
     protected SamlAccountProvider(String providerId,
-            SamlUserAccountService accountService,
+            UserAccountService<SamlUserAccount> accountService,
             SamlIdentityProviderConfig config,
             String realm) {
         super(SystemKeys.AUTHORITY_SAML, providerId, realm);

@@ -11,11 +11,11 @@ import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.auth.ConfirmKeyAuthenticationProvider;
 import it.smartcommunitylab.aac.internal.auth.InternalAuthenticationException;
 import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 
 public class InternalAuthenticationProvider
         extends ExtendedAuthenticationProvider<InternalUserAuthenticatedPrincipal, InternalUserAccount> {
@@ -25,11 +25,11 @@ public class InternalAuthenticationProvider
     private final InternalIdentityProviderConfig config;
     private final String repositoryId;
 
-    private final InternalUserAccountService userAccountService;
+    private final UserAccountService<InternalUserAccount> userAccountService;
     private final ConfirmKeyAuthenticationProvider confirmKeyProvider;
 
     public InternalAuthenticationProvider(String providerId,
-            InternalUserAccountService userAccountService,
+            UserAccountService<InternalUserAccount> userAccountService,
             InternalAccountService accountService,
             InternalIdentityProviderConfig providerConfig, String realm) {
         super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);

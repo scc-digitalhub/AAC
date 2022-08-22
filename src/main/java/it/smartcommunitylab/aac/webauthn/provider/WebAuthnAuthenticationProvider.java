@@ -21,8 +21,8 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchCredentialException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.webauthn.auth.WebAuthnAuthenticationException;
 import it.smartcommunitylab.aac.webauthn.auth.WebAuthnAuthenticationToken;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserAuthenticatedPrincipal;
@@ -36,11 +36,11 @@ public class WebAuthnAuthenticationProvider
     private final WebAuthnIdentityProviderConfig config;
     private final String repositoryId;
 
-    private final InternalUserAccountService userAccountService;
+    private final UserAccountService<InternalUserAccount> userAccountService;
     private final WebAuthnCredentialsService credentialsService;
 
     public WebAuthnAuthenticationProvider(String providerId,
-            InternalUserAccountService userAccountService,
+            UserAccountService<InternalUserAccount> userAccountService,
             WebAuthnCredentialsService credentialsService,
             WebAuthnIdentityProviderConfig providerConfig, String realm) {
         super(SystemKeys.AUTHORITY_WEBAUTHN, providerId, realm);

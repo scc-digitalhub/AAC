@@ -25,9 +25,10 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.provider.AccountService;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
+import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.model.UserStatus;
 import it.smartcommunitylab.aac.utils.MailService;
@@ -40,7 +41,9 @@ public class InternalAccountService extends InternalAccountProvider
     // provider configuration
     private final InternalIdentityProviderConfig config;
 
-    private final InternalUserAccountService userAccountService;
+    private final UserAccountService<InternalUserAccount> userAccountService;
+    private final InternalUserConfirmKeyService confirmKeyService;
+
     private final String repositoryId;
 
     private final SubjectService subjectService;
@@ -49,20 +52,25 @@ public class InternalAccountService extends InternalAccountProvider
     private RealmAwareUriBuilder uriBuilder;
 
     public InternalAccountService(String providerId,
-            InternalUserAccountService userAccountService, SubjectService subjectService,
+            UserAccountService<InternalUserAccount> userAccountService, InternalUserConfirmKeyService confirmKeyService,
+            SubjectService subjectService,
             InternalIdentityProviderConfig providerConfig, String realm) {
-        this(SystemKeys.AUTHORITY_INTERNAL, providerId, userAccountService, subjectService, providerConfig, realm);
+        this(SystemKeys.AUTHORITY_INTERNAL, providerId, userAccountService, confirmKeyService, subjectService,
+                providerConfig, realm);
     }
 
     public InternalAccountService(String authority, String providerId,
-            InternalUserAccountService userAccountService, SubjectService subjectService,
+            UserAccountService<InternalUserAccount> userAccountService, InternalUserConfirmKeyService confirmKeyService,
+            SubjectService subjectService,
             InternalIdentityProviderConfig providerConfig, String realm) {
         super(authority, providerId, userAccountService, providerConfig, realm);
         Assert.notNull(providerConfig, "provider config is mandatory");
         Assert.notNull(userAccountService, "user account service is mandatory");
+        Assert.notNull(confirmKeyService, "confirm key service is mandatory");
         Assert.notNull(subjectService, "subject service is mandatory");
 
         this.userAccountService = userAccountService;
+        this.confirmKeyService = confirmKeyService;
         this.subjectService = subjectService;
         this.config = providerConfig;
 
@@ -399,7 +407,7 @@ public class InternalAccountService extends InternalAccountProvider
             throw new IllegalArgumentException("empty-key");
         }
 
-        InternalUserAccount account = userAccountService.findAccountByConfirmationKey(repositoryId, confirmationKey);
+        InternalUserAccount account = confirmKeyService.findAccountByConfirmationKey(repositoryId, confirmationKey);
         if (account == null) {
             throw new NoSuchUserException();
         }

@@ -21,11 +21,12 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.openid.model.OIDCUserIdentity;
-import it.smartcommunitylab.aac.openid.service.OIDCUserAccountService;
+import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 
 @Service
 public class AppleIdentityAuthority extends
@@ -35,7 +36,7 @@ public class AppleIdentityAuthority extends
     public static final String AUTHORITY_URL = "/auth/apple/";
 
     // oidc account service
-    private final OIDCUserAccountService accountService;
+    private final UserAccountService<OIDCUserAccount> accountService;
 
     // filter provider
     private final AppleFilterProvider filterProvider;
@@ -51,7 +52,7 @@ public class AppleIdentityAuthority extends
 
     public AppleIdentityAuthority(
             UserEntityService userEntityService, SubjectService subjectService,
-            OIDCUserAccountService userAccountService, AutoJdbcAttributeStore jdbcAttributeStore,
+            UserAccountService<OIDCUserAccount> userAccountService, AutoJdbcAttributeStore jdbcAttributeStore,
             ProviderConfigRepository<AppleIdentityProviderConfig> registrationRepository,
             @Qualifier("appleClientRegistrationRepository") OIDCClientRegistrationRepository clientRegistrationRepository) {
         super(SystemKeys.AUTHORITY_APPLE, userEntityService, subjectService, registrationRepository);

@@ -17,10 +17,12 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository;
 import it.smartcommunitylab.aac.saml.model.SamlUserIdentity;
+import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import it.smartcommunitylab.aac.saml.provider.SamlFilterProvider;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProvider;
@@ -36,7 +38,7 @@ public class SamlIdentityAuthority extends
     public static final String AUTHORITY_URL = "/auth/saml/";
 
     // saml account service
-    private final SamlUserAccountService accountService;
+    private final UserAccountService<SamlUserAccount> accountService;
 
     // filter provider
     private final SamlFilterProvider filterProvider;
@@ -52,7 +54,7 @@ public class SamlIdentityAuthority extends
 
     public SamlIdentityAuthority(
             UserEntityService userEntityService, SubjectService subjectService,
-            SamlUserAccountService userAccountService, AutoJdbcAttributeStore jdbcAttributeStore,
+            UserAccountService<SamlUserAccount> userAccountService, AutoJdbcAttributeStore jdbcAttributeStore,
             ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository,
             @Qualifier("samlRelyingPartyRegistrationRepository") SamlRelyingPartyRegistrationRepository samlRelyingPartyRegistrationRepository) {
         super(SystemKeys.AUTHORITY_SAML, userEntityService, subjectService, registrationRepository);

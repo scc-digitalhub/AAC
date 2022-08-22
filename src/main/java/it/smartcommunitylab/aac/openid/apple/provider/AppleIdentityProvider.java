@@ -2,7 +2,6 @@ package it.smartcommunitylab.aac.openid.apple.provider;
 
 import java.util.Collection;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
@@ -13,20 +12,17 @@ import it.smartcommunitylab.aac.attributes.store.AttributeStore;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityProvider;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.dto.LoginProvider;
 import it.smartcommunitylab.aac.openid.model.OIDCUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.openid.model.OIDCUserIdentity;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
-import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
 import it.smartcommunitylab.aac.openid.provider.OIDCAccountProvider;
 import it.smartcommunitylab.aac.openid.provider.OIDCAttributeProvider;
-import it.smartcommunitylab.aac.openid.provider.OIDCAuthenticationProvider;
-import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProvider;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
 import it.smartcommunitylab.aac.openid.provider.OIDCSubjectResolver;
-import it.smartcommunitylab.aac.openid.service.OIDCUserAccountService;
 
 public class AppleIdentityProvider
         extends AbstractIdentityProvider<OIDCUserIdentity, OIDCUserAccount, OIDCUserAuthenticatedPrincipal> {
@@ -45,7 +41,7 @@ public class AppleIdentityProvider
 
     public AppleIdentityProvider(
             String providerId,
-            UserEntityService userEntityService, OIDCUserAccountService userAccountService,
+            UserEntityService userEntityService, UserAccountService<OIDCUserAccount> userAccountService,
             SubjectService subjectService,
             AttributeStore attributeStore,
             AppleIdentityProviderConfig config,

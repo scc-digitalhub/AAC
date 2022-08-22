@@ -24,6 +24,7 @@ import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.AccountProvider;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.model.UserStatus;
 import it.smartcommunitylab.aac.openid.model.OIDCUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
@@ -33,7 +34,7 @@ import it.smartcommunitylab.aac.openid.service.OIDCUserAccountService;
 public class OIDCAccountProvider extends AbstractProvider implements AccountProvider<OIDCUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final OIDCUserAccountService accountService;
+    private final UserAccountService<OIDCUserAccount> accountService;
     private final String repositoryId;
 
     private final OIDCIdentityProviderConfig config;
@@ -42,14 +43,14 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
     protected final OpenIdAttributesMapper openidMapper;
 
     public OIDCAccountProvider(String providerId,
-            OIDCUserAccountService accountService,
+            UserAccountService<OIDCUserAccount> accountService,
             OIDCIdentityProviderConfig config,
             String realm) {
         this(SystemKeys.AUTHORITY_OIDC, providerId, accountService, config, realm);
     }
 
     public OIDCAccountProvider(String authority, String providerId,
-            OIDCUserAccountService accountService,
+            UserAccountService<OIDCUserAccount> accountService,
             OIDCIdentityProviderConfig config,
             String realm) {
         super(authority, providerId, realm);

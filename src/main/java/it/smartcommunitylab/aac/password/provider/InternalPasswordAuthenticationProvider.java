@@ -12,13 +12,13 @@ import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.crypto.InternalPasswordEncoder;
 import it.smartcommunitylab.aac.internal.auth.ConfirmKeyAuthenticationProvider;
 import it.smartcommunitylab.aac.internal.auth.ConfirmKeyAuthenticationToken;
 import it.smartcommunitylab.aac.internal.auth.InternalAuthenticationException;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountService;
-import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.password.auth.ResetKeyAuthenticationProvider;
 import it.smartcommunitylab.aac.password.auth.ResetKeyAuthenticationToken;
 import it.smartcommunitylab.aac.password.auth.UsernamePasswordAuthenticationProvider;
@@ -36,7 +36,7 @@ public class InternalPasswordAuthenticationProvider
     private final InternalPasswordIdentityProviderConfig config;
     private final String repositoryId;
 
-    private final InternalUserAccountService userAccountService;
+    private final UserAccountService<InternalUserAccount> userAccountService;
     private final UsernamePasswordAuthenticationProvider authProvider;
     private final ConfirmKeyAuthenticationProvider confirmKeyProvider;
     private final ResetKeyAuthenticationProvider resetKeyProvider;
@@ -47,7 +47,7 @@ public class InternalPasswordAuthenticationProvider
     private final PasswordEncoder passwordEncoder;
 
     public InternalPasswordAuthenticationProvider(String providerId,
-            InternalUserAccountService userAccountService,
+            UserAccountService<InternalUserAccount> userAccountService,
             InternalAccountService accountService,
             InternalPasswordService passwordService,
             InternalPasswordIdentityProviderConfig providerConfig, String realm) {

@@ -17,13 +17,14 @@ import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.dto.LoginProvider;
 import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
+import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
 import it.smartcommunitylab.aac.utils.MailService;
 
 public class InternalIdentityService
@@ -43,7 +44,8 @@ public class InternalIdentityService
 
     public InternalIdentityService(
             String providerId,
-            UserEntityService userEntityService, InternalUserAccountService userAccountService,
+            UserEntityService userEntityService,
+            UserAccountService<InternalUserAccount> userAccountService, InternalUserConfirmKeyService confirmKeyService,
             SubjectService subjectService,
             InternalIdentityProviderConfig config,
             String realm) {
@@ -59,9 +61,10 @@ public class InternalIdentityService
         this.config = config;
 
         // build resource providers, we use our providerId to ensure consistency
-        this.accountService = new InternalAccountService(providerId, userAccountService, subjectService, config,
-                realm);
-        this.authenticationProvider = new InternalAuthenticationProvider(providerId, userAccountService, accountService,
+        this.accountService = new InternalAccountService(providerId, userAccountService, confirmKeyService,
+                subjectService, config, realm);
+        this.authenticationProvider = new InternalAuthenticationProvider(providerId, userAccountService,
+                accountService,
                 config, realm);
 
     }
