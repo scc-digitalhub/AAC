@@ -9,7 +9,6 @@ import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfi
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfigMap;
-import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfigMap;
 
 public class AuthoritiesProperties {
@@ -32,9 +31,6 @@ public class AuthoritiesProperties {
 
     @NestedConfigurationProperty
     private AppleIdentityProviderConfigMap apple;
-
-    @NestedConfigurationProperty
-    private SpidIdentityProviderConfigMap spid;
 
     @NestedConfigurationProperty
     private List<CustomAuthoritiesProperties> custom;
@@ -85,14 +81,6 @@ public class AuthoritiesProperties {
 
     public void setApple(AppleIdentityProviderConfigMap apple) {
         this.apple = apple;
-    }
-
-    public SpidIdentityProviderConfigMap getSpid() {
-        return spid;
-    }
-
-    public void setSpid(SpidIdentityProviderConfigMap spid) {
-        this.spid = spid;
     }
 
     public List<CustomAuthoritiesProperties> getCustom() {

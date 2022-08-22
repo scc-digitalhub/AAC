@@ -242,14 +242,11 @@ public class LoginController {
         // sort by name
         Collections.sort(authorities);
 
-        // build a display list respecting display mode for ordering: form, spid, button
+        // build a display list respecting display mode for ordering: form, button
         // TODO rework with comparable on model
         List<LoginProvider> loginAuthorities = new ArrayList<>();
         loginAuthorities.addAll(authorities.stream()
                 .filter(a -> a.getTemplate().endsWith("form"))
-                .collect(Collectors.toList()));
-        loginAuthorities.addAll(authorities.stream()
-                .filter(a -> "spid".equals(a.getTemplate()))
                 .collect(Collectors.toList()));
         loginAuthorities.addAll(authorities.stream()
                 .filter(a -> "button".equals(a.getTemplate()))

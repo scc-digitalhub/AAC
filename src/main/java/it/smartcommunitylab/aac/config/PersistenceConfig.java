@@ -56,7 +56,6 @@ import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
 import it.smartcommunitylab.aac.saml.service.SamlUserAccountService;
 import it.smartcommunitylab.aac.scope.InMemoryScopeRegistry;
 import it.smartcommunitylab.aac.scope.ScopeProvider;
-import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 
 @Configuration
@@ -204,12 +203,6 @@ public class PersistenceConfig {
         return new SamlRelyingPartyRegistrationRepository();
     }
 
-    @Bean
-    @Qualifier("spidRelyingPartyRegistrationRepository")
-    public SamlRelyingPartyRegistrationRepository spidRelyingPartyRegistrationRepository() {
-        return new SamlRelyingPartyRegistrationRepository();
-    }
-
     /*
      * TODO make configurable via properties and use builder to obtain
      * implementation
@@ -237,11 +230,6 @@ public class PersistenceConfig {
     @Bean
     public ProviderConfigRepository<SamlIdentityProviderConfig> samlProviderConfigRepository() {
         return new InMemoryProviderConfigRepository<SamlIdentityProviderConfig>();
-    }
-
-    @Bean
-    public ProviderConfigRepository<SpidIdentityProviderConfig> spidProviderConfigRepository() {
-        return new InMemoryProviderConfigRepository<SpidIdentityProviderConfig>();
     }
 
     @Bean

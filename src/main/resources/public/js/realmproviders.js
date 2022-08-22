@@ -484,9 +484,7 @@ angular.module('aac.controllers.realmproviders', [])
                     return './svg/sprite.svg#logo-' + logo;
                 }
             }
-            if (idp.authority === "spid") {
-                return './spid/sprite.svg#spid-ico-circle-bb';
-            }
+
             if (idp.authority === "apple") {
                 return './svg/sprite.svg#logo-apple';
             }
@@ -638,7 +636,7 @@ angular.module('aac.controllers.realmproviders', [])
 
             $scope.attributeMapping = attributeMapping;
 
-            if (data.authority == 'saml' || data.authority == 'spid') {
+            if (data.authority == 'saml') {
                 var metadataUrl = $scope.realmUrls.applicationUrl + "/auth/" + data.authority + "/metadata/" + data.provider;
                 $scope.samlMetadataUrl = metadataUrl;
             }
@@ -803,9 +801,7 @@ angular.module('aac.controllers.realmproviders', [])
                     return './svg/sprite.svg#logo-' + logo;
                 }
             }
-            if (ap.authority === "spid") {
-                return './spid/sprite.svg#spid-ico-circle-bb';
-            }
+
             if (ap.authority === "apple") {
                 return './svg/sprite.svg#logo-apple';
             }

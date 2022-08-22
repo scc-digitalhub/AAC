@@ -7,7 +7,6 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.internal.auth.InternalAuthenticationException;
 import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticationException;
 import it.smartcommunitylab.aac.saml.auth.SamlAuthenticationException;
-import it.smartcommunitylab.aac.spid.auth.SpidAuthenticationException;
 
 public class LoginException extends AuthenticationException {
     private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
@@ -33,10 +32,6 @@ public class LoginException extends AuthenticationException {
      * Static builder TODO move
      */
 
-    public static LoginException translate(SpidAuthenticationException e) {
-        return new LoginException(e.getErrorMessage(), e);
-    }
-
     public static LoginException translate(SamlAuthenticationException e) {
         return new LoginException(e.getErrorMessage(), e);
     }
@@ -50,10 +45,6 @@ public class LoginException extends AuthenticationException {
     }
 
     public static LoginException translate(AuthenticationException e) {
-
-        if (e instanceof SpidAuthenticationException) {
-            return translate((SpidAuthenticationException) e);
-        }
 
         if (e instanceof SamlAuthenticationException) {
             return translate((SamlAuthenticationException) e);

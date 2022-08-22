@@ -140,9 +140,7 @@ angular.module('aac.controllers.main', [])
                return './svg/sprite.svg#logo-' + logo;
             }
          }
-         if (idp.authority === "spid") {
-            return './spid/sprite.svg#spid-ico-circle-bb';
-         }
+
          return './italia/svg/sprite.svg#it-unlocked';
       }
 
