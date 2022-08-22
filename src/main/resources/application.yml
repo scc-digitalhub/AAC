@@ -280,7 +280,9 @@ management:
       port: ${MANAGEMENT_PORT:8081}
     endpoints:
       enabled-by-default: false
-      web.base-path: 
+      web:
+        base-path:
+        exposure.include: "health,info" 
     endpoint:
       info:
         enabled: true
