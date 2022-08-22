@@ -24,18 +24,13 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.ProviderWrappedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
-import it.smartcommunitylab.aac.core.auth.RequestAwareAuthenticationSuccessHandler;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
-import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
-import it.smartcommunitylab.aac.internal.model.CredentialsType;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
-import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
-import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
-import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
+import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
 
 /*
  * Handles login requests for internal authority, via extended auth manager
@@ -62,20 +57,19 @@ public class InternalConfirmKeyAuthenticationFilter<C extends InternalIdentityPr
     private AuthenticationEntryPoint authenticationEntryPoint;
 
     // TODO remove
-    private final InternalUserAccountService userAccountService;
+    private final InternalUserConfirmKeyService userAccountService;
 
-    public InternalConfirmKeyAuthenticationFilter(InternalUserAccountService userAccountService,
+    public InternalConfirmKeyAuthenticationFilter(InternalUserConfirmKeyService userAccountService,
             ProviderConfigRepository<C> registrationRepository) {
         this(SystemKeys.AUTHORITY_INTERNAL, userAccountService, registrationRepository, DEFAULT_FILTER_URI, null);
     }
 
     public InternalConfirmKeyAuthenticationFilter(String authority,
-            InternalUserAccountService userAccountService,
+            InternalUserConfirmKeyService userAccountService,
             ProviderConfigRepository<C> registrationRepository,
             String filterProcessingUrl, AuthenticationEntryPoint authenticationEntryPoint) {
         super(filterProcessingUrl);
         Assert.notNull(userAccountService, "user account service is required");
-
         Assert.notNull(registrationRepository, "provider registration repository cannot be null");
         Assert.hasText(filterProcessingUrl, "filterProcessesUrl must contain a URL pattern");
         Assert.isTrue(filterProcessingUrl.contains("{registrationId}"),

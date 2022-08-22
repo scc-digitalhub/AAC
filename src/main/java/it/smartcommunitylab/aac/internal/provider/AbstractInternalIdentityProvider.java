@@ -7,22 +7,17 @@ import org.springframework.transaction.annotation.Transactional;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityProvider;
-import it.smartcommunitylab.aac.core.base.NullSubjectResolver;
-import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
-import it.smartcommunitylab.aac.core.provider.IdentityCredentialsProvider;
 import it.smartcommunitylab.aac.core.provider.ScopeableProvider;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
-import it.smartcommunitylab.aac.internal.model.CredentialsType;
 import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
-import it.smartcommunitylab.aac.utils.MailService;
 
 public abstract class AbstractInternalIdentityProvider<P extends InternalUserAuthenticatedPrincipal, C extends UserCredentials>
         extends AbstractIdentityProvider<InternalUserIdentity, InternalUserAccount, P>
@@ -33,16 +28,16 @@ public abstract class AbstractInternalIdentityProvider<P extends InternalUserAut
     private final InternalIdentityProviderConfig config;
 
     // services
-    protected final InternalUserAccountService userAccountService;
+    protected final UserAccountService<InternalUserAccount> userAccountService;
 
     // providers
-    protected final InternalAccountService accountService;
+    protected final InternalAccountProvider accountProvider;
     protected final InternalAttributeProvider<P> attributeProvider;
     protected final SubjectResolver<InternalUserAccount> subjectResolver;
 
     public AbstractInternalIdentityProvider(
             String providerId,
-            UserEntityService userEntityService, InternalUserAccountService userAccountService,
+            UserEntityService userEntityService, UserAccountService<InternalUserAccount> userAccountService,
             SubjectService subjectService,
             InternalIdentityProviderConfig config,
             String realm) {
@@ -52,7 +47,7 @@ public abstract class AbstractInternalIdentityProvider<P extends InternalUserAut
 
     public AbstractInternalIdentityProvider(
             String authority, String providerId,
-            UserEntityService userEntityService, InternalUserAccountService userAccountService,
+            UserEntityService userEntityService, UserAccountService<InternalUserAccount> userAccountService,
             SubjectService subjectService,
             InternalIdentityProviderConfig config,
             String realm) {
@@ -67,24 +62,24 @@ public abstract class AbstractInternalIdentityProvider<P extends InternalUserAut
 
         // build resource providers, we use our providerId to ensure consistency
         this.attributeProvider = new InternalAttributeProvider<P>(providerId, config, realm);
-        this.accountService = new InternalAccountService(authority, providerId, userAccountService, subjectService,
-                config,
-                realm);
+
+        this.accountProvider = new InternalAccountProvider(authority, providerId, userAccountService,
+                config, realm);
 
         // always expose a valid resolver to satisfy authenticationManager at post login
         // TODO refactor to avoid fetching via resolver at this stage
         this.subjectResolver = new InternalSubjectResolver(providerId, userAccountService, config, realm);
     }
 
-    public void setMailService(MailService mailService) {
-        // assign to services
-        this.accountService.setMailService(mailService);
-    }
-
-    public void setUriBuilder(RealmAwareUriBuilder uriBuilder) {
-        // assign to services
-        this.accountService.setUriBuilder(uriBuilder);
-    }
+//    public void setMailService(MailService mailService) {
+//        // assign to services
+//        this.accountService.setMailService(mailService);
+//    }
+//
+//    public void setUriBuilder(RealmAwareUriBuilder uriBuilder) {
+//        // assign to services
+//        this.accountService.setUriBuilder(uriBuilder);
+//    }
 
     @Override
     public String getScope() {
@@ -106,8 +101,8 @@ public abstract class AbstractInternalIdentityProvider<P extends InternalUserAut
     }
 
     @Override
-    public InternalAccountService getAccountProvider() {
-        return accountService;
+    public InternalAccountProvider getAccountProvider() {
+        return accountProvider;
     }
 
     @Override
@@ -166,7 +161,7 @@ public abstract class AbstractInternalIdentityProvider<P extends InternalUserAut
         }
 
         // get the internal account entity
-        InternalUserAccount account = accountService.findAccount(username);
+        InternalUserAccount account = accountProvider.findAccount(username);
 
         if (account == null) {
             // error, user should already exists for authentication

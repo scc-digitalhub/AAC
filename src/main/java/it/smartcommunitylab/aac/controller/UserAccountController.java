@@ -84,9 +84,6 @@ public class UserAccountController {
     @Autowired
     private ProfileManager profileManager;
 
-//    @Autowired
-//    private InternalUserAccountService userAccountService;
-
     @Autowired
     private AuthorityManager authorityManager;
 

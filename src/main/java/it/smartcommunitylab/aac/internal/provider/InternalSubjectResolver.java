@@ -7,8 +7,8 @@ import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.model.Subject;
 
 public class InternalSubjectResolver extends AbstractProvider
@@ -17,12 +17,12 @@ public class InternalSubjectResolver extends AbstractProvider
 
     public final static String[] ATTRIBUTES = { "email" };
 
-    private final InternalUserAccountService accountService;
+    private final UserAccountService<InternalUserAccount> accountService;
     private final InternalIdentityProviderConfig config;
 
     private final String repositoryId;
 
-    public InternalSubjectResolver(String providerId, InternalUserAccountService userAccountService,
+    public InternalSubjectResolver(String providerId, UserAccountService<InternalUserAccount> userAccountService,
             InternalIdentityProviderConfig providerConfig, String realm) {
         super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
         Assert.notNull(userAccountService, "user account service is mandatory");

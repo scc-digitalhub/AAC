@@ -8,10 +8,12 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityAuthority;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
-import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
 import it.smartcommunitylab.aac.password.provider.InternalPasswordFilterProvider;
 import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityConfigurationProvider;
@@ -28,7 +30,10 @@ public class InternalPasswordIdentityAuthority extends
     public static final String AUTHORITY_URL = "/auth/password/";
 
     // internal account service
-    private final InternalUserAccountService accountService;
+    private final UserAccountService<InternalUserAccount> accountService;
+
+    // TODO remove
+    private final InternalUserConfirmKeyService confirmKeyService;
 
     // password repository
     private final InternalUserPasswordRepository passwordRepository;
@@ -42,17 +47,21 @@ public class InternalPasswordIdentityAuthority extends
 
     public InternalPasswordIdentityAuthority(
             UserEntityService userEntityService, SubjectService subjectService,
-            InternalUserAccountService userAccountService, InternalUserPasswordRepository passwordRepository,
+            UserAccountService<InternalUserAccount> userAccountService, InternalUserConfirmKeyService confirmKeyService,
+            InternalUserPasswordRepository passwordRepository,
             ProviderConfigRepository<InternalPasswordIdentityProviderConfig> registrationRepository) {
         super(SystemKeys.AUTHORITY_PASSWORD, userEntityService, subjectService, registrationRepository);
         Assert.notNull(userAccountService, "account service is mandatory");
+        Assert.notNull(confirmKeyService, "confirm key service is mandatory");
         Assert.notNull(passwordRepository, "password repository is mandatory");
 
         this.accountService = userAccountService;
+        this.confirmKeyService = confirmKeyService;
         this.passwordRepository = passwordRepository;
 
         // build filter provider
-        this.filterProvider = new InternalPasswordFilterProvider(userAccountService, passwordRepository,
+        this.filterProvider = new InternalPasswordFilterProvider(userAccountService, confirmKeyService,
+                passwordRepository,
                 registrationRepository);
     }
 
@@ -81,7 +90,8 @@ public class InternalPasswordIdentityAuthority extends
     public InternalPasswordIdentityProvider buildProvider(InternalPasswordIdentityProviderConfig config) {
         InternalPasswordIdentityProvider idp = new InternalPasswordIdentityProvider(
                 config.getProvider(),
-                userEntityService, accountService, subjectService,
+                userEntityService,
+                accountService, confirmKeyService, subjectService,
                 passwordRepository,
                 config, config.getRealm());
 

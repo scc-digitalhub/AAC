@@ -28,8 +28,8 @@ import it.smartcommunitylab.aac.core.auth.RequestAwareAuthenticationSuccessHandl
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.password.InternalPasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
@@ -59,16 +59,16 @@ public class InternalResetKeyAuthenticationFilter extends AbstractAuthentication
     private AuthenticationEntryPoint authenticationEntryPoint;
 
     // TODO remove services and build resetPassword action url after auth success
-    private final InternalUserAccountService userAccountService;
+    private final UserAccountService<InternalUserAccount> userAccountService;
     private final InternalUserPasswordRepository passwordRepository;
 
-    public InternalResetKeyAuthenticationFilter(InternalUserAccountService userAccountService,
+    public InternalResetKeyAuthenticationFilter(UserAccountService<InternalUserAccount> userAccountService,
             InternalUserPasswordRepository passwordRepository,
             ProviderConfigRepository<InternalPasswordIdentityProviderConfig> registrationRepository) {
         this(userAccountService, passwordRepository, registrationRepository, DEFAULT_FILTER_URI, null);
     }
 
-    public InternalResetKeyAuthenticationFilter(InternalUserAccountService userAccountService,
+    public InternalResetKeyAuthenticationFilter(UserAccountService<InternalUserAccount> userAccountService,
             InternalUserPasswordRepository passwordRepository,
             ProviderConfigRepository<InternalPasswordIdentityProviderConfig> registrationRepository,
             String filterProcessingUrl, AuthenticationEntryPoint authenticationEntryPoint) {

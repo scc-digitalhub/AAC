@@ -24,10 +24,10 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.base.AbstractProviderConfig;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.provider.UserCredentialsService;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredential;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredentialsRepository;
 
@@ -36,7 +36,7 @@ public class WebAuthnCredentialsService extends AbstractProvider
         implements UserCredentialsService<WebAuthnCredential> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final InternalUserAccountService accountService;
+    private final UserAccountService<InternalUserAccount> accountService;
 
     // TODO replace with service to detach from JPA
     private WebAuthnCredentialsRepository credentialsRepository;
@@ -45,7 +45,7 @@ public class WebAuthnCredentialsService extends AbstractProvider
     private final WebAuthnIdentityProviderConfig config;
     private final String repositoryId;
 
-    public WebAuthnCredentialsService(String providerId, InternalUserAccountService userAccountService,
+    public WebAuthnCredentialsService(String providerId, UserAccountService<InternalUserAccount> userAccountService,
             WebAuthnCredentialsRepository credentialsRepository,
             WebAuthnIdentityProviderConfig providerConfig,
             String realm) {

@@ -33,11 +33,11 @@ import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.base.AbstractProviderConfig;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.provider.UserCredentialsService;
 import it.smartcommunitylab.aac.crypto.PasswordHash;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.oauth.common.SecureStringKeyGenerator;
 import it.smartcommunitylab.aac.password.InternalPasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.model.PasswordPolicy;
@@ -51,7 +51,7 @@ public class InternalPasswordService extends AbstractProvider
         implements UserCredentialsService<InternalUserPassword> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final InternalUserAccountService accountService;
+    private final UserAccountService<InternalUserAccount> accountService;
 
     // TODO replace with service
     private final InternalUserPasswordRepository passwordRepository;
@@ -65,7 +65,8 @@ public class InternalPasswordService extends AbstractProvider
     private PasswordHash hasher;
     private StringKeyGenerator keyGenerator;
 
-    public InternalPasswordService(String providerId, InternalUserAccountService userAccountService,
+    public InternalPasswordService(String providerId,
+            UserAccountService<InternalUserAccount> userAccountService,
             InternalUserPasswordRepository passwordRepository,
             InternalPasswordIdentityProviderConfig providerConfig,
             String realm) {

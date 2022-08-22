@@ -6,9 +6,9 @@ import java.util.List;
 import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
-import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.provider.IdentityCredentialsProvider;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.internal.model.CredentialsType;
@@ -17,8 +17,6 @@ import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.provider.AbstractInternalIdentityProvider;
-import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
-import it.smartcommunitylab.aac.utils.MailService;
 import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredential;
@@ -36,7 +34,7 @@ public class WebAuthnIdentityProvider
 
     public WebAuthnIdentityProvider(
             String providerId,
-            UserEntityService userEntityService, InternalUserAccountService userAccountService,
+            UserEntityService userEntityService, UserAccountService<InternalUserAccount> userAccountService,
             SubjectService subjectService,
             WebAuthnCredentialsRepository credentialsRepository,
             WebAuthnIdentityProviderConfig config,
@@ -54,16 +52,6 @@ public class WebAuthnIdentityProvider
                 realm);
         this.authenticationProvider = new WebAuthnAuthenticationProvider(providerId, userAccountService,
                 credentialsService, config, realm);
-    }
-
-    @Override
-    public void setMailService(MailService mailService) {
-        super.setMailService(mailService);
-    }
-
-    @Override
-    public void setUriBuilder(RealmAwareUriBuilder uriBuilder) {
-        super.setUriBuilder(uriBuilder);
     }
 
     @Override

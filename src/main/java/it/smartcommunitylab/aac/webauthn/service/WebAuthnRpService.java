@@ -41,8 +41,8 @@ import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.webauthn.auth.WebAuthnAuthenticationException;
 import it.smartcommunitylab.aac.webauthn.model.CredentialCreationInfo;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationRequest;
@@ -58,7 +58,7 @@ public class WebAuthnRpService {
     @Value("${application.url}")
     private String applicationUrl;
 
-    private final InternalUserAccountService userAccountService;
+    private final UserAccountService<InternalUserAccount> userAccountService;
     private final WebAuthnCredentialsRepository credentialsRepository;
     private final ProviderConfigRepository<WebAuthnIdentityProviderConfig> registrationRepository;
 
@@ -102,7 +102,7 @@ public class WebAuthnRpService {
                 }
             });
 
-    public WebAuthnRpService(InternalUserAccountService userAccountService,
+    public WebAuthnRpService(UserAccountService<InternalUserAccount> userAccountService,
             WebAuthnCredentialsRepository credentialsRepository,
             ProviderConfigRepository<WebAuthnIdentityProviderConfig> registrationRepository) {
         Assert.notNull(userAccountService, "user account service is mandatory");

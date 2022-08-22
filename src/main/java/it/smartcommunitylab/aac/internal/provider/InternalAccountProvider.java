@@ -14,27 +14,27 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.AccountProvider;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.model.UserStatus;
 
 @Transactional
 public class InternalAccountProvider extends AbstractProvider implements AccountProvider<InternalUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final InternalUserAccountService accountService;
+    private final UserAccountService<InternalUserAccount> accountService;
     private final String repositoryId;
 
     public InternalAccountProvider(String providerId,
-            InternalUserAccountService accountService,
+            UserAccountService<InternalUserAccount> accountService,
             InternalIdentityProviderConfig config,
             String realm) {
         this(SystemKeys.AUTHORITY_INTERNAL, providerId, accountService, config, realm);
     }
 
     public InternalAccountProvider(String authority, String providerId,
-            InternalUserAccountService accountService,
+            UserAccountService<InternalUserAccount> accountService,
             InternalIdentityProviderConfig config,
             String realm) {
         super(authority, providerId, realm);

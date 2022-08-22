@@ -12,21 +12,27 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.RequestAwareAuthenticationSuccessHandler;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.auth.InternalConfirmKeyAuthenticationFilter;
-import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
 
 public class InternalFilterProvider implements FilterProvider {
 
     private final ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository;
-    private final InternalUserAccountService userAccountService;
+    private final UserAccountService<InternalUserAccount> userAccountService;
+    private final InternalUserConfirmKeyService confirmKeyService;
     private AuthenticationManager authManager;
 
-    public InternalFilterProvider(InternalUserAccountService userAccountService,
+    public InternalFilterProvider(UserAccountService<InternalUserAccount> userAccountService,
+            InternalUserConfirmKeyService confirmKeyService,
             ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository) {
         Assert.notNull(userAccountService, "account service is mandatory");
+        Assert.notNull(confirmKeyService, "confirm key service is mandatory");
         Assert.notNull(registrationRepository, "registration repository is mandatory");
 
         this.userAccountService = userAccountService;
+        this.confirmKeyService = confirmKeyService;
         this.registrationRepository = registrationRepository;
     }
 
@@ -44,7 +50,7 @@ public class InternalFilterProvider implements FilterProvider {
 
         // we expose only the confirmKey auth filter with default config
         InternalConfirmKeyAuthenticationFilter<InternalIdentityProviderConfig> confirmKeyFilter = new InternalConfirmKeyAuthenticationFilter<>(
-                userAccountService, registrationRepository);
+                confirmKeyService, registrationRepository);
         confirmKeyFilter.setAuthenticationSuccessHandler(successHandler());
 
         if (authManager != null) {
