@@ -11,7 +11,7 @@ public class SystemKeys {
     public static final long AAC_OAUTH2_SERIAL_VERSION = 400L;
     public static final long AAC_OIDC_SERIAL_VERSION = 400L;
     public static final long AAC_SAML_SERIAL_VERSION = 400L;
-    public static final long AAC_SPID_SERIAL_VERSION = 400L;
+//    public static final long AAC_SPID_SERIAL_VERSION = 400L;
     public static final long AAC_APPLE_SERIAL_VERSION = 410L;
     public static final long AAC_WEBAUTHN_SERIAL_VERSION = 410L;
 
@@ -23,7 +23,7 @@ public class SystemKeys {
     public static final String AUTHORITY_INTERNAL = "internal";
     public static final String AUTHORITY_OIDC = "oidc";
     public static final String AUTHORITY_SAML = "saml";
-    public static final String AUTHORITY_SPID = "spid";
+//    public static final String AUTHORITY_SPID = "spid";
     public static final String AUTHORITY_CIE = "cie";
     public static final String AUTHORITY_MAPPER = "mapper";
     public static final String AUTHORITY_SCRIPT = "script";
@@ -77,10 +77,6 @@ public class SystemKeys {
     public static final String EVENTS_LEVEL_MINIMAL = "minimal";
     public static final String EVENTS_LEVEL_DETAILS = "details";
     public static final String EVENTS_LEVEL_FULL = "full";
-
-//    public static final String DISPLAY_MODE_BUTTON = "button";
-//    public static final String DISPLAY_MODE_FORM = "form";
-//    public static final String DISPLAY_MODE_SPID = "spid";
 
     public static final String ACTION_LOGIN = "login";
     public static final String ACTION_REGISTER = "register";

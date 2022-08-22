@@ -25,8 +25,6 @@ import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticationException;
 import it.smartcommunitylab.aac.openid.auth.OIDCUserAuthenticationFailureEvent;
 import it.smartcommunitylab.aac.saml.auth.SamlAuthenticationException;
 import it.smartcommunitylab.aac.saml.auth.SamlUserAuthenticationFailureEvent;
-import it.smartcommunitylab.aac.spid.auth.SpidAuthenticationException;
-import it.smartcommunitylab.aac.spid.auth.SpidUserAuthenticationFailureEvent;
 
 public class ExtendedAuthenticationEventPublisher
         implements AuthenticationEventPublisher, ApplicationEventPublisherAware, InitializingBean {
@@ -148,10 +146,6 @@ public class ExtendedAuthenticationEventPublisher
             Authentication authentication, AuthenticationException exception) {
 
         // TODO use converters..
-        if (exception instanceof SpidAuthenticationException) {
-            return new SpidUserAuthenticationFailureEvent(
-                    authority, provider, realm, authentication, (SpidAuthenticationException) exception);
-        }
         if (exception instanceof SamlAuthenticationException) {
             return new SamlUserAuthenticationFailureEvent(
                     authority, provider, realm, authentication, (SamlAuthenticationException) exception);

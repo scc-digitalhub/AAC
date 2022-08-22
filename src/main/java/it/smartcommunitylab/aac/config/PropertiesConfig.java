@@ -32,9 +32,4 @@ public class PropertiesConfig {
         return new AttributeSetsProperties();
     }
 
-    @Bean
-    @ConfigurationProperties(prefix = "spid")
-    public SpidProperties spidProperties() {
-        return new SpidProperties();
-    }
 }

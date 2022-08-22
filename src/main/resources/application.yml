@@ -128,13 +128,6 @@ authorities:
    apple:
       askNameScope: true
       askEmailScope: true
-   spid:
-      userNameAttributeName: SPID_CODE
-      idAttribute: SPID_CODE
-      useSpidCodeAsNameId: true
-      spidAttributes: SPID_CODE
-      ssoServiceBinding: HTTP-POST
-      authnContext: SPID_L2
    saml:
       signAuthNRequest: true
       ssoServiceBinding: HTTP-POST
@@ -238,47 +231,7 @@ attributesets:
       keys: phone_number,phone_number_verified 
     - identifier: address
       keys: formatted,street_address,locality,region,postal_code,country
-    
-
-spid:
-  idps:
-    - entityName: Aruba ID
-      entityId: https://loginspid.aruba.it    
-      entityLabel: arubaid
-      metadataUrl: https://loginspid.aruba.it/metadata
-    - entityName: Infocert ID
-      entityId: https://identity.infocert.it
-      entityLabel: infocertid
-      metadataUrl: https://identity.infocert.it/metadata/metadata.xml
-    - entityName: Intesa ID
-      entityId: https://spid.intesa.it
-      entityLabel: intesaid
-      metadataUrl: https://spid.intesa.it/metadata/metadata.xml
-    - entityName: Lepida ID
-      entityId: https://id.lepida.it/idp/shibboleth
-      entityLabel: lepidaid
-      metadataUrl: https://id.lepida.it/idp/shibboleth
-    - entityName: Namirial ID
-      entityId: https://idp.namirialtsp.com/idp
-      entityLabel: namirialid
-      metadataUrl: https://idp.namirialtsp.com/idp/metadata
-    - entityName: Poste ID
-      entityId: https://posteid.poste.it
-      entityLabel: posteid
-      metadataUrl: https://posteid.poste.it/jod-fs/metadata/metadata.xml    
-    - entityName: Sielte ID
-      entityId: https://identity.sieltecloud.it
-      entityLabel: spiditalia
-      metadataUrl: https://identity.sieltecloud.it/simplesaml/metadata.xml
-    - entityName: SPIDItalia Register.it
-      entityId: https://spid.register.it
-      entityLabel: sielteid
-      metadataUrl: https://spid.register.it/login/metadata
-    - entityName: Tim ID
-      entityId: https://login.id.tim.it/affwebservices/public/saml2sso
-      entityLabel: timid
-      metadataUrl: https://login.id.tim.it/spid-services/MetadataBrowser/idp  
-      
+          
                             
 # LOGGING CONFIGURATION
 logging:

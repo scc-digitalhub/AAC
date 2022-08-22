@@ -20,8 +20,6 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -119,7 +117,6 @@ public class SecurityConfig {
                 // whitelist auth providers pages (login,registration etc)
 //                .antMatchers("/auth/**").permitAll()
                 // TODO remove tech-specific paths
-                .antMatchers("/spid/**").permitAll()
                 .antMatchers("/webauthn/**").permitAll()
                 // anything else requires auth
                 .anyRequest().authenticated()
