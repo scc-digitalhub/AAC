@@ -77,9 +77,14 @@ angular.module('aac.controllers.realmapps', [])
             }
         }
 
-        service.importClientApp = function (slug, file, reset) {
+        service.importClientApp = function (slug, file, yaml, reset) {
             var fd = new FormData();
-            fd.append('file', file);
+            if (yaml) {
+                fd.append('yaml', yaml);
+            }
+            if (file) {
+                fd.append('file', file);
+            }
             return $http({
                 url: 'console/dev/realms/' + slug + '/apps' + (reset ? "?reset=true" : ""),
                 headers: { "Content-Type": undefined }, //set undefined to let $http manage multipart declaration with proper boundaries
@@ -278,28 +283,36 @@ angular.module('aac.controllers.realmapps', [])
         }
 
         $scope.importClientAppDlg = function () {
+            if ($scope.importFile) {
+                $scope.importFile.file = null;
+            }
+
             $('#importClientAppDlg').modal({ keyboard: false });
         }
 
 
         $scope.importClientApp = function () {
             $('#importClientAppDlg').modal('hide');
-            var file = $scope.importFile;
-            var resetID = !!file.resetID;
+            var file = $scope.importFile.file;
+            var yaml = $scope.importFile.yaml;
+            var resetID = !!$scope.importFile.resetID;
             var mimeTypes = ['text/yaml', 'text/yml', 'application/x-yaml'];
-            if (file == null || !mimeTypes.includes(file.type) || file.size == 0) {
-                Utils.showError("invalid file");
+            if (!yaml && (file == null || !mimeTypes.includes(file.type) || file.size == 0)) {
+                Utils.showError("invalid yaml or empty file");
             } else {
-                RealmAppsData.importClientApp(slug, file, resetID)
+                RealmAppsData.importClientApp(slug, file, yaml, resetID)
                     .then(function () {
                         $scope.importFile = null;
                         $scope.load();
                         Utils.showSuccess();
+                        $scope.importFile = null;
                     })
                     .catch(function (err) {
                         Utils.showError(err.data.message);
+                        $scope.importFile.file = null;
                     });
             }
+
         }
 
         $scope.exportClientApp = function (clientApp) {

@@ -35,6 +35,7 @@ import it.smartcommunitylab.aac.audit.store.AuditEventStore;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
+import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.core.model.Client;
 import it.smartcommunitylab.aac.core.model.ClientCredentials;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
@@ -144,7 +145,7 @@ public class ClientManager {
                     app.setRealmRoles(roles);
 
                     // load authorities
-                    Collection<GrantedAuthority> authorities = loadClientAuthorities(realm, app.getClientId());
+                    Collection<RealmGrantedAuthority> authorities = loadClientAuthorities(realm, app.getClientId());
                     app.setAuthorities(authorities);
                 } catch (NoSuchClientException e) {
                 }
@@ -184,7 +185,7 @@ public class ClientManager {
                 clientApp.setRealmRoles(roles);
 
                 // load authorities
-                Collection<GrantedAuthority> authorities = loadClientAuthorities(realm, clientApp.getClientId());
+                Collection<RealmGrantedAuthority> authorities = loadClientAuthorities(realm, clientApp.getClientId());
                 clientApp.setAuthorities(authorities);
             } catch (NoSuchClientException e) {
             }
@@ -644,7 +645,7 @@ public class ClientManager {
      * do note access should be restricted to ADMIN
      */
     @Transactional(readOnly = true)
-    public Collection<GrantedAuthority> getAuthorities(
+    public Collection<RealmGrantedAuthority> getAuthorities(
             String realm, String clientId) throws NoSuchRealmException, NoSuchClientException {
         logger.debug("get authorities for app {} in realm {}", StringUtils.trimAllWhitespace(clientId),
                 StringUtils.trimAllWhitespace(realm));
@@ -655,7 +656,7 @@ public class ClientManager {
             throw new NoSuchClientException();
         }
 
-        return subjectService.getAuthorities(clientId, r.getSlug());
+        return loadClientAuthorities(r.getSlug(), clientId);
     }
 
     @Transactional(readOnly = false)
@@ -847,9 +848,11 @@ public class ClientManager {
         return spaceRoleService.getRoles(clientId);
     }
 
-    private Collection<GrantedAuthority> loadClientAuthorities(String realm, String clientId)
+    private Collection<RealmGrantedAuthority> loadClientAuthorities(String realm, String clientId)
             throws NoSuchClientException {
-        return subjectService.getAuthorities(clientId, realm);
+        return subjectService.getAuthorities(clientId, realm).stream()
+                .filter(a -> a instanceof RealmGrantedAuthority).map(a -> (RealmGrantedAuthority) a)
+                .collect(Collectors.toList());
     }
 
 }

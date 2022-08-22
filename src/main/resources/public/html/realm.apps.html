@@ -287,22 +287,28 @@
             <div class="modal-body">
                 <form name="importAppForm" enctype="multipart/form-data" class="needs-validation was-validated"
                     novalidate>
-                    <p>Upload a valid YAML file with the full client definition, or with a list of valid clients nested
-                        under key <em>clients</em>.</p>
+                    <p>Provide or upload a valid YAML file with the full client definition, or with a list of valid
+                        clients nested under key <em>clients</em>.</p>
 
-                    <div class="form-group col pt-4 mb-2">
+                    <div class="form-group col pt-4 mb-4">
                         <label for="file">File*</label>
                         <input type="file" name="file" class="form-control form-control-sm upload" id="file"
-                            file-model="importFile" required
-                            accept=".yaml,.yml,text/yaml,text/yml,application/x-yaml" />
+                            file-model="importFile.file" accept=".yaml,.yml,text/yaml,text/yml,application/x-yaml" />
                         <ul class="upload-file-list">
-                            <li class="upload-file success" ng-if="importFile != null">
+                            <li class="upload-file success" ng-if="importFile.file != null">
                                 <p>
-                                    {{importFile.name}} <span class="upload-file-weight">{{importFile.size}}</span>
+                                    {{importFile.file.name}} <span class="upload-file-weight">{{importFile.file.size}}</span>
                                 </p>
                             </li>
                         </ul>
                     </div>
+
+                    <div class="form-group col pt-4 mb-2">
+                        <textarea class="text-monospace" rows="5" name="yaml" id="yaml"
+                            ng-model="importFile.yaml"></textarea>
+                    </div>
+
+
                     <div class="form-group col pt-4 mb-2">
                         <div class="form-check">
                             <input class="form-check-input" name="reset" id="reset" type="checkbox"

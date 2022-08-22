@@ -1,10 +1,19 @@
 package it.smartcommunitylab.aac.core.auth;
 
+import javax.validation.Valid;
+
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.Assert;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 import it.smartcommunitylab.aac.SystemKeys;
 
+@Valid
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(Include.NON_NULL)
 public class RealmGrantedAuthority implements GrantedAuthority {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
@@ -23,7 +32,7 @@ public class RealmGrantedAuthority implements GrantedAuthority {
         this.realm = null;
         this.role = null;
     }
-    
+
     public String getRealm() {
         return realm;
     }
