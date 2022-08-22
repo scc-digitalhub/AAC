@@ -1,21 +1,19 @@
 package it.smartcommunitylab.aac.controller;
 
-import java.io.Serializable;
 import java.util.Collection;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.CredentialsContainer;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,16 +25,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.UserManager;
 import it.smartcommunitylab.aac.core.base.AbstractIdentity;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
-import it.smartcommunitylab.aac.dto.AttributesRegistrationDTO;
 import it.smartcommunitylab.aac.dto.UserEmailBean;
 import it.smartcommunitylab.aac.dto.UserStatusBean;
 import it.smartcommunitylab.aac.dto.UserSubjectBean;
@@ -47,11 +42,20 @@ import it.smartcommunitylab.aac.model.UserStatus;
  * Base controller for users
  */
 @PreAuthorize("hasAuthority(this.authority)")
-public class BaseUserController {
+public class BaseUserController implements InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Autowired
     protected UserManager userManager;
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        Assert.notNull(userManager, "user manager is required");
+    }
+
+    @Autowired
+    public void setUserManager(UserManager userManager) {
+        this.userManager = userManager;
+    }
 
     public String getAuthority() {
         return Config.R_USER;

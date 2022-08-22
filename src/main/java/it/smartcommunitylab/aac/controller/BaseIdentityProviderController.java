@@ -13,8 +13,10 @@ import javax.validation.constraints.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -42,14 +44,30 @@ import it.smartcommunitylab.aac.core.service.IdentityProviderAuthorityService;
  */
 
 @PreAuthorize("hasAuthority(this.authority)")
-public class BaseIdentityProviderController {
+public class BaseIdentityProviderController implements InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Autowired
     protected ProviderManager providerManager;
 
+    // TODO evaluate replace with authorityManager
+    protected IdentityProviderAuthorityService authorityService;
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        Assert.notNull(providerManager, "provider manager is required");
+        Assert.notNull(authorityService, "authority service is required");
+
+    }
+
     @Autowired
-    private IdentityProviderAuthorityService authorityService;
+    public void setProviderManager(ProviderManager providerManager) {
+        this.providerManager = providerManager;
+    }
+
+    @Autowired
+    public void setAuthorityService(IdentityProviderAuthorityService authorityService) {
+        this.authorityService = authorityService;
+    }
 
     public String getAuthority() {
         return Config.R_USER;

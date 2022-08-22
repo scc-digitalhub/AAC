@@ -9,9 +9,11 @@ import javax.validation.constraints.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.provider.approval.Approval;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,11 +25,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import io.swagger.v3.oas.annotations.Operation;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.common.NoSuchGroupException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchRoleException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
-import it.smartcommunitylab.aac.model.Group;
 import it.smartcommunitylab.aac.model.RealmRole;
 
 /*
@@ -35,11 +35,20 @@ import it.smartcommunitylab.aac.model.RealmRole;
  */
 
 @PreAuthorize("hasAuthority(this.authority)")
-public class BaseRealmRolesController {
+public class BaseRealmRolesController implements InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Autowired
     protected RealmRoleManager roleManager;
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        Assert.notNull(roleManager, "role manager is required");
+    }
+
+    @Autowired
+    public void setRoleManager(RealmRoleManager roleManager) {
+        this.roleManager = roleManager;
+    }
 
     public String getAuthority() {
         return Config.R_USER;

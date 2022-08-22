@@ -52,6 +52,7 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.controller.BaseAttributeProviderController;
 import it.smartcommunitylab.aac.core.AuthorityManager;
+import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
@@ -74,6 +75,11 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
     @Autowired
     @Qualifier("yamlObjectMapper")
     private ObjectMapper yamlObjectMapper;
+
+//    @Autowired
+//    public void setProviderManager(ProviderManager providerManager) {
+//        super.setProviderManager(providerManager);
+//    }
 
     /*
      * Providers
