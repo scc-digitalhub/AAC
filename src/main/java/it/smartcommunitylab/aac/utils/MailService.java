@@ -40,6 +40,7 @@ import org.springframework.stereotype.Component;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import it.smartcommunitylab.aac.config.ApplicationProperties;
 import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.model.Realm;
 
@@ -73,20 +74,8 @@ public class MailService {
     @Value("${mail.protocol}")
     private String mailProtocol;
 
-    @Value("${application.name}")
-    private String applicationName;
-
-    @Value("${application.url}")
-    private String applicationUrl;
-
-    @Value("${application.email}")
-    private String applicationEmail;
-
-    @Value("${application.logo}")
-    private String applicationLogo;
-
-    @Value("${application.lang}")
-    private String defaultLang;
+    @Autowired
+    private ApplicationProperties appProps;
 
     @Value("classpath:/javamail.properties")
     private org.springframework.core.io.Resource mailProps;
@@ -124,15 +113,18 @@ public class MailService {
         logger.debug("send mail for " + String.valueOf(template) + " to " + String.valueOf(email));
 
         final Context ctx = new Context();
-        Locale locale = lang != null ? Locale.forLanguageTag(lang) : Locale.forLanguageTag(defaultLang);
-        Realm realm = new Realm("", applicationName);
+        Locale locale = lang != null ? Locale.forLanguageTag(lang) : Locale.forLanguageTag(appProps.getLang());
+        Realm realm = new Realm("", appProps.getName());
 
+        // build logo path
+        String applicationLogo = appProps.getUrl() + "/logo";
+        
         // set app context
         Map<String, String> application = new HashMap<>();
-        application.put("name", applicationName);
-        application.put("url", applicationUrl);
+        application.put("name", appProps.getName());
+        application.put("url", appProps.getUrl());
         application.put("logo", applicationLogo);
-        application.put("email", applicationEmail);
+        application.put("email", appProps.getEmail());
         ctx.setVariable("application", application);
 
         // set template context
@@ -167,11 +159,11 @@ public class MailService {
         String subjectText = realm.getName() + ": " + subject;
         message.setSubject(subjectText);
         try {
-            message.setFrom(mailUser, applicationEmail);
+            message.setFrom(mailUser, appProps.getEmail());
         } catch (UnsupportedEncodingException | MessagingException e) {
             throw new MessagingException("invalid-mail-sender");
         }
-        message.setReplyTo(applicationEmail);
+        message.setReplyTo(appProps.getEmail());
         message.setTo(email);
 
         // render html mail from base template and message
