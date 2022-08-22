@@ -27,6 +27,7 @@ import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.saml.auth.SamlAuthenticationToken;
 import it.smartcommunitylab.aac.saml.auth.SamlAuthenticationException;
 import it.smartcommunitylab.aac.saml.model.SamlUserAuthenticatedPrincipal;
@@ -39,7 +40,7 @@ public class SamlAuthenticationProvider
 
     private final static String SUBJECT_ATTRIBUTE = "subject";
 
-    private final SamlUserAccountService accountService;
+    private final UserAccountService<SamlUserAccount> accountService;
     private final SamlIdentityProviderConfig config;
     private final String repositoryId;
 
@@ -51,7 +52,7 @@ public class SamlAuthenticationProvider
     private ScriptExecutionService executionService;
 
     public SamlAuthenticationProvider(String providerId,
-            SamlUserAccountService accountService, SamlIdentityProviderConfig config,
+            UserAccountService<SamlUserAccount> accountService, SamlIdentityProviderConfig config,
             String realm) {
         super(SystemKeys.AUTHORITY_SAML, providerId, realm);
         Assert.notNull(accountService, "account service is mandatory");
