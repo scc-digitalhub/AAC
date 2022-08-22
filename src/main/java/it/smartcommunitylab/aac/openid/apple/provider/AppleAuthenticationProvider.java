@@ -38,6 +38,7 @@ import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticationException;
 import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticationToken;
 import it.smartcommunitylab.aac.openid.model.OIDCUserAuthenticatedPrincipal;
@@ -45,13 +46,12 @@ import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.openid.provider.OIDCAuthenticationProvider;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProvider;
 import it.smartcommunitylab.aac.openid.service.IdTokenOidcUserService;
-import it.smartcommunitylab.aac.openid.service.OIDCUserAccountService;
 
 public class AppleAuthenticationProvider
         extends OIDCAuthenticationProvider {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final OIDCUserAccountService accountService;
+    private final UserAccountService<OIDCUserAccount> accountService;
     private final String repositoryId;
 
     private final OidcAuthorizationCodeAuthenticationProvider oidcProvider;
@@ -60,7 +60,7 @@ public class AppleAuthenticationProvider
 
     public AppleAuthenticationProvider(
             String providerId,
-            OIDCUserAccountService accountService,
+            UserAccountService<OIDCUserAccount> accountService,
             AppleIdentityProviderConfig config,
             String realm) {
         super(SystemKeys.AUTHORITY_APPLE, providerId, accountService, config.toOidcProviderConfig(), realm);

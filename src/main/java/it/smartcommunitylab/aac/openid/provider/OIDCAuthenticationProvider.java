@@ -50,6 +50,7 @@ import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticationException;
 import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticationToken;
 import it.smartcommunitylab.aac.openid.model.OIDCUserAuthenticatedPrincipal;
@@ -60,7 +61,7 @@ public class OIDCAuthenticationProvider
         extends ExtendedAuthenticationProvider<OIDCUserAuthenticatedPrincipal, OIDCUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final OIDCUserAccountService accountService;
+    private final UserAccountService<OIDCUserAccount> accountService;
     private final OIDCIdentityProviderConfig config;
     private final String repositoryId;
 
@@ -72,7 +73,7 @@ public class OIDCAuthenticationProvider
     protected final OpenIdAttributesMapper openidMapper;
 
     public OIDCAuthenticationProvider(String providerId,
-            OIDCUserAccountService accountService,
+            UserAccountService<OIDCUserAccount> accountService,
             OIDCIdentityProviderConfig config,
             String realm) {
         this(SystemKeys.AUTHORITY_OIDC, providerId, accountService, config, realm);
@@ -80,7 +81,7 @@ public class OIDCAuthenticationProvider
 
     public OIDCAuthenticationProvider(
             String authority, String providerId,
-            OIDCUserAccountService accountService,
+            UserAccountService<OIDCUserAccount> accountService,
             OIDCIdentityProviderConfig config,
             String realm) {
         super(authority, providerId, realm);

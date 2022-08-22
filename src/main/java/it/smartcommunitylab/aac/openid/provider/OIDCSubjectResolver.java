@@ -7,6 +7,7 @@ import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.openid.service.OIDCUserAccountService;
@@ -15,18 +16,19 @@ import it.smartcommunitylab.aac.openid.service.OIDCUserAccountService;
 public class OIDCSubjectResolver extends AbstractProvider implements SubjectResolver<OIDCUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final OIDCUserAccountService accountService;
+    private final UserAccountService<OIDCUserAccount> accountService;
     private final OIDCIdentityProviderConfig config;
 
     private final String repositoryId;
 
-    public OIDCSubjectResolver(String providerId, OIDCUserAccountService userAccountService,
+    public OIDCSubjectResolver(String providerId, UserAccountService<OIDCUserAccount> userAccountService,
             OIDCIdentityProviderConfig config,
             String realm) {
         this(SystemKeys.AUTHORITY_OIDC, providerId, userAccountService, config, realm);
     }
 
-    public OIDCSubjectResolver(String authority, String providerId, OIDCUserAccountService userAccountService,
+    public OIDCSubjectResolver(String authority, String providerId,
+            UserAccountService<OIDCUserAccount> userAccountService,
             OIDCIdentityProviderConfig config,
             String realm) {
         super(authority, providerId, realm);

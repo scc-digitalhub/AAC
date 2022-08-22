@@ -17,16 +17,17 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.openid.model.OIDCUserIdentity;
+import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.openid.provider.OIDCFilterProvider;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProvider;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
-import it.smartcommunitylab.aac.openid.service.OIDCUserAccountService;
 
 @Service
 public class OIDCIdentityAuthority extends
@@ -36,7 +37,7 @@ public class OIDCIdentityAuthority extends
     public static final String AUTHORITY_URL = "/auth/oidc/";
 
     // oidc account service
-    private final OIDCUserAccountService accountService;
+    private final UserAccountService<OIDCUserAccount> accountService;
 
     // filter provider
     private final OIDCFilterProvider filterProvider;
@@ -53,7 +54,7 @@ public class OIDCIdentityAuthority extends
     @Autowired
     public OIDCIdentityAuthority(
             UserEntityService userEntityService, SubjectService subjectService,
-            OIDCUserAccountService userAccountService, AutoJdbcAttributeStore jdbcAttributeStore,
+            UserAccountService<OIDCUserAccount> userAccountService, AutoJdbcAttributeStore jdbcAttributeStore,
             ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository,
             @Qualifier("oidcClientRegistrationRepository") OIDCClientRegistrationRepository clientRegistrationRepository) {
         this(SystemKeys.AUTHORITY_OIDC, userEntityService, subjectService, userAccountService, jdbcAttributeStore,
@@ -63,7 +64,7 @@ public class OIDCIdentityAuthority extends
     public OIDCIdentityAuthority(
             String authorityId,
             UserEntityService userEntityService, SubjectService subjectService,
-            OIDCUserAccountService userAccountService, AutoJdbcAttributeStore jdbcAttributeStore,
+            UserAccountService<OIDCUserAccount> userAccountService, AutoJdbcAttributeStore jdbcAttributeStore,
             ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository,
             OIDCClientRegistrationRepository clientRegistrationRepository) {
         super(authorityId, userEntityService, subjectService, registrationRepository);
