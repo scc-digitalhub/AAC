@@ -35,14 +35,14 @@ public class ScopeManager {
 
     @Deprecated
     public Scope findScope(String scope) {
-        logger.debug("find scope " + StringUtils.trimAllWhitespace(scope));
+        logger.debug("find scope {}", StringUtils.trimAllWhitespace(scope));
 
         // from registry
         return scopeRegistry.findScope(scope);
     }
 
     public Scope getScope(String scope) throws NoSuchScopeException {
-        logger.debug("get scope " + StringUtils.trimAllWhitespace(scope));
+        logger.debug("get scope {}", StringUtils.trimAllWhitespace(scope));
 
         // from registry
         return scopeRegistry.getScope(scope);
@@ -57,14 +57,14 @@ public class ScopeManager {
 
     @Deprecated
     public Resource findResource(String resourceId) {
-        logger.debug("find resource " + String.valueOf(resourceId));
+        logger.debug("find resource {}", String.valueOf(resourceId));
 
         // from registry
         return scopeRegistry.findResource(resourceId);
     }
 
     public Resource getResource(String resourceId) throws NoSuchResourceException {
-        logger.debug("get resource " + StringUtils.trimAllWhitespace(resourceId));
+        logger.debug("get resource {}", StringUtils.trimAllWhitespace(resourceId));
 
         // from registry
         return scopeRegistry.getResource(resourceId);

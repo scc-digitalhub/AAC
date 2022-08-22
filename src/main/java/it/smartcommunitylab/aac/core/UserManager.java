@@ -143,19 +143,20 @@ public class UserManager {
 
     // per-realm view, partial and translated
     @Transactional(readOnly = true)
-    public User getUser(String realm, String subjectId) throws NoSuchUserException, NoSuchRealmException {
-        logger.debug("get user {} for realm {}", String.valueOf(subjectId), realm);
+    public User getUser(String realm, String userId) throws NoSuchUserException, NoSuchRealmException {
+        logger.debug("get user {} for realm {}", StringUtils.trimAllWhitespace(userId),
+                StringUtils.trimAllWhitespace(realm));
 
         Realm r = realmService.getRealm(realm);
         // TODO evaluate if every user is globally accessible via translation or if we
         // require a pre-registration
-        return userService.getUser(subjectId, r.getSlug());
+        return userService.getUser(userId, r.getSlug());
     }
 
     // per realm view, lists both owned and proxied
     @Transactional(readOnly = true)
     public List<User> listUsers(String realm) throws NoSuchRealmException {
-        logger.debug("list users for realm {}", realm);
+        logger.debug("list users for realm {}", StringUtils.trimAllWhitespace(realm));
 
         Realm r = realmService.getRealm(realm);
         return userService.listUsers(r.getSlug());
@@ -163,7 +164,7 @@ public class UserManager {
 
     @Transactional(readOnly = true)
     public long countUsers(String realm) throws NoSuchRealmException {
-        logger.debug("count users for realm {}", realm);
+        logger.debug("count users for realm {}", StringUtils.trimAllWhitespace(realm));
 
         Realm r = realmService.getRealm(realm);
         return userService.countUsers(r.getSlug());
@@ -171,22 +172,26 @@ public class UserManager {
 
     @Transactional(readOnly = true)
     public Page<User> searchUsers(String realm, String keywords, Pageable pageRequest) throws NoSuchRealmException {
-        logger.debug("search users for realm {} with keywords {}", realm, String.valueOf(keywords));
+        logger.debug("search users for realm {} with keywords {}", StringUtils.trimAllWhitespace(realm),
+                StringUtils.trimAllWhitespace(realm));
+        String query = StringUtils.trimAllWhitespace(keywords);
         Realm r = realmService.getRealm(realm);
-        return userService.searchUsers(r.getSlug(), keywords, pageRequest);
+        return userService.searchUsers(r.getSlug(), query, pageRequest);
     }
 
     @Transactional(readOnly = true)
     public Page<User> searchUsersWithSpec(String realm, Specification<UserEntity> spec, Pageable pageRequest)
             throws NoSuchRealmException {
-        logger.debug("search users for realm {} with spec {}", realm, String.valueOf(spec));
+        logger.debug("search users for realm {} with spec {}", StringUtils.trimAllWhitespace(realm),
+                String.valueOf(spec));
         Realm r = realmService.getRealm(realm);
         return userService.searchUsersWithSpec(r.getSlug(), spec, pageRequest);
     }
 
     @Transactional(readOnly = true)
     public List<User> findUsersByUsername(String realm, String username) throws NoSuchRealmException {
-        logger.debug("search users for realm {} with username {}", realm, username);
+        logger.debug("search users for realm {} with username {}", StringUtils.trimAllWhitespace(realm),
+                StringUtils.trimAllWhitespace(username));
         Realm r = realmService.getRealm(realm);
         return userService.findUsersByUsername(r.getSlug(), username);
     }
@@ -196,60 +201,63 @@ public class UserManager {
      */
 
     @Transactional(readOnly = true)
-    public Collection<GrantedAuthority> getAuthorities(String realm, String subjectId)
+    public Collection<GrantedAuthority> getAuthorities(String realm, String userId)
             throws NoSuchUserException, NoSuchRealmException {
-        logger.debug("get authorities for user {} in realm {}", String.valueOf(subjectId), realm);
+        logger.debug("get authorities for user {} in realm {}", StringUtils.trimAllWhitespace(userId),
+                StringUtils.trimAllWhitespace(realm));
 
         Realm r = realmService.getRealm(realm);
-        return userService.getUserAuthorities(subjectId, r.getSlug());
+        return userService.getUserAuthorities(userId, r.getSlug());
     }
 
     @Transactional(readOnly = false)
-    public Collection<GrantedAuthority> setAuthorities(String realm, String subjectId, Collection<String> roles)
+    public Collection<GrantedAuthority> setAuthorities(String realm, String userId, Collection<String> roles)
             throws NoSuchUserException, NoSuchRealmException {
-        logger.debug("update authorities for user {} in realm {}", String.valueOf(subjectId), realm);
+        logger.debug("update authorities for user {} in realm {}", StringUtils.trimAllWhitespace(userId),
+                StringUtils.trimAllWhitespace(realm));
         if (logger.isTraceEnabled()) {
             logger.trace("authorities: " + String.valueOf(roles));
         }
 
         Realm r = realmService.getRealm(realm);
-        return userService.setUserAuthorities(subjectId, r.getSlug(), roles);
+        return userService.setUserAuthorities(userId, r.getSlug(), roles);
     }
 
     @Transactional(readOnly = false)
-    public void removeUser(String realm, String subjectId) throws NoSuchUserException, NoSuchRealmException {
-        logger.debug("remove user {} from realm {}", String.valueOf(subjectId), realm);
+    public void removeUser(String realm, String userId) throws NoSuchUserException, NoSuchRealmException {
+        logger.debug("remove user {} from realm {}", StringUtils.trimAllWhitespace(userId),
+                StringUtils.trimAllWhitespace(realm));
 
         Realm r = realmService.getRealm(realm);
 
         // get user source realm
-        String source = userService.getUserRealm(subjectId);
+        String source = userService.getUserRealm(userId);
         if (source.equals(r.getSlug())) {
             // full delete
-            deleteUser(subjectId);
+            deleteUser(userId);
         } else {
             // let userService handle account, registrations etc
-            userService.removeUser(subjectId, r.getSlug());
+            userService.removeUser(userId, r.getSlug());
         }
     }
 
-    private void deleteUser(String subjectId) throws NoSuchUserException {
-        logger.debug("delete user {}", String.valueOf(subjectId));
+    private void deleteUser(String userId) throws NoSuchUserException {
+        logger.debug("delete user {}", StringUtils.trimAllWhitespace(userId));
 
-        User user = userService.findUser(subjectId);
+        User user = userService.findUser(userId);
         if (user == null) {
             throw new NoSuchUserException();
         }
 
         // full delete, need to remove all associated content
         // kill sessions
-        sessionManager.destroyUserSessions(subjectId);
+        sessionManager.destroyUserSessions(userId);
 
         // approvals
         try {
-            Collection<Approval> userApprovals = approvalStore.findUserApprovals(subjectId);
+            Collection<Approval> userApprovals = approvalStore.findUserApprovals(userId);
             approvalStore.revokeApprovals(userApprovals);
-            Collection<Approval> clientApprovals = approvalStore.findClientApprovals(subjectId);
+            Collection<Approval> clientApprovals = approvalStore.findClientApprovals(userId);
             approvalStore.revokeApprovals(clientApprovals);
         } catch (Exception e) {
         }
@@ -258,12 +266,13 @@ public class UserManager {
         // TODO proxy for different realms?
 
         // let userService handle account, registrations etc
-        userService.deleteUser(subjectId);
+        userService.deleteUser(userId);
     }
 
     public User inviteUser(String realm, String emailAddress)
             throws NoSuchRealmException, NoSuchProviderException, RegistrationException {
-        logger.debug("invite user {} to realm {}", String.valueOf(emailAddress), realm);
+        logger.debug("invite user {} to realm {}", StringUtils.trimAllWhitespace(emailAddress),
+                StringUtils.trimAllWhitespace(realm));
 
         Realm r = realmService.getRealm(realm);
 
@@ -320,7 +329,7 @@ public class UserManager {
     @Transactional(readOnly = false)
     public UserIdentity createUserIdentity(String realm, String userId, String providerId, UserIdentity reg)
             throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException, RegistrationException {
-        logger.debug("create user identity {} in realm {}", String.valueOf(reg), realm);
+        logger.debug("create user identity {} in realm {}", String.valueOf(reg), StringUtils.trimAllWhitespace(realm));
 
         if (reg == null) {
             throw new MissingDataException("registration");
@@ -386,7 +395,8 @@ public class UserManager {
     public UserIdentity registerUserIdentity(String realm, String userId, String providerId, UserIdentity reg,
             UserCredentials credentials)
             throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException, RegistrationException {
-        logger.debug("register user identity {} in realm {}", String.valueOf(reg), realm);
+        logger.debug("register user identity {} in realm {}", String.valueOf(reg),
+                StringUtils.trimAllWhitespace(realm));
 
         if (reg == null) {
             throw new MissingDataException("registration");
@@ -453,7 +463,7 @@ public class UserManager {
     public UserIdentity updateUserIdentity(String realm, String userId, String providerId, String identityId,
             UserIdentity reg)
             throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException, RegistrationException {
-        logger.debug("update user identity {} in realm {}", String.valueOf(reg), realm);
+        logger.debug("update user identity {} in realm {}", String.valueOf(reg), StringUtils.trimAllWhitespace(realm));
 
         if (reg == null) {
             throw new MissingDataException("registration");
@@ -485,7 +495,8 @@ public class UserManager {
     @Transactional(readOnly = false)
     public void deleteUserIdentity(String realm, String userId, String providerId, String identityId)
             throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException, RegistrationException {
-        logger.debug("delete user identity {} in realm {}", String.valueOf(identityId), realm);
+        logger.debug("delete user identity {} in realm {}", StringUtils.trimAllWhitespace(identityId),
+                StringUtils.trimAllWhitespace(realm));
 
         Realm r = realmService.getRealm(realm);
         IdentityProvider<UserIdentity> idp = authorityManager.getIdentityProvider(providerId);
@@ -502,7 +513,8 @@ public class UserManager {
     @Transactional(readOnly = false)
     public UserIdentity verifyUserIdentity(String realm, String userId, String providerId, String identityId)
             throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException, RegistrationException {
-        logger.debug("verify user identity {} in realm {}", String.valueOf(identityId), realm);
+        logger.debug("verify user identity {} in realm {}", StringUtils.trimAllWhitespace(identityId),
+                StringUtils.trimAllWhitespace(realm));
 
         Realm r = realmService.getRealm(realm);
 
@@ -530,7 +542,8 @@ public class UserManager {
     @Transactional(readOnly = false)
     public UserIdentity confirmUserIdentity(String realm, String userId, String providerId, String identityId)
             throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException, RegistrationException {
-        logger.debug("confirm user identity {} in realm {}", String.valueOf(identityId), realm);
+        logger.debug("confirm user identity {} in realm {}", StringUtils.trimAllWhitespace(identityId),
+                StringUtils.trimAllWhitespace(realm));
 
         Realm r = realmService.getRealm(realm);
 
@@ -558,7 +571,8 @@ public class UserManager {
     @Transactional(readOnly = false)
     public UserIdentity unconfirmUserIdentity(String realm, String userId, String providerId, String identityId)
             throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException, RegistrationException {
-        logger.debug("unconfirm user identity {} in realm {}", String.valueOf(identityId), realm);
+        logger.debug("unconfirm user identity {} in realm {}", StringUtils.trimAllWhitespace(identityId),
+                StringUtils.trimAllWhitespace(realm));
 
         Realm r = realmService.getRealm(realm);
 
@@ -710,7 +724,8 @@ public class UserManager {
 
     @Transactional(readOnly = false)
     public User blockUser(String realm, String userId) throws NoSuchUserException, NoSuchRealmException {
-        logger.debug("block user {} from realm {}", String.valueOf(userId), realm);
+        logger.debug("block user {} from realm {}", StringUtils.trimAllWhitespace(userId),
+                StringUtils.trimAllWhitespace(realm));
 
         Realm r = realmService.getRealm(realm);
 
@@ -726,7 +741,8 @@ public class UserManager {
 
     @Transactional(readOnly = false)
     public User activateUser(String realm, String userId) throws NoSuchUserException, NoSuchRealmException {
-        logger.debug("activate user {} from realm {}", String.valueOf(userId), realm);
+        logger.debug("activate user {} from realm {}", StringUtils.trimAllWhitespace(userId),
+                StringUtils.trimAllWhitespace(realm));
 
         Realm r = realmService.getRealm(realm);
 
@@ -742,7 +758,8 @@ public class UserManager {
 
     @Transactional(readOnly = false)
     public User inactivateUser(String realm, String userId) throws NoSuchUserException, NoSuchRealmException {
-        logger.debug("inactivate user {} from realm {}", String.valueOf(userId), realm);
+        logger.debug("inactivate user {} from realm {}", StringUtils.trimAllWhitespace(userId),
+                StringUtils.trimAllWhitespace(realm));
 
         Realm r = realmService.getRealm(realm);
 
@@ -759,7 +776,8 @@ public class UserManager {
     @Transactional(readOnly = false)
     public UserIdentity lockUserIdentity(String realm, String userId, String providerId, String identityId)
             throws NoSuchUserException, NoSuchRealmException, NoSuchProviderException {
-        logger.debug("lock user {} from realm {}", String.valueOf(userId), realm);
+        logger.debug("lock user {} from realm {}", StringUtils.trimAllWhitespace(userId),
+                StringUtils.trimAllWhitespace(realm));
 
         Realm r = realmService.getRealm(realm);
         IdentityProvider<UserIdentity> idp = authorityManager.getIdentityProvider(providerId);
@@ -778,7 +796,8 @@ public class UserManager {
     @Transactional(readOnly = false)
     public UserIdentity unlockUserIdentity(String realm, String userId, String providerId, String identityId)
             throws NoSuchUserException, NoSuchRealmException, NoSuchProviderException {
-        logger.debug("unlock user {} from realm {}", realm);
+        logger.debug("unlock user {} from realm {}", StringUtils.trimAllWhitespace(userId),
+                StringUtils.trimAllWhitespace(realm));
 
         Realm r = realmService.getRealm(realm);
         IdentityProvider<UserIdentity> idp = authorityManager.getIdentityProvider(providerId);

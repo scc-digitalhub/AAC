@@ -115,7 +115,7 @@ public class ClientManager {
      */
     @Transactional(readOnly = true)
     public Collection<ClientApp> listClientApps(String realm) throws NoSuchRealmException {
-        logger.debug("list client apps for realm " + StringUtils.trimAllWhitespace(realm));
+        logger.debug("list client apps for realm {}", StringUtils.trimAllWhitespace(realm));
 
         Realm r = realmService.getRealm(realm);
         List<ClientApp> apps = new ArrayList<>();
@@ -129,8 +129,8 @@ public class ClientManager {
 
     @Transactional(readOnly = true)
     public Collection<ClientApp> listClientApps(String realm, String type) throws NoSuchRealmException {
-        logger.debug("list client apps for realm " + StringUtils.trimAllWhitespace(realm) + " type "
-                + StringUtils.trimAllWhitespace(type));
+        logger.debug("list client apps for realm {} type {}", StringUtils.trimAllWhitespace(realm),
+                StringUtils.trimAllWhitespace(type));
 
         Realm r = realmService.getRealm(realm);
         Collection<ClientApp> apps = Collections.emptyList();
@@ -169,10 +169,13 @@ public class ClientManager {
     @Transactional(readOnly = true)
     public Page<ClientApp> searchClientApps(String realm, String keywords, Pageable pageRequest)
             throws NoSuchRealmException {
-        logger.debug("search clients for realm " + realm + " with keywords " + String.valueOf(keywords));
+        logger.debug("search clients for realm {} with keywords {}", StringUtils.trimAllWhitespace(realm),
+                StringUtils.trimAllWhitespace(keywords));
+
+        String query = StringUtils.trimAllWhitespace(keywords);
         Realm r = realmService.getRealm(realm);
         // we support only oauth for now
-        Page<ClientApp> page = oauthClientAppService.searchClients(r.getSlug(), keywords, pageRequest);
+        Page<ClientApp> page = oauthClientAppService.searchClients(r.getSlug(), query, pageRequest);
         // load realm roles
         page.get().forEach(clientApp -> {
             try {
@@ -193,7 +196,8 @@ public class ClientManager {
     @Deprecated
     @Transactional(readOnly = true)
     public ClientApp findClientApp(String realm, String clientId) {
-        logger.debug("find client app " + String.valueOf(clientId) + " for realm " + realm);
+        logger.debug("find client app {} for realm {}", StringUtils.trimAllWhitespace(clientId),
+                StringUtils.trimAllWhitespace(realm));
 
         // get type by loading base client
         // TODO optimize to avoid db fetch
@@ -230,7 +234,8 @@ public class ClientManager {
 
     @Transactional(readOnly = true)
     public ClientApp getClientApp(String realm, String clientId) throws NoSuchClientException, NoSuchRealmException {
-        logger.debug("get client app " + String.valueOf(clientId) + " for realm " + realm);
+        logger.debug("get client app {}  for realm {}", StringUtils.trimAllWhitespace(clientId),
+                StringUtils.trimAllWhitespace(realm));
 
         Realm r = realmService.getRealm(realm);
 
@@ -280,7 +285,7 @@ public class ClientManager {
 
     @Transactional(readOnly = false)
     public ClientApp registerClientApp(String realm, ClientApp app) throws NoSuchRealmException {
-        logger.debug("register client app for realm " + realm);
+        logger.debug("register client app for realm {}", StringUtils.trimAllWhitespace(realm));
 
         Realm r = realmService.getRealm(realm);
 
@@ -331,7 +336,8 @@ public class ClientManager {
     @Transactional(readOnly = false)
     public ClientApp updateClientApp(String realm, String clientId, ClientApp app)
             throws NoSuchClientException, NoSuchRealmException {
-        logger.debug("update client app " + String.valueOf(clientId) + " for realm " + realm);
+        logger.debug("update client app {}  for realm {}", StringUtils.trimAllWhitespace(clientId),
+                StringUtils.trimAllWhitespace(realm));
 
         Realm r = realmService.getRealm(realm);
         String type = app.getType();
@@ -372,7 +378,8 @@ public class ClientManager {
 
     @Transactional(readOnly = false)
     public void deleteClientApp(String realm, String clientId) throws NoSuchClientException, NoSuchRealmException {
-        logger.debug("delete client app " + String.valueOf(clientId) + " for realm " + realm);
+        logger.debug("delete client app {} for realm {}", StringUtils.trimAllWhitespace(clientId),
+                StringUtils.trimAllWhitespace(realm));
 
         Realm r = realmService.getRealm(realm);
 
@@ -420,7 +427,7 @@ public class ClientManager {
 
     @Transactional(readOnly = true)
     public List<Client> listClients(String realm) throws NoSuchRealmException {
-        logger.debug("list clients for realm " + realm);
+        logger.debug("list clients for realm {}", StringUtils.trimAllWhitespace(realm));
 
         Realm r = realmService.getRealm(realm);
 
@@ -438,7 +445,8 @@ public class ClientManager {
     @Transactional(readOnly = true)
     public Collection<ClientCredentials> getClientCredentials(String realm, String clientId)
             throws NoSuchClientException, NoSuchRealmException {
-        logger.debug("get credentials for client " + String.valueOf(clientId) + " for realm " + realm);
+        logger.debug("get credentials for client {} for realm {}", StringUtils.trimAllWhitespace(clientId),
+                StringUtils.trimAllWhitespace(realm));
 
         Realm r = realmService.getRealm(realm);
 
@@ -466,7 +474,8 @@ public class ClientManager {
     @Transactional(readOnly = true)
     public ClientCredentials getClientCredentials(String realm, String clientId, String credentialsId)
             throws NoSuchClientException, NoSuchRealmException {
-        logger.debug("get credentials for client " + String.valueOf(clientId) + " for realm " + realm);
+        logger.debug("get credentials for client {} for realm {}", StringUtils.trimAllWhitespace(clientId),
+                StringUtils.trimAllWhitespace(realm));
 
         Realm r = realmService.getRealm(realm);
 
@@ -494,8 +503,8 @@ public class ClientManager {
     @Transactional(readOnly = false)
     public ClientCredentials resetClientCredentials(String realm, String clientId, String credentialsId)
             throws NoSuchClientException, NoSuchRealmException {
-        logger.debug("reset credentials " + String.valueOf(credentialsId) + " for client " + String.valueOf(clientId)
-                + " for realm " + realm);
+        logger.debug("reset credentials {} for client {} for realm {}", StringUtils.trimAllWhitespace(credentialsId),
+                StringUtils.trimAllWhitespace(clientId), StringUtils.trimAllWhitespace(realm));
 
         Realm r = realmService.getRealm(realm);
 
@@ -523,8 +532,8 @@ public class ClientManager {
     @Transactional(readOnly = false)
     public void removeClientCredentials(String realm, String clientId, String credentialsId)
             throws NoSuchClientException, NoSuchRealmException {
-        logger.debug("remove credentials " + String.valueOf(credentialsId) + " for client " + String.valueOf(clientId)
-                + " for realm " + realm);
+        logger.debug("remove credentials {} for client {} for realm {}", StringUtils.trimAllWhitespace(credentialsId),
+                StringUtils.trimAllWhitespace(clientId), StringUtils.trimAllWhitespace(realm));
 
         Realm r = realmService.getRealm(realm);
 
@@ -553,8 +562,8 @@ public class ClientManager {
     public ClientCredentials setClientCredentials(String realm, String clientId, String credentialsId,
             ClientCredentials credentials)
             throws NoSuchClientException, NoSuchRealmException {
-        logger.debug("set credentials " + String.valueOf(credentialsId) + " for client " + String.valueOf(clientId)
-                + " for realm " + realm);
+        logger.debug("set credentials {} for client {} for realm {}", StringUtils.trimAllWhitespace(credentialsId),
+                StringUtils.trimAllWhitespace(clientId), StringUtils.trimAllWhitespace(realm));
 
         Realm r = realmService.getRealm(realm);
 
@@ -589,7 +598,8 @@ public class ClientManager {
     @Transactional(readOnly = true)
     public Collection<RealmRole> getRoles(String realm, String clientId)
             throws NoSuchClientException, NoSuchRealmException {
-        logger.debug("get roles for client " + String.valueOf(clientId) + " in realm " + realm);
+        logger.debug("get roles for client {} in realm {}", StringUtils.trimAllWhitespace(clientId),
+                StringUtils.trimAllWhitespace(realm));
 
         Realm r = realmService.getRealm(realm);
 
@@ -608,7 +618,8 @@ public class ClientManager {
     @Transactional(readOnly = false)
     public Collection<RealmRole> updateRoles(String realm, String clientId, Collection<String> roles)
             throws NoSuchClientException, NoSuchRealmException {
-        logger.debug("update roles for client " + String.valueOf(clientId) + " in realm " + realm);
+        logger.debug("update roles for client {} in realm {}", StringUtils.trimAllWhitespace(clientId),
+                StringUtils.trimAllWhitespace(realm));
 
         Realm r = realmService.getRealm(realm);
 
@@ -635,7 +646,8 @@ public class ClientManager {
     @Transactional(readOnly = true)
     public Collection<GrantedAuthority> getAuthorities(
             String realm, String clientId) throws NoSuchRealmException, NoSuchClientException {
-        logger.debug("get authorities for app {} in realm {}", String.valueOf(clientId), realm);
+        logger.debug("get authorities for app {} in realm {}", StringUtils.trimAllWhitespace(clientId),
+                StringUtils.trimAllWhitespace(realm));
 
         Realm r = realmService.getRealm(realm);
         ClientEntity entity = findClient(clientId);
@@ -643,24 +655,25 @@ public class ClientManager {
             throw new NoSuchClientException();
         }
 
-        return subjectService.getAuthorities(clientId, realm);
+        return subjectService.getAuthorities(clientId, r.getSlug());
     }
 
     @Transactional(readOnly = false)
-    public Collection<GrantedAuthority> setAuthorities(String realm, String subjectId, Collection<String> roles)
+    public Collection<GrantedAuthority> setAuthorities(String realm, String clientId, Collection<String> roles)
             throws NoSuchRealmException, NoSuchClientException {
-        logger.debug("update authorities for app {} in realm {}", String.valueOf(subjectId), realm);
+        logger.debug("update authorities for app {} in realm {}", StringUtils.trimAllWhitespace(clientId),
+                StringUtils.trimAllWhitespace(realm));
         if (logger.isTraceEnabled()) {
             logger.trace("authorities: " + String.valueOf(roles));
         }
 
         Realm r = realmService.getRealm(realm);
-        ClientEntity entity = findClient(subjectId);
+        ClientEntity entity = findClient(clientId);
         if (entity == null) {
             throw new NoSuchClientException();
         }
         try {
-            return subjectService.updateAuthorities(subjectId, r.getSlug(), roles);
+            return subjectService.updateAuthorities(clientId, r.getSlug(), roles);
         } catch (NoSuchSubjectException e) {
             throw new NoSuchClientException();
         }
@@ -726,7 +739,8 @@ public class ClientManager {
     @Transactional(readOnly = true)
     public JsonSchema getClientConfigurationSchema(String realm, String clientId)
             throws NoSuchClientException, NoSuchRealmException {
-        logger.debug("get configuration schema for client " + String.valueOf(clientId) + " for realm " + realm);
+        logger.debug("get configuration schema for client {} for realm {}", StringUtils.trimAllWhitespace(clientId),
+                StringUtils.trimAllWhitespace(realm));
 
         Realm r = realmService.getRealm(realm);
 
@@ -743,17 +757,6 @@ public class ClientManager {
         }
 
         String type = entity.getType();
-
-        if (SystemKeys.CLIENT_TYPE_OAUTH2.equals(type)) {
-            return oauthClientAppService.getConfigurationSchema();
-        }
-
-        throw new IllegalArgumentException("invalid client type");
-    }
-
-    @Deprecated
-    public JsonSchema getConfigurationSchema(String realm, String type) {
-        logger.debug("get config schema for client type " + type);
 
         if (SystemKeys.CLIENT_TYPE_OAUTH2.equals(type)) {
             return oauthClientAppService.getConfigurationSchema();
@@ -792,7 +795,7 @@ public class ClientManager {
 
     @Transactional(readOnly = false)
     private void deleteClient(String clientId) throws NoSuchClientException {
-        logger.debug("delete client " + String.valueOf(clientId));
+        logger.debug("delete client {}", StringUtils.trimAllWhitespace(clientId));
 
         ClientEntity entity = findClient(clientId);
         if (entity == null) {
