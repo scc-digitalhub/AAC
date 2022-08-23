@@ -76,6 +76,7 @@ public class SamlUserAccount extends AbstractAccount {
     private Boolean emailVerified;
 
     private String name;
+    private String surname;
 
     @Column(length = 32)
     private String lang;
@@ -210,6 +211,14 @@ public class SamlUserAccount extends AbstractAccount {
         this.name = name;
     }
 
+    public String getSurname() {
+        return surname;
+    }
+
+    public void setSurname(String surname) {
+        this.surname = surname;
+    }
+
     public String getLang() {
         return lang;
     }
@@ -259,7 +268,8 @@ public class SamlUserAccount extends AbstractAccount {
         return "SamlUserAccount [provider=" + provider + ", subjectId=" + subjectId + ", uuid=" + uuid + ", userId="
                 + userId + ", authority=" + authority + ", realm=" + realm + ", status=" + status + ", username="
                 + username + ", issuer=" + issuer + ", email=" + email + ", emailVerified=" + emailVerified + ", name="
-                + name + ", lang=" + lang + ", createDate=" + createDate + ", modifiedDate=" + modifiedDate + "]";
+                + name + ", surname=" + surname + ", lang=" + lang + ", createDate=" + createDate + ", modifiedDate="
+                + modifiedDate + "]";
     }
 
 }

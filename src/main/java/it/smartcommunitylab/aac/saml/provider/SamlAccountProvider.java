@@ -14,17 +14,19 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.attributes.SamlAttributesSet;
+import it.smartcommunitylab.aac.attributes.mapper.SamlAttributesMapper;
 import it.smartcommunitylab.aac.common.MissingDataException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
+import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.AccountProvider;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.model.UserStatus;
 import it.smartcommunitylab.aac.saml.model.SamlUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
-import it.smartcommunitylab.aac.saml.service.SamlUserAccountService;
 
 @Transactional
 public class SamlAccountProvider extends AbstractProvider
@@ -35,6 +37,9 @@ public class SamlAccountProvider extends AbstractProvider
     private final String repositoryId;
 
     private final SamlIdentityProviderConfig config;
+
+    // attributes
+    protected final SamlAttributesMapper samlMapper;
 
     protected SamlAccountProvider(String providerId,
             UserAccountService<SamlUserAccount> accountService,
@@ -49,6 +54,9 @@ public class SamlAccountProvider extends AbstractProvider
 
         // repositoryId is always providerId, saml isolates data per provider
         this.repositoryId = providerId;
+
+        // build mapper with default config for parsing attributes
+        this.samlMapper = new SamlAttributesMapper();
     }
 
     @Override
@@ -71,15 +79,18 @@ public class SamlAccountProvider extends AbstractProvider
         String username = principal.getUsername();
         Map<String, Serializable> attributes = principal.getAttributes();
 
-        // re-read attributes as-is, transform to strings
+        // map attributes to saml set and flatten to string
         // we also clean every attribute and allow only plain text
-        // TODO evaluate using a custom mapper to given profile
-        Map<String, String> samlAttributes = attributes.entrySet().stream()
-                .collect(Collectors.toMap(e -> e.getKey(), e -> clean(e.getValue().toString())));
+        AttributeSet samlAttributeSet = samlMapper.mapAttributes(attributes);
+        Map<String, String> samlAttributes = samlAttributeSet.getAttributes()
+                .stream()
+                .collect(Collectors.toMap(
+                        a -> a.getKey(),
+                        a -> a.exportValue()));
 
-        String email = samlAttributes.get("email");
-        username = StringUtils.hasText(samlAttributes.get("username"))
-                ? samlAttributes.get("username")
+        String email = clean(samlAttributes.get(SamlAttributesSet.EMAIL));
+        username = StringUtils.hasText(samlAttributes.get(SamlAttributesSet.USERNAME))
+                ? clean(samlAttributes.get(SamlAttributesSet.USERNAME))
                 : principal.getUsername();
 
         // update additional attributes
@@ -88,13 +99,16 @@ public class SamlAccountProvider extends AbstractProvider
             issuer = config.getRelyingPartyRegistration().getAssertingPartyDetails().getEntityId();
         }
 
-        String name = StringUtils.hasText(samlAttributes.get("name")) ? samlAttributes.get("name") : username;
+        String name = StringUtils.hasText(samlAttributes.get(SamlAttributesSet.NAME))
+                ? clean(samlAttributes.get(SamlAttributesSet.NAME))
+                : username;
+        String surname = clean(samlAttributes.get(SamlAttributesSet.SURNAME));
 
         boolean defaultVerifiedStatus = config.getConfigMap().getTrustEmailAddress() != null
                 ? config.getConfigMap().getTrustEmailAddress()
                 : false;
-        boolean emailVerified = StringUtils.hasText(samlAttributes.get("emailVerified"))
-                ? Boolean.parseBoolean(samlAttributes.get("emailVerified"))
+        boolean emailVerified = StringUtils.hasText(samlAttributes.get(SamlAttributesSet.EMAIL_VERIFIED))
+                ? Boolean.parseBoolean(samlAttributes.get(SamlAttributesSet.EMAIL_VERIFIED))
                 : defaultVerifiedStatus;
 
         if (Boolean.TRUE.equals(config.getConfigMap().getAlwaysTrustEmailAddress())) {
@@ -111,6 +125,7 @@ public class SamlAccountProvider extends AbstractProvider
         account.setUsername(username);
         account.setIssuer(issuer);
         account.setName(name);
+        account.setSurname(surname);
         account.setEmail(email);
         account.setEmailVerified(emailVerified);
 

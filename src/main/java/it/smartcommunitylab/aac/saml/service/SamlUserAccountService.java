@@ -132,6 +132,7 @@ public class SamlUserAccountService implements UserAccountService<SamlUserAccoun
             account.setEmail(reg.getEmail());
             account.setEmailVerified(reg.getEmailVerified());
             account.setName(reg.getName());
+            account.setSurname(reg.getSurname());
             account.setLang(reg.getLang());
 
             // set account as active
@@ -189,6 +190,7 @@ public class SamlUserAccountService implements UserAccountService<SamlUserAccoun
             account.setEmail(reg.getEmail());
             account.setEmailVerified(reg.getEmailVerified());
             account.setName(reg.getName());
+            account.setSurname(reg.getSurname());
             account.setLang(reg.getLang());
 
             // update account status
