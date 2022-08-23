@@ -13,6 +13,7 @@ import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig
 
 public class WebAuthnIdentityProviderConfig extends InternalIdentityProviderConfig {
     private static final long serialVersionUID = SystemKeys.AAC_WEBAUTHN_SERIAL_VERSION;
+    private static final int TIMEOUT = 9;
 
     // map capabilities
     private WebAuthnIdentityProviderConfigMap configMap;
@@ -59,6 +60,16 @@ public class WebAuthnIdentityProviderConfig extends InternalIdentityProviderConf
     public ResidentKeyRequirement getRequireResidentKey() {
         return configMap.getRequireResidentKey() != null ? configMap.getRequireResidentKey()
                 : ResidentKeyRequirement.PREFERRED;
+    }
+
+    public int getRegistrationTimeout() {
+        // return timeout in seconds
+        return configMap.getRegistrationTimeout() != null ? configMap.getRegistrationTimeout().intValue() : TIMEOUT;
+    }
+
+    public int getLoginTimeout() {
+        // return timeout in seconds
+        return configMap.getLoginTimeout() != null ? configMap.getLoginTimeout().intValue() : TIMEOUT;
     }
 
     /*

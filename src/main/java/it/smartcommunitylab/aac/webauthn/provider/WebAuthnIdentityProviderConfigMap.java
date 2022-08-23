@@ -32,6 +32,9 @@ public class WebAuthnIdentityProviderConfigMap extends InternalIdentityProviderC
 
     private ResidentKeyRequirement requireResidentKey;
 
+    private Integer registrationTimeout;
+    private Integer loginTimeout;
+
     public WebAuthnIdentityProviderConfigMap() {
         super();
         this.credentialsType = CredentialsType.WEBAUTHN;
@@ -74,6 +77,22 @@ public class WebAuthnIdentityProviderConfigMap extends InternalIdentityProviderC
         this.requireResidentKey = requireResidentKey;
     }
 
+    public Integer getRegistrationTimeout() {
+        return registrationTimeout;
+    }
+
+    public void setRegistrationTimeout(Integer registrationTimeout) {
+        this.registrationTimeout = registrationTimeout;
+    }
+
+    public Integer getLoginTimeout() {
+        return loginTimeout;
+    }
+
+    public void setLoginTimeout(Integer loginTimeout) {
+        this.loginTimeout = loginTimeout;
+    }
+
     @Override
     @JsonIgnore
     public Map<String, Serializable> getConfiguration() {
@@ -96,6 +115,8 @@ public class WebAuthnIdentityProviderConfigMap extends InternalIdentityProviderC
         this.allowUntrustedAttestation = map.getAllowUntrustedAttestation();
         this.requireResidentKey = map.getRequireResidentKey();
         this.requireUserVerification = map.getRequireUserVerification();
+        this.registrationTimeout = map.getRegistrationTimeout();
+        this.loginTimeout = map.getLoginTimeout();
     }
 
     @JsonIgnore

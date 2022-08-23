@@ -133,6 +133,8 @@ authorities:
       ssoServiceBinding: HTTP-POST
    webauthn:
       allowUntrustedAttestation: true
+      registrationTimeout: 30
+      loginTimeout: 10
    custom:
     - id: google
       name: Google

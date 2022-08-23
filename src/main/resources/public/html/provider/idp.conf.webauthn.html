@@ -94,9 +94,8 @@
         <div class="row mb-4">
             <div class="col">
                 <div class="form-check">
-                    <input class="form-check-input" name="allowUntrustedAttestation"
-                        id="allowUntrustedAttestation" type="checkbox"
-                        ng-model="idp.configuration.allowUntrustedAttestation">
+                    <input class="form-check-input" name="allowUntrustedAttestation" id="allowUntrustedAttestation"
+                        type="checkbox" ng-model="idp.configuration.allowUntrustedAttestation">
                     <label for="allowUntrustedAttestation">allowUntrustedAttestation</label>
                 </div>
             </div>
@@ -124,7 +123,19 @@
             </div>
         </div>
 
-
+        <div class="pt-3 pb-3">Operation Management</div>
+        <div class="row">
+            <div class="form-group col col-md-6 mb-0">
+                <label for="registrationTimeout">Registration timeout (seconds)</label>
+                <input type="number" min="0" name="registrationTimeout" class="form-control form-control-sm"
+                    id="registrationTimeout" ng-model="idp.configuration.registrationTimeout">
+            </div>
+            <div class="form-group col col-md-6 mb-0">
+                <label for="loginTimeout">Login timeout (seconds)</label>
+                <input type="number" min="0" name="loginTimeout" class="form-control form-control-sm" id="loginTimeout"
+                    ng-model="idp.configuration.loginTimeout">
+            </div>
+        </div>
 
 
     </fieldset>

@@ -53,8 +53,6 @@ import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig
 public class WebAuthnRpService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private static final Long TIMEOUT = 9000L;
-
     @Value("${application.url}")
     private String applicationUrl;
 
@@ -168,10 +166,11 @@ public class WebAuthnRpService {
                 .userVerification(config.getRequireUserVerification())
                 .build();
 
+        int timeout = config.getRegistrationTimeout() * 1000;
         StartRegistrationOptions startRegistrationOptions = StartRegistrationOptions.builder()
                 .user(identity)
                 .authenticatorSelection(authenticatorSelection)
-                .timeout(TIMEOUT)
+                .timeout(timeout)
                 .build();
 
         PublicKeyCredentialCreationOptions options = rp.startRegistration(startRegistrationOptions);
@@ -242,10 +241,12 @@ public class WebAuthnRpService {
             throw new NoSuchUserException();
         }
 
+        int timeout = config.getLoginTimeout() * 1000;
+
         // build assertion
         StartAssertionOptions startAssertionOptions = StartAssertionOptions.builder()
                 .userHandle(userHandle)
-                .timeout(TIMEOUT)
+                .timeout(timeout)
                 .userVerification(config.getRequireUserVerification())
 //                .userVerification(UserVerificationRequirement.REQUIRED)
                 .username(username)
