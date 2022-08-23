@@ -36,7 +36,7 @@
     </script>
     <link th:href="@{/italia/style.css}" rel="stylesheet" />
 
-    <title th:text="#{label.register_title}">AAC Registration</title>
+    <title th:text="#{label.credentials_title}">AAC Registration</title>
 </head>
 
 <body>
@@ -53,7 +53,7 @@
                                 <use th:xlink:href="@{/italia/svg/sprite.svg#it-user}"></use>
                             </svg>
                         </span>
-                        <span class="ml-1" th:text="#{label.register_title}"></span>
+                        <span class="ml-1" th:text="#{label.credentials_title}"></span>
                     </div>
 
 
@@ -65,12 +65,7 @@
                         </div>
 
                         <!-- panel text -->
-                        <p class="mt-3 mb-3 text-center"
-                            th:if="${customization == null || customization.get('registrationText') == null}"
-                            th:text="#{label.register_text}">Register</p>
-                        <div class="mt-3 mb-3 justify-content-center  customization-block"
-                            th:if="${customization != null && customization.get('registrationText') != null}"
-                            th:utext="${customization.get('registrationText')}"></div>
+                        <p class="mt-3 mb-3 text-center" th:text="#{label.credentials_register_text}">Register</p>
 
                         <form th:action=${registrationUrl}  onsubmit="webauthnRegister(this); return false;" th:object="${reg}" method="post">
                             <input type="hidden" id="provider" name="provider" th:value="${providerId}" />
@@ -85,7 +80,7 @@
 
                             <div class="row">
                                 <div class="col-md-12 form-group">
-                                    <label th:text="#{field.name} + '*: '"></label>
+                                    <label th:text="#{field.credential-name} + '*: '"></label>
                                     <input type="text" class="form-control" th:field="*{displayName}" />
                                     <div class="invalid-feedback" th:if="${#fields.hasErrors('displayName')}"
                                         th:errors="*{displayName}"></div>
