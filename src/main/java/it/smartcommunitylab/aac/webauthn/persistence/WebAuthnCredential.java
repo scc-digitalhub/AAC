@@ -70,6 +70,7 @@ public class WebAuthnCredential extends AbstractUserCredentials
     private String credentialId;
 
     @NotBlank
+    @Lob
     @Column(name = "public_key_cose")
     private String publicKeyCose;
 
