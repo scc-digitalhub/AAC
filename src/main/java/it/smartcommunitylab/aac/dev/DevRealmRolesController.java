@@ -10,7 +10,6 @@ import java.util.Map;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
@@ -48,6 +47,7 @@ public class DevRealmRolesController extends BaseRealmRolesController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final TypeReference<Map<String, List<RealmRole>>> typeRef = new TypeReference<Map<String, List<RealmRole>>>() {
     };
+    private final String LIST_KEY = "roles";
 
     @Autowired
     @Qualifier("yamlObjectMapper")
@@ -60,61 +60,78 @@ public class DevRealmRolesController extends BaseRealmRolesController {
     public Collection<RealmRole> importRealmRoles(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam(required = false, defaultValue = "false") boolean reset,
-            @RequestPart("file") @Valid @NotNull @NotBlank MultipartFile file) throws RegistrationException {
+            @RequestPart(name = "yaml", required = false) @Valid String yaml,
+            @RequestPart(name = "file", required = false) @Valid MultipartFile file)
+            throws NoSuchRealmException, RegistrationException {
         logger.debug("import role(s) to realm {}", StringUtils.trimAllWhitespace(realm));
 
-        if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("empty file");
-        }
-
-        if (file.getContentType() == null) {
-            throw new IllegalArgumentException("invalid file");
-        }
-
-        if (!SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType())
-                && !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType())
-                && !SystemKeys.MEDIA_TYPE_XYAML.toString().equals(file.getContentType())) {
-            throw new IllegalArgumentException("invalid file");
+        if (!StringUtils.hasText(yaml) && (file == null || file.isEmpty())) {
+            throw new IllegalArgumentException("empty file or yaml");
         }
 
         try {
+            // read string, fallback to yaml
+            if (!StringUtils.hasText(yaml)) {
+                if (file.getContentType() == null) {
+                    throw new IllegalArgumentException("invalid file");
+                }
+
+                if (!SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType())
+                        && !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType())
+                        && !SystemKeys.MEDIA_TYPE_XYAML.toString().equals(file.getContentType())) {
+                    throw new IllegalArgumentException("invalid file");
+                }
+
+                // read whole file as string
+                yaml = new String(file.getBytes(), StandardCharsets.UTF_8);
+            }
+
             List<RealmRole> roles = new ArrayList<>();
-            boolean multiple = false;
+            List<RealmRole> regs = new ArrayList<>();
 
             // read as raw yaml to check if collection
-            Yaml yaml = new Yaml();
-            Map<String, Object> obj = yaml.load(file.getInputStream());
-            multiple = obj.containsKey("roles");
+            Yaml reader = new Yaml();
+            Map<String, Object> obj = reader.load(yaml);
+            boolean multiple = obj.containsKey(LIST_KEY);
 
             if (multiple) {
-                Map<String, List<RealmRole>> list = yamlObjectMapper.readValue(file.getInputStream(), typeRef);
-                for (RealmRole r : list.get("roles")) {
-                    r.setRealm(realm);
-                    if (reset) {
-                        // reset id
-                        r.setRoleId(null);
-                    }
-
-                    RealmRole role = roleManager.addRealmRole(realm, r);
-                    roles.add(role);
+                Map<String, List<RealmRole>> list = yamlObjectMapper.readValue(yaml, typeRef);
+                for (RealmRole reg : list.get(LIST_KEY)) {
+                    regs.add(reg);
                 }
-
             } else {
                 // try single element
-                RealmRole r = yamlObjectMapper.readValue(file.getInputStream(), RealmRole.class);
-                r.setRealm(realm);
+                RealmRole reg = yamlObjectMapper.readValue(yaml, RealmRole.class);
+                regs.add(reg);
+            }
+
+            // register all
+            for (RealmRole reg : regs) {
+                // align config
+                reg.setRealm(realm);
                 if (reset) {
                     // reset id
-                    r.setRoleId(null);
+                    reg.setRoleId(null);
                 }
 
-                RealmRole role = roleManager.addRealmRole(realm, r);
+                if (logger.isTraceEnabled()) {
+                    logger.trace("role bean: " + String.valueOf(reg));
+                }
+
+                RealmRole role = roleManager.addRealmRole(realm, reg);
                 roles.add(role);
             }
 
             return roles;
         } catch (Exception e) {
             logger.error("error importing roles: " + e.getMessage());
+            if (logger.isTraceEnabled()) {
+                e.printStackTrace();
+            }
+
+            if (e instanceof ClassCastException) {
+                throw new RegistrationException("invalid content or file");
+            }
 
             throw new RegistrationException(e.getMessage());
         }
@@ -129,7 +146,7 @@ public class DevRealmRolesController extends BaseRealmRolesController {
         logger.debug("export role {} for realm {}",
                 StringUtils.trimAllWhitespace(roleId), StringUtils.trimAllWhitespace(realm));
 
-        RealmRole role = roleManager.getRealmRole(realm, roleId);
+        RealmRole role = roleManager.getRealmRole(realm, roleId, true);
         String s = yamlObjectMapper.writeValueAsString(role);
 
         // write as file

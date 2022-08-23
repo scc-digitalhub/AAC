@@ -52,6 +52,7 @@ public class DevServicesController extends BaseServicesController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final TypeReference<Map<String, List<Service>>> typeRef = new TypeReference<Map<String, List<Service>>>() {
     };
+    private final String LIST_KEY = "services";
 
     @Autowired
     private DevManager devManager;
@@ -67,64 +68,81 @@ public class DevServicesController extends BaseServicesController {
     public Collection<Service> importRealmService(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam(required = false, defaultValue = "false") boolean reset,
-            @RequestPart("file") @Valid @NotNull @NotBlank MultipartFile file) throws RegistrationException {
+            @RequestPart(name = "yaml", required = false) @Valid String yaml,
+            @RequestPart(name = "file", required = false) @Valid MultipartFile file)
+            throws NoSuchRealmException, RegistrationException {
         logger.debug("import service(s) to realm {}", StringUtils.trimAllWhitespace(realm));
 
-        if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("empty file");
-        }
-
-        if (file.getContentType() == null) {
-            throw new IllegalArgumentException("invalid file");
-        }
-
-        if (!SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType())
-                && !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType())
-                && !SystemKeys.MEDIA_TYPE_XYAML.toString().equals(file.getContentType())) {
-            throw new IllegalArgumentException("invalid file");
+        if (!StringUtils.hasText(yaml) && (file == null || file.isEmpty())) {
+            throw new IllegalArgumentException("empty file or yaml");
         }
 
         try {
+            // read string, fallback to yaml
+            if (!StringUtils.hasText(yaml)) {
+                if (file.getContentType() == null) {
+                    throw new IllegalArgumentException("invalid file");
+                }
+
+                if (!SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType())
+                        && !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType())
+                        && !SystemKeys.MEDIA_TYPE_XYAML.toString().equals(file.getContentType())) {
+                    throw new IllegalArgumentException("invalid file");
+                }
+
+                // read whole file as string
+                yaml = new String(file.getBytes(), StandardCharsets.UTF_8);
+            }
+
             List<Service> services = new ArrayList<>();
-            boolean multiple = false;
+            List<Service> regs = new ArrayList<>();
 
             // read as raw yaml to check if collection
-            Yaml yaml = new Yaml();
-            Map<String, Object> obj = yaml.load(file.getInputStream());
-            multiple = obj.containsKey("services");
+            Yaml reader = new Yaml();
+            Map<String, Object> obj = reader.load(yaml);
+            boolean multiple = obj.containsKey(LIST_KEY);
 
             if (multiple) {
-                Map<String, List<Service>> list = yamlObjectMapper.readValue(file.getInputStream(), typeRef);
-                for (Service s : list.get("services")) {
-                    s.setRealm(realm);
-                    if (reset) {
-                        // reset id
-                        s.setServiceId(null);
-                    }
-
-                    Service service = serviceManager.addService(realm, s);
-                    services.add(service);
+                Map<String, List<Service>> list = yamlObjectMapper.readValue(yaml, typeRef);
+                for (Service reg : list.get(LIST_KEY)) {
+                    regs.add(reg);
                 }
-
             } else {
                 // try single element
-                Service s = yamlObjectMapper.readValue(file.getInputStream(), Service.class);
-                s.setRealm(realm);
+                Service reg = yamlObjectMapper.readValue(file.getInputStream(), Service.class);
+                regs.add(reg);
+            }
+
+            // register all
+            for (Service reg : regs) {
+                // align config
+                reg.setRealm(realm);
                 if (reset) {
                     // reset id
-                    s.setServiceId(null);
+                    reg.setServiceId(null);
                 }
 
-                Service service = serviceManager.addService(realm, s);
+                if (logger.isTraceEnabled()) {
+                    logger.trace("service bean: " + String.valueOf(reg));
+                }
+
+                Service service = serviceManager.addService(realm, reg);
                 services.add(service);
             }
 
             return services;
         } catch (Exception e) {
             logger.error("import service(s) error: " + e.getMessage());
+            if (logger.isTraceEnabled()) {
+                e.printStackTrace();
+            }
+
+            if (e instanceof ClassCastException) {
+                throw new RegistrationException("invalid content or file");
+            }
+
             throw new RegistrationException(e.getMessage());
         }
-
     }
 
     @GetMapping("/services/{realm}/{serviceId}/export")

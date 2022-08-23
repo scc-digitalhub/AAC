@@ -18,6 +18,7 @@ package it.smartcommunitylab.aac.model;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
@@ -68,6 +69,9 @@ public class Group {
      */
     private List<String> members;
     private Long size;
+
+    // roles
+    private Set<String> roles;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Date createDate;
@@ -141,6 +145,14 @@ public class Group {
 
     public void setSize(Long size) {
         this.size = size;
+    }
+
+    public Set<String> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<String> roles) {
+        this.roles = roles;
     }
 
     public Date getCreateDate() {

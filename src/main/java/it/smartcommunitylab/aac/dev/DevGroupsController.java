@@ -10,7 +10,6 @@ import java.util.Map;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
@@ -48,6 +47,7 @@ public class DevGroupsController extends BaseGroupController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final TypeReference<Map<String, List<Group>>> typeRef = new TypeReference<Map<String, List<Group>>>() {
     };
+    private final String LIST_KEY = "groups";
 
     @Autowired
     @Qualifier("yamlObjectMapper")
@@ -60,61 +60,78 @@ public class DevGroupsController extends BaseGroupController {
     public Collection<Group> importGroups(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam(required = false, defaultValue = "false") boolean reset,
-            @RequestPart("file") @Valid @NotNull @NotBlank MultipartFile file) throws RegistrationException {
+            @RequestPart(name = "yaml", required = false) @Valid String yaml,
+            @RequestPart(name = "file", required = false) @Valid MultipartFile file)
+            throws NoSuchRealmException, RegistrationException {
         logger.debug("import group(s) to realm {}", StringUtils.trimAllWhitespace(realm));
 
-        if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("empty file");
-        }
-
-        if (file.getContentType() == null) {
-            throw new IllegalArgumentException("invalid file");
-        }
-
-        if (!SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType())
-                && !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType())
-                && !SystemKeys.MEDIA_TYPE_XYAML.toString().equals(file.getContentType())) {
-            throw new IllegalArgumentException("invalid file");
+        if (!StringUtils.hasText(yaml) && (file == null || file.isEmpty())) {
+            throw new IllegalArgumentException("empty file or yaml");
         }
 
         try {
+            // read string, fallback to yaml
+            if (!StringUtils.hasText(yaml)) {
+                if (file.getContentType() == null) {
+                    throw new IllegalArgumentException("invalid file");
+                }
+
+                if (!SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType())
+                        && !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType())
+                        && !SystemKeys.MEDIA_TYPE_XYAML.toString().equals(file.getContentType())) {
+                    throw new IllegalArgumentException("invalid file");
+                }
+
+                // read whole file as string
+                yaml = new String(file.getBytes(), StandardCharsets.UTF_8);
+            }
+
             List<Group> groups = new ArrayList<>();
-            boolean multiple = false;
+            List<Group> regs = new ArrayList<>();
 
             // read as raw yaml to check if collection
-            Yaml yaml = new Yaml();
-            Map<String, Object> obj = yaml.load(file.getInputStream());
-            multiple = obj.containsKey("groups");
+            Yaml reader = new Yaml();
+            Map<String, Object> obj = reader.load(yaml);
+            boolean multiple = obj.containsKey(LIST_KEY);
 
             if (multiple) {
-                Map<String, List<Group>> list = yamlObjectMapper.readValue(file.getInputStream(), typeRef);
-                for (Group g : list.get("groups")) {
-                    g.setRealm(realm);
-                    if (reset) {
-                        // reset id
-                        g.setGroupId(null);
-                    }
-
-                    Group role = groupManager.addGroup(realm, g);
-                    groups.add(role);
+                Map<String, List<Group>> list = yamlObjectMapper.readValue(yaml, typeRef);
+                for (Group reg : list.get(LIST_KEY)) {
+                    regs.add(reg);
                 }
-
             } else {
                 // try single element
-                Group g = yamlObjectMapper.readValue(file.getInputStream(), Group.class);
-                g.setRealm(realm);
+                Group reg = yamlObjectMapper.readValue(yaml, Group.class);
+                regs.add(reg);
+            }
+
+            // register all
+            for (Group reg : regs) {
+                // align config
+                reg.setRealm(realm);
                 if (reset) {
                     // reset id
-                    g.setGroupId(null);
+                    reg.setGroupId(null);
                 }
 
-                Group group = groupManager.addGroup(realm, g);
+                if (logger.isTraceEnabled()) {
+                    logger.trace("group bean: " + String.valueOf(reg));
+                }
+
+                Group group = groupManager.addGroup(realm, reg);
                 groups.add(group);
             }
 
             return groups;
         } catch (Exception e) {
             logger.error("error importing groups: " + e.getMessage());
+            if (logger.isTraceEnabled()) {
+                e.printStackTrace();
+            }
+
+            if (e instanceof ClassCastException) {
+                throw new RegistrationException("invalid content or file");
+            }
 
             throw new RegistrationException(e.getMessage());
         }

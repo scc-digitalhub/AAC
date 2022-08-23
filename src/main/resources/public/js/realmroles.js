@@ -29,11 +29,16 @@ angular.module('aac.controllers.realmroles', [])
                 return data.data;
             });
         }
-        service.importRole = function (realm, file) {
+        service.importRole = function (realm, file, yaml, reset) {
             var fd = new FormData();
-            fd.append('file', file);
+            if (yaml) {
+                fd.append('yaml', yaml);
+            }
+            if (file) {
+                fd.append('file', file);
+            }
             return $http({
-                url: 'console/dev/roles/' + realm,
+                url: 'console/dev/roles/' + realm + (reset ? "?reset=true" : ""),
                 headers: { "Content-Type": undefined }, //set undefined to let $http manage multipart declaration with proper boundaries
                 data: fd,
                 method: "PUT"
@@ -46,6 +51,11 @@ angular.module('aac.controllers.realmroles', [])
         }
         service.getApprovals = function (slug, roleId) {
             return $http.get('console/dev/roles/' + slug + '/' + roleId + '/approvals').then(function (data) {
+                return data.data;
+            });
+        }
+        service.setApprovals = function (slug, roleId, scopes) {
+            return $http.put('console/dev/roles/' + slug + '/' + roleId + '/approvals', scopes).then(function (data) {
                 return data.data;
             });
         }
@@ -120,25 +130,31 @@ angular.module('aac.controllers.realmroles', [])
 
 
         $scope.importRoleDlg = function () {
+            if ($scope.importFile) {
+                $scope.importFile.file = null;
+            }
+
             $('#importRoleModal').modal({ keyboard: false });
         }
 
 
         $scope.importRole = function () {
             $('#importRoleModal').modal('hide');
-            var file = $scope.importFile;
-            var resetID = !!file.resetID;
+            var file = $scope.importFile.file;
+            var yaml = $scope.importFile.yaml;
+            var resetID = !!$scope.importFile.resetID;
             var mimeTypes = ['text/yaml', 'text/yml', 'application/x-yaml'];
-            if (file == null || !mimeTypes.includes(file.type) || file.size == 0) {
+            if (!yaml && (file == null || !mimeTypes.includes(file.type) || file.size == 0)) {
                 Utils.showError("invalid file");
             } else {
-                RealmRoles.importRole(slug, file, resetID)
+                RealmRoles.importRole(slug, file, yaml, resetID)
                     .then(function () {
                         $scope.importFile = null;
                         $scope.load();
                         Utils.showSuccess();
                     })
                     .catch(function (err) {
+                        $scope.importFile.file = null;
                         Utils.showError(err.data.message);
                     });
             }
@@ -351,48 +367,20 @@ angular.module('aac.controllers.realmroles', [])
 
 
             if ($scope.modApprovals) {
-
-                //unpack
-                var serviceId = $scope.modApprovals.serviceId;
-                var service = $scope.services.get(serviceId);
+                var scopes = $scope.modApprovals.scopes.map(s => s.scope);
                 var approved = $scope.modApprovals.scopes.filter(s => s.value).map(s => s.scope);
-                // var unapproved = $scope.modApprovals.scopes.filter(s => !s.value).map(s => s.scope);
 
-                var approval = $scope.approvals.find(a => serviceId == a.serviceId)
-                var approvals = approval.approvals;
+                var toKeep = $scope.permissions.filter(s => !scopes.includes(s));
+                var toSet = toKeep.concat(approved);
 
-                //build request
-                var toRemove = approvals.filter(a => !approved.includes(a.scope));
-                var toKeep = approvals.filter(a => approved.includes(a.scope)).map(s => s.scope);
-
-                var toAdd = approved.filter(a => !toKeep.includes(a)).map(s => {
-                    return {
-                        userId: serviceId,
-                        clientId: roleId,
-                        scope: s
-                    }
-                });
-
-                var updates = toRemove.concat(toAdd);
-
-                Promise.all(
-                    updates
-                        .map(a => {
-                            if (a.status) {
-                                return RealmServices.deleteApproval(service.realm, serviceId, a);
-                            } else {
-                                return RealmServices.addApproval(service.realm, serviceId, a);
-                            }
-                        })
-                )
-                    .then(function () {
+                RealmRoles.setApprovals(slug, roleId, toSet)
+                    .then(function (data) {
+                        $scope.reloadApprovals(data);
                         Utils.showSuccess();
-                        $scope.loadApprovals();
                     })
                     .catch(function (err) {
-                        Utils.showError('Failed to load realm role: ' + err.data.message);
+                        Utils.showError('Failed to update realm role: ' + err.data.message);
                     });
-
             }
         }
 

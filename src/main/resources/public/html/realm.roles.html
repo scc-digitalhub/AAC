@@ -149,27 +149,42 @@
 </div>
 
 
-<div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="importRoleModal">
-  <div class="modal-dialog" role="document">
+<div class="modal  fade bs-modal-lg" tabindex="-1" role="dialog" id="importRoleModal">
+  <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">Import role </h5>
       </div>
       <div class="modal-body">
         <form name="importRoleForm" enctype="multipart/form-data" class="needs-validation was-validated" novalidate>
-          <p>Upload a valid YAML file with the full realm role definition.</p>
+          <p class="mb-4">
+            Provide or upload a valid YAML file with the full role definition, or with a list of valid
+            roles nested under key <em>roles</em>.
+          </p>
 
-          <div class="form-group col pt-4 mb-2">
+          <div class="form-group col pt-2 mb-4">
             <label for="file">File*</label>
-            <input type="file" name="file" class="form-control form-control-sm upload" id="file" file-model="importFile"
-              required accept=".yaml,.yml,text/yaml,text/yml,application/x-yaml" />
+            <input type="file" name="file" class="form-control form-control-sm upload" id="file"
+              file-model="importFile.file" accept=".yaml,.yml,text/yaml,text/yml,application/x-yaml" />
             <ul class="upload-file-list">
-              <li class="upload-file success" ng-if="importFile != null">
+              <li class="upload-file success" ng-if="importFile.file != null">
                 <p>
-                  {{importFile.name}} <span class="upload-file-weight">{{importFile.size}}</span>
+                  {{importFile.file.name}} <span class="upload-file-weight">{{importFile.file.size}}</span>
                 </p>
               </li>
             </ul>
+          </div>
+
+          <div class="form-group col pt-4 mb-2">
+            <textarea class="text-monospace" rows="5" name="yaml" id="yaml" ng-model="importFile.yaml"></textarea>
+          </div>
+
+
+          <div class="form-group col pt-4 mb-2">
+            <div class="form-check">
+              <input class="form-check-input" name="reset" id="reset" type="checkbox" ng-model="importFile.resetID">
+              <label for="reset">Reset ID(s)</label>
+            </div>
           </div>
 
         </form>

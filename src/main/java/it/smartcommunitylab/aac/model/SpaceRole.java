@@ -1,11 +1,19 @@
 package it.smartcommunitylab.aac.model;
 
+import javax.validation.Valid;
 import javax.validation.constraints.Size;
 
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 import it.smartcommunitylab.aac.Config;
 
+@Valid
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(Include.NON_NULL)
 public class SpaceRole {
 
     // role definition
@@ -21,6 +29,12 @@ public class SpaceRole {
         this.space = StringUtils.hasText(space) ? space : null;
         this.role = role;
         validate(this);
+    }
+
+    protected SpaceRole() {
+        this.context = null;
+        this.space = null;
+        this.role = null;
     }
 
     public String getContext() {
