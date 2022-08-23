@@ -60,11 +60,16 @@ angular.module('aac.controllers.realmproviders', [])
             }
         }
 
-        service.importIdentityProvider = function (slug, file) {
+        service.importIdentityProvider = function (slug, file, yaml, reset) {
             var fd = new FormData();
-            fd.append('file', file);
+            if (yaml) {
+                fd.append('yaml', yaml);
+            }
+            if (file) {
+                fd.append('file', file);
+            }
             return $http({
-                url: 'console/dev/idp/' + slug,
+                url: 'console/dev/idp/' + slug + (reset ? "?reset=true" : ""),
                 headers: { "Content-Type": undefined }, //set undefined to let $http manage multipart declaration with proper boundaries
                 data: fd,
                 method: "PUT"
@@ -126,11 +131,16 @@ angular.module('aac.controllers.realmproviders', [])
             }
         }
 
-        service.importAttributeProvider = function (slug, file) {
+        service.importAttributeProvider = function (slug, file, yaml, reset) {
             var fd = new FormData();
-            fd.append('file', file);
+            if (yaml) {
+                fd.append('yaml', yaml);
+            }
+            if (file) {
+                fd.append('file', file);
+            }
             return $http({
-                url: 'console/dev/ap/' + slug,
+                url: 'console/dev/ap/' + slug + (reset ? "?reset=true" : ""),
                 headers: { "Content-Type": undefined }, //set undefined to let $http manage multipart declaration with proper boundaries
                 data: fd,
                 method: "PUT"
@@ -442,24 +452,31 @@ angular.module('aac.controllers.realmproviders', [])
 
 
         $scope.importProviderDlg = function () {
+            if ($scope.importFile) {
+                $scope.importFile.file = null;
+            }
+
             $('#importProviderDlg').modal({ keyboard: false });
         }
 
 
         $scope.importProvider = function () {
             $('#importProviderDlg').modal('hide');
-            var file = $scope.importFile;
+            var file = $scope.importFile.file;
+            var yaml = $scope.importFile.yaml;
+            var resetID = !!$scope.importFile.resetID;
             var mimeTypes = ['text/yaml', 'text/yml', 'application/x-yaml'];
-            if (file == null || !mimeTypes.includes(file.type) || file.size == 0) {
+            if (!yaml && (file == null || !mimeTypes.includes(file.type) || file.size == 0)) {
                 Utils.showError("invalid file");
             } else {
-                RealmProviders.importIdentityProvider($scope.realm.slug, file)
-                    .then(function (res) {
+                RealmProviders.importIdentityProvider(slug, file, yaml, resetID)
+                    .then(function () {
                         $scope.importFile = null;
                         $scope.load();
                         Utils.showSuccess();
                     })
                     .catch(function (err) {
+                        $scope.importFile.file = null;
                         Utils.showError(err.data.message);
                     });
             }
@@ -960,24 +977,31 @@ angular.module('aac.controllers.realmproviders', [])
 
 
         $scope.importProviderDlg = function () {
+            if ($scope.importFile) {
+                $scope.importFile.file = null;
+            }
+
             $('#importProviderDlg').modal({ keyboard: false });
         }
 
 
         $scope.importProvider = function () {
             $('#importProviderDlg').modal('hide');
-            var file = $scope.importFile;
+            var file = $scope.importFile.file;
+            var yaml = $scope.importFile.yaml;
+            var resetID = !!$scope.importFile.resetID;
             var mimeTypes = ['text/yaml', 'text/yml', 'application/x-yaml'];
-            if (file == null || !mimeTypes.includes(file.type) || file.size == 0) {
+            if (!yaml && (file == null || !mimeTypes.includes(file.type) || file.size == 0)) {
                 Utils.showError("invalid file");
             } else {
-                RealmProviders.importAttributeProvider($scope.realm.slug, file)
-                    .then(function (res) {
+                RealmProviders.importAttributeProvider(slug, file, yaml, resetID)
+                    .then(function () {
                         $scope.importFile = null;
                         $scope.load();
                         Utils.showSuccess();
                     })
                     .catch(function (err) {
+                        $scope.importFile.file = null;
                         Utils.showError(err.data.message);
                     });
             }

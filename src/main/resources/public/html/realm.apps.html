@@ -278,8 +278,8 @@
     </div>
 </div>
 
-<div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="importClientAppDlg">
-    <div class="modal-dialog" role="document">
+<div class="modal fade bs-modal-lg" tabindex="-1" role="dialog" id="importClientAppDlg">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Import application </h5>
@@ -287,17 +287,20 @@
             <div class="modal-body">
                 <form name="importAppForm" enctype="multipart/form-data" class="needs-validation was-validated"
                     novalidate>
-                    <p>Provide or upload a valid YAML file with the full client definition, or with a list of valid
-                        clients nested under key <em>clients</em>.</p>
+                    <p class="mb-4">
+                        Provide or upload a valid YAML file with the full client definition, or with a list of valid
+                        clients nested under key <em>clients</em>.
+                    </p>
 
-                    <div class="form-group col pt-4 mb-4">
+                    <div class="form-group col pt-2 mb-4">
                         <label for="file">File*</label>
                         <input type="file" name="file" class="form-control form-control-sm upload" id="file"
                             file-model="importFile.file" accept=".yaml,.yml,text/yaml,text/yml,application/x-yaml" />
                         <ul class="upload-file-list">
                             <li class="upload-file success" ng-if="importFile.file != null">
                                 <p>
-                                    {{importFile.file.name}} <span class="upload-file-weight">{{importFile.file.size}}</span>
+                                    {{importFile.file.name}} <span
+                                        class="upload-file-weight">{{importFile.file.size}}</span>
                                 </p>
                             </li>
                         </ul>

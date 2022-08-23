@@ -1,9 +1,7 @@
 package it.smartcommunitylab.aac.dev;
 
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -32,7 +30,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.approval.Approval;
-import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -80,6 +77,7 @@ public class DevClientAppController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final TypeReference<Map<String, List<ClientApp>>> typeRef = new TypeReference<Map<String, List<ClientApp>>>() {
     };
+    private final String LIST_KEY = "clients";
 
     @Autowired
     private ClientManager clientManager;
@@ -157,39 +155,41 @@ public class DevClientAppController {
             @RequestParam(required = false, defaultValue = "false") boolean reset,
             @RequestPart(name = "yaml", required = false) @Valid String yaml,
             @RequestPart(name = "file", required = false) @Valid MultipartFile file)
-            throws NoSuchRealmException, Exception {
+            throws NoSuchRealmException, RegistrationException {
+        logger.debug("import client(s) to realm {}", StringUtils.trimAllWhitespace(realm));
+
         if (!StringUtils.hasText(yaml) && (file == null || file.isEmpty())) {
             throw new IllegalArgumentException("empty file or yaml");
         }
 
-        // read string, fallback to yaml
-        if (!StringUtils.hasText(yaml)) {
-            if (file.getContentType() == null) {
-                throw new IllegalArgumentException("invalid file");
-            }
-
-            if (!SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType())
-                    && !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType())
-                    && !SystemKeys.MEDIA_TYPE_XYAML.toString().equals(file.getContentType())) {
-                throw new IllegalArgumentException("invalid file");
-            }
-
-            // read whole file as string
-            yaml = new String(file.getBytes(), StandardCharsets.UTF_8);
-        }
-
         try {
+            // read string, fallback to yaml
+            if (!StringUtils.hasText(yaml)) {
+                if (file.getContentType() == null) {
+                    throw new IllegalArgumentException("invalid file");
+                }
+
+                if (!SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType())
+                        && !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType())
+                        && !SystemKeys.MEDIA_TYPE_XYAML.toString().equals(file.getContentType())) {
+                    throw new IllegalArgumentException("invalid file");
+                }
+
+                // read whole file as string
+                yaml = new String(file.getBytes(), StandardCharsets.UTF_8);
+            }
+
             List<ClientApp> apps = new ArrayList<>();
             List<ClientApp> regs = new ArrayList<>();
 
             // read as raw yaml to check if collection
             Yaml reader = new Yaml();
             Map<String, Object> obj = reader.load(yaml);
-            boolean multiple = obj.containsKey("clients");
+            boolean multiple = obj.containsKey(LIST_KEY);
 
             if (multiple) {
                 Map<String, List<ClientApp>> list = yamlObjectMapper.readValue(yaml, typeRef);
-                for (ClientApp app : list.get("clients")) {
+                for (ClientApp app : list.get(LIST_KEY)) {
                     regs.add(app);
                 }
             } else {
@@ -204,6 +204,10 @@ public class DevClientAppController {
                 if (reset) {
                     // reset clientId
                     reg.setClientId(null);
+                }
+
+                if (logger.isTraceEnabled()) {
+                    logger.trace("client bean: " + String.valueOf(reg));
                 }
 
                 ClientApp clientApp = clientManager.registerClientApp(realm, reg);

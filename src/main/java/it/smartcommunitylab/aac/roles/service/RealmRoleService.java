@@ -106,6 +106,22 @@ public class RealmRoleService {
     }
 
     @Transactional(readOnly = true)
+    public RealmRole getRole(String roleId, boolean withMembers) throws NoSuchRoleException {
+        RealmRoleEntity r = roleRepository.findOne(roleId);
+        if (r == null) {
+            throw new NoSuchRoleException();
+        }
+
+        long size = rolesRepository.countByRealmAndRole(r.getRealm(), r.getRole());
+        if (withMembers) {
+            Collection<SubjectRoleEntity> subjects = rolesRepository.findByRealmAndRole(r.getRealm(),
+                    r.getRole());
+            return toRole(r, size, subjects);
+        }
+        return toRole(r, size);
+    }
+
+    @Transactional(readOnly = true)
     public RealmRole findRole(String realm, String role) {
         RealmRoleEntity r = roleRepository.findByRealmAndRole(realm, role);
         if (r == null) {
@@ -217,4 +233,18 @@ public class RealmRoleService {
         return role;
     }
 
+    private RealmRole toRole(RealmRoleEntity re, Long size) {
+        RealmRole r = toRole(re);
+        r.setSize(size);
+        return r;
+    }
+
+    private RealmRole toRole(RealmRoleEntity re, long size, Collection<SubjectRoleEntity> subjects) {
+        RealmRole r = toRole(re, size);
+        List<String> sj = subjects.stream()
+                .map(SubjectRoleEntity::getSubject)
+                .collect(Collectors.toList());
+        r.setSubjects(sj);
+        return r;
+    }
 }

@@ -2,10 +2,14 @@ package it.smartcommunitylab.aac.dev;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
@@ -18,13 +22,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.yaml.snakeyaml.Yaml;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import it.smartcommunitylab.aac.Config;
 import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.BaseAttributeSetsController;
@@ -39,6 +43,10 @@ import it.smartcommunitylab.aac.core.model.AttributeSet;
 @RequestMapping("/console/dev")
 public class DevAttributesController extends BaseAttributeSetsController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final TypeReference<Map<String, List<DefaultAttributesSet>>> typeRef = new TypeReference<Map<String, List<DefaultAttributesSet>>>() {
+    };
+
+    private final String LIST_KEY = "sets";
 
     @Autowired
     @Qualifier("yamlObjectMapper")
@@ -48,37 +56,79 @@ public class DevAttributesController extends BaseAttributeSetsController {
      * Import/export for console
      */
     @PutMapping("/attributeset/{realm}")
-    public AttributeSet importAttributeSet(
+    public Collection<AttributeSet> importAttributeSet(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestParam("file") @Valid @NotNull @NotBlank MultipartFile file) throws RegistrationException {
+            @RequestPart(name = "yaml", required = false) @Valid String yaml,
+            @RequestPart(name = "file", required = false) @Valid MultipartFile file)
+            throws NoSuchRealmException, RegistrationException {
         logger.debug("import attribute set to realm {}", StringUtils.trimAllWhitespace(realm));
 
-        if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("empty file");
-        }
-
-        if (file.getContentType() == null) {
-            throw new IllegalArgumentException("invalid file");
-        }
-
-        if (!SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType())
-                && !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType())
-                && !SystemKeys.MEDIA_TYPE_XYAML.toString().equals(file.getContentType())) {
-            throw new IllegalArgumentException("invalid file");
+        if (!StringUtils.hasText(yaml) && (file == null || file.isEmpty())) {
+            throw new IllegalArgumentException("empty file or yaml");
         }
 
         try {
-            DefaultAttributesSet s = yamlObjectMapper.readValue(file.getInputStream(),
-                    DefaultAttributesSet.class);
+            // read string, fallback to yaml
+            if (!StringUtils.hasText(yaml)) {
+                if (file.getContentType() == null) {
+                    throw new IllegalArgumentException("invalid file");
+                }
 
-            if (logger.isTraceEnabled()) {
-                logger.trace("attribute set bean: " + String.valueOf(s));
+                if (!SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType())
+                        && !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType())
+                        && !SystemKeys.MEDIA_TYPE_XYAML.toString().equals(file.getContentType())) {
+                    throw new IllegalArgumentException("invalid file");
+                }
+
+                // read whole file as string
+                yaml = new String(file.getBytes(), StandardCharsets.UTF_8);
             }
 
-            return attributeManager.addAttributeSet(realm, s);
+            List<AttributeSet> attributeSets = new ArrayList<>();
+            List<DefaultAttributesSet> regs = new ArrayList<>();
 
+            // read as raw yaml to check if collection
+            Yaml reader = new Yaml();
+            Map<String, Object> obj = reader.load(yaml);
+            boolean multiple = obj.containsKey(LIST_KEY);
+
+            if (multiple) {
+                Map<String, List<DefaultAttributesSet>> list = yamlObjectMapper.readValue(yaml, typeRef);
+                for (DefaultAttributesSet reg : list.get(LIST_KEY)) {
+                    regs.add(reg);
+                }
+            } else {
+                // try single element
+                DefaultAttributesSet reg = yamlObjectMapper.readValue(yaml,
+                        DefaultAttributesSet.class);
+                regs.add(reg);
+            }
+
+            // register all
+            for (DefaultAttributesSet reg : regs) {
+                // align config
+                reg.setRealm(realm);
+
+                if (logger.isTraceEnabled()) {
+                    logger.trace("attribute set bean: " + String.valueOf(reg));
+                }
+
+                // register
+                AttributeSet set = attributeManager.addAttributeSet(realm, reg);
+                attributeSets.add(set);
+            }
+
+            return attributeSets;
         } catch (Exception e) {
             logger.error("import attribute set error: " + e.getMessage());
+            if (logger.isTraceEnabled()) {
+                e.printStackTrace();
+            }
+
+            if (e instanceof ClassCastException) {
+                throw new RegistrationException("invalid content or file");
+            }
+
             throw new RegistrationException(e.getMessage());
         }
 
