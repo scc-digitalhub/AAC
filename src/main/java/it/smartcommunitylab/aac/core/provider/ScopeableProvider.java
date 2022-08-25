@@ -4,5 +4,4 @@ public interface ScopeableProvider {
 
     public String getScope();
 
-    public String getScopeId();
 }

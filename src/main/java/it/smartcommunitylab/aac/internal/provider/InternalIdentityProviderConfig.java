@@ -55,9 +55,9 @@ public class InternalIdentityProviderConfig extends AbstractIdentityProviderConf
     }
 
     public String getRepositoryId() {
-        // isolated providers will use their id as providerId for data repositories
+        // scoped providers will use their id as providerId for data repositories
         // otherwise they'll expose realm slug as id
-        if (isolateData()) {
+        if (isScopedData()) {
             return this.getProvider();
         } else {
             return this.getRealm();
@@ -68,8 +68,16 @@ public class InternalIdentityProviderConfig extends AbstractIdentityProviderConf
         return configMap.getCredentialsType() != null ? configMap.getCredentialsType() : CredentialsType.NONE;
     }
 
-    public boolean isolateData() {
-        return configMap.getIsolateData() != null ? configMap.getIsolateData().booleanValue() : false;
+    public boolean isScopedData() {
+        return configMap.getScopedData() != null ? configMap.getScopedData().booleanValue() : false;
+    }
+
+    public String getScope() {
+        if (isScopedData()) {
+            return SystemKeys.RESOURCE_PROVIDER;
+        }
+
+        return SystemKeys.RESOURCE_REALM;
     }
 
     /*

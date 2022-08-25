@@ -34,7 +34,7 @@ public class InternalIdentityProviderConfigMap implements ConfigurableProperties
     protected Integer maxSessionDuration;
 
     protected CredentialsType credentialsType;
-    protected Boolean isolateData;
+    protected Boolean scopedData;
 
     protected Boolean enableRegistration;
     protected Boolean enableDelete;
@@ -63,12 +63,12 @@ public class InternalIdentityProviderConfigMap implements ConfigurableProperties
         this.credentialsType = credentialsType;
     }
 
-    public Boolean getIsolateData() {
-        return isolateData;
+    public Boolean getScopedData() {
+        return scopedData;
     }
 
-    public void setIsolateData(Boolean isolateData) {
-        this.isolateData = isolateData;
+    public void setScopedData(Boolean scopedData) {
+        this.scopedData = scopedData;
     }
 
     public Boolean getEnableRegistration() {
@@ -129,7 +129,7 @@ public class InternalIdentityProviderConfigMap implements ConfigurableProperties
         this.maxSessionDuration = map.getMaxSessionDuration();
 
         this.credentialsType = map.getCredentialsType();
-        this.isolateData = map.getIsolateData();
+        this.scopedData = map.getScopedData();
 
         this.enableRegistration = map.getEnableRegistration();
         this.enableDelete = map.getEnableDelete();

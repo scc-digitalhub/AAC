@@ -83,21 +83,12 @@ public abstract class AbstractInternalIdentityProvider<P extends InternalUserAut
 
     @Override
     public String getScope() {
-        if (config.isolateData()) {
-            return SystemKeys.RESOURCE_PROVIDER;
-        }
-
-        return SystemKeys.RESOURCE_REALM;
-    }
-
-    @Override
-    public String getScopeId() {
-        return config.getRepositoryId();
+        return config.getScope();
     }
 
     @Override
     protected String getRepositoryId() {
-        return getScopeId();
+        return config.getRepositoryId();
     }
 
     @Override
