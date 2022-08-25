@@ -256,7 +256,8 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
 
             return createSuccessAuthentication(request, auth);
         } catch (AuthenticationException ae) {
-            return null;
+            logger.error("provider authentication error:" + ae.getMessage());
+            throw ae;
         }
     }
 
