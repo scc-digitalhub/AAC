@@ -2,27 +2,13 @@ package it.smartcommunitylab.aac.internal.provider;
 
 import java.io.Serializable;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
+import it.smartcommunitylab.aac.core.base.AbstractAttributeProviderConfig;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 
-public class InternalAttributeProviderConfig extends AbstractConfigurableProvider {
-
-    private static ObjectMapper mapper = new ObjectMapper();
-    private final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
-    };
-
-    private String name;
-    private String description;
-
-    private Set<String> attributeSets;
+public class InternalAttributeProviderConfig extends AbstractAttributeProviderConfig {
+    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     // map capabilities
     private InternalAttributeProviderConfigMap configMap;
@@ -30,35 +16,6 @@ public class InternalAttributeProviderConfig extends AbstractConfigurableProvide
     public InternalAttributeProviderConfig(String provider, String realm) {
         super(SystemKeys.AUTHORITY_INTERNAL, provider, realm);
         this.configMap = new InternalAttributeProviderConfigMap();
-    }
-
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_ATTRIBUTES;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public Set<String> getAttributeSets() {
-        return attributeSets;
-    }
-
-    public void setAttributeSets(Set<String> attributeSets) {
-        this.attributeSets = attributeSets;
     }
 
     public InternalAttributeProviderConfigMap getConfigMap() {
@@ -83,20 +40,6 @@ public class InternalAttributeProviderConfig extends AbstractConfigurableProvide
     /*
      * builders
      */
-    public static ConfigurableAttributeProvider toConfigurableProvider(InternalAttributeProviderConfig ap) {
-        ConfigurableAttributeProvider cp = new ConfigurableAttributeProvider(SystemKeys.AUTHORITY_INTERNAL,
-                ap.getProvider(),
-                ap.getRealm());
-
-        cp.setName(ap.getName());
-        cp.setDescription(ap.getDescription());
-
-        cp.setPersistence(SystemKeys.PERSISTENCE_LEVEL_REPOSITORY);
-        cp.setAttributeSets(ap.getAttributeSets());
-
-        return cp;
-    }
-
     public static InternalAttributeProviderConfig fromConfigurableProvider(ConfigurableAttributeProvider cp) {
         InternalAttributeProviderConfig ap = new InternalAttributeProviderConfig(cp.getProvider(), cp.getRealm());
         ap.configMap = new InternalAttributeProviderConfigMap();
