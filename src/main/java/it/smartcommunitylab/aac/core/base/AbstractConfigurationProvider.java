@@ -11,9 +11,10 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
+import it.smartcommunitylab.aac.core.provider.ProviderConfig;
 import it.smartcommunitylab.aac.repository.ConfigMapConverter;
 
-public abstract class AbstractConfigurationProvider<T extends ConfigurableProvider, C extends AbstractProviderConfig<P>, P extends AbstractConfigMap>
+public abstract class AbstractConfigurationProvider<T extends ConfigurableProvider, C extends ProviderConfig<P>, P extends AbstractConfigMap>
         implements ConfigurationProvider<T, C, P> {
 
     protected final String authority;

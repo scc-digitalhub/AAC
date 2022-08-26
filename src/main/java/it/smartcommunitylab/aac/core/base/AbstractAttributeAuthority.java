@@ -17,45 +17,44 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.attributes.service.AttributeService;
+import it.smartcommunitylab.aac.attributes.store.AttributeStore;
+import it.smartcommunitylab.aac.attributes.store.AutoJdbcAttributeStore;
+import it.smartcommunitylab.aac.attributes.store.InMemoryAttributeStore;
+import it.smartcommunitylab.aac.attributes.store.NullAttributeStore;
+import it.smartcommunitylab.aac.attributes.store.PersistentAttributeStore;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
+import it.smartcommunitylab.aac.core.authorities.AttributeProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
-import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
-import it.smartcommunitylab.aac.core.model.UserIdentity;
-import it.smartcommunitylab.aac.core.provider.FilterProvider;
-import it.smartcommunitylab.aac.core.provider.IdentityConfigurationProvider;
-import it.smartcommunitylab.aac.core.provider.IdentityProvider;
-import it.smartcommunitylab.aac.core.provider.IdentityProviderConfig;
+import it.smartcommunitylab.aac.core.provider.AttributeConfigurationProvider;
+import it.smartcommunitylab.aac.core.provider.AttributeProvider;
+import it.smartcommunitylab.aac.core.provider.AttributeProviderConfig;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.core.service.SubjectService;
-import it.smartcommunitylab.aac.core.service.UserEntityService;
 
-public abstract class AbstractIdentityAuthority<I extends UserIdentity, S extends IdentityProvider<I, P>, C extends IdentityProviderConfig<P>, P extends ConfigMap>
-        implements IdentityProviderAuthority<I, S, C, P>, InitializingBean {
+public abstract class AbstractAttributeAuthority<S extends AttributeProvider<P>, C extends AttributeProviderConfig<P>, P extends ConfigMap>
+        implements AttributeProviderAuthority<S, C, P>, InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     protected final String authorityId;
 
-    // user service
-    protected final UserEntityService userEntityService;
+    // attributes sets service
+    protected final AttributeService attributeService;
 
-    // resources registry
-    protected final SubjectService subjectService;
+    // system attributes store
+    protected final AutoJdbcAttributeStore jdbcAttributeStore;
 
     // configuration provider
-    protected IdentityConfigurationProvider<C, P> configProvider;
+    protected AttributeConfigurationProvider<C, P> configProvider;
 
-    // identity provider configs by id
+    // attribute provider configs by id
     protected final ProviderConfigRepository<C> registrationRepository;
 
-    // loading cache for idps
-    // TODO replace with external loadableProviderRepository for
-    // ProviderRepository<InternalIdentityProvider>
+    // loading cache
     protected final LoadingCache<String, S> providers = CacheBuilder.newBuilder()
             .expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
-            .maximumSize(100)
-            .build(new CacheLoader<String, S>() {
+            .maximumSize(100).build(new CacheLoader<String, S>() {
                 @Override
                 public S load(final String id) throws Exception {
                     C config = registrationRepository.findByProviderId(id);
@@ -68,18 +67,18 @@ public abstract class AbstractIdentityAuthority<I extends UserIdentity, S extend
                 }
             });
 
-    public AbstractIdentityAuthority(
+    public AbstractAttributeAuthority(
             String authorityId,
-            UserEntityService userEntityService, SubjectService subjectService,
+            AttributeService attributeService, AutoJdbcAttributeStore jdbcAttributeStore,
             ProviderConfigRepository<C> registrationRepository) {
         Assert.hasText(authorityId, "authority id  is mandatory");
-        Assert.notNull(userEntityService, "user service is mandatory");
-        Assert.notNull(subjectService, "subject service is mandatory");
+        Assert.notNull(attributeService, "attribute service is mandatory");
+        Assert.notNull(jdbcAttributeStore, "attribute store is mandatory");
         Assert.notNull(registrationRepository, "provider registration repository is mandatory");
 
         this.authorityId = authorityId;
-        this.userEntityService = userEntityService;
-        this.subjectService = subjectService;
+        this.attributeService = attributeService;
+        this.jdbcAttributeStore = jdbcAttributeStore;
         this.registrationRepository = registrationRepository;
     }
 
@@ -89,19 +88,13 @@ public abstract class AbstractIdentityAuthority<I extends UserIdentity, S extend
     }
 
     @Override
-    public FilterProvider getFilterProvider() {
-        // authorities are not required to expose filters
-        return null;
-    }
-
-    @Override
-    public IdentityConfigurationProvider<C, P> getConfigurationProvider() {
+    public AttributeConfigurationProvider<C, P> getConfigurationProvider() {
         return configProvider;
     }
 
     protected abstract S buildProvider(C config);
 
-    public void setConfigProvider(IdentityConfigurationProvider<C, P> configProvider) {
+    public void setConfigProvider(AttributeConfigurationProvider<C, P> configProvider) {
         Assert.notNull(configProvider, "config provider is mandatory");
         this.configProvider = configProvider;
     }
@@ -120,21 +113,21 @@ public abstract class AbstractIdentityAuthority<I extends UserIdentity, S extend
     @Override
     public S registerProvider(ConfigurableProvider cp) {
         // cast config and handle errors
-        ConfigurableIdentityProvider cip = null;
+        ConfigurableAttributeProvider cap = null;
         try {
-            ConfigurableIdentityProvider c = (ConfigurableIdentityProvider) cp;
-            cip = c;
+            ConfigurableAttributeProvider c = (ConfigurableAttributeProvider) cp;
+            cap = c;
         } catch (ClassCastException e) {
             logger.error("Wrong config class: " + e.getMessage());
             throw new IllegalArgumentException("unsupported config");
         }
 
-        // we support only identity provider as resource providers
-        if (cip != null
-                && getAuthorityId().equals(cip.getAuthority())
-                && SystemKeys.RESOURCE_IDENTITY.equals(cip.getType())) {
-            String providerId = cip.getProvider();
-            String realm = cip.getRealm();
+        // we support only attribute provider as resource providers
+        if (cap != null
+                && getAuthorityId().equals(cap.getAuthority())
+                && SystemKeys.RESOURCE_ATTRIBUTES.equals(cap.getType())) {
+            String providerId = cap.getProvider();
+            String realm = cap.getRealm();
 
             // check if exists or id clashes with another provider from a different realm
             C e = registrationRepository.findByProviderId(providerId);
@@ -148,7 +141,7 @@ public abstract class AbstractIdentityAuthority<I extends UserIdentity, S extend
 
             try {
                 // build config
-                C providerConfig = configProvider.getConfig(cip);
+                C providerConfig = configProvider.getConfig(cap);
 
                 // register, we defer loading
                 registrationRepository.addRegistration(providerConfig);
@@ -202,6 +195,22 @@ public abstract class AbstractIdentityAuthority<I extends UserIdentity, S extend
         Collection<C> registrations = registrationRepository.findByRealm(realm);
         return registrations.stream().map(r -> getProvider(r.getProvider()))
                 .filter(p -> (p != null)).collect(Collectors.toList());
+    }
+
+    /*
+     * helpers
+     */
+
+    protected AttributeStore getAttributeStore(String providerId, String persistence) {
+        // we generate a new store for each provider
+        AttributeStore store = new NullAttributeStore();
+        if (SystemKeys.PERSISTENCE_LEVEL_REPOSITORY.equals(persistence)) {
+            store = new PersistentAttributeStore(getAuthorityId(), providerId, jdbcAttributeStore);
+        } else if (SystemKeys.PERSISTENCE_LEVEL_MEMORY.equals(persistence)) {
+            store = new InMemoryAttributeStore(getAuthorityId(), providerId);
+        }
+
+        return store;
     }
 
 }

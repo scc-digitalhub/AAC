@@ -12,6 +12,7 @@ import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
+import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
@@ -19,6 +20,7 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.AccountProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityAttributeProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.core.provider.IdentityProviderConfig;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
@@ -26,9 +28,9 @@ import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.model.Subject;
 
 @Transactional
-public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends UserAccount, P extends UserAuthenticatedPrincipal>
+public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends UserAccount, P extends UserAuthenticatedPrincipal, C extends ConfigMap>
         extends AbstractProvider
-        implements IdentityProvider<I>, InitializingBean {
+        implements IdentityProvider<I, C>, InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // services
@@ -37,13 +39,13 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
     protected final SubjectService subjectService;
 
     // provider configuration
-    private final AbstractIdentityProviderConfig config;
+    private final IdentityProviderConfig<C> config;
 
     public AbstractIdentityProvider(
             String authority, String providerId,
             UserEntityService userEntityService, UserAccountService<U> userAccountService,
             SubjectService subjectService,
-            AbstractIdentityProviderConfig config,
+            IdentityProviderConfig<C> config,
             String realm) {
         super(authority, providerId, realm);
         Assert.notNull(userAccountService, "user account service is mandatory");

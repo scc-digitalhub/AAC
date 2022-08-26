@@ -3,7 +3,7 @@ package it.smartcommunitylab.aac.core.base;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityConfigurationProvider;
 
-public abstract class AbstractIdentityConfigurationProvider<C extends AbstractProviderConfig<P>, P extends AbstractConfigMap>
+public abstract class AbstractIdentityConfigurationProvider<C extends AbstractIdentityProviderConfig<P>, P extends AbstractConfigMap>
         extends AbstractConfigurationProvider<ConfigurableIdentityProvider, C, P>
         implements IdentityConfigurationProvider<C, P> {
 

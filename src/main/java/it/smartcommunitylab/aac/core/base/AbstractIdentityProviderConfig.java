@@ -5,8 +5,10 @@ import java.util.Map;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.provider.IdentityProviderConfig;
 
-public abstract class AbstractIdentityProviderConfig<T extends AbstractConfigMap> extends AbstractProviderConfig<T> {
+public abstract class AbstractIdentityProviderConfig<T extends AbstractConfigMap> extends AbstractProviderConfig<T>
+        implements IdentityProviderConfig<T> {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     protected String icon;
@@ -29,7 +31,9 @@ public abstract class AbstractIdentityProviderConfig<T extends AbstractConfigMap
         this.icon = cp.getIcon();
 
         this.persistence = cp.getPersistence();
+        this.events = cp.getEvents();
         this.linkable = cp.isLinkable();
+
         this.hookFunctions = (cp.getHookFunctions() != null ? cp.getHookFunctions() : Collections.emptyMap());
     }
 

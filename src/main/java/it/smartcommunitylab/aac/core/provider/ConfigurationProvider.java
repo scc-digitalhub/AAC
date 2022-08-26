@@ -6,14 +6,13 @@ import java.util.Map;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractProviderConfig;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 
 /*
  * Expose provider configuration outside modules
  */
-public interface ConfigurationProvider<T extends ConfigurableProvider, C extends AbstractProviderConfig<P>, P extends ConfigMap>
+public interface ConfigurationProvider<T extends ConfigurableProvider, C extends ProviderConfig<P>, P extends ConfigMap>
         extends ResourceProvider {
 
     default public String getType() {

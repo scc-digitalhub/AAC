@@ -13,9 +13,11 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.provider.ProviderConfig;
 import it.smartcommunitylab.aac.repository.ConfigMapConverter;
 
-public abstract class AbstractProviderConfig<T extends ConfigMap> implements ConfigurableProperties, Serializable {
+public abstract class AbstractProviderConfig<T extends ConfigMap>
+        implements ProviderConfig<T>, ConfigurableProperties, Serializable {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     protected static ObjectMapper mapper = new ObjectMapper();

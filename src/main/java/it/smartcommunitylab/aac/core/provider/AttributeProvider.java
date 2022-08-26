@@ -2,7 +2,7 @@ package it.smartcommunitylab.aac.core.provider;
 
 import java.util.Collection;
 
-import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
+import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 
@@ -25,7 +25,7 @@ import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
  *  
  *  they should not handle identities
  */
-public interface AttributeProvider extends ResourceProvider {
+public interface AttributeProvider<P extends ConfigMap> extends ResourceProvider {
 
     /*
      * Config
@@ -33,6 +33,8 @@ public interface AttributeProvider extends ResourceProvider {
     public String getName();
 
     public String getDescription();
+
+    public AttributeProviderConfig<P> getConfig();
 
     /*
      * Attribute sets (for scopes)

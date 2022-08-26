@@ -27,12 +27,12 @@ import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
 import it.smartcommunitylab.aac.core.model.Attribute;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
-import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 
-public class ScriptAttributeProvider extends AbstractProvider implements AttributeProvider {
+public class ScriptAttributeProvider extends AbstractProvider
+        implements AttributeProvider<ScriptAttributeProviderConfigMap> {
 
     public static final String ATTRIBUTE_MAPPING_FUNCTION = "attributeMapping";
 
@@ -91,6 +91,11 @@ public class ScriptAttributeProvider extends AbstractProvider implements Attribu
     @Override
     public String getDescription() {
         return providerConfig.getDescription();
+    }
+
+    @Override
+    public ScriptAttributeProviderConfig getConfig() {
+        return providerConfig;
     }
 
     @Override

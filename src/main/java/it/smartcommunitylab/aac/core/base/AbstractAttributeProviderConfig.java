@@ -5,20 +5,50 @@ import java.util.Set;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.core.provider.AttributeProviderConfig;
 
-public abstract class AbstractAttributeProviderConfig extends AbstractProviderConfig {
+public abstract class AbstractAttributeProviderConfig<T extends AbstractConfigMap> extends AbstractProviderConfig<T>
+        implements AttributeProviderConfig<T> {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
+
+    protected String persistence;
+    protected String events;
 
     protected Set<String> attributeSets;
 
-    protected AbstractAttributeProviderConfig(String authority, String provider, String realm) {
-        super(authority, provider, realm);
+    protected AbstractAttributeProviderConfig(String authority, String provider, String realm, T configMap) {
+        super(authority, provider, realm, configMap);
         this.attributeSets = Collections.emptySet();
+    }
+
+    protected AbstractAttributeProviderConfig(ConfigurableAttributeProvider cp) {
+        super(cp);
+
+        this.persistence = cp.getPersistence();
+        this.events = cp.getEvents();
+
+        this.attributeSets = (cp.getAttributeSets() != null ? cp.getAttributeSets() : Collections.emptySet());
     }
 
     @Override
     public final String getType() {
         return SystemKeys.RESOURCE_ATTRIBUTES;
+    }
+
+    public String getPersistence() {
+        return persistence;
+    }
+
+    public void setPersistence(String persistence) {
+        this.persistence = persistence;
+    }
+
+    public String getEvents() {
+        return events;
+    }
+
+    public void setEvents(String events) {
+        this.events = events;
     }
 
     public Set<String> getAttributeSets() {
@@ -34,6 +64,9 @@ public abstract class AbstractAttributeProviderConfig extends AbstractProviderCo
                 getProvider(),
                 getRealm());
         cp.setType(SystemKeys.RESOURCE_ATTRIBUTES);
+        cp.setPersistence(getPersistence());
+        cp.setEvents(getEvents());
+
         cp.setName(getName());
         cp.setDescription(getDescription());
 

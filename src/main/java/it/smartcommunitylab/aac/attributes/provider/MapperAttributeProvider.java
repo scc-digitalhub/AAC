@@ -26,12 +26,12 @@ import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
 import it.smartcommunitylab.aac.core.model.Attribute;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
-import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 
-public class MapperAttributeProvider extends AbstractProvider implements AttributeProvider {
+public class MapperAttributeProvider extends AbstractProvider
+        implements AttributeProvider<MapperAttributeProviderConfigMap> {
 
     // services
     private final AttributeService attributeService;
@@ -59,7 +59,7 @@ public class MapperAttributeProvider extends AbstractProvider implements Attribu
         this.providerConfig = config;
 
         // validate mapper type
-        String type = providerConfig.getConfigMap().getType();
+        String type = providerConfig.getMapperType();
         if (!DefaultAttributesMapper.TYPE.equals(type) && !ExactAttributesMapper.TYPE.equals(type)) {
             throw new IllegalArgumentException("invalid mapper type");
         }
@@ -86,14 +86,17 @@ public class MapperAttributeProvider extends AbstractProvider implements Attribu
     }
 
     @Override
+    public MapperAttributeProviderConfig getConfig() {
+        return providerConfig;
+    }
+
+    @Override
     public Collection<UserAttributes> convertPrincipalAttributes(UserAuthenticatedPrincipal principal,
             String subjectId) {
 
         if (providerConfig.getAttributeSets().isEmpty()) {
             return Collections.emptyList();
         }
-
-        MapperAttributeProviderConfigMap configMap = providerConfig.getConfigMap();
 
         List<UserAttributes> result = new ArrayList<>();
         Map<String, Serializable> principalAttributes = new HashMap<>();
@@ -120,7 +123,7 @@ public class MapperAttributeProvider extends AbstractProvider implements Attribu
                 AttributeSet as = attributeService.getAttributeSet(setId);
 
                 // build mapper as per config
-                BaseAttributesMapper mapper = getAttributeMapper(configMap.getType(), as);
+                BaseAttributesMapper mapper = getAttributeMapper(providerConfig.getMapperType(), as);
                 AttributeSet set = mapper.mapAttributes(principalAttributes);
                 if (set.getAttributes() != null && !set.getAttributes().isEmpty()) {
                     // build result

@@ -1,13 +1,13 @@
 package it.smartcommunitylab.aac.core.authorities;
 
-import it.smartcommunitylab.aac.core.base.AbstractProviderConfig;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.core.provider.IdentityProviderConfig;
 
-public interface IdentityProviderAuthority<I extends UserIdentity, S extends IdentityProvider<I>, C extends AbstractProviderConfig<P>, P extends ConfigMap>
+public interface IdentityProviderAuthority<I extends UserIdentity, S extends IdentityProvider<I, P>, C extends IdentityProviderConfig<P>, P extends ConfigMap>
         extends ProviderAuthority<S> {
 
 //    /*
