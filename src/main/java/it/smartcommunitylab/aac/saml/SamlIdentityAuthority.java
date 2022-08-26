@@ -57,7 +57,17 @@ public class SamlIdentityAuthority extends
             UserAccountService<SamlUserAccount> userAccountService, AutoJdbcAttributeStore jdbcAttributeStore,
             ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository,
             @Qualifier("samlRelyingPartyRegistrationRepository") SamlRelyingPartyRegistrationRepository samlRelyingPartyRegistrationRepository) {
-        super(SystemKeys.AUTHORITY_SAML, userEntityService, subjectService, registrationRepository);
+        this(SystemKeys.AUTHORITY_SAML, userEntityService, subjectService, userAccountService, jdbcAttributeStore,
+                registrationRepository, samlRelyingPartyRegistrationRepository);
+    }
+
+    public SamlIdentityAuthority(
+            String authorityId,
+            UserEntityService userEntityService, SubjectService subjectService,
+            UserAccountService<SamlUserAccount> userAccountService, AutoJdbcAttributeStore jdbcAttributeStore,
+            ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository,
+            @Qualifier("samlRelyingPartyRegistrationRepository") SamlRelyingPartyRegistrationRepository samlRelyingPartyRegistrationRepository) {
+        super(authorityId, userEntityService, subjectService, registrationRepository);
         Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(jdbcAttributeStore, "attribute store is mandatory");
         Assert.notNull(samlRelyingPartyRegistrationRepository, "relayingParty registration repository is mandatory");
@@ -98,7 +108,7 @@ public class SamlIdentityAuthority extends
         AttributeStore attributeStore = getAttributeStore(id, config.getPersistence());
 
         SamlIdentityProvider idp = new SamlIdentityProvider(
-                id,
+                authorityId, id,
                 userEntityService, accountService, subjectService,
                 attributeStore, config, config.getRealm());
 

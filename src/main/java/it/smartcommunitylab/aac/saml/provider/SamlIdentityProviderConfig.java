@@ -1,13 +1,10 @@
 package it.smartcommunitylab.aac.saml.provider;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.io.StringReader;
 import java.security.PrivateKey;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
 
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
@@ -26,51 +23,23 @@ import org.springframework.util.StringUtils;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.saml.SamlIdentityAuthority;
 
-public class SamlIdentityProviderConfig extends AbstractIdentityProviderConfig {
+public class SamlIdentityProviderConfig extends AbstractIdentityProviderConfig<SamlIdentityProviderConfigMap> {
     private static final long serialVersionUID = SystemKeys.AAC_SAML_SERIAL_VERSION;
 
-    public static final String DEFAULT_METADATA_URL = "{baseUrl}" + SamlIdentityAuthority.AUTHORITY_URL
-            + "metadata/{registrationId}";
-
-    public static final String DEFAULT_CONSUMER_URL = "{baseUrl}" + SamlIdentityAuthority.AUTHORITY_URL
-            + "sso/{registrationId}";
-
-    private SamlIdentityProviderConfigMap configMap;
     private RelyingPartyRegistration relyingPartyRegistration;
 
     public SamlIdentityProviderConfig(String provider, String realm) {
-        super(SystemKeys.AUTHORITY_SAML, provider, realm);
+        this(SystemKeys.AUTHORITY_SAML, provider, realm);
+    }
+
+    public SamlIdentityProviderConfig(String authority, String provider, String realm) {
+        super(authority, provider, realm, new SamlIdentityProviderConfigMap());
         this.relyingPartyRegistration = null;
-        this.configMap = new SamlIdentityProviderConfigMap();
-        // set default params, will set vars after build
-        this.configMap.setEntityId(DEFAULT_METADATA_URL);
-        this.configMap.setMetadataUrl(DEFAULT_METADATA_URL);
-        this.configMap.setAssertionConsumerServiceUrl(DEFAULT_CONSUMER_URL);
     }
 
-    public SamlIdentityProviderConfigMap getConfigMap() {
-        return configMap;
-    }
-
-    public void setConfigMap(SamlIdentityProviderConfigMap configMap) {
-        this.configMap = configMap;
-    }
-
-    @Override
-    public Map<String, Serializable> getConfiguration() {
-        return configMap.getConfiguration();
-    }
-
-    @Override
-    public void setConfiguration(Map<String, Serializable> props) {
-        configMap = new SamlIdentityProviderConfigMap();
-        configMap.setConfiguration(props);
-
-        configMap.setMetadataUrl(DEFAULT_METADATA_URL);
-        configMap.setAssertionConsumerServiceUrl(DEFAULT_CONSUMER_URL);
-
+    public SamlIdentityProviderConfig(ConfigurableIdentityProvider cp) {
+        super(cp);
     }
 
     public RelyingPartyRegistration getRelyingPartyRegistration() {
@@ -88,13 +57,8 @@ public class SamlIdentityProviderConfig extends AbstractIdentityProviderConfig {
     // TODO throws exception if configuration is invalid
     private RelyingPartyRegistration toRelyingPartyRegistration() throws IOException, CertificateException {
         // set base parameters
-        String entityId = DEFAULT_METADATA_URL;
-        String assertionConsumerServiceLocation = DEFAULT_CONSUMER_URL;
-
-        if (StringUtils.hasText(configMap.getEntityId())) {
-            // let config override, this breaks some standards but saml...
-            entityId = configMap.getEntityId();
-        }
+        String entityId = getEntityId();
+        String assertionConsumerServiceLocation = getAssertionConsumerUrl();
 
         // read rp parameters from map
         // note: only RSA keys supported
@@ -176,6 +140,19 @@ public class SamlIdentityProviderConfig extends AbstractIdentityProviderConfig {
 
         return builder.build();
 
+    }
+
+    public String getMetadataUrl() {
+        return "{baseUrl}" + getAuthority() + "metadata/{registrationId}";
+    }
+
+    public String getAssertionConsumerUrl() {
+        return "{baseUrl}" + getAuthority() + "sso/{registrationId}";
+    }
+
+    public String getEntityId() {
+        // let config override, this breaks some standards but saml...
+        return configMap.getEntityId() != null ? configMap.getEntityId() : getMetadataUrl();
     }
 
     // export additional properties not supported by stock model

@@ -39,7 +39,18 @@ public class SamlIdentityProvider
             AttributeStore attributeStore,
             SamlIdentityProviderConfig config,
             String realm) {
-        super(SystemKeys.AUTHORITY_SAML, providerId, userEntityService, userAccountService, subjectService, config,
+        this(SystemKeys.AUTHORITY_SAML, providerId, userEntityService, userAccountService, subjectService,
+                attributeStore, config, realm);
+    }
+
+    public SamlIdentityProvider(
+            String authority, String providerId,
+            UserEntityService userEntityService, UserAccountService<SamlUserAccount> userAccountService,
+            SubjectService subjectService,
+            AttributeStore attributeStore,
+            SamlIdentityProviderConfig config,
+            String realm) {
+        super(authority, providerId, userEntityService, userAccountService, subjectService, config,
                 realm);
         Assert.notNull(attributeStore, "attribute store is mandatory");
 
@@ -47,11 +58,12 @@ public class SamlIdentityProvider
         this.config = config;
 
         // build resource providers, we use our providerId to ensure consistency
-        this.accountProvider = new SamlAccountProvider(providerId, userAccountService, config, realm);
-        this.attributeProvider = new SamlAttributeProvider(providerId, attributeStore, config,
+        this.accountProvider = new SamlAccountProvider(authority, providerId, userAccountService, config, realm);
+        this.attributeProvider = new SamlAttributeProvider(authority, providerId, attributeStore, config,
                 realm);
-        this.authenticationProvider = new SamlAuthenticationProvider(providerId, userAccountService, config, realm);
-        this.subjectResolver = new SamlSubjectResolver(providerId, userAccountService, config, realm);
+        this.authenticationProvider = new SamlAuthenticationProvider(authority, providerId, userAccountService, config,
+                realm);
+        this.subjectResolver = new SamlSubjectResolver(authority, providerId, userAccountService, config, realm);
 
         // function hooks from config
         if (config.getHookFunctions() != null
@@ -94,7 +106,7 @@ public class SamlIdentityProvider
     protected SamlUserIdentity buildIdentity(SamlUserAccount account, SamlUserAuthenticatedPrincipal principal,
             Collection<UserAttributes> attributes) {
         // build identity
-        SamlUserIdentity identity = new SamlUserIdentity(getProvider(), getRealm(), account, principal);
+        SamlUserIdentity identity = new SamlUserIdentity(getAuthority(), getProvider(), getRealm(), account, principal);
         identity.setAttributes(attributes);
 
         return identity;
@@ -328,7 +340,7 @@ public class SamlIdentityProvider
     @Override
     public String getAuthenticationUrl() {
         // TODO build a realm-bound url, need updates on filters
-        return SamlIdentityAuthority.AUTHORITY_URL + "authenticate/" + getProvider();
+        return "/auth/" + getAuthority() + "authenticate/" + getProvider();
     }
 
     @Override

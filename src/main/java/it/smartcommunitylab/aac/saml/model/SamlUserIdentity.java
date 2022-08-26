@@ -24,7 +24,11 @@ public class SamlUserIdentity extends AbstractIdentity {
     protected Set<UserAttributes> attributes;
 
     public SamlUserIdentity(String provider, String realm, SamlUserAccount account) {
-        super(SystemKeys.AUTHORITY_SAML, provider, realm);
+        this(SystemKeys.AUTHORITY_SAML, provider, realm, account);
+    }
+
+    public SamlUserIdentity(String authority, String provider, String realm, SamlUserAccount account) {
+        super(authority, provider, realm);
         this.account = account;
         this.principal = null;
         this.attributes = Collections.emptySet();
@@ -33,7 +37,12 @@ public class SamlUserIdentity extends AbstractIdentity {
 
     public SamlUserIdentity(String provider, String realm, SamlUserAccount account,
             SamlUserAuthenticatedPrincipal principal) {
-        super(SystemKeys.AUTHORITY_SAML, provider, realm);
+        this(SystemKeys.AUTHORITY_SAML, provider, realm, account, principal);
+    }
+
+    public SamlUserIdentity(String authority, String provider, String realm, SamlUserAccount account,
+            SamlUserAuthenticatedPrincipal principal) {
+        super(authority, provider, realm);
         this.account = account;
         this.principal = principal;
         this.attributes = Collections.emptySet();

@@ -10,7 +10,6 @@ import it.smartcommunitylab.aac.core.provider.SubjectResolver;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
-import it.smartcommunitylab.aac.saml.service.SamlUserAccountService;
 
 @Transactional
 public class SamlSubjectResolver extends AbstractProvider implements SubjectResolver<SamlUserAccount> {
@@ -21,14 +20,22 @@ public class SamlSubjectResolver extends AbstractProvider implements SubjectReso
 
     private final String repositoryId;
 
-    protected SamlSubjectResolver(String providerId, UserAccountService<SamlUserAccount> accountService,
+    public SamlSubjectResolver(String providerId, UserAccountService<SamlUserAccount> userAccountService,
             SamlIdentityProviderConfig config,
             String realm) {
-        super(SystemKeys.AUTHORITY_SAML, providerId, realm);
-        Assert.notNull(accountService, "account service is mandatory");
+        this(SystemKeys.AUTHORITY_SAML, providerId, userAccountService, config, realm);
+
+    }
+
+    public SamlSubjectResolver(String authority, String providerId,
+            UserAccountService<SamlUserAccount> userAccountService,
+            SamlIdentityProviderConfig config,
+            String realm) {
+        super(authority, providerId, realm);
+        Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(config, "provider config is mandatory");
 
-        this.accountService = accountService;
+        this.accountService = userAccountService;
         this.config = config;
 
         // repositoryId is always providerId, saml isolates data per provider
