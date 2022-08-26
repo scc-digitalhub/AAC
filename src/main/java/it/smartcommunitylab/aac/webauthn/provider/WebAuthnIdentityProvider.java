@@ -15,7 +15,6 @@ import it.smartcommunitylab.aac.internal.model.CredentialsType;
 import it.smartcommunitylab.aac.internal.model.InternalLoginProvider;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.provider.AbstractInternalIdentityProvider;
 import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserAuthenticatedPrincipal;
@@ -41,7 +40,7 @@ public class WebAuthnIdentityProvider
             String realm) {
         super(SystemKeys.AUTHORITY_WEBAUTHN, providerId,
                 userEntityService, userAccountService, subjectService,
-                config, realm);
+                config.toInternalProviderConfig(), realm);
         Assert.notNull(credentialsRepository, "credentials repository is mandatory");
 
         this.config = config;
@@ -65,7 +64,7 @@ public class WebAuthnIdentityProvider
     }
 
     @Override
-    public InternalIdentityProviderConfig getConfig() {
+    public WebAuthnIdentityProviderConfig getConfig() {
         return config;
     }
 
