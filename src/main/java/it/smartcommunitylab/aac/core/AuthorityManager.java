@@ -18,6 +18,8 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.authorities.AttributeAuthority;
 import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
+import it.smartcommunitylab.aac.core.base.AbstractProviderConfig;
+import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
@@ -155,7 +157,7 @@ public class AuthorityManager implements InitializingBean {
         return identityProviderAuthorityService.getAuthority(authorityId);
     }
 
-    public Collection<IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>, ?, ?>> listIdentityProviderAuthorities() {
+    public Collection<IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>, ? extends AbstractProviderConfig<?>, ? extends ConfigMap>> listIdentityProviderAuthorities() {
         return identityProviderAuthorityService.getAuthorities();
     }
 

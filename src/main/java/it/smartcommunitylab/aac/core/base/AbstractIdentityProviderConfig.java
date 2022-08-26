@@ -6,11 +6,9 @@ import java.util.Map;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 
-public abstract class AbstractIdentityProviderConfig extends AbstractProviderConfig {
+public abstract class AbstractIdentityProviderConfig<T extends AbstractConfigMap> extends AbstractProviderConfig<T> {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
-    protected String name;
-    protected String description;
     protected String icon;
 
     protected Boolean linkable;
@@ -20,30 +18,24 @@ public abstract class AbstractIdentityProviderConfig extends AbstractProviderCon
 
     protected Map<String, String> hookFunctions;
 
-    protected AbstractIdentityProviderConfig(String authority, String provider, String realm) {
-        super(authority, provider, realm);
+    protected AbstractIdentityProviderConfig(String authority, String provider, String realm, T configMap) {
+        super(authority, provider, realm, configMap);
         this.hookFunctions = Collections.emptyMap();
+    }
+
+    protected AbstractIdentityProviderConfig(ConfigurableIdentityProvider cp) {
+        super(cp);
+
+        this.icon = cp.getIcon();
+
+        this.persistence = cp.getPersistence();
+        this.linkable = cp.isLinkable();
+        this.hookFunctions = (cp.getHookFunctions() != null ? cp.getHookFunctions() : Collections.emptyMap());
     }
 
     @Override
     public final String getType() {
         return SystemKeys.RESOURCE_IDENTITY;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     public String getIcon() {

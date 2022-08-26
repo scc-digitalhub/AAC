@@ -20,7 +20,6 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
@@ -30,7 +29,7 @@ import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 
-public abstract class AbstractIdentityAuthority<I extends UserIdentity, S extends IdentityProvider<I>, C extends AbstractProviderConfig, P extends ConfigurableProperties>
+public abstract class AbstractIdentityAuthority<I extends UserIdentity, S extends IdentityProvider<I>, C extends AbstractProviderConfig<P>, P extends AbstractConfigMap>
         implements IdentityProviderAuthority<I, S, C, P>, InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 

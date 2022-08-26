@@ -30,6 +30,7 @@ import it.smartcommunitylab.aac.config.AuthoritiesProperties;
 import it.smartcommunitylab.aac.config.ProvidersProperties;
 import it.smartcommunitylab.aac.config.ProvidersProperties.ProviderConfiguration;
 import it.smartcommunitylab.aac.core.base.AbstractProviderConfig;
+import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
@@ -257,10 +258,10 @@ public class IdentityProviderService {
         Integer position = provider.getPosition();
 
         // we validate config by converting to specific configMap
-        ConfigurationProvider<? extends ConfigurableProvider, ? extends AbstractProviderConfig, ? extends ConfigurableProperties> configProvider = authorityService
+        ConfigurationProvider<? extends ConfigurableProvider, ? extends AbstractProviderConfig<?>, ? extends ConfigMap> configProvider = authorityService
                 .getAuthority(authority).getConfigurationProvider();
 
-        ConfigurableProperties configurable = configProvider.getConfigMap(provider.getConfiguration());
+        ConfigMap configurable = configProvider.getConfigMap(provider.getConfiguration());
 
         // check with validator
         DataBinder binder = new DataBinder(configurable);
