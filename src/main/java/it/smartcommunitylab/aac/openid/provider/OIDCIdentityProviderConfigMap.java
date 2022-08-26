@@ -1,36 +1,24 @@
 package it.smartcommunitylab.aac.openid.provider;
 
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 import javax.validation.Valid;
-import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
-
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
+import it.smartcommunitylab.aac.core.base.AbstractConfigMap;
 import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.oauth.model.PromptMode;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Serializable {
-
+public class OIDCIdentityProviderConfigMap extends AbstractConfigMap implements Serializable {
     private static final long serialVersionUID = SystemKeys.AAC_OIDC_SERIAL_VERSION;
-
-    private static ObjectMapper mapper = new ObjectMapper();
-    private final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
-    };
 
     private String clientId;
     private String clientSecret;
@@ -61,12 +49,6 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
     private Set<PromptMode> promptMode;
 
     public OIDCIdentityProviderConfigMap() {
-//        // set default
-//        this.scope = "openid,email";
-//        this.userNameAttributeName = IdTokenClaimNames.SUB;
-//        this.clientAuthenticationMethod = AuthenticationMethod.CLIENT_SECRET_BASIC;
-//        this.enablePkce = true;
-//        this.trustEmailAddress = true;
     }
 
     public String getClientId() {
@@ -221,20 +203,8 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
         this.promptMode = promptMode;
     }
 
-    @Override
     @JsonIgnore
-    public Map<String, Serializable> getConfiguration() {
-        // use mapper
-        mapper.setSerializationInclusion(Include.NON_EMPTY);
-        return mapper.convertValue(this, typeRef);
-    }
-
-    @Override
-    @JsonIgnore
-    public void setConfiguration(Map<String, Serializable> props) {
-        // use mapper
-        mapper.setSerializationInclusion(Include.NON_EMPTY);
-        OIDCIdentityProviderConfigMap map = mapper.convertValue(props, OIDCIdentityProviderConfigMap.class);
+    public void setConfiguration(OIDCIdentityProviderConfigMap map) {
 
         this.clientId = map.getClientId();
         this.clientSecret = map.getClientSecret();
@@ -262,13 +232,19 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
         this.propagateEndSession = map.getPropagateEndSession();
         this.respectTokenExpiration = map.getRespectTokenExpiration();
         this.promptMode = map.getPromptMode();
+    }
 
+    @Override
+    public void setConfiguration(Map<String, Serializable> props) {
+        // use mapper
+        mapper.setSerializationInclusion(Include.NON_EMPTY);
+        OIDCIdentityProviderConfigMap map = mapper.convertValue(props, OIDCIdentityProviderConfigMap.class);
+
+        setConfiguration(map);
     }
 
     @JsonIgnore
-    public static JsonSchema getConfigurationSchema() throws JsonMappingException {
-        JsonSchemaGenerator schemaGen = new JsonSchemaGenerator(mapper);
+    public JsonSchema getSchema() throws JsonMappingException {
         return schemaGen.generateSchema(OIDCIdentityProviderConfigMap.class);
     }
-
 }

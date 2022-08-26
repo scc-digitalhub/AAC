@@ -1,10 +1,6 @@
 package it.smartcommunitylab.aac.openid.provider;
 
-import java.io.Serializable;
 import java.text.ParseException;
-import java.util.Collections;
-import java.util.Map;
-
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrations;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
@@ -17,17 +13,12 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
-import it.smartcommunitylab.aac.openid.OIDCIdentityAuthority;
 
-public class OIDCIdentityProviderConfig extends AbstractIdentityProviderConfig {
+public class OIDCIdentityProviderConfig extends AbstractIdentityProviderConfig<OIDCIdentityProviderConfigMap> {
     private static final long serialVersionUID = SystemKeys.AAC_OIDC_SERIAL_VERSION;
 
     private static final String WELL_KNOWN_CONFIGURATION_OPENID = "/.well-known/openid-configuration";
 
-    public static final String DEFAULT_REDIRECT_URL = "{baseUrl}" + OIDCIdentityAuthority.AUTHORITY_URL
-            + "{action}/{registrationId}";
-
-    private OIDCIdentityProviderConfigMap configMap;
     private ClientRegistration clientRegistration;
 
     public OIDCIdentityProviderConfig(String provider, String realm) {
@@ -35,28 +26,12 @@ public class OIDCIdentityProviderConfig extends AbstractIdentityProviderConfig {
     }
 
     public OIDCIdentityProviderConfig(String authority, String provider, String realm) {
-        super(authority, provider, realm);
+        super(authority, provider, realm, new OIDCIdentityProviderConfigMap());
         this.clientRegistration = null;
-        this.configMap = new OIDCIdentityProviderConfigMap();
     }
 
-    public OIDCIdentityProviderConfigMap getConfigMap() {
-        return configMap;
-    }
-
-    public void setConfigMap(OIDCIdentityProviderConfigMap configMap) {
-        this.configMap = configMap;
-    }
-
-    @Override
-    public Map<String, Serializable> getConfiguration() {
-        return configMap.getConfiguration();
-    }
-
-    @Override
-    public void setConfiguration(Map<String, Serializable> props) {
-        configMap = new OIDCIdentityProviderConfigMap();
-        configMap.setConfiguration(props);
+    public OIDCIdentityProviderConfig(ConfigurableIdentityProvider cp) {
+        super(cp);
     }
 
     public ClientRegistration getClientRegistration() {
@@ -140,7 +115,7 @@ public class OIDCIdentityProviderConfig extends AbstractIdentityProviderConfig {
         // TODO check PKCE
         builder.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE);
         // add our redirect template
-        builder.redirectUri(DEFAULT_REDIRECT_URL);
+        builder.redirectUri(getRedirectUrl());
 
         // set client
         builder.clientId(configMap.getClientId());
@@ -265,6 +240,10 @@ public class OIDCIdentityProviderConfig extends AbstractIdentityProviderConfig {
         op.hookFunctions = (cp.getHookFunctions() != null ? cp.getHookFunctions() : Collections.emptyMap());
 
         return op;
+    }
+    
+    public String getRedirectUrl() {
+        return "{baseUrl}" + getAuthority() + "{action}/{registrationId}";
     }
 
 }

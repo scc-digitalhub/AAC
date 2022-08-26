@@ -28,7 +28,6 @@ import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.model.SubjectStatus;
 import it.smartcommunitylab.aac.openid.model.OIDCUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
-import it.smartcommunitylab.aac.openid.service.OIDCUserAccountService;
 
 @Transactional
 public class OIDCAccountProvider extends AbstractProvider implements AccountProvider<OIDCUserAccount> {
