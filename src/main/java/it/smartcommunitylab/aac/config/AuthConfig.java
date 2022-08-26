@@ -24,6 +24,8 @@ import org.springframework.web.filter.CompositeFilter;
 
 import it.smartcommunitylab.aac.core.ExtendedUserAuthenticationManager;
 import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
+import it.smartcommunitylab.aac.core.base.AbstractProviderConfig;
+import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
@@ -68,7 +70,7 @@ public class AuthConfig {
         List<Filter> filters = new ArrayList<>();
 
         // build filters for every authority
-        Collection<IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>, ?, ?>> authorities = identityProviderAuthorityService
+        Collection<IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>, ? extends AbstractProviderConfig<?>, ? extends ConfigMap>> authorities = identityProviderAuthorityService
                 .getAuthorities();
 
         for (IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>, ?, ?> authority : authorities) {
