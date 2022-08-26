@@ -103,7 +103,6 @@ public class InternalIdentityProviderConfigMap extends AbstractConfigMap impleme
 
     @JsonIgnore
     public void setConfiguration(InternalIdentityProviderConfigMap map) {
-
         this.maxSessionDuration = map.getMaxSessionDuration();
 
         this.credentialsType = map.getCredentialsType();

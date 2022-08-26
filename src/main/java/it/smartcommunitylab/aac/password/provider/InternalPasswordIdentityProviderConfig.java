@@ -1,49 +1,53 @@
 package it.smartcommunitylab.aac.password.provider;
 
-import java.io.Serializable;
-import java.util.Collections;
-import java.util.Map;
-
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.base.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.internal.model.CredentialsType;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
 
-public class InternalPasswordIdentityProviderConfig extends InternalIdentityProviderConfig {
+public class InternalPasswordIdentityProviderConfig
+        extends AbstractIdentityProviderConfig<InternalPasswordIdentityProviderConfigMap> {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     private final static int MIN_DURATION = 300;
+    private final static int MAX_SESSION_DURATION = 24 * 60 * 60; // 24h
     private final static int PASSWORD_MIN_LENGTH = 2;
     private final static int PASSWORD_MAX_LENGTH = 75;
 
-    // map capabilities
-    private InternalPasswordIdentityProviderConfigMap configMap;
-
     public InternalPasswordIdentityProviderConfig(String provider, String realm) {
-        super(SystemKeys.AUTHORITY_PASSWORD, provider, realm);
-        this.configMap = new InternalPasswordIdentityProviderConfigMap();
+        super(SystemKeys.AUTHORITY_INTERNAL, provider, realm, new InternalPasswordIdentityProviderConfigMap());
     }
 
-    public InternalIdentityProviderConfigMap getConfigMap() {
-        return configMap;
+    public InternalPasswordIdentityProviderConfig(ConfigurableIdentityProvider cp) {
+        super(cp);
     }
 
-    public void setConfigMap(InternalPasswordIdentityProviderConfigMap configMap) {
-        this.configMap = configMap;
-        super.setConfigMap(configMap);
+    public String getRepositoryId() {
+        // scoped providers will use their id as providerId for data repositories
+        // otherwise they'll expose realm slug as id
+        if (isScopedData()) {
+            return this.getProvider();
+        } else {
+            return this.getRealm();
+        }
     }
 
-    @Override
-    public Map<String, Serializable> getConfiguration() {
-        return configMap.getConfiguration();
+    public CredentialsType getCredentialsType() {
+        return CredentialsType.PASSWORD;
     }
 
-    @Override
-    public void setConfiguration(Map<String, Serializable> props) {
-        configMap = new InternalPasswordIdentityProviderConfigMap();
-        configMap.setConfiguration(props);
+    public boolean isScopedData() {
+        return configMap.getScopedData() != null ? configMap.getScopedData().booleanValue() : false;
+    }
 
-        super.setConfigMap(configMap);
+    public String getScope() {
+        if (isScopedData()) {
+            return SystemKeys.RESOURCE_PROVIDER;
+        }
+
+        return SystemKeys.RESOURCE_REALM;
     }
 
     /*
@@ -123,7 +127,7 @@ public class InternalPasswordIdentityProviderConfig extends InternalIdentityProv
     }
 
     /*
-     * Static parser
+     * config flags
      */
     public static InternalPasswordIdentityProviderConfig fromConfigurableProvider(ConfigurableIdentityProvider cp) {
         InternalPasswordIdentityProviderConfig ip = new InternalPasswordIdentityProviderConfig(cp.getProvider(),
@@ -143,8 +147,72 @@ public class InternalPasswordIdentityProviderConfig extends InternalIdentityProv
         ip.position = cp.getPosition();
 
         ip.hookFunctions = (cp.getHookFunctions() != null ? cp.getHookFunctions() : Collections.emptyMap());
+        return ip;
+    }
+    
+    public boolean isEnableRegistration() {
+        return configMap.getEnableRegistration() != null ? configMap.getEnableRegistration().booleanValue() : true;
+    }
+
+    public boolean isEnableUpdate() {
+        return configMap.getEnableUpdate() != null ? configMap.getEnableUpdate().booleanValue() : true;
+    }
+
+    public boolean isConfirmationRequired() {
+        return configMap.getConfirmationRequired() != null ? configMap.getConfirmationRequired().booleanValue() : true;
+    }
+
+    /*
+     * default config
+     */
+    public int getConfirmationValidity() {
+        return configMap.getConfirmationValidity() != null ? configMap.getConfirmationValidity().intValue()
+                : MIN_DURATION;
+    }
+
+    public int getMaxSessionDuration() {
+        return configMap.getMaxSessionDuration() != null ? configMap.getMaxSessionDuration().intValue()
+                : MAX_SESSION_DURATION;
+    }
+
+    public InternalIdentityProviderConfig toInternalProviderConfig() {
+        InternalIdentityProviderConfig ip = new InternalIdentityProviderConfig(SystemKeys.AUTHORITY_PASSWORD,
+                getProvider(),
+                getRealm());
+        InternalIdentityProviderConfigMap cMap = new InternalIdentityProviderConfigMap();
+        cMap.setCredentialsType(CredentialsType.PASSWORD);
+        cMap.setMaxSessionDuration(getMaxSessionDuration());
+        cMap.setScopedData(isScopedData());
+        cMap.setEnableRegistration(isEnableRegistration());
+        cMap.setEnableUpdate(isEnableUpdate());
+        cMap.setConfirmationRequired(isConfirmationRequired());
+        cMap.setConfirmationValidity(getConfirmationValidity());
+
+        ip.setConfigMap(cMap);
 
         return ip;
     }
+
+//    /*
+//     * Static parser
+//     */
+//    public static InternalPasswordIdentityProviderConfig fromConfigurableProvider(ConfigurableIdentityProvider cp) {
+//        InternalPasswordIdentityProviderConfig ip = new InternalPasswordIdentityProviderConfig(cp.getProvider(),
+//                cp.getRealm());
+//        // parse and use setter to properly propagate config to super
+//        InternalPasswordIdentityProviderConfigMap configMap = new InternalPasswordIdentityProviderConfigMap();
+//        configMap.setConfiguration(cp.getConfiguration());
+//        ip.setConfigMap(configMap);
+//
+//        ip.name = cp.getName();
+//        ip.description = cp.getDescription();
+//        ip.icon = cp.getIcon();
+//
+//        ip.persistence = cp.getPersistence();
+//        ip.linkable = cp.isLinkable();
+//        ip.hookFunctions = (cp.getHookFunctions() != null ? cp.getHookFunctions() : Collections.emptyMap());
+//
+//        return ip;
+//    }
 
 }

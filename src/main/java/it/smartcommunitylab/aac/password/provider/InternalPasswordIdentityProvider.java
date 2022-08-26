@@ -58,7 +58,7 @@ public class InternalPasswordIdentityProvider
             String realm) {
         super(SystemKeys.AUTHORITY_PASSWORD, providerId,
                 userEntityService, userAccountService, subjectService,
-                config, realm);
+                config.toInternalProviderConfig(), realm);
         Assert.notNull(passwordRepository, "password repository is mandatory");
 
         this.config = config;
@@ -67,7 +67,7 @@ public class InternalPasswordIdentityProvider
 
         this.accountService = new InternalAccountService(SystemKeys.AUTHORITY_PASSWORD, providerId,
                 userAccountService, confirmKeyService, subjectService,
-                config, realm);
+                config.toInternalProviderConfig(), realm);
 
         this.passwordService = new InternalPasswordService(providerId, userAccountService, passwordRepository, config,
                 realm);

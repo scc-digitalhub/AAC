@@ -3,6 +3,7 @@ package it.smartcommunitylab.aac.internal.provider;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.internal.model.CredentialsType;
 
 public class InternalIdentityProviderConfig extends AbstractIdentityProviderConfig<InternalIdentityProviderConfigMap> {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
@@ -32,9 +33,9 @@ public class InternalIdentityProviderConfig extends AbstractIdentityProviderConf
         }
     }
 
-//    public CredentialsType getCredentialsType() {
-//        return configMap.getCredentialsType() != null ? configMap.getCredentialsType() : CredentialsType.NONE;
-//    }
+    public CredentialsType getCredentialsType() {
+        return CredentialsType.NONE;
+    }
 
     public boolean isScopedData() {
         return configMap.getScopedData() != null ? configMap.getScopedData().booleanValue() : false;

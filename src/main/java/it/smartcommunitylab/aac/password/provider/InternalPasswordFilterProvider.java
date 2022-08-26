@@ -70,7 +70,7 @@ public class InternalPasswordFilterProvider implements FilterProvider {
         resetKeyFilter.setAuthenticationSuccessHandler(successHandler());
 
         // TODO remove when registration is handled only by internalService
-        InternalConfirmKeyAuthenticationFilter<InternalPasswordIdentityProviderConfig> confirmKeyFilter = new InternalConfirmKeyAuthenticationFilter<>(
+        InternalConfirmKeyAuthenticationFilter confirmKeyFilter = new InternalConfirmKeyAuthenticationFilter(
                 SystemKeys.AUTHORITY_PASSWORD,
                 confirmKeyService, registrationRepository,
                 InternalPasswordIdentityAuthority.AUTHORITY_URL + "confirm/{registrationId}", null);
