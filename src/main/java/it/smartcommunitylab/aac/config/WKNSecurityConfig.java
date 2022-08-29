@@ -32,6 +32,7 @@ public class WKNSecurityConfig {
     /*
      * Configure a separated security context for WKN
      */
+    @Order(27)
     @Bean("wknSecurityFilterChain")
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         // match only endpoints

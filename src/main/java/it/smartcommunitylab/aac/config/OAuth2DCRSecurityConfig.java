@@ -41,6 +41,7 @@ public class OAuth2DCRSecurityConfig {
     /*
      * Configure a separated security context for API
      */
+    @Order(23)
     @Bean("oauth2DCRSecurityFilterChain")
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         // match only dcr endpoints, do not require any role since we support open

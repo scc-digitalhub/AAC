@@ -37,6 +37,7 @@ public class APISecurityConfig {
     /*
      * Configure a separated security context for API
      */
+    @Order(24)
     @Bean("apiSecurityFilterChain")
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         // match only API endpoints

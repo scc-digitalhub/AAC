@@ -27,6 +27,7 @@ public class AssetsSecurityConfig {
      * Configure a separated security context for static assets
      * 
      */
+    @Order(29)
     @Bean("assetsSecurityFilterChain")
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         // match only endpoints

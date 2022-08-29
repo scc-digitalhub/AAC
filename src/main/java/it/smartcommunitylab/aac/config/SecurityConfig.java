@@ -103,6 +103,7 @@ public class SecurityConfig {
         return new InternalPasswordEncoder();
     }
 
+    @Order(30)
     @Bean("securityFilterChain")
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 

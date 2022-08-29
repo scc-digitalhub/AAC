@@ -42,6 +42,7 @@ public class MonitoringSecurityConfig {
     /*
      * Configure a separated security context for management
      */
+    @Order(26)
     @Bean("monitoringSecurityFilterChain")
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 

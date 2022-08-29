@@ -27,6 +27,7 @@ public class OpenAPISecurityConfig {
     /*
      * Configure a separated security context for openAPI
      */
+    @Order(14)
     @Bean("openapiSecurityFilterChain")
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         // match only endpoints

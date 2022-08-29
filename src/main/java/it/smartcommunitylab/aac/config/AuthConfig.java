@@ -43,6 +43,7 @@ public class AuthConfig {
     private String applicationURL;
 
     @Bean
+    @Order(17)
     @Qualifier("authSecurityFilterChain")
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.requestMatcher(getRequestMatcher())

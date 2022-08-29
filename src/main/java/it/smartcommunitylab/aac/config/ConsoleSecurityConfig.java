@@ -24,6 +24,7 @@ public class ConsoleSecurityConfig {
     /*
      * Configure a separated security context for API
      */
+    @Order(25)
     @Bean("consoleSecurityFilterChain")
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         // match only console endpoints and require user access

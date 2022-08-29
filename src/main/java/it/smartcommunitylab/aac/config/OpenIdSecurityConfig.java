@@ -43,6 +43,7 @@ public class OpenIdSecurityConfig {
     /*
      * Configure a separated security context for API
      */
+    @Order(22)
     @Bean("openidSecurityFilterChain")
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         // match only endpoints

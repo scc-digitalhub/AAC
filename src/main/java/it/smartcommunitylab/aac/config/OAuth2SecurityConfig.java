@@ -70,6 +70,7 @@ public class OAuth2SecurityConfig {
     /*
      * Configure a separated security context for oauth2 tokenEndpoints
      */
+    @Order(21)
     @Bean("oauth2SecurityFilterChain")
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         // match only client endpoints
