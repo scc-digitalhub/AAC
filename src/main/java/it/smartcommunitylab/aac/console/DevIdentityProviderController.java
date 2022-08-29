@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.dev;
+package it.smartcommunitylab.aac.console;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -71,20 +71,8 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
     /*
      * Providers
      */
-
-//    @GetMapping("/idptemplates/{realm}")
-//    public Collection<ConfigurableProvider> getRealmProviderTemplates(
-//            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
-//            throws NoSuchRealmException {
-//
-//        Collection<ConfigurableProvider> providers = providerManager
-//                .listProviderConfigurationTemplates(realm, ConfigurableProvider.TYPE_IDENTITY);
-//
-//        return providers;
-//    }
-
     @Override
-    @GetMapping("/idp/{realm}/{providerId}")
+    @GetMapping("/idps/{realm}/{providerId}")
     public ConfigurableIdentityProvider getIdp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
@@ -99,7 +87,7 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
     }
 
     @Override
-    @PostMapping("/idp/{realm}")
+    @PostMapping("/idps/{realm}")
     public ConfigurableIdentityProvider addIdp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestBody @Valid @NotNull ConfigurableIdentityProvider registration)
@@ -115,7 +103,7 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
     }
 
     @Override
-    @PutMapping("/idp/{realm}/{providerId}")
+    @PutMapping("/idps/{realm}/{providerId}")
     public ConfigurableIdentityProvider updateIdp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
@@ -134,7 +122,7 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
     /*
      * Import/export for console
      */
-    @PutMapping("/idp/{realm}")
+    @PutMapping("/idps/{realm}")
     public Collection<ConfigurableIdentityProvider> importRealmProvider(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam(required = false, defaultValue = "false") boolean reset,
@@ -222,7 +210,7 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
 
     }
 
-    @GetMapping("/idp/{realm}/{providerId}/export")
+    @GetMapping("/idps/{realm}/{providerId}/export")
     public void exportRealmProvider(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
@@ -232,8 +220,6 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
         ConfigurableIdentityProvider provider = providerManager.getIdentityProvider(realm, providerId);
-
-//      String s = yaml.dump(clientApp);
         String s = yamlObjectMapper.writeValueAsString(provider);
 
         // write as file
@@ -249,7 +235,7 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
     /*
      * Clients
      */
-    @PutMapping("/idp/{realm}/{providerId}/apps/{clientId}")
+    @PutMapping("/idps/{realm}/{providerId}/apps/{clientId}")
     public ResponseEntity<ClientApp> updateRealmProviderClientApp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,

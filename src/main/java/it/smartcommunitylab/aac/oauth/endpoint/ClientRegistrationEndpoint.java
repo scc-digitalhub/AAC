@@ -39,12 +39,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.service.RealmService;
@@ -73,6 +75,7 @@ import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
  */
 
 @Controller
+@Tag(name = "OAuth 2.0 Dynamic client registration")
 public class ClientRegistrationEndpoint {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -102,11 +105,11 @@ public class ClientRegistrationEndpoint {
     @Autowired
     private TokenStore tokenStore;
 
-    @RequestMapping(value = {
-            REGISTRATION_URL,
-            "/-/{realm}" + REGISTRATION_URL }, method = RequestMethod.POST)
+    @Operation(summary = "Register a new client", parameters = {}, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = {
+            @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = ClientRegistration.class)) }))
+    @RequestMapping(value = REGISTRATION_URL, method = RequestMethod.POST)
     public ResponseEntity<ClientRegistrationResponse> registerClient(
-            @RequestParam Map<String, Serializable> parameters,
+            @RequestBody Map<String, Serializable> parameters,
             @PathVariable("realm") Optional<String> realmKey,
             Authentication authentication, HttpServletRequest request)
             throws OAuth2Exception, SystemException {
@@ -221,9 +224,8 @@ public class ClientRegistrationEndpoint {
 
     }
 
-    @RequestMapping(value = {
-            REGISTRATION_URL + "/{clientId}",
-            "/-/{realm}" + REGISTRATION_URL + "/{clientId}" }, method = RequestMethod.GET)
+    @Operation(summary = "Get an existing client")
+    @RequestMapping(value = REGISTRATION_URL + "/{clientId}", method = RequestMethod.GET)
     public ResponseEntity<ClientRegistrationResponse> getClient(
             @PathVariable("realm") Optional<String> realmKey,
             @PathVariable("clientId") @Valid @NotNull String clientId,
@@ -330,13 +332,13 @@ public class ClientRegistrationEndpoint {
         }
     }
 
-    @RequestMapping(value = {
-            REGISTRATION_URL + "/{clientId}",
-            "/-/{realm}" + REGISTRATION_URL + "/{clientId}" }, method = RequestMethod.PUT)
+    @Operation(summary = "Update an existing client", parameters = {}, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = {
+            @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = ClientRegistration.class)) }))
+    @RequestMapping(value = REGISTRATION_URL + "/{clientId}", method = RequestMethod.PUT)
     public ResponseEntity<ClientRegistrationResponse> updateClient(
             @PathVariable("realm") Optional<String> realmKey,
             @PathVariable("clientId") @Valid @NotNull String clientId,
-            @RequestParam Map<String, Serializable> parameters,
+            @RequestBody Map<String, Serializable> parameters,
             BearerTokenAuthentication authentication, HttpServletRequest request)
             throws OAuth2Exception, SystemException {
 
@@ -447,9 +449,8 @@ public class ClientRegistrationEndpoint {
         }
     }
 
-    @RequestMapping(value = {
-            REGISTRATION_URL + "/{clientId}",
-            "/-/{realm}" + REGISTRATION_URL + "/{clientId}" }, method = RequestMethod.DELETE)
+    @Operation(summary = "Delete a client")
+    @RequestMapping(value = REGISTRATION_URL + "/{clientId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
     public void deleteClient(
             @PathVariable("realm") Optional<String> realmKey,

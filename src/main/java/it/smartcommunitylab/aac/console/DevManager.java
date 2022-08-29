@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.dev;
+package it.smartcommunitylab.aac.console;
 
 import java.io.Serializable;
 import java.util.ArrayList;

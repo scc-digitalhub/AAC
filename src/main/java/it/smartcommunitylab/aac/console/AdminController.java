@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.dev;
+package it.smartcommunitylab.aac.console;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;

@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.dev;
+package it.smartcommunitylab.aac.console;
 
 import java.io.IOException;
 import java.net.URI;
@@ -63,14 +63,12 @@ import it.smartcommunitylab.aac.core.ScopeManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.UserManager;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
-import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.dto.RealmStatsBean;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.SpaceRoles;
-import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.oauth.endpoint.OAuth2MetadataEndpoint;
 import it.smartcommunitylab.aac.roles.SpaceRoleManager;
 import it.smartcommunitylab.aac.scope.Resource;
@@ -109,9 +107,6 @@ public class DevController {
     private AuditManager auditManager;
     @Autowired
     private SpaceRoleManager roleManager;
-
-    @Autowired
-    private SubjectService subjectService;
 
     @Autowired
     @Qualifier("yamlObjectMapper")
@@ -185,7 +180,7 @@ public class DevController {
             throws NoSuchRealmException {
         boolean isAdmin = authentication.getAuthorities().stream().anyMatch(
                 a -> a.getAuthority().equals(Config.R_ADMIN) || a.getAuthority().equals(realm + ":" + Config.R_ADMIN));
-        
+
         RealmStatsBean bean = new RealmStatsBean();
 
         Realm realmObj = realmManager.getRealm(realm);

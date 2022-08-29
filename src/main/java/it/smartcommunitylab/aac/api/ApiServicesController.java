@@ -1,13 +1,19 @@
 package it.smartcommunitylab.aac.api;
 
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.api.scopes.ApiServicesScope;
-import it.smartcommunitylab.aac.controller.BaseServicesController;
+import it.smartcommunitylab.aac.services.BaseServicesController;
 
 @RestController
-@RequestMapping("api")
+@Tag(name = "Custom services", description = "Manage custom services, scopes and claims")
+@RequestMapping(value = "api", consumes = { MediaType.APPLICATION_JSON_VALUE,
+        SystemKeys.MEDIA_TYPE_XYAML_VALUE }, produces = {
+                MediaType.APPLICATION_JSON_VALUE, SystemKeys.MEDIA_TYPE_XYAML_VALUE })
 public class ApiServicesController extends BaseServicesController {
     /*
      * API controller requires a specific scope.

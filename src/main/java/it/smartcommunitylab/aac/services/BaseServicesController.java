@@ -1,8 +1,7 @@
-package it.smartcommunitylab.aac.controller;
+package it.smartcommunitylab.aac.services;
 
 import java.util.Collection;
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
@@ -10,8 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.util.Assert;
@@ -23,10 +20,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.multipart.MultipartFile;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import io.swagger.v3.oas.annotations.Operation;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchClaimException;
@@ -35,11 +29,6 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchServiceException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.services.Service;
-import it.smartcommunitylab.aac.services.ServiceClaim;
-import it.smartcommunitylab.aac.services.ServiceClient;
-import it.smartcommunitylab.aac.services.ServiceScope;
-import it.smartcommunitylab.aac.services.ServicesManager;
 
 /*
  * Base controller for custom services
@@ -72,6 +61,7 @@ public class BaseServicesController implements InitializingBean {
      */
 
     @GetMapping("/services/{realm}")
+    @Operation(summary = "list services from realm")
     public Collection<Service> listServices(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
             throws NoSuchRealmException {
@@ -82,6 +72,7 @@ public class BaseServicesController implements InitializingBean {
     }
 
     @PostMapping("/services/{realm}")
+    @Operation(summary = "add a new service to realm")
     public Service addService(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestBody @Valid @NotNull Service s) throws NoSuchRealmException {
@@ -95,6 +86,7 @@ public class BaseServicesController implements InitializingBean {
     }
 
     @GetMapping("/services/{realm}/{serviceId}")
+    @Operation(summary = "get a specific service from realm")
     public Service getService(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId)
@@ -106,6 +98,7 @@ public class BaseServicesController implements InitializingBean {
     }
 
     @PutMapping("/services/{realm}/{serviceId}")
+    @Operation(summary = "update a specific service in realm")
     public Service updateService(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
@@ -120,6 +113,7 @@ public class BaseServicesController implements InitializingBean {
     }
 
     @DeleteMapping("/services/{realm}/{serviceId}")
+    @Operation(summary = "delete a specific service from realm")
     public void deleteService(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId)
@@ -134,6 +128,7 @@ public class BaseServicesController implements InitializingBean {
      * Approvals
      */
     @GetMapping("/services/{realm}/{serviceId}/approvals")
+    @Operation(summary = "get approvals for a given service in realm")
     public Collection<Approval> getRealmServiceApprovals(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId)
@@ -149,6 +144,7 @@ public class BaseServicesController implements InitializingBean {
      */
 
     @GetMapping("/services/{realm}/{serviceId}/scopes")
+    @Operation(summary = "get scopes for a given service in realm")
     public Collection<ServiceScope> listServiceScopes(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId)
@@ -160,6 +156,7 @@ public class BaseServicesController implements InitializingBean {
     }
 
     @PostMapping("/services/{realm}/{serviceId}/scopes")
+    @Operation(summary = "add a new scope to a given service in realm")
     public ServiceScope addServiceScope(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
@@ -175,6 +172,7 @@ public class BaseServicesController implements InitializingBean {
     }
 
     @GetMapping("/services/{realm}/{serviceId}/scopes/{scope}")
+    @Operation(summary = "get a specific scope from a given service in realm")
     public ServiceScope getServiceScope(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
@@ -188,6 +186,7 @@ public class BaseServicesController implements InitializingBean {
     }
 
     @PutMapping("/services/{realm}/{serviceId}/scopes/{scope}")
+    @Operation(summary = "update a specific scope from a given service in realm")
     public ServiceScope updateServiceScope(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
@@ -205,6 +204,7 @@ public class BaseServicesController implements InitializingBean {
     }
 
     @DeleteMapping("/services/{realm}/{serviceId}/scopes/{scope}")
+    @Operation(summary = "delete a specific scope from a given service in realm")
     public void deleteServiceScope(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
@@ -221,6 +221,7 @@ public class BaseServicesController implements InitializingBean {
      * Service claims
      */
     @GetMapping("/services/{realm}/{serviceId}/claims")
+    @Operation(summary = "get claims for a given service in realm")
     public Collection<ServiceClaim> listServiceClaims(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId)
@@ -232,6 +233,7 @@ public class BaseServicesController implements InitializingBean {
     }
 
     @PostMapping("/services/{realm}/{serviceId}/claims")
+    @Operation(summary = "add a new claim to a given service in realm")
     public ServiceClaim addServiceClaim(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
@@ -247,6 +249,7 @@ public class BaseServicesController implements InitializingBean {
     }
 
     @GetMapping("/services/{realm}/{serviceId}/claims/{key}")
+    @Operation(summary = "get a specific claim from a given service in realm")
     public ServiceClaim getServiceClaim(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
@@ -260,6 +263,7 @@ public class BaseServicesController implements InitializingBean {
     }
 
     @PutMapping("/services/{realm}/{serviceId}/claims/{key}")
+    @Operation(summary = "update a specific claim from a given service in realm")
     public ServiceClaim updateServiceClaim(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
@@ -277,6 +281,7 @@ public class BaseServicesController implements InitializingBean {
     }
 
     @DeleteMapping("/services/{realm}/{serviceId}/claims/{key}")
+    @Operation(summary = "delete a specific claim from a given service in realm")
     public void deleteServiceClaim(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
@@ -294,6 +299,7 @@ public class BaseServicesController implements InitializingBean {
      */
 
     @GetMapping("/services/{realm}/{serviceId}/scopes/{scope}/approvals")
+    @Operation(summary = "get approvals for a given scope from a given service in realm")
     public Collection<Approval> getServiceScopeApprovals(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
@@ -306,6 +312,7 @@ public class BaseServicesController implements InitializingBean {
     }
 
     @PostMapping("/services/{realm}/{serviceId}/scopes/{scope}/approvals")
+    @Operation(summary = "add a new approval for a given scope in a given service in realm")
     public Approval addServiceScopeApproval(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
@@ -322,6 +329,7 @@ public class BaseServicesController implements InitializingBean {
     }
 
     @DeleteMapping("/services/{realm}/{serviceId}/scopes/{scope}/approvals")
+    @Operation(summary = "remove an approval for a given scope in a given service in realm")
     public void deleteServiceScopeApproval(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
@@ -339,6 +347,7 @@ public class BaseServicesController implements InitializingBean {
      * Service client
      */
     @GetMapping("/services/{realm}/{serviceId}/clients")
+    @Operation(summary = "list client for a given service in realm")
     public Collection<ServiceClient> listServiceClients(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId)
@@ -350,6 +359,7 @@ public class BaseServicesController implements InitializingBean {
     }
 
     @PostMapping("/services/{realm}/{serviceId}/clients")
+    @Operation(summary = "add a new client for a given service in realm")
     public ServiceClient addServiceClient(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
@@ -368,6 +378,7 @@ public class BaseServicesController implements InitializingBean {
     }
 
     @GetMapping("/services/{realm}/{serviceId}/clients/{clientId}")
+    @Operation(summary = "get a specific client for a given service in realm")
     public ServiceClient getServiceClients(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
@@ -381,6 +392,7 @@ public class BaseServicesController implements InitializingBean {
     }
 
     @DeleteMapping("/services/{realm}/{serviceId}/clients/{clientId}")
+    @Operation(summary = "delete a specific client for a given service in realm")
     public void deleteServiceClient(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,

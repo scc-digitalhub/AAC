@@ -33,9 +33,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.SystemException;
@@ -50,6 +52,7 @@ import it.smartcommunitylab.aac.openid.common.IdToken;
 import it.smartcommunitylab.aac.openid.token.IdTokenServices;
 
 @Controller
+@Tag(name = "OAuth 2.0 Token Endpoint")
 public class TokenEndpoint implements InitializingBean {
 
     public static final String TOKEN_URL = "/oauth/token";
@@ -78,11 +81,11 @@ public class TokenEndpoint implements InitializingBean {
         Assert.notNull(oauth2RequestValidator, "token request validator is required");
     }
 
-    @RequestMapping(value = {
-            TOKEN_URL,
-            "/-/{realm}" + TOKEN_URL }, method = RequestMethod.POST)
+    @Operation(summary = "Get token", parameters = {}, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = {
+            @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = it.smartcommunitylab.aac.oauth.request.TokenRequest.class)) }))
+    @RequestMapping(value = { TOKEN_URL }, method = RequestMethod.POST)
     public ResponseEntity<TokenResponse> postAccessToken(
-            @RequestParam Map<String, String> parameters,
+            @RequestBody Map<String, String> parameters,
             @PathVariable("realm") Optional<String> realmKey,
             Authentication authentication)
             throws ClientRegistrationException, OAuth2Exception, SystemException {

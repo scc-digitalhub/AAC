@@ -153,6 +153,10 @@ public class AuthorizationEndpoint implements InitializingBean {
 //    @Autowired
 //    private OAuth2EventPublisher eventPublisher;
 
+//    @Operation(summary = "Authorize request", parameters = { @io.swagger.v3.oas.annotations.Parameter(content = {
+//            @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = AuthorizationRequest.class)) }) }, responses = {
+//                    @io.swagger.v3.oas.annotations.responses.ApiResponse(content = {
+//                            @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = AuthorizationResponse.class)) }) })
     @RequestMapping(value = {
             AUTHORIZATION_URL,
             "/-/{realm}" + AUTHORIZATION_URL }, method = {

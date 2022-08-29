@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.controller;
+package it.smartcommunitylab.aac.audit;
 
 import java.util.Collection;
 import java.util.Date;
@@ -19,10 +19,10 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import io.swagger.v3.oas.annotations.Operation;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.audit.AuditManager;
-import it.smartcommunitylab.aac.audit.RealmAuditEvent;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 
 /*
@@ -50,6 +50,7 @@ public class BaseAuditController implements InitializingBean {
     }
 
     @GetMapping("/audit/{realm}")
+    @Operation(summary = "find audit events from a given realm")
     public Collection<RealmAuditEvent> findEvents(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam(required = false, name = "type") Optional<String> type,

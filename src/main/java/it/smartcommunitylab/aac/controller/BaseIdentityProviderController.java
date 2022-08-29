@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
+import io.swagger.v3.oas.annotations.Operation;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
@@ -78,7 +79,8 @@ public class BaseIdentityProviderController implements InitializingBean {
      * 
      * TODO evaluate returning a authority model as result
      */
-    @GetMapping("/idp/{realm}/authorities")
+    @GetMapping("/idps/{realm}/authorities")
+    @Operation(summary = "list idp authorities from a given realm")
     public Collection<String> listAuthorities(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
             throws NoSuchRealmException {
@@ -93,7 +95,8 @@ public class BaseIdentityProviderController implements InitializingBean {
      * 
      * Manage only realm providers, with config stored
      */
-    @GetMapping("/idp/{realm}")
+    @GetMapping("/idps/{realm}")
+    @Operation(summary = "list identity providers from a given realm")
     public Collection<ConfigurableIdentityProvider> listIdps(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
             throws NoSuchRealmException {
@@ -108,7 +111,8 @@ public class BaseIdentityProviderController implements InitializingBean {
                 }).collect(Collectors.toList());
     }
 
-    @PostMapping("/idp/{realm}")
+    @PostMapping("/idps/{realm}")
+    @Operation(summary = "add a new identity provider to a given realm")
     public ConfigurableIdentityProvider addIdp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestBody @Valid @NotNull ConfigurableIdentityProvider registration)
@@ -149,7 +153,8 @@ public class BaseIdentityProviderController implements InitializingBean {
         return provider;
     }
 
-    @GetMapping("/idp/{realm}/{providerId}")
+    @GetMapping("/idps/{realm}/{providerId}")
+    @Operation(summary = "get a specific identity provider from a given realm")
     public ConfigurableIdentityProvider getIdp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
@@ -177,7 +182,8 @@ public class BaseIdentityProviderController implements InitializingBean {
         return provider;
     }
 
-    @PutMapping("/idp/{realm}/{providerId}")
+    @PutMapping("/idps/{realm}/{providerId}")
+    @Operation(summary = "update a specific identity provider in a given realm")
     public ConfigurableIdentityProvider updateIdp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
@@ -243,7 +249,8 @@ public class BaseIdentityProviderController implements InitializingBean {
         return provider;
     }
 
-    @DeleteMapping("/idp/{realm}/{providerId}")
+    @DeleteMapping("/idps/{realm}/{providerId}")
+    @Operation(summary = "delete a specific identity provider from a given realm")
     public void deleteIdp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
@@ -259,7 +266,8 @@ public class BaseIdentityProviderController implements InitializingBean {
      * Registration with authorities
      */
 
-    @PutMapping("/idp/{realm}/{providerId}/status")
+    @PutMapping("/idps/{realm}/{providerId}/status")
+    @Operation(summary = "activate a specific identity provider from a given realm")
     public ConfigurableIdentityProvider registerIdp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
@@ -278,7 +286,8 @@ public class BaseIdentityProviderController implements InitializingBean {
 
     }
 
-    @DeleteMapping("/idp/{realm}/{providerId}/status")
+    @DeleteMapping("/idps/{realm}/{providerId}/status")
+    @Operation(summary = "deactivate a specific identity provider from a given realm")
     public ConfigurableIdentityProvider unregisterIdp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
@@ -300,7 +309,8 @@ public class BaseIdentityProviderController implements InitializingBean {
     /*
      * Configuration schema
      */
-    @GetMapping("/idp/{realm}/{providerId}/schema")
+    @GetMapping("/idps/{realm}/{providerId}/schema")
+    @Operation(summary = "get an identity provider configuration schema")
     public JsonSchema getIdpConfigurationSchema(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)

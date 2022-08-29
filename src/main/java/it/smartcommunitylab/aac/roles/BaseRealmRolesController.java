@@ -63,6 +63,7 @@ public class BaseRealmRolesController implements InitializingBean {
      */
 
     @GetMapping("/roles/{realm}")
+    @Operation(summary = "list roles for realm")
     public Collection<RealmRole> getRealmRoles(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
             throws NoSuchRealmException {
@@ -73,6 +74,7 @@ public class BaseRealmRolesController implements InitializingBean {
     }
 
     @PostMapping("/roles/{realm}")
+    @Operation(summary = "add a new role for realm")
     public RealmRole createRealmRole(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestBody @Valid @NotNull RealmRole reg)
@@ -101,6 +103,7 @@ public class BaseRealmRolesController implements InitializingBean {
     }
 
     @GetMapping("/roles/{realm}/{roleId}")
+    @Operation(summary = "fetch a specific role from realm")
     public RealmRole getRealmRole(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String roleId)
@@ -114,6 +117,7 @@ public class BaseRealmRolesController implements InitializingBean {
     }
 
     @PutMapping("/roles/{realm}/{roleId}")
+    @Operation(summary = "update a specific role in the realm")
     public RealmRole updateRealmRole(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String roleId,
@@ -143,6 +147,7 @@ public class BaseRealmRolesController implements InitializingBean {
     }
 
     @DeleteMapping("/roles/{realm}/{roleId}")
+    @Operation(summary = "remove a specific role from realm")
     public void removeRealmRole(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String roleId)
@@ -158,6 +163,7 @@ public class BaseRealmRolesController implements InitializingBean {
      */
 
     @GetMapping("/roles/{realm}/{roleId}/approvals")
+    @Operation(summary = "get approvals for a given role")
     public Collection<Approval> getRealmRoleApprovals(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String roleId)
@@ -167,6 +173,7 @@ public class BaseRealmRolesController implements InitializingBean {
     }
 
     @PostMapping("/roles/{realm}/{roleId}/approvals")
+    @Operation(summary = "add approvals to a given role")
     public Collection<Approval> addRealmRoleApprovals(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String roleId,
@@ -182,6 +189,7 @@ public class BaseRealmRolesController implements InitializingBean {
     }
 
     @PutMapping("/roles/{realm}/{roleId}/approvals")
+    @Operation(summary = "set approvals for a given role")
     public Collection<Approval> updateRealmRoleApprovals(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String roleId,
@@ -197,6 +205,7 @@ public class BaseRealmRolesController implements InitializingBean {
     }
 
     @PutMapping("/roles/{realm}/{roleId}/approvals/{scope}")
+    @Operation(summary = "add a specific permission to a given role")
     public Approval addRealmRoleApproval(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String roleId,
@@ -210,6 +219,7 @@ public class BaseRealmRolesController implements InitializingBean {
     }
 
     @DeleteMapping("/roles/{realm}/{roleId}/approvals/{scope}")
+    @Operation(summary = "remove a specific permission from a given role")
     public void deleteRealmRoleApprovals(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String roleId,

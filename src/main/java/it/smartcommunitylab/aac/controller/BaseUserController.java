@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import io.swagger.v3.oas.annotations.Operation;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
@@ -66,6 +67,7 @@ public class BaseUserController implements InitializingBean {
      */
 
     @GetMapping("/users/{realm}")
+    @Operation(summary = "list users from realm")
     public Page<User> listUser(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam(required = false) String q, Pageable pageRequest)
@@ -78,6 +80,7 @@ public class BaseUserController implements InitializingBean {
     }
 
     @GetMapping("/users/{realm}/{userId}")
+    @Operation(summary = "fetch a specific user from realm")
     public User getUser(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
@@ -90,6 +93,7 @@ public class BaseUserController implements InitializingBean {
     }
 
     @DeleteMapping("/users/{realm}/{userId}")
+    @Operation(summary = "delete a specific user from realm")
     public void deleteUser(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
@@ -102,6 +106,7 @@ public class BaseUserController implements InitializingBean {
     }
 
     @PostMapping("/users/{realm}")
+    @Operation(summary = "create a new user in realm")
     public User createUser(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestBody @Valid @NotNull UserSubjectBean reg) throws NoSuchRealmException {
@@ -118,6 +123,7 @@ public class BaseUserController implements InitializingBean {
     }
 
     @PutMapping("/users/{realm}")
+    @Operation(summary = "invite a new user in realm")
     public User inviteUser(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestBody @Valid @NotNull UserEmailBean reg)
@@ -154,6 +160,7 @@ public class BaseUserController implements InitializingBean {
     }
 
     @PutMapping("/users/{realm}/{userId}/status")
+    @Operation(summary = "update the status of a specific user in realm")
     public User updateUserStatus(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
@@ -180,6 +187,7 @@ public class BaseUserController implements InitializingBean {
      * 
      */
     @PostMapping("/users/{realm}/{userId}/identity")
+    @Operation(summary = "add a new identity to a specific user in realm")
     public UserIdentity createUserIdentity(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
@@ -198,6 +206,7 @@ public class BaseUserController implements InitializingBean {
     }
 
     @GetMapping("/users/{realm}/{userId}/identity")
+    @Operation(summary = "list identities for a specific user in realm")
     public Collection<UserIdentity> getUserIdentity(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
@@ -219,6 +228,7 @@ public class BaseUserController implements InitializingBean {
     }
 
     @GetMapping("/users/{realm}/{userId}/identity/{identityUuid}")
+    @Operation(summary = "get a specific identity from a specific user in realm")
     public UserIdentity getUserIdentity(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
@@ -246,6 +256,7 @@ public class BaseUserController implements InitializingBean {
     }
 
     @PutMapping("/users/{realm}/{userId}/identity/{identityUuid}")
+    @Operation(summary = "update a specific identity for a specific user in realm")
     public UserIdentity updateUserIdentity(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
@@ -262,6 +273,7 @@ public class BaseUserController implements InitializingBean {
     }
 
     @DeleteMapping("/users/{realm}/{userId}/identity/{identityUuid}")
+    @Operation(summary = "delete a specific identity from a specific user in realm")
     public void deleteUserIdentity(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
@@ -288,6 +300,7 @@ public class BaseUserController implements InitializingBean {
     }
 
     @PutMapping("/users/{realm}/{userId}/identity/{identityUuid}/confirm")
+    @Operation(summary = "confirm an identity for a given user in realm")
     public UserIdentity confirmUserIdentity(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
@@ -313,6 +326,7 @@ public class BaseUserController implements InitializingBean {
     }
 
     @DeleteMapping("/users/{realm}/{userId}/identity/{identityUuid}/confirm")
+    @Operation(summary = "unconfirm an identity for a given user in realm")
     public UserIdentity unconfirmUserIdentity(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
@@ -338,6 +352,7 @@ public class BaseUserController implements InitializingBean {
     }
 
     @PostMapping("/users/{realm}/{userId}/identity/{identityUuid}/confirm")
+    @Operation(summary = "verify an identity for a given user in realm")
     public UserIdentity verifyUserIdentity(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
@@ -363,6 +378,7 @@ public class BaseUserController implements InitializingBean {
     }
 
     @PutMapping("/users/{realm}/{userId}/identity/{identityUuid}/status")
+    @Operation(summary = "update status for an identity for a given user in realm")
     public UserIdentity updateUserIdentityStatus(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,

@@ -66,6 +66,8 @@ public class OpenAPIConfig {
                         .contact(new Contact().url(conf.contact.get("url")).name(conf.contact.get("name"))
                                 .email(conf.contact.get("email"))))
                 .components(new Components()
+                        .addSecuritySchemes("client_secret",
+                                new SecurityScheme().type(SecurityScheme.Type.HTTP).scheme("basic"))
                         .addSecuritySchemes("oauth2",
                                 new SecurityScheme()
                                         .type(SecurityScheme.Type.OAUTH2)
@@ -76,7 +78,12 @@ public class OpenAPIConfig {
                                                                 .authorizationUrl(AUTH_SERVER + "/oauth/authorize")
                                                                 .scopes(scopes()))
                                                 .clientCredentials(
-                                                        new OAuthFlow().tokenUrl(AUTH_SERVER + "/oauth/token")))));
+                                                        new OAuthFlow().tokenUrl(AUTH_SERVER + "/oauth/token"))))
+                        .addSecuritySchemes("openid",
+                                new SecurityScheme().type(SecurityScheme.Type.OPENIDCONNECT)
+                                        .scheme("bearer")
+                                        .openIdConnectUrl(
+                                                AUTH_SERVER + "/.well-known/openid-configuration")));
     }
 
     private Scopes scopes() {
@@ -119,13 +126,7 @@ public class OpenAPIConfig {
     public GroupedOpenApi oidc() {
         return GroupedOpenApi.builder()
                 .group("AAC OpenID Connect API")
-                .packagesToScan("it.smartcommunitylab.aac.openid")
-                .addOpenApiCustomiser(customizer -> {
-                    customizer.components(new Components()
-                            .addSecuritySchemes("openid",
-                                    new SecurityScheme().type(SecurityScheme.Type.OPENIDCONNECT).scheme("bearer")
-                                            .openIdConnectUrl(AUTH_SERVER + "/.well-known/openid-configuration")));
-                })
+                .packagesToScan("it.smartcommunitylab.aac.openid.endpoint")
                 .addOperationCustomizer((operation, handlerMethod) -> {
                     operation.addSecurityItem(new SecurityRequirement().addList("openid"));
                     return operation;
@@ -136,10 +137,10 @@ public class OpenAPIConfig {
     @Bean
     public GroupedOpenApi oauth() {
         return GroupedOpenApi.builder()
-                .group("AAC OAuth API")
-                .packagesToScan("it.smartcommunitylab.aac.oauth")
+                .group("AAC OAuth 2.0 API")
+                .packagesToScan("it.smartcommunitylab.aac.oauth.endpoint")
                 .addOperationCustomizer((operation, handlerMethod) -> {
-                    operation.addSecurityItem(new SecurityRequirement().addList("oauth2"));
+                    operation.addSecurityItem(new SecurityRequirement().addList("client_secret"));
                     return operation;
                 })
                 .build();
@@ -162,6 +163,18 @@ public class OpenAPIConfig {
         return GroupedOpenApi.builder()
                 .group("AAC Role API")
                 .packagesToScan("it.smartcommunitylab.aac.roles")
+                .addOperationCustomizer((operation, handlerMethod) -> {
+                    operation.addSecurityItem(new SecurityRequirement().addList("oauth2"));
+                    return operation;
+                })
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi groups() {
+        return GroupedOpenApi.builder()
+                .group("AAC Groups API")
+                .packagesToScan("it.smartcommunitylab.aac.groups")
                 .addOperationCustomizer((operation, handlerMethod) -> {
                     operation.addSecurityItem(new SecurityRequirement().addList("oauth2"));
                     return operation;
