@@ -18,9 +18,11 @@ package it.smartcommunitylab.aac.model;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -40,19 +42,23 @@ public class Group {
     /*
      * system-wide uuid
      */
+    @Size(max = 128)
     private String groupId;
 
+    @Size(max = 128)
     private String realm;
 
     /*
      * realm group id
      */
     @NotBlank
+    @Size(max = 128)
     private String group;
 
     /*
      * parent group id
      */
+    @Size(max = 128)
     private String parentGroup;
 
     private String name;
@@ -63,6 +69,9 @@ public class Group {
      */
     private List<String> members;
     private Long size;
+
+    // roles
+    private Set<String> roles;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Date createDate;
@@ -136,6 +145,14 @@ public class Group {
 
     public void setSize(Long size) {
         this.size = size;
+    }
+
+    public Set<String> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<String> roles) {
+        this.roles = roles;
     }
 
     public Date getCreateDate() {

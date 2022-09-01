@@ -18,15 +18,15 @@ public class AttributeEntity {
     private Long id;
 
     @NotNull
-    @Column(name = "attribute_set")
+    @Column(name = "attribute_set", length = 128)
     private String set;
 
     @NotNull
-    @Column(name = "attr_key")
+    @Column(name = "attr_key", length = 128)
     private String key;
 
     @NotNull
-    @Column(name = "attr_type")
+    @Column(name = "attr_type", length = 32)
     private String type;
 
     private String name;

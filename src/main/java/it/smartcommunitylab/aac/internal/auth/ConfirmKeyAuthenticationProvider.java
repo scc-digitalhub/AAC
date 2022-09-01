@@ -21,8 +21,8 @@ import it.smartcommunitylab.aac.internal.provider.InternalAccountService;
 public class ConfirmKeyAuthenticationProvider implements AuthenticationProvider {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final String realm;
-    private final String providerId;
+//    private final String realm;
+//    private final String providerId;
 
     private final InternalAccountService accountService;
 
@@ -32,8 +32,8 @@ public class ConfirmKeyAuthenticationProvider implements AuthenticationProvider 
         Assert.hasText(providerId, "provider can not be null or empty");
         Assert.notNull(accountService, "account service is mandatory");
 
-        this.realm = realm;
-        this.providerId = providerId;
+//        this.realm = realm;
+//        this.providerId = providerId;
 
         this.accountService = accountService;
     }
@@ -58,13 +58,8 @@ public class ConfirmKeyAuthenticationProvider implements AuthenticationProvider 
                 throw new BadCredentialsException("invalid request");
             }
 
-            // check this account is ours
-            if (!account.getRealm().equals(this.realm) || !account.getProvider().equals(this.providerId)) {
-                throw new BadCredentialsException("invalid request");
-            }
-
             // do confirm
-            account = accountService.confirmAccount(key);
+            account = accountService.confirmAccountViaKey(key);
             if (!account.isConfirmed()) {
                 throw new BadCredentialsException("invalid request");
             }

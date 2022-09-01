@@ -1,12 +1,5 @@
 package it.smartcommunitylab.aac.openid.apple;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -14,77 +7,42 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.util.concurrent.UncheckedExecutionException;
-
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.openid.apple.provider.AppleFilterProvider;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProvider;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfig;
+import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.attributes.store.AttributeStore;
 import it.smartcommunitylab.aac.attributes.store.AutoJdbcAttributeStore;
 import it.smartcommunitylab.aac.attributes.store.PersistentAttributeStore;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
-import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
-import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.provider.IdentityService;
+import it.smartcommunitylab.aac.core.base.AbstractIdentityAuthority;
+import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
+import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.openid.model.OIDCUserIdentity;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
-import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
 
 @Service
-public class AppleIdentityAuthority implements IdentityAuthority, InitializingBean {
+public class AppleIdentityAuthority extends
+        AbstractIdentityAuthority<OIDCUserIdentity, AppleIdentityProvider, AppleIdentityProviderConfig, AppleIdentityProviderConfigMap>
+        implements InitializingBean {
 
-    // TODO make consistent with global config
     public static final String AUTHORITY_URL = "/auth/apple/";
 
-    // private account repository
-    private final OIDCUserAccountRepository accountRepository;
+    // oidc account service
+    private final UserAccountService<OIDCUserAccount> accountService;
+
+    // filter provider
+    private final AppleFilterProvider filterProvider;
 
     // system attributes store
     private final AutoJdbcAttributeStore jdbcAttributeStore;
-
-    // resources registry
-    private final SubjectService subjectService;
-
-    // configuration provider
-    private AppleIdentityConfigurationProvider configProvider;
-
-    // identity provider configs by id
-    private final ProviderConfigRepository<AppleIdentityProviderConfig> registrationRepository;
-
-    // loading cache for idps
-    private final LoadingCache<String, AppleIdentityProvider> providers = CacheBuilder.newBuilder()
-            .expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
-            .maximumSize(100)
-            .build(new CacheLoader<String, AppleIdentityProvider>() {
-                @Override
-                public AppleIdentityProvider load(final String id) throws Exception {
-                    AppleIdentityProviderConfig config = registrationRepository.findByProviderId(id);
-
-                    if (config == null) {
-                        throw new IllegalArgumentException("no configuration matching the given provider id");
-                    }
-
-                    AttributeStore attributeStore = getAttributeStore(id, config.getPersistence());
-
-                    AppleIdentityProvider idp = new AppleIdentityProvider(
-                            id,
-                            accountRepository, attributeStore, subjectService,
-                            config, config.getRealm());
-
-                    idp.setExecutionService(executionService);
-                    return idp;
-
-                }
-            });
 
     // oauth shared services
     private final OIDCClientRegistrationRepository clientRegistrationRepository;
@@ -93,21 +51,22 @@ public class AppleIdentityAuthority implements IdentityAuthority, InitializingBe
     private ScriptExecutionService executionService;
 
     public AppleIdentityAuthority(
-            OIDCUserAccountRepository accountRepository,
-            AutoJdbcAttributeStore jdbcAttributeStore, SubjectService subjectService,
+            UserEntityService userEntityService, SubjectService subjectService,
+            UserAccountService<OIDCUserAccount> userAccountService, AutoJdbcAttributeStore jdbcAttributeStore,
             ProviderConfigRepository<AppleIdentityProviderConfig> registrationRepository,
             @Qualifier("appleClientRegistrationRepository") OIDCClientRegistrationRepository clientRegistrationRepository) {
-        Assert.notNull(accountRepository, "account repository is mandatory");
+        super(SystemKeys.AUTHORITY_APPLE, userEntityService, subjectService, registrationRepository);
+        Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(jdbcAttributeStore, "attribute store is mandatory");
-        Assert.notNull(subjectService, "subject service is mandatory");
-        Assert.notNull(registrationRepository, "provider registration repository is mandatory");
         Assert.notNull(clientRegistrationRepository, "client registration repository is mandatory");
 
-        this.accountRepository = accountRepository;
+        this.accountService = userAccountService;
         this.jdbcAttributeStore = jdbcAttributeStore;
-        this.subjectService = subjectService;
-        this.registrationRepository = registrationRepository;
         this.clientRegistrationRepository = clientRegistrationRepository;
+
+        // build filter provider
+        this.filterProvider = new AppleFilterProvider(clientRegistrationRepository,
+                registrationRepository);
     }
 
     @Autowired
@@ -122,98 +81,62 @@ public class AppleIdentityAuthority implements IdentityAuthority, InitializingBe
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        Assert.notNull(configProvider, "config provider is mandatory");
+        super.afterPropertiesSet();
     }
 
     @Override
-    public String getAuthorityId() {
-        return SystemKeys.AUTHORITY_APPLE;
+    public AppleFilterProvider getFilterProvider() {
+        return this.filterProvider;
     }
 
     @Override
-    public boolean hasIdentityProvider(String providerId) {
-        AppleIdentityProviderConfig registration = registrationRepository.findByProviderId(providerId);
-        return (registration != null);
+    public AppleIdentityProvider buildProvider(AppleIdentityProviderConfig config) {
+        String id = config.getProvider();
+        AttributeStore attributeStore = getAttributeStore(id, config.getPersistence());
+
+        AppleIdentityProvider idp = new AppleIdentityProvider(
+                id,
+                userEntityService, accountService, subjectService,
+                attributeStore, config, config.getRealm());
+
+        idp.setExecutionService(executionService);
+        return idp;
     }
 
     @Override
-    public AppleIdentityProvider getIdentityProvider(String providerId) {
-        Assert.hasText(providerId, "provider id can not be null or empty");
-
-        try {
-            return providers.get(providerId);
-        } catch (IllegalArgumentException | UncheckedExecutionException | ExecutionException e) {
-            return null;
-        }
-    }
-
-    @Override
-    public List<AppleIdentityProvider> getIdentityProviders(
-            String realm) {
-        // we need to fetch registrations and get idp from cache, with optional load
-        Collection<AppleIdentityProviderConfig> registrations = registrationRepository.findByRealm(realm);
-        return registrations.stream().map(r -> getIdentityProvider(r.getProvider()))
-                .filter(p -> (p != null)).collect(Collectors.toList());
-    }
-
-//    @Override
-//    public String getUserProviderId(String userId) {
-//        // unpack id
-//        return extractProviderId(userId);
-//    }
-//
-//    @Override
-//    public AppleIdentityProvider getUserIdentityProvider(String userId) {
-//        // unpack id
-//        String providerId = extractProviderId(userId);
-//        return getIdentityProvider(providerId);
-//    }
-
-    @Override
-    public AppleIdentityProvider registerIdentityProvider(ConfigurableIdentityProvider cp) {
-        // we support only identity provider as resource providers
+    public AppleIdentityProvider registerProvider(ConfigurableProvider cp) {
         if (cp != null
                 && getAuthorityId().equals(cp.getAuthority())
                 && SystemKeys.RESOURCE_IDENTITY.equals(cp.getType())) {
-            String providerId = cp.getProvider();
-            String realm = cp.getRealm();
 
-            // check if id clashes with another provider from a different realm
-            AppleIdentityProviderConfig e = registrationRepository.findByProviderId(providerId);
-            if (e != null && !realm.equals(e.getRealm())) {
-                // name clash
-                throw new RegistrationException("a provider with the same id already exists under a different realm");
-            }
+            // fetch id from config
+            String providerId = cp.getProvider();
+
+            // register and build via super
+            AppleIdentityProvider idp = super.registerProvider(cp);
 
             try {
-                AppleIdentityProviderConfig providerConfig = configProvider.getConfig(cp);
-
-                // build registration, will ensure configuration is valid *before* registering
-                // the provider in repositories
-                ClientRegistration registration = providerConfig.getClientRegistration();
-
-                // register, we defer loading
-                registrationRepository.addRegistration(providerConfig);
+                // extract clientRegistration from config
+                ClientRegistration registration = idp.getConfig().getClientRegistration();
 
                 // add client registration to registry
                 clientRegistrationRepository.addRegistration(registration);
 
-                // load and return
-                return providers.get(providerId);
+                return idp;
             } catch (Exception ex) {
                 // cleanup
                 clientRegistrationRepository.removeRegistration(providerId);
-                registrationRepository.removeRegistration(providerId);
 
                 throw new RegistrationException("invalid provider configuration: " + ex.getMessage(), ex);
             }
         } else {
             throw new IllegalArgumentException();
         }
+
     }
 
     @Override
-    public void unregisterIdentityProvider(String providerId) {
+    public void unregisterProvider(String providerId) {
         AppleIdentityProviderConfig registration = registrationRepository.findByProviderId(providerId);
 
         if (registration != null) {
@@ -225,39 +148,13 @@ public class AppleIdentityAuthority implements IdentityAuthority, InitializingBe
             // remove from repository to disable filters
             clientRegistrationRepository.removeRegistration(providerId);
 
-            // remove from cache
-            providers.invalidate(providerId);
-
-            // remove from registrations
-            registrationRepository.removeRegistration(providerId);
-
             // someone else should have already destroyed sessions
+
+            // remove from config
+            super.unregisterProvider(providerId);
 
         }
 
-    }
-
-    @Override
-    public IdentityService<OIDCUserIdentity, OIDCUserAccount> getIdentityService(
-            String providerId) {
-        return null;
-    }
-
-    @Override
-    public List<IdentityService<OIDCUserIdentity, OIDCUserAccount>> getIdentityServices(
-            String realm) {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public Collection<ConfigurableIdentityProvider> getConfigurableProviderTemplates() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public ConfigurableIdentityProvider getConfigurableProviderTemplate(String templateId)
-            throws NoSuchProviderException {
-        throw new NoSuchProviderException("no templates available");
     }
 
     /*

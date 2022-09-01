@@ -1,27 +1,11 @@
 package it.smartcommunitylab.aac.saml;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.util.concurrent.UncheckedExecutionException;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.store.AttributeStore;
 import it.smartcommunitylab.aac.attributes.store.AutoJdbcAttributeStore;
@@ -29,103 +13,68 @@ import it.smartcommunitylab.aac.attributes.store.InMemoryAttributeStore;
 import it.smartcommunitylab.aac.attributes.store.NullAttributeStore;
 import it.smartcommunitylab.aac.attributes.store.PersistentAttributeStore;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
-import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.config.ProvidersProperties;
-import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
-import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.provider.IdentityService;
+import it.smartcommunitylab.aac.core.base.AbstractIdentityAuthority;
+import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
+import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository;
 import it.smartcommunitylab.aac.saml.model.SamlUserIdentity;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
-import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
+import it.smartcommunitylab.aac.saml.provider.SamlFilterProvider;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProvider;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfigMap;
+import it.smartcommunitylab.aac.saml.service.SamlUserAccountService;
 
 @Service
-public class SamlIdentityAuthority implements IdentityAuthority, InitializingBean {
+public class SamlIdentityAuthority extends
+        AbstractIdentityAuthority<SamlUserIdentity, SamlIdentityProvider, SamlIdentityProviderConfig, SamlIdentityProviderConfigMap>
+        implements InitializingBean {
 
-    // TODO make consistent with global config
     public static final String AUTHORITY_URL = "/auth/saml/";
 
-    private final SamlUserAccountRepository accountRepository;
+    // saml account service
+    private final UserAccountService<SamlUserAccount> accountService;
+
+    // filter provider
+    private final SamlFilterProvider filterProvider;
 
     // system attributes store
     private final AutoJdbcAttributeStore jdbcAttributeStore;
 
-    // resources registry
-    private final SubjectService subjectService;
-
-    // configuration provider
-    private SamlIdentityConfigurationProvider configProvider;
-
-    private final ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository;
-
-    // loading cache for idps
-    private final LoadingCache<String, SamlIdentityProvider> providers = CacheBuilder.newBuilder()
-            .expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
-            .maximumSize(100)
-            .build(new CacheLoader<String, SamlIdentityProvider>() {
-                @Override
-                public SamlIdentityProvider load(final String id) throws Exception {
-                    SamlIdentityProviderConfig config = registrationRepository.findByProviderId(id);
-
-                    if (config == null) {
-                        throw new IllegalArgumentException("no configuration matching the given provider id");
-                    }
-
-                    AttributeStore attributeStore = getAttributeStore(id, config.getPersistence());
-
-                    SamlIdentityProvider idp = new SamlIdentityProvider(
-                            id,
-                            accountRepository, attributeStore, subjectService,
-                            config, config.getRealm());
-                    idp.setExecutionService(executionService);
-                    return idp;
-
-                }
-            });
-
     // saml sp services
     private final SamlRelyingPartyRegistrationRepository relyingPartyRegistrationRepository;
-
-    // configuration templates
-    private ProvidersProperties providerProperties;
-    private final Map<String, SamlIdentityProviderConfig> templates = new HashMap<>();
 
     // execution service for custom attributes mapping
     private ScriptExecutionService executionService;
 
     public SamlIdentityAuthority(
-            SamlUserAccountRepository accountRepository,
-            AutoJdbcAttributeStore jdbcAttributeStore, SubjectService subjectService,
+            UserEntityService userEntityService, SubjectService subjectService,
+            UserAccountService<SamlUserAccount> userAccountService, AutoJdbcAttributeStore jdbcAttributeStore,
             ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository,
             @Qualifier("samlRelyingPartyRegistrationRepository") SamlRelyingPartyRegistrationRepository samlRelyingPartyRegistrationRepository) {
-        Assert.notNull(accountRepository, "account repository is mandatory");
+        super(SystemKeys.AUTHORITY_SAML, userEntityService, subjectService, registrationRepository);
+        Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(jdbcAttributeStore, "attribute store is mandatory");
-        Assert.notNull(subjectService, "subject service is mandatory");
-        Assert.notNull(registrationRepository, "provider registration repository is mandatory");
         Assert.notNull(samlRelyingPartyRegistrationRepository, "relayingParty registration repository is mandatory");
 
-        this.accountRepository = accountRepository;
+        this.accountService = userAccountService;
         this.jdbcAttributeStore = jdbcAttributeStore;
-        this.subjectService = subjectService;
-        this.registrationRepository = registrationRepository;
+
         this.relyingPartyRegistrationRepository = samlRelyingPartyRegistrationRepository;
+
+        // build filter provider
+        this.filterProvider = new SamlFilterProvider(authorityId, relyingPartyRegistrationRepository,
+                registrationRepository);
     }
 
     @Autowired
     public void setConfigProvider(SamlIdentityConfigurationProvider configProvider) {
         this.configProvider = configProvider;
-    }
-
-    @Autowired
-    public void setProviderProperties(ProvidersProperties providerProperties) {
-        this.providerProperties = providerProperties;
     }
 
     @Autowired
@@ -135,118 +84,62 @@ public class SamlIdentityAuthority implements IdentityAuthority, InitializingBea
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        Assert.notNull(configProvider, "config provider is mandatory");
-
-        // build templates
-        if (providerProperties != null && providerProperties.getTemplates() != null) {
-            List<SamlIdentityProviderConfigMap> templateConfigs = providerProperties.getTemplates().getSaml();
-            for (SamlIdentityProviderConfigMap configMap : templateConfigs) {
-                try {
-                    String key = StringUtils.hasText(configMap.getIdpEntityId()) ? configMap.getIdpEntityId()
-                            : configMap.getIdpMetadataUrl();
-                    String templateId = "saml." + key.toLowerCase();
-                    SamlIdentityProviderConfig template = new SamlIdentityProviderConfig(templateId, null);
-                    template.setConfigMap(configMap);
-                    template.setName(key);
-
-                    templates.put(templateId, template);
-                } catch (Exception e) {
-                    // skip
-                }
-            }
-        }
-
+        super.afterPropertiesSet();
     }
 
     @Override
-    public String getAuthorityId() {
-        return SystemKeys.AUTHORITY_SAML;
+    public SamlFilterProvider getFilterProvider() {
+        return this.filterProvider;
     }
 
     @Override
-    public boolean hasIdentityProvider(String providerId) {
-        SamlIdentityProviderConfig registration = registrationRepository.findByProviderId(providerId);
-        return (registration != null);
+    public SamlIdentityProvider buildProvider(SamlIdentityProviderConfig config) {
+        String id = config.getProvider();
+        AttributeStore attributeStore = getAttributeStore(id, config.getPersistence());
+
+        SamlIdentityProvider idp = new SamlIdentityProvider(
+                id,
+                userEntityService, accountService, subjectService,
+                attributeStore, config, config.getRealm());
+
+        idp.setExecutionService(executionService);
+        return idp;
     }
 
     @Override
-    public SamlIdentityProvider getIdentityProvider(String providerId) {
-        Assert.hasText(providerId, "provider id can not be null or empty");
-
-        try {
-            return providers.get(providerId);
-        } catch (IllegalArgumentException | UncheckedExecutionException | ExecutionException e) {
-            return null;
-        }
-    }
-
-    @Override
-    public List<SamlIdentityProvider> getIdentityProviders(
-            String realm) {
-        // we need to fetch registrations and get idp from cache, with optional load
-        Collection<SamlIdentityProviderConfig> registrations = registrationRepository.findByRealm(realm);
-        return registrations.stream().map(r -> getIdentityProvider(r.getProvider()))
-                .filter(p -> (p != null)).collect(Collectors.toList());
-    }
-
-//    @Override
-//    public String getUserProviderId(String userId) {
-//        // unpack id
-//        return extractProviderId(userId);
-//    }
-//
-//    @Override
-//    public SamlIdentityProvider getUserIdentityProvider(String userId) {
-//        // unpack id
-//        String providerId = extractProviderId(userId);
-//        return getIdentityProvider(providerId);
-//    }
-
-    @Override
-    public SamlIdentityProvider registerIdentityProvider(ConfigurableIdentityProvider cp) {
-        // we support only identity provider as resource providers
+    public SamlIdentityProvider registerProvider(ConfigurableProvider cp) {
         if (cp != null
                 && getAuthorityId().equals(cp.getAuthority())
                 && SystemKeys.RESOURCE_IDENTITY.equals(cp.getType())) {
-            String providerId = cp.getProvider();
-            String realm = cp.getRealm();
 
-            // check if id clashes with another provider from a different realm
-            SamlIdentityProviderConfig e = registrationRepository.findByProviderId(providerId);
-            if (e != null && !realm.equals(e.getRealm())) {
-                // name clash
-                throw new RegistrationException("a provider with the same id already exists under a different realm");
-            }
+            // fetch id from config
+            String providerId = cp.getProvider();
+
+            // register and build via super
+            SamlIdentityProvider idp = super.registerProvider(cp);
 
             try {
-                SamlIdentityProviderConfig providerConfig = configProvider.getConfig(cp);
-
-                // build registration, will ensure configuration is valid *before* registering
-                // the provider in repositories
-                RelyingPartyRegistration registration = providerConfig.getRelyingPartyRegistration();
-
-                // register, we defer loading
-                registrationRepository.addRegistration(providerConfig);
+                // extract clientRegistration from config
+                RelyingPartyRegistration registration = idp.getConfig().getRelyingPartyRegistration();
 
                 // add client registration to registry
                 relyingPartyRegistrationRepository.addRegistration(registration);
 
-                // load and return
-                return providers.get(providerId);
+                return idp;
             } catch (Exception ex) {
                 // cleanup
                 relyingPartyRegistrationRepository.removeRegistration(providerId);
-                registrationRepository.removeRegistration(providerId);
 
                 throw new RegistrationException("invalid provider configuration: " + ex.getMessage(), ex);
             }
         } else {
             throw new IllegalArgumentException();
         }
+
     }
 
     @Override
-    public void unregisterIdentityProvider(String providerId) {
+    public void unregisterProvider(String providerId) {
         SamlIdentityProviderConfig registration = registrationRepository.findByProviderId(providerId);
 
         if (registration != null) {
@@ -258,44 +151,13 @@ public class SamlIdentityAuthority implements IdentityAuthority, InitializingBea
             // remove from repository to disable filters
             relyingPartyRegistrationRepository.removeRegistration(providerId);
 
-            // remove from cache
-            providers.invalidate(providerId);
-
-            // remove from registrations
-            registrationRepository.removeRegistration(providerId);
-
             // someone else should have already destroyed sessions
 
+            // remove from config
+            super.unregisterProvider(providerId);
+
         }
 
-    }
-
-    @Override
-    public IdentityService<SamlUserIdentity, SamlUserAccount> getIdentityService(
-            String providerId) {
-        return null;
-    }
-
-    @Override
-    public List<IdentityService<SamlUserIdentity, SamlUserAccount>> getIdentityServices(
-            String realm) {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public Collection<ConfigurableIdentityProvider> getConfigurableProviderTemplates() {
-        return templates.values().stream().map(c -> c.toConfigurableProvider())
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public ConfigurableIdentityProvider getConfigurableProviderTemplate(String templateId)
-            throws NoSuchProviderException {
-        if (templates.containsKey(templateId)) {
-            return templates.get(templateId).toConfigurableProvider();
-        }
-
-        throw new NoSuchProviderException("no templates available");
     }
 
     /*

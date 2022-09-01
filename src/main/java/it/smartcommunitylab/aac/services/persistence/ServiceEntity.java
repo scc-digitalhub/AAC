@@ -39,10 +39,11 @@ public class ServiceEntity {
     public static final String ID_PREFIX = "s_";
 
     @Id
-    @Column(name = "service_id")
+    @Column(name = "service_id", length = 128)
     private String serviceId;
 
     @NotNull
+    @Column(length = 128)
     private String realm;
 
     private String description;

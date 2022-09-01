@@ -27,7 +27,7 @@ public class RealmEntity {
 
     @Id
     @NotNull
-    @Column(unique = true)
+    @Column(length = 128, unique = true)
     private String slug;
 
     @NotNull

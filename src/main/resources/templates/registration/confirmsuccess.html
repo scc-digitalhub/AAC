@@ -59,7 +59,7 @@
           <div class="card-body align-items-center">
             <!-- realm logo  -->
             <div class="card-logo">
-              <img class="" th:src="@{/img/ds_logo.png}" th:alt="${displayName}">
+              <img class="" th:src="@{/logo}" th:alt="${displayName}">
               <h4 class="text-center" th:text="${displayName}">AAC</h4>
             </div>
 
@@ -78,26 +78,6 @@
 
   </div>
   <script th:src="@{/italia/js/bootstrap-italia.bundle.min.js}" type="text/javascript" charset="utf-8"></script>
-</body>
-
-<body>
-  <div class="container">
-    <img class="logo" src="../img/ds_logo.png" alt="AAC" />
-    <div class="clear"></div>
-    <div class="row justify-content-center">
-      <div class="col-md-offset-4 col-md-4">
-        <div class="panel panel-default">
-          <h4 style="text-align:center" th:text="#{label.confirm_success_title}"></h4>
-          <div>&nbsp;</div>
-          <p th:text="#{label.confirm_success_text}"></p>
-          <div class="col-md-12 form-group text-center">
-            <a class="btn" href="../login" th:text="#{action.login}"></a>
-          </div>
-          <div>&nbsp;</div>
-        </div>
-      </div>
-    </div>
-  </div>
 </body>
 
 </html>

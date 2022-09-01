@@ -15,13 +15,15 @@ public class RealmRoleEntity {
 
     @Id
     @NotNull
-    @Column(name = "role_id", unique = true)
+    @Column(name = "role_id", length = 128, unique = true)
     private String id;
 
     @NotNull
+    @Column(length = 128)
     private String realm;
 
     @NotNull
+    @Column(length = 128)
     private String role;
 
     private String name;

@@ -11,9 +11,11 @@ import javax.validation.constraints.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,11 +38,20 @@ import it.smartcommunitylab.aac.model.ClientApp;
  * Base controller for client app
  */
 @PreAuthorize("hasAuthority(this.authority)")
-public class BaseClientAppController {
+public class BaseClientAppController implements InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    protected ClientManager clientManager;
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        Assert.notNull(clientManager, "client manager is required");
+    }
+
     @Autowired
-    private ClientManager clientManager;
+    public void setClientManager(ClientManager clientManager) {
+        this.clientManager = clientManager;
+    }
 
     @Autowired
     @Qualifier("yamlObjectMapper")

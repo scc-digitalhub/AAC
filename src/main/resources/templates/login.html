@@ -36,7 +36,6 @@
     </script>
 
     <link th:href="@{/italia/style.css}" rel="stylesheet" />
-    <link type="text/css" rel="stylesheet" th:href="@{'/spid/css/spid-sp-access-button.min.css'}" />
 
     <title th:text="#{label.login_title}">AAC Login</title>
 </head>
@@ -61,7 +60,7 @@
                     <div class="card-body align-items-center">
                         <!-- realm logo  -->
                         <div class="card-logo">
-                            <img class="" th:src="@{/img/ds_logo.png}" th:alt="${displayName}">
+                            <img class="" th:src="@{/logo}" th:alt="${displayName}">
                             <h4 class="text-center" th:text="${displayName}">AAC</h4>
                         </div>
 

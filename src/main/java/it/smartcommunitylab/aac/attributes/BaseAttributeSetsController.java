@@ -8,8 +8,10 @@ import javax.validation.constraints.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,12 +30,20 @@ import it.smartcommunitylab.aac.core.model.AttributeSet;
  * Base controller for attributeSets
  */
 @PreAuthorize("hasAuthority(this.authority)")
-public abstract class BaseAttributeSetsController {
+public abstract class BaseAttributeSetsController implements InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Autowired
     protected AttributeSetsManager attributeManager;
 
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        Assert.notNull(attributeManager, "attribute manager is required");
+    }
+
+    @Autowired
+    public void setAttributeManager(AttributeSetsManager attributeManager) {
+        this.attributeManager = attributeManager;
+    }
 
     public String getAuthority() {
         return Config.R_USER;
@@ -106,7 +116,5 @@ public abstract class BaseAttributeSetsController {
 
         attributeManager.deleteAttributeSet(realm, setId);
     }
-
-
 
 }

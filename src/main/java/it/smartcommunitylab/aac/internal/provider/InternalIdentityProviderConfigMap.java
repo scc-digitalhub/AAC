@@ -6,7 +6,6 @@ import java.util.Map;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -19,6 +18,7 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
+import it.smartcommunitylab.aac.internal.model.CredentialsType;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -26,49 +26,49 @@ public class InternalIdentityProviderConfigMap implements ConfigurableProperties
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
-    private static ObjectMapper mapper = new ObjectMapper();
-    private final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
+    protected static ObjectMapper mapper = new ObjectMapper();
+    protected final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
     };
 
-    private int maxSessionDuration = 24 * 60 * 60; // 24h
-
-    private Boolean enableRegistration;
-    private Boolean enableDelete;
-    private Boolean enableUpdate;
-
-    private Boolean enablePasswordReset;
-    private Boolean enablePasswordSet;
-
     @Max(3 * 24 * 60 * 60)
-    private Integer passwordResetValidity;
+    protected Integer maxSessionDuration;
 
-    private Boolean confirmationRequired;
+    protected CredentialsType credentialsType;
+    protected Boolean scopedData;
+
+    protected Boolean enableRegistration;
+    protected Boolean enableDelete;
+    protected Boolean enableUpdate;
+
+    protected Boolean confirmationRequired;
     @Max(3 * 24 * 60 * 60)
-    private Integer confirmationValidity;
-
-    // password policy, optional
-    @Min(1)
-    @Max(35)
-    private Integer passwordMinLength;
-    @Min(1)
-    @Max(35)
-    private Integer passwordMaxLength;
-    private Boolean passwordRequireAlpha;
-    private Boolean passwordRequireNumber;
-    private Boolean passwordRequireSpecial;
-    private Boolean passwordSupportWhitespace;
-
-    private Boolean displayAsButton;
+    protected Integer confirmationValidity;
 
     public InternalIdentityProviderConfigMap() {
     }
 
-    public int getMaxSessionDuration() {
+    public Integer getMaxSessionDuration() {
         return maxSessionDuration;
     }
 
-    public void setMaxSessionDuration(int maxSessionDuration) {
+    public void setMaxSessionDuration(Integer maxSessionDuration) {
         this.maxSessionDuration = maxSessionDuration;
+    }
+
+    public CredentialsType getCredentialsType() {
+        return credentialsType;
+    }
+
+    public void setCredentialsType(CredentialsType credentialsType) {
+        this.credentialsType = credentialsType;
+    }
+
+    public Boolean getScopedData() {
+        return scopedData;
+    }
+
+    public void setScopedData(Boolean scopedData) {
+        this.scopedData = scopedData;
     }
 
     public Boolean getEnableRegistration() {
@@ -95,30 +95,6 @@ public class InternalIdentityProviderConfigMap implements ConfigurableProperties
         this.enableUpdate = enableUpdate;
     }
 
-    public Boolean getEnablePasswordReset() {
-        return enablePasswordReset;
-    }
-
-    public void setEnablePasswordReset(Boolean enablePasswordReset) {
-        this.enablePasswordReset = enablePasswordReset;
-    }
-
-    public Boolean getEnablePasswordSet() {
-        return enablePasswordSet;
-    }
-
-    public void setEnablePasswordSet(Boolean enablePasswordSet) {
-        this.enablePasswordSet = enablePasswordSet;
-    }
-
-    public Integer getPasswordResetValidity() {
-        return passwordResetValidity;
-    }
-
-    public void setPasswordResetValidity(Integer passwordResetValidity) {
-        this.passwordResetValidity = passwordResetValidity;
-    }
-
     public Boolean getConfirmationRequired() {
         return confirmationRequired;
     }
@@ -133,62 +109,6 @@ public class InternalIdentityProviderConfigMap implements ConfigurableProperties
 
     public void setConfirmationValidity(Integer confirmationValidity) {
         this.confirmationValidity = confirmationValidity;
-    }
-
-    public Integer getPasswordMinLength() {
-        return passwordMinLength;
-    }
-
-    public void setPasswordMinLength(Integer passwordMinLength) {
-        this.passwordMinLength = passwordMinLength;
-    }
-
-    public Integer getPasswordMaxLength() {
-        return passwordMaxLength;
-    }
-
-    public void setPasswordMaxLength(Integer passwordMaxLength) {
-        this.passwordMaxLength = passwordMaxLength;
-    }
-
-    public Boolean getPasswordRequireAlpha() {
-        return passwordRequireAlpha;
-    }
-
-    public void setPasswordRequireAlpha(Boolean passwordRequireAlpha) {
-        this.passwordRequireAlpha = passwordRequireAlpha;
-    }
-
-    public Boolean getPasswordRequireNumber() {
-        return passwordRequireNumber;
-    }
-
-    public void setPasswordRequireNumber(Boolean passwordRequireNumber) {
-        this.passwordRequireNumber = passwordRequireNumber;
-    }
-
-    public Boolean getPasswordRequireSpecial() {
-        return passwordRequireSpecial;
-    }
-
-    public void setPasswordRequireSpecial(Boolean passwordRequireSpecial) {
-        this.passwordRequireSpecial = passwordRequireSpecial;
-    }
-
-    public Boolean getPasswordSupportWhitespace() {
-        return passwordSupportWhitespace;
-    }
-
-    public void setPasswordSupportWhitespace(Boolean passwordSupportWhitespace) {
-        this.passwordSupportWhitespace = passwordSupportWhitespace;
-    }
-
-    public Boolean getDisplayAsButton() {
-        return displayAsButton;
-    }
-
-    public void setDisplayAsButton(Boolean displayAsButton) {
-        this.displayAsButton = displayAsButton;
     }
 
     @Override
@@ -208,27 +128,15 @@ public class InternalIdentityProviderConfigMap implements ConfigurableProperties
 
         this.maxSessionDuration = map.getMaxSessionDuration();
 
-        this.confirmationRequired = map.getConfirmationRequired();
+        this.credentialsType = map.getCredentialsType();
+        this.scopedData = map.getScopedData();
+
         this.enableRegistration = map.getEnableRegistration();
         this.enableDelete = map.getEnableDelete();
         this.enableUpdate = map.getEnableUpdate();
 
-        this.enablePasswordReset = map.getEnablePasswordReset();
-        this.enablePasswordSet = map.getEnablePasswordSet();
-        this.passwordResetValidity = map.getPasswordResetValidity();
-
         this.confirmationRequired = map.getConfirmationRequired();
         this.confirmationValidity = map.getConfirmationValidity();
-
-        // password policy, optional
-        this.passwordMinLength = map.getPasswordMinLength();
-        this.passwordMaxLength = map.getPasswordMaxLength();
-        this.passwordRequireAlpha = map.getPasswordRequireAlpha();
-        this.passwordRequireNumber = map.getPasswordRequireNumber();
-        this.passwordRequireSpecial = map.getPasswordRequireSpecial();
-        this.passwordSupportWhitespace = map.getPasswordSupportWhitespace();
-
-        this.displayAsButton = map.getDisplayAsButton();
     }
 
     @JsonIgnore

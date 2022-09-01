@@ -8,6 +8,7 @@ import javax.persistence.EntityListeners;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
@@ -15,6 +16,8 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.util.StringUtils;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractAccount;
@@ -30,38 +33,41 @@ public class OIDCUserAccount extends AbstractAccount {
 
     @Id
     @NotBlank
-    @Column(name = "provider_id")
+    @Column(name = "provider_id", length = 128)
     private String provider;
 
     // subject identifier from external provider
     @Id
     @NotBlank
-    @Column(name = "subject")
+    @Column(name = "subject", length = 128)
     private String subject;
 
     // unique uuid (subject entity)
     @NotBlank
-    @Column(unique = true)
+    @Column(unique = true, length = 128)
     private String uuid;
 
     // reference to user
     @NotNull
-    @Column(name = "user_id")
+    @Column(name = "user_id", length = 128)
     private String userId;
 
-    @NotBlank
-    @Column(name = "authority")
+    @JsonInclude
+    @Transient
     private String authority;
 
     @NotBlank
+    @Column(length = 128)
     private String realm;
 
     // login
+    @Column(length = 32)
     private String status;
 
     // attributes
-    @Column(name = "username")
+    @Column(name = "username", length = 128)
     private String username;
+
     private String issuer;
 
     private String email;
@@ -76,6 +82,7 @@ public class OIDCUserAccount extends AbstractAccount {
     @Column(name = "family_name")
     private String familyName;
 
+    @Column(length = 32)
     private String lang;
 
     @Column(name = "picture_uri")
@@ -101,7 +108,7 @@ public class OIDCUserAccount extends AbstractAccount {
 
     @Override
     public String getAuthority() {
-        return authority;
+        return authority != null ? authority : super.getAuthority();
     }
 
     @Override
@@ -275,6 +282,15 @@ public class OIDCUserAccount extends AbstractAccount {
 
     public void setModifiedDate(Date modifiedDate) {
         this.modifiedDate = modifiedDate;
+    }
+
+    @Override
+    public String toString() {
+        return "OIDCUserAccount [provider=" + provider + ", subject=" + subject + ", uuid=" + uuid + ", userId="
+                + userId + ", authority=" + authority + ", realm=" + realm + ", status=" + status + ", username="
+                + username + ", issuer=" + issuer + ", email=" + email + ", emailVerified=" + emailVerified + ", name="
+                + name + ", givenName=" + givenName + ", familyName=" + familyName + ", lang=" + lang + ", picture="
+                + picture + ", createDate=" + createDate + ", modifiedDate=" + modifiedDate + "]";
     }
 
 }

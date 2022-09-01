@@ -14,6 +14,11 @@ public abstract class AbstractAuthenticatedPrincipal extends AbstractBaseUserRes
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
+    protected String username;
+
+    protected String uuid;
+    protected String emailAddress;
+
     protected AbstractAuthenticatedPrincipal(String authority, String provider, String realm) {
         super(authority, provider, realm);
     }
@@ -25,6 +30,25 @@ public abstract class AbstractAuthenticatedPrincipal extends AbstractBaseUserRes
     @Override
     public final String getType() {
         return SystemKeys.RESOURCE_PRINCIPAL;
+    }
+
+    @Override
+    public String getUuid() {
+        return uuid;
+    }
+
+    @Override
+    public String getUsername() {
+        return username;
+    }
+
+    @Override
+    public String getEmailAddress() {
+        return emailAddress;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
     }
 
 }

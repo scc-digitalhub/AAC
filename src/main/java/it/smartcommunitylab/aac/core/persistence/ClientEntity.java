@@ -32,18 +32,18 @@ public class ClientEntity {
 
     @Id
     @NotNull
-    @Column(name = "client_id", unique = true)
+    @Column(name = "client_id", length = 128, unique = true)
     private String clientId;
 
     @NotNull
+    @Column(length = 128)
     private String realm;
 
     // base
     private String name;
-
     private String description;
 
-    @Column(name = "client_type")
+    @Column(name = "client_type", length = 32)
     private String type;
 
     @Lob

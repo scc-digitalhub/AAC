@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,7 @@ import it.smartcommunitylab.aac.model.Subject;
 @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')"
         + " or hasAuthority(#realm+':" + Config.R_ADMIN + "')")
 public class SubjectManager {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
     private SubjectService subjectService;
@@ -46,6 +49,8 @@ public class SubjectManager {
 
     @Transactional(readOnly = true)
     public Subject getSubject(String realm, String id) throws NoSuchSubjectException, NoSuchRealmException {
+        logger.debug("get subject {} for realm {}", StringUtils.trimAllWhitespace(id),
+                StringUtils.trimAllWhitespace(realm));
         Realm r = realmService.getRealm(realm);
         Subject s = subjectService.getSubject(id);
 
@@ -59,12 +64,17 @@ public class SubjectManager {
 
     @Transactional(readOnly = true)
     public List<Subject> listSubjects(String realm) throws NoSuchRealmException {
+        logger.debug("list subjects for realm {}", StringUtils.trimAllWhitespace(realm));
         Realm r = realmService.getRealm(realm);
         return subjectService.listSubjects(r.getSlug());
     }
 
     @Transactional(readOnly = true)
-    public List<Subject> searchSubjects(String realm, String query, Set<String> types) throws NoSuchRealmException {
+    public List<Subject> searchSubjects(String realm, String keywords, Set<String> types) throws NoSuchRealmException {
+        logger.debug("search subjects for realm {} with query {}", StringUtils.trimAllWhitespace(realm),
+                StringUtils.trimAllWhitespace(keywords));
+
+        String query = StringUtils.trimAllWhitespace(keywords);
         Realm r = realmService.getRealm(realm);
 
         // enforce min length on query

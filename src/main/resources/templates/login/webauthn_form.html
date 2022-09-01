@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:fragment="header">
+
+</head>
+
+<body>
+    <div th:fragment="login" class="border-bottom mb-2">
+        <p th:if="${authority.description != null}" th:text="${authority.description}"></p>
+        <script th:src="@{/webauthn/js/webauthn.js}" type="text/javascript" charset="utf-8"></script>
+        <div class="alert alert-danger" role="alert" th:id="${'webauthn_error_'+authority.provider}"
+            style="display: none;"></div>
+
+        <form th:action=${authority.formUrl} onsubmit="webauthnLogin(this); return false;" th:object="${login}"
+            method="post" th:id="${'webauthn_'+authority.provider}">
+            <input type="hidden" id="provider" name="provider" th:value="${authority.provider}" />
+            <input type="hidden" id="key" name="key" />
+            <input type="hidden" id="assertion" name="assertion" />
+
+            <div class="col-md-12 form-group">
+                <label th:text="#{field.username}" for="username">: </label>
+                <input class="form-control" type="text" id="username" name="username" />
+            </div>
+
+
+            <div class="row px-2 align-items-center">
+                <button class="btn btn-primary btn-block" th:text="#{action.login}">Login</button>
+            </div>
+
+        </form>
+
+    </div>
+
+</body>
+
+</html>

@@ -97,7 +97,24 @@
                      <td>{{v}}</td>
                   </tr>
                </table>
-               <a class="read-more" href="" ng-click="updateCredentials('internal',account.provider.provider, account.uuid)"
+               <a class="read-more" href=""
+                  ng-click="updateCredentials('password',account.provider.provider, account.uuid)"
+                  ng-if="account.authority == 'password'">
+                  <span class="text text-primary">{{'accounts.credentials_edit'| translate}}</span>
+                  <svg class="icon">
+                     <use xlink:href="./italia/svg/sprite.svg#it-arrow-right"></use>
+                  </svg>
+               </a>
+               <a class="read-more" href=""
+                  ng-click="updateCredentials('webauthn',account.provider.provider, account.uuid)"
+                  ng-if="account.authority == 'webauthn'">
+                  <span class="text text-primary">{{'accounts.credentials_edit'| translate}}</span>
+                  <svg class="icon">
+                     <use xlink:href="./italia/svg/sprite.svg#it-arrow-right"></use>
+                  </svg>
+               </a>
+               <a class="read-more mb-4" href=""
+                  ng-click="updateAccount('internal',account.provider.provider, account.uuid)"
                   ng-if="account.authority == 'internal'">
                   <span class="text text-primary">{{'accounts.internal_edit'| translate}}</span>
                   <svg class="icon">
@@ -119,10 +136,10 @@
             <p>{{'accounts.delete_confirm' | translate}}</p>
          </div>
          <div class="modal-footer">
-            <button class="btn btn-danger btn-sm" ng-click="deleteAccount()"
-               type="button">{{'accounts.btn_delete' | translate}}</button>
-            <button class="btn btn-outline-secondary btn-sm" type="button"
-               data-dismiss="modal">{{'btn_cancel' | translate}}</button>
+            <button class="btn btn-danger btn-sm" ng-click="deleteAccount()" type="button">{{'accounts.btn_delete' |
+               translate}}</button>
+            <button class="btn btn-outline-secondary btn-sm" type="button" data-dismiss="modal">{{'btn_cancel' |
+               translate}}</button>
          </div>
       </div>
    </div>

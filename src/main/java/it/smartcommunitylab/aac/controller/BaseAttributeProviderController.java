@@ -13,8 +13,10 @@ import javax.validation.constraints.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,6 +29,7 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.core.ProviderManager;
@@ -37,11 +40,20 @@ import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
  */
 
 @PreAuthorize("hasAuthority(this.authority)")
-public class BaseAttributeProviderController {
+public class BaseAttributeProviderController implements InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Autowired
     protected ProviderManager providerManager;
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        Assert.notNull(providerManager, "provider manager is required");
+    }
+
+    @Autowired
+    public void setProviderManager(ProviderManager providerManager) {
+        this.providerManager = providerManager;
+    }
 
     public String getAuthority() {
         return Config.R_USER;
@@ -89,7 +101,8 @@ public class BaseAttributeProviderController {
     @PostMapping("/ap/{realm}")
     public ConfigurableAttributeProvider addAp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration) throws NoSuchRealmException {
+            @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration)
+            throws NoSuchRealmException, NoSuchAuthorityException {
         logger.debug("add ap to realm {}",
                 StringUtils.trimAllWhitespace(realm));
 
@@ -127,7 +140,7 @@ public class BaseAttributeProviderController {
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration,
             @RequestParam(required = false, defaultValue = "false") Optional<Boolean> force)
-            throws NoSuchRealmException, NoSuchProviderException {
+            throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException {
         logger.debug("update ap {} for realm {}",
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
@@ -239,7 +252,7 @@ public class BaseAttributeProviderController {
     public JsonSchema getApConfigurationSchema(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
-            throws NoSuchProviderException, NoSuchRealmException {
+            throws NoSuchProviderException, NoSuchRealmException, NoSuchAuthorityException {
         logger.debug("get ap config schema for {} for realm {}",
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 

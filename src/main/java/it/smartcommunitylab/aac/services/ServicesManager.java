@@ -28,6 +28,7 @@ import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.claims.ExtractorsRegistry;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
+import it.smartcommunitylab.aac.common.DuplicatedDataException;
 import it.smartcommunitylab.aac.common.NoSuchClaimException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
@@ -52,6 +53,7 @@ import it.smartcommunitylab.aac.scope.AuthorityScopeApprover;
 import it.smartcommunitylab.aac.scope.CombinedScopeApprover;
 import it.smartcommunitylab.aac.scope.DelegateScopeApprover;
 import it.smartcommunitylab.aac.scope.RoleScopeApprover;
+import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeApprover;
 import it.smartcommunitylab.aac.scope.ScopeProvider;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
@@ -552,6 +554,13 @@ public class ServicesManager implements InitializingBean {
         if (!StringUtils.hasText(name)) {
             name = scope;
         }
+
+        // check if scope if already defined elsewhere
+        Scope se = scopeRegistry.findScope(scope);
+        if (se != null) {
+            throw new DuplicatedDataException("scope");
+        }
+
         ScopeType type = sc.getType() != null ? sc.getType() : ScopeType.GENERIC;
         Set<String> claims = sc.getClaims();
         Set<String> roles = sc.getApprovalRoles();

@@ -50,16 +50,20 @@
             <a class="nav-link  {{activeView('conf.internal')}}" href ng-click="switchView('conf.internal')">Internal
                 Configuration</a>
         </li>
-        <li ng-if="idp.authority == 'oidc'" class="nav-item">
+        <li ng-if="idp.authority == 'password'" class="nav-item">
+            <a class="nav-link  {{activeView('conf.password')}}" href ng-click="switchView('conf.password')">Password
+                Configuration</a>
+        </li>   
+        <li ng-if="idp.authority == 'webauthn'" class="nav-item">
+            <a class="nav-link  {{activeView('conf.webauthn')}}" href ng-click="switchView('conf.webauthn')">WebAuthn
+                Configuration</a>
+        </li>                 
+        <li ng-if="idp.authority == 'oidc' || idp.schema.id == 'urn:jsonschema:it:smartcommunitylab:aac:openid:provider:OIDCIdentityProviderConfigMap'" class="nav-item">
             <a class="nav-link  {{activeView('conf.oidc')}}" href ng-click="switchView('conf.oidc')">OIDC
                 Configuration</a>
         </li>
         <li ng-if="idp.authority == 'saml'" class="nav-item">
             <a class="nav-link  {{activeView('conf.saml')}}" href ng-click="switchView('conf.saml')">SAML
-                Configuration</a>
-        </li>
-        <li ng-if="idp.authority == 'spid'" class="nav-item">
-            <a class="nav-link  {{activeView('conf.spid')}}" href ng-click="switchView('conf.spid')">SPID
                 Configuration</a>
         </li>
         <li ng-if="idp.authority == 'apple'" class="nav-item">

@@ -1,7 +1,6 @@
 package it.smartcommunitylab.aac.dev;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,7 +13,6 @@ import java.util.Set;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
@@ -31,6 +29,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.yaml.snakeyaml.Yaml;
@@ -41,6 +40,7 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
@@ -50,7 +50,6 @@ import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.controller.BaseIdentityProviderController;
 import it.smartcommunitylab.aac.core.ClientManager;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.model.ClientApp;
 
 @RestController
@@ -58,9 +57,9 @@ import it.smartcommunitylab.aac.model.ClientApp;
 @RequestMapping("/console/dev")
 public class DevIdentityProviderController extends BaseIdentityProviderController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
-
     private final TypeReference<Map<String, List<ConfigurableIdentityProvider>>> typeRef = new TypeReference<Map<String, List<ConfigurableIdentityProvider>>>() {
     };
+    private final String LIST_KEY = "providers";
 
     @Autowired
     private ClientManager clientManager;
@@ -73,23 +72,23 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
      * Providers
      */
 
-    @GetMapping("/idptemplates/{realm}")
-    public Collection<ConfigurableProvider> getRealmProviderTemplates(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
-            throws NoSuchRealmException {
-
-        Collection<ConfigurableProvider> providers = providerManager
-                .listProviderConfigurationTemplates(realm, ConfigurableProvider.TYPE_IDENTITY);
-
-        return providers;
-    }
+//    @GetMapping("/idptemplates/{realm}")
+//    public Collection<ConfigurableProvider> getRealmProviderTemplates(
+//            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
+//            throws NoSuchRealmException {
+//
+//        Collection<ConfigurableProvider> providers = providerManager
+//                .listProviderConfigurationTemplates(realm, ConfigurableProvider.TYPE_IDENTITY);
+//
+//        return providers;
+//    }
 
     @Override
     @GetMapping("/idp/{realm}/{providerId}")
     public ConfigurableIdentityProvider getIdp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
-            throws NoSuchProviderException, NoSuchRealmException {
+            throws NoSuchProviderException, NoSuchRealmException, NoSuchAuthorityException {
         ConfigurableIdentityProvider provider = super.getIdp(realm, providerId);
 
         // fetch also configuration schema
@@ -104,7 +103,8 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
     public ConfigurableIdentityProvider addIdp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestBody @Valid @NotNull ConfigurableIdentityProvider registration)
-            throws NoSuchRealmException, NoSuchProviderException {
+            throws NoSuchRealmException, NoSuchProviderException, RegistrationException, SystemException,
+            NoSuchAuthorityException {
         ConfigurableIdentityProvider provider = super.addIdp(realm, registration);
 
         // fetch also configuration schema
@@ -121,7 +121,7 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             @RequestBody @Valid @NotNull ConfigurableIdentityProvider registration,
             @RequestParam(required = false, defaultValue = "false") Optional<Boolean> force)
-            throws NoSuchRealmException, NoSuchProviderException {
+            throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException {
         ConfigurableIdentityProvider provider = super.updateIdp(realm, providerId, registration, Optional.of(false));
 
         // fetch also configuration schema
@@ -138,99 +138,66 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
     public Collection<ConfigurableIdentityProvider> importRealmProvider(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam(required = false, defaultValue = "false") boolean reset,
-            @RequestParam("file") @Valid @NotNull @NotBlank MultipartFile file) throws RegistrationException {
+            @RequestPart(name = "yaml", required = false) @Valid String yaml,
+            @RequestPart(name = "file", required = false) @Valid MultipartFile file)
+            throws NoSuchRealmException, RegistrationException {
         logger.debug("import idp(s) to realm {}", StringUtils.trimAllWhitespace(realm));
 
-        if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("empty file");
-        }
-
-        if (file.getContentType() == null) {
-            throw new IllegalArgumentException("invalid file");
-        }
-
-        if (!SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType())
-                && !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType())
-                && !SystemKeys.MEDIA_TYPE_XYAML.toString().equals(file.getContentType())) {
-            throw new IllegalArgumentException("invalid file");
+        if (!StringUtils.hasText(yaml) && (file == null || file.isEmpty())) {
+            throw new IllegalArgumentException("empty file or yaml");
         }
 
         try {
+            // read string, fallback to yaml
+            if (!StringUtils.hasText(yaml)) {
+                if (file.getContentType() == null) {
+                    throw new IllegalArgumentException("invalid file");
+                }
+
+                if (!SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType())
+                        && !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType())
+                        && !SystemKeys.MEDIA_TYPE_XYAML.toString().equals(file.getContentType())) {
+                    throw new IllegalArgumentException("invalid file");
+                }
+
+                // read whole file as string
+                yaml = new String(file.getBytes(), StandardCharsets.UTF_8);
+            }
+
             List<ConfigurableIdentityProvider> providers = new ArrayList<>();
-            boolean multiple = false;
+            List<ConfigurableIdentityProvider> regs = new ArrayList<>();
 
             // read as raw yaml to check if collection
-            Yaml yaml = new Yaml();
-            Map<String, Object> obj = yaml.load(file.getInputStream());
-            multiple = obj.containsKey("providers");
+            Yaml reader = new Yaml();
+            Map<String, Object> obj = reader.load(yaml);
+            boolean multiple = obj.containsKey(LIST_KEY);
 
             if (multiple) {
-                Map<String, List<ConfigurableIdentityProvider>> list = yamlObjectMapper.readValue(file.getInputStream(),
-                        typeRef);
-
-                for (ConfigurableIdentityProvider registration : list.get("providers")) {
-                    // unpack and build model
-                    String id = registration.getProvider();
-                    if (reset) {
-                        // reset id
-                        id = null;
-                    }
-                    String authority = registration.getAuthority();
-                    String name = registration.getName();
-                    String description = registration.getDescription();
-                    String persistence = registration.getPersistence();
-                    String events = registration.getEvents();
-                    Map<String, Serializable> configuration = registration.getConfiguration();
-                    Map<String, String> hookFunctions = registration.getHookFunctions();
-
-                    ConfigurableIdentityProvider provider = new ConfigurableIdentityProvider(authority, id, realm);
-                    provider.setName(name);
-                    provider.setDescription(description);
-                    provider.setEnabled(false);
-                    provider.setPersistence(persistence);
-                    provider.setEvents(events);
-                    provider.setConfiguration(configuration);
-                    provider.setHookFunctions(hookFunctions);
-
-                    provider = providerManager.addIdentityProvider(realm, provider);
-
-                    // fetch also configuration schema
-                    JsonSchema schema = providerManager.getConfigurationSchema(realm, provider.getType(),
-                            provider.getAuthority());
-                    provider.setSchema(schema);
-                    providers.add(provider);
+                Map<String, List<ConfigurableIdentityProvider>> list = yamlObjectMapper.readValue(yaml, typeRef);
+                for (ConfigurableIdentityProvider reg : list.get(LIST_KEY)) {
+                    regs.add(reg);
                 }
             } else {
                 // try single element
-                ConfigurableIdentityProvider registration = yamlObjectMapper.readValue(file.getInputStream(),
+                ConfigurableIdentityProvider reg = yamlObjectMapper.readValue(yaml,
                         ConfigurableIdentityProvider.class);
+                regs.add(reg);
+            }
 
-                // unpack and build model
-                String id = registration.getProvider();
+            // register all
+            for (ConfigurableIdentityProvider reg : regs) {
+                // align config
+                reg.setRealm(realm);
                 if (reset) {
                     // reset id
-                    id = null;
+                    reg.setProvider(null);
                 }
-                String authority = registration.getAuthority();
-                String type = registration.getType();
-                String name = registration.getName();
-                String description = registration.getDescription();
-                String persistence = registration.getPersistence();
-                String events = registration.getEvents();
-                Map<String, Serializable> configuration = registration.getConfiguration();
-                Map<String, String> hookFunctions = registration.getHookFunctions();
 
-                ConfigurableIdentityProvider provider = new ConfigurableIdentityProvider(authority, id, realm);
-                provider.setName(name);
-                provider.setDescription(description);
-                provider.setType(type);
-                provider.setEnabled(false);
-                provider.setPersistence(persistence);
-                provider.setEvents(events);
-                provider.setConfiguration(configuration);
-                provider.setHookFunctions(hookFunctions);
-
-                provider = providerManager.addIdentityProvider(realm, provider);
+                if (logger.isTraceEnabled()) {
+                    logger.trace("provider bean: " + String.valueOf(reg));
+                }
+                // register
+                ConfigurableIdentityProvider provider = providerManager.addIdentityProvider(realm, reg);
 
                 // fetch also configuration schema
                 JsonSchema schema = providerManager.getConfigurationSchema(realm, provider.getType(),
@@ -238,10 +205,18 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
                 provider.setSchema(schema);
                 providers.add(provider);
             }
-            return providers;
 
+            return providers;
         } catch (Exception e) {
             logger.error("error importing providers: " + e.getMessage());
+            if (logger.isTraceEnabled()) {
+                e.printStackTrace();
+            }
+
+            if (e instanceof ClassCastException) {
+                throw new RegistrationException("invalid content or file");
+            }
+
             throw new RegistrationException(e.getMessage());
         }
 

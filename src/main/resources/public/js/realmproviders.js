@@ -4,6 +4,13 @@ angular.module('aac.controllers.realmproviders', [])
       */
     .service('RealmProviders', function ($http, $window) {
         var service = {};
+        // authorities
+        service.getIdentityProviderAuthorities = function (slug) {
+            return $http.get('console/dev/idp/' + slug + '/authorities').then(function (data) {
+                return data.data;
+            });
+        }
+
         // idps
         service.getIdentityProvider = function (slug, providerId) {
             return $http.get('console/dev/idp/' + slug + '/' + providerId).then(function (data) {
@@ -17,11 +24,11 @@ angular.module('aac.controllers.realmproviders', [])
             });
         }
 
-        service.getIdentityProviderTemplates = function (slug) {
-            return $http.get('console/dev/idptemplates/' + slug).then(function (data) {
-                return data.data;
-            });
-        }
+        // service.getIdentityProviderTemplates = function (slug) {
+        //     return $http.get('console/dev/idptemplates/' + slug).then(function (data) {
+        //         return data.data;
+        //     });
+        // }
 
         service.removeIdentityProvider = function (slug, providerId) {
             return $http.delete('console/dev/idp/' + slug + '/' + providerId).then(function (data) {
@@ -53,11 +60,16 @@ angular.module('aac.controllers.realmproviders', [])
             }
         }
 
-        service.importIdentityProvider = function (slug, file) {
+        service.importIdentityProvider = function (slug, file, yaml, reset) {
             var fd = new FormData();
-            fd.append('file', file);
+            if (yaml) {
+                fd.append('yaml', yaml);
+            }
+            if (file) {
+                fd.append('file', file);
+            }
             return $http({
-                url: 'console/dev/idp/' + slug,
+                url: 'console/dev/idp/' + slug + (reset ? "?reset=true" : ""),
                 headers: { "Content-Type": undefined }, //set undefined to let $http manage multipart declaration with proper boundaries
                 data: fd,
                 method: "PUT"
@@ -119,11 +131,16 @@ angular.module('aac.controllers.realmproviders', [])
             }
         }
 
-        service.importAttributeProvider = function (slug, file) {
+        service.importAttributeProvider = function (slug, file, yaml, reset) {
             var fd = new FormData();
-            fd.append('file', file);
+            if (yaml) {
+                fd.append('yaml', yaml);
+            }
+            if (file) {
+                fd.append('file', file);
+            }
             return $http({
-                url: 'console/dev/ap/' + slug,
+                url: 'console/dev/ap/' + slug + (reset ? "?reset=true" : ""),
                 headers: { "Content-Type": undefined }, //set undefined to let $http manage multipart declaration with proper boundaries
                 data: fd,
                 method: "PUT"
@@ -194,11 +211,11 @@ angular.module('aac.controllers.realmproviders', [])
          * Initialize the app: load list of the providers
          */
         var init = function () {
-            RealmProviders.getIdentityProviderTemplates(slug)
+            RealmProviders.getIdentityProviderAuthorities(slug)
                 .then(function (data) {
-                    $scope.providerTemplates = data.filter(function (pt) { return pt.authority != 'internal' });
+                    $scope.authorities = data;
+                    $scope.load();
                 })
-            $scope.load();
         };
 
         $scope.deleteProviderDlg = function (provider) {
@@ -320,6 +337,23 @@ angular.module('aac.controllers.realmproviders', [])
             Utils.refreshFormBS();
         }
 
+        $scope.webAuthnProviderDlg = function (provider) {
+            $scope.providerId = provider ? provider.provider : null;
+            $scope.providerAuthority = 'webauthn';
+            $scope.provider = provider ? Object.assign({}, provider.configuration) :
+                {
+                    rpid: 'localhost',
+                    rpName: 'AAC',
+                    enableRegistration: true,
+                    trustUnverifiedAuthenticatorResponses: false,
+                    enableUpdate: false,
+                    maxSessionDuration: 86400,
+                };
+            $scope.provider.name = provider ? provider.name : null;
+            $('#webAuthnModal').modal({ backdrop: 'static', focus: true })
+            Utils.refreshFormBS();
+        }
+
         $scope.saveProvider = function () {
             $('#' + $scope.providerAuthority + 'Modal').modal('hide');
 
@@ -418,24 +452,31 @@ angular.module('aac.controllers.realmproviders', [])
 
 
         $scope.importProviderDlg = function () {
+            if ($scope.importFile) {
+                $scope.importFile.file = null;
+            }
+
             $('#importProviderDlg').modal({ keyboard: false });
         }
 
 
         $scope.importProvider = function () {
             $('#importProviderDlg').modal('hide');
-            var file = $scope.importFile;
+            var file = $scope.importFile.file;
+            var yaml = $scope.importFile.yaml;
+            var resetID = !!$scope.importFile.resetID;
             var mimeTypes = ['text/yaml', 'text/yml', 'application/x-yaml'];
-            if (file == null || !mimeTypes.includes(file.type) || file.size == 0) {
+            if (!yaml && (file == null || !mimeTypes.includes(file.type) || file.size == 0)) {
                 Utils.showError("invalid file");
             } else {
-                RealmProviders.importIdentityProvider($scope.realm.slug, file)
-                    .then(function (res) {
+                RealmProviders.importIdentityProvider(slug, file, yaml, resetID)
+                    .then(function () {
                         $scope.importFile = null;
                         $scope.load();
                         Utils.showSuccess();
                     })
                     .catch(function (err) {
+                        $scope.importFile.file = null;
                         Utils.showError(err.data.message);
                     });
             }
@@ -443,6 +484,10 @@ angular.module('aac.controllers.realmproviders', [])
 
         var iconProvider = function (idp) {
             var icons = ['facebook', 'google', 'microsoft', 'apple', 'instagram', 'github'];
+
+            if (icons.includes(idp.authority.toLowerCase())) {
+                return './svg/sprite.svg#logo-' + idp.authority.toLowerCase();
+            }
 
             if (idp.authority === "oidc" && 'clientName' in idp.configuration) {
                 var logo = null;
@@ -456,9 +501,7 @@ angular.module('aac.controllers.realmproviders', [])
                     return './svg/sprite.svg#logo-' + logo;
                 }
             }
-            if (idp.authority === "spid") {
-                return './spid/sprite.svg#spid-ico-circle-bb';
-            }
+
             if (idp.authority === "apple") {
                 return './svg/sprite.svg#logo-apple';
             }
@@ -504,9 +547,9 @@ angular.module('aac.controllers.realmproviders', [])
                 .then(function (data) {
                     $scope.realmUrls = data;
                 })
-                .then(function () {
-                    return RealmProviders.getIdentityProviderTemplates(slug);
-                })
+                // .then(function () {
+                //     return RealmProviders.getIdentityProviderTemplates(slug);
+                // })
                 .then(function (data) {
                     $scope.providerTemplates = data;
 
@@ -610,11 +653,11 @@ angular.module('aac.controllers.realmproviders', [])
 
             $scope.attributeMapping = attributeMapping;
 
-            if (data.authority == 'saml' || data.authority == 'spid') {
+            if (data.authority == 'saml') {
                 var metadataUrl = $scope.realmUrls.applicationUrl + "/auth/" + data.authority + "/metadata/" + data.provider;
                 $scope.samlMetadataUrl = metadataUrl;
             }
-            if (data.authority == 'oidc' || data.authority == 'apple') {
+            if (data.authority == 'oidc' || data.authority == 'apple' || data.schema.id == 'urn:jsonschema:it:smartcommunitylab:aac:openid:provider:OIDCIdentityProviderConfigMap') {
                 var loginUrl = $scope.realmUrls.applicationUrl + "/auth/" + data.authority + "/login/" + data.provider;
                 $scope.oidcRedirectUrl = loginUrl;
             }
@@ -759,6 +802,10 @@ angular.module('aac.controllers.realmproviders', [])
         var iconProvider = function (ap) {
             var icons = ['facebook', 'google', 'microsoft', 'apple', 'instagram', 'github'];
 
+            if (icons.includes(ap.authority.toLowerCase())) {
+                return './svg/sprite.svg#logo-' + ap.authority.toLowerCase();
+            }
+
             if (ap.authority === "oidc" && 'clientName' in ap.configuration) {
                 var logo = null;
                 if (icons.includes(ap.configuration.clientName.toLowerCase())) {
@@ -771,9 +818,7 @@ angular.module('aac.controllers.realmproviders', [])
                     return './svg/sprite.svg#logo-' + logo;
                 }
             }
-            if (ap.authority === "spid") {
-                return './spid/sprite.svg#spid-ico-circle-bb';
-            }
+
             if (ap.authority === "apple") {
                 return './svg/sprite.svg#logo-apple';
             }
@@ -932,24 +977,31 @@ angular.module('aac.controllers.realmproviders', [])
 
 
         $scope.importProviderDlg = function () {
+            if ($scope.importFile) {
+                $scope.importFile.file = null;
+            }
+
             $('#importProviderDlg').modal({ keyboard: false });
         }
 
 
         $scope.importProvider = function () {
             $('#importProviderDlg').modal('hide');
-            var file = $scope.importFile;
+            var file = $scope.importFile.file;
+            var yaml = $scope.importFile.yaml;
+            var resetID = !!$scope.importFile.resetID;
             var mimeTypes = ['text/yaml', 'text/yml', 'application/x-yaml'];
-            if (file == null || !mimeTypes.includes(file.type) || file.size == 0) {
+            if (!yaml && (file == null || !mimeTypes.includes(file.type) || file.size == 0)) {
                 Utils.showError("invalid file");
             } else {
-                RealmProviders.importAttributeProvider($scope.realm.slug, file)
-                    .then(function (res) {
+                RealmProviders.importAttributeProvider(slug, file, yaml, resetID)
+                    .then(function () {
                         $scope.importFile = null;
                         $scope.load();
                         Utils.showSuccess();
                     })
                     .catch(function (err) {
+                        $scope.importFile.file = null;
                         Utils.showError(err.data.message);
                     });
             }

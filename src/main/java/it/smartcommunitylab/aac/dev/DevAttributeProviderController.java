@@ -10,13 +10,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
@@ -35,6 +33,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.yaml.snakeyaml.Yaml;
@@ -45,6 +44,7 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
@@ -63,9 +63,9 @@ import it.smartcommunitylab.aac.dto.FunctionValidationBean;
 @RequestMapping("/console/dev")
 public class DevAttributeProviderController extends BaseAttributeProviderController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
-
     private final TypeReference<Map<String, List<ConfigurableAttributeProvider>>> typeRef = new TypeReference<Map<String, List<ConfigurableAttributeProvider>>>() {
     };
+    private final String LIST_KEY = "providers";
 
     @Autowired
     private AuthorityManager authorityManager;
@@ -73,6 +73,11 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
     @Autowired
     @Qualifier("yamlObjectMapper")
     private ObjectMapper yamlObjectMapper;
+
+//    @Autowired
+//    public void setProviderManager(ProviderManager providerManager) {
+//        super.setProviderManager(providerManager);
+//    }
 
     /*
      * Providers
@@ -87,8 +92,13 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
         ConfigurableAttributeProvider provider = super.getAp(realm, providerId);
 
         // fetch also configuration schema
-        JsonSchema schema = providerManager.getConfigurationSchema(realm, provider.getType(), provider.getAuthority());
-        provider.setSchema(schema);
+        try {
+            JsonSchema schema = providerManager.getConfigurationSchema(realm, provider.getType(),
+                    provider.getAuthority());
+            provider.setSchema(schema);
+        } catch (NoSuchAuthorityException e) {
+            throw new NoSuchProviderException();
+        }
 
         return provider;
     }
@@ -97,7 +107,8 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
     @PostMapping("/ap/{realm}")
     public ConfigurableAttributeProvider addAp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration) throws NoSuchRealmException {
+            @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration)
+            throws NoSuchRealmException, NoSuchAuthorityException {
         ConfigurableAttributeProvider provider = super.addAp(realm, registration);
 
         // fetch also configuration schema
@@ -114,7 +125,7 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration,
             @RequestParam(required = false, defaultValue = "false") Optional<Boolean> force)
-            throws NoSuchRealmException, NoSuchProviderException {
+            throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException {
         ConfigurableAttributeProvider provider = super.updateAp(realm, providerId, registration, Optional.of(false));
 
         // fetch also configuration schema
@@ -233,7 +244,8 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
         function.setContext(principalAttributes);
 
         try {
-            Collection<UserAttributes> userAttributes = ap.convertPrincipalAttributes(principal, userAuth.getSubjectId());
+            Collection<UserAttributes> userAttributes = ap.convertPrincipalAttributes(principal,
+                    userAuth.getSubjectId());
             if (userAttributes == null) {
                 userAttributes = Collections.emptyList();
             }
@@ -261,98 +273,67 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
     public Collection<ConfigurableAttributeProvider> importRealmProvider(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam(required = false, defaultValue = "false") boolean reset,
-            @RequestParam("file") @Valid @NotNull @NotBlank MultipartFile file) throws RegistrationException {
+            @RequestPart(name = "yaml", required = false) @Valid String yaml,
+            @RequestPart(name = "file", required = false) @Valid MultipartFile file)
+            throws NoSuchRealmException, RegistrationException {
         logger.debug("import ap(s) to realm {}", StringUtils.trimAllWhitespace(realm));
 
-        if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("empty file");
-        }
-
-        if (file.getContentType() == null) {
-            throw new IllegalArgumentException("invalid file");
-        }
-
-        if (!SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType())
-                && !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType())
-                && !SystemKeys.MEDIA_TYPE_XYAML.toString().equals(file.getContentType())) {
-            throw new IllegalArgumentException("invalid file");
+        if (!StringUtils.hasText(yaml) && (file == null || file.isEmpty())) {
+            throw new IllegalArgumentException("empty file or yaml");
         }
 
         try {
+            // read string, fallback to yaml
+            if (!StringUtils.hasText(yaml)) {
+                if (file.getContentType() == null) {
+                    throw new IllegalArgumentException("invalid file");
+                }
+
+                if (!SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType())
+                        && !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType())
+                        && !SystemKeys.MEDIA_TYPE_XYAML.toString().equals(file.getContentType())) {
+                    throw new IllegalArgumentException("invalid file");
+                }
+
+                // read whole file as string
+                yaml = new String(file.getBytes(), StandardCharsets.UTF_8);
+            }
+
             List<ConfigurableAttributeProvider> providers = new ArrayList<>();
-            boolean multiple = false;
+            List<ConfigurableAttributeProvider> regs = new ArrayList<>();
 
             // read as raw yaml to check if collection
-            Yaml yaml = new Yaml();
-            Map<String, Object> obj = yaml.load(file.getInputStream());
-            multiple = obj.containsKey("providers");
+            Yaml reader = new Yaml();
+            Map<String, Object> obj = reader.load(yaml);
+            boolean multiple = obj.containsKey(LIST_KEY);
 
             if (multiple) {
-                Map<String, List<ConfigurableAttributeProvider>> list = yamlObjectMapper.readValue(
-                        file.getInputStream(),
-                        typeRef);
-
-                for (ConfigurableAttributeProvider registration : list.get("providers")) {
-                    // unpack and build model
-                    String id = registration.getProvider();
-                    if (reset) {
-                        // reset id
-                        id = null;
-                    }
-                    String authority = registration.getAuthority();
-                    String name = registration.getName();
-                    String description = registration.getDescription();
-                    String persistence = registration.getPersistence();
-                    String events = registration.getEvents();
-                    Set<String> attributeSets = registration.getAttributeSets();
-                    Map<String, Serializable> configuration = registration.getConfiguration();
-
-                    ConfigurableAttributeProvider provider = new ConfigurableAttributeProvider(authority, id, realm);
-                    provider.setName(name);
-                    provider.setDescription(description);
-                    provider.setEnabled(false);
-                    provider.setPersistence(persistence);
-                    provider.setEvents(events);
-                    provider.setAttributeSets(attributeSets);
-                    provider.setConfiguration(configuration);
-
-                    provider = providerManager.addAttributeProvider(realm, provider);
-
-                    // fetch also configuration schema
-                    JsonSchema schema = providerManager.getConfigurationSchema(realm, provider.getType(),
-                            provider.getAuthority());
-                    provider.setSchema(schema);
-                    providers.add(provider);
+                Map<String, List<ConfigurableAttributeProvider>> list = yamlObjectMapper.readValue(yaml, typeRef);
+                for (ConfigurableAttributeProvider reg : list.get(LIST_KEY)) {
+                    regs.add(reg);
                 }
             } else {
                 // try single element
-                ConfigurableAttributeProvider registration = yamlObjectMapper.readValue(file.getInputStream(),
+                ConfigurableAttributeProvider reg = yamlObjectMapper.readValue(yaml,
                         ConfigurableAttributeProvider.class);
+                regs.add(reg);
+            }
 
-                // unpack and build model
-                String id = registration.getProvider();
+            // register all
+            for (ConfigurableAttributeProvider reg : regs) {
+                // align config
+                reg.setRealm(realm);
                 if (reset) {
                     // reset id
-                    id = null;
+                    reg.setProvider(null);
                 }
-                String authority = registration.getAuthority();
-                String name = registration.getName();
-                String description = registration.getDescription();
-                String persistence = registration.getPersistence();
-                String events = registration.getEvents();
-                Set<String> attributeSets = registration.getAttributeSets();
-                Map<String, Serializable> configuration = registration.getConfiguration();
 
-                ConfigurableAttributeProvider provider = new ConfigurableAttributeProvider(authority, id, realm);
-                provider.setName(name);
-                provider.setDescription(description);
-                provider.setEnabled(false);
-                provider.setPersistence(persistence);
-                provider.setEvents(events);
-                provider.setAttributeSets(attributeSets);
-                provider.setConfiguration(configuration);
+                if (logger.isTraceEnabled()) {
+                    logger.trace("provider bean: " + String.valueOf(reg));
+                }
 
-                provider = providerManager.addAttributeProvider(realm, provider);
+                // register
+                ConfigurableAttributeProvider provider = providerManager.addAttributeProvider(realm, reg);
 
                 // fetch also configuration schema
                 JsonSchema schema = providerManager.getConfigurationSchema(realm, provider.getType(),
@@ -360,10 +341,18 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
                 provider.setSchema(schema);
                 providers.add(provider);
             }
-            return providers;
 
+            return providers;
         } catch (Exception e) {
             logger.error("error importing providers: " + e.getMessage());
+            if (logger.isTraceEnabled()) {
+                e.printStackTrace();
+            }
+
+            if (e instanceof ClassCastException) {
+                throw new RegistrationException("invalid content or file");
+            }
+
             throw new RegistrationException(e.getMessage());
         }
 

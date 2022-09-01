@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 import org.springframework.util.StringUtils;
 
@@ -22,9 +23,11 @@ import it.smartcommunitylab.aac.core.model.AttributeSet;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AttributesRegistrationDTO {
 
+    @Size(max = 128)
     @NotBlank
     private String identifier;
 
+    @Size(max = 128)
     @NotBlank
     private String provider;
 
@@ -81,6 +84,7 @@ public class AttributesRegistrationDTO {
     @Valid
     public static class AttributeDTO {
 
+        @Size(max = 128)
         @NotBlank
         private String key;
         private String type;

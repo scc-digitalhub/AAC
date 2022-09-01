@@ -73,7 +73,7 @@ import it.smartcommunitylab.aac.scope.ScopeRegistry;
  * OAuth2 services configuration
  */
 @Configuration
-@Order(15)
+@Order(12)
 public class OAuth2Config {
 
     @Value("${application.url}")

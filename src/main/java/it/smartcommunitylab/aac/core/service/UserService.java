@@ -16,16 +16,17 @@ import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
+import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.authorities.AttributeAuthority;
-import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
@@ -255,6 +256,13 @@ public class UserService {
 
         User u = new User(subjectId, ue.getRealm());
         u.setUsername(ue.getUsername());
+        u.setEmail(ue.getEmailAddress());
+        boolean emailVerified = ue.getEmailVerified() != null ? ue.getEmailVerified().booleanValue() : false;
+        u.setEmailVerified(emailVerified);
+
+        // status
+        UserStatus status = UserStatus.parse(ue.getStatus());
+        u.setStatus(status);
 
         // fetch attributes
         u.setExpirationDate(ue.getExpirationDate());
@@ -268,13 +276,8 @@ public class UserService {
 
         // same realm, fetch all idps
         // TODO we need an order criteria
-        for (IdentityAuthority ia : authorityManager
-                .listIdentityAuthorities()) {
-            List<? extends IdentityProvider<? extends UserIdentity>> idps = ia
-                    .getIdentityProviders(realm);
-            for (IdentityProvider<? extends UserIdentity> idp : idps) {
-                identities.addAll(idp.listIdentities(subjectId));
-            }
+        for (IdentityProvider<UserIdentity> idp : authorityManager.fetchIdentityProviders(realm)) {
+            identities.addAll(idp.listIdentities(subjectId));
         }
 
         for (UserIdentity identity : identities) {
@@ -334,26 +337,23 @@ public class UserService {
 
         // fetch all identities from source realm
         // TODO we need an order criteria
-        for (IdentityAuthority ia : authorityManager
-                .listIdentityAuthorities()) {
-            List<? extends IdentityProvider<? extends UserIdentity>> idps = ia
-                    .getIdentityProviders(source);
-            for (IdentityProvider<? extends UserIdentity> idp : idps) {
-                identities.addAll(idp.listIdentities(subjectId));
-            }
+        for (IdentityProvider<UserIdentity> idp : authorityManager.fetchIdentityProviders(realm)) {
+            identities.addAll(idp.listIdentities(subjectId));
         }
-        if (!source.equals(realm)) {
-            // also fetch identities from destination realm
-            // TODO we need an order criteria
-            for (IdentityAuthority ia : authorityManager
-                    .listIdentityAuthorities()) {
-                List<? extends IdentityProvider<? extends UserIdentity>> idps = ia
-                        .getIdentityProviders(realm);
-                for (IdentityProvider<? extends UserIdentity> idp : idps) {
-                    identities.addAll(idp.listIdentities(subjectId));
-                }
-            }
-        }
+
+//        if (!source.equals(realm)) {
+        // DISABLED, TODO evaluate cross realm
+//            // also fetch identities from destination realm
+//            // TODO we need an order criteria
+//            for (IdentityProviderAuthority<? extends UserIdentity> ia : authorityManager
+//                    .listIdentityAuthorities()) {
+//                List<? extends IdentityProvider<? extends UserIdentity>> idps = ia
+//                        .getProviders(realm);
+//                for (IdentityProvider<? extends UserIdentity> idp : idps) {
+//                    identities.addAll(idp.listIdentities(subjectId));
+//                }
+//            }
+//        }
 
         for (UserIdentity identity : identities) {
             u.addIdentity(identity);
@@ -518,17 +518,15 @@ public class UserService {
 
     }
 
+    @Transactional(readOnly = false)
     public void deleteUser(String subjectId) throws NoSuchUserException {
         UserEntity user = userService.getUser(subjectId);
         String realm = user.getRealm();
 
-        // delete identities via providers
-        for (IdentityAuthority ia : authorityManager.listIdentityAuthorities()) {
-            List<? extends IdentityProvider<? extends UserIdentity>> idps = ia.getIdentityProviders(realm);
-            for (IdentityProvider<? extends UserIdentity> idp : idps) {
-                // remove all identities
-                idp.deleteIdentities(subjectId);
-            }
+        // delete identities via (active) providers
+        for (IdentityProvider<UserIdentity> idp : authorityManager.fetchIdentityProviders(realm)) {
+            // remove all identities
+            idp.deleteIdentities(subjectId);
         }
 
         // attributes
@@ -546,6 +544,24 @@ public class UserService {
         // delete user
         userService.deleteUser(subjectId);
 
+    }
+
+    @Transactional(readOnly = false)
+    public User blockUser(String subjectId) throws NoSuchUserException, NoSuchRealmException {
+        userService.blockUser(subjectId);
+        return getUser(subjectId);
+    }
+
+    @Transactional(readOnly = false)
+    public User activateUser(String subjectId) throws NoSuchUserException, NoSuchRealmException {
+        userService.activateUser(subjectId);
+        return getUser(subjectId);
+    }
+
+    @Transactional(readOnly = false)
+    public User inactivateUser(String subjectId) throws NoSuchUserException, NoSuchRealmException {
+        userService.inactivateUser(subjectId);
+        return getUser(subjectId);
     }
 
     // TODO user registration with authority via given provider

@@ -5,6 +5,7 @@ import java.util.Collection;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.model.UserAccount;
+import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 
 public interface AccountProvider<U extends UserAccount> extends ResourceProvider {
 
@@ -20,10 +21,15 @@ public interface AccountProvider<U extends UserAccount> extends ResourceProvider
 
     public U getAccount(String accountId) throws NoSuchUserException;
 
-    public void deleteAccount(String accountId) throws NoSuchUserException;
+//    public void deleteAccount(String accountId) throws NoSuchUserException;
 
     // userId is globally addressable
     public Collection<U> listAccounts(String userId);
+
+    /*
+     * Build account from principal attributes
+     */
+    public U convertAccount(UserAuthenticatedPrincipal principal, String userId);
 
     /*
      * Actions on accounts

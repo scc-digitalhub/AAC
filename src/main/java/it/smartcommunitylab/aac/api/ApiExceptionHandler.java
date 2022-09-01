@@ -19,14 +19,19 @@ import org.springframework.security.access.AccessDeniedException;
 
 import it.smartcommunitylab.aac.common.NoSuchAttributeException;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
+import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchClaimException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
+import it.smartcommunitylab.aac.common.NoSuchCredentialException;
+import it.smartcommunitylab.aac.common.NoSuchGroupException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchServiceException;
+import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.NoSuchResourceException;
+import it.smartcommunitylab.aac.common.NoSuchRoleException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 
 @ControllerAdvice(basePackages = "it.smartcommunitylab.aac.api")
@@ -43,12 +48,17 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler({
             NoSuchAttributeException.class,
             NoSuchAttributeSetException.class,
+            NoSuchAuthorityException.class,
             NoSuchClaimException.class,
             NoSuchClientException.class,
+            NoSuchCredentialException.class,
+            NoSuchGroupException.class,
             NoSuchProviderException.class,
             NoSuchRealmException.class,
+            NoSuchRoleException.class,
             NoSuchScopeException.class,
             NoSuchServiceException.class,
+            NoSuchSubjectException.class,
             NoSuchUserException.class,
             NoSuchResourceException.class })
 

@@ -16,10 +16,11 @@ public class AttributeSetEntity {
     @GeneratedValue
     private Long id;
 
+    @Column(length = 128)
     private String realm;
 
     @NotNull
-    @Column(name = "identifier")
+    @Column(name = "identifier", length = 128)
     private String identifier;
 
     private String name;

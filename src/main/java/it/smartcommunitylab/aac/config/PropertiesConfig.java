@@ -9,6 +9,12 @@ import org.springframework.core.annotation.Order;
 @Order(0)
 public class PropertiesConfig {
     @Bean
+    @ConfigurationProperties(prefix = "application")
+    public ApplicationProperties applicationPrps() {
+        return new ApplicationProperties();
+    }
+
+    @Bean
     @ConfigurationProperties(prefix = "authorities")
     public AuthoritiesProperties authoritiesProps() {
         return new AuthoritiesProperties();
@@ -26,9 +32,4 @@ public class PropertiesConfig {
         return new AttributeSetsProperties();
     }
 
-    @Bean
-    @ConfigurationProperties(prefix = "spid")
-    public SpidProperties spidProperties() {
-        return new SpidProperties();
-    }
 }

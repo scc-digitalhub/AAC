@@ -8,7 +8,7 @@ import javax.persistence.EntityListeners;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
+import javax.persistence.Transient;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
@@ -16,6 +16,8 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.util.StringUtils;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractAccount;
@@ -31,33 +33,39 @@ public class SamlUserAccount extends AbstractAccount {
 
     @Id
     @NotBlank
-    @Column(name = "provider_id")
+    @Column(name = "provider_id", length = 128)
     private String provider;
 
     // subject identifier from external provider
     @Id
     @NotBlank
-    @Column(name = "subject")
+    @Column(name = "subject", length = 128)
     private String subjectId;
 
     // unique uuid (subject entity)
     @NotBlank
-    @Column(unique = true)
+    @Column(unique = true, length = 128)
     private String uuid;
 
     // reference to user
     @NotNull
-    @Column(name = "user_id")
+    @Column(name = "user_id", length = 128)
     private String userId;
 
+    @JsonInclude
+    @Transient
+    private String authority;
+
     @NotBlank
+    @Column(length = 128)
     private String realm;
 
     // login
+    @Column(length = 32)
     private String status;
 
     // attributes
-    @Column(name = "username")
+    @Column(name = "username", length = 128)
     private String username;
 
     @Column(name = "issuer")
@@ -68,7 +76,9 @@ public class SamlUserAccount extends AbstractAccount {
     private Boolean emailVerified;
 
     private String name;
+    private String surname;
 
+    @Column(length = 32)
     private String lang;
 
     // audit
@@ -82,6 +92,16 @@ public class SamlUserAccount extends AbstractAccount {
 
     public SamlUserAccount() {
         super(SystemKeys.AUTHORITY_SAML, null, null);
+    }
+
+    public SamlUserAccount(String authority) {
+        super(authority, null, null);
+        this.authority = authority;
+    }
+
+    @Override
+    public String getAuthority() {
+        return authority != null ? authority : super.getAuthority();
     }
 
     @Override
@@ -191,6 +211,14 @@ public class SamlUserAccount extends AbstractAccount {
         this.name = name;
     }
 
+    public String getSurname() {
+        return surname;
+    }
+
+    public void setSurname(String surname) {
+        this.surname = surname;
+    }
+
     public String getLang() {
         return lang;
     }
@@ -215,6 +243,10 @@ public class SamlUserAccount extends AbstractAccount {
         this.modifiedDate = modifiedDate;
     }
 
+    public void setAuthority(String authority) {
+        this.authority = authority;
+    }
+
     public void setProvider(String provider) {
         this.provider = provider;
     }
@@ -229,6 +261,15 @@ public class SamlUserAccount extends AbstractAccount {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    @Override
+    public String toString() {
+        return "SamlUserAccount [provider=" + provider + ", subjectId=" + subjectId + ", uuid=" + uuid + ", userId="
+                + userId + ", authority=" + authority + ", realm=" + realm + ", status=" + status + ", username="
+                + username + ", issuer=" + issuer + ", email=" + email + ", emailVerified=" + emailVerified + ", name="
+                + name + ", surname=" + surname + ", lang=" + lang + ", createDate=" + createDate + ", modifiedDate="
+                + modifiedDate + "]";
     }
 
 }

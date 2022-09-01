@@ -10,30 +10,37 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 
 /*
  * ClientApp describes clients as configuration properties
  */
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(Include.NON_NULL)
 public class ClientApp {
 
+    @Size(max = 128)
     @Pattern(regexp = SystemKeys.SLUG_PATTERN)
     private String clientId;
 
+    @Size(max = 128)
     @Pattern(regexp = SystemKeys.SLUG_PATTERN)
     private String realm;
 
@@ -58,8 +65,8 @@ public class ClientApp {
     // providers enabled
     private String[] providers = new String[0];
 
-    // AAC authorities
-    private Set<GrantedAuthority> authorities;
+    // AAC authorities, only realm auth are assignable to clients
+    private Set<RealmGrantedAuthority> authorities;
 
     // realm roles (ie not grantedAuthorities)
     // these can be managed inside realms
@@ -106,11 +113,11 @@ public class ClientApp {
         this.clientId = clientId;
     }
 
-    public Set<GrantedAuthority> getAuthorities() {
+    public Set<RealmGrantedAuthority> getAuthorities() {
         return authorities;
     }
 
-    public void setAuthorities(Collection<GrantedAuthority> authorities) {
+    public void setAuthorities(Collection<RealmGrantedAuthority> authorities) {
         this.authorities = new HashSet<>();
         if (authorities != null) {
             this.authorities.addAll(authorities);

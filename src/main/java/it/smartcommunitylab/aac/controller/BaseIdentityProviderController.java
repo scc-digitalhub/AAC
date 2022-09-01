@@ -13,8 +13,10 @@ import javax.validation.constraints.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,25 +29,63 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
+import it.smartcommunitylab.aac.core.service.IdentityProviderAuthorityService;
 
 /*
  * Base controller for identity providers
  */
 
 @PreAuthorize("hasAuthority(this.authority)")
-public class BaseIdentityProviderController {
+public class BaseIdentityProviderController implements InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Autowired
     protected ProviderManager providerManager;
+
+    // TODO evaluate replace with authorityManager
+    protected IdentityProviderAuthorityService authorityService;
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        Assert.notNull(providerManager, "provider manager is required");
+        Assert.notNull(authorityService, "authority service is required");
+
+    }
+
+    @Autowired
+    public void setProviderManager(ProviderManager providerManager) {
+        this.providerManager = providerManager;
+    }
+
+    @Autowired
+    public void setAuthorityService(IdentityProviderAuthorityService authorityService) {
+        this.authorityService = authorityService;
+    }
 
     public String getAuthority() {
         return Config.R_USER;
+    }
+
+    /*
+     * Authorities
+     * 
+     * TODO evaluate returning a authority model as result
+     */
+    @GetMapping("/idp/{realm}/authorities")
+    public Collection<String> listAuthorities(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
+            throws NoSuchRealmException {
+        logger.debug("list idp authorities for realm {}",
+                StringUtils.trimAllWhitespace(realm));
+        return authorityService.getAuthorities().stream()
+                .map(a -> a.getAuthorityId()).collect(Collectors.toList());
     }
 
     /*
@@ -72,7 +112,8 @@ public class BaseIdentityProviderController {
     public ConfigurableIdentityProvider addIdp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestBody @Valid @NotNull ConfigurableIdentityProvider registration)
-            throws NoSuchRealmException, NoSuchProviderException {
+            throws NoSuchRealmException, NoSuchProviderException, RegistrationException, SystemException,
+            NoSuchAuthorityException {
         logger.debug("add idp to realm {}",
                 StringUtils.trimAllWhitespace(realm));
 
@@ -112,7 +153,7 @@ public class BaseIdentityProviderController {
     public ConfigurableIdentityProvider getIdp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
-            throws NoSuchProviderException, NoSuchRealmException {
+            throws NoSuchProviderException, NoSuchRealmException, NoSuchAuthorityException {
         logger.debug("get idp {} for realm {}",
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
@@ -142,7 +183,7 @@ public class BaseIdentityProviderController {
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             @RequestBody @Valid @NotNull ConfigurableIdentityProvider registration,
             @RequestParam(required = false, defaultValue = "false") Optional<Boolean> force)
-            throws NoSuchRealmException, NoSuchProviderException {
+            throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException {
         logger.debug("update idp {} for realm {}",
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
@@ -151,7 +192,11 @@ public class BaseIdentityProviderController {
         // if force disable provider
         boolean forceRegistration = force.orElse(false);
         if (forceRegistration && providerManager.isProviderRegistered(realm, provider)) {
-            provider = providerManager.unregisterIdentityProvider(realm, providerId);
+            try {
+                provider = providerManager.unregisterIdentityProvider(realm, providerId);
+            } catch (NoSuchAuthorityException e) {
+                // skip
+            }
         }
 
         // we update only configuration
@@ -218,7 +263,7 @@ public class BaseIdentityProviderController {
     public ConfigurableIdentityProvider registerIdp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
-            throws NoSuchProviderException, NoSuchRealmException {
+            throws RegistrationException, NoSuchProviderException, NoSuchRealmException, NoSuchAuthorityException {
         logger.debug("register idp {} for realm {}",
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
@@ -237,7 +282,7 @@ public class BaseIdentityProviderController {
     public ConfigurableIdentityProvider unregisterIdp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
-            throws NoSuchProviderException, NoSuchRealmException {
+            throws NoSuchProviderException, NoSuchRealmException, NoSuchAuthorityException {
         logger.debug("unregister idp {} for realm {}",
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
@@ -259,7 +304,7 @@ public class BaseIdentityProviderController {
     public JsonSchema getIdpConfigurationSchema(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
-            throws NoSuchProviderException, NoSuchRealmException {
+            throws NoSuchProviderException, NoSuchRealmException, NoSuchAuthorityException {
         logger.debug("get idp config schema for {} for realm {}",
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 

@@ -52,12 +52,14 @@ public class SamlAttributeProvider
 
         // base attributes
         String name = account.getName() != null ? account.getName() : account.getSubjectId();
+        String surname = account.getSurname();
         String email = account.getEmail();
         String username = account.getUsername() != null ? account.getUsername() : account.getEmail();
 
         // build base
         BasicAttributesSet basicset = new BasicAttributesSet();
         basicset.setName(name);
+        basicset.setSurname(surname);
         basicset.setEmail(email);
         basicset.setUsername(username);
         attributes.add(new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), userId,
@@ -86,6 +88,7 @@ public class SamlAttributeProvider
 
         // override from account
         map.put(OpenIdAttributesSet.NAME, name);
+        map.put(OpenIdAttributesSet.FAMILY_NAME, surname);
         map.put(OpenIdAttributesSet.EMAIL, email);
         map.put(OpenIdAttributesSet.EMAIL_VERIFIED, account.isEmailVerified());
         map.put(OpenIdAttributesSet.PREFERRED_USERNAME, username);

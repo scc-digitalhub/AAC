@@ -2,6 +2,8 @@ package it.smartcommunitylab.aac.roles;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -9,9 +11,11 @@ import javax.validation.constraints.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.provider.approval.Approval;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,15 +23,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import io.swagger.v3.oas.annotations.Operation;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.common.NoSuchGroupException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchRoleException;
+import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
-import it.smartcommunitylab.aac.model.Group;
 import it.smartcommunitylab.aac.model.RealmRole;
 
 /*
@@ -35,11 +39,20 @@ import it.smartcommunitylab.aac.model.RealmRole;
  */
 
 @PreAuthorize("hasAuthority(this.authority)")
-public class BaseRealmRolesController {
+public class BaseRealmRolesController implements InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Autowired
     protected RealmRoleManager roleManager;
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        Assert.notNull(roleManager, "role manager is required");
+    }
+
+    @Autowired
+    public void setRoleManager(RealmRoleManager roleManager) {
+        this.roleManager = roleManager;
+    }
 
     public String getAuthority() {
         return Config.R_USER;
@@ -95,13 +108,13 @@ public class BaseRealmRolesController {
         logger.debug("get role {} for realm {}",
                 StringUtils.trimAllWhitespace(roleId), StringUtils.trimAllWhitespace(realm));
 
-        RealmRole r = roleManager.getRealmRole(realm, roleId);
+        RealmRole r = roleManager.getRealmRole(realm, roleId, true);
 
         return r;
     }
 
     @PutMapping("/roles/{realm}/{roleId}")
-    public RealmRole getRealmRole(
+    public RealmRole updateRealmRole(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String roleId,
             @RequestBody @Valid @NotNull RealmRole reg)
@@ -109,7 +122,7 @@ public class BaseRealmRolesController {
         logger.debug("update role {} for realm {}",
                 StringUtils.trimAllWhitespace(roleId), StringUtils.trimAllWhitespace(realm));
 
-        RealmRole r = roleManager.getRealmRole(realm, roleId);
+        RealmRole r = roleManager.getRealmRole(realm, roleId, false);
 
         // unpack and build model
         String role = reg.getRole();
@@ -142,8 +155,6 @@ public class BaseRealmRolesController {
 
     /*
      * Scope permissions
-     * 
-     * TODO add update methods
      */
 
     @GetMapping("/roles/{realm}/{roleId}/approvals")
@@ -153,6 +164,62 @@ public class BaseRealmRolesController {
             throws NoSuchRealmException, NoSuchRoleException {
         Collection<Approval> approvals = roleManager.getRealmRoleApprovals(realm, roleId);
         return approvals;
+    }
+
+    @PostMapping("/roles/{realm}/{roleId}/approvals")
+    public Collection<Approval> addRealmRoleApprovals(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String roleId,
+            @RequestParam(required = false, defaultValue = "true") boolean approved,
+            @RequestBody @Valid @NotNull Collection<String> scopes)
+            throws NoSuchRealmException, NoSuchRoleException, NoSuchScopeException {
+        logger.debug("add approvals to role {} realm {} for scope {}",
+                StringUtils.trimAllWhitespace(roleId), StringUtils.trimAllWhitespace(realm),
+                StringUtils.trimAllWhitespace(String.valueOf(scopes)));
+
+        Map<String, Boolean> map = scopes.stream().collect(Collectors.toMap(s -> s, s -> approved));
+        return roleManager.setRealmRoleApprovals(realm, roleId, map);
+    }
+
+    @PutMapping("/roles/{realm}/{roleId}/approvals")
+    public Collection<Approval> updateRealmRoleApprovals(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String roleId,
+            @RequestParam(required = false, defaultValue = "true") boolean approved,
+            @RequestBody @Valid @NotNull Collection<String> scopes)
+            throws NoSuchRealmException, NoSuchRoleException, NoSuchScopeException {
+        logger.debug("add approvals to role {} realm {} for scope {}",
+                StringUtils.trimAllWhitespace(roleId), StringUtils.trimAllWhitespace(realm),
+                StringUtils.trimAllWhitespace(String.valueOf(scopes)));
+
+        Map<String, Boolean> map = scopes.stream().collect(Collectors.toMap(s -> s, s -> approved));
+        return roleManager.addRealmRoleApprovals(realm, roleId, map);
+    }
+
+    @PutMapping("/roles/{realm}/{roleId}/approvals/{scope}")
+    public Approval addRealmRoleApproval(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String roleId,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SCOPE_PATTERN) String scope,
+            @RequestParam(required = false, defaultValue = "true") boolean approved)
+            throws NoSuchRealmException, NoSuchRoleException, NoSuchScopeException {
+        logger.debug("add approval for scope {} role {} for realm {}",
+                StringUtils.trimAllWhitespace(scope), StringUtils.trimAllWhitespace(roleId),
+                StringUtils.trimAllWhitespace(realm));
+        return roleManager.addRealmRoleApproval(realm, roleId, scope, approved);
+    }
+
+    @DeleteMapping("/roles/{realm}/{roleId}/approvals/{scope}")
+    public void deleteRealmRoleApprovals(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String roleId,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SCOPE_PATTERN) String scope,
+            @RequestParam @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
+            throws NoSuchRealmException, NoSuchScopeException, NoSuchRoleException {
+        logger.debug("revoke approval for scope {} role {} for realm {}",
+                StringUtils.trimAllWhitespace(scope), StringUtils.trimAllWhitespace(roleId),
+                StringUtils.trimAllWhitespace(realm));
+        roleManager.removeRealmRoleApproval(realm, roleId, scope);
     }
 
     /*

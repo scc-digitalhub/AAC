@@ -90,15 +90,28 @@ angular.module('aac.controllers.main', [])
       }
 
       $scope.updateCredentials = function(authority, provider, uuid) {
-         if(authority == 'internal') {
+         if(authority == 'password') {
             //redirect to changepwd
             //TODO handle in service
             window.location.href = './changepwd/'+provider+'/' + uuid;
          }
+         if(authority == 'webauthn') {
+            //redirect to changepwd
+            //TODO handle in service
+            window.location.href = './webauthn/credentials/'+provider+'/' + uuid;
+         }
 //         //split userid and redirect
 //         var path = userId.replaceAll("|", "/");
       }
-
+      $scope.updateAccount = function(authority, provider, uuid) {
+        if(authority == 'internal') {
+           //redirect to changeaccount
+           //TODO handle in service
+           window.location.href = './changeaccount/'+provider+'/' + uuid;
+        }
+//         //split userid and redirect
+//         var path = userId.replaceAll("|", "/");
+     }
       $scope.confirmDeleteAccount = function() {
          $('#deleteConfirm').modal({ keyboard: false });
       }
@@ -127,9 +140,7 @@ angular.module('aac.controllers.main', [])
                return './svg/sprite.svg#logo-' + logo;
             }
          }
-         if (idp.authority === "spid") {
-            return './spid/sprite.svg#spid-ico-circle-bb';
-         }
+
          return './italia/svg/sprite.svg#it-unlocked';
       }
 

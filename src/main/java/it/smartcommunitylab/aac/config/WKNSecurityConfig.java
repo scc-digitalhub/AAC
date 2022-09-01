@@ -4,11 +4,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
@@ -26,13 +27,14 @@ import it.smartcommunitylab.aac.openid.endpoint.OpenIDMetadataEndpoint;
  */
 @Configuration
 @Order(27)
-public class WKNSecurityConfig extends WebSecurityConfigurerAdapter {
+public class WKNSecurityConfig {
 
     /*
-     * Configure a separated security context for API
+     * Configure a separated security context for WKN
      */
-    @Override
-    public void configure(HttpSecurity http) throws Exception {
+    @Order(27)
+    @Bean("wknSecurityFilterChain")
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         // match only endpoints
         http.requestMatcher(getRequestMatcher())
                 // public access
@@ -45,6 +47,8 @@ public class WKNSecurityConfig extends WebSecurityConfigurerAdapter {
                 // we don't want a session for these endpoints
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+
+        return http.build();
     }
 
     public RequestMatcher getRequestMatcher() {

@@ -29,11 +29,16 @@ angular.module('aac.controllers.realmgroups', [])
                 return data.data;
             });
         }
-        service.importGroup = function (realm, file) {
+        service.importGroup = function (realm, file, yaml, reset) {
             var fd = new FormData();
-            fd.append('file', file);
+            if (yaml) {
+                fd.append('yaml', yaml);
+            }
+            if (file) {
+                fd.append('file', file);
+            }
             return $http({
-                url: 'console/dev/groups/' + realm,
+                url: 'console/dev/groups/' + realm + (reset ? "?reset=true" : ""),
                 headers: { "Content-Type": undefined }, //set undefined to let $http manage multipart declaration with proper boundaries
                 data: fd,
                 method: "PUT"
@@ -125,25 +130,31 @@ angular.module('aac.controllers.realmgroups', [])
 
 
         $scope.importGroupDlg = function () {
+            if ($scope.importFile) {
+                $scope.importFile.file = null;
+            }
+
             $('#importGroupModal').modal({ keyboard: false });
         }
 
 
         $scope.importGroup = function () {
             $('#importGroupModal').modal('hide');
-            var file = $scope.importFile;
-            var resetID = !!file.resetID;
+            var file = $scope.importFile.file;
+            var yaml = $scope.importFile.yaml;
+            var resetID = !!$scope.importFile.resetID;
             var mimeTypes = ['text/yaml', 'text/yml', 'application/x-yaml'];
-            if (file == null || !mimeTypes.includes(file.type) || file.size == 0) {
+            if (!yaml && (file == null || !mimeTypes.includes(file.type) || file.size == 0)) {
                 Utils.showError("invalid file");
             } else {
-                RealmGroups.importGroup(slug, file, resetID)
+                RealmGroups.importGroup(slug, file, yaml, resetID)
                     .then(function () {
                         $scope.importFile = null;
                         $scope.load();
                         Utils.showSuccess();
                     })
                     .catch(function (err) {
+                        $scope.importFile.file = null;
                         Utils.showError(err.data.message);
                     });
             }

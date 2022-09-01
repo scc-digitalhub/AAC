@@ -35,6 +35,7 @@ import it.smartcommunitylab.aac.repository.StringBase64Converter;
 public class ServiceScopeEntity {
 
     @Id
+    @Column(length = 128)
     private String scope;
 
     /**
@@ -46,7 +47,7 @@ public class ServiceScopeEntity {
 //    private ServiceEntity service;
 
     @NotNull
-    @Column(name = "service_id")
+    @Column(name = "service_id", length = 128)
     private String serviceId;
 
     /**
@@ -58,7 +59,7 @@ public class ServiceScopeEntity {
      */
     private String description;
 
-    @Column(name = "scope_type")
+    @Column(name = "scope_type", length = 32)
     private String type;
 
     /**

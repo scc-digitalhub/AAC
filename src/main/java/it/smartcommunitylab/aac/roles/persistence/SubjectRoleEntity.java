@@ -16,12 +16,14 @@ public class SubjectRoleEntity {
     private Long id;
 
     @NotNull
-    @Column(name = "subject_id")
+    @Column(name = "subject_id", length = 128)
     private String subject;
 
+    @Column(length = 128)
     private String realm;
 
     @NotNull
+    @Column(length = 128)
     private String role;
 
     public Long getId() {

@@ -8,6 +8,7 @@ import java.util.Map;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -25,6 +26,7 @@ public class ServiceClaim extends AbstractClaim {
 
     private static ObjectMapper mapper = new ObjectMapper();
 
+    @Size(max = 128)
     private String serviceId;
 
     @NotNull

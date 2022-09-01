@@ -1,58 +1,70 @@
 package it.smartcommunitylab.aac.openid.provider;
 
+import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
+import it.smartcommunitylab.aac.attributes.OpenIdAttributesSet;
+import it.smartcommunitylab.aac.attributes.mapper.OpenIdAttributesMapper;
 import it.smartcommunitylab.aac.common.MissingDataException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
+import it.smartcommunitylab.aac.core.model.AttributeSet;
+import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.AccountProvider;
-import it.smartcommunitylab.aac.core.service.SubjectService;
-import it.smartcommunitylab.aac.model.Subject;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.model.UserStatus;
+import it.smartcommunitylab.aac.openid.model.OIDCUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
-import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountId;
-import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
+import it.smartcommunitylab.aac.openid.service.OIDCUserAccountService;
 
 @Transactional
 public class OIDCAccountProvider extends AbstractProvider implements AccountProvider<OIDCUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final OIDCUserAccountRepository accountRepository;
+    private final UserAccountService<OIDCUserAccount> accountService;
+    private final String repositoryId;
+
     private final OIDCIdentityProviderConfig config;
 
-    private final SubjectService subjectService;
+    // attributes
+    protected final OpenIdAttributesMapper openidMapper;
 
-    protected OIDCAccountProvider(String providerId, OIDCUserAccountRepository accountRepository,
-            SubjectService subjectService,
+    public OIDCAccountProvider(String providerId,
+            UserAccountService<OIDCUserAccount> accountService,
             OIDCIdentityProviderConfig config,
             String realm) {
-        this(SystemKeys.AUTHORITY_OIDC, providerId, accountRepository, subjectService, config, realm);
+        this(SystemKeys.AUTHORITY_OIDC, providerId, accountService, config, realm);
     }
 
-    protected OIDCAccountProvider(String authority, String providerId, OIDCUserAccountRepository accountRepository,
-            SubjectService subjectService,
+    public OIDCAccountProvider(String authority, String providerId,
+            UserAccountService<OIDCUserAccount> accountService,
             OIDCIdentityProviderConfig config,
             String realm) {
         super(authority, providerId, realm);
-        Assert.notNull(accountRepository, "account repository is mandatory");
-        Assert.notNull(subjectService, "subject service is mandatory");
+        Assert.notNull(accountService, "account service is mandatory");
         Assert.notNull(config, "provider config is mandatory");
 
         this.config = config;
-        this.accountRepository = accountRepository;
-        this.subjectService = subjectService;
+        this.accountService = accountService;
+
+        // repositoryId is always providerId, oidc isolates data per provider
+        this.repositoryId = providerId;
+
+        // build mapper with default config for parsing attributes
+        this.openidMapper = new OpenIdAttributesMapper();
     }
 
     @Override
@@ -61,14 +73,92 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
     }
 
     @Override
+    public OIDCUserAccount convertAccount(UserAuthenticatedPrincipal userPrincipal, String userId) {
+        // we expect an instance of our model
+        Assert.isInstanceOf(OIDCUserAuthenticatedPrincipal.class, userPrincipal,
+                "principal must be an instance of oidc authenticated principal");
+        OIDCUserAuthenticatedPrincipal principal = (OIDCUserAuthenticatedPrincipal) userPrincipal;
+
+        // we use upstream subject for accounts
+        String subject = principal.getSubject();
+        String provider = getProvider();
+
+        // attributes from provider
+        String username = principal.getUsername();
+        Map<String, Serializable> attributes = principal.getAttributes();
+
+        // map attributes to openid set and flatten to string
+        // we also clean every attribute and allow only plain text
+        AttributeSet oidcAttributeSet = openidMapper.mapAttributes(attributes);
+        Map<String, String> oidcAttributes = oidcAttributeSet.getAttributes()
+                .stream()
+                .collect(Collectors.toMap(
+                        a -> a.getKey(),
+                        a -> a.exportValue()));
+
+        String email = clean(oidcAttributes.get(OpenIdAttributesSet.EMAIL));
+        username = StringUtils.hasText(oidcAttributes.get(OpenIdAttributesSet.PREFERRED_USERNAME))
+                ? clean(oidcAttributes.get(OpenIdAttributesSet.PREFERRED_USERNAME))
+                : principal.getUsername();
+
+        // update additional attributes
+        String issuer = attributes.containsKey(IdTokenClaimNames.ISS)
+                ? clean(attributes.get(IdTokenClaimNames.ISS).toString())
+                : null;
+        if (!StringUtils.hasText(issuer)) {
+            issuer = provider;
+        }
+
+        String name = StringUtils.hasText(oidcAttributes.get(OpenIdAttributesSet.NAME))
+                ? clean(oidcAttributes.get(OpenIdAttributesSet.NAME))
+                : username;
+
+        String familyName = clean(oidcAttributes.get(OpenIdAttributesSet.FAMILY_NAME));
+        String givenName = clean(oidcAttributes.get(OpenIdAttributesSet.GIVEN_NAME));
+
+        boolean defaultVerifiedStatus = config.getConfigMap().getTrustEmailAddress() != null
+                ? config.getConfigMap().getTrustEmailAddress()
+                : false;
+        boolean emailVerified = StringUtils.hasText(oidcAttributes.get(OpenIdAttributesSet.EMAIL_VERIFIED))
+                ? Boolean.parseBoolean(oidcAttributes.get(OpenIdAttributesSet.EMAIL_VERIFIED))
+                : defaultVerifiedStatus;
+
+        if (Boolean.TRUE.equals(config.getConfigMap().getAlwaysTrustEmailAddress())) {
+            emailVerified = true;
+        }
+
+        String lang = clean(oidcAttributes.get(OpenIdAttributesSet.LOCALE));
+        // TODO evaluate how to handle external pictureURI
+        String picture = clean(oidcAttributes.get(OpenIdAttributesSet.PICTURE));
+
+        // build model from scratch
+        OIDCUserAccount account = new OIDCUserAccount(getAuthority());
+        account.setProvider(repositoryId);
+        account.setSubject(subject);
+        account.setUserId(userId);
+        account.setRealm(getRealm());
+
+        account.setUsername(username);
+        account.setIssuer(issuer);
+        account.setName(name);
+        account.setFamilyName(familyName);
+        account.setGivenName(givenName);
+        account.setEmail(email);
+        account.setEmailVerified(emailVerified);
+        account.setLang(lang);
+        account.setPicture(picture);
+
+        return account;
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public List<OIDCUserAccount> listAccounts(String userId) {
-        List<OIDCUserAccount> accounts = accountRepository.findByUserIdAndProvider(userId, getProvider());
+        List<OIDCUserAccount> accounts = accountService.findAccountByUser(repositoryId, userId);
 
-        // we need to detach
-        return accounts.stream().map(a -> {
-            return accountRepository.detach(a);
-        }).collect(Collectors.toList());
+        // map to our authority
+        accounts.forEach(a -> a.setAuthority(getAuthority()));
+        return accounts;
     }
 
     @Transactional(readOnly = true)
@@ -88,93 +178,29 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
 
     @Transactional(readOnly = true)
     public OIDCUserAccount findAccountBySubject(String subject) {
-        String provider = getProvider();
-
-        OIDCUserAccount account = accountRepository.findOne(new OIDCUserAccountId(provider, subject));
+        OIDCUserAccount account = accountService.findAccountById(repositoryId, subject);
         if (account == null) {
             return null;
         }
 
-        // detach the entity, we don't want modifications to be persisted via a
-        // read-only interface
-        // for example eraseCredentials will reset the password in db
-        return accountRepository.detach(account);
+        // map to our authority
+        account.setAuthority(getAuthority());
+
+        return account;
     }
 
     @Override
     @Transactional(readOnly = true)
     public OIDCUserAccount findAccountByUuid(String uuid) {
-        String provider = getProvider();
-
-        OIDCUserAccount account = accountRepository.findByProviderAndUuid(provider, uuid);
+        OIDCUserAccount account = accountService.findAccountByUuid(repositoryId, uuid);
         if (account == null) {
             return null;
         }
 
-        // detach the entity, we don't want modifications to be persisted via a
-        // read-only interface
-        // for example eraseCredentials will reset the password in db
-        return accountRepository.detach(account);
-    }
-//    @Override
-//    @Transactional(readOnly = true)
-//    public OIDCUserAccount getByIdentifyingAttributes(Map<String, String> attributes) throws NoSuchUserException {
-//        String realm = getRealm();
-//        String provider = getProvider();
-//
-//        // check if passed map contains at least one valid set and fetch account
-//        // TODO rewrite less hardcoded
-//        // note AVOID reflection, we want native image support
-//        OIDCUserAccount account = null;
-//        if (attributes.containsKey("userId")) {
-//            String userId = parseResourceId(attributes.get("userId"));
-//            account = accountRepository.findByRealmAndProviderAndUserId(realm, provider, userId);
-//        }
-//
-//        if (account == null
-//                && attributes.keySet().containsAll(Arrays.asList("realm", "provider", "userId"))
-//                && realm.equals(attributes.get("realm"))
-//                && provider.equals(attributes.get("provider"))) {
-//            String userId = parseResourceId(attributes.get("userId"));
-//            account = accountRepository.findByRealmAndProviderAndUserId(realm, provider, userId);
-//        }
-//
-//        if (account == null
-//                && attributes.keySet().containsAll(Arrays.asList("realm", "provider", "email"))
-//                && realm.equals(attributes.get("realm"))
-//                && provider.equals(attributes.get("provider"))) {
-//            account = accountRepository.findByRealmAndProviderAndEmail(realm, provider, attributes.get("email"));
-//        }
-//
-//        if (account == null) {
-//            throw new NoSuchUserException("No user found matching attributes");
-//        }
-//
-//        // detach the entity, we don't want modifications to be persisted via a
-//        // read-only interface
-//        // for example eraseCredentials will reset the password in db
-//        account = accountRepository.detach(account);
-//
-//        // rewrite internal userId
-//        account.setUserId(exportInternalId(account.getUserId()));
-//
-//        return account;
-//    }
+        // map to our authority
+        account.setAuthority(getAuthority());
 
-    @Override
-    public void deleteAccount(String subject) throws NoSuchUserException {
-        OIDCUserAccount account = findAccountBySubject(subject);
-
-        if (account != null) {
-            String uuid = account.getUuid();
-            if (uuid != null) {
-                // remove subject if exists
-                subjectService.deleteSubject(uuid);
-            }
-
-            accountRepository.delete(account);
-
-        }
+        return account;
     }
 
     @Override
@@ -191,14 +217,12 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
     public OIDCUserAccount linkAccount(String subject, String userId)
             throws NoSuchUserException, RegistrationException {
 
-        // we expect subject to be valid
+        // we expect user to be valid
         if (!StringUtils.hasText(userId)) {
             throw new MissingDataException("user");
         }
 
-        String provider = getProvider();
-
-        OIDCUserAccount account = accountRepository.findOne(new OIDCUserAccountId(provider, subject));
+        OIDCUserAccount account = findAccountBySubject(subject);
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -211,141 +235,18 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
 
         // re-link to user
         account.setUserId(userId);
+        account = accountService.updateAccount(repositoryId, subject, account);
 
-        // update authority to match ourselves
+        // map to our authority
         account.setAuthority(getAuthority());
 
-        account = accountRepository.save(account);
-        return accountRepository.detach(account);
-    }
-
-    /*
-     * operations
-     */
-
-    public OIDCUserAccount registerAccount(String userId, OIDCUserAccount reg)
-            throws NoSuchUserException, RegistrationException {
-        String provider = getProvider();
-
-        // we expect user to be valid
-        if (!StringUtils.hasText(userId)) {
-            throw new MissingDataException("user");
-        }
-
-        // check if already registered
-        String subject = clean(reg.getSubject());
-        OIDCUserAccount account = accountRepository.findOne(new OIDCUserAccountId(provider, subject));
-        if (account != null) {
-            throw new AlreadyRegisteredException();
-        }
-
-        String realm = getRealm();
-
-        // extract id fields
-        String email = clean(reg.getEmail());
-        String username = clean(reg.getUsername());
-
-        // validate
-        if (!StringUtils.hasText(subject)) {
-            throw new MissingDataException("subject");
-        }
-        if (!StringUtils.hasText(email) && config.requireEmailAddress()) {
-            throw new MissingDataException("email");
-        }
-
-        // extract attributes
-        String issuer = clean(reg.getIssuer());
-        Boolean emailVerified = reg.getEmailVerified();
-        String name = clean(reg.getName());
-        String givenName = clean(reg.getGivenName());
-        String familyName = clean(reg.getFamilyName());
-        String lang = clean(reg.getLang());
-        String picture = clean(reg.getPicture());
-
-        // generate uuid and register as subject
-        String uuid = subjectService.generateUuid(SystemKeys.RESOURCE_ACCOUNT);
-        Subject s = subjectService.addSubject(uuid, realm, SystemKeys.RESOURCE_ACCOUNT, subject);
-
-        account = new OIDCUserAccount(getAuthority());
-        account.setProvider(provider);
-        account.setSubject(subject);
-
-        account.setUuid(s.getSubjectId());
-        account.setUserId(userId);
-        account.setRealm(realm);
-
-        account.setIssuer(issuer);
-        account.setUsername(username);
-        account.setEmail(email);
-        account.setEmailVerified(emailVerified);
-        account.setName(name);
-        account.setGivenName(givenName);
-        account.setFamilyName(familyName);
-        account.setLang(lang);
-        account.setPicture(picture);
-
-        // set account as active
-        account.setStatus(UserStatus.ACTIVE.getValue());
-
-        account = accountRepository.save(account);
-        return accountRepository.detach(account);
-    }
-
-    public OIDCUserAccount updateAccount(String subject, OIDCUserAccount reg)
-            throws NoSuchUserException, RegistrationException {
-        String provider = getProvider();
-
-        OIDCUserAccount account = accountRepository.findOne(new OIDCUserAccountId(provider, subject));
-        if (account == null) {
-            throw new NoSuchUserException();
-        }
-
-        // check if active, inactive accounts can not be changed except for activation
-        UserStatus curStatus = UserStatus.parse(account.getStatus());
-        if (UserStatus.INACTIVE == curStatus) {
-            throw new IllegalArgumentException("account is inactive, activate first to update status");
-        }
-
-        // id attributes
-        String username = clean(reg.getUsername());
-        String email = clean(reg.getEmail());
-
-        // validate email
-        if (!StringUtils.hasText(email) && config.requireEmailAddress()) {
-            throw new MissingDataException("email");
-        }
-
-        // extract attributes
-        String issuer = clean(reg.getIssuer());
-        Boolean emailVerified = reg.getEmailVerified();
-        String name = clean(reg.getName());
-        String givenName = clean(reg.getGivenName());
-        String familyName = clean(reg.getFamilyName());
-        String lang = clean(reg.getLang());
-        String picture = clean(reg.getPicture());
-
-        account.setIssuer(issuer);
-        account.setUsername(username);
-        account.setEmail(email);
-        account.setEmailVerified(emailVerified);
-        account.setName(name);
-        account.setGivenName(givenName);
-        account.setFamilyName(familyName);
-        account.setLang(lang);
-        account.setPicture(picture);
-
-        // update authority to match ourselves
-        account.setAuthority(getAuthority());
-
-        account = accountRepository.save(account);
-        return accountRepository.detach(account);
+        return account;
     }
 
     private OIDCUserAccount updateStatus(String subject, UserStatus newStatus)
             throws NoSuchUserException, RegistrationException {
-        String provider = getProvider();
 
-        OIDCUserAccount account = accountRepository.findOne(new OIDCUserAccountId(provider, subject));
+        OIDCUserAccount account = findAccountBySubject(subject);
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -358,12 +259,12 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
 
         // update status
         account.setStatus(newStatus.getValue());
+        account = accountService.updateAccount(repositoryId, subject, account);
 
-        // update authority to match ourselves
+        // map to our authority
         account.setAuthority(getAuthority());
 
-        account = accountRepository.save(account);
-        return accountRepository.detach(account);
+        return account;
     }
 
     private String clean(String input) {

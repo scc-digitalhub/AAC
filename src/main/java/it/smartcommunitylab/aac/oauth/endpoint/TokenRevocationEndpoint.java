@@ -19,6 +19,7 @@ import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 import org.springframework.security.oauth2.common.exceptions.UnauthorizedClientException;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -36,7 +37,7 @@ import it.smartcommunitylab.aac.oauth.store.ExtTokenStore;
  *
  */
 @Controller
-@Tag(name= "OAuth 2.0 Token Revocation" )
+@Tag(name = "OAuth 2.0 Token Revocation")
 public class TokenRevocationEndpoint {
 
     public static final String TOKEN_REVOCATION_URL = "/oauth/revoke";
@@ -62,7 +63,8 @@ public class TokenRevocationEndpoint {
             throw new InsufficientAuthenticationException("Invalid client authentication");
         }
 
-        logger.debug("request revoke of token " + token + " hint " + String.valueOf(tokenTypeHint));
+        logger.debug("request revoke of token {} hint {}", StringUtils.trimAllWhitespace(token),
+                StringUtils.trimAllWhitespace(String.valueOf(tokenTypeHint)));
 
         OAuth2ClientAuthenticationToken clientAuth = (OAuth2ClientAuthenticationToken) authentication;
 

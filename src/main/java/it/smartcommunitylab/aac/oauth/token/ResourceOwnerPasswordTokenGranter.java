@@ -10,7 +10,6 @@ import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AccountStatusException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
@@ -25,6 +24,7 @@ import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
@@ -39,6 +39,7 @@ import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
+import it.smartcommunitylab.aac.password.auth.UsernamePasswordAuthenticationToken;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeApprover;
 
@@ -110,7 +111,7 @@ public class ResourceOwnerPasswordTokenGranter extends AbstractTokenGranter {
         // authmanager
         if (client instanceof OAuth2ClientDetails) {
             String realm = ((OAuth2ClientDetails) client).getRealm();
-            userAuth = new RealmWrappedAuthenticationToken(passwordAuth, realm);
+            userAuth = new RealmWrappedAuthenticationToken(passwordAuth, realm, SystemKeys.AUTHORITY_PASSWORD);
         }
 
         try {

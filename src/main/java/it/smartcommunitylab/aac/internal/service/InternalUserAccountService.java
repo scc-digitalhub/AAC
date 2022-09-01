@@ -1,16 +1,19 @@
 package it.smartcommunitylab.aac.internal.service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
+import it.smartcommunitylab.aac.common.DuplicatedDataException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountId;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountRepository;
@@ -20,17 +23,25 @@ import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountReposito
  * 
  *  We enforce detach on fetch to keep internal datasource isolated.
  */
-@Service
+
 @Transactional
-public class InternalUserAccountService {
+public class InternalUserAccountService
+        implements UserAccountService<InternalUserAccount>, InternalUserConfirmKeyService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Autowired
-    private InternalUserAccountRepository accountRepository;
+    private final InternalUserAccountRepository accountRepository;
+
+    public InternalUserAccountService(InternalUserAccountRepository accountRepository) {
+        Assert.notNull(accountRepository, "account repository is required");
+        this.accountRepository = accountRepository;
+    }
 
     @Transactional(readOnly = true)
-    public InternalUserAccount findAccountByUsername(String provider, String username) {
-        InternalUserAccount account = accountRepository.findOne(new InternalUserAccountId(provider, username));
+    public InternalUserAccount findAccountById(String repository, String username) {
+        logger.debug("find account with username {} in repository {}", String.valueOf(username),
+                String.valueOf(repository));
+
+        InternalUserAccount account = accountRepository.findOne(new InternalUserAccountId(repository, username));
         if (account == null) {
             return null;
         }
@@ -39,16 +50,38 @@ public class InternalUserAccountService {
     }
 
     @Transactional(readOnly = true)
-    public List<InternalUserAccount> findAccountByEmail(String provider, String email) {
-        List<InternalUserAccount> accounts = accountRepository.findByProviderAndEmail(provider, email);
+    public List<InternalUserAccount> findAccountByUsername(String repository, String username) {
+        logger.debug("find account with username {} in repository {}", String.valueOf(username),
+                String.valueOf(repository));
+
+        // we have at most 1 account with a given username, since username == id
+        InternalUserAccount account = accountRepository.findOne(new InternalUserAccountId(repository, username));
+        if (account == null) {
+            return Collections.emptyList();
+        }
+
+        account = accountRepository.detach(account);
+
+        return Collections.singletonList(account);
+    }
+
+    @Transactional(readOnly = true)
+    public List<InternalUserAccount> findAccountByEmail(String repository, String email) {
+        logger.debug("find account with email {} in repository {}", String.valueOf(email),
+                String.valueOf(repository));
+
+        List<InternalUserAccount> accounts = accountRepository.findByProviderAndEmail(repository, email);
         return accounts.stream().map(a -> {
             return accountRepository.detach(a);
         }).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public InternalUserAccount findAccountByConfirmationKey(String provider, String key) {
-        InternalUserAccount account = accountRepository.findByProviderAndConfirmationKey(provider, key);
+    public InternalUserAccount findAccountByConfirmationKey(String repository, String key) {
+        logger.debug("find account with confirmation key {} in repository {}", String.valueOf(key),
+                String.valueOf(repository));
+
+        InternalUserAccount account = accountRepository.findByProviderAndConfirmationKey(repository, key);
         if (account == null) {
             return null;
         }
@@ -57,8 +90,11 @@ public class InternalUserAccountService {
     }
 
     @Transactional(readOnly = true)
-    public InternalUserAccount findAccountByResetKey(String provider, String key) {
-        InternalUserAccount account = accountRepository.findByProviderAndResetKey(provider, key);
+    public InternalUserAccount findAccountByUuid(String repository, String uuid) {
+        logger.debug("find account with uuid {} in repository {}", String.valueOf(uuid),
+                String.valueOf(repository));
+
+        InternalUserAccount account = accountRepository.findByProviderAndUuid(repository, uuid);
         if (account == null) {
             return null;
         }
@@ -67,26 +103,11 @@ public class InternalUserAccountService {
     }
 
     @Transactional(readOnly = true)
-    public InternalUserAccount findAccountByUuid(String provider, String uuid) {
-        InternalUserAccount account = accountRepository.findByProviderAndUuid(provider, uuid);
-        if (account == null) {
-            return null;
-        }
+    public List<InternalUserAccount> findAccountByUser(String repository, String userId) {
+        logger.debug("find account for user {} in repository {}", String.valueOf(userId),
+                String.valueOf(repository));
 
-        return accountRepository.detach(account);
-    }
-
-    @Transactional(readOnly = true)
-    public List<InternalUserAccount> findByUser(String userId) {
-        List<InternalUserAccount> accounts = accountRepository.findByUserId(userId);
-        return accounts.stream().map(a -> {
-            return accountRepository.detach(a);
-        }).collect(Collectors.toList());
-    }
-
-    @Transactional(readOnly = true)
-    public List<InternalUserAccount> findByUser(String userId, String provider) {
-        List<InternalUserAccount> accounts = accountRepository.findByUserIdAndProvider(userId, provider);
+        List<InternalUserAccount> accounts = accountRepository.findByUserIdAndProvider(userId, repository);
         return accounts.stream().map(a -> {
             return accountRepository.detach(a);
         }).collect(Collectors.toList());
@@ -96,17 +117,33 @@ public class InternalUserAccountService {
      * CRUD
      */
     public InternalUserAccount addAccount(
+            String repository, String username,
             InternalUserAccount reg) throws RegistrationException {
+        logger.debug("add account with username {} in repository {}", String.valueOf(username),
+                String.valueOf(repository));
+
+        if (reg == null) {
+            throw new RegistrationException();
+        }
+
+        if (logger.isTraceEnabled()) {
+            logger.trace("registration: {}", String.valueOf(reg));
+        }
 
         try {
+            InternalUserAccount account = accountRepository.findOne(new InternalUserAccountId(repository, username));
+            if (account != null) {
+                throw new DuplicatedDataException("username");
+            }
+
             // we explode model
-            InternalUserAccount account = new InternalUserAccount();
-            account.setProvider(reg.getProvider());
-            account.setUsername(reg.getUsername());
+            account = new InternalUserAccount(reg.getAuthority());
+            account.setProvider(repository);
+            account.setUsername(username);
+
             account.setUuid(reg.getUuid());
             account.setUserId(reg.getUserId());
             account.setRealm(reg.getRealm());
-            account.setPassword(reg.getPassword());
             account.setStatus(reg.getStatus());
             account.setEmail(reg.getEmail());
             account.setName(reg.getName());
@@ -115,12 +152,13 @@ public class InternalUserAccountService {
             account.setConfirmed(reg.isConfirmed());
             account.setConfirmationDeadline(reg.getConfirmationDeadline());
             account.setConfirmationKey(reg.getConfirmationKey());
-            account.setResetDeadline(reg.getResetDeadline());
-            account.setResetKey(reg.getResetKey());
-            account.setChangeOnFirstAccess(reg.getChangeOnFirstAccess());
 
             account = accountRepository.saveAndFlush(account);
             account = accountRepository.detach(account);
+
+            if (logger.isTraceEnabled()) {
+                logger.trace("account: {}", String.valueOf(account));
+            }
 
             return account;
         } catch (Exception e) {
@@ -129,13 +167,20 @@ public class InternalUserAccountService {
     }
 
     public InternalUserAccount updateAccount(
-            String provider, String username,
+            String repository, String username,
             InternalUserAccount reg) throws NoSuchUserException, RegistrationException {
+        logger.debug("update account with username {} in repository {}", String.valueOf(username),
+                String.valueOf(repository));
+
         if (reg == null) {
-            throw new NoSuchUserException();
+            throw new RegistrationException();
         }
 
-        InternalUserAccount account = accountRepository.findOne(new InternalUserAccountId(provider, username));
+        if (logger.isTraceEnabled()) {
+            logger.trace("registration: {}", String.valueOf(reg));
+        }
+
+        InternalUserAccount account = accountRepository.findOne(new InternalUserAccountId(repository, username));
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -144,11 +189,15 @@ public class InternalUserAccountService {
             // we support username update
             account.setUsername(reg.getUsername());
 
+            // support uuid change if provided
+            if (StringUtils.hasText(reg.getUuid())) {
+                account.setUuid(reg.getUuid());
+            }
+
             // we explode model and update every field
-            account.setUuid(reg.getUuid());
+            account.setAuthority(reg.getAuthority());
             account.setUserId(reg.getUserId());
             account.setRealm(reg.getRealm());
-            account.setPassword(reg.getPassword());
             account.setStatus(reg.getStatus());
             account.setEmail(reg.getEmail());
             account.setName(reg.getName());
@@ -157,12 +206,13 @@ public class InternalUserAccountService {
             account.setConfirmed(reg.isConfirmed());
             account.setConfirmationDeadline(reg.getConfirmationDeadline());
             account.setConfirmationKey(reg.getConfirmationKey());
-            account.setResetDeadline(reg.getResetDeadline());
-            account.setResetKey(reg.getResetKey());
-            account.setChangeOnFirstAccess(reg.getChangeOnFirstAccess());
 
             account = accountRepository.saveAndFlush(account);
             account = accountRepository.detach(account);
+
+            if (logger.isTraceEnabled()) {
+                logger.trace("account: {}", String.valueOf(account));
+            }
 
             return account;
         } catch (Exception e) {
@@ -170,9 +220,12 @@ public class InternalUserAccountService {
         }
     }
 
-    public void deleteAccount(String provider, String username) {
-        InternalUserAccount account = accountRepository.findOne(new InternalUserAccountId(provider, username));
+    public void deleteAccount(String repository, String username) {
+        InternalUserAccount account = accountRepository.findOne(new InternalUserAccountId(repository, username));
         if (account != null) {
+            logger.debug("delete account with username {} repository {}", String.valueOf(username),
+                    String.valueOf(repository));
+
             accountRepository.delete(account);
         }
 

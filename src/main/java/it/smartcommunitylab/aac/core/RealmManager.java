@@ -10,6 +10,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
@@ -26,14 +29,15 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.AttributeSetsManager;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
+import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchGroupException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
-import it.smartcommunitylab.aac.common.NoSuchRoleException;
 import it.smartcommunitylab.aac.common.NoSuchServiceException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.Client;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
@@ -95,8 +99,8 @@ public class RealmManager {
      */
 
     @Transactional(readOnly = false)
-    public Realm addRealm(Realm r) throws AlreadyRegisteredException {
-        logger.debug("add realm");
+    public Realm addRealm(@Valid @NotBlank Realm r) throws AlreadyRegisteredException {
+        logger.debug("add realm {}", StringUtils.trimAllWhitespace(r.getSlug()));
         r.setSlug(r.getSlug().toLowerCase());
 
         // cleanup input
@@ -134,7 +138,7 @@ public class RealmManager {
 
     @Transactional(readOnly = false)
     public Realm updateRealm(String slug, Realm r) throws NoSuchRealmException {
-        logger.debug("update realm " + StringUtils.trimAllWhitespace(slug));
+        logger.debug("update realm {}", StringUtils.trimAllWhitespace(slug));
         r.setSlug(slug);
 
         String name = r.getName();
@@ -192,14 +196,14 @@ public class RealmManager {
 
     @Transactional(readOnly = true)
     public Realm findRealm(String slug) {
-        logger.debug("find realm " + StringUtils.trimAllWhitespace(slug));
+        logger.debug("find realm {}", StringUtils.trimAllWhitespace(slug));
 
         return realmService.findRealm(slug);
     }
 
     @Transactional(readOnly = true)
     public Realm getRealm(String slug) throws NoSuchRealmException {
-        logger.debug("get realm " + StringUtils.trimAllWhitespace(slug));
+        logger.debug("get realm {}", StringUtils.trimAllWhitespace(slug));
 
         return realmService.getRealm(slug);
     }
@@ -213,7 +217,7 @@ public class RealmManager {
 
     @Transactional(readOnly = true)
     public Collection<Realm> listRealms(boolean isPublic) {
-        logger.debug("list realms with public " + String.valueOf(isPublic));
+        logger.debug("list realms with public {}", String.valueOf(isPublic));
 
         return realmService.listRealms(isPublic);
     }
@@ -221,7 +225,7 @@ public class RealmManager {
     @Transactional(readOnly = true)
     public Collection<Realm> searchRealms(String keywords) {
         String query = StringUtils.trimAllWhitespace(keywords);
-        logger.debug("search realms with query " + String.valueOf(query));
+        logger.debug("search realms with query {}", String.valueOf(query));
 
         return realmService.searchRealms(query);
     }
@@ -229,14 +233,14 @@ public class RealmManager {
     @Transactional(readOnly = true)
     public Page<Realm> searchRealms(String keywords, Pageable pageRequest) {
         String query = StringUtils.trimAllWhitespace(keywords);
-        logger.debug("search realms with query " + String.valueOf(query));
+        logger.debug("search realms with query {}", String.valueOf(query));
 
         return realmService.searchRealms(query, pageRequest);
     }
 
     @Transactional(readOnly = false)
     public void deleteRealm(String slug, boolean cleanup) throws NoSuchRealmException {
-        logger.debug("delete realm " + StringUtils.trimAllWhitespace(slug));
+        logger.debug("delete realm {}", StringUtils.trimAllWhitespace(slug));
         Realm realm = realmService.getRealm(slug);
 
         if (realm != null && cleanup) {
@@ -255,8 +259,9 @@ public class RealmManager {
                         // remove provider
                         providerManager.deleteProvider(slug, provider.getType(), providerId);
                     }
-                } catch (NoSuchProviderException e) {
+                } catch (NoSuchProviderException | SystemException | NoSuchAuthorityException e) {
                     // skip
+                    logger.error("Error deleting realm for provider {}: {}", provider.getProvider(), e.getMessage());
                 }
 
             }
@@ -415,14 +420,23 @@ public class RealmManager {
             user = userService.findUser(subjectId);
         }
         if (user == null && StringUtils.hasText(email)) {
-            // lookup by email
+            // lookup by email in system
             user = userService.findUsersByEmailAddress(SystemKeys.REALM_SYSTEM, email).stream().findFirst()
                     .orElse(null);
         }
 
+        if (user == null && StringUtils.hasText(email)) {
+            // invite in sys realm by email
+            try {
+                user = userManager.inviteUser(SystemKeys.REALM_SYSTEM, email);
+            } catch (NoSuchRealmException | NoSuchProviderException e) {
+                // nothing we can do, registration is unavailable
+            }
+        }
+
         if (user == null) {
-            // TODO invite in sys realm by email
-            throw new IllegalArgumentException("user must already exists");
+            // error
+            throw new IllegalArgumentException("user must already exists or provide a valid email");
         }
 
         // assign developer role

@@ -3,11 +3,12 @@ package it.smartcommunitylab.aac.config;
 import java.util.Arrays;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
@@ -28,7 +29,7 @@ import it.smartcommunitylab.aac.oauth.auth.InternalOpaqueTokenIntrospector;
 
 @Configuration
 @Order(24)
-public class APISecurityConfig extends WebSecurityConfigurerAdapter {
+public class APISecurityConfig {
 
     @Autowired
     private InternalOpaqueTokenIntrospector tokenIntrospector;
@@ -36,8 +37,9 @@ public class APISecurityConfig extends WebSecurityConfigurerAdapter {
     /*
      * Configure a separated security context for API
      */
-    @Override
-    public void configure(HttpSecurity http) throws Exception {
+    @Order(24)
+    @Bean("apiSecurityFilterChain")
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         // match only API endpoints
         http.requestMatcher(getRequestMatcher())
                 .authorizeRequests((authorizeRequests) -> authorizeRequests
@@ -59,6 +61,8 @@ public class APISecurityConfig extends WebSecurityConfigurerAdapter {
                 // we don't want a session for these endpoints, each request should be evaluated
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+
+        return http.build();
     }
 
     private CorsConfigurationSource corsConfigurationSource() {

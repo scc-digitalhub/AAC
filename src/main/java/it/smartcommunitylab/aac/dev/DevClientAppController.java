@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
@@ -31,6 +30,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.approval.Approval;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -77,6 +77,7 @@ public class DevClientAppController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final TypeReference<Map<String, List<ClientApp>>> typeRef = new TypeReference<Map<String, List<ClientApp>>>() {
     };
+    private final String LIST_KEY = "clients";
 
     @Autowired
     private ClientManager clientManager;
@@ -152,67 +153,70 @@ public class DevClientAppController {
     public ResponseEntity<Collection<ClientApp>> importRealmClientApp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam(required = false, defaultValue = "false") boolean reset,
-            @RequestPart("file") @Valid @NotNull @NotBlank MultipartFile file) throws Exception {
-        if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("empty file");
-        }
+            @RequestPart(name = "yaml", required = false) @Valid String yaml,
+            @RequestPart(name = "file", required = false) @Valid MultipartFile file)
+            throws NoSuchRealmException, RegistrationException {
+        logger.debug("import client(s) to realm {}", StringUtils.trimAllWhitespace(realm));
 
-        if (file.getContentType() == null) {
-            throw new IllegalArgumentException("invalid file");
-        }
-
-        if (!SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType())
-                && !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType())
-                && !SystemKeys.MEDIA_TYPE_XYAML.toString().equals(file.getContentType())) {
-            throw new IllegalArgumentException("invalid file");
+        if (!StringUtils.hasText(yaml) && (file == null || file.isEmpty())) {
+            throw new IllegalArgumentException("empty file or yaml");
         }
 
         try {
+            // read string, fallback to yaml
+            if (!StringUtils.hasText(yaml)) {
+                if (file.getContentType() == null) {
+                    throw new IllegalArgumentException("invalid file");
+                }
+
+                if (!SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType())
+                        && !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType())
+                        && !SystemKeys.MEDIA_TYPE_XYAML.toString().equals(file.getContentType())) {
+                    throw new IllegalArgumentException("invalid file");
+                }
+
+                // read whole file as string
+                yaml = new String(file.getBytes(), StandardCharsets.UTF_8);
+            }
+
             List<ClientApp> apps = new ArrayList<>();
-            boolean multiple = false;
+            List<ClientApp> regs = new ArrayList<>();
 
             // read as raw yaml to check if collection
-            Yaml yaml = new Yaml();
-            Map<String, Object> obj = yaml.load(file.getInputStream());
-            multiple = obj.containsKey("clients");
+            Yaml reader = new Yaml();
+            Map<String, Object> obj = reader.load(yaml);
+            boolean multiple = obj.containsKey(LIST_KEY);
 
             if (multiple) {
-                Map<String, List<ClientApp>> list = yamlObjectMapper.readValue(file.getInputStream(), typeRef);
-                for (ClientApp app : list.get("clients")) {
-                    app.setRealm(realm);
-                    if (reset) {
-                        // reset clientId
-                        app.setClientId(null);
-                    }
-
-                    ClientApp clientApp = clientManager.registerClientApp(realm, app);
-
-                    try {
-                        // fetch also configuration schema
-                        JsonSchema schema = clientManager.getClientConfigurationSchema(realm, clientApp.getClientId());
-                        clientApp.setSchema(schema);
-                    } catch (NoSuchClientException e) {
-                    }
-
-                    apps.add(clientApp);
+                Map<String, List<ClientApp>> list = yamlObjectMapper.readValue(yaml, typeRef);
+                for (ClientApp app : list.get(LIST_KEY)) {
+                    regs.add(app);
                 }
-
             } else {
                 // try single element
-                ClientApp app = yamlObjectMapper.readValue(file.getInputStream(), ClientApp.class);
-                app.setRealm(realm);
+                ClientApp app = yamlObjectMapper.readValue(yaml, ClientApp.class);
+                regs.add(app);
+            }
+
+            // register all parsed apps
+            for (ClientApp reg : regs) {
+                reg.setRealm(realm);
                 if (reset) {
                     // reset clientId
-                    app.setClientId(null);
+                    reg.setClientId(null);
                 }
 
-                ClientApp clientApp = clientManager.registerClientApp(realm, app);
+                if (logger.isTraceEnabled()) {
+                    logger.trace("client bean: " + String.valueOf(reg));
+                }
 
+                ClientApp clientApp = clientManager.registerClientApp(realm, reg);
                 try {
                     // fetch also configuration schema
                     JsonSchema schema = clientManager.getClientConfigurationSchema(realm, clientApp.getClientId());
                     clientApp.setSchema(schema);
-                } catch (NoSuchClientException e) {
+                } catch (NoSuchClientException | NoSuchRealmException e) {
+                    // skip
                 }
 
                 apps.add(clientApp);
@@ -223,6 +227,11 @@ public class DevClientAppController {
             if (logger.isTraceEnabled()) {
                 e.printStackTrace();
             }
+
+            if (e instanceof ClassCastException) {
+                throw new RegistrationException("invalid content or file");
+            }
+
             throw new RegistrationException(e.getMessage());
         }
     }
@@ -382,11 +391,11 @@ public class DevClientAppController {
     }
 
     @GetMapping("/realms/{realm}/apps/{clientId}/authorities")
-    public ResponseEntity<Collection<GrantedAuthority>> getRealmAppAuthorities(
+    public ResponseEntity<Collection<RealmGrantedAuthority>> getRealmAppAuthorities(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
             throws NoSuchRealmException, NoSuchClientException {
-        Collection<GrantedAuthority> authorities = clientManager.getAuthorities(realm, clientId);
+        Collection<RealmGrantedAuthority> authorities = clientManager.getAuthorities(realm, clientId);
         return ResponseEntity.ok(authorities);
     }
 

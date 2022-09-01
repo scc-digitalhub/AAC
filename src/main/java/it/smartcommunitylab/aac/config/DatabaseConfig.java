@@ -53,9 +53,10 @@ import it.smartcommunitylab.aac.repository.IsolationSupportHibernateJpaDialect;
         "it.smartcommunitylab.aac.saml.persistence",
         "it.smartcommunitylab.aac.roles.persistence",
         "it.smartcommunitylab.aac.oauth.persistence",
-        "it.smartcommunitylab.aac.spid.persistence",
         "it.smartcommunitylab.aac.services.persistence",
         "it.smartcommunitylab.aac.attributes.persistence",
+        "it.smartcommunitylab.aac.password.persistence",
+        "it.smartcommunitylab.aac.webauthn.persistence",
         "it.smartcommunitylab.aac.groups.persistence",
 
 })
@@ -66,9 +67,10 @@ import it.smartcommunitylab.aac.repository.IsolationSupportHibernateJpaDialect;
         "it.smartcommunitylab.aac.saml.persistence",
         "it.smartcommunitylab.aac.roles.persistence",
         "it.smartcommunitylab.aac.oauth.persistence",
-        "it.smartcommunitylab.aac.spid.persistence",        
         "it.smartcommunitylab.aac.services.persistence",
         "it.smartcommunitylab.aac.attributes.persistence",
+        "it.smartcommunitylab.aac.password.persistence",
+        "it.smartcommunitylab.aac.webauthn.persistence",
         "it.smartcommunitylab.aac.groups.persistence",
         "it.smartcommunitylab.aac.repository",
 }, queryLookupStrategy = QueryLookupStrategy.Key.CREATE_IF_NOT_FOUND)
@@ -144,9 +146,10 @@ public class DatabaseConfig {
                 "it.smartcommunitylab.aac.saml.persistence",
                 "it.smartcommunitylab.aac.roles.persistence",
                 "it.smartcommunitylab.aac.oauth.persistence",
-                "it.smartcommunitylab.aac.spid.persistence",                
                 "it.smartcommunitylab.aac.services.persistence",
                 "it.smartcommunitylab.aac.attributes.persistence",
+                "it.smartcommunitylab.aac.password.persistence",
+                "it.smartcommunitylab.aac.webauthn.persistence",
                 "it.smartcommunitylab.aac.groups.persistence");
 //		bean.setPersistenceUnitManager(null);
 

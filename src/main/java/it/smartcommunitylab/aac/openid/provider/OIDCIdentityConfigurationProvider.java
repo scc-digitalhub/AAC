@@ -4,7 +4,9 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
@@ -12,31 +14,36 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.config.AuthoritiesProperties;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
+import it.smartcommunitylab.aac.core.provider.IdentityConfigurationProvider;
 
 @Service
 public class OIDCIdentityConfigurationProvider
         implements
-        ConfigurationProvider<ConfigurableIdentityProvider, OIDCIdentityProviderConfig, OIDCIdentityProviderConfigMap> {
+        IdentityConfigurationProvider<OIDCIdentityProviderConfig, OIDCIdentityProviderConfigMap> {
 
+    private final String authority;
     private OIDCIdentityProviderConfigMap defaultConfig;
 
+    @Autowired
     public OIDCIdentityConfigurationProvider(AuthoritiesProperties authoritiesProperties) {
+        this.authority = SystemKeys.AUTHORITY_OIDC;
         if (authoritiesProperties != null && authoritiesProperties.getOidc() != null) {
             defaultConfig = authoritiesProperties.getOidc();
         } else {
             defaultConfig = new OIDCIdentityProviderConfigMap();
         }
+
+    }
+
+    public OIDCIdentityConfigurationProvider(String authority, OIDCIdentityProviderConfigMap configMap) {
+        Assert.hasText(authority, "authority id is mandatory");
+        this.authority = authority;
+        this.defaultConfig = configMap;
     }
 
     @Override
     public String getAuthority() {
-        return SystemKeys.AUTHORITY_OIDC;
-    }
-
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_IDENTITY;
+        return authority;
     }
 
     @Override

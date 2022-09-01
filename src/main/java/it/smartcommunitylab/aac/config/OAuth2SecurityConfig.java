@@ -10,12 +10,13 @@ import java.util.stream.Collectors;
 import javax.servlet.Filter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -49,7 +50,7 @@ import it.smartcommunitylab.aac.oauth.store.ExtTokenStore;
 
 @Configuration
 @Order(21)
-public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
+public class OAuth2SecurityConfig {
 
     @Value("${application.url}")
     private String applicationUrl;
@@ -69,8 +70,9 @@ public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
     /*
      * Configure a separated security context for oauth2 tokenEndpoints
      */
-    @Override
-    public void configure(HttpSecurity http) throws Exception {
+    @Order(21)
+    @Bean("oauth2SecurityFilterChain")
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         // match only client endpoints
         http.requestMatcher(getRequestMatcher())
                 .authorizeRequests((authorizeRequests) -> authorizeRequests
@@ -95,6 +97,7 @@ public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
+        return http.build();
     }
 
     private Filter getOAuth2ClientFilters(

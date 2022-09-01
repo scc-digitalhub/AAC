@@ -4,16 +4,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
-import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.auth.LoginUrlRequestConverter;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.core.service.IdentityProviderAuthorityService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderService;
 
 public class OAuth2IdpAwareLoginUrlConverter implements LoginUrlRequestConverter {
@@ -21,14 +20,14 @@ public class OAuth2IdpAwareLoginUrlConverter implements LoginUrlRequestConverter
     public static final String IDP_PARAMETER_NAME = "idp_hint";
 
     private final IdentityProviderService providerService;
-    private final AuthorityManager authorityManager;
+    private final IdentityProviderAuthorityService authorityService;
 
     public OAuth2IdpAwareLoginUrlConverter(IdentityProviderService providerService,
-            AuthorityManager authorityManager) {
+            IdentityProviderAuthorityService authorityService) {
         Assert.notNull(providerService, "provider service is required");
-        Assert.notNull(authorityManager, "authority service is required");
+        Assert.notNull(authorityService, "authority service is required");
 
-        this.authorityManager = authorityManager;
+        this.authorityService = authorityService;
         this.providerService = providerService;
 
     }
@@ -50,20 +49,22 @@ public class OAuth2IdpAwareLoginUrlConverter implements LoginUrlRequestConverter
 
         // check if idp hint
         if (StringUtils.hasText(idpHint)) {
+            // TODO check for idpHint == authorityId
+            // needs discoverable realm either via path or via clientId
             try {
                 ConfigurableIdentityProvider idp = providerService.getProvider(idpHint);
                 // TODO check if active
 
                 // fetch providers for given realm
-                IdentityProvider<? extends UserIdentity> provider = authorityManager
-                        .fetchIdentityProvider(idp.getAuthority(), idp.getProvider());
+                IdentityProvider<?> provider = authorityService.getProvider(
+                        idp.getAuthority(), idp.getProvider());
                 if (provider == null) {
                     throw new NoSuchProviderException();
                 }
 
                 return provider.getAuthenticationUrl();
 
-            } catch (NoSuchProviderException e) {
+            } catch (NoSuchAuthorityException | NoSuchProviderException e) {
                 // no valid response
                 return null;
             }

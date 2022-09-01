@@ -8,11 +8,13 @@ import javax.validation.constraints.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.provider.approval.Approval;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -43,11 +45,20 @@ import it.smartcommunitylab.aac.services.ServicesManager;
  * Base controller for custom services
  */
 @PreAuthorize("hasAuthority(this.authority)")
-public class BaseServicesController {
+public class BaseServicesController implements InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Autowired
     protected ServicesManager serviceManager;
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        Assert.notNull(serviceManager, "service manager is required");
+    }
+
+    @Autowired
+    public void setServiceManager(ServicesManager serviceManager) {
+        this.serviceManager = serviceManager;
+    }
 
     public String getAuthority() {
         return Config.R_USER;

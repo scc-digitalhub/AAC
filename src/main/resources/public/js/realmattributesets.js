@@ -34,9 +34,14 @@ angular.module('aac.controllers.realmattributesets', [])
             });
         }
 
-        service.importAttributeSet = function (slug, file) {
+        service.importAttributeSet = function (slug, file, yaml) {
             var fd = new FormData();
-            fd.append('file', file);
+            if (yaml) {
+                fd.append('yaml', yaml);
+            }
+            if (file) {
+                fd.append('file', file);
+            }
             return $http({
                 url: 'console/dev/attributeset/' + slug,
                 headers: { "Content-Type": undefined }, //set undefined to let $http manage multipart declaration with proper boundaries
@@ -121,6 +126,42 @@ angular.module('aac.controllers.realmattributesets', [])
             }
         }
 
+        $scope.importAttributeSetDlg = function () {
+            if ($scope.importFile) {
+                $scope.importFile.file = null;
+            }
+
+            $('#importAttributeSetDlg').modal({ keyboard: false });
+        }
+
+
+        $scope.importAttributeSet = function () {
+            $('#importAttributeSetDlg').modal('hide');
+            var file = $scope.importFile.file;
+            var yaml = $scope.importFile.yaml;
+            var mimeTypes = ['text/yaml', 'text/yml', 'application/x-yaml'];
+            if (!yaml && (file == null || !mimeTypes.includes(file.type) || file.size == 0)) {
+                Utils.showError("invalid file");
+            } else {
+                RealmAttributeSets.importAttributeSet(slug, file, yaml)
+                    .then(function () {
+                        $scope.importFile = null;
+                        $scope.load();
+                        Utils.showSuccess();
+                    })
+                    .catch(function (err) {
+                        $scope.importFile.file = null;
+                        Utils.showError(err.data.message);
+                    });
+            }
+        }
+
+        $scope.exportAttributeSet = function (attributeSet) {
+            if (attributeSet) {
+                RealmAttributeSets.exportAttributeSet(slug, attributeSet.identifier);
+            }
+        };
+
         init();
 
     })
@@ -153,8 +194,12 @@ angular.module('aac.controllers.realmattributesets', [])
             $scope.attributeSetName = data.name;
         }
 
+
+
         $scope.exportAttributeSet = function (attributeSet) {
-            RealmAttributeSets.exportAttributeSet(slug, attributeSet.identifier);
+            if (attributeSet) {
+                RealmAttributeSets.exportAttributeSet(slug, attributeSet.identifier);
+            }
         };
 
 

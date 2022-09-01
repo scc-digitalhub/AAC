@@ -7,6 +7,7 @@ import javax.persistence.EntityListeners;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -17,6 +18,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractAccount;
 import it.smartcommunitylab.aac.model.UserStatus;
@@ -25,6 +29,7 @@ import it.smartcommunitylab.aac.model.UserStatus;
 @IdClass(InternalUserAccountId.class)
 @Table(name = "internal_users")
 @EntityListeners(AuditingEntityListener.class)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class InternalUserAccount extends AbstractAccount implements CredentialsContainer {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
@@ -32,29 +37,33 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
     // account id
     @Id
     @NotBlank
-    @Column(name = "provider_id")
+    @Column(name = "provider_id", length = 128)
     private String provider;
 
     @Id
     @NotBlank
-    @Column(name = "username")
+    @Column(name = "username", length = 128)
     private String username;
 
     // unique uuid (subject entity)
     @NotBlank
-    @Column(unique = true)
+    @Column(unique = true, length = 128)
     private String uuid;
 
     // user id
     @NotNull
-    @Column(name = "user_id")
+    @Column(name = "user_id", length = 128)
     private String userId;
 
+    @JsonInclude
+    @Transient
+    private String authority;
+
     @NotBlank
+    @Column(length = 128)
     private String realm;
 
     // login
-    private String password;
     private String status;
 
     // attributes
@@ -63,6 +72,7 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
     private String name;
     private String surname;
 
+    @Column(length = 32)
     private String lang;
 
     // registration
@@ -72,15 +82,6 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
 
     @Column(name = "confirmation_key", unique = true, nullable = true)
     private String confirmationKey;
-
-    @Column(name = "reset_deadline")
-    private Date resetDeadline;
-
-    @Column(name = "reset_key", unique = true, nullable = true)
-    private String resetKey;
-
-    @Column(name = "change_first_access")
-    private Boolean changeOnFirstAccess;
 
     // audit
     @CreatedDate
@@ -95,9 +96,14 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
         super(SystemKeys.AUTHORITY_INTERNAL, null, null);
     }
 
+    public InternalUserAccount(String authority) {
+        super(authority, null, null);
+        this.authority = authority;
+    }
+
     @Override
     public String getAuthority() {
-        return SystemKeys.AUTHORITY_INTERNAL;
+        return authority != null ? authority : super.getAuthority();
     }
 
     @Override
@@ -161,6 +167,10 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
         this.uuid = uuid;
     }
 
+    public void setAuthority(String authority) {
+        this.authority = authority;
+    }
+
     public void setRealm(String realm) {
         this.realm = realm;
     }
@@ -173,13 +183,13 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
         this.username = username;
     }
 
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
+//    public String getPassword() {
+//        return password;
+//    }
+//
+//    public void setPassword(String password) {
+//        this.password = password;
+//    }
 
     public String getStatus() {
         return status;
@@ -245,34 +255,6 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
         this.confirmationKey = confirmationKey;
     }
 
-    public Date getResetDeadline() {
-        return resetDeadline;
-    }
-
-    public void setResetDeadline(Date resetDeadline) {
-        this.resetDeadline = resetDeadline;
-    }
-
-    public String getResetKey() {
-        return resetKey;
-    }
-
-    public void setResetKey(String resetKey) {
-        this.resetKey = resetKey;
-    }
-
-    public Boolean getChangeOnFirstAccess() {
-        return changeOnFirstAccess;
-    }
-
-    public void setChangeOnFirstAccess(Boolean changeOnFirstAccess) {
-        this.changeOnFirstAccess = changeOnFirstAccess;
-    }
-
-    public Boolean isChangeOnFirstAccess() {
-        return changeOnFirstAccess != null && changeOnFirstAccess;
-    }
-
     public Date getCreateDate() {
         return createDate;
     }
@@ -291,9 +273,15 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
 
     @Override
     public void eraseCredentials() {
-        this.password = null;
-        this.resetKey = null;
         this.confirmationKey = null;
+    }
+
+    @Override
+    public String toString() {
+        return "InternalUserAccount [provider=" + provider + ", username=" + username + ", uuid=" + uuid + ", userId="
+                + userId + ", authority=" + authority + ", realm=" + realm + ", status=" + status + ", email=" + email
+                + ", name=" + name + ", surname=" + surname + ", lang=" + lang + ", confirmed=" + confirmed
+                + ", createDate=" + createDate + ", modifiedDate=" + modifiedDate + "]";
     }
 
 }

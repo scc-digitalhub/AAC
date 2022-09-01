@@ -5,29 +5,33 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.internal.model.CredentialsType;
 
 public class InternalIdentityProviderConfig extends AbstractIdentityProviderConfig {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
-    private static ObjectMapper mapper = new ObjectMapper();
-    private final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
+    protected static ObjectMapper mapper = new ObjectMapper();
+    protected final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
     };
+
     private final static int MIN_DURATION = 300;
-    private final static int PASSWORD_MIN_LENGTH = 2;
-    private final static int PASSWORD_MAX_LENGTH = 75;
+    private final static int MAX_SESSION_DURATION = 24 * 60 * 60; // 24h
 
     // map capabilities
     private InternalIdentityProviderConfigMap configMap;
 
     public InternalIdentityProviderConfig(String provider, String realm) {
-        super(SystemKeys.AUTHORITY_INTERNAL, provider, realm);
+        this(SystemKeys.AUTHORITY_INTERNAL, provider, realm);
+    }
+
+    public InternalIdentityProviderConfig(String authority, String provider, String realm) {
+        super(authority, provider, realm);
         this.configMap = new InternalIdentityProviderConfigMap();
     }
 
@@ -50,6 +54,32 @@ public class InternalIdentityProviderConfig extends AbstractIdentityProviderConf
         configMap.setConfiguration(props);
     }
 
+    public String getRepositoryId() {
+        // scoped providers will use their id as providerId for data repositories
+        // otherwise they'll expose realm slug as id
+        if (isScopedData()) {
+            return this.getProvider();
+        } else {
+            return this.getRealm();
+        }
+    }
+
+    public CredentialsType getCredentialsType() {
+        return configMap.getCredentialsType() != null ? configMap.getCredentialsType() : CredentialsType.NONE;
+    }
+
+    public boolean isScopedData() {
+        return configMap.getScopedData() != null ? configMap.getScopedData().booleanValue() : false;
+    }
+
+    public String getScope() {
+        if (isScopedData()) {
+            return SystemKeys.RESOURCE_PROVIDER;
+        }
+
+        return SystemKeys.RESOURCE_REALM;
+    }
+
     /*
      * config flags
      */
@@ -61,46 +91,8 @@ public class InternalIdentityProviderConfig extends AbstractIdentityProviderConf
         return configMap.getEnableUpdate() != null ? configMap.getEnableUpdate().booleanValue() : true;
     }
 
-    public boolean isEnablePasswordReset() {
-        return configMap.getEnablePasswordReset() != null ? configMap.getEnablePasswordReset().booleanValue() : true;
-    }
-
-    public boolean isEnablePasswordSet() {
-        return configMap.getEnablePasswordSet() != null ? configMap.getEnablePasswordSet().booleanValue() : true;
-    }
-
     public boolean isConfirmationRequired() {
         return configMap.getConfirmationRequired() != null ? configMap.getConfirmationRequired().booleanValue() : true;
-    }
-
-    public boolean isPasswordRequireAlpha() {
-        return configMap.getPasswordRequireAlpha() != null ? configMap.getPasswordRequireAlpha().booleanValue() : false;
-    }
-
-    public boolean isPasswordRequireNumber() {
-        return configMap.getPasswordRequireNumber() != null ? configMap.getPasswordRequireNumber().booleanValue()
-                : false;
-    }
-
-    public boolean isPasswordRequireSpecial() {
-        return configMap.getPasswordRequireSpecial() != null ? configMap.getPasswordRequireSpecial().booleanValue()
-                : false;
-    }
-
-    public boolean isPasswordSupportWhitespace() {
-        return configMap.getPasswordSupportWhitespace() != null
-                ? configMap.getPasswordSupportWhitespace().booleanValue()
-                : false;
-    }
-
-    /*
-     * display mode
-     */
-
-    public boolean displayAsButton() {
-        return configMap.getDisplayAsButton() != null
-                ? configMap.getDisplayAsButton().booleanValue()
-                : false;
     }
 
     /*
@@ -111,43 +103,14 @@ public class InternalIdentityProviderConfig extends AbstractIdentityProviderConf
                 : MIN_DURATION;
     }
 
-    public int getPasswordResetValidity() {
-        return configMap.getPasswordResetValidity() != null ? configMap.getPasswordResetValidity().intValue()
-                : MIN_DURATION;
+    public int getMaxSessionDuration() {
+        return configMap.getMaxSessionDuration() != null ? configMap.getMaxSessionDuration().intValue()
+                : MAX_SESSION_DURATION;
     }
 
-    public int getPasswordMinLength() {
-        return configMap.getPasswordMinLength() != null ? configMap.getPasswordMinLength().intValue()
-                : PASSWORD_MIN_LENGTH;
-    }
-
-    public int getPasswordMaxLength() {
-        return configMap.getPasswordMaxLength() != null ? configMap.getPasswordMaxLength().intValue()
-                : PASSWORD_MAX_LENGTH;
-    }
     /*
-     * builders
+     * Static parser
      */
-//    public static ConfigurableIdentityProvider toConfigurableProvider(InternalIdentityProviderConfig ip) {
-//        ConfigurableIdentityProvider cp = new ConfigurableIdentityProvider(SystemKeys.AUTHORITY_INTERNAL,
-//                ip.getProvider(),
-//                ip.getRealm());
-//        cp.setType(SystemKeys.RESOURCE_IDENTITY);
-//        cp.setPersistence(SystemKeys.PERSISTENCE_LEVEL_REPOSITORY);
-//
-//        cp.setName(ip.getName());
-//        cp.setDescription(ip.getDescription());
-//        cp.setIcon(ip.getIcon());
-//        cp.setDisplayMode(ip.getDisplayMode());
-//
-//        cp.setEnabled(true);
-//        cp.setLinkable(ip.isLinkable());
-//        cp.setConfiguration(ip.getConfigMap().getConfiguration());
-//        cp.setHookFunctions(ip.getHookFunctions());
-//
-//        return cp;
-//    }
-
     public static InternalIdentityProviderConfig fromConfigurableProvider(ConfigurableIdentityProvider cp) {
         InternalIdentityProviderConfig ip = new InternalIdentityProviderConfig(cp.getProvider(), cp.getRealm());
         ip.configMap = new InternalIdentityProviderConfigMap();
@@ -161,21 +124,6 @@ public class InternalIdentityProviderConfig extends AbstractIdentityProviderConf
         ip.linkable = cp.isLinkable();
         ip.hookFunctions = (cp.getHookFunctions() != null ? cp.getHookFunctions() : Collections.emptyMap());
 
-        return ip;
-    }
-
-    public static InternalIdentityProviderConfig fromConfigurableProvider(ConfigurableIdentityProvider cp,
-            InternalIdentityProviderConfigMap defaultConfigMap) {
-        InternalIdentityProviderConfig ip = fromConfigurableProvider(cp);
-
-        // double conversion via map to merge default props
-        Map<String, Serializable> config = new HashMap<>();
-        mapper.setSerializationInclusion(Include.NON_EMPTY);
-        Map<String, Serializable> defaultMap = mapper.convertValue(defaultConfigMap, typeRef);
-        config.putAll(defaultMap);
-        config.putAll(cp.getConfiguration());
-
-        ip.configMap.setConfiguration(config);
         return ip;
     }
 

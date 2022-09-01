@@ -1,7 +1,6 @@
 package it.smartcommunitylab.aac.core.provider;
 
 import java.util.Collection;
-import java.util.Map;
 
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
@@ -14,6 +13,8 @@ import it.smartcommunitylab.aac.dto.LoginProvider;
 /*
  * Identity providers handle authentication for users and produce a valid user identity
  * 
+ * Authentication is handled with AuthenticationTokens which carry authentication details along with
+ * UserPrincipal details. 
  * An identity is composed by an account, bounded to the provider, and one or more attribute sets.
  * At minimum, we expect every provider to fulfill core attribute sets (basic, email, openid, account).
  */
@@ -33,47 +34,69 @@ public interface IdentityProvider<I extends UserIdentity>
     public AbstractIdentityProviderConfig getConfig();
 
     /*
-     * auth provider
+     * Authoritative for the given identity model
+     * 
+     * only authoritative providers should edit accounts, expose resolvers etc,
+     * while non-authoritative should handle only authentication + credentials +
+     * attributes when available
+     */
+    public boolean isAuthoritative();
+
+    /*
+     * Authentication provider handles the processing of AuthenticationTokens and
+     * the resolution of UserPrincipal. Optionally they can expose a UserAccount
+     * matching the principal, if available in the provider.
      */
     public ExtendedAuthenticationProvider<? extends UserAuthenticatedPrincipal, ? extends UserAccount> getAuthenticationProvider();
 
     /*
-     * internal providers
+     * Account provider acts as the source for user accounts, when the details are
+     * persisted in the provider or available for requests. Do note that idps are
+     * not required to persist accounts.
      */
     public AccountProvider<? extends UserAccount> getAccountProvider();
+
+    /*
+     * Attribute providers retrieve and format user properties available to the
+     * provider as UserAttributes bounded to the UserIdentity exposed to the outside
+     * world.
+     */
 
     public IdentityAttributeProvider<? extends UserAuthenticatedPrincipal, ? extends UserAccount> getAttributeProvider();
 
     /*
-     * subjects are global, we can resolve
+     * Subject resolvers can discover a matching user by receiving identifying
+     * properties (such as email) and looking at locally (in the provider)
+     * registered accounts to find an existing identity for the same user.
      */
 
     public SubjectResolver<? extends UserAccount> getSubjectResolver();
 
     /*
-     * convert identities from authenticatedPrincipal. Used for login only.
+     * Convert identities from authenticatedPrincipal. Used for login only.
      * 
-     * If given a subjectId the provider should update the account
+     * If given a subjectId the provider should either update the account to link
+     * the user, or reject the conversion.
      */
 
     public I convertIdentity(UserAuthenticatedPrincipal principal, String userId)
             throws NoSuchUserException;
 
     /*
-     * fetch identities from this provider
+     * Fetch identities from this provider
      * 
-     * implementations are not required to support this
+     * Do note that implementations are not required to support this.
      */
 
-    // uuid is global
-    public I findIdentityByUuid(String uuid);
+//    // uuid is global
+//    public I findIdentityByUuid(String uuid);
 
     // identityId is provider-specific
-    public I findIdentity(String identityId);
+    public I findIdentity(String userId, String identityId);
 
-    public I getIdentity(String identityId) throws NoSuchUserException;
+    public I getIdentity(String userId, String identityId) throws NoSuchUserException;
 
-    public I getIdentity(String identityId, boolean fetchAttributes)
+    public I getIdentity(String userId, String identityId, boolean fetchAttributes)
             throws NoSuchUserException;
 
     /*
@@ -91,12 +114,19 @@ public interface IdentityProvider<I extends UserIdentity>
     public Collection<I> listIdentities(String userId, boolean fetchAttributes);
 
     /*
+     * Link account
+     * 
+     * Providers must expose the ability to link/relink identities to a given user
+     */
+    public I linkIdentity(String userId, String identityId) throws NoSuchUserException;
+
+    /*
      * Delete accounts.
      * 
      * Implementations are required to implement this, even as a no-op. At minimum
      * we expect providers to clean up any local registration or cache.
      */
-    public void deleteIdentity(String identityId) throws NoSuchUserException;
+    public void deleteIdentity(String userId, String identityId) throws NoSuchUserException;
 
     public void deleteIdentities(String userId);
 

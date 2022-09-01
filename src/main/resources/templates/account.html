@@ -68,7 +68,7 @@
   <body data-ng-controller="MainCtrl">
 	  <nav class="navbar navbar-expand-lg navbar-dark fixed-top bg-primary it-header-slim-wrapper">
 	    <div class="container"> 
-		  <a class="navbar-brand" href="#/">AAC</a>
+		  <a class="navbar-brand" href="#/" th:text="${applicationProperties.name}">AAC</a>
 		  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
 		    <span class="navbar-toggler-icon"></span>
 		  </button>
@@ -103,7 +103,7 @@
 	    <div class="alert alert-danger" role="alert" data-ng-if="showError">{{errorMsg}}</div>
     </div>
 	  
-	  <div class="fixed-bottom p-3 border-top it-footer-main">
+	  <div class="fixed-bottom p-3 border-top it-footer-main" th:text="${applicationProperties.footer}">
         &copy; Digital Society Lab 2015 - 2021
 	   </div>	   
       <!-- Design Italia -->

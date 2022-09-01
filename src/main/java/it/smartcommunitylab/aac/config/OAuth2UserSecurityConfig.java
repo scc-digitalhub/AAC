@@ -12,11 +12,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-import org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
@@ -25,9 +24,9 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.auth.ExtendedLoginUrlAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.auth.LoginUrlRequestConverter;
+import it.smartcommunitylab.aac.core.service.IdentityProviderAuthorityService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderService;
 import it.smartcommunitylab.aac.oauth.auth.AuthorizationEndpointFilter;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientAwareLoginUrlConverter;
@@ -45,7 +44,7 @@ import it.smartcommunitylab.aac.oauth.service.OAuth2ClientService;
 
 @Configuration
 @Order(28)
-public class OAuth2UserSecurityConfig extends WebSecurityConfigurerAdapter {
+public class OAuth2UserSecurityConfig {
 
     @Value("${application.url}")
     private String applicationUrl;
@@ -59,7 +58,7 @@ public class OAuth2UserSecurityConfig extends WebSecurityConfigurerAdapter {
     private OAuth2ClientDetailsService clientDetailsService;
 
     @Autowired
-    private AuthorityManager authorityManager;
+    private IdentityProviderAuthorityService authorityService;
 
     @Autowired
     private IdentityProviderService idpProviderService;
@@ -67,8 +66,9 @@ public class OAuth2UserSecurityConfig extends WebSecurityConfigurerAdapter {
     /*
      * Configure a separated security context for oauth2 tokenEndpoints
      */
-    @Override
-    public void configure(HttpSecurity http) throws Exception {
+    @Order(28)
+    @Bean("oauth2UserSecurityFilterChain")
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         // match only user endpoints
         http.requestMatcher(getRequestMatcher())
 //                .authorizeRequests().anyRequest().authenticated().and()
@@ -76,18 +76,21 @@ public class OAuth2UserSecurityConfig extends WebSecurityConfigurerAdapter {
                         .anyRequest().hasAnyAuthority(Config.R_USER))
                 .exceptionHandling()
                 .authenticationEntryPoint(
-                        authEntryPoint(loginPath, authorityManager, idpProviderService, clientDetailsService))
+                        authEntryPoint(loginPath, authorityService, idpProviderService,
+                                clientDetailsService))
                 .accessDeniedPage("/accesserror")
                 .and().cors().configurationSource(corsConfigurationSource())
                 .and().csrf()
                 .and()
                 .addFilterBefore(
-                        getOAuth2UserFilters(authorityManager, idpProviderService, clientDetailsService, clientService,
+                        getOAuth2UserFilters(idpProviderService, clientDetailsService, clientService,
                                 loginPath),
                         BasicAuthenticationFilter.class)
                 // we do want a valid user session for these endpoints
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
+
+        return http.build();
     }
 
 //    @Bean
@@ -96,7 +99,7 @@ public class OAuth2UserSecurityConfig extends WebSecurityConfigurerAdapter {
 //    }
 
     public Filter getOAuth2UserFilters(
-            AuthorityManager authorityManager, IdentityProviderService providerService,
+            IdentityProviderService providerService,
             OAuth2ClientDetailsService oauth2ClientDetailsService, OAuth2ClientService oauth2ClientService,
             String loginUrl) {
 
@@ -112,12 +115,13 @@ public class OAuth2UserSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     private AuthenticationEntryPoint authEntryPoint(String loginUrl,
-            AuthorityManager authorityManager, IdentityProviderService providerService,
+            IdentityProviderAuthorityService authorityService,
+            IdentityProviderService providerService,
             OAuth2ClientDetailsService oauth2ClientDetailsService) {
         ExtendedLoginUrlAuthenticationEntryPoint entryPoint = new ExtendedLoginUrlAuthenticationEntryPoint(loginUrl);
         List<LoginUrlRequestConverter> converters = new ArrayList<>();
         LoginUrlRequestConverter idpAwareConverter = new OAuth2IdpAwareLoginUrlConverter(idpProviderService,
-                authorityManager);
+                authorityService);
         LoginUrlRequestConverter clientAwareConverter = new OAuth2ClientAwareLoginUrlConverter(
                 oauth2ClientDetailsService,
                 loginUrl);

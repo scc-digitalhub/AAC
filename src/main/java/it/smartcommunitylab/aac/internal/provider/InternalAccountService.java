@@ -2,8 +2,9 @@ package it.smartcommunitylab.aac.internal.provider;
 
 import java.util.Calendar;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+
 import javax.mail.MessagingException;
 import javax.validation.Valid;
 
@@ -22,120 +23,71 @@ import it.smartcommunitylab.aac.common.InvalidDataException;
 import it.smartcommunitylab.aac.common.MissingDataException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.provider.AccountService;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
-import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
+import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.model.UserStatus;
 import it.smartcommunitylab.aac.utils.MailService;
 
 @Transactional
-public class InternalAccountService extends AbstractProvider implements AccountService<InternalUserAccount> {
-
+public class InternalAccountService extends InternalAccountProvider
+        implements AccountService<InternalUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
-
-    // use password service to handle password
-    private final InternalPasswordService passwordService;
 
     // provider configuration
     private final InternalIdentityProviderConfig config;
 
-    private final InternalUserAccountService userAccountService;
+    private final UserAccountService<InternalUserAccount> userAccountService;
+    private final InternalUserConfirmKeyService confirmKeyService;
+
+    private final String repositoryId;
+
     private final SubjectService subjectService;
 
     private MailService mailService;
     private RealmAwareUriBuilder uriBuilder;
 
     public InternalAccountService(String providerId,
-            InternalUserAccountService userAccountService, SubjectService subjectService,
+            UserAccountService<InternalUserAccount> userAccountService, InternalUserConfirmKeyService confirmKeyService,
+            SubjectService subjectService,
             InternalIdentityProviderConfig providerConfig, String realm) {
-        super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
+        this(SystemKeys.AUTHORITY_INTERNAL, providerId, userAccountService, confirmKeyService, subjectService,
+                providerConfig, realm);
+    }
+
+    public InternalAccountService(String authority, String providerId,
+            UserAccountService<InternalUserAccount> userAccountService, InternalUserConfirmKeyService confirmKeyService,
+            SubjectService subjectService,
+            InternalIdentityProviderConfig providerConfig, String realm) {
+        super(authority, providerId, userAccountService, providerConfig, realm);
         Assert.notNull(providerConfig, "provider config is mandatory");
         Assert.notNull(userAccountService, "user account service is mandatory");
+        Assert.notNull(confirmKeyService, "confirm key service is mandatory");
         Assert.notNull(subjectService, "subject service is mandatory");
 
         this.userAccountService = userAccountService;
+        this.confirmKeyService = confirmKeyService;
         this.subjectService = subjectService;
         this.config = providerConfig;
 
-        this.passwordService = new InternalPasswordService(providerId, userAccountService, providerConfig, realm);
+        this.repositoryId = providerConfig.getRepositoryId();
     }
 
     public void setMailService(MailService mailService) {
         this.mailService = mailService;
-
-        // also assign to passwordService to be consistent
-        this.passwordService.setMailService(mailService);
     }
 
     public void setUriBuilder(RealmAwareUriBuilder uriBuilder) {
         this.uriBuilder = uriBuilder;
-
-        // also assign to passwordService to be consistent
-        this.passwordService.setUriBuilder(uriBuilder);
-    }
-
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_ACCOUNT;
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<InternalUserAccount> listAccounts(String userId) {
-        return userAccountService.findByUser(userId, getProvider());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public InternalUserAccount findAccount(String username) {
-        return findAccountByUsername(username);
-    }
-
-    @Transactional(readOnly = true)
-    public InternalUserAccount findAccountByUuid(String uuid) {
-        String provider = getProvider();
-        return userAccountService.findAccountByUuid(provider, uuid);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public InternalUserAccount getAccount(String username) throws NoSuchUserException {
-        String provider = getProvider();
-
-        InternalUserAccount account = userAccountService.findAccountByUsername(provider, username);
-        if (account == null) {
-            throw new NoSuchUserException();
-        }
-
-        return account;
-    }
-
-    @Transactional(readOnly = true)
-    public InternalUserAccount findAccountByUsername(String username) {
-        String provider = getProvider();
-        return userAccountService.findAccountByUsername(provider, username);
-    }
-
-    @Transactional(readOnly = true)
-    public InternalUserAccount findAccountByEmail(String email) {
-        String provider = getProvider();
-
-        // pick first result, we enforce single email per provider at registration
-        return userAccountService.findAccountByEmail(provider, email).stream()
-                .findFirst()
-                .orElse(null);
     }
 
     @Override
     public void deleteAccount(String username) throws NoSuchUserException {
-        String provider = getProvider();
-
-        InternalUserAccount account = userAccountService.findAccountByUsername(provider, username);
+        InternalUserAccount account = findAccountByUsername(username);
 
         if (account != null) {
             String uuid = account.getUuid();
@@ -145,23 +97,24 @@ public class InternalAccountService extends AbstractProvider implements AccountS
             }
 
             // remove account
-            userAccountService.deleteAccount(provider, username);
+            userAccountService.deleteAccount(repositoryId, username);
         }
     }
 
     @Override
-    public InternalUserAccount registerAccount(String userId, @Valid InternalUserAccount reg)
+    public InternalUserAccount createAccount(@Valid InternalUserAccount reg)
             throws NoSuchUserException, RegistrationException {
-        if (!config.isEnableRegistration()) {
-            throw new IllegalArgumentException("delete is disabled for this provider");
+        if (reg == null) {
+            throw new RegistrationException();
         }
+
+        String userId = reg.getUserId();
 
         // we expect user to be valid
         if (!StringUtils.hasText(userId)) {
             throw new MissingDataException("user");
         }
 
-        String provider = getProvider();
         String realm = getRealm();
 
         // extract base fields
@@ -172,61 +125,31 @@ public class InternalAccountService extends AbstractProvider implements AccountS
             throw new MissingDataException("username");
         }
 
-        InternalUserAccount account = userAccountService.findAccountByUsername(provider, username);
+        InternalUserAccount account = findAccountByUsername(username);
         if (account != null) {
             throw new AlreadyRegisteredException();
         }
 
         // check type and extract our parameters if present
-        String password = null;
         String email = null;
         String name = null;
         String surname = null;
         String lang = null;
         boolean confirmed = !config.isConfirmationRequired();
 
-        password = reg.getPassword();
-        email = reg.getEmail();
-        name = reg.getName();
-        surname = reg.getSurname();
-        lang = reg.getLang();
-
-        if (StringUtils.hasText(password)) {
-            password = Jsoup.clean(password, Safelist.none());
-        }
-        if (StringUtils.hasText(email)) {
-            email = Jsoup.clean(email, Safelist.none());
-        }
-        if (StringUtils.hasText(name)) {
-            name = Jsoup.clean(name, Safelist.none());
-        }
-        if (StringUtils.hasText(surname)) {
-            surname = Jsoup.clean(surname, Safelist.none());
-        }
-        if (StringUtils.hasText(lang)) {
-            lang = Jsoup.clean(lang, Safelist.none());
-        }
+        email = clean(reg.getEmail());
+        name = clean(reg.getName());
+        surname = clean(reg.getSurname());
+        lang = clean(reg.getLang());
 
         // we accept confirmed accounts
         if (!confirmed) {
             confirmed = reg.isConfirmed();
         }
 
-        if (!confirmed && config.isConfirmationRequired() && !StringUtils.hasText(email)) {
-            throw new MissingDataException("email");
-        }
-
         // we require unique email
-        if (StringUtils.hasText(email) && userAccountService.findAccountByEmail(provider, email).size() > 0) {
+        if (StringUtils.hasText(email) && userAccountService.findAccountByEmail(repositoryId, email).size() > 0) {
             throw new DuplicatedDataException("email");
-        }
-
-        boolean changeOnFirstAccess = false;
-        if (!StringUtils.hasText(password)) {
-            password = passwordService.generatePassword();
-            changeOnFirstAccess = true;
-        } else {
-            passwordService.validatePassword(password);
         }
 
         // generate uuid and register as subject
@@ -234,77 +157,41 @@ public class InternalAccountService extends AbstractProvider implements AccountS
         Subject s = subjectService.addSubject(uuid, realm, SystemKeys.RESOURCE_ACCOUNT, username);
 
         account = new InternalUserAccount();
-        account.setProvider(provider);
+        account.setProvider(repositoryId);
         account.setUsername(username);
         account.setUuid(s.getSubjectId());
 
         account.setUserId(userId);
         account.setRealm(realm);
-        // by default disable login
-        account.setPassword(null);
+
         // set account as active
         account.setStatus(UserStatus.ACTIVE.getValue());
         account.setEmail(email);
         account.setName(name);
         account.setSurname(surname);
         account.setLang(lang);
+
         // set confirmed
         account.setConfirmed(confirmed);
 
-        if (!confirmed) {
-            // build key
-            String confirmationKey = passwordService.generateKey();
+        account = userAccountService.addAccount(repositoryId, username, account);
 
-            // we set deadline as +N seconds
-            Calendar calendar = Calendar.getInstance();
-            calendar.add(Calendar.SECOND, config.getConfirmationValidity());
+        // map to our authority
+        account.setAuthority(getAuthority());
+        account.setProvider(getProvider());
 
-            account.setConfirmationDeadline(calendar.getTime());
-            account.setConfirmationKey(confirmationKey);
-        }
-
-//        account.setResetDeadline(null);
-//        account.setResetKey(null);
-        account.setChangeOnFirstAccess(changeOnFirstAccess);
-
-        account = userAccountService.addAccount(account);
-
-        account = passwordService.setPassword(username, password, changeOnFirstAccess);
-
-        // send mail
-        try {
-            if (changeOnFirstAccess) {
-                // we need to send single-use password
-                if (account.isConfirmed()) {
-                    sendPasswordMail(account, password);
-                } else {
-                    // also send confirmation link
-                    sendPasswordAndConfirmationMail(account, password, account.getConfirmationKey());
-                }
-            } else if (!account.isConfirmed()) {
-                // send only confirmation link
-                sendConfirmationMail(account, account.getConfirmationKey());
-            }
-
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-        }
-
-        // TODO evaluate returning cleartext password after creation
         return account;
-
     }
 
     @Override
     public InternalUserAccount updateAccount(String username, InternalUserAccount reg)
             throws NoSuchUserException, RegistrationException {
+        // TODO remove check here, should be on idp only
         if (!config.isEnableUpdate()) {
             throw new IllegalArgumentException("update is disabled for this provider");
         }
 
-        String provider = getProvider();
-
-        InternalUserAccount account = userAccountService.findAccountByUsername(provider, username);
+        InternalUserAccount account = findAccountByUsername(username);
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -315,23 +202,12 @@ public class InternalAccountService extends AbstractProvider implements AccountS
             throw new IllegalArgumentException("account is inactive, activate first to update status");
         }
 
-        String email = reg.getEmail();
-        String name = reg.getName();
-        String surname = reg.getSurname();
-        String lang = reg.getLang();
+        // TODO evaluate username change (will require alignment of related model)
 
-        if (StringUtils.hasText(email)) {
-            email = Jsoup.clean(email, Safelist.none());
-        }
-        if (StringUtils.hasText(name)) {
-            name = Jsoup.clean(name, Safelist.none());
-        }
-        if (StringUtils.hasText(surname)) {
-            surname = Jsoup.clean(surname, Safelist.none());
-        }
-        if (StringUtils.hasText(lang)) {
-            lang = Jsoup.clean(lang, Safelist.none());
-        }
+        String email = clean(reg.getEmail());
+        String name = clean(reg.getName());
+        String surname = clean(reg.getSurname());
+        String lang = clean(reg.getLang());
 
         // check if email changes
         boolean emailChanged = false;
@@ -342,7 +218,7 @@ public class InternalAccountService extends AbstractProvider implements AccountS
         } else if (account.getEmail() == null && email != null) {
             // new email, check
             emailChanged = true;
-        } else if (account.getEmail() == null && email != null) {
+        } else if (account.getEmail() != null && email != null) {
             // check if new
             emailChanged = !account.getEmail().equals(email);
         }
@@ -353,7 +229,7 @@ public class InternalAccountService extends AbstractProvider implements AccountS
 
             // if set to value, check if unique
             if (StringUtils.hasText(email)) {
-                if (userAccountService.findAccountByEmail(provider, email).size() > 0) {
+                if (userAccountService.findAccountByEmail(repositoryId, email).size() > 0) {
                     throw new DuplicatedDataException("email");
                 }
 
@@ -368,102 +244,101 @@ public class InternalAccountService extends AbstractProvider implements AccountS
         account.setSurname(surname);
         account.setLang(lang);
 
-        account = userAccountService.updateAccount(provider, username, account);
+        account = userAccountService.updateAccount(repositoryId, username, account);
 
         if (emailConfirm && config.isConfirmationRequired()) {
-            // build confirm key
-            String confirmationKey = passwordService.generateKey();
-
-            // we set deadline as +N seconds
-            Calendar calendar = Calendar.getInstance();
-            calendar.add(Calendar.SECOND, config.getConfirmationValidity());
-
-            account.setConfirmationDeadline(calendar.getTime());
-            account.setConfirmationKey(confirmationKey);
-
-            // send mail
-            try {
-                // send only confirmation link
-                sendConfirmationMail(account, account.getConfirmationKey());
-            } catch (Exception e) {
-                logger.error(e.getMessage());
-            }
+            account = verifyAccount(username);
         }
 
-        return account;
-    }
+        // map to our authority
+        account.setAuthority(getAuthority());
+        account.setProvider(getProvider());
 
-    @Override
-    public InternalUserAccount linkAccount(String username, String userId)
-            throws NoSuchUserException, RegistrationException {
-
-        // we expect subject to be valid
-        if (!StringUtils.hasText(userId)) {
-            throw new MissingDataException("user");
-        }
-
-        String provider = getProvider();
-
-        InternalUserAccount account = userAccountService.findAccountByUsername(provider, username);
-        if (account == null) {
-            throw new NoSuchUserException();
-        }
-
-        // check if active, inactive accounts can not be changed except for activation
-        UserStatus curStatus = UserStatus.parse(account.getStatus());
-        if (UserStatus.INACTIVE == curStatus) {
-            throw new IllegalArgumentException("account is inactive, activate first to update status");
-        }
-
-        // re-link to user
-        account.setUserId(userId);
-        account = userAccountService.updateAccount(provider, username, account);
         return account;
     }
 
     @Override
     public InternalUserAccount verifyAccount(String username)
             throws NoSuchUserException, RegistrationException {
-        if (!config.isEnableUpdate()) {
-            throw new IllegalArgumentException("update is disabled for this provider");
-        }
 
-        String provider = getProvider();
-
-        InternalUserAccount account = userAccountService.findAccountByUsername(provider, username);
+        InternalUserAccount account = findAccountByUsername(username);
         if (account == null) {
             throw new NoSuchUserException();
         }
 
-        // verify will override confirm
-        account.setConfirmed(true);
-        account.setConfirmationDeadline(null);
-        account.setConfirmationKey(null);
+        // build confirm key
+        String confirmationKey = generateKey();
 
-        account = userAccountService.updateAccount(provider, username, account);
+        // we set deadline as +N seconds
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.SECOND, config.getConfirmationValidity());
+
+        account.setConfirmationDeadline(calendar.getTime());
+        account.setConfirmationKey(confirmationKey);
+
+        // override confirm
+        account.setConfirmed(false);
+
+        account = userAccountService.updateAccount(repositoryId, username, account);
+
+        // send mail
+        try {
+            // send only confirmation link
+            sendConfirmationMail(account, account.getConfirmationKey());
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
+
+        // map to our authority
+        account.setAuthority(getAuthority());
+        account.setProvider(getProvider());
+
         return account;
     }
 
     @Override
-    public InternalUserAccount unverifyAccount(String username)
+    public InternalUserAccount confirmAccount(String username)
             throws NoSuchUserException, RegistrationException {
-        if (!config.isEnableUpdate()) {
-            throw new IllegalArgumentException("update is disabled for this provider");
-        }
 
-        String provider = getProvider();
-
-        InternalUserAccount account = userAccountService.findAccountByUsername(provider, username);
+        InternalUserAccount account = findAccountByUsername(username);
         if (account == null) {
             throw new NoSuchUserException();
         }
 
-        // reset will override confirm
+        // override confirm
+        account.setConfirmed(true);
+        account.setConfirmationDeadline(null);
+        account.setConfirmationKey(null);
+
+        account = userAccountService.updateAccount(repositoryId, username, account);
+
+        // map to our authority
+        account.setAuthority(getAuthority());
+        account.setProvider(getProvider());
+
+        return account;
+    }
+
+    @Override
+    public InternalUserAccount unconfirmAccount(String username)
+            throws NoSuchUserException, RegistrationException {
+
+        InternalUserAccount account = findAccountByUsername(username);
+        if (account == null) {
+            throw new NoSuchUserException();
+        }
+
+        // override confirm
         account.setConfirmed(false);
         account.setConfirmationDeadline(null);
         account.setConfirmationKey(null);
 
-        account = userAccountService.updateAccount(provider, username, account);
+        account = userAccountService.updateAccount(repositoryId, username, account);
+
+        // map to our authority
+        account.setAuthority(getAuthority());
+        account.setProvider(getProvider());
+
         return account;
     }
 
@@ -480,16 +355,6 @@ public class InternalAccountService extends AbstractProvider implements AccountS
 //        return updateStatus(username, UserStatus.INACTIVE);
 //    }
 
-    @Override
-    public InternalUserAccount lockAccount(String username) throws NoSuchUserException, RegistrationException {
-        return updateStatus(username, UserStatus.LOCKED);
-    }
-
-    @Override
-    public InternalUserAccount unlockAccount(String username) throws NoSuchUserException, RegistrationException {
-        return updateStatus(username, UserStatus.ACTIVE);
-    }
-
 //    @Override
 //    public UserAccount blockAccount(String username) throws NoSuchUserException, RegistrationException {
 //        return updateStatus(username, UserStatus.BLOCKED);
@@ -499,27 +364,6 @@ public class InternalAccountService extends AbstractProvider implements AccountS
 //    public UserAccount unblockAccount(String username) throws NoSuchUserException, RegistrationException {
 //        return updateStatus(username, UserStatus.ACTIVE);
 //    }
-
-    private InternalUserAccount updateStatus(String username, UserStatus newStatus)
-            throws NoSuchUserException, RegistrationException {
-        String provider = getProvider();
-
-        InternalUserAccount account = userAccountService.findAccountByUsername(provider, username);
-        if (account == null) {
-            throw new NoSuchUserException();
-        }
-
-        // check if active, inactive accounts can not be changed except for activation
-        UserStatus curStatus = UserStatus.parse(account.getStatus());
-        if (UserStatus.INACTIVE == curStatus && UserStatus.ACTIVE != newStatus) {
-            throw new IllegalArgumentException("account is inactive, activate first to update status");
-        }
-
-        // update status
-        account.setStatus(newStatus.getValue());
-        account = userAccountService.updateAccount(provider, username, account);
-        return account;
-    }
 
 //    public InternalUserAccount resetConfirm(String userId)
 //            throws NoSuchUserException {
@@ -557,13 +401,13 @@ public class InternalAccountService extends AbstractProvider implements AccountS
 //        return account;
 //    }
 
-    public InternalUserAccount confirmAccount(String confirmationKey) throws NoSuchUserException {
+    public InternalUserAccount confirmAccountViaKey(String confirmationKey) throws NoSuchUserException {
 
         if (!StringUtils.hasText(confirmationKey)) {
             throw new IllegalArgumentException("empty-key");
         }
-        String provider = getProvider();
-        InternalUserAccount account = userAccountService.findAccountByConfirmationKey(provider, confirmationKey);
+
+        InternalUserAccount account = confirmKeyService.findAccountByConfirmationKey(repositoryId, confirmationKey);
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -607,13 +451,23 @@ public class InternalAccountService extends AbstractProvider implements AccountS
                 account.setConfirmed(true);
                 account.setConfirmationDeadline(null);
                 account.setConfirmationKey(null);
-                account = userAccountService.updateAccount(provider, username, account);
+                account = userAccountService.updateAccount(repositoryId, username, account);
             }
 
         }
 
+        // map to our authority
+        account.setAuthority(getAuthority());
+        account.setProvider(getProvider());
+
         return account;
 
+    }
+
+    public String generateKey() {
+        // TODO evaluate usage of a secure key generator
+        String rnd = UUID.randomUUID().toString();
+        return rnd;
     }
 
     /*
@@ -648,7 +502,7 @@ public class InternalAccountService extends AbstractProvider implements AccountS
         if (mailService != null) {
             // action is handled by global filter
             String provider = getProvider();
-            String confirmUrl = InternalIdentityAuthority.AUTHORITY_URL + "confirm/" + provider + "?code="
+            String confirmUrl = "/auth/" + getAuthority() + "/confirm/" + provider + "?code="
                     + key;
             if (uriBuilder != null) {
                 confirmUrl = uriBuilder.buildUrl(null, confirmUrl);
@@ -676,7 +530,8 @@ public class InternalAccountService extends AbstractProvider implements AccountS
             // action is handled by global filter
             String provider = getProvider();
 
-            String confirmUrl = InternalIdentityAuthority.AUTHORITY_URL + "confirm/" + provider + "?code=" + key;
+            String confirmUrl = "/auth/" + getAuthority() + "/confirm/" + provider + "?code="
+                    + key;
             if (uriBuilder != null) {
                 confirmUrl = uriBuilder.buildUrl(null, confirmUrl);
             }
@@ -695,4 +550,19 @@ public class InternalAccountService extends AbstractProvider implements AccountS
         }
     }
 
+    /*
+     * string cleanup
+     */
+
+    private String clean(String input) {
+        return clean(input, Safelist.none());
+    }
+
+    private String clean(String input, Safelist safe) {
+        if (StringUtils.hasText(input)) {
+            return Jsoup.clean(input, safe);
+        }
+        return null;
+
+    }
 }
