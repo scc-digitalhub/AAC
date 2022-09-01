@@ -19,7 +19,6 @@ import it.smartcommunitylab.aac.saml.SamlIdentityAuthority;
 import it.smartcommunitylab.aac.saml.model.SamlUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.saml.model.SamlUserIdentity;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
-import it.smartcommunitylab.aac.saml.service.SamlUserAccountService;
 
 public class SamlIdentityProvider
         extends AbstractIdentityProvider<SamlUserIdentity, SamlUserAccount, SamlUserAuthenticatedPrincipal> {
@@ -345,11 +344,11 @@ public class SamlIdentityProvider
         return lp;
     }
 
-    public static String[] SAML_ATTRIBUTES = {
+    public static final String[] SAML_ATTRIBUTES = {
             "subject", "issuer", "issueInstant"
     };
 
-    public static String[] ACCOUNT_ATTRIBUTES = {
+    public static final String[] ACCOUNT_ATTRIBUTES = {
             "username",
             "name",
             "email",

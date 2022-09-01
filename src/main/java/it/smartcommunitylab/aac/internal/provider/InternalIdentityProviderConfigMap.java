@@ -26,7 +26,7 @@ public class InternalIdentityProviderConfigMap implements ConfigurableProperties
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
-    protected static ObjectMapper mapper = new ObjectMapper();
+    protected static final ObjectMapper mapper = new ObjectMapper();
     protected final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
     };
 

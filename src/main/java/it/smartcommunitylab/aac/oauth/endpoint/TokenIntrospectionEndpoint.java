@@ -66,7 +66,7 @@ import it.smartcommunitylab.aac.oauth.model.TokenIntrospection;
  *
  */
 @Controller
-@Tag(name = "OAuth 2.0 Token Introspection" )
+@Tag(name = "OAuth 2.0 Token Introspection")
 public class TokenIntrospectionEndpoint {
 
     public final static String TOKEN_INTROSPECTION_URL = "/oauth/introspect";
@@ -95,7 +95,8 @@ public class TokenIntrospectionEndpoint {
             @RequestParam(required = false, name = "token_type_hint") Optional<String> tokenTypeHint,
             Authentication authentication) {
 
-        logger.debug("request introspection of token " + tokenValue + " hint " + String.valueOf(tokenTypeHint));
+        logger.debug("request introspection of token {} hint {}", StringUtils.trimAllWhitespace(tokenValue),
+                StringUtils.trimAllWhitespace(String.valueOf(tokenTypeHint)));
 
         if (!(authentication instanceof OAuth2ClientAuthenticationToken) || !authentication.isAuthenticated()) {
             throw new InsufficientAuthenticationException(
@@ -300,7 +301,8 @@ public class TokenIntrospectionEndpoint {
     }
 
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<TokenIntrospection> handleAuthenticationException(AuthenticationException e) throws Exception {
+    public ResponseEntity<TokenIntrospection> handleAuthenticationException(AuthenticationException e)
+            throws Exception {
         ResponseEntity<TokenIntrospection> response = buildResponse(new BadClientCredentialsException());
         // handle 401 as per https://datatracker.ietf.org/doc/html/rfc6749#section-5.2
         // TODO respond with header matching authentication scheme used by client

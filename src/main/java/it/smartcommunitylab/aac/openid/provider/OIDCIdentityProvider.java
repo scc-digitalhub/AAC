@@ -275,7 +275,7 @@ public class OIDCIdentityProvider
         return lp;
     }
 
-    public static String[] JWT_ATTRIBUTES = {
+    public static final String[] JWT_ATTRIBUTES = {
             IdTokenClaimNames.ACR,
             IdTokenClaimNames.AMR,
             IdTokenClaimNames.AT_HASH,
@@ -290,7 +290,7 @@ public class OIDCIdentityProvider
             IdTokenClaimNames.SUB
     };
 
-    public static String[] ACCOUNT_ATTRIBUTES = {
+    public static final String[] ACCOUNT_ATTRIBUTES = {
             "username",
             OpenIdAttributesSet.NAME,
             OpenIdAttributesSet.FAMILY_NAME,
@@ -302,7 +302,7 @@ public class OIDCIdentityProvider
             OpenIdAttributesSet.LOCALE
     };
 
-    public static String[] ICONS = {
+    public static final String[] ICONS = {
             "google", "facebook", "github", "microsoft", "apple", "instagram"
     };
 

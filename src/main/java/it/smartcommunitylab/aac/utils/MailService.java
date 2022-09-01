@@ -90,7 +90,9 @@ public class MailService {
     private RealmService realmService;
 
     public MailService() throws IOException {
-        mailSender = new org.springframework.mail.javamail.JavaMailSenderImpl();
+        if (mailSender == null) {
+            mailSender = new org.springframework.mail.javamail.JavaMailSenderImpl();
+        }
     }
 
     @PostConstruct
@@ -118,7 +120,7 @@ public class MailService {
 
         // build logo path
         String applicationLogo = appProps.getUrl() + "/logo";
-        
+
         // set app context
         Map<String, String> application = new HashMap<>();
         application.put("name", appProps.getName());

@@ -1,6 +1,5 @@
 package it.smartcommunitylab.aac.audit;
 
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -81,9 +80,7 @@ public class AuthenticationEventListener extends AbstractAuthenticationAuditList
         data.put("message", ex.getMessage());
 
         if (SystemKeys.EVENTS_LEVEL_DETAILS.equals(level) || SystemKeys.EVENTS_LEVEL_FULL.equals(level)) {
-            if (ex instanceof Serializable) {
-                data.put("exception", event.exportException());
-            }
+            data.put("exception", event.exportException());
 
             if (authentication instanceof WrappedAuthenticationToken) {
                 // persist web details, should be safe to store

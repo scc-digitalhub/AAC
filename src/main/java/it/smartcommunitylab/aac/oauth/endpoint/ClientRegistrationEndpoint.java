@@ -259,20 +259,18 @@ public class ClientRegistrationEndpoint {
                     approved = true;
                 } else {
                     // we need a valid auth, matching this realm with dcr scope
-                    if (authentication instanceof BearerTokenAuthentication) {
-                        String authRealm = (String) ((BearerTokenAuthentication) authentication).getTokenAttributes()
-                                .get("realm");
-                        if (!realm.equals(authRealm)) {
-                            throw new BadClientCredentialsException();
-                        }
-
-                        if (!((BearerTokenAuthentication) authentication).getToken().getScopes()
-                                .contains(Config.SCOPE_DYNAMIC_CLIENT_REGISTRATION)) {
-                            throw new InsufficientAuthenticationException("missing dcr scope");
-                        }
-                        // same realm, valid bearer with dcr scope
-                        approved = true;
+                    String authRealm = (String) ((BearerTokenAuthentication) authentication).getTokenAttributes()
+                            .get("realm");
+                    if (!realm.equals(authRealm)) {
+                        throw new BadClientCredentialsException();
                     }
+
+                    if (!((BearerTokenAuthentication) authentication).getToken().getScopes()
+                            .contains(Config.SCOPE_DYNAMIC_CLIENT_REGISTRATION)) {
+                        throw new InsufficientAuthenticationException("missing dcr scope");
+                    }
+                    // same realm, valid bearer with dcr scope
+                    approved = true;
                 }
 
             }
@@ -371,20 +369,18 @@ public class ClientRegistrationEndpoint {
                     approved = true;
                 } else {
                     // we need a valid auth, matching this realm with dcr scope
-                    if (authentication instanceof BearerTokenAuthentication) {
-                        String authRealm = (String) ((BearerTokenAuthentication) authentication).getTokenAttributes()
-                                .get("realm");
-                        if (!realm.equals(authRealm)) {
-                            throw new BadClientCredentialsException();
-                        }
-
-                        if (!((BearerTokenAuthentication) authentication).getToken().getScopes()
-                                .contains(Config.SCOPE_DYNAMIC_CLIENT_REGISTRATION)) {
-                            throw new InsufficientAuthenticationException("missing dcr scope");
-                        }
-                        // same realm, valid bearer with dcr scope
-                        approved = true;
+                    String authRealm = (String) ((BearerTokenAuthentication) authentication).getTokenAttributes()
+                            .get("realm");
+                    if (!realm.equals(authRealm)) {
+                        throw new BadClientCredentialsException();
                     }
+
+                    if (!((BearerTokenAuthentication) authentication).getToken().getScopes()
+                            .contains(Config.SCOPE_DYNAMIC_CLIENT_REGISTRATION)) {
+                        throw new InsufficientAuthenticationException("missing dcr scope");
+                    }
+                    // same realm, valid bearer with dcr scope
+                    approved = true;
                 }
 
             }
@@ -490,20 +486,18 @@ public class ClientRegistrationEndpoint {
                     approved = true;
                 } else {
                     // we need a valid auth, matching this realm with dcr scope
-                    if (authentication instanceof BearerTokenAuthentication) {
-                        String authRealm = (String) ((BearerTokenAuthentication) authentication).getTokenAttributes()
-                                .get("realm");
-                        if (!realm.equals(authRealm)) {
-                            throw new BadClientCredentialsException();
-                        }
-
-                        if (!((BearerTokenAuthentication) authentication).getToken().getScopes()
-                                .contains(Config.SCOPE_DYNAMIC_CLIENT_REGISTRATION)) {
-                            throw new InsufficientAuthenticationException("missing dcr scope");
-                        }
-                        // same realm, valid bearer with dcr scope
-                        approved = true;
+                    String authRealm = (String) ((BearerTokenAuthentication) authentication).getTokenAttributes()
+                            .get("realm");
+                    if (!realm.equals(authRealm)) {
+                        throw new BadClientCredentialsException();
                     }
+
+                    if (!((BearerTokenAuthentication) authentication).getToken().getScopes()
+                            .contains(Config.SCOPE_DYNAMIC_CLIENT_REGISTRATION)) {
+                        throw new InsufficientAuthenticationException("missing dcr scope");
+                    }
+                    // same realm, valid bearer with dcr scope
+                    approved = true;
                 }
 
             }
