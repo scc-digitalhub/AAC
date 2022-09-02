@@ -10,6 +10,7 @@ import it.smartcommunitylab.aac.api.scopes.ApiGroupsScope;
 import it.smartcommunitylab.aac.groups.BaseGroupController;
 
 @RestController
+@ApiSecurityTag(ApiGroupsScope.SCOPE)
 @Tag(name = "Groups", description = "Manage realm groups and group membership")
 @RequestMapping(value = "api", consumes = { MediaType.APPLICATION_JSON_VALUE,
         SystemKeys.MEDIA_TYPE_XYAML_VALUE }, produces = {

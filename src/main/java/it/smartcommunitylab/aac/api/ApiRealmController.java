@@ -34,6 +34,7 @@ import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.model.Realm;
 
 @RestController
+@ApiSecurityTag(AdminRealmsScope.SCOPE)
 @Tag(name = "Realms", description = "Manage realms and their configuration")
 @RequestMapping(value = "api", consumes = { MediaType.APPLICATION_JSON_VALUE,
         SystemKeys.MEDIA_TYPE_XYAML_VALUE }, produces = {
@@ -44,7 +45,7 @@ public class ApiRealmController {
     @Autowired
     private RealmManager realmManager;
 
-    @GetMapping("/realm")
+    @GetMapping("/realms")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')  and hasAuthority('SCOPE_" + AdminRealmsScope.SCOPE + "')")
     @Operation(summary = "list realm with optional keywords")
     public Collection<Realm> getRealms(@RequestParam(required = false) Optional<String> q) {
@@ -61,7 +62,7 @@ public class ApiRealmController {
         }
     }
 
-    @PostMapping("/realm")
+    @PostMapping("/realms")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')  and hasAuthority('SCOPE_" + AdminRealmsScope.SCOPE + "')")
     @Operation(summary = "add a new realm")
     public Realm addRealm(
@@ -74,7 +75,7 @@ public class ApiRealmController {
         return realmManager.addRealm(r);
     }
 
-    @GetMapping("/realm/{slug}")
+    @GetMapping("/realms/{slug}")
     @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN')) and (hasAuthority('SCOPE_" + AdminRealmsScope.SCOPE
             + "') or hasAuthority('SCOPE_" + ApiRealmScope.SCOPE + "'))")
@@ -88,7 +89,7 @@ public class ApiRealmController {
         return realmManager.getRealm(slug);
     }
 
-    @PutMapping("/realm/{slug}")
+    @PutMapping("/realms/{slug}")
     @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN')) and (hasAuthority('SCOPE_" + AdminRealmsScope.SCOPE
             + "') or hasAuthority('SCOPE_" + ApiRealmScope.SCOPE + "'))")
@@ -105,7 +106,7 @@ public class ApiRealmController {
         return realmManager.updateRealm(slug, r);
     }
 
-    @DeleteMapping("/realm/{slug}")
+    @DeleteMapping("/realms/{slug}")
     @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN')) and (hasAuthority('SCOPE_" + AdminRealmsScope.SCOPE
             + "') or hasAuthority('SCOPE_" + ApiRealmScope.SCOPE + "'))")

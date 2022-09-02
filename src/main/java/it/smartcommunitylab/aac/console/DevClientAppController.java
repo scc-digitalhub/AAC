@@ -31,7 +31,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -46,21 +45,17 @@ import org.yaml.snakeyaml.Yaml;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-
 import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
-import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
-import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.core.ClientManager;
+import it.smartcommunitylab.aac.controller.BaseClientAppController;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.dto.FunctionValidationBean;
@@ -73,14 +68,11 @@ import it.smartcommunitylab.aac.roles.SpaceRoleManager;
 @RestController
 @Hidden
 @RequestMapping("/console/dev")
-public class DevClientAppController {
+public class DevClientAppController extends BaseClientAppController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final TypeReference<Map<String, List<ClientApp>>> typeRef = new TypeReference<Map<String, List<ClientApp>>>() {
     };
     private final String LIST_KEY = "clients";
-
-    @Autowired
-    private ClientManager clientManager;
 
     @Autowired
     private DevManager devManager;
@@ -98,59 +90,17 @@ public class DevClientAppController {
     /*
      * ClientApps
      */
-    @GetMapping("/realms/{realm}/apps")
-    public ResponseEntity<Collection<ClientApp>> getRealmClientApps(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
-            throws NoSuchRealmException {
-        return ResponseEntity.ok(clientManager.listClientApps(realm));
-    }
 
-    @GetMapping("/realms/{realm}/apps/search")
-    public ResponseEntity<Page<ClientApp>> searchRealmClientApps(
+    @GetMapping("/apps/{realm}/search")
+    public Page<ClientApp> searchClientApps(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam(required = false) String q, Pageable pageRequest)
             throws NoSuchRealmException {
-        return ResponseEntity.ok(clientManager.searchClientApps(realm, q, pageRequest));
-    }
-
-    @GetMapping("/realms/{realm}/apps/{clientId}")
-    public ResponseEntity<ClientApp> getRealmClientApp(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
-            throws NoSuchRealmException, NoSuchClientException, SystemException {
-
-        // get client app
-        ClientApp clientApp = clientManager.getClientApp(realm, clientId);
-
-        // fetch also configuration schema
-        JsonSchema schema = clientManager.getClientConfigurationSchema(realm, clientId);
-        clientApp.setSchema(schema);
-
-        return ResponseEntity.ok(clientApp);
-    }
-
-    @PostMapping("/realms/{realm}/apps")
-    public ResponseEntity<ClientApp> createRealmClientApp(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestBody @Valid @NotNull ClientApp app)
-            throws NoSuchRealmException, NoSuchUserException, SystemException, NoSuchProviderException {
-        // enforce realm match
-        app.setRealm(realm);
-
-        ClientApp clientApp = clientManager.registerClientApp(realm, app);
-
-        try {
-            // fetch also configuration schema
-            JsonSchema schema = clientManager.getClientConfigurationSchema(realm, clientApp.getClientId());
-            clientApp.setSchema(schema);
-        } catch (NoSuchClientException e) {
-        }
-
-        return ResponseEntity.ok(clientApp);
+        return clientManager.searchClientApps(realm, q, pageRequest);
     }
 
     @PutMapping("/realms/{realm}/apps")
-    public ResponseEntity<Collection<ClientApp>> importRealmClientApp(
+    public ResponseEntity<Collection<ClientApp>> importClientApp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam(required = false, defaultValue = "false") boolean reset,
             @RequestPart(name = "yaml", required = false) @Valid String yaml,
@@ -211,13 +161,13 @@ public class DevClientAppController {
                 }
 
                 ClientApp clientApp = clientManager.registerClientApp(realm, reg);
-                try {
-                    // fetch also configuration schema
-                    JsonSchema schema = clientManager.getClientConfigurationSchema(realm, clientApp.getClientId());
-                    clientApp.setSchema(schema);
-                } catch (NoSuchClientException | NoSuchRealmException e) {
-                    // skip
-                }
+//                try {
+//                    // fetch also configuration schema
+//                    JsonSchema schema = clientManager.getClientConfigurationSchema(realm, clientApp.getClientId());
+//                    clientApp.setSchema(schema);
+//                } catch (NoSuchClientException | NoSuchRealmException e) {
+//                    // skip
+//                }
 
                 apps.add(clientApp);
             }
@@ -236,71 +186,35 @@ public class DevClientAppController {
         }
     }
 
-    @PutMapping("/realms/{realm}/apps/{clientId}")
-    public ResponseEntity<ClientApp> updateRealmClientApp(
+    @GetMapping("/apps/{realm}/{clientId}/export")
+    public void exportClientApp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
-            @RequestBody @Valid @NotNull ClientApp app)
-            throws NoSuchRealmException, NoSuchClientException, SystemException {
+            HttpServletResponse res)
+            throws NoSuchRealmException, NoSuchClientException, SystemException, IOException {
+//        Yaml yaml = YamlUtils.getInstance(true, ClientApp.class);
 
-        ClientApp clientApp = clientManager.updateClientApp(realm, clientId, app);
-
-        // fetch also configuration schema
-        JsonSchema schema = clientManager.getClientConfigurationSchema(realm, clientId);
-        clientApp.setSchema(schema);
-
-        return ResponseEntity.ok(clientApp);
-    }
-
-    @DeleteMapping("/realms/{realm}/apps/{clientId}")
-    public ResponseEntity<Void> deleteRealmClientApp(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
-            throws NoSuchRealmException, NoSuchClientException, SystemException {
-        clientManager.deleteClientApp(realm, clientId);
-        return ResponseEntity.ok(null);
-    }
-
-    @PutMapping("/realms/{realm}/apps/{clientId}/credentials/{credentialsId}")
-    public ResponseEntity<ClientApp> resetRealmClientAppCredentials(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String credentialsId)
-            throws NoSuchClientException, NoSuchRealmException {
-
-        clientManager.resetClientCredentials(realm, clientId, credentialsId);
-
-        // re-read app
+        // get client app
         ClientApp clientApp = clientManager.getClientApp(realm, clientId);
 
-        // fetch also configuration schema
-        JsonSchema schema = clientManager.getClientConfigurationSchema(realm, clientId);
-        clientApp.setSchema(schema);
+//        String s = yaml.dump(clientApp);
+        String s = yamlObjectMapper.writeValueAsString(clientApp);
 
-        return ResponseEntity.ok(clientApp);
+        // write as file
+        res.setContentType("text/yaml");
+        res.setHeader("Content-Disposition", "attachment;filename=clientapp-" + clientApp.getName() + ".yaml");
+        ServletOutputStream out = res.getOutputStream();
+        out.write(s.getBytes(StandardCharsets.UTF_8));
+        out.flush();
+        out.close();
     }
 
-    @DeleteMapping("/realms/{realm}/apps/{clientId}/credentials/{credentialsId}")
-    public ResponseEntity<ClientApp> removeRealmClientAppCredentials(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String credentialsId)
-            throws NoSuchClientException, NoSuchRealmException {
+    /*
+     * Test app
+     */
 
-        clientManager.removeClientCredentials(realm, clientId, credentialsId);
-
-        // re-read app
-        ClientApp clientApp = clientManager.getClientApp(realm, clientId);
-
-        // fetch also configuration schema
-        JsonSchema schema = clientManager.getClientConfigurationSchema(realm, clientId);
-        clientApp.setSchema(schema);
-
-        return ResponseEntity.ok(clientApp);
-    }
-
-    @GetMapping("/realms/{realm}/apps/{clientId}/oauth2/{grantType}")
-    public ResponseEntity<OAuth2AccessToken> testRealmClientAppOAuth2(
+    @GetMapping("/apps/{realm}/{clientId}/oauth2/{grantType}")
+    public ResponseEntity<OAuth2AccessToken> testClientAppOAuth2(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
             @PathVariable String grantType)
@@ -319,8 +233,8 @@ public class DevClientAppController {
         return ResponseEntity.ok(accessToken);
     }
 
-    @PostMapping("/realms/{realm}/apps/{clientId}/claims")
-    public ResponseEntity<FunctionValidationBean> testRealmClientAppClaims(
+    @PostMapping("/apps/{realm}/{clientId}/claims")
+    public ResponseEntity<FunctionValidationBean> testClientAppClaims(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
             @RequestBody @Valid @NotNull FunctionValidationBean function)
@@ -345,39 +259,11 @@ public class DevClientAppController {
         return ResponseEntity.ok(function);
     }
 
-    @GetMapping("/realms/{realm}/apps/{clientId}/export")
-    public void exportRealmClientApp(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
-            HttpServletResponse res)
-            throws NoSuchRealmException, NoSuchClientException, SystemException, IOException {
-//        Yaml yaml = YamlUtils.getInstance(true, ClientApp.class);
+    /*
+     * Providers
+     */
 
-        // get client app
-        ClientApp clientApp = clientManager.getClientApp(realm, clientId);
-
-//        String s = yaml.dump(clientApp);
-        String s = yamlObjectMapper.writeValueAsString(clientApp);
-
-        // write as file
-        res.setContentType("text/yaml");
-        res.setHeader("Content-Disposition", "attachment;filename=clientapp-" + clientApp.getName() + ".yaml");
-        ServletOutputStream out = res.getOutputStream();
-        out.write(s.getBytes(StandardCharsets.UTF_8));
-        out.flush();
-        out.close();
-    }
-
-    @GetMapping("/realms/{realm}/apps/{clientId}/schema")
-    public ResponseEntity<JsonSchema> getAppConfigurationSchema(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
-            throws NoSuchClientException, NoSuchRealmException {
-
-        return ResponseEntity.ok(clientManager.getClientConfigurationSchema(realm, clientId));
-    }
-
-    @GetMapping("/realms/{realm}/apps/{clientId}/providers")
+    @GetMapping("/apps/{realm}/{clientId}/providers")
     public ResponseEntity<Collection<ConfigurableIdentityProvider>> getAppProviders(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
@@ -390,7 +276,11 @@ public class DevClientAppController {
         return ResponseEntity.ok(clientManager.listIdentityProviders(realm));
     }
 
-    @GetMapping("/realms/{realm}/apps/{clientId}/authorities")
+    /*
+     * Authorities
+     */
+
+    @GetMapping("/apps/{realm}/{clientId}/authorities")
     public ResponseEntity<Collection<RealmGrantedAuthority>> getRealmAppAuthorities(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
@@ -399,7 +289,7 @@ public class DevClientAppController {
         return ResponseEntity.ok(authorities);
     }
 
-    @PutMapping("/realms/{realm}/apps/{clientId}/authorities")
+    @PutMapping("/apps/{realm}/{clientId}/authorities")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')"
             + " or hasAuthority(#realm+':" + Config.R_ADMIN + "')")
     public ResponseEntity<Collection<GrantedAuthority>> updateRealmAppAuthorities(
@@ -422,8 +312,8 @@ public class DevClientAppController {
      * Roles
      */
 
-    @GetMapping("/realms/{realm}/apps/{clientId}/roles")
-    public ResponseEntity<Collection<RealmRole>> getRealmClientAppRoles(
+    @GetMapping("/apps/{realm}/{clientId}/roles")
+    public ResponseEntity<Collection<RealmRole>> getClientAppRoles(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
             throws NoSuchRealmException, NoSuchClientException {
@@ -436,8 +326,8 @@ public class DevClientAppController {
 
     }
 
-    @PutMapping("/realms/{realm}/apps/{clientId}/roles")
-    public ResponseEntity<Collection<RealmRole>> updateRealmClientAppRoles(
+    @PutMapping("/apps/{realm}/{clientId}/roles")
+    public ResponseEntity<Collection<RealmRole>> updateClientAppRoles(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
             @RequestBody @Valid @NotNull Collection<RealmRole> roles)
@@ -456,8 +346,8 @@ public class DevClientAppController {
         }
     }
 
-    @GetMapping("/realms/{realm}/apps/{clientId}/spaceroles")
-    public ResponseEntity<Collection<SpaceRole>> getRealmClientAppSpaceRoles(
+    @GetMapping("/apps/{realm}/{clientId}/spaceroles")
+    public ResponseEntity<Collection<SpaceRole>> getClientAppSpaceRoles(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
             throws NoSuchRealmException, NoSuchClientException {
@@ -469,8 +359,8 @@ public class DevClientAppController {
         }
     }
 
-    @PutMapping("/realms/{realm}/apps/{clientId}/spaceroles")
-    public ResponseEntity<Collection<SpaceRole>> updateRealmClientAppSpaceRoles(
+    @PutMapping("/apps/{realm}/{clientId}/spaceroles")
+    public ResponseEntity<Collection<SpaceRole>> updateClientAppSpaceRoles(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
             @RequestBody @Valid @NotNull Collection<String> roles)
@@ -489,8 +379,8 @@ public class DevClientAppController {
      * Service approvals (permissions)
      */
 
-    @GetMapping("/realms/{realm}/apps/{clientId}/approvals")
-    public ResponseEntity<Collection<Approval>> getRealmUserApprovals(
+    @GetMapping("/apps/{realm}/{clientId}/approvals")
+    public ResponseEntity<Collection<Approval>> getClientAppApprovals(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
             throws NoSuchRealmException, NoSuchClientException {
@@ -501,8 +391,8 @@ public class DevClientAppController {
     /*
      * Audit
      */
-    @GetMapping("/realms/{realm}/apps/{clientId}/audit")
-    public ResponseEntity<Collection<AuditEvent>> getRealmUserAudit(
+    @GetMapping("/apps/{realm}/{clientId}/audit")
+    public ResponseEntity<Collection<AuditEvent>> getClientAppAudit(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
             @RequestParam(required = false, name = "after") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Optional<Date> after,

@@ -10,6 +10,7 @@ import it.smartcommunitylab.aac.api.scopes.ApiScopesScope;
 import it.smartcommunitylab.aac.controller.BaseScopesController;
 
 @RestController
+@ApiSecurityTag(ApiScopesScope.SCOPE)
 @Tag(name = "Scopes", description = "Manage scopes")
 @RequestMapping(value = "api", consumes = { MediaType.APPLICATION_JSON_VALUE,
         SystemKeys.MEDIA_TYPE_XYAML_VALUE }, produces = {

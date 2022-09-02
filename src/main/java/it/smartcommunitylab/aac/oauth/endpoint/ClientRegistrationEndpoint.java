@@ -7,8 +7,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -110,12 +108,11 @@ public class ClientRegistrationEndpoint {
     @RequestMapping(value = REGISTRATION_URL, method = RequestMethod.POST)
     public ResponseEntity<ClientRegistrationResponse> registerClient(
             @RequestBody Map<String, Serializable> parameters,
-            @PathVariable("realm") Optional<String> realmKey,
             Authentication authentication, HttpServletRequest request)
             throws OAuth2Exception, SystemException {
 
         // we require realm to be set
-        String realm = realmKey.orElse((String) parameters.get("realm"));
+        String realm = (String) parameters.get("realm");
 
         if (authentication instanceof BearerTokenAuthentication) {
             realm = (String) ((BearerTokenAuthentication) authentication).getTokenAttributes().get("realm");
@@ -196,12 +193,12 @@ public class ClientRegistrationEndpoint {
                     .path(REGISTRATION_URL + "/{id}").build()
                     .expand(registration.getClientId()).encode().toUriString();
 
-            if (realmKey.isPresent()) {
-                // build a realm specific url
-                registrationUrl = ServletUriComponentsBuilder.fromServletMapping(request)
-                        .path("/-/{realm}" + REGISTRATION_URL + "/{id}").build()
-                        .expand(realm, registration.getClientId()).encode().toUriString();
-            }
+//            if (realmKey.isPresent()) {
+//                // build a realm specific url
+//                registrationUrl = ServletUriComponentsBuilder.fromServletMapping(request)
+//                        .path("/-/{realm}" + REGISTRATION_URL + "/{id}").build()
+//                        .expand(realm, registration.getClientId()).encode().toUriString();
+//            }
 
             ClientRegistrationResponse response = new ClientRegistrationResponse(registration);
             response.setRegistrationUri(registrationUrl);
@@ -227,7 +224,6 @@ public class ClientRegistrationEndpoint {
     @Operation(summary = "Get an existing client")
     @RequestMapping(value = REGISTRATION_URL + "/{clientId}", method = RequestMethod.GET)
     public ResponseEntity<ClientRegistrationResponse> getClient(
-            @PathVariable("realm") Optional<String> realmKey,
             @PathVariable("clientId") @Valid @NotNull String clientId,
             BearerTokenAuthentication authentication, HttpServletRequest request)
             throws OAuth2Exception, SystemException {
@@ -240,10 +236,6 @@ public class ClientRegistrationEndpoint {
             String realm = (String) authentication.getTokenAttributes().get("realm");
             if (realm == null) {
                 throw new InvalidRequestException("missing or invalid realm");
-            }
-
-            if (realmKey.isPresent() && !realm.equals(realmKey.get())) {
-                throw new InvalidRequestException("realm mismatch");
             }
 
             Realm r = realmService.findRealm(realm);
@@ -304,12 +296,12 @@ public class ClientRegistrationEndpoint {
                     .path(REGISTRATION_URL + "/{id}").build()
                     .expand(registration.getClientId()).encode().toUriString();
 
-            if (realmKey.isPresent()) {
-                // build a realm specific url
-                registrationUrl = ServletUriComponentsBuilder.fromServletMapping(request)
-                        .path("/-/{realm}" + REGISTRATION_URL + "/{id}").build()
-                        .expand(realm, registration.getClientId()).encode().toUriString();
-            }
+//            if (realmKey.isPresent()) {
+//                // build a realm specific url
+//                registrationUrl = ServletUriComponentsBuilder.fromServletMapping(request)
+//                        .path("/-/{realm}" + REGISTRATION_URL + "/{id}").build()
+//                        .expand(realm, registration.getClientId()).encode().toUriString();
+//            }
 
             ClientRegistrationResponse response = new ClientRegistrationResponse(registration);
             response.setRegistrationUri(registrationUrl);
@@ -336,7 +328,6 @@ public class ClientRegistrationEndpoint {
             @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = ClientRegistration.class)) }))
     @RequestMapping(value = REGISTRATION_URL + "/{clientId}", method = RequestMethod.PUT)
     public ResponseEntity<ClientRegistrationResponse> updateClient(
-            @PathVariable("realm") Optional<String> realmKey,
             @PathVariable("clientId") @Valid @NotNull String clientId,
             @RequestBody Map<String, Serializable> parameters,
             BearerTokenAuthentication authentication, HttpServletRequest request)
@@ -350,10 +341,6 @@ public class ClientRegistrationEndpoint {
             String realm = (String) authentication.getTokenAttributes().get("realm");
             if (realm == null) {
                 throw new InvalidRequestException("missing or invalid realm");
-            }
-
-            if (realmKey.isPresent() && !realm.equals(realmKey.get())) {
-                throw new InvalidRequestException("realm mismatch");
             }
 
             Realm r = realmService.findRealm(realm);
@@ -421,12 +408,12 @@ public class ClientRegistrationEndpoint {
                     .path(REGISTRATION_URL + "/{id}").build()
                     .expand(registration.getClientId()).encode().toUriString();
 
-            if (realmKey.isPresent()) {
-                // build a realm specific url
-                registrationUrl = ServletUriComponentsBuilder.fromServletMapping(request)
-                        .path("/-/{realm}" + REGISTRATION_URL + "/{id}").build()
-                        .expand(realm, registration.getClientId()).encode().toUriString();
-            }
+//            if (realmKey.isPresent()) {
+//                // build a realm specific url
+//                registrationUrl = ServletUriComponentsBuilder.fromServletMapping(request)
+//                        .path("/-/{realm}" + REGISTRATION_URL + "/{id}").build()
+//                        .expand(realm, registration.getClientId()).encode().toUriString();
+//            }
 
             ClientRegistrationResponse response = new ClientRegistrationResponse(registration);
             response.setRegistrationUri(registrationUrl);
@@ -453,7 +440,6 @@ public class ClientRegistrationEndpoint {
     @RequestMapping(value = REGISTRATION_URL + "/{clientId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
     public void deleteClient(
-            @PathVariable("realm") Optional<String> realmKey,
             @PathVariable("clientId") @Valid @NotNull String clientId,
             BearerTokenAuthentication authentication, HttpServletRequest request)
             throws OAuth2Exception, SystemException {
@@ -466,10 +452,6 @@ public class ClientRegistrationEndpoint {
             String realm = (String) authentication.getTokenAttributes().get("realm");
             if (realm == null) {
                 throw new InvalidRequestException("missing or invalid realm");
-            }
-
-            if (realmKey.isPresent() && !realm.equals(realmKey.get())) {
-                throw new InvalidRequestException("realm mismatch");
             }
 
             Realm r = realmService.findRealm(realm);

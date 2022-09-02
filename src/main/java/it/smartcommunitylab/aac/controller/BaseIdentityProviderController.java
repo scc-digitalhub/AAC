@@ -57,7 +57,6 @@ public class BaseIdentityProviderController implements InitializingBean {
     public void afterPropertiesSet() throws Exception {
         Assert.notNull(providerManager, "provider manager is required");
         Assert.notNull(authorityService, "authority service is required");
-
     }
 
     @Autowired

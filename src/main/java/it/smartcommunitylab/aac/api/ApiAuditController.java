@@ -10,6 +10,7 @@ import it.smartcommunitylab.aac.api.scopes.ApiAuditScope;
 import it.smartcommunitylab.aac.audit.BaseAuditController;
 
 @RestController
+@ApiSecurityTag(ApiAuditScope.SCOPE)
 @Tag(name = "Audit", description = "Access audit events")
 @RequestMapping(value = "api", consumes = { MediaType.APPLICATION_JSON_VALUE,
         SystemKeys.MEDIA_TYPE_XYAML_VALUE }, produces = {

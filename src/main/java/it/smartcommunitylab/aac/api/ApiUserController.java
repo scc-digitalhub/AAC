@@ -10,6 +10,7 @@ import it.smartcommunitylab.aac.api.scopes.ApiUsersScope;
 import it.smartcommunitylab.aac.controller.BaseUserController;
 
 @RestController
+@ApiSecurityTag(ApiUsersScope.SCOPE)
 @Tag(name = "Users", description = "Manage realm users")
 @RequestMapping(value = "api", consumes = { MediaType.APPLICATION_JSON_VALUE,
         SystemKeys.MEDIA_TYPE_XYAML_VALUE }, produces = {

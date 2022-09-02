@@ -10,6 +10,7 @@ import it.smartcommunitylab.aac.api.scopes.ApiProviderScope;
 import it.smartcommunitylab.aac.controller.BaseIdentityProviderController;
 
 @RestController
+@ApiSecurityTag(ApiProviderScope.SCOPE)
 @Tag(name = "Identity Providers", description = "Manage realm identity providers and their configuration")
 @RequestMapping(value = "api", consumes = { MediaType.APPLICATION_JSON_VALUE,
         SystemKeys.MEDIA_TYPE_XYAML_VALUE }, produces = {

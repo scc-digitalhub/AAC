@@ -15,7 +15,7 @@ angular.module('aac.controllers.realmapps', [])
     /**
       * Realm Data Services
       */
-    .service('RealmAppsData', function ($http, $httpParamSerializer) {
+    .service('RealmAppsData', function ($http, $httpParamSerializer, $window) {
         var service = {};
 
         var buildQuery = function (params) {
@@ -33,45 +33,45 @@ angular.module('aac.controllers.realmapps', [])
         }
 
         service.getClientApps = function (slug) {
-            return $http.get('console/dev/realms/' + slug + '/apps').then(function (data) {
+            return $http.get('console/dev/apps/' + slug).then(function (data) {
                 return data.data;
             });
         }
         service.searchClientApps = function (slug, params) {
-            return $http.get('console/dev/realms/' + slug + '/apps/search?' + buildQuery(params)).then(function (data) {
+            return $http.get('console/dev/apps/' + slug + '/search?' + buildQuery(params)).then(function (data) {
                 return data.data;
             });
         }
         service.getClientApp = function (slug, clientId) {
-            return $http.get('console/dev/realms/' + slug + '/apps/' + clientId).then(function (data) {
+            return $http.get('console/dev/apps/' + slug + '/' + clientId).then(function (data) {
                 return data.data;
             });
         }
 
         service.removeClientApp = function (slug, clientId) {
-            return $http.delete('console/dev/realms/' + slug + '/apps/' + clientId).then(function (data) {
+            return $http.delete('console/dev/apps/' + slug + '/' + clientId).then(function (data) {
                 return data.data;
             });
         }
 
         service.resetClientAppCredentials = function (slug, clientId, credentialsId) {
-            return $http.put('console/dev/realms/' + slug + '/apps/' + clientId + '/credentials/' + credentialsId, {}).then(function (data) {
+            return $http.put('console/dev/apps/' + slug + '/' + clientId + '/credentials/' + credentialsId, {}).then(function (data) {
                 return data.data;
             });
         }
         service.removeClientAppCredentials = function (slug, clientId, credentialsId) {
-            return $http.delete('console/dev/realms/' + slug + '/apps/' + clientId + '/credentials/' + credentialsId).then(function (data) {
+            return $http.delete('console/dev/apps/' + slug + '/' + clientId + '/credentials/' + credentialsId).then(function (data) {
                 return data.data;
             });
         }
 
         service.saveClientApp = function (slug, clientApp) {
             if (clientApp.clientId) {
-                return $http.put('console/dev/realms/' + slug + '/apps/' + clientApp.clientId, clientApp).then(function (data) {
+                return $http.put('console/dev/apps/' + slug + '/' + clientApp.clientId, clientApp).then(function (data) {
                     return data.data;
                 });
             } else {
-                return $http.post('console/dev/realms/' + slug + '/apps', clientApp).then(function (data) {
+                return $http.post('console/dev/apps/' + slug, clientApp).then(function (data) {
                     return data.data;
                 });
             }
@@ -86,7 +86,7 @@ angular.module('aac.controllers.realmapps', [])
                 fd.append('file', file);
             }
             return $http({
-                url: 'console/dev/realms/' + slug + '/apps' + (reset ? "?reset=true" : ""),
+                url: 'console/dev/apps/' + slug + (reset ? "?reset=true" : ""),
                 headers: { "Content-Type": undefined }, //set undefined to let $http manage multipart declaration with proper boundaries
                 data: fd,
                 method: "PUT"
@@ -97,17 +97,17 @@ angular.module('aac.controllers.realmapps', [])
         }
 
         service.exportClientApp = function (realm, clientId) {
-            $window.open('console/dev/realms/' + realm + '/apps/' + clientId + '/export');
+            $window.open('console/dev/apps/' + realm + '/' + clientId + '/export');
         }
 
         service.testOAuth2ClientApp = function (slug, clientId, grantType) {
-            return $http.get('console/dev/realms/' + slug + '/apps/' + clientId + "/oauth2/" + grantType).then(function (data) {
+            return $http.get('console/dev/apps/' + slug + '/' + clientId + "/oauth2/" + grantType).then(function (data) {
                 return data.data;
             });
         }
 
         service.testClientAppClaimMapping = function (slug, clientId, functionCode) {
-            return $http.post('console/dev/realms/' + slug + '/apps/' + clientId + "/claims", functionCode).then(function (data) {
+            return $http.post('console/dev/apps/' + slug + '/' + clientId + "/claims", functionCode).then(function (data) {
                 return data.data;
             });
         }
@@ -119,60 +119,64 @@ angular.module('aac.controllers.realmapps', [])
         }
 
         service.getRoles = function (slug, clientId) {
-            return $http.get('console/dev/realms/' + slug + '/apps/' + clientId + '/roles').then(function (data) {
+            return $http.get('console/dev/apps/' + slug + '/' + clientId + '/roles').then(function (data) {
                 return data.data;
             });
         }
         service.updateRoles = function (slug, clientId, roles) {
-            return $http.put('console/dev/realms/' + slug + '/apps/' + clientId + '/roles', roles).then(function (data) {
+            return $http.put('console/dev/apps/' + slug + '/' + clientId + '/roles', roles).then(function (data) {
                 return data.data;
             });
         }
 
         service.getAuthorities = function (slug, subject) {
-            return $http.get('console/dev/realms/' + slug + '/apps/' + subject + '/authorities').then(function (data) {
+            return $http.get('console/dev/apps/' + slug + '/' + subject + '/authorities').then(function (data) {
                 return data.data;
             });
         }
         service.updateAuthorities = function (slug, subject, authorities) {
-            return $http.put('console/dev/realms/' + slug + '/apps/' + subject + '/authorities', authorities).then(function (data) {
+            return $http.put('console/dev/apps/' + slug + '/' + subject + '/authorities', authorities).then(function (data) {
                 return data.data;
             });
         }
 
         service.getSpaceRoles = function (slug, clientId) {
-            return $http.get('console/dev/realms/' + slug + '/apps/' + clientId + '/spaceroles').then(function (data) {
+            return $http.get('console/dev/apps/' + slug + '/' + clientId + '/spaceroles').then(function (data) {
                 return data.data;
             });
         }
         service.updateSpaceRoles = function (slug, clientId, roles) {
-            return $http.put('console/dev/realms/' + slug + '/apps/' + clientId + '/spaceroles', roles).then(function (data) {
+            return $http.put('console/dev/apps/' + slug + '/' + clientId + '/spaceroles', roles).then(function (data) {
                 return data.data;
             });
         }
 
         service.getProviders = function (slug, clientId) {
-            return $http.get('console/dev/realms/' + slug + '/apps/' + clientId + '/providers').then(function (data) {
+            return $http.get('console/dev/apps/' + slug + '/' + clientId + '/providers').then(function (data) {
                 return data.data;
             });
         }
 
         service.getAudit = function (slug, clientId) {
-            return $http.get('console/dev/realms/' + slug + '/apps/' + clientId + '/audit').then(function (data) {
+            return $http.get('console/dev/apps/' + slug + '/' + clientId + '/audit').then(function (data) {
                 return data.data;
             });
         }
         service.getApprovals = function (slug, clientId) {
-            return $http.get('console/dev/realms/' + slug + '/apps/' + clientId + '/approvals').then(function (data) {
+            return $http.get('console/dev/apps/' + slug + '/' + clientId + '/approvals').then(function (data) {
                 return data.data;
             });
         }
         service.getTokens = function (slug, clientId) {
-            return $http.get('console/dev/realms/' + slug + '/apps/' + clientId + '/tokens').then(function (data) {
+            return $http.get('console/dev/apps/' + slug + '/' + clientId + '/tokens').then(function (data) {
                 return data.data;
             });
         }
-
+        service.getSchema = function (slug, clientId) {
+            return $http.get('console/dev/apps/' + slug + '/' + clientId + '/schema').then(function (data) {
+                return data.data;
+            });
+        }
 
         return service;
 
@@ -496,6 +500,12 @@ angular.module('aac.controllers.realmapps', [])
                         ((s.context ? s.context + '/' : '') + (s.space || '')));
                 })
                 .then(function () {
+                    return RealmAppsData.getSchema(slug, clientId);
+                })
+                .then(function (schema) {
+                    $scope.configurationSchema = schema;
+                })
+                .then(function () {
                     $scope.load();
                 })
                 .catch(function (err) {
@@ -570,7 +580,6 @@ angular.module('aac.controllers.realmapps', [])
             $scope.app = data;
             $scope.appname = data.name;
             $scope.configurationMap = data.configuration;
-            $scope.configurationSchema = data.schema;
             // process idps
             // var idps = [];
 
@@ -587,7 +596,7 @@ angular.module('aac.controllers.realmapps', [])
             updateIdps(data.providers);
 
             if (data.type == 'oauth2') {
-                initConfiguration(data.type, data.configuration, data.schema);
+                initConfiguration(data.type, data.configuration, $scope.configurationSchema);
             }
 
             var claimMapping = {

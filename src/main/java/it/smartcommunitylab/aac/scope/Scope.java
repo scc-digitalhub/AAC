@@ -85,11 +85,11 @@ public class Scope {
     }
 
     public boolean isUserScope() {
-        return type != null && (type == ScopeType.USER || type == ScopeType.GENERIC);
+        return getType() != null && (getType() == ScopeType.USER || getType() == ScopeType.GENERIC);
     }
 
     public boolean isClientScope() {
-        return type != null && (type == ScopeType.CLIENT || type == ScopeType.GENERIC);
+        return getType() != null && (getType() == ScopeType.CLIENT || getType() == ScopeType.GENERIC);
     }
 
     @Override

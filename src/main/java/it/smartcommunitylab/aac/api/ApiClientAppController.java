@@ -13,6 +13,7 @@ import it.smartcommunitylab.aac.controller.BaseClientAppController;
  * API controller for clientApp
  */
 @RestController
+@ApiSecurityTag(ApiClientAppScope.SCOPE)
 @Tag(name = "Client apps", description = "Manage client applications and their configuration")
 @RequestMapping(value = "api", consumes = { MediaType.APPLICATION_JSON_VALUE,
         SystemKeys.MEDIA_TYPE_XYAML_VALUE }, produces = {

@@ -6,20 +6,20 @@ angular.module('aac.controllers.realmproviders', [])
         var service = {};
         // authorities
         service.getIdentityProviderAuthorities = function (slug) {
-            return $http.get('console/dev/idp/' + slug + '/authorities').then(function (data) {
+            return $http.get('console/dev/idps/' + slug + '/authorities').then(function (data) {
                 return data.data;
             });
         }
 
         // idps
         service.getIdentityProvider = function (slug, providerId) {
-            return $http.get('console/dev/idp/' + slug + '/' + providerId).then(function (data) {
+            return $http.get('console/dev/idps/' + slug + '/' + providerId).then(function (data) {
                 return data.data;
             });
         }
 
         service.getIdentityProviders = function (slug) {
-            return $http.get('console/dev/idp/' + slug).then(function (data) {
+            return $http.get('console/dev/idps/' + slug).then(function (data) {
                 return data.data;
             });
         }
@@ -31,18 +31,18 @@ angular.module('aac.controllers.realmproviders', [])
         // }
 
         service.removeIdentityProvider = function (slug, providerId) {
-            return $http.delete('console/dev/idp/' + slug + '/' + providerId).then(function (data) {
+            return $http.delete('console/dev/idps/' + slug + '/' + providerId).then(function (data) {
                 return data.data;
             });
         }
 
         service.saveIdentityProvider = function (slug, provider) {
             if (provider.provider) {
-                return $http.put('console/dev/idp/' + slug + '/' + provider.provider, provider).then(function (data) {
+                return $http.put('console/dev/idps/' + slug + '/' + provider.provider, provider).then(function (data) {
                     return data.data;
                 });
             } else {
-                return $http.post('console/dev/idp/' + slug, provider).then(function (data) {
+                return $http.post('console/dev/idps/' + slug, provider).then(function (data) {
                     return data.data;
                 });
             }
@@ -50,11 +50,11 @@ angular.module('aac.controllers.realmproviders', [])
 
         service.changeIdentityProviderState = function (slug, providerId, provider) {
             if (provider.enabled) {
-                return $http.put('console/dev/idp/' + slug + '/' + providerId + '/status', provider).then(function (data) {
+                return $http.put('console/dev/idps/' + slug + '/' + providerId + '/status', provider).then(function (data) {
                     return data.data;
                 });
             } else {
-                return $http.delete('console/dev/idp/' + slug + '/' + providerId + '/status', provider).then(function (data) {
+                return $http.delete('console/dev/idps/' + slug + '/' + providerId + '/status', provider).then(function (data) {
                     return data.data;
                 });
             }
@@ -69,7 +69,7 @@ angular.module('aac.controllers.realmproviders', [])
                 fd.append('file', file);
             }
             return $http({
-                url: 'console/dev/idp/' + slug + (reset ? "?reset=true" : ""),
+                url: 'console/dev/idps/' + slug + (reset ? "?reset=true" : ""),
                 headers: { "Content-Type": undefined }, //set undefined to let $http manage multipart declaration with proper boundaries
                 data: fd,
                 method: "PUT"
@@ -79,41 +79,41 @@ angular.module('aac.controllers.realmproviders', [])
         }
 
         service.exportIdentityProvider = function (slug, providerId) {
-            $window.open('console/dev/idp/' + slug + '/' + providerId + '/export');
+            $window.open('console/dev/idps/' + slug + '/' + providerId + '/export');
         }
 
         service.changeIdentityProviderClientApp = function (slug, providerId, client) {
-            return $http.put('console/dev/idp/' + slug + '/' + providerId + '/apps/' + client.clientId, client).then(function (data) {
+            return $http.put('console/dev/idps/' + slug + '/' + providerId + '/apps/' + client.clientId, client).then(function (data) {
                 return data.data;
             });
         }
 
         //aps
         service.getAttributeProvider = function (slug, providerId) {
-            return $http.get('console/dev/ap/' + slug + '/' + providerId).then(function (data) {
+            return $http.get('console/dev/aps/' + slug + '/' + providerId).then(function (data) {
                 return data.data;
             });
         }
 
         service.getAttributeProviders = function (slug) {
-            return $http.get('console/dev/ap/' + slug).then(function (data) {
+            return $http.get('console/dev/aps/' + slug).then(function (data) {
                 return data.data;
             });
         }
 
         service.removeAttributeProvider = function (slug, providerId) {
-            return $http.delete('console/dev/ap/' + slug + '/' + providerId).then(function (data) {
+            return $http.delete('console/dev/aps/' + slug + '/' + providerId).then(function (data) {
                 return data.data;
             });
         }
 
         service.saveAttributeProvider = function (slug, provider) {
             if (provider.provider) {
-                return $http.put('console/dev/ap/' + slug + '/' + provider.provider, provider).then(function (data) {
+                return $http.put('console/dev/aps/' + slug + '/' + provider.provider, provider).then(function (data) {
                     return data.data;
                 });
             } else {
-                return $http.post('console/dev/ap/' + slug, provider).then(function (data) {
+                return $http.post('console/dev/aps/' + slug, provider).then(function (data) {
                     return data.data;
                 });
             }
@@ -121,11 +121,11 @@ angular.module('aac.controllers.realmproviders', [])
 
         service.changeAttributeProviderState = function (slug, providerId, provider) {
             if (provider.enabled) {
-                return $http.put('console/dev/ap/' + slug + '/' + providerId + '/status', provider).then(function (data) {
+                return $http.put('console/dev/aps/' + slug + '/' + providerId + '/status', provider).then(function (data) {
                     return data.data;
                 });
             } else {
-                return $http.delete('console/dev/ap/' + slug + '/' + providerId + '/status', provider).then(function (data) {
+                return $http.delete('console/dev/aps/' + slug + '/' + providerId + '/status', provider).then(function (data) {
                     return data.data;
                 });
             }
@@ -140,7 +140,7 @@ angular.module('aac.controllers.realmproviders', [])
                 fd.append('file', file);
             }
             return $http({
-                url: 'console/dev/ap/' + slug + (reset ? "?reset=true" : ""),
+                url: 'console/dev/aps/' + slug + (reset ? "?reset=true" : ""),
                 headers: { "Content-Type": undefined }, //set undefined to let $http manage multipart declaration with proper boundaries
                 data: fd,
                 method: "PUT"
@@ -150,11 +150,11 @@ angular.module('aac.controllers.realmproviders', [])
         }
 
         service.exportAttributeProvider = function (slug, providerId) {
-            $window.open('console/dev/ap/' + slug + '/' + providerId + '/export');
+            $window.open('console/dev/aps/' + slug + '/' + providerId + '/export');
         }
 
         service.testAttributeProvider = function (slug, providerId) {
-            return $http.get('console/dev/ap/' + slug + '/' + providerId + '/test').then(function (data) {
+            return $http.get('console/dev/aps/' + slug + '/' + providerId + '/test').then(function (data) {
                 return data.data;
             });
         }

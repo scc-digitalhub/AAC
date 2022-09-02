@@ -2,7 +2,6 @@ package it.smartcommunitylab.aac.oauth.endpoint;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -32,14 +31,12 @@ import org.springframework.security.oauth2.provider.token.ResourceServerTokenSer
 import org.springframework.stereotype.Controller;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientAuthenticationToken;
 import it.smartcommunitylab.aac.oauth.common.ServerErrorException;
@@ -86,7 +83,6 @@ public class TokenEndpoint implements InitializingBean {
     @RequestMapping(value = { TOKEN_URL }, method = RequestMethod.POST)
     public ResponseEntity<TokenResponse> postAccessToken(
             @RequestBody Map<String, String> parameters,
-            @PathVariable("realm") Optional<String> realmKey,
             Authentication authentication)
             throws ClientRegistrationException, OAuth2Exception, SystemException {
 
@@ -97,11 +93,6 @@ public class TokenEndpoint implements InitializingBean {
         OAuth2ClientAuthenticationToken clientAuth = (OAuth2ClientAuthenticationToken) authentication;
         String clientId = clientAuth.getClientId();
         OAuth2ClientDetails clientDetails = clientAuth.getOAuth2ClientDetails();
-
-        String realm = SystemKeys.REALM_COMMON;
-        if (realmKey.isPresent()) {
-            realm = realmKey.get();
-        }
 
         // fetch tokenRequest via factory
         TokenRequest tokenRequest = oauth2RequestFactory.createTokenRequest(parameters, clientDetails);
@@ -116,10 +107,10 @@ public class TokenEndpoint implements InitializingBean {
             throw new InvalidClientException("Client id does not match authentication");
         }
 
-        // validate realm accessibility for client
-        if (!realm.equals(clientDetails.getRealm()) && !realm.equals(SystemKeys.REALM_COMMON)) {
-            throw new UnauthorizedClientException("client is not authorized for realm " + realm);
-        }
+//        // validate realm accessibility for client
+//        if (!realm.equals(clientDetails.getRealm()) && !realm.equals(SystemKeys.REALM_COMMON)) {
+//            throw new UnauthorizedClientException("client is not authorized for realm " + realm);
+//        }
 
         // check grantType
         AuthorizationGrantType authorizationGrantType = AuthorizationGrantType.parse(tokenRequest.getGrantType());

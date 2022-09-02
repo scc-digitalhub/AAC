@@ -49,8 +49,6 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.audit.AuditManager;
 import it.smartcommunitylab.aac.audit.RealmAuditEvent;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
-import it.smartcommunitylab.aac.common.NoSuchResourceException;
-import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.SystemException;
@@ -59,7 +57,6 @@ import it.smartcommunitylab.aac.core.ClientManager;
 import it.smartcommunitylab.aac.core.MyUserManager;
 import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.RealmManager;
-import it.smartcommunitylab.aac.core.ScopeManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.UserManager;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
@@ -71,8 +68,6 @@ import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.SpaceRoles;
 import it.smartcommunitylab.aac.oauth.endpoint.OAuth2MetadataEndpoint;
 import it.smartcommunitylab.aac.roles.SpaceRoleManager;
-import it.smartcommunitylab.aac.scope.Resource;
-import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.services.ServicesManager;
 
 @RestController
@@ -97,8 +92,8 @@ public class DevController {
     private ProviderManager providerManager;
     @Autowired
     private ClientManager clientManager;
-    @Autowired
-    private ScopeManager scopeManager;
+//    @Autowired
+//    private ScopeManager scopeManager;
     @Autowired
     private DevManager devManager;
     @Autowired
@@ -262,44 +257,44 @@ public class DevController {
 
     }
 
-    /*
-     * Scopes and resources
-     */
-    @GetMapping("/console/dev/realms/{realm}/scopes")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
-    public ResponseEntity<Collection<Scope>> listScopes(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) {
-        return ResponseEntity.ok(scopeManager.listScopes());
-    }
-
-    @GetMapping("/console/dev/realms/{realm}/scopes/{scope:.*}")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
-    public ResponseEntity<Scope> getScope(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SCOPE_PATTERN) String scope)
-            throws NoSuchScopeException {
-        return ResponseEntity.ok(scopeManager.getScope(scope));
-    }
-
-    @GetMapping("/console/dev/realms/{realm}/resources")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
-    public ResponseEntity<Collection<Resource>> listResources(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) {
-        return ResponseEntity.ok(scopeManager.listResources());
-    }
-
-    @GetMapping("/console/dev/realms/{realm}/resources/{resourceId:.*}")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
-    public ResponseEntity<Resource> getResource(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String resourceId)
-            throws NoSuchResourceException {
-        return ResponseEntity.ok(scopeManager.getResource(resourceId));
-    }
+//    /*
+//     * Scopes and resources
+//     */
+//    @GetMapping("/console/dev/realms/{realm}/scopes")
+//    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
+//            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+//    public ResponseEntity<Collection<Scope>> listScopes(
+//            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) {
+//        return ResponseEntity.ok(scopeManager.listScopes());
+//    }
+//
+//    @GetMapping("/console/dev/realms/{realm}/scopes/{scope:.*}")
+//    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
+//            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+//    public ResponseEntity<Scope> getScope(
+//            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+//            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SCOPE_PATTERN) String scope)
+//            throws NoSuchScopeException {
+//        return ResponseEntity.ok(scopeManager.getScope(scope));
+//    }
+//
+//    @GetMapping("/console/dev/realms/{realm}/resources")
+//    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
+//            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+//    public ResponseEntity<Collection<Resource>> listResources(
+//            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) {
+//        return ResponseEntity.ok(scopeManager.listResources());
+//    }
+//
+//    @GetMapping("/console/dev/realms/{realm}/resources/{resourceId:.*}")
+//    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
+//            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+//    public ResponseEntity<Resource> getResource(
+//            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+//            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String resourceId)
+//            throws NoSuchResourceException {
+//        return ResponseEntity.ok(scopeManager.getResource(resourceId));
+//    }
 
 //    /*
 //     * Subjects

@@ -10,6 +10,7 @@ import it.smartcommunitylab.aac.api.scopes.ApiAttributesScope;
 import it.smartcommunitylab.aac.attributes.BaseAttributeSetsController;
 
 @RestController
+@ApiSecurityTag(ApiAttributesScope.SCOPE)
 @Tag(name = "Attribute Sets", description = "Manage realm attribute sets definition and attributes registration")
 @RequestMapping(value = "api", consumes = { MediaType.APPLICATION_JSON_VALUE,
         SystemKeys.MEDIA_TYPE_XYAML_VALUE }, produces = {
