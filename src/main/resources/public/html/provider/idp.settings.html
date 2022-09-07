@@ -11,6 +11,11 @@
                 <textarea rows="3" name="description" id="description" ng-model="idp.description"></textarea>
                 <label for="description" class="{{idp.description != '' ? 'active' : ''}}">Description</label>
             </div>
+            <div class="form-group col">
+                <input type="number" name="position" class="form-control form-control-sm" id="position"
+                    ng-model="idp.position" min="0">
+                <label for="position" class="{{idp.position != '' ? 'active' : ''}}">Provider position</label>
+            </div>
             <div class="form-group col ">
                 <div class="bootstrap-select-wrapper border-bottom-0">
                     <label for="persistence">Persistence*</label>
@@ -32,14 +37,14 @@
                         <option value="full" ng-selected="idp.events=='full'">Full</option>
                     </select>
                 </div>
-            </div>  
+            </div>
             <div class="form-group col ">
-               <div class="form-check">
+                <div class="form-check">
                     <input class="form-check-input" name="linkable" id="linkable" type="checkbox"
                         ng-model="idp.linkable">
                     <label for="linkable">Enable account linking</label>
-                </div>            
-            </div>          
+                </div>
+            </div>
         </fieldset>
 
 

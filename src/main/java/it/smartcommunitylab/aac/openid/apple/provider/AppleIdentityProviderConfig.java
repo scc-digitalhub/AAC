@@ -210,8 +210,11 @@ public class AppleIdentityProviderConfig extends AbstractIdentityProviderConfig 
         ap.description = cp.getDescription();
         ap.icon = cp.getIcon();
 
-        ap.persistence = cp.getPersistence();
         ap.linkable = cp.isLinkable();
+        ap.persistence = cp.getPersistence();
+        ap.events = cp.getEvents();
+        ap.position = cp.getPosition();
+        
         ap.hookFunctions = (cp.getHookFunctions() != null ? cp.getHookFunctions() : Collections.emptyMap());
 
         return ap;

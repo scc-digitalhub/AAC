@@ -14,7 +14,6 @@ import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
-import it.smartcommunitylab.aac.dto.LoginProvider;
 import it.smartcommunitylab.aac.saml.SamlIdentityAuthority;
 import it.smartcommunitylab.aac.saml.model.SamlUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.saml.model.SamlUserIdentity;
@@ -333,13 +332,11 @@ public class SamlIdentityProvider
     }
 
     @Override
-    public LoginProvider getLoginProvider() {
-        LoginProvider lp = new LoginProvider(getAuthority(), getProvider(), getRealm());
-        lp.setName(getName());
+    public SamlLoginProvider getLoginProvider() {
+        SamlLoginProvider lp = new SamlLoginProvider(getAuthority(), getProvider(), getRealm(), getName());
         lp.setDescription(getDescription());
-
         lp.setLoginUrl(getAuthenticationUrl());
-        lp.setTemplate("button");
+        lp.setPosition(getConfig().getPosition());
 
         return lp;
     }

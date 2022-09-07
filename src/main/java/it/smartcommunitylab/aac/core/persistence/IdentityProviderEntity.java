@@ -56,6 +56,9 @@ public class IdentityProviderEntity {
     @Column(name = "event_level", length = 32)
     private String events;
 
+    @Column(name = "position")
+    private Integer position;
+
     // key-based configuration for persistence
     // converts to json via custom converter
     @Lob
@@ -170,6 +173,14 @@ public class IdentityProviderEntity {
 
     public void setEvents(String events) {
         this.events = events;
+    }
+
+    public Integer getPosition() {
+        return position;
+    }
+
+    public void setPosition(Integer position) {
+        this.position = position;
     }
 
     public Map<String, Serializable> getConfigurationMap() {

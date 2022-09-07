@@ -94,8 +94,11 @@ public class WebAuthnIdentityProviderConfig extends InternalIdentityProviderConf
         ip.description = cp.getDescription();
         ip.icon = cp.getIcon();
 
-        ip.persistence = cp.getPersistence();
         ip.linkable = cp.isLinkable();
+        ip.persistence = cp.getPersistence();
+        ip.events = cp.getEvents();
+        ip.position = cp.getPosition();
+
         ip.hookFunctions = (cp.getHookFunctions() != null ? cp.getHookFunctions() : Collections.emptyMap());
 
         return ip;

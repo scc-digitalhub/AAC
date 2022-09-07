@@ -27,6 +27,7 @@ public class ConfigurableIdentityProvider extends ConfigurableProvider {
     private boolean linkable;
     private String persistence;
     private String events;
+    private Integer position;
 
     private String icon;
     private Map<String, String> actionUrls;
@@ -79,6 +80,14 @@ public class ConfigurableIdentityProvider extends ConfigurableProvider {
 
     public void setEvents(String events) {
         this.events = events;
+    }
+
+    public Integer getPosition() {
+        return position;
+    }
+
+    public void setPosition(Integer position) {
+        this.position = position;
     }
 
     public String getIcon() {

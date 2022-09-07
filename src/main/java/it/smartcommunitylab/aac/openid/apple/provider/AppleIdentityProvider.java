@@ -15,13 +15,13 @@ import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
-import it.smartcommunitylab.aac.dto.LoginProvider;
 import it.smartcommunitylab.aac.openid.model.OIDCUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.openid.model.OIDCUserIdentity;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.openid.provider.OIDCAccountProvider;
 import it.smartcommunitylab.aac.openid.provider.OIDCAttributeProvider;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
+import it.smartcommunitylab.aac.openid.provider.OIDCLoginProvider;
 import it.smartcommunitylab.aac.openid.provider.OIDCSubjectResolver;
 
 public class AppleIdentityProvider
@@ -121,18 +121,19 @@ public class AppleIdentityProvider
     }
 
     @Override
-    public LoginProvider getLoginProvider() {
-        LoginProvider lp = new LoginProvider(getAuthority(), getProvider(), getRealm());
-        lp.setName(getName());
+    public OIDCLoginProvider getLoginProvider() {
+        OIDCLoginProvider lp = new OIDCLoginProvider(getAuthority(), getProvider(), getRealm(), getName());
         lp.setDescription(getDescription());
-
         lp.setLoginUrl(getAuthenticationUrl());
-        lp.setTemplate("button");
 
+        // explicitly set apple logo as icon
         String icon = "logo-apple";
-        String iconUrl = icon.startsWith("logo-") ? "svg/sprite.svg#" + icon : "italia/svg/sprite.svg#" + icon;
+        String iconUrl = "svg/sprite.svg#" + icon;
         lp.setIcon(icon);
         lp.setIconUrl(iconUrl);
+
+        // set position
+        lp.setPosition(getConfig().getPosition());
 
         return lp;
     }
