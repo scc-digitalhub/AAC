@@ -1,7 +1,6 @@
 package it.smartcommunitylab.aac.openid.provider;
 
 import java.util.Collection;
-import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
@@ -18,11 +17,9 @@ import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
-import it.smartcommunitylab.aac.dto.LoginProvider;
 import it.smartcommunitylab.aac.openid.model.OIDCUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.openid.model.OIDCUserIdentity;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
-import it.smartcommunitylab.aac.openid.service.OIDCUserAccountService;
 
 @Transactional
 public class OIDCIdentityProvider
@@ -253,24 +250,11 @@ public class OIDCIdentityProvider
     }
 
     @Override
-    public LoginProvider getLoginProvider() {
-        LoginProvider lp = new LoginProvider(getAuthority(), getProvider(), getRealm());
-        lp.setName(getName());
+    public OIDCLoginProvider getLoginProvider() {
+        OIDCLoginProvider lp = new OIDCLoginProvider(getAuthority(), getProvider(), getRealm(), getName());
         lp.setDescription(getDescription());
-
         lp.setLoginUrl(getAuthenticationUrl());
-        lp.setTemplate("button");
-
-        String icon = "it-key";
-        if (ArrayUtils.contains(ICONS, getAuthority())) {
-            icon = "logo-" + getAuthority();
-        }
-        if (ArrayUtils.contains(ICONS, lp.getKey())) {
-            icon = "logo-" + lp.getKey();
-        }
-        String iconUrl = icon.startsWith("logo-") ? "svg/sprite.svg#" + icon : "italia/svg/sprite.svg#" + icon;
-        lp.setIcon(icon);
-        lp.setIconUrl(iconUrl);
+        lp.setPosition(getConfig().getPosition());
 
         return lp;
     }
@@ -300,10 +284,6 @@ public class OIDCIdentityProvider
             OpenIdAttributesSet.EMAIL_VERIFIED,
             OpenIdAttributesSet.PICTURE,
             OpenIdAttributesSet.LOCALE
-    };
-
-    public static final String[] ICONS = {
-            "google", "facebook", "github", "microsoft", "apple", "instagram"
     };
 
 }

@@ -257,8 +257,11 @@ public class OIDCIdentityProviderConfig extends AbstractIdentityProviderConfig {
         op.description = cp.getDescription();
         op.icon = cp.getIcon();
 
-        op.persistence = cp.getPersistence();
         op.linkable = cp.isLinkable();
+        op.persistence = cp.getPersistence();
+        op.events = cp.getEvents();
+        op.position = cp.getPosition();
+
         op.hookFunctions = (cp.getHookFunctions() != null ? cp.getHookFunctions() : Collections.emptyMap());
 
         return op;

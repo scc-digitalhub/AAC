@@ -1,15 +1,22 @@
-package it.smartcommunitylab.aac.dto;
+package it.smartcommunitylab.aac.core.base;
 
 import org.springframework.util.Assert;
-import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 
-public class LoginProvider implements Comparable<LoginProvider> {
-    private String provider;
-    private String authority;
-    private String realm;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
+import it.smartcommunitylab.aac.core.provider.LoginProvider;
+
+public abstract class AbstractLoginProvider extends AbstractProvider
+        implements LoginProvider, Comparable<LoginProvider> {
+
+    public static final String DEFAULT_ICON = "it-key";
+    protected static final String ICON_PATH = "italia/svg/sprite.svg#";
+    protected static final String TEMPLATE_PATH = "login/";
+    protected static final int MAX_POSITION = 10000000;
 
     private String template;
     private String loginUrl;
+    private Integer position;
 
     private String name;
     private String description;
@@ -20,35 +27,19 @@ public class LoginProvider implements Comparable<LoginProvider> {
 
     private ConfigurableProperties configuration;
 
-    public LoginProvider(String authority, String provider, String realm) {
-        Assert.hasText(provider, "provider can not be null or empty");
-        this.provider = provider;
-        this.authority = authority;
-        this.realm = realm;
+    public AbstractLoginProvider(String authority, String providerId, String realm, String name) {
+        super(authority, providerId, realm);
+        Assert.hasText(name, "name can not be null or empty");
+
+        this.name = name;
+
+        // by default position is undefined
+        this.position = null;
     }
 
-    public String getProvider() {
-        return provider;
-    }
-
-    public void setProvider(String provider) {
-        this.provider = provider;
-    }
-
-    public String getAuthority() {
-        return authority;
-    }
-
-    public void setAuthority(String authority) {
-        this.authority = authority;
-    }
-
-    public String getRealm() {
-        return realm;
-    }
-
-    public void setRealm(String realm) {
-        this.realm = realm;
+    @Override
+    public final String getType() {
+        return SystemKeys.RESOURCE_LOGIN;
     }
 
     public String getTemplate() {
@@ -89,7 +80,7 @@ public class LoginProvider implements Comparable<LoginProvider> {
 
     public String getIcon() {
         if (icon == null) {
-            return "it-key";
+            return DEFAULT_ICON;
         }
 
         return icon;
@@ -101,7 +92,7 @@ public class LoginProvider implements Comparable<LoginProvider> {
 
     public String getIconUrl() {
         if (iconUrl == null) {
-            return "italia/svg/sprite.svg#" + getIcon();
+            return ICON_PATH + getIcon();
         }
 
         return iconUrl;
@@ -113,7 +104,7 @@ public class LoginProvider implements Comparable<LoginProvider> {
 
     public String getCssClass() {
         if (cssClass == null) {
-            return "provider-" + authority + " provider-" + getKey();
+            return "provider-" + getAuthority() + " provider-" + getKey();
         }
 
         return cssClass;
@@ -124,7 +115,7 @@ public class LoginProvider implements Comparable<LoginProvider> {
     }
 
     public String getFragment() {
-        return "login/" + getTemplate();
+        return TEMPLATE_PATH + getTemplate();
     }
 
     public ConfigurableProperties getConfiguration() {
@@ -137,39 +128,36 @@ public class LoginProvider implements Comparable<LoginProvider> {
 
     @Override
     public int compareTo(LoginProvider o) {
-        return name.compareTo(((LoginProvider) o).name);
+        int c = getPosition().compareTo(o.getPosition());
+
+        if (c == 0) {
+            // use name
+            c = getName().compareTo(o.getName());
+        }
+
+        return c;
+
     }
 
     public String getKey() {
         if (name == null) {
-            return provider;
+            return getProvider();
         }
 
         return name.trim()
                 .replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
     }
 
-//    public static LoginProvider from(
-//            IdentityProvider<? extends UserIdentity> idp) {
-//        LoginProvider a = new LoginProvider(idp.getProvider());
-//        a.authority = idp.getAuthority();
-//        a.provider = idp.getProvider();
-//        a.realm = idp.getRealm();
-//
-//        a.loginUrl = idp.getAuthenticationUrl();
-//
-//        a.name = idp.getName();
-//        a.description = StringUtils.hasText(idp.getDescription()) ? idp.getDescription().trim() : null;
-//
-//        String authority = idp.getAuthority();
-//        String key = a.name.trim()
-//                .replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
-//        a.cssClass = "provider-" + authority + " provider-" + key;
-//        a.icon = "it-key";
-//        a.iconUrl = "italia/svg/sprite.svg#" + a.icon;
-//
-//        a.configuration = idp.getConfig();
-//        return a;
-//    }
+    public Integer getPosition() {
+        if (position != null) {
+            return position;
+        }
+
+        return MAX_POSITION;
+    }
+
+    public void setPosition(Integer position) {
+        this.position = position;
+    }
 
 }

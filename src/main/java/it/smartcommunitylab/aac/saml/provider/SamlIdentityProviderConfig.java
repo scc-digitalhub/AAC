@@ -380,8 +380,11 @@ public class SamlIdentityProviderConfig extends AbstractIdentityProviderConfig {
         sp.description = cp.getDescription();
         sp.icon = cp.getIcon();
 
-        sp.persistence = cp.getPersistence();
         sp.linkable = cp.isLinkable();
+        sp.persistence = cp.getPersistence();
+        sp.events = cp.getEvents();
+        sp.position = cp.getPosition();
+
         sp.hookFunctions = (cp.getHookFunctions() != null ? cp.getHookFunctions() : Collections.emptyMap());
 
         return sp;

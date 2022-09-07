@@ -46,9 +46,9 @@ import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.core.provider.LoginProvider;
 import it.smartcommunitylab.aac.core.service.ClientDetailsService;
 import it.smartcommunitylab.aac.dto.CustomizationBean;
-import it.smartcommunitylab.aac.dto.LoginProvider;
 import it.smartcommunitylab.aac.model.Realm;
 
 @Controller
@@ -239,8 +239,17 @@ public class LoginController {
 
         }
 
-        // sort by name
-        Collections.sort(authorities);
+        // sort by position and name
+        authorities.sort((LoginProvider l1, LoginProvider l2) -> {
+            int c = l1.getPosition().compareTo(l2.getPosition());
+
+            if (c == 0) {
+                // use name
+                c = l1.getName().compareTo(l2.getName());
+            }
+
+            return c;
+        });
 
         // build a display list respecting display mode for ordering: form, button
         // TODO rework with comparable on model

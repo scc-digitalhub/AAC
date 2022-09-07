@@ -26,7 +26,6 @@ import it.smartcommunitylab.aac.internal.model.InternalLoginProvider;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.AbstractInternalIdentityProvider;
-import it.smartcommunitylab.aac.internal.provider.InternalAccountProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountService;
 import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
 import it.smartcommunitylab.aac.password.InternalPasswordIdentityAuthority;
@@ -299,8 +298,7 @@ public class InternalPasswordIdentityProvider
 
     @Override
     public InternalLoginProvider getLoginProvider() {
-        InternalLoginProvider ilp = new InternalLoginProvider(getProvider(), getRealm());
-        ilp.setName(getName());
+        InternalLoginProvider ilp = new InternalLoginProvider(getProvider(), getRealm(), getName());
         ilp.setDescription(getDescription());
 
         // login url is always form display
@@ -313,6 +311,9 @@ public class InternalPasswordIdentityProvider
 
         String template = config.displayAsButton() ? "button" : getLoginForm();
         ilp.setTemplate(template);
+
+        // set position
+        ilp.setPosition(getConfig().getPosition());
 
         return ilp;
     }

@@ -127,6 +127,7 @@ public class BaseIdentityProviderController implements InitializingBean {
         String description = registration.getDescription();
         String persistence = registration.getPersistence();
         String events = registration.getEvents();
+        Integer position = registration.getPosition();
         boolean linkable = registration.isLinkable();
 
         Map<String, Serializable> configuration = registration.getConfiguration();
@@ -139,6 +140,7 @@ public class BaseIdentityProviderController implements InitializingBean {
         provider.setPersistence(persistence);
         provider.setLinkable(linkable);
         provider.setEvents(events);
+        provider.setPosition(position);
 
         provider.setConfiguration(configuration);
         provider.setHookFunctions(hookFunctions);
@@ -210,6 +212,7 @@ public class BaseIdentityProviderController implements InitializingBean {
         String persistence = registration.getPersistence();
         boolean enabled = registration.isEnabled();
         String events = registration.getEvents();
+        Integer position = registration.getPosition();
         boolean linkable = registration.isLinkable();
 
         Map<String, Serializable> configuration = registration.getConfiguration();
@@ -219,10 +222,12 @@ public class BaseIdentityProviderController implements InitializingBean {
         provider.setDescription(description);
 
         provider.setEnabled(enabled);
+
         provider.setPersistence(persistence);
         provider.setLinkable(linkable);
-
         provider.setEvents(events);
+        provider.setPosition(position);
+
         provider.setHookFunctions(hookFunctions);
         provider.setConfiguration(configuration);
 
