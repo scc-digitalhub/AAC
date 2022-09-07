@@ -130,7 +130,27 @@ public class BaseUserController implements InitializingBean {
         }
 
         // invite a user
-        return userManager.inviteUser(realm, reg.getEmail());
+        User u = userManager.inviteUser(realm, reg.getEmail());
+
+        // request verify for the user identity
+        u.getIdentities().stream()
+                .filter(i -> SystemKeys.AUTHORITY_INTERNAL.equals(i.getAuthority()))
+                .forEach(i -> {
+                    if (!i.getAccount().isEmailVerified()) {
+                        try {
+                            i = userManager.verifyUserIdentity(realm, u.getSubjectId(), i.getProvider(), i.getId());
+                        } catch (RegistrationException | NoSuchRealmException | NoSuchUserException
+                                | NoSuchProviderException e) {
+                            // skip
+                            logger.error("error verifying invited user {}:{} {} for realm {}",
+                                    u.getSubjectId(), i.getId(),
+                                    StringUtils.trimAllWhitespace(reg.getEmail()),
+                                    StringUtils.trimAllWhitespace(realm));
+                        }
+                    }
+                });
+
+        return u;
     }
 
     @PutMapping("/users/{realm}/{userId}/status")
