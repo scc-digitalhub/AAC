@@ -94,7 +94,7 @@ authorities:
       enablePasswordReset: true
       passwordSupportWhitespace: false
       passwordRequireNumber: true
-      enablePasswordSet: false
+      enablePasswordSet: true
       passwordMaxLength: 15
       passwordMinLength: 6
       enableDelete: true
