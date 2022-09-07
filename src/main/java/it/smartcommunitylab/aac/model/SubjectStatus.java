@@ -4,7 +4,7 @@ import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 
-public enum UserStatus {
+public enum SubjectStatus {
 
     ACTIVE("active"),
     LOCKED("locked"),
@@ -13,7 +13,7 @@ public enum UserStatus {
 
     private final String value;
 
-    UserStatus(String value) {
+    SubjectStatus(String value) {
         Assert.hasText(value, "value cannot be empty");
         this.value = value;
     }
@@ -27,8 +27,8 @@ public enum UserStatus {
         return value;
     }
 
-    public static UserStatus parse(String value) {
-        for (UserStatus st : UserStatus.values()) {
+    public static SubjectStatus parse(String value) {
+        for (SubjectStatus st : SubjectStatus.values()) {
             if (st.value.equalsIgnoreCase(value)) {
                 return st;
             }

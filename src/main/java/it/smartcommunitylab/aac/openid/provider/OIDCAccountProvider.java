@@ -25,7 +25,7 @@ import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.AccountProvider;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
-import it.smartcommunitylab.aac.model.UserStatus;
+import it.smartcommunitylab.aac.model.SubjectStatus;
 import it.smartcommunitylab.aac.openid.model.OIDCUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.openid.service.OIDCUserAccountService;
@@ -205,12 +205,12 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
 
     @Override
     public OIDCUserAccount lockAccount(String subject) throws NoSuchUserException, RegistrationException {
-        return updateStatus(subject, UserStatus.LOCKED);
+        return updateStatus(subject, SubjectStatus.LOCKED);
     }
 
     @Override
     public OIDCUserAccount unlockAccount(String subject) throws NoSuchUserException, RegistrationException {
-        return updateStatus(subject, UserStatus.ACTIVE);
+        return updateStatus(subject, SubjectStatus.ACTIVE);
     }
 
     @Override
@@ -228,8 +228,8 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
         }
 
         // check if active, inactive accounts can not be changed except for activation
-        UserStatus curStatus = UserStatus.parse(account.getStatus());
-        if (UserStatus.INACTIVE == curStatus) {
+        SubjectStatus curStatus = SubjectStatus.parse(account.getStatus());
+        if (SubjectStatus.INACTIVE == curStatus) {
             throw new IllegalArgumentException("account is inactive, activate first to update status");
         }
 
@@ -243,7 +243,7 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
         return account;
     }
 
-    private OIDCUserAccount updateStatus(String subject, UserStatus newStatus)
+    private OIDCUserAccount updateStatus(String subject, SubjectStatus newStatus)
             throws NoSuchUserException, RegistrationException {
 
         OIDCUserAccount account = findAccountBySubject(subject);
@@ -252,8 +252,8 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
         }
 
         // check if active, inactive accounts can not be changed except for activation
-        UserStatus curStatus = UserStatus.parse(account.getStatus());
-        if (UserStatus.INACTIVE == curStatus && UserStatus.ACTIVE != newStatus) {
+        SubjectStatus curStatus = SubjectStatus.parse(account.getStatus());
+        if (SubjectStatus.INACTIVE == curStatus && SubjectStatus.ACTIVE != newStatus) {
             throw new IllegalArgumentException("account is inactive, activate first to update status");
         }
 

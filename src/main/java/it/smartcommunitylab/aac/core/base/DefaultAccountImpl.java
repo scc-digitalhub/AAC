@@ -6,7 +6,7 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.model.UserStatus;
+import it.smartcommunitylab.aac.model.SubjectStatus;
 
 /*
  * An instantiable user account. 
@@ -93,7 +93,7 @@ public class DefaultAccountImpl extends AbstractAccount {
 
     @Override
     public boolean isLocked() {
-        return UserStatus.LOCKED.getValue().equals(status);
+        return SubjectStatus.LOCKED.getValue().equals(status);
     }
 
     public String getStatus() {

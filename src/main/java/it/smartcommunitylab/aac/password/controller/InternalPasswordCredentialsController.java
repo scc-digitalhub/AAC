@@ -31,7 +31,7 @@ import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.dto.CustomizationBean;
-import it.smartcommunitylab.aac.dto.UserEmailBean;
+import it.smartcommunitylab.aac.dto.UserEmail;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.model.Realm;
@@ -289,7 +289,7 @@ public class InternalPasswordCredentialsController {
         model.addAttribute("customization", resources);
 
         // build model
-        model.addAttribute("reg", new UserEmailBean());
+        model.addAttribute("reg", new UserEmail());
 
         // build url
         // TODO handle via urlBuilder or entryPoint
@@ -304,7 +304,7 @@ public class InternalPasswordCredentialsController {
     public String reset(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             Model model,
-            @ModelAttribute("reg") @Valid UserEmailBean reg,
+            @ModelAttribute("reg") @Valid UserEmail reg,
             BindingResult result) {
 
         try {

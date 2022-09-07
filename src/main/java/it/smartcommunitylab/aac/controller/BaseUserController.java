@@ -33,11 +33,11 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.UserManager;
 import it.smartcommunitylab.aac.core.base.AbstractIdentity;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
-import it.smartcommunitylab.aac.dto.UserEmailBean;
-import it.smartcommunitylab.aac.dto.UserStatusBean;
-import it.smartcommunitylab.aac.dto.UserSubjectBean;
+import it.smartcommunitylab.aac.dto.UserEmail;
+import it.smartcommunitylab.aac.dto.UserStatus;
+import it.smartcommunitylab.aac.dto.UserSubject;
 import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.model.UserStatus;
+import it.smartcommunitylab.aac.model.SubjectStatus;
 
 /*
  * Base controller for users
@@ -109,7 +109,7 @@ public class BaseUserController implements InitializingBean {
     @Operation(summary = "create a new user in realm")
     public User createUser(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestBody @Valid @NotNull UserSubjectBean reg) throws NoSuchRealmException {
+            @RequestBody @Valid @NotNull UserSubject reg) throws NoSuchRealmException {
         logger.debug("register user for realm {}",
                 StringUtils.trimAllWhitespace(realm));
 
@@ -126,7 +126,7 @@ public class BaseUserController implements InitializingBean {
     @Operation(summary = "invite a new user in realm")
     public User inviteUser(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestBody @Valid @NotNull UserEmailBean reg)
+            @RequestBody @Valid @NotNull UserEmail reg)
             throws NoSuchRealmException, RegistrationException, NoSuchProviderException {
         logger.debug("invite user {} for realm {}", StringUtils.trimAllWhitespace(reg.getEmail()),
                 StringUtils.trimAllWhitespace(realm));
@@ -164,18 +164,18 @@ public class BaseUserController implements InitializingBean {
     public User updateUserStatus(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
-            @RequestBody @Valid @NotNull UserStatusBean reg)
+            @RequestBody @Valid @NotNull UserStatus reg)
             throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException {
         logger.debug("update status for user {} for realm {}",
                 StringUtils.trimAllWhitespace(userId), StringUtils.trimAllWhitespace(realm));
 
         // extract from model
-        UserStatus status = reg.getStatus();
-        if (UserStatus.BLOCKED == status) {
+        SubjectStatus status = reg.getStatus();
+        if (SubjectStatus.BLOCKED == status) {
             return userManager.blockUser(realm, userId);
-        } else if (UserStatus.ACTIVE == status) {
+        } else if (SubjectStatus.ACTIVE == status) {
             return userManager.activateUser(realm, userId);
-        } else if (UserStatus.INACTIVE == status) {
+        } else if (SubjectStatus.INACTIVE == status) {
             return userManager.inactivateUser(realm, userId);
         }
 
@@ -383,7 +383,7 @@ public class BaseUserController implements InitializingBean {
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String identityUuid,
-            @RequestBody @Valid @NotNull UserStatusBean reg)
+            @RequestBody @Valid @NotNull UserStatus reg)
             throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException {
         logger.debug("update status for user {} for realm {}",
                 StringUtils.trimAllWhitespace(userId), StringUtils.trimAllWhitespace(realm));
@@ -402,10 +402,10 @@ public class BaseUserController implements InitializingBean {
         String provider = identity.getProvider();
         String identityId = identity.getId();
 
-        UserStatus status = reg.getStatus();
-        if (UserStatus.LOCKED == status) {
+        SubjectStatus status = reg.getStatus();
+        if (SubjectStatus.LOCKED == status) {
             return userManager.lockUserIdentity(realm, userId, provider, identityId);
-        } else if (UserStatus.ACTIVE == status) {
+        } else if (SubjectStatus.ACTIVE == status) {
             return userManager.unlockUserIdentity(realm, userId, provider, identityId);
         }
 

@@ -29,8 +29,8 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
-import it.smartcommunitylab.aac.dto.AttributesRegistrationDTO;
-import it.smartcommunitylab.aac.dto.AttributesRegistrationDTO.AttributeDTO;
+import it.smartcommunitylab.aac.dto.AttributesRegistration;
+import it.smartcommunitylab.aac.dto.AttributesRegistration.AttributeRegistration;
 import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.internal.InternalAttributeAuthority;
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeService;
@@ -75,7 +75,7 @@ public class InternalAttributesController {
         model.addAttribute("attributeSet", attributeSet);
 
         // convert to DTO
-        AttributesRegistrationDTO reg = AttributesRegistrationDTO.from(attributeSet);
+        AttributesRegistration reg = AttributesRegistration.from(attributeSet);
 
         model.addAttribute("reg", reg);
 
@@ -112,7 +112,7 @@ public class InternalAttributesController {
     public String register(Model model,
             @PathVariable("providerId") String providerId,
             @PathVariable("setId") String setId,
-            @ModelAttribute("reg") @Valid AttributesRegistrationDTO reg,
+            @ModelAttribute("reg") @Valid AttributesRegistration reg,
             BindingResult result,
             HttpServletRequest req) {
 
@@ -128,12 +128,12 @@ public class InternalAttributesController {
             AttributeSet attributeSet = attributeService.getAttributeSet(setId);
             model.addAttribute("attributeSet", attributeSet);
 
-            AttributesRegistrationDTO dto = AttributesRegistrationDTO.from(attributeSet);
+            AttributesRegistration dto = AttributesRegistration.from(attributeSet);
             // extract values sent
             // TODO support multiple values as enum
             Map<String, Serializable> values = new HashMap<>();
             if (reg.getAttributes() != null) {
-                for (AttributeDTO ad : reg.getAttributes()) {
+                for (AttributeRegistration ad : reg.getAttributes()) {
                     if (ad.getKey() != null) {
                         values.put(ad.getKey(), ad.getValue());
                     }
@@ -141,7 +141,7 @@ public class InternalAttributesController {
             }
 
             // inflate dto with values
-            for (AttributeDTO ad : dto.getAttributes()) {
+            for (AttributeRegistration ad : dto.getAttributes()) {
                 ad.setValue(values.get(ad.getKey()));
             }
             model.addAttribute("reg", dto);

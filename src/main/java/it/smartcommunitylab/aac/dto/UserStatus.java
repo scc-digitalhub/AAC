@@ -5,20 +5,20 @@ import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import it.smartcommunitylab.aac.model.UserStatus;
+import it.smartcommunitylab.aac.model.SubjectStatus;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class UserStatusBean {
+public class UserStatus {
 
     @NotNull
-    private UserStatus status;
+    private SubjectStatus status;
 
-    public UserStatus getStatus() {
+    public SubjectStatus getStatus() {
         return status;
     }
 
-    public void setStatus(UserStatus status) {
+    public void setStatus(SubjectStatus status) {
         this.status = status;
     }
 

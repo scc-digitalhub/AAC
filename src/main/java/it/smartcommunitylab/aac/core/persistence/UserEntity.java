@@ -13,7 +13,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import it.smartcommunitylab.aac.model.UserStatus;
+import it.smartcommunitylab.aac.model.SubjectStatus;
 
 @Entity
 @Table(name = "users")
@@ -187,11 +187,11 @@ public class UserEntity {
     }
 
     public boolean isBlocked() {
-        return UserStatus.BLOCKED.getValue().equals(status);
+        return SubjectStatus.BLOCKED.getValue().equals(status);
     }
 
     public boolean isInactive() {
-        return UserStatus.INACTIVE.getValue().equals(status);
+        return SubjectStatus.INACTIVE.getValue().equals(status);
     }
 
     public boolean isExpired() {

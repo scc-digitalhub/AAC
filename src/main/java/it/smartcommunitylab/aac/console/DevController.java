@@ -61,7 +61,7 @@ import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.UserManager;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.dto.CustomizationBean;
-import it.smartcommunitylab.aac.dto.RealmStatsBean;
+import it.smartcommunitylab.aac.dto.RealmStats;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.SpaceRole;
@@ -169,14 +169,14 @@ public class DevController {
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')"
             + " or hasAuthority(#realm+':" + Config.R_ADMIN + "')"
             + " or hasAuthority(#realm+':" + Config.R_DEVELOPER + "')")
-    public ResponseEntity<RealmStatsBean> getRealmStats(
+    public ResponseEntity<RealmStats> getRealmStats(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             Authentication authentication)
             throws NoSuchRealmException {
         boolean isAdmin = authentication.getAuthorities().stream().anyMatch(
                 a -> a.getAuthority().equals(Config.R_ADMIN) || a.getAuthority().equals(realm + ":" + Config.R_ADMIN));
 
-        RealmStatsBean bean = new RealmStatsBean();
+        RealmStats bean = new RealmStats();
 
         Realm realmObj = realmManager.getRealm(realm);
         bean.setRealm(realmObj);

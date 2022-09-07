@@ -25,7 +25,7 @@ import it.smartcommunitylab.aac.model.Realm;
  * @author raman
  *
  */
-public class RealmStatsBean {
+public class RealmStats {
 
     private Realm realm;
     private Long users;

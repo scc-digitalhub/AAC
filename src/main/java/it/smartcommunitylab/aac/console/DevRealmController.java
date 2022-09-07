@@ -46,7 +46,7 @@ import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.SubjectManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
-import it.smartcommunitylab.aac.dto.UserSubjectBean;
+import it.smartcommunitylab.aac.dto.UserSubject;
 import it.smartcommunitylab.aac.model.Developer;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.Subject;
@@ -198,7 +198,7 @@ public class DevRealmController {
     @PostMapping("/realms/{realm}/developers")
     public Developer inviteDeveloper(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestBody @Valid @NotNull UserSubjectBean bean) throws NoSuchRealmException, NoSuchUserException {
+            @RequestBody @Valid @NotNull UserSubject bean) throws NoSuchRealmException, NoSuchUserException {
         return realmManager.inviteDeveloper(realm, bean.getSubjectId(), bean.getEmail());
     }
 

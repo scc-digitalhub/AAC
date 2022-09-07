@@ -30,7 +30,7 @@ import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
 import it.smartcommunitylab.aac.model.Subject;
-import it.smartcommunitylab.aac.model.UserStatus;
+import it.smartcommunitylab.aac.model.SubjectStatus;
 import it.smartcommunitylab.aac.utils.MailService;
 
 @Transactional
@@ -165,7 +165,7 @@ public class InternalAccountService extends InternalAccountProvider
         account.setRealm(realm);
 
         // set account as active
-        account.setStatus(UserStatus.ACTIVE.getValue());
+        account.setStatus(SubjectStatus.ACTIVE.getValue());
         account.setEmail(email);
         account.setName(name);
         account.setSurname(surname);
@@ -197,8 +197,8 @@ public class InternalAccountService extends InternalAccountProvider
         }
 
         // check if active, inactive accounts can not be changed except for activation
-        UserStatus curStatus = UserStatus.parse(account.getStatus());
-        if (UserStatus.INACTIVE == curStatus) {
+        SubjectStatus curStatus = SubjectStatus.parse(account.getStatus());
+        if (SubjectStatus.INACTIVE == curStatus) {
             throw new IllegalArgumentException("account is inactive, activate first to update status");
         }
 
