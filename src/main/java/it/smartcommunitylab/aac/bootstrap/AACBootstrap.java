@@ -54,7 +54,7 @@ import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.Subject;
-import it.smartcommunitylab.aac.model.UserStatus;
+import it.smartcommunitylab.aac.model.SubjectStatus;
 import it.smartcommunitylab.aac.password.InternalPasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProvider;
 import it.smartcommunitylab.aac.password.service.InternalPasswordService;
@@ -405,7 +405,7 @@ public class AACBootstrap {
             account.setRealm(SystemKeys.REALM_SYSTEM);
             account.setUsername(adminUsername);
             account.setEmail(adminEmail);
-            account.setStatus(UserStatus.ACTIVE.getValue());
+            account.setStatus(SubjectStatus.ACTIVE.getValue());
             account = internalUserService.addAccount(repositoryId, adminUsername, account);
         }
 
@@ -425,7 +425,7 @@ public class AACBootstrap {
             }
 
             // ensure account is active and unlocked
-            account.setStatus(UserStatus.ACTIVE.getValue());
+            account.setStatus(SubjectStatus.ACTIVE.getValue());
             account.setConfirmed(true);
             account.setConfirmationKey(null);
             account.setConfirmationDeadline(null);

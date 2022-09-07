@@ -245,9 +245,12 @@ angular.module('aac.controllers.realmusers', [])
                     $scope.users = data;
                     $scope.users.content.forEach(function (u) {
                         if ('identities' in u) {
-                            u._providers = u.identities.map(function (i) {
+                            var p = u.identities.map(function (i) {
                                 return $scope.providers[i.provider] ? $scope.providers[i.provider].name : i.provider;
                             });
+                            
+                            //remove duplicates
+                            u._providers = [...new Set(p)];
                         }
                         if ('roles' in u) {
                             u._roles = u.roles

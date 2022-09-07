@@ -14,7 +14,7 @@ import it.smartcommunitylab.aac.common.DuplicatedDataException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
-import it.smartcommunitylab.aac.model.UserStatus;
+import it.smartcommunitylab.aac.model.SubjectStatus;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountId;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
@@ -140,7 +140,7 @@ public class OIDCUserAccountService implements UserAccountService<OIDCUserAccoun
             account.setPicture(reg.getPicture());
 
             // set account as active
-            account.setStatus(UserStatus.ACTIVE.getValue());
+            account.setStatus(SubjectStatus.ACTIVE.getValue());
 
             // note: use flush because we detach the entity!
             account = accountRepository.saveAndFlush(account);

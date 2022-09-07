@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.dev;
+package it.smartcommunitylab.aac.console;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -74,17 +74,12 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
     @Qualifier("yamlObjectMapper")
     private ObjectMapper yamlObjectMapper;
 
-//    @Autowired
-//    public void setProviderManager(ProviderManager providerManager) {
-//        super.setProviderManager(providerManager);
-//    }
-
     /*
      * Providers
      */
 
     @Override
-    @GetMapping("/ap/{realm}/{providerId}")
+    @GetMapping("/aps/{realm}/{providerId}")
     public ConfigurableAttributeProvider getAp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
@@ -104,7 +99,7 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
     }
 
     @Override
-    @PostMapping("/ap/{realm}")
+    @PostMapping("/aps/{realm}")
     public ConfigurableAttributeProvider addAp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration)
@@ -119,7 +114,7 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
     }
 
     @Override
-    @PutMapping("/ap/{realm}/{providerId}")
+    @PutMapping("/aps/{realm}/{providerId}")
     public ConfigurableAttributeProvider updateAp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
@@ -135,70 +130,10 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
         return provider;
     }
 
-//    @PutMapping("/realms/{realm}/aps/{providerId}")
-//    public ResponseEntity<ConfigurableAttributeProvider> updateRealmProvider(
-//            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-//            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-//            @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration)
-//            throws NoSuchRealmException, NoSuchUserException, SystemException, NoSuchProviderException {
-//
-//        ConfigurableAttributeProvider provider = providerManager.getAttributeProvider(realm, providerId);
-//
-//        // we update only configuration
-//        String name = registration.getName();
-//        String description = registration.getDescription();
-//        String persistence = registration.getPersistence();
-//        String events = registration.getEvents();
-//        Set<String> attributeSets = registration.getAttributeSets();
-//        Map<String, Serializable> configuration = registration.getConfiguration();
-//
-//        provider.setName(name);
-//        provider.setDescription(description);
-//        provider.setPersistence(persistence);
-//        provider.setEvents(events);
-//        provider.setAttributeSets(attributeSets);
-//        provider.setConfiguration(configuration);
-//
-//        provider = providerManager.updateAttributeProvider(realm, providerId, provider);
-//
-//        // check if registered
-//        boolean isRegistered = providerManager.isProviderRegistered(realm, provider);
-//        provider.setRegistered(isRegistered);
-//
-//        // fetch also configuration schema
-//        JsonSchema schema = providerManager.getConfigurationSchema(realm, provider.getType(), provider.getAuthority());
-//        provider.setSchema(schema);
-//
-//        return ResponseEntity.ok(provider);
-//    }
-
-//    @PutMapping("/realms/{realm}/aps/{providerId}/state")
-//    public ResponseEntity<ConfigurableAttributeProvider> updateRealmProviderState(
-//            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-//            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-//            @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration)
-//            throws NoSuchRealmException, NoSuchUserException, SystemException, NoSuchProviderException {
-//
-//        ConfigurableAttributeProvider provider = providerManager.getAttributeProvider(realm, providerId);
-//        boolean enabled = registration.isEnabled();
-//
-//        if (enabled) {
-//            provider = providerManager.registerAttributeProvider(realm, providerId);
-//        } else {
-//            provider = providerManager.unregisterAttributeProvider(realm, providerId);
-//        }
-//
-//        // check if registered
-//        boolean isRegistered = providerManager.isProviderRegistered(realm, provider);
-//        provider.setRegistered(isRegistered);
-//
-//        return ResponseEntity.ok(provider);
-//    }
-
     /*
      * Test
      */
-    @GetMapping("/ap/{realm}/{providerId}/test")
+    @GetMapping("/aps/{realm}/{providerId}/test")
     public ResponseEntity<FunctionValidationBean> testRealmProvider(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
@@ -269,7 +204,7 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
      * Import/export for console
      */
 
-    @PutMapping("/ap/{realm}")
+    @PutMapping("/aps/{realm}")
     public Collection<ConfigurableAttributeProvider> importRealmProvider(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam(required = false, defaultValue = "false") boolean reset,
@@ -358,7 +293,7 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
 
     }
 
-    @GetMapping("/ap/{realm}/{providerId}/export")
+    @GetMapping("/aps/{realm}/{providerId}/export")
     public void exportRealmProvider(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
@@ -368,8 +303,6 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
         ConfigurableAttributeProvider provider = providerManager.getAttributeProvider(realm, providerId);
-
-//      String s = yaml.dump(clientApp);
         String s = yamlObjectMapper.writeValueAsString(provider);
 
         // write as file

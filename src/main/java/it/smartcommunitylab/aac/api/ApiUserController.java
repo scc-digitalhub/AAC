@@ -1,13 +1,20 @@
 package it.smartcommunitylab.aac.api;
 
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.api.scopes.ApiUsersScope;
 import it.smartcommunitylab.aac.controller.BaseUserController;
 
 @RestController
-@RequestMapping("api")
+@ApiSecurityTag(ApiUsersScope.SCOPE)
+@Tag(name = "Users", description = "Manage realm users")
+@RequestMapping(value = "api", consumes = { MediaType.APPLICATION_JSON_VALUE,
+        SystemKeys.MEDIA_TYPE_XYAML_VALUE }, produces = {
+                MediaType.APPLICATION_JSON_VALUE, SystemKeys.MEDIA_TYPE_XYAML_VALUE })
 public class ApiUserController extends BaseUserController {
     /*
      * API controller requires a specific scope.

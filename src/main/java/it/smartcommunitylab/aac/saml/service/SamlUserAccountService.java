@@ -13,7 +13,7 @@ import it.smartcommunitylab.aac.common.DuplicatedDataException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
-import it.smartcommunitylab.aac.model.UserStatus;
+import it.smartcommunitylab.aac.model.SubjectStatus;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountId;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
@@ -136,7 +136,7 @@ public class SamlUserAccountService implements UserAccountService<SamlUserAccoun
             account.setLang(reg.getLang());
 
             // set account as active
-            account.setStatus(UserStatus.ACTIVE.getValue());
+            account.setStatus(SubjectStatus.ACTIVE.getValue());
 
             // note: use flush because we detach the entity!
             account = accountRepository.saveAndFlush(account);

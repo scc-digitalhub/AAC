@@ -15,6 +15,8 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+
+import io.swagger.v3.oas.annotations.Operation;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
@@ -48,7 +50,8 @@ public class BaseScopesController implements InitializingBean {
         return Config.R_USER;
     }
 
-    @GetMapping("/scope/{realm}")
+    @GetMapping("/scopes/{realm}")
+    @Operation(summary = "Get scopes for the given realm")
     public Collection<Scope> listScopes(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
             throws NoSuchRealmException {
@@ -56,7 +59,8 @@ public class BaseScopesController implements InitializingBean {
         return scopeManager.listScopes();
     }
 
-    @GetMapping("/scope/{realm}/{scope}")
+    @GetMapping("/scopes/{realm}/{scope}")
+    @Operation(summary = "Get a specific scope for the given realm")
     public Scope getScope(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SCOPE_PATTERN) String scope)
@@ -68,6 +72,7 @@ public class BaseScopesController implements InitializingBean {
     }
 
     @GetMapping("/resources/{realm}")
+    @Operation(summary = "List resources for the given realm")
     public Collection<Resource> listResources(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
             throws NoSuchRealmException {
@@ -77,6 +82,7 @@ public class BaseScopesController implements InitializingBean {
     }
 
     @GetMapping("/resources/{realm}/{resourceId}")
+    @Operation(summary = "Get a resource with all its scopes for the given realm")
     public Resource listResources(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String resourceId)

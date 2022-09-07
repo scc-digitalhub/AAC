@@ -33,64 +33,27 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
-import it.smartcommunitylab.aac.model.SpaceRole;
+import it.smartcommunitylab.aac.core.service.SubjectService;
+import it.smartcommunitylab.aac.model.RealmRole;
+import it.smartcommunitylab.aac.model.Subject;
 
 @RestController
-@Tag(name= "AAC Space Roles" )
-public class SpaceRoleController {
+@Tag(name = "AAC Roles")
+public class RealmRolesController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
-    private SpaceRoleManager roleManager;
+    private RealmRoleManager roleManager;
 
-    @Operation(summary = "Get roles of the current user")
-    @PreAuthorize("hasAuthority('" + Config.R_USER + "') and hasAuthority('SCOPE_" + Config.SCOPE_USER_ROLE + "')")
-    @RequestMapping(method = RequestMethod.GET, value = "/userroles/me")
-    public Collection<SpaceRole> getUserRoles(BearerTokenAuthentication auth)
-            throws InvalidDefinitionException, NoSuchSubjectException {
-        if (auth == null) {
-            logger.error("invalid authentication");
-            throw new IllegalArgumentException("invalid authentication");
-        }
+    @Autowired
+    private SubjectService subjectService;
 
-        String subject = (String) auth.getTokenAttributes().get("sub");
-
-        if (!StringUtils.hasText(subject)) {
-            logger.error("invalid authentication");
-            throw new IllegalArgumentException("invalid authentication");
-        }
-
-        // return all the user roles
-        return roleManager.getRoles(subject);
-    }
-
-    @Operation(summary = "Get roles of the current client")
-    @PreAuthorize("hasAuthority('" + Config.R_CLIENT + "') and hasAuthority('SCOPE_" + Config.SCOPE_CLIENT_ROLE + "')")
-    @RequestMapping(method = RequestMethod.GET, value = "/clientroles/me")
-    public Collection<SpaceRole> getClientRoles(BearerTokenAuthentication auth)
-            throws InvalidDefinitionException, NoSuchSubjectException {
-        if (auth == null) {
-            logger.error("invalid authentication");
-            throw new IllegalArgumentException("invalid authentication");
-        }
-
-        String subject = (String) auth.getTokenAttributes().get("sub");
-
-        if (!StringUtils.hasText(subject)) {
-            logger.error("invalid authentication");
-            throw new IllegalArgumentException("invalid authentication");
-        }
-
-        // return all the client roles
-        return roleManager.getRoles(subject);
-    }
-
-    @Operation(summary = "Get roles of the subject")
+    @Operation(summary = "Get roles of the subject in source realm")
     @PreAuthorize("(hasAuthority('" + Config.R_USER + "') and hasAuthority('SCOPE_" + Config.SCOPE_USER_ROLE
             + "')) or (hasAuthority('" + Config.R_CLIENT + "') and hasAuthority('SCOPE_" + Config.SCOPE_CLIENT_ROLE
             + "'))")
-    @RequestMapping(method = RequestMethod.GET, value = "/spaceroles/me")
-    public Collection<SpaceRole> getSubjectRoles(BearerTokenAuthentication auth)
+    @RequestMapping(method = RequestMethod.GET, value = "/roles/me")
+    public Collection<RealmRole> getSubjectRoles(BearerTokenAuthentication auth)
             throws InvalidDefinitionException, NoSuchSubjectException {
         if (auth == null) {
             logger.error("invalid authentication");
@@ -105,7 +68,8 @@ public class SpaceRoleController {
         }
 
         // return all the subject roles
-        return roleManager.getRoles(subject);
-    }
+        Subject sub = subjectService.getSubject(subject);
 
+        return roleManager.getSubjectRoles(sub.getRealm(), subject);
+    }
 }

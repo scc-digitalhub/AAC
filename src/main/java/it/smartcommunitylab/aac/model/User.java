@@ -52,7 +52,7 @@ public class User {
     private boolean emailVerified;
 
     // user status
-    private UserStatus status;
+    private SubjectStatus status;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Date expirationDate;
@@ -201,11 +201,11 @@ public class User {
         this.emailVerified = emailVerified;
     }
 
-    public UserStatus getStatus() {
+    public SubjectStatus getStatus() {
         return status;
     }
 
-    public void setStatus(UserStatus status) {
+    public void setStatus(SubjectStatus status) {
         this.status = status;
     }
 

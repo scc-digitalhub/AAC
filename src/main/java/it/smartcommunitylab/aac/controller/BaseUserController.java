@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import io.swagger.v3.oas.annotations.Operation;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
@@ -32,11 +33,11 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.UserManager;
 import it.smartcommunitylab.aac.core.base.AbstractIdentity;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
-import it.smartcommunitylab.aac.dto.UserEmailBean;
-import it.smartcommunitylab.aac.dto.UserStatusBean;
-import it.smartcommunitylab.aac.dto.UserSubjectBean;
+import it.smartcommunitylab.aac.dto.UserEmail;
+import it.smartcommunitylab.aac.dto.UserStatus;
+import it.smartcommunitylab.aac.dto.UserSubject;
 import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.model.UserStatus;
+import it.smartcommunitylab.aac.model.SubjectStatus;
 
 /*
  * Base controller for users
@@ -66,6 +67,7 @@ public class BaseUserController implements InitializingBean {
      */
 
     @GetMapping("/users/{realm}")
+    @Operation(summary = "list users from realm")
     public Page<User> listUser(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam(required = false) String q, Pageable pageRequest)
@@ -78,6 +80,7 @@ public class BaseUserController implements InitializingBean {
     }
 
     @GetMapping("/users/{realm}/{userId}")
+    @Operation(summary = "fetch a specific user from realm")
     public User getUser(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
@@ -90,6 +93,7 @@ public class BaseUserController implements InitializingBean {
     }
 
     @DeleteMapping("/users/{realm}/{userId}")
+    @Operation(summary = "delete a specific user from realm")
     public void deleteUser(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
@@ -102,9 +106,10 @@ public class BaseUserController implements InitializingBean {
     }
 
     @PostMapping("/users/{realm}")
+    @Operation(summary = "create a new user in realm")
     public User createUser(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestBody @Valid @NotNull UserSubjectBean reg) throws NoSuchRealmException {
+            @RequestBody @Valid @NotNull UserSubject reg) throws NoSuchRealmException {
         logger.debug("register user for realm {}",
                 StringUtils.trimAllWhitespace(realm));
 
@@ -118,9 +123,10 @@ public class BaseUserController implements InitializingBean {
     }
 
     @PutMapping("/users/{realm}")
+    @Operation(summary = "invite a new user in realm")
     public User inviteUser(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestBody @Valid @NotNull UserEmailBean reg)
+            @RequestBody @Valid @NotNull UserEmail reg)
             throws NoSuchRealmException, RegistrationException, NoSuchProviderException {
         logger.debug("invite user {} for realm {}", StringUtils.trimAllWhitespace(reg.getEmail()),
                 StringUtils.trimAllWhitespace(realm));
@@ -154,21 +160,22 @@ public class BaseUserController implements InitializingBean {
     }
 
     @PutMapping("/users/{realm}/{userId}/status")
+    @Operation(summary = "update the status of a specific user in realm")
     public User updateUserStatus(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
-            @RequestBody @Valid @NotNull UserStatusBean reg)
+            @RequestBody @Valid @NotNull UserStatus reg)
             throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException {
         logger.debug("update status for user {} for realm {}",
                 StringUtils.trimAllWhitespace(userId), StringUtils.trimAllWhitespace(realm));
 
         // extract from model
-        UserStatus status = reg.getStatus();
-        if (UserStatus.BLOCKED == status) {
+        SubjectStatus status = reg.getStatus();
+        if (SubjectStatus.BLOCKED == status) {
             return userManager.blockUser(realm, userId);
-        } else if (UserStatus.ACTIVE == status) {
+        } else if (SubjectStatus.ACTIVE == status) {
             return userManager.activateUser(realm, userId);
-        } else if (UserStatus.INACTIVE == status) {
+        } else if (SubjectStatus.INACTIVE == status) {
             return userManager.inactivateUser(realm, userId);
         }
 
@@ -180,6 +187,7 @@ public class BaseUserController implements InitializingBean {
      * 
      */
     @PostMapping("/users/{realm}/{userId}/identity")
+    @Operation(summary = "add a new identity to a specific user in realm")
     public UserIdentity createUserIdentity(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
@@ -198,6 +206,7 @@ public class BaseUserController implements InitializingBean {
     }
 
     @GetMapping("/users/{realm}/{userId}/identity")
+    @Operation(summary = "list identities for a specific user in realm")
     public Collection<UserIdentity> getUserIdentity(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
@@ -219,6 +228,7 @@ public class BaseUserController implements InitializingBean {
     }
 
     @GetMapping("/users/{realm}/{userId}/identity/{identityUuid}")
+    @Operation(summary = "get a specific identity from a specific user in realm")
     public UserIdentity getUserIdentity(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
@@ -246,6 +256,7 @@ public class BaseUserController implements InitializingBean {
     }
 
     @PutMapping("/users/{realm}/{userId}/identity/{identityUuid}")
+    @Operation(summary = "update a specific identity for a specific user in realm")
     public UserIdentity updateUserIdentity(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
@@ -262,6 +273,7 @@ public class BaseUserController implements InitializingBean {
     }
 
     @DeleteMapping("/users/{realm}/{userId}/identity/{identityUuid}")
+    @Operation(summary = "delete a specific identity from a specific user in realm")
     public void deleteUserIdentity(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
@@ -288,6 +300,7 @@ public class BaseUserController implements InitializingBean {
     }
 
     @PutMapping("/users/{realm}/{userId}/identity/{identityUuid}/confirm")
+    @Operation(summary = "confirm an identity for a given user in realm")
     public UserIdentity confirmUserIdentity(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
@@ -313,6 +326,7 @@ public class BaseUserController implements InitializingBean {
     }
 
     @DeleteMapping("/users/{realm}/{userId}/identity/{identityUuid}/confirm")
+    @Operation(summary = "unconfirm an identity for a given user in realm")
     public UserIdentity unconfirmUserIdentity(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
@@ -338,6 +352,7 @@ public class BaseUserController implements InitializingBean {
     }
 
     @PostMapping("/users/{realm}/{userId}/identity/{identityUuid}/confirm")
+    @Operation(summary = "verify an identity for a given user in realm")
     public UserIdentity verifyUserIdentity(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
@@ -363,11 +378,12 @@ public class BaseUserController implements InitializingBean {
     }
 
     @PutMapping("/users/{realm}/{userId}/identity/{identityUuid}/status")
+    @Operation(summary = "update status for an identity for a given user in realm")
     public UserIdentity updateUserIdentityStatus(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String identityUuid,
-            @RequestBody @Valid @NotNull UserStatusBean reg)
+            @RequestBody @Valid @NotNull UserStatus reg)
             throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException {
         logger.debug("update status for user {} for realm {}",
                 StringUtils.trimAllWhitespace(userId), StringUtils.trimAllWhitespace(realm));
@@ -386,10 +402,10 @@ public class BaseUserController implements InitializingBean {
         String provider = identity.getProvider();
         String identityId = identity.getId();
 
-        UserStatus status = reg.getStatus();
-        if (UserStatus.LOCKED == status) {
+        SubjectStatus status = reg.getStatus();
+        if (SubjectStatus.LOCKED == status) {
             return userManager.lockUserIdentity(realm, userId, provider, identityId);
-        } else if (UserStatus.ACTIVE == status) {
+        } else if (SubjectStatus.ACTIVE == status) {
             return userManager.unlockUserIdentity(realm, userId, provider, identityId);
         }
 

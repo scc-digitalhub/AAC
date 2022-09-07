@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.dev;
+package it.smartcommunitylab.aac.console;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -32,8 +32,8 @@ import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 
-@ControllerAdvice(basePackages = "it.smartcommunitylab.aac.dev")
-public class DevExceptionHandler extends ResponseEntityExceptionHandler {
+@ControllerAdvice(basePackages = "it.smartcommunitylab.aac.console")
+public class ConsoleExceptionHandler extends ResponseEntityExceptionHandler {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @ExceptionHandler(value = { AccessDeniedException.class })

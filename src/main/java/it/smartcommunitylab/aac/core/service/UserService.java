@@ -41,7 +41,7 @@ import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.model.UserStatus;
+import it.smartcommunitylab.aac.model.SubjectStatus;
 import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
 import it.smartcommunitylab.aac.roles.service.SubjectRoleService;
 
@@ -261,7 +261,7 @@ public class UserService {
         u.setEmailVerified(emailVerified);
 
         // status
-        UserStatus status = UserStatus.parse(ue.getStatus());
+        SubjectStatus status = SubjectStatus.parse(ue.getStatus());
         u.setStatus(status);
 
         // fetch attributes
@@ -322,7 +322,7 @@ public class UserService {
         u.setEmailVerified(emailVerified);
 
         // status
-        UserStatus status = UserStatus.parse(ue.getStatus());
+        SubjectStatus status = SubjectStatus.parse(ue.getStatus());
         u.setStatus(status);
 
         // fetch attributes

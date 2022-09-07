@@ -54,7 +54,7 @@ angular.module('aac.controllers.realm', [])
          });
       }
       rService.getResources = function (slug) {
-         return $http.get('console/dev/realms/' + slug + '/resources').then(function (data) {
+         return $http.get('console/dev/resources/' + slug ).then(function (data) {
             return data.data;
          });
       }

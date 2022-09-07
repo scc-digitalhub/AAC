@@ -21,7 +21,7 @@ import it.smartcommunitylab.aac.core.model.AttributeSet;
 @Valid
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class AttributesRegistrationDTO {
+public class AttributesRegistration {
 
     @Size(max = 128)
     @NotBlank
@@ -35,9 +35,9 @@ public class AttributesRegistrationDTO {
     private String description;
 
     @NotNull
-    private List<AttributeDTO> attributes;
+    private List<AttributeRegistration> attributes;
 
-    public AttributesRegistrationDTO() {
+    public AttributesRegistration() {
         this.attributes = new ArrayList<>();
     }
 
@@ -73,16 +73,16 @@ public class AttributesRegistrationDTO {
         this.description = description;
     }
 
-    public List<AttributeDTO> getAttributes() {
+    public List<AttributeRegistration> getAttributes() {
         return attributes;
     }
 
-    public void setAttributes(List<AttributeDTO> attributes) {
+    public void setAttributes(List<AttributeRegistration> attributes) {
         this.attributes = attributes;
     }
 
     @Valid
-    public static class AttributeDTO {
+    public static class AttributeRegistration {
 
         @Size(max = 128)
         @NotBlank
@@ -135,15 +135,15 @@ public class AttributesRegistrationDTO {
 
     }
 
-    public static AttributesRegistrationDTO from(AttributeSet attributeSet) {
+    public static AttributesRegistration from(AttributeSet attributeSet) {
         // convert to DTO
-        AttributesRegistrationDTO reg = new AttributesRegistrationDTO();
+        AttributesRegistration reg = new AttributesRegistration();
         reg.identifier = attributeSet.getIdentifier();
         reg.name = attributeSet.getName();
         reg.description = attributeSet.getDescription();
 
-        List<AttributeDTO> attributes = attributeSet.getAttributes().stream().map(a -> {
-            AttributeDTO dto = new AttributeDTO();
+        List<AttributeRegistration> attributes = attributeSet.getAttributes().stream().map(a -> {
+            AttributeRegistration dto = new AttributeRegistration();
             dto.key = a.getKey();
             dto.type = getFormType(a.getKey(), a.getType().getValue());
             dto.name = StringUtils.hasText(a.getName()) ? a.getName() : a.getKey();

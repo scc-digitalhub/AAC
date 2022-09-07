@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
+import io.swagger.v3.oas.annotations.Operation;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
@@ -61,8 +62,9 @@ public class BaseClientAppController implements InitializingBean {
         return Config.R_USER;
     }
 
-    @GetMapping("/app/{realm}")
-    public Collection<ClientApp> listApp(
+    @GetMapping("/apps/{realm}")
+    @Operation(summary = "list client apps from a given realm")
+    public Collection<ClientApp> listClientApp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
             throws NoSuchRealmException {
         logger.debug("list client apps for realm {}",
@@ -71,8 +73,10 @@ public class BaseClientAppController implements InitializingBean {
         return clientManager.listClientApps(realm);
     }
 
-    @GetMapping("/app/{realm}/{clientId}")
-    public ClientApp getApp(
+    @GetMapping("/apps/{realm}/{clientId}")
+    @Operation(summary = "get a specific client app from a given realm")
+
+    public ClientApp getClientApp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
             throws NoSuchClientException, NoSuchRealmException {
@@ -85,14 +89,17 @@ public class BaseClientAppController implements InitializingBean {
     /*
      * Management
      */
-    @PostMapping("/app/{realm}")
-    public ClientApp registerApp(
+    @PostMapping("/apps/{realm}")
+    @Operation(summary = "register a new client app in a given realm")
+    public ClientApp registerClientApp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestBody @NotNull @Valid ClientApp app) throws NoSuchRealmException {
         logger.debug("register client app for realm {}",
                 StringUtils.trimAllWhitespace(realm));
 
+        // enforce realm match
         app.setRealm(realm);
+
         if (logger.isTraceEnabled()) {
             logger.trace("app bean: " + StringUtils.trimAllWhitespace(app.toString()));
         }
@@ -100,15 +107,18 @@ public class BaseClientAppController implements InitializingBean {
         return clientManager.registerClientApp(realm, app);
     }
 
-    @PutMapping("/app/{realm}/{clientId}")
-    public ClientApp updateApp(
+    @PutMapping("/apps/{realm}/{clientId}")
+    @Operation(summary = "update a specific client app in a given realm")
+    public ClientApp updateClientApp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
             @RequestBody @Valid @NotNull ClientApp app) throws NoSuchClientException, NoSuchRealmException {
         logger.debug("update client app {} for realm {}",
                 StringUtils.trimAllWhitespace(clientId), StringUtils.trimAllWhitespace(realm));
 
+        // enforce realm match
         app.setRealm(realm);
+
         if (logger.isTraceEnabled()) {
             logger.trace("app bean: " + StringUtils.trimAllWhitespace(app.toString()));
         }
@@ -116,8 +126,9 @@ public class BaseClientAppController implements InitializingBean {
         return clientManager.updateClientApp(realm, clientId, app);
     }
 
-    @DeleteMapping("/app/{realm}/{clientId}")
-    public void deleteApp(
+    @DeleteMapping("/apps/{realm}/{clientId}")
+    @Operation(summary = "delete a specific client app from a given realm")
+    public void deleteClientApp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
             throws NoSuchClientException, NoSuchRealmException {
@@ -131,8 +142,9 @@ public class BaseClientAppController implements InitializingBean {
      * Credentials
      */
 
-    @GetMapping("/app/{realm}/{clientId}/credentials")
-    public Collection<ClientCredentials> listAppCredentials(
+    @GetMapping("/apps/{realm}/{clientId}/credentials")
+    @Operation(summary = "list credentials for a client app in a given realm")
+    public Collection<ClientCredentials> listClientAppCredentials(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
             throws NoSuchClientException, NoSuchRealmException {
@@ -142,8 +154,9 @@ public class BaseClientAppController implements InitializingBean {
         return clientManager.getClientCredentials(realm, clientId);
     }
 
-    @GetMapping("/app/{realm}/{clientId}/credentials/{credentialsId}")
-    public ClientCredentials getAppCredentials(
+    @GetMapping("/apps/{realm}/{clientId}/credentials/{credentialsId}")
+    @Operation(summary = "get a specific credential for a client app in a given realm")
+    public ClientCredentials getClientAppCredentials(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String credentialsId)
@@ -154,8 +167,9 @@ public class BaseClientAppController implements InitializingBean {
         return clientManager.getClientCredentials(realm, clientId, credentialsId);
     }
 
-    @PutMapping("/app/{realm}/{clientId}/credentials/{credentialsId}")
-    public ClientCredentials setAppCredentials(
+    @PutMapping("/apps/{realm}/{clientId}/credentials/{credentialsId}")
+    @Operation(summary = "update credentials for a client app in a given realm")
+    public ClientCredentials setClientAppCredentials(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String credentialsId,
@@ -168,8 +182,9 @@ public class BaseClientAppController implements InitializingBean {
         return clientManager.resetClientCredentials(realm, clientId, credentialsId);
     }
 
-    @DeleteMapping("/app/{realm}/{clientId}/credentials/{credentialsId}")
-    public void removeAppCredentials(
+    @DeleteMapping("/apps/{realm}/{clientId}/credentials/{credentialsId}")
+    @Operation(summary = "delete a specific credential for a client app in a given realm")
+    public void removeClientAppCredentials(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String credentialsId)
@@ -183,8 +198,9 @@ public class BaseClientAppController implements InitializingBean {
     /*
      * Configuration schema
      */
-    @GetMapping("/app/{realm}/{clientId}/schema")
-    public JsonSchema getAppConfigurationSchema(
+    @GetMapping("/apps/{realm}/{clientId}/schema")
+    @Operation(summary = "get client configuration schema")
+    public JsonSchema getClientAppConfigurationSchema(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
             throws NoSuchClientException, NoSuchRealmException {

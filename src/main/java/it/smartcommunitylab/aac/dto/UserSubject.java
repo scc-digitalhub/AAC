@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class UserSubjectBean {
+public class UserSubject {
 
     private String subjectId;
 

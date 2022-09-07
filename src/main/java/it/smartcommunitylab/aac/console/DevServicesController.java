@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.dev;
+package it.smartcommunitylab.aac.console;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -10,6 +10,7 @@ import java.util.Map;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
@@ -20,8 +21,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,39 +33,45 @@ import org.yaml.snakeyaml.Yaml;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.attributes.BaseAttributeSetsController;
-import it.smartcommunitylab.aac.attributes.DefaultAttributesSet;
-import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
+import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.NoSuchServiceException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.core.model.AttributeSet;
+import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.dto.FunctionValidationBean;
+import it.smartcommunitylab.aac.services.BaseServicesController;
+import it.smartcommunitylab.aac.services.Service;
 
 @RestController
 @Hidden
 @RequestMapping("/console/dev")
-public class DevAttributesController extends BaseAttributeSetsController {
+public class DevServicesController extends BaseServicesController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final TypeReference<Map<String, List<DefaultAttributesSet>>> typeRef = new TypeReference<Map<String, List<DefaultAttributesSet>>>() {
+    private final TypeReference<Map<String, List<Service>>> typeRef = new TypeReference<Map<String, List<Service>>>() {
     };
+    private final String LIST_KEY = "services";
 
-    private final String LIST_KEY = "sets";
+    @Autowired
+    private DevManager devManager;
 
     @Autowired
     @Qualifier("yamlObjectMapper")
-    protected ObjectMapper yamlObjectMapper;
+    private ObjectMapper yamlObjectMapper;
 
     /*
      * Import/export for console
      */
-    @PutMapping("/attributeset/{realm}")
-    public Collection<AttributeSet> importAttributeSet(
+    @PutMapping("/services/{realm}")
+    public Collection<Service> importRealmService(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @RequestParam(required = false, defaultValue = "false") boolean reset,
             @RequestPart(name = "yaml", required = false) @Valid String yaml,
             @RequestPart(name = "file", required = false) @Valid MultipartFile file)
             throws NoSuchRealmException, RegistrationException {
-        logger.debug("import attribute set to realm {}", StringUtils.trimAllWhitespace(realm));
+        logger.debug("import service(s) to realm {}", StringUtils.trimAllWhitespace(realm));
 
         if (!StringUtils.hasText(yaml) && (file == null || file.isEmpty())) {
             throw new IllegalArgumentException("empty file or yaml");
@@ -84,8 +94,8 @@ public class DevAttributesController extends BaseAttributeSetsController {
                 yaml = new String(file.getBytes(), StandardCharsets.UTF_8);
             }
 
-            List<AttributeSet> attributeSets = new ArrayList<>();
-            List<DefaultAttributesSet> regs = new ArrayList<>();
+            List<Service> services = new ArrayList<>();
+            List<Service> regs = new ArrayList<>();
 
             // read as raw yaml to check if collection
             Yaml reader = new Yaml();
@@ -93,34 +103,36 @@ public class DevAttributesController extends BaseAttributeSetsController {
             boolean multiple = obj.containsKey(LIST_KEY);
 
             if (multiple) {
-                Map<String, List<DefaultAttributesSet>> list = yamlObjectMapper.readValue(yaml, typeRef);
-                for (DefaultAttributesSet reg : list.get(LIST_KEY)) {
+                Map<String, List<Service>> list = yamlObjectMapper.readValue(yaml, typeRef);
+                for (Service reg : list.get(LIST_KEY)) {
                     regs.add(reg);
                 }
             } else {
                 // try single element
-                DefaultAttributesSet reg = yamlObjectMapper.readValue(yaml,
-                        DefaultAttributesSet.class);
+                Service reg = yamlObjectMapper.readValue(file.getInputStream(), Service.class);
                 regs.add(reg);
             }
 
             // register all
-            for (DefaultAttributesSet reg : regs) {
+            for (Service reg : regs) {
                 // align config
                 reg.setRealm(realm);
-
-                if (logger.isTraceEnabled()) {
-                    logger.trace("attribute set bean: " + String.valueOf(reg));
+                if (reset) {
+                    // reset id
+                    reg.setServiceId(null);
                 }
 
-                // register
-                AttributeSet set = attributeManager.addAttributeSet(realm, reg);
-                attributeSets.add(set);
+                if (logger.isTraceEnabled()) {
+                    logger.trace("service bean: " + String.valueOf(reg));
+                }
+
+                Service service = serviceManager.addService(realm, reg);
+                services.add(service);
             }
 
-            return attributeSets;
+            return services;
         } catch (Exception e) {
-            logger.error("import attribute set error: " + e.getMessage());
+            logger.error("import service(s) error: " + e.getMessage());
             if (logger.isTraceEnabled()) {
                 e.printStackTrace();
             }
@@ -131,29 +143,60 @@ public class DevAttributesController extends BaseAttributeSetsController {
 
             throw new RegistrationException(e.getMessage());
         }
-
     }
 
-    @GetMapping("/attributeset/{realm}/{setId}/export")
-    public void exportRealmAttributeSet(
+    @GetMapping("/services/{realm}/{serviceId}/export")
+    public void exportRealmService(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String setId,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
             HttpServletResponse res)
-            throws NoSuchRealmException, NoSuchAttributeSetException, IOException {
-        logger.debug("export attribute set {} for realm {}",
-                StringUtils.trimAllWhitespace(setId), StringUtils.trimAllWhitespace(realm));
+            throws NoSuchRealmException, NoSuchServiceException, IOException {
+        logger.debug("export service {} for realm {}",
+                StringUtils.trimAllWhitespace(serviceId), StringUtils.trimAllWhitespace(realm));
 
-        AttributeSet set = attributeManager.getAttributeSet(realm, setId);
-
-//        String s = yaml.dump(service);
-        String s = yamlObjectMapper.writeValueAsString(set);
+        Service service = serviceManager.getService(realm, serviceId);
+        String s = yamlObjectMapper.writeValueAsString(service);
 
         // write as file
         res.setContentType("text/yaml");
-        res.setHeader("Content-Disposition", "attachment;filename=attributeset-" + set.getIdentifier() + ".yaml");
+        res.setHeader("Content-Disposition", "attachment;filename=service-" + service.getName() + ".yaml");
         ServletOutputStream out = res.getOutputStream();
         out.write(s.getBytes(StandardCharsets.UTF_8));
         out.flush();
         out.close();
     }
+
+    /*
+     * Namespace
+     */
+    @GetMapping("/services/{realm}/nsexists")
+    public Boolean checkRealmServiceNamespace(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @RequestParam @Valid @NotBlank @Pattern(regexp = SystemKeys.NAMESPACE_PATTERN) String ns)
+            throws NoSuchRealmException {
+        return serviceManager.checkServiceNamespace(realm, ns);
+    }
+
+    /*
+     * Claims
+     */
+    @PostMapping("/services/{realm}/{serviceId}/claims/validate")
+    public FunctionValidationBean validateRealmServiceClaim(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
+            @RequestBody @Valid @NotNull FunctionValidationBean function)
+            throws NoSuchServiceException, NoSuchRealmException, SystemException, InvalidDefinitionException {
+
+        try {
+            // TODO expose context personalization in UI
+            function = devManager.testServiceClaimMapping(realm, serviceId, function);
+
+        } catch (InvalidDefinitionException | RuntimeException e) {
+            // translate error
+            function.addError(e.getMessage());
+        }
+
+        return function;
+    }
+
 }

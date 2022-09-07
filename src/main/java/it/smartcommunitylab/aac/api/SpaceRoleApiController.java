@@ -14,7 +14,7 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.roles;
+package it.smartcommunitylab.aac.api;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -40,9 +40,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.model.SpaceRole;
+import it.smartcommunitylab.aac.roles.SpaceRoleManager;
 
 @RestController
-@Tag(name= "AAC SpaceRoles" )
+@ApiSecurityTag(Config.SCOPE_ROLEMANAGEMENT)
+@Tag(name = "AAC SpaceRoles")
 public class SpaceRoleApiController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -58,7 +60,7 @@ public class SpaceRoleApiController {
     @Operation(summary = "Get roles of a specific subject")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') and hasAuthority('SCOPE_" + Config.SCOPE_ROLEMANAGEMENT
             + "')")
-    @RequestMapping(method = RequestMethod.GET, value = "/api/roles/{subjectId}")
+    @RequestMapping(method = RequestMethod.GET, value = "/api/spaceroles/{subjectId}")
     public Collection<SpaceRole> getRoles(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId) throws Exception {
 
@@ -74,7 +76,7 @@ public class SpaceRoleApiController {
     @Operation(summary = "Add roles to a specific subject")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') and hasAuthority('SCOPE_" + Config.SCOPE_ROLEMANAGEMENT
             + "')")
-    @RequestMapping(method = RequestMethod.PUT, value = "/api/roles/{subjectId}")
+    @RequestMapping(method = RequestMethod.PUT, value = "/api/spaceroles/{subjectId}")
     public Collection<SpaceRole> addRoles(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId,
             @RequestParam List<String> roles) throws Exception {
@@ -99,7 +101,7 @@ public class SpaceRoleApiController {
     @Operation(summary = "Delete roles for a specific subject")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') and hasAuthority('SCOPE_" + Config.SCOPE_ROLEMANAGEMENT
             + "')")
-    @RequestMapping(method = RequestMethod.DELETE, value = "/api/roles/{subjectId}")
+    @RequestMapping(method = RequestMethod.DELETE, value = "/api/spaceroles/{subjectId}")
     public void deleteRoles(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId,
             @RequestParam List<String> roles) throws Exception {
