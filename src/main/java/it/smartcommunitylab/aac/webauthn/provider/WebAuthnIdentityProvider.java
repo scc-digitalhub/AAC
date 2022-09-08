@@ -186,8 +186,7 @@ public class WebAuthnIdentityProvider
 
     @Override
     public InternalLoginProvider getLoginProvider() {
-        InternalLoginProvider ilp = new InternalLoginProvider(getProvider(), getRealm());
-        ilp.setName(getName());
+        InternalLoginProvider ilp = new InternalLoginProvider(getProvider(), getRealm(), getName());
         ilp.setDescription(getDescription());
 
         // login url is always form display
@@ -199,6 +198,9 @@ public class WebAuthnIdentityProvider
 
         String template = config.displayAsButton() ? "button" : getLoginForm();
         ilp.setTemplate(template);
+
+        // set position
+        ilp.setPosition(getConfig().getPosition());
 
         return ilp;
     }

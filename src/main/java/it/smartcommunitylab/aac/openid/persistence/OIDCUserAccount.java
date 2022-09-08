@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractAccount;
-import it.smartcommunitylab.aac.model.UserStatus;
+import it.smartcommunitylab.aac.model.SubjectStatus;
 
 @Entity
 @IdClass(OIDCUserAccountId.class)
@@ -144,7 +144,7 @@ public class OIDCUserAccount extends AbstractAccount {
     @Override
     public boolean isLocked() {
         // only active users are *not* locked
-        if (status == null || UserStatus.ACTIVE.getValue().equals(status)) {
+        if (status == null || SubjectStatus.ACTIVE.getValue().equals(status)) {
             return false;
         }
 

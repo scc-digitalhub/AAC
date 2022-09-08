@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
+import io.swagger.v3.oas.annotations.Operation;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
@@ -65,7 +66,8 @@ public class BaseAttributeProviderController implements InitializingBean {
      * Manage only realm providers, with config stored
      */
 
-    @GetMapping("/ap/{realm}")
+    @GetMapping("/aps/{realm}")
+    @Operation(summary = "list attribute providers from a given realm")
     public Collection<ConfigurableAttributeProvider> listAps(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
             throws NoSuchRealmException {
@@ -80,7 +82,8 @@ public class BaseAttributeProviderController implements InitializingBean {
                 }).collect(Collectors.toList());
     }
 
-    @GetMapping("/ap/{realm}/{providerId}")
+    @GetMapping("/aps/{realm}/{providerId}")
+    @Operation(summary = "get a specific attribute provider from a given realm")
     public ConfigurableAttributeProvider getAp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
@@ -98,7 +101,8 @@ public class BaseAttributeProviderController implements InitializingBean {
         return provider;
     }
 
-    @PostMapping("/ap/{realm}")
+    @PostMapping("/aps/{realm}")
+    @Operation(summary = "add a new attribute provider to a given realm")
     public ConfigurableAttributeProvider addAp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration)
@@ -134,7 +138,8 @@ public class BaseAttributeProviderController implements InitializingBean {
         return provider;
     }
 
-    @PutMapping("/ap/{realm}/{providerId}")
+    @PutMapping("/aps/{realm}/{providerId}")
+    @Operation(summary = "update a specific attribute provider in a given realm")
     public ConfigurableAttributeProvider updateAp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
@@ -191,7 +196,8 @@ public class BaseAttributeProviderController implements InitializingBean {
         return provider;
     }
 
-    @DeleteMapping("/ap/{realm}/{providerId}")
+    @DeleteMapping("/aps/{realm}/{providerId}")
+    @Operation(summary = "delete a specific attribute provider from a given realm")
     public void deleteAp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
@@ -207,7 +213,8 @@ public class BaseAttributeProviderController implements InitializingBean {
      * Registration with authorities
      */
 
-    @PutMapping("/ap/{realm}/{providerId}/status")
+    @PutMapping("/aps/{realm}/{providerId}/status")
+    @Operation(summary = "activate a specific attribute provider from a given realm")
     public ConfigurableAttributeProvider registerAp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
@@ -226,7 +233,8 @@ public class BaseAttributeProviderController implements InitializingBean {
 
     }
 
-    @DeleteMapping("/ap/{realm}/{providerId}/status")
+    @DeleteMapping("/aps/{realm}/{providerId}/status")
+    @Operation(summary = "deactivate a specific attribute provider from a given realm")
     public ConfigurableAttributeProvider unregisterAp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
@@ -248,7 +256,8 @@ public class BaseAttributeProviderController implements InitializingBean {
     /*
      * Configuration schema
      */
-    @GetMapping("/ap/{realm}/{providerId}/schema")
+    @GetMapping("/aps/{realm}/{providerId}/schema")
+    @Operation(summary = "get an attribute provider configuration schema")
     public JsonSchema getApConfigurationSchema(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)

@@ -84,6 +84,7 @@ public class APISecurityConfig {
                 new AntPathRequestMatcher("/basicprofile/**"),
                 new AntPathRequestMatcher("/accountprofile/**"),
                 new AntPathRequestMatcher("/openidprofile/**"),
+                new AntPathRequestMatcher("/spaceroles/me"),
                 new AntPathRequestMatcher("/userroles/me"),
                 new AntPathRequestMatcher("/clientroles/me"));
 

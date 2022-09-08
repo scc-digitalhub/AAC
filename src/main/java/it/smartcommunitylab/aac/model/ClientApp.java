@@ -10,12 +10,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -23,8 +21,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 
@@ -54,7 +50,7 @@ public class ClientApp {
     // configuration, type-specific
     private Map<String, Serializable> configuration;
 
-    private JsonSchema schema;
+//    private JsonSchema schema;
 
     // scopes
     // TODO evaluate a better mapping for services+attribute sets etc
@@ -212,13 +208,13 @@ public class ClientApp {
         this.hookUniqueSpaces = hookUniqueSpaces;
     }
 
-    public JsonSchema getSchema() {
-        return schema;
-    }
-
-    public void setSchema(JsonSchema schema) {
-        this.schema = schema;
-    }
+//    public JsonSchema getSchema() {
+//        return schema;
+//    }
+//
+//    public void setSchema(JsonSchema schema) {
+//        this.schema = schema;
+//    }
 
     @JsonProperty("hookFunctions")
     public Map<String, String> getHookFunctionsBase64() {

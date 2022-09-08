@@ -24,7 +24,7 @@ import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.AccountProvider;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
-import it.smartcommunitylab.aac.model.UserStatus;
+import it.smartcommunitylab.aac.model.SubjectStatus;
 import it.smartcommunitylab.aac.saml.model.SamlUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 
@@ -186,12 +186,12 @@ public class SamlAccountProvider extends AbstractProvider
 
     @Override
     public SamlUserAccount lockAccount(String subjectId) throws NoSuchUserException, RegistrationException {
-        return updateStatus(subjectId, UserStatus.LOCKED);
+        return updateStatus(subjectId, SubjectStatus.LOCKED);
     }
 
     @Override
     public SamlUserAccount unlockAccount(String subjectId) throws NoSuchUserException, RegistrationException {
-        return updateStatus(subjectId, UserStatus.ACTIVE);
+        return updateStatus(subjectId, SubjectStatus.ACTIVE);
     }
 
     @Override
@@ -209,8 +209,8 @@ public class SamlAccountProvider extends AbstractProvider
         }
 
         // check if active, inactive accounts can not be changed except for activation
-        UserStatus curStatus = UserStatus.parse(account.getStatus());
-        if (UserStatus.INACTIVE == curStatus) {
+        SubjectStatus curStatus = SubjectStatus.parse(account.getStatus());
+        if (SubjectStatus.INACTIVE == curStatus) {
             throw new IllegalArgumentException("account is inactive, activate first to update status");
         }
 
@@ -224,7 +224,7 @@ public class SamlAccountProvider extends AbstractProvider
         return account;
     }
 
-    private SamlUserAccount updateStatus(String subjectId, UserStatus newStatus)
+    private SamlUserAccount updateStatus(String subjectId, SubjectStatus newStatus)
             throws NoSuchUserException, RegistrationException {
         SamlUserAccount account = findAccountBySubjectId(subjectId);
         if (account == null) {
@@ -232,8 +232,8 @@ public class SamlAccountProvider extends AbstractProvider
         }
 
         // check if active, inactive accounts can not be changed except for activation
-        UserStatus curStatus = UserStatus.parse(account.getStatus());
-        if (UserStatus.INACTIVE == curStatus && UserStatus.ACTIVE != newStatus) {
+        SubjectStatus curStatus = SubjectStatus.parse(account.getStatus());
+        if (SubjectStatus.INACTIVE == curStatus && SubjectStatus.ACTIVE != newStatus) {
             throw new IllegalArgumentException("account is inactive, activate first to update status");
         }
 

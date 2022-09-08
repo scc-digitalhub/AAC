@@ -68,6 +68,7 @@ public class IdentityProviderService {
         systemIdps.put(internalIdpConfig.getProvider(), internalIdpConfig);
 
         // always configure internal password idp for system, required by admin account
+        // TODO make configurable
         ConfigurableIdentityProvider internalPasswordIdpConfig = new ConfigurableIdentityProvider(
                 SystemKeys.AUTHORITY_PASSWORD, SystemKeys.AUTHORITY_INTERNAL + "_" + SystemKeys.AUTHORITY_PASSWORD,
                 SystemKeys.REALM_SYSTEM);
@@ -253,6 +254,8 @@ public class IdentityProviderService {
             throw new RegistrationException("invalid events level");
         }
 
+        Integer position = provider.getPosition();
+
         // we validate config by converting to specific configMap
         ConfigurationProvider<? extends ConfigurableProvider, ? extends AbstractProviderConfig, ? extends ConfigurableProperties> configProvider = authorityService
                 .getAuthority(authority).getConfigurationProvider();
@@ -279,7 +282,7 @@ public class IdentityProviderService {
         IdentityProviderEntity pe = providerService.addIdentityProvider(
                 authority, providerId, realm,
                 name, description, icon,
-                persistence, events,
+                persistence, events, position,
                 configuration, hookFunctions);
 
         return fromEntity(pe);
@@ -333,6 +336,8 @@ public class IdentityProviderService {
             throw new RegistrationException("invalid events level");
         }
 
+        Integer position = provider.getPosition();
+
         boolean enabled = provider.isEnabled();
         boolean linkable = provider.isLinkable();
 
@@ -365,7 +370,7 @@ public class IdentityProviderService {
         pe = providerService.updateIdentityProvider(providerId,
                 enabled, linkable,
                 name, description, icon,
-                persistence, events,
+                persistence, events, position,
                 configuration, hookFunctions);
 
         return fromEntity(pe);
@@ -406,6 +411,7 @@ public class IdentityProviderService {
         cp.setEnabled(pe.isEnabled());
         cp.setPersistence(pe.getPersistence());
         cp.setEvents(pe.getEvents());
+        cp.setPosition(pe.getPosition());
         cp.setHookFunctions(pe.getHookFunctions() != null ? pe.getHookFunctions() : Collections.emptyMap());
 
         cp.setName(pe.getName());

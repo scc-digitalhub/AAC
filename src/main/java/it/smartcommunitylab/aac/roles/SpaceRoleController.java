@@ -36,7 +36,7 @@ import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.model.SpaceRole;
 
 @RestController
-@Tag(name= "AAC Roles" )
+@Tag(name= "AAC Space Roles" )
 public class SpaceRoleController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -89,7 +89,7 @@ public class SpaceRoleController {
     @PreAuthorize("(hasAuthority('" + Config.R_USER + "') and hasAuthority('SCOPE_" + Config.SCOPE_USER_ROLE
             + "')) or (hasAuthority('" + Config.R_CLIENT + "') and hasAuthority('SCOPE_" + Config.SCOPE_CLIENT_ROLE
             + "'))")
-    @RequestMapping(method = RequestMethod.GET, value = "/roles/me")
+    @RequestMapping(method = RequestMethod.GET, value = "/spaceroles/me")
     public Collection<SpaceRole> getSubjectRoles(BearerTokenAuthentication auth)
             throws InvalidDefinitionException, NoSuchSubjectException {
         if (auth == null) {

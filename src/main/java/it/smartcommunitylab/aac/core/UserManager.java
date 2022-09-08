@@ -386,7 +386,8 @@ public class UserManager {
         UserIdentity identity = ids.createIdentity(userId, reg);
         userId = identity.getUserId();
 
-        logger.debug("create user new identity {} in realm {}", userId, realm);
+        logger.debug("create user new identity {} in realm {}", StringUtils.trimAllWhitespace(userId),
+                StringUtils.trimAllWhitespace(realm));
 
         return identity;
     }

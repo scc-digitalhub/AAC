@@ -1,12 +1,12 @@
 package it.smartcommunitylab.aac.internal.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.dto.LoginProvider;
+import it.smartcommunitylab.aac.core.base.AbstractLoginProvider;
 
-public class InternalLoginProvider extends LoginProvider {
+public class InternalLoginProvider extends AbstractLoginProvider {
 
-    public InternalLoginProvider(String provider, String realm) {
-        super(SystemKeys.AUTHORITY_INTERNAL, provider, realm);
+    public InternalLoginProvider(String provider, String realm, String name) {
+        super(SystemKeys.AUTHORITY_INTERNAL, provider, realm, name);
     }
 
     private String registrationUrl;

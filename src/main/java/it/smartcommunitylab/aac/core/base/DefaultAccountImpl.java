@@ -3,13 +3,10 @@ package it.smartcommunitylab.aac.core.base;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.model.UserStatus;
+import it.smartcommunitylab.aac.model.SubjectStatus;
 
 /*
  * An instantiable user account. 
@@ -27,8 +24,6 @@ public class DefaultAccountImpl extends AbstractAccount {
     private Boolean emailVerified;
     private String status;
     private Map<String, String> attributes = new HashMap<>();
-    // jsonSchema describing attributes to serve UI
-    private JsonSchema schema;
 
     public DefaultAccountImpl(String authority, String provider, String realm) {
         super(authority, provider, realm);
@@ -98,7 +93,7 @@ public class DefaultAccountImpl extends AbstractAccount {
 
     @Override
     public boolean isLocked() {
-        return UserStatus.LOCKED.getValue().equals(status);
+        return SubjectStatus.LOCKED.getValue().equals(status);
     }
 
     public String getStatus() {
@@ -107,22 +102,6 @@ public class DefaultAccountImpl extends AbstractAccount {
 
     public void setStatus(String status) {
         this.status = status;
-    }
-
-    @JsonIgnore
-    public JsonSchema getSchema() {
-        if (schema != null) {
-            return schema;
-        } else {
-            // describe attributesMap as strings, at minimum we enumerate properties
-            // TODO manual build of jsonschema, or drop map<> in place of
-            // configurableProperties obj
-            return null;
-        }
-    }
-
-    public void setSchema(JsonSchema schema) {
-        this.schema = schema;
     }
 
 }

@@ -34,7 +34,7 @@
   <div ng-if="users && users.content.length > 0">
 
     <table class="table table-hover border-bottom">
-      <tr ng-repeat="item in users.content">
+      <tr ng-repeat="item in users.content track by item.subjectId">
         <td
           class="align-middle {{item.blocked ? 'text-danger' : ''}}  {{item.locked && !item.blocked ? 'text-muted' : ''}} ">
           <div class="avatar-wrapper avatar-extra-text">

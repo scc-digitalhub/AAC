@@ -23,7 +23,7 @@ public class AACOAuth2AccessToken implements OAuth2AccessToken, Serializable {
 
     private static final long serialVersionUID = SystemKeys.AAC_OAUTH2_SERIAL_VERSION;
 
-    public static String ID_TOKEN = "id_token";
+    public static final String ID_TOKEN = "id_token";
 
     // the result value, can be replaced to encode a JWT
     private String value;

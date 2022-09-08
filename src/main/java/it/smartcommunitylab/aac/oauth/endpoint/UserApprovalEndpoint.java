@@ -197,9 +197,7 @@ public class UserApprovalEndpoint implements InitializingBean {
             // TODO handle via urlBuilder
             model.put("formAction", APPROVAL_URL);
 
-            logger.trace("call view with model " + model);
             return new ModelAndView("access_confirmation", model);
-
         } catch (RuntimeException e) {
             // send to error page
             model.put("error", e.getMessage());

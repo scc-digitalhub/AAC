@@ -16,6 +16,7 @@ public abstract class AbstractIdentityProviderConfig extends AbstractProviderCon
     protected Boolean linkable;
     protected String persistence;
     protected String events;
+    protected Integer position;
 
     protected Map<String, String> hookFunctions;
 
@@ -81,6 +82,14 @@ public abstract class AbstractIdentityProviderConfig extends AbstractProviderCon
         this.events = events;
     }
 
+    public Integer getPosition() {
+        return position;
+    }
+
+    public void setPosition(Integer position) {
+        this.position = position;
+    }
+
     public Map<String, String> getHookFunctions() {
         return hookFunctions;
     }
@@ -94,14 +103,17 @@ public abstract class AbstractIdentityProviderConfig extends AbstractProviderCon
                 getProvider(),
                 getRealm());
         cp.setType(SystemKeys.RESOURCE_IDENTITY);
-        cp.setPersistence(getPersistence());
 
         cp.setName(getName());
         cp.setDescription(getDescription());
         cp.setIcon(getIcon());
 
-        cp.setEnabled(true);
         cp.setLinkable(isLinkable());
+        cp.setPersistence(getPersistence());
+        cp.setEvents(getEvents());
+        cp.setPosition(getPosition());
+
+        cp.setEnabled(true);
         cp.setConfiguration(getConfiguration());
         cp.setHookFunctions(getHookFunctions());
 

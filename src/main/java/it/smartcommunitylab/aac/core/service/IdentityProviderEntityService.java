@@ -77,7 +77,7 @@ public class IdentityProviderEntityService {
             String providerId,
             String realm,
             String name, String description, String icon,
-            String persistence, String events,
+            String persistence, String events, Integer position,
             Map<String, Serializable> configurationMap,
             Map<String, String> hookFunctions) {
 
@@ -93,6 +93,7 @@ public class IdentityProviderEntityService {
         p.setPersistence(persistence);
         p.setLinkable(true);
         p.setEvents(events);
+        p.setPosition(position);
         p.setConfigurationMap(configurationMap);
         p.setHookFunctions(hookFunctions);
 
@@ -105,7 +106,7 @@ public class IdentityProviderEntityService {
             String providerId,
             boolean enabled, boolean linkable,
             String name, String description, String icon,
-            String persistence, String events,
+            String persistence, String events, Integer position,
             Map<String, Serializable> configurationMap,
             Map<String, String> hookFunctions) throws NoSuchProviderException {
 
@@ -121,6 +122,7 @@ public class IdentityProviderEntityService {
         p.setPersistence(persistence);
         p.setLinkable(linkable);
         p.setEvents(events);
+        p.setPosition(position);
         p.setHookFunctions(hookFunctions);
 
         // we update both status and configuration at the same time

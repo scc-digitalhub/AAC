@@ -17,7 +17,7 @@ import it.smartcommunitylab.aac.core.provider.AccountProvider;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.model.UserStatus;
+import it.smartcommunitylab.aac.model.SubjectStatus;
 
 @Transactional
 public class InternalAccountProvider extends AbstractProvider implements AccountProvider<InternalUserAccount> {
@@ -158,12 +158,12 @@ public class InternalAccountProvider extends AbstractProvider implements Account
 
     @Override
     public InternalUserAccount lockAccount(String username) throws NoSuchUserException, RegistrationException {
-        return updateStatus(username, UserStatus.LOCKED);
+        return updateStatus(username, SubjectStatus.LOCKED);
     }
 
     @Override
     public InternalUserAccount unlockAccount(String username) throws NoSuchUserException, RegistrationException {
-        return updateStatus(username, UserStatus.ACTIVE);
+        return updateStatus(username, SubjectStatus.ACTIVE);
     }
 
     @Override
@@ -181,8 +181,8 @@ public class InternalAccountProvider extends AbstractProvider implements Account
         }
 
         // check if active, inactive accounts can not be changed except for activation
-        UserStatus curStatus = UserStatus.parse(account.getStatus());
-        if (UserStatus.INACTIVE == curStatus) {
+        SubjectStatus curStatus = SubjectStatus.parse(account.getStatus());
+        if (SubjectStatus.INACTIVE == curStatus) {
             throw new IllegalArgumentException("account is inactive, activate first to update status");
         }
 
@@ -197,7 +197,7 @@ public class InternalAccountProvider extends AbstractProvider implements Account
         return account;
     }
 
-    private InternalUserAccount updateStatus(String username, UserStatus newStatus)
+    private InternalUserAccount updateStatus(String username, SubjectStatus newStatus)
             throws NoSuchUserException, RegistrationException {
 
         InternalUserAccount account = findAccountByUsername(username);
@@ -206,8 +206,8 @@ public class InternalAccountProvider extends AbstractProvider implements Account
         }
 
         // check if active, inactive accounts can not be changed except for activation
-        UserStatus curStatus = UserStatus.parse(account.getStatus());
-        if (UserStatus.INACTIVE == curStatus && UserStatus.ACTIVE != newStatus) {
+        SubjectStatus curStatus = SubjectStatus.parse(account.getStatus());
+        if (SubjectStatus.INACTIVE == curStatus && SubjectStatus.ACTIVE != newStatus) {
             throw new IllegalArgumentException("account is inactive, activate first to update status");
         }
 

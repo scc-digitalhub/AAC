@@ -19,7 +19,7 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.persistence.UserEntityRepository;
 import it.smartcommunitylab.aac.model.Subject;
-import it.smartcommunitylab.aac.model.UserStatus;
+import it.smartcommunitylab.aac.model.SubjectStatus;
 
 /*
  * Manage persistence for user entities and authorities (roles) 
@@ -66,7 +66,7 @@ public class UserEntityService {
         u.setUsername(username);
         u.setEmailAddress(emailAddress);
         // ensure user is active
-        u.setStatus(UserStatus.ACTIVE.getValue());
+        u.setStatus(SubjectStatus.ACTIVE.getValue());
 
         u = userRepository.save(u);
         return u;
@@ -167,23 +167,23 @@ public class UserEntityService {
     }
 
     public UserEntity activateUser(String uuid) throws NoSuchUserException {
-        return updateStatus(uuid, UserStatus.ACTIVE);
+        return updateStatus(uuid, SubjectStatus.ACTIVE);
     }
 
     public UserEntity inactivateUser(String uuid) throws NoSuchUserException {
-        return updateStatus(uuid, UserStatus.INACTIVE);
+        return updateStatus(uuid, SubjectStatus.INACTIVE);
     }
 
     public UserEntity blockUser(String uuid) throws NoSuchUserException {
-        return updateStatus(uuid, UserStatus.BLOCKED);
+        return updateStatus(uuid, SubjectStatus.BLOCKED);
     }
 
-    public UserEntity updateStatus(String uuid, UserStatus newStatus) throws NoSuchUserException {
+    public UserEntity updateStatus(String uuid, SubjectStatus newStatus) throws NoSuchUserException {
         UserEntity u = getUser(uuid);
 
         // check if active, inactive users can not be changed except for activation
-        UserStatus curStatus = UserStatus.parse(u.getStatus());
-        if (UserStatus.INACTIVE == curStatus && UserStatus.ACTIVE != newStatus) {
+        SubjectStatus curStatus = SubjectStatus.parse(u.getStatus());
+        if (SubjectStatus.INACTIVE == curStatus && SubjectStatus.ACTIVE != newStatus) {
             throw new IllegalArgumentException("user is inactive, activate first to update status");
         }
 

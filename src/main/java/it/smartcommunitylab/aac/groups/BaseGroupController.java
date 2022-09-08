@@ -114,7 +114,6 @@ public class BaseGroupController implements InitializingBean {
 
     @GetMapping("/groups/{realm}/{groupId}")
     @Operation(summary = "fetch a specific group from realm")
-
     public Group getGroup(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String groupId)

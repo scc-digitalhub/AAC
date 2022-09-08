@@ -61,8 +61,10 @@ public class ExtRedirectResolver extends DefaultRedirectResolver {
         this.setMatchPorts(configMatchPorts);
         this.setMatchSubdomains(configMatchSubDomains);
 
-        // localhost resolver with relaxed check on ports
-        localResolver = new LocalhostRedirectResolver();
+        if (localResolver == null) {
+            // localhost resolver with relaxed check on ports
+            localResolver = new LocalhostRedirectResolver();
+        }
     }
 
     @Override

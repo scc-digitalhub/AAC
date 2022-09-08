@@ -58,6 +58,7 @@ public class SystemKeys {
     public static final String RESOURCE_PROVIDER = "provider";
     public static final String RESOURCE_REALM = "realm";
     public static final String RESOURCE_CONFIG = "config";
+    public static final String RESOURCE_LOGIN = "login";
 
     public static final String PATH_SEPARATOR = "/-/";
     public static final String ID_SEPARATOR = "|";
@@ -101,5 +102,6 @@ public class SystemKeys {
     public static final MediaType MEDIA_TYPE_YAML = MediaType.valueOf("text/yaml");
     public static final MediaType MEDIA_TYPE_YML = MediaType.valueOf("text/yml");
     public static final MediaType MEDIA_TYPE_XYAML = MediaType.valueOf("application/x-yaml");
+    public static final String MEDIA_TYPE_XYAML_VALUE = "application/x-yaml";
 
 }

@@ -94,7 +94,7 @@ authorities:
       enablePasswordReset: true
       passwordSupportWhitespace: false
       passwordRequireNumber: true
-      enablePasswordSet: false
+      enablePasswordSet: true
       passwordMaxLength: 15
       passwordMinLength: 6
       enableDelete: true
@@ -294,7 +294,7 @@ management:
 
 # Open API
 openapi:
-   version: 1.0.0
+   version: "@project.version@"
    license: Apache License, Version 2.0
    licenseUrl: http://www.apache.org/licenses/LICENSE-2.0
    contact:

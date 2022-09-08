@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import io.swagger.v3.oas.annotations.Operation;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
@@ -57,6 +59,7 @@ public abstract class BaseAttributeSetsController implements InitializingBean {
      */
 
     @GetMapping("/attributeset/{realm}")
+    @Operation(summary = "list attribute sets from a given realm")
     public Collection<AttributeSet> listAttributeSets(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam(name = "system", required = false, defaultValue = "false") boolean includeSystem)
@@ -68,6 +71,7 @@ public abstract class BaseAttributeSetsController implements InitializingBean {
     }
 
     @GetMapping("/attributeset/{realm}/{setId}")
+    @Operation(summary = "get a specific attribute set from a given realm")
     public AttributeSet getAttributeSet(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String setId)
@@ -79,6 +83,7 @@ public abstract class BaseAttributeSetsController implements InitializingBean {
     }
 
     @PostMapping("/attributeset/{realm}")
+    @Operation(summary = "add a new attribute set to a given realm")
     public AttributeSet addAttributeSet(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestBody @Valid @NotNull DefaultAttributesSet s) throws NoSuchRealmException {
@@ -92,6 +97,7 @@ public abstract class BaseAttributeSetsController implements InitializingBean {
     }
 
     @PutMapping("/attributeset/{realm}/{setId}")
+    @Operation(summary = "update a specific attribute set in a given realm")
     public AttributeSet updateAttributeSet(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String setId,
@@ -107,6 +113,7 @@ public abstract class BaseAttributeSetsController implements InitializingBean {
     }
 
     @DeleteMapping("/attributeset/{realm}/{setId}")
+    @Operation(summary = "delete a specific attribute set from a given realm")
     public void deleteAttributeSet(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String setId)
