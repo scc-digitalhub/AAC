@@ -6,13 +6,17 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.provider.LoginProvider;
 
-public abstract class AbstractLoginProvider extends AbstractProvider
+public abstract class AbstractLoginProvider
         implements LoginProvider, Comparable<LoginProvider> {
 
     public static final String DEFAULT_ICON = "it-key";
     protected static final String ICON_PATH = "italia/svg/sprite.svg#";
     protected static final String TEMPLATE_PATH = "login/";
     protected static final int MAX_POSITION = 10000000;
+
+    private final String authority;
+    private final String realm;
+    private final String provider;
 
     private String template;
     private String loginUrl;
@@ -28,8 +32,10 @@ public abstract class AbstractLoginProvider extends AbstractProvider
     private ConfigurableProperties configuration;
 
     public AbstractLoginProvider(String authority, String providerId, String realm, String name) {
-        super(authority, providerId, realm);
         Assert.hasText(name, "name can not be null or empty");
+        this.authority = authority;
+        this.realm = realm;
+        this.provider = providerId;
 
         this.name = name;
 
@@ -38,9 +44,24 @@ public abstract class AbstractLoginProvider extends AbstractProvider
     }
 
     @Override
-    public final String getType() {
-        return SystemKeys.RESOURCE_LOGIN;
+    public String getAuthority() {
+        return authority;
     }
+
+    @Override
+    public String getProvider() {
+        return provider;
+    }
+
+    @Override
+    public String getRealm() {
+        return realm;
+    }
+
+//    @Override
+//    public final String getType() {
+//        return SystemKeys.RESOURCE_LOGIN;
+//    }
 
     public String getTemplate() {
         if (template == null) {

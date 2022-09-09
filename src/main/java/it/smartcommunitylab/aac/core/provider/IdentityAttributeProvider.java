@@ -7,7 +7,7 @@ import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 
 public interface IdentityAttributeProvider<P extends UserAuthenticatedPrincipal, U extends UserAccount>
-        extends ResourceProvider {
+        extends ResourceProvider<UserAttributes> {
 
     /*
      * Fetch user attributes

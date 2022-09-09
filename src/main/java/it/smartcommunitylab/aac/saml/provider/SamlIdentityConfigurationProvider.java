@@ -2,13 +2,10 @@ package it.smartcommunitylab.aac.saml.provider;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.config.AuthoritiesProperties;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 
 @Service
 public class SamlIdentityConfigurationProvider
@@ -30,9 +27,8 @@ public class SamlIdentityConfigurationProvider
     }
 
     @Override
-    protected SamlIdentityProviderConfig buildConfig(ConfigurableProvider cp) {
-        Assert.isInstanceOf(ConfigurableIdentityProvider.class, cp);
-        return new SamlIdentityProviderConfig((ConfigurableIdentityProvider) cp);
+    protected SamlIdentityProviderConfig buildConfig(ConfigurableIdentityProvider cp) {
+        return new SamlIdentityProviderConfig(cp);
     }
 
 }

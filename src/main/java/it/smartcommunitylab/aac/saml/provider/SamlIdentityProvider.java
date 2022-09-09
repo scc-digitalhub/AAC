@@ -14,13 +14,13 @@ import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
-import it.smartcommunitylab.aac.saml.SamlIdentityAuthority;
 import it.smartcommunitylab.aac.saml.model.SamlUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.saml.model.SamlUserIdentity;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 
 public class SamlIdentityProvider
-        extends AbstractIdentityProvider<SamlUserIdentity, SamlUserAccount, SamlUserAuthenticatedPrincipal> {
+        extends
+        AbstractIdentityProvider<SamlUserIdentity, SamlUserAccount, SamlUserAuthenticatedPrincipal, SamlIdentityProviderConfigMap, SamlIdentityProviderConfig> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // provider configuration

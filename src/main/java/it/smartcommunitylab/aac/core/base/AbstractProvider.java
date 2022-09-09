@@ -5,9 +5,10 @@ import java.util.regex.Pattern;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.model.Resource;
 import it.smartcommunitylab.aac.core.provider.ResourceProvider;
 
-public abstract class AbstractProvider implements ResourceProvider {
+public abstract class AbstractProvider<R extends Resource> implements ResourceProvider<R> {
 
     private final String authority;
     private final String realm;

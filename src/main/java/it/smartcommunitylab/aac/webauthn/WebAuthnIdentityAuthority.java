@@ -23,7 +23,7 @@ import it.smartcommunitylab.aac.webauthn.store.WebAuthnAssertionRequestStore;
 
 @Service
 public class WebAuthnIdentityAuthority extends
-        AbstractIdentityAuthority<InternalUserIdentity, WebAuthnIdentityProvider, WebAuthnIdentityProviderConfig, WebAuthnIdentityProviderConfigMap>
+        AbstractIdentityAuthority<WebAuthnIdentityProvider, InternalUserIdentity, WebAuthnIdentityProviderConfigMap, WebAuthnIdentityProviderConfig>
         implements InitializingBean {
 
     public static final String AUTHORITY_URL = "/auth/webauthn/";

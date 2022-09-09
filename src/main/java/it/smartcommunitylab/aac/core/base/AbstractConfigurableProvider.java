@@ -1,28 +1,33 @@
 package it.smartcommunitylab.aac.core.base;
 
-import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
+import org.springframework.util.Assert;
 
-public abstract class AbstractConfigurableProvider extends AbstractProvider implements ConfigurableProperties {
+import it.smartcommunitylab.aac.core.model.ConfigMap;
+import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.model.Resource;
+import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
+import it.smartcommunitylab.aac.core.provider.ProviderConfig;
 
-    protected AbstractConfigurableProvider(String authority, String provider, String realm) {
+public abstract class AbstractConfigurableProvider<R extends Resource, T extends ConfigurableProvider, M extends ConfigMap, C extends ProviderConfig<M, T>>
+        extends AbstractProvider<R> implements ConfigurableResourceProvider<R, T, M, C> {
+
+    protected final C providerConfig;
+
+    protected AbstractConfigurableProvider(String authority, String provider, String realm, C providerConfig) {
         super(authority, provider, realm);
+        Assert.notNull(providerConfig, "provider config can not be null");
+
+        this.providerConfig = providerConfig;
     }
 
-//    protected Map<String, Object> configuration = new HashMap<>();
-//
-//    public Map<String, Object> getConfiguration() {
-//        return configuration;
-//    }
-//
-//    public void setConfiguration(Map<String, Object> configuration) {
-//        this.configuration = configuration;
-//    }
-//
-//    protected Object getConfigurationProperty(String key) {
-//        return configuration.get(key);
-//    }
-//
-//    protected void setConfigurationProperty(String key, Object value) {
-//        configuration.put(key, value);
-//    }
+    @Override
+    public C getConfig() {
+        return providerConfig;
+    }
+
+    @Override
+    public T getConfigurable() {
+        return getConfig().getConfigurable();
+    }
+
 }

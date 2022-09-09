@@ -7,8 +7,9 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProviderConfig;
 
-public abstract class AbstractIdentityProviderConfig<T extends AbstractConfigMap> extends AbstractProviderConfig<T>
-        implements IdentityProviderConfig<T> {
+public abstract class AbstractIdentityProviderConfig<M extends AbstractConfigMap>
+        extends AbstractProviderConfig<M, ConfigurableIdentityProvider>
+        implements IdentityProviderConfig<M> {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     protected String icon;
@@ -20,7 +21,7 @@ public abstract class AbstractIdentityProviderConfig<T extends AbstractConfigMap
 
     protected Map<String, String> hookFunctions;
 
-    protected AbstractIdentityProviderConfig(String authority, String provider, String realm, T configMap) {
+    protected AbstractIdentityProviderConfig(String authority, String provider, String realm, M configMap) {
         super(authority, provider, realm, configMap);
         this.hookFunctions = Collections.emptyMap();
     }
@@ -30,16 +31,12 @@ public abstract class AbstractIdentityProviderConfig<T extends AbstractConfigMap
 
         this.icon = cp.getIcon();
 
+        this.linkable = cp.isLinkable();
         this.persistence = cp.getPersistence();
         this.events = cp.getEvents();
-        this.linkable = cp.isLinkable();
+        this.position = cp.getPosition();
 
         this.hookFunctions = (cp.getHookFunctions() != null ? cp.getHookFunctions() : Collections.emptyMap());
-    }
-
-    @Override
-    public final String getType() {
-        return SystemKeys.RESOURCE_IDENTITY;
     }
 
     public String getIcon() {
@@ -94,7 +91,7 @@ public abstract class AbstractIdentityProviderConfig<T extends AbstractConfigMap
         this.hookFunctions = hookFunctions;
     }
 
-    public ConfigurableIdentityProvider toConfigurableProvider() {
+    public ConfigurableIdentityProvider getConfigurable() {
         ConfigurableIdentityProvider cp = new ConfigurableIdentityProvider(getAuthority(),
                 getProvider(),
                 getRealm());

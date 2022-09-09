@@ -16,11 +16,11 @@ import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfig;
 import it.smartcommunitylab.aac.repository.ConfigMapConverter;
 
-public abstract class AbstractProviderConfig<T extends ConfigMap>
-        implements ProviderConfig<T>, ConfigurableProperties, Serializable {
+public abstract class AbstractProviderConfig<M extends ConfigMap, T extends ConfigurableProvider>
+        implements ProviderConfig<M, T>, ConfigurableProperties, Serializable {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
-    protected static ObjectMapper mapper = new ObjectMapper();
+    protected final static ObjectMapper mapper = new ObjectMapper();
     protected final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
     };
 
@@ -31,11 +31,11 @@ public abstract class AbstractProviderConfig<T extends ConfigMap>
     protected String name;
     protected String description;
 
-    protected T configMap;
+    protected M configMap;
 
-    protected final ConfigMapConverter<T> configMapConverter = new ConfigMapConverter<>();
+    protected final ConfigMapConverter<M> configMapConverter = new ConfigMapConverter<>();
 
-    protected AbstractProviderConfig(String authority, String provider, String realm, T configMap) {
+    protected AbstractProviderConfig(String authority, String provider, String realm, M configMap) {
         Assert.hasText(authority, "authority id is mandatory");
 
         this.authority = authority;
@@ -45,7 +45,7 @@ public abstract class AbstractProviderConfig<T extends ConfigMap>
         this.configMap = configMap;
     }
 
-    protected AbstractProviderConfig(ConfigurableProvider cp) {
+    protected AbstractProviderConfig(T cp) {
         this(cp.getAuthority(), cp.getProvider(), cp.getRealm(), null);
         this.name = cp.getName();
         this.description = cp.getDescription();
@@ -77,8 +77,6 @@ public abstract class AbstractProviderConfig<T extends ConfigMap>
         return provider;
     }
 
-    public abstract String getType();
-
     public String getName() {
         return name;
     }
@@ -95,11 +93,11 @@ public abstract class AbstractProviderConfig<T extends ConfigMap>
         this.description = description;
     }
 
-    public T getConfigMap() {
+    public M getConfigMap() {
         return configMap;
     }
 
-    public void setConfigMap(T configMap) {
+    public void setConfigMap(M configMap) {
         this.configMap = configMap;
     }
 
@@ -112,7 +110,7 @@ public abstract class AbstractProviderConfig<T extends ConfigMap>
 
     @Override
     public void setConfiguration(Map<String, Serializable> props) {
-        T map = configMapConverter.convert(props);
+        M map = configMapConverter.convert(props);
         setConfigMap(map);
     }
 

@@ -5,7 +5,7 @@ import java.util.Map;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 
-public interface IdentityProviderConfig<T extends ConfigMap> extends ProviderConfig<T> {
+public interface IdentityProviderConfig<M extends ConfigMap> extends ProviderConfig<M, ConfigurableIdentityProvider> {
     public String getIcon();
 
     public boolean isLinkable();
@@ -16,5 +16,4 @@ public interface IdentityProviderConfig<T extends ConfigMap> extends ProviderCon
 
     public Map<String, String> getHookFunctions();
 
-    public ConfigurableIdentityProvider toConfigurableProvider();
 }

@@ -129,27 +129,27 @@ public class InternalPasswordIdentityProviderConfig
     /*
      * config flags
      */
-    public static InternalPasswordIdentityProviderConfig fromConfigurableProvider(ConfigurableIdentityProvider cp) {
-        InternalPasswordIdentityProviderConfig ip = new InternalPasswordIdentityProviderConfig(cp.getProvider(),
-                cp.getRealm());
-        // parse and use setter to properly propagate config to super
-        InternalPasswordIdentityProviderConfigMap configMap = new InternalPasswordIdentityProviderConfigMap();
-        configMap.setConfiguration(cp.getConfiguration());
-        ip.setConfigMap(configMap);
-
-        ip.name = cp.getName();
-        ip.description = cp.getDescription();
-        ip.icon = cp.getIcon();
-
-        ip.linkable = cp.isLinkable();
-        ip.persistence = cp.getPersistence();
-        ip.events = cp.getEvents();
-        ip.position = cp.getPosition();
-
-        ip.hookFunctions = (cp.getHookFunctions() != null ? cp.getHookFunctions() : Collections.emptyMap());
-        return ip;
-    }
-    
+//    public static InternalPasswordIdentityProviderConfig fromConfigurableProvider(ConfigurableIdentityProvider cp) {
+//        InternalPasswordIdentityProviderConfig ip = new InternalPasswordIdentityProviderConfig(cp.getProvider(),
+//                cp.getRealm());
+//        // parse and use setter to properly propagate config to super
+//        InternalPasswordIdentityProviderConfigMap configMap = new InternalPasswordIdentityProviderConfigMap();
+//        configMap.setConfiguration(cp.getConfiguration());
+//        ip.setConfigMap(configMap);
+//
+//        ip.name = cp.getName();
+//        ip.description = cp.getDescription();
+//        ip.icon = cp.getIcon();
+//
+//        ip.linkable = cp.isLinkable();
+//        ip.persistence = cp.getPersistence();
+//        ip.events = cp.getEvents();
+//        ip.position = cp.getPosition();
+//
+//        ip.hookFunctions = (cp.getHookFunctions() != null ? cp.getHookFunctions() : Collections.emptyMap());
+//        return ip;
+//    }
+//    
     public boolean isEnableRegistration() {
         return configMap.getEnableRegistration() != null ? configMap.getEnableRegistration().booleanValue() : true;
     }

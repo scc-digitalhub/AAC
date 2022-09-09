@@ -15,23 +15,25 @@ import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.core.provider.IdentityProviderConfig;
 
 //@Service
 public class IdentityProviderAuthorityService extends
-        AbstractAuthorityService<IdentityProvider<UserIdentity>, ConfigurableIdentityProvider, IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>, ? extends AbstractProviderConfig<?>, ? extends ConfigMap>>
+        AbstractAuthorityService<IdentityProviderAuthority<?, ?, ?, ?>>
         implements InitializingBean {
 
     public IdentityProviderAuthorityService(
-            Collection<? extends IdentityProviderAuthority<? extends UserIdentity, ? extends IdentityProvider<? extends UserIdentity>, ? extends AbstractProviderConfig<?>, ? extends ConfigMap>> authorities) {
+//            Collection<IdentityProviderAuthority<IdentityProvider<? extends UserIdentity, ? extends ConfigMap, IdentityProviderConfig<?>>, ? extends UserIdentity, ? extends ConfigMap, IdentityProviderConfig<?>>> authorities) {
+            Collection<IdentityProviderAuthority<?, ?, ?, ?>> authorities) {
         super(SystemKeys.RESOURCE_IDENTITY);
 
-        @SuppressWarnings("unchecked")
-        Map<String, IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>, ? extends AbstractProviderConfig<?>, ? extends ConfigMap>> map = authorities
-                .stream()
-                .map(a -> (IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>, ? extends AbstractProviderConfig<?>, ? extends ConfigMap>) a)
-                .collect(Collectors.toMap(e -> e.getAuthorityId(), e -> e));
+////        @SuppressWarnings("unchecked")
+//        Map<String, IdentityProviderAuthority<IdentityProvider<? extends UserIdentity, ? extends ConfigMap, IdentityProviderConfig<?>>, ? extends UserIdentity, ? extends ConfigMap, IdentityProviderConfig<?>>> map = authorities
+//                .stream()
+////                .map(a -> (IdentityProviderAuthority<IdentityProvider<?>, IdentityProviderConfig<?>>) a)
+//                .collect(Collectors.toMap(e -> e.getAuthorityId(), e -> e));
 
-        this.setAuthorities(map.values());
+        this.setAuthorities(authorities);
     }
 
     @Override

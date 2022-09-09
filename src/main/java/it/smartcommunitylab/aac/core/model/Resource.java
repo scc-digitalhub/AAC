@@ -16,7 +16,10 @@ public interface Resource {
     public String getId();
 
     // uuid is global
-    public String getUuid();
+    // TODO move to RegisteredResource
+    default public String getUuid() {
+        return null;
+    }
 
     // TODO replace with proper typing <T> on resource
     public String getType();
@@ -24,7 +27,12 @@ public interface Resource {
     // resource is globally unique and addressable
     // ie given to an external actor he should be able to find the authority and
     // then the provider to request this resource
-    public String getResourceId();
+    // TODO move to AddressableResource
+    default public String getResourceId() {
+        return null;
+    }
 
-    public String getUrn();
+    default public String getUrn() {
+        return null;
+    }
 }

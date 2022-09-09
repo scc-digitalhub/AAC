@@ -17,12 +17,14 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
+import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
@@ -31,8 +33,8 @@ import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 
-public abstract class AbstractIdentityAuthority<I extends UserIdentity, S extends IdentityProvider<I, P>, C extends IdentityProviderConfig<P>, P extends ConfigMap>
-        implements IdentityProviderAuthority<I, S, C, P>, InitializingBean {
+public abstract class AbstractIdentityAuthority<S extends IdentityProvider<I, M, C>, I extends UserIdentity, M extends ConfigMap, C extends IdentityProviderConfig<M>>
+        implements IdentityProviderAuthority<S, I, M, C>, InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     protected final String authorityId;
@@ -44,7 +46,7 @@ public abstract class AbstractIdentityAuthority<I extends UserIdentity, S extend
     protected final SubjectService subjectService;
 
     // configuration provider
-    protected IdentityConfigurationProvider<C, P> configProvider;
+    protected IdentityConfigurationProvider<M, C> configProvider;
 
     // identity provider configs by id
     protected final ProviderConfigRepository<C> registrationRepository;
@@ -95,13 +97,13 @@ public abstract class AbstractIdentityAuthority<I extends UserIdentity, S extend
     }
 
     @Override
-    public IdentityConfigurationProvider<C, P> getConfigurationProvider() {
+    public IdentityConfigurationProvider<M, C> getConfigurationProvider() {
         return configProvider;
     }
 
     protected abstract S buildProvider(C config);
 
-    public void setConfigProvider(IdentityConfigurationProvider<C, P> configProvider) {
+    public void setConfigProvider(IdentityConfigurationProvider<M, C> configProvider) {
         Assert.notNull(configProvider, "config provider is mandatory");
         this.configProvider = configProvider;
     }
@@ -118,7 +120,7 @@ public abstract class AbstractIdentityAuthority<I extends UserIdentity, S extend
     }
 
     @Override
-    public S registerProvider(ConfigurableProvider cp) {
+    public S registerProvider(ConfigurableIdentityProvider cp) {
         // cast config and handle errors
         ConfigurableIdentityProvider cip = null;
         try {
@@ -185,7 +187,7 @@ public abstract class AbstractIdentityAuthority<I extends UserIdentity, S extend
     }
 
     @Override
-    public S getProvider(String providerId) {
+    public S findProvider(String providerId) {
         Assert.hasText(providerId, "provider id can not be null or empty");
 
         try {
@@ -196,11 +198,21 @@ public abstract class AbstractIdentityAuthority<I extends UserIdentity, S extend
     }
 
     @Override
-    public List<S> getProviders(
-            String realm) {
+    public S getProvider(String providerId) throws NoSuchProviderException {
+        Assert.hasText(providerId, "provider id can not be null or empty");
+        S p = findProvider(providerId);
+        if (p == null) {
+            throw new NoSuchProviderException();
+        }
+
+        return p;
+    }
+
+    @Override
+    public List<S> getProvidersByRealm(String realm) {
         // we need to fetch registrations and get idp from cache, with optional load
         Collection<C> registrations = registrationRepository.findByRealm(realm);
-        return registrations.stream().map(r -> getProvider(r.getProvider()))
+        return registrations.stream().map(r -> findProvider(r.getProvider()))
                 .filter(p -> (p != null)).collect(Collectors.toList());
     }
 

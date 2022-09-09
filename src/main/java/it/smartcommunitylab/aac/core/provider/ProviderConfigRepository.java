@@ -2,7 +2,7 @@ package it.smartcommunitylab.aac.core.provider;
 
 import java.util.Collection;
 
-public interface ProviderConfigRepository<T extends ProviderConfig<?>> {
+public interface ProviderConfigRepository<T extends ProviderConfig<?, ?>> {
 
     T findByProviderId(String providerId);
 

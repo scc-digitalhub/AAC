@@ -349,23 +349,23 @@ public class SamlIdentityProviderConfig extends AbstractIdentityProviderConfig<S
 //        return cp;
 //    }
 
-    public static SamlIdentityProviderConfig fromConfigurableProvider(ConfigurableIdentityProvider cp) {
-        SamlIdentityProviderConfig sp = new SamlIdentityProviderConfig(cp.getProvider(), cp.getRealm());
-        sp.setConfiguration(cp.getConfiguration());
-
-        sp.name = cp.getName();
-        sp.description = cp.getDescription();
-        sp.icon = cp.getIcon();
-
-        sp.linkable = cp.isLinkable();
-        sp.persistence = cp.getPersistence();
-        sp.events = cp.getEvents();
-        sp.position = cp.getPosition();
-
-        sp.hookFunctions = (cp.getHookFunctions() != null ? cp.getHookFunctions() : Collections.emptyMap());
-
-        return sp;
-
-    }
+//    public static SamlIdentityProviderConfig fromConfigurableProvider(ConfigurableIdentityProvider cp) {
+//        SamlIdentityProviderConfig sp = new SamlIdentityProviderConfig(cp.getProvider(), cp.getRealm());
+//        sp.setConfiguration(cp.getConfiguration());
+//
+//        sp.name = cp.getName();
+//        sp.description = cp.getDescription();
+//        sp.icon = cp.getIcon();
+//
+//        sp.linkable = cp.isLinkable();
+//        sp.persistence = cp.getPersistence();
+//        sp.events = cp.getEvents();
+//        sp.position = cp.getPosition();
+//
+//        sp.hookFunctions = (cp.getHookFunctions() != null ? cp.getHookFunctions() : Collections.emptyMap());
+//
+//        return sp;
+//
+//    }
 
 }

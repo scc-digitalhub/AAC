@@ -15,7 +15,7 @@ import it.smartcommunitylab.aac.attributes.store.PersistentAttributeStore;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityAuthority;
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
@@ -28,11 +28,10 @@ import it.smartcommunitylab.aac.saml.provider.SamlIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProvider;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfigMap;
-import it.smartcommunitylab.aac.saml.service.SamlUserAccountService;
 
 @Service
 public class SamlIdentityAuthority extends
-        AbstractIdentityAuthority<SamlUserIdentity, SamlIdentityProvider, SamlIdentityProviderConfig, SamlIdentityProviderConfigMap>
+        AbstractIdentityAuthority<SamlIdentityProvider, SamlUserIdentity, SamlIdentityProviderConfigMap, SamlIdentityProviderConfig>
         implements InitializingBean {
 
     public static final String AUTHORITY_URL = "/auth/saml/";
@@ -117,7 +116,7 @@ public class SamlIdentityAuthority extends
     }
 
     @Override
-    public SamlIdentityProvider registerProvider(ConfigurableProvider cp) {
+    public SamlIdentityProvider registerProvider(ConfigurableIdentityProvider cp) {
         if (cp != null
                 && getAuthorityId().equals(cp.getAuthority())
                 && SystemKeys.RESOURCE_IDENTITY.equals(cp.getType())) {

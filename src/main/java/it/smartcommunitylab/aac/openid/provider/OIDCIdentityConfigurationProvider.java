@@ -2,13 +2,10 @@ package it.smartcommunitylab.aac.openid.provider;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.config.AuthoritiesProperties;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 
 @Service
 public class OIDCIdentityConfigurationProvider extends
@@ -28,9 +25,8 @@ public class OIDCIdentityConfigurationProvider extends
     }
 
     @Override
-    protected OIDCIdentityProviderConfig buildConfig(ConfigurableProvider cp) {
-        Assert.isInstanceOf(ConfigurableIdentityProvider.class, cp);
-        return new OIDCIdentityProviderConfig((ConfigurableIdentityProvider) cp);
+    protected OIDCIdentityProviderConfig buildConfig(ConfigurableIdentityProvider cp) {
+        return new OIDCIdentityProviderConfig(cp);
     }
 
 }

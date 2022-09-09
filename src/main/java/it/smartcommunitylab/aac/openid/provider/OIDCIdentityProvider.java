@@ -23,7 +23,8 @@ import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 
 @Transactional
 public class OIDCIdentityProvider
-        extends AbstractIdentityProvider<OIDCUserIdentity, OIDCUserAccount, OIDCUserAuthenticatedPrincipal> {
+        extends
+        AbstractIdentityProvider<OIDCUserIdentity, OIDCUserAccount, OIDCUserAuthenticatedPrincipal, OIDCIdentityProviderConfigMap, OIDCIdentityProviderConfig> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // provider configuration

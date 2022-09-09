@@ -14,23 +14,23 @@ import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfig;
 import it.smartcommunitylab.aac.repository.ConfigMapConverter;
 
-public abstract class AbstractConfigurationProvider<T extends ConfigurableProvider, C extends ProviderConfig<P>, P extends AbstractConfigMap>
-        implements ConfigurationProvider<T, C, P> {
+public abstract class AbstractConfigurationProvider<M extends AbstractConfigMap, T extends ConfigurableProvider, C extends ProviderConfig<M, T>>
+        implements ConfigurationProvider<M, T, C> {
 
     protected final String authority;
-    protected final ConfigMapConverter<P> configMapConverter = new ConfigMapConverter<>();
-    protected P defaultConfigMap;
+    protected final ConfigMapConverter<M> configMapConverter = new ConfigMapConverter<>();
+    protected M defaultConfigMap;
 
     public AbstractConfigurationProvider(String authority) {
         Assert.hasText(authority, "authority id is mandatory");
         this.authority = authority;
     }
 
-    protected void setDefaultConfigMap(P defaultConfigMap) {
+    protected void setDefaultConfigMap(M defaultConfigMap) {
         this.defaultConfigMap = defaultConfigMap;
     }
 
-    protected abstract C buildConfig(ConfigurableProvider cp);
+    protected abstract C buildConfig(T cp);
 
     @Override
     public String getAuthority() {
@@ -38,7 +38,7 @@ public abstract class AbstractConfigurationProvider<T extends ConfigurableProvid
     }
 
     @Override
-    public C getConfig(ConfigurableProvider cp, boolean mergeDefault) {
+    public C getConfig(T cp, boolean mergeDefault) {
         if (mergeDefault && defaultConfigMap != null) {
             // merge configMap with default on missing values
             Map<String, Serializable> map = new HashMap<>();
@@ -57,17 +57,17 @@ public abstract class AbstractConfigurationProvider<T extends ConfigurableProvid
     }
 
     @Override
-    public C getConfig(ConfigurableProvider cp) {
+    public C getConfig(T cp) {
         return getConfig(cp, true);
     }
 
     @Override
-    public P getDefaultConfigMap() {
+    public M getDefaultConfigMap() {
         return defaultConfigMap;
     }
 
     @Override
-    public P getConfigMap(Map<String, Serializable> map) {
+    public M getConfigMap(Map<String, Serializable> map) {
         // return a valid config from props
         return configMapConverter.convert(map);
     }

@@ -16,7 +16,7 @@ import it.smartcommunitylab.aac.core.model.UserCredentials;
  * TODO evaluate supporting multiple ids (from different authorities)
  */
 
-public interface UserCredentialsService<C extends UserCredentials> extends ResourceProvider {
+public interface UserCredentialsService<C extends UserCredentials> extends ResourceProvider<UserCredentials> {
 
     /*
      * Config

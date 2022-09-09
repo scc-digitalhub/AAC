@@ -88,24 +88,24 @@ public class WebAuthnIdentityProviderConfig extends AbstractIdentityProviderConf
     /*
      * Static parser
      */
-    public static WebAuthnIdentityProviderConfig fromConfigurableProvider(ConfigurableIdentityProvider cp) {
-        WebAuthnIdentityProviderConfig ip = new WebAuthnIdentityProviderConfig(cp.getProvider(), cp.getRealm());
-        ip.configMap = new WebAuthnIdentityProviderConfigMap();
-        ip.configMap.setConfiguration(cp.getConfiguration());
-
-        ip.name = cp.getName();
-        ip.description = cp.getDescription();
-        ip.icon = cp.getIcon();
-
-        ip.linkable = cp.isLinkable();
-        ip.persistence = cp.getPersistence();
-        ip.events = cp.getEvents();
-        ip.position = cp.getPosition();
-
-        ip.hookFunctions = (cp.getHookFunctions() != null ? cp.getHookFunctions() : Collections.emptyMap());
-        return ip;
-    }
-    
+//    public static WebAuthnIdentityProviderConfig fromConfigurableProvider(ConfigurableIdentityProvider cp) {
+//        WebAuthnIdentityProviderConfig ip = new WebAuthnIdentityProviderConfig(cp.getProvider(), cp.getRealm());
+//        ip.configMap = new WebAuthnIdentityProviderConfigMap();
+//        ip.configMap.setConfiguration(cp.getConfiguration());
+//
+//        ip.name = cp.getName();
+//        ip.description = cp.getDescription();
+//        ip.icon = cp.getIcon();
+//
+//        ip.linkable = cp.isLinkable();
+//        ip.persistence = cp.getPersistence();
+//        ip.events = cp.getEvents();
+//        ip.position = cp.getPosition();
+//
+//        ip.hookFunctions = (cp.getHookFunctions() != null ? cp.getHookFunctions() : Collections.emptyMap());
+//        return ip;
+//    }
+//    
     public InternalIdentityProviderConfig toInternalProviderConfig() {
         InternalIdentityProviderConfig ip = new InternalIdentityProviderConfig(SystemKeys.AUTHORITY_WEBAUTHN,
                 getProvider(),

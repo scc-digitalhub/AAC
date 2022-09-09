@@ -4,8 +4,8 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 
-public interface IdentityConfigurationProvider<C extends IdentityProviderConfig<P>, P extends ConfigMap>
-        extends ConfigurationProvider<ConfigurableIdentityProvider, C, P> {
+public interface IdentityConfigurationProvider<M extends ConfigMap, C extends IdentityProviderConfig<M>>
+        extends ConfigurationProvider<M, ConfigurableIdentityProvider, C> {
 
     default public String getType() {
         return SystemKeys.RESOURCE_IDENTITY;

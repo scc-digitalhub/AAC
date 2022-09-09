@@ -221,27 +221,27 @@ public class OIDCIdentityProviderConfig extends AbstractIdentityProviderConfig<O
 //
 //        return cp;
 //    }
+//
+//    public static OIDCIdentityProviderConfig fromConfigurableProvider(ConfigurableIdentityProvider cp) {
+//        OIDCIdentityProviderConfig op = new OIDCIdentityProviderConfig(cp.getAuthority(), cp.getProvider(),
+//                cp.getRealm());
+//        op.configMap = new OIDCIdentityProviderConfigMap();
+//        op.configMap.setConfiguration(cp.getConfiguration());
+//
+//        op.name = cp.getName();
+//        op.description = cp.getDescription();
+//        op.icon = cp.getIcon();
+//
+//        op.linkable = cp.isLinkable();
+//        op.persistence = cp.getPersistence();
+//        op.events = cp.getEvents();
+//        op.position = cp.getPosition();
+//
+//        op.hookFunctions = (cp.getHookFunctions() != null ? cp.getHookFunctions() : Collections.emptyMap());
+//
+//        return op;
+//    }
 
-    public static OIDCIdentityProviderConfig fromConfigurableProvider(ConfigurableIdentityProvider cp) {
-        OIDCIdentityProviderConfig op = new OIDCIdentityProviderConfig(cp.getAuthority(), cp.getProvider(),
-                cp.getRealm());
-        op.configMap = new OIDCIdentityProviderConfigMap();
-        op.configMap.setConfiguration(cp.getConfiguration());
-
-        op.name = cp.getName();
-        op.description = cp.getDescription();
-        op.icon = cp.getIcon();
-
-        op.linkable = cp.isLinkable();
-        op.persistence = cp.getPersistence();
-        op.events = cp.getEvents();
-        op.position = cp.getPosition();
-
-        op.hookFunctions = (cp.getHookFunctions() != null ? cp.getHookFunctions() : Collections.emptyMap());
-
-        return op;
-    }
-    
     public String getRedirectUrl() {
         return "{baseUrl}" + getAuthority() + "{action}/{registrationId}";
     }

@@ -1,6 +1,8 @@
 package it.smartcommunitylab.aac.core.provider;
 
-public interface ResourceProvider {
+import it.smartcommunitylab.aac.core.model.Resource;
+
+public interface ResourceProvider<R extends Resource> {
     /*
      * identify this provider
      */
