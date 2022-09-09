@@ -16,21 +16,21 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.DataBinder;
+import org.springframework.validation.SmartValidator;
 
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.attributes.provider.MapperAttributeProviderConfigMap;
-import it.smartcommunitylab.aac.attributes.provider.ScriptAttributeProviderConfigMap;
-import it.smartcommunitylab.aac.attributes.provider.WebhookAttributeProviderConfigMap;
+import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.persistence.AttributeProviderEntity;
-import it.smartcommunitylab.aac.internal.provider.InternalAttributeProviderConfigMap;
+import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 
 @Service
 public class AttributeProviderService {
@@ -38,6 +38,12 @@ public class AttributeProviderService {
 
     @Autowired
     private AttributeProviderEntityService providerService;
+
+    @Autowired
+    private AttributeProviderAuthorityService authorityService;
+
+    @Autowired
+    private SmartValidator validator;
 
     public AttributeProviderService() {
     }
@@ -74,7 +80,8 @@ public class AttributeProviderService {
     }
 
     public ConfigurableAttributeProvider addProvider(String realm,
-            ConfigurableAttributeProvider provider) throws RegistrationException, SystemException {
+            ConfigurableAttributeProvider provider)
+            throws RegistrationException, SystemException, NoSuchAuthorityException {
 
         if (SystemKeys.REALM_GLOBAL.equals(realm) || SystemKeys.REALM_SYSTEM.equals(realm)) {
             // we do not persist in db global providers
@@ -146,27 +153,25 @@ public class AttributeProviderService {
 
         Collection<String> attributeSets = provider.getAttributeSets();
 
-        Map<String, Serializable> configuration = null;
-        if (SystemKeys.RESOURCE_ATTRIBUTES.equals(type)) {
+        // we validate config by converting to specific configMap
+        ConfigurationProvider<?, ConfigurableAttributeProvider, ?> configProvider = authorityService
+                .getAuthority(authority).getConfigurationProvider();
 
-            // we validate config by converting to specific configMap
-            ConfigurableProperties configurable = null;
-            if (SystemKeys.AUTHORITY_INTERNAL.equals(authority)) {
-                configurable = new InternalAttributeProviderConfigMap();
-            } else if (SystemKeys.AUTHORITY_MAPPER.equals(authority)) {
-                configurable = new MapperAttributeProviderConfigMap();
-            } else if (SystemKeys.AUTHORITY_SCRIPT.equals(authority)) {
-                configurable = new ScriptAttributeProviderConfigMap();
-            } else if (SystemKeys.AUTHORITY_WEBHOOK.equals(authority)) {
-                configurable = new WebhookAttributeProviderConfigMap();
-            }
-            if (configurable == null) {
-                throw new IllegalArgumentException("invalid configuration");
-            }
+        ConfigMap configurable = configProvider.getConfigMap(provider.getConfiguration());
 
-            configurable.setConfiguration(provider.getConfiguration());
-            configuration = configurable.getConfiguration();
+        // check with validator
+        DataBinder binder = new DataBinder(configurable);
+        validator.validate(configurable, binder.getBindingResult());
+        if (binder.getBindingResult().hasErrors()) {
+            StringBuilder sb = new StringBuilder();
+            binder.getBindingResult().getFieldErrors().forEach(e -> {
+                sb.append(e.getField()).append(" ").append(e.getDefaultMessage());
+            });
+            String errorMsg = sb.toString();
+            throw new RegistrationException(errorMsg);
         }
+
+        Map<String, Serializable> configuration = configurable.getConfiguration();
 
         AttributeProviderEntity pe = providerService.addAttributeProvider(
                 authority, providerId, realm,
@@ -181,7 +186,7 @@ public class AttributeProviderService {
 
     public ConfigurableAttributeProvider updateProvider(
             String providerId, ConfigurableAttributeProvider provider)
-            throws NoSuchProviderException {
+            throws NoSuchProviderException, NoSuchAuthorityException {
         AttributeProviderEntity pe = providerService.getAttributeProvider(providerId);
 
         if (StringUtils.hasText(provider.getProvider()) && !providerId.equals(provider.getProvider())) {
@@ -227,27 +232,27 @@ public class AttributeProviderService {
 
         boolean enabled = provider.isEnabled();
 
-        Map<String, Serializable> configuration = null;
-
         String authority = pe.getAuthority();
 
         // we validate config by converting to specific configMap
-        ConfigurableProperties configurable = null;
-        if (SystemKeys.AUTHORITY_INTERNAL.equals(authority)) {
-            configurable = new InternalAttributeProviderConfigMap();
-        } else if (SystemKeys.AUTHORITY_MAPPER.equals(authority)) {
-            configurable = new MapperAttributeProviderConfigMap();
-        } else if (SystemKeys.AUTHORITY_SCRIPT.equals(authority)) {
-            configurable = new ScriptAttributeProviderConfigMap();
-        } else if (SystemKeys.AUTHORITY_WEBHOOK.equals(authority)) {
-            configurable = new WebhookAttributeProviderConfigMap();
-        }
-        if (configurable == null) {
-            throw new IllegalArgumentException("invalid configuration");
+        ConfigurationProvider<?, ConfigurableAttributeProvider, ?> configProvider = authorityService
+                .getAuthority(authority).getConfigurationProvider();
+
+        ConfigurableProperties configurable = configProvider.getConfigMap(provider.getConfiguration());
+
+        // check with validator
+        DataBinder binder = new DataBinder(configurable);
+        validator.validate(configurable, binder.getBindingResult());
+        if (binder.getBindingResult().hasErrors()) {
+            StringBuilder sb = new StringBuilder();
+            binder.getBindingResult().getFieldErrors().forEach(e -> {
+                sb.append(e.getField()).append(" ").append(e.getDefaultMessage());
+            });
+            String errorMsg = sb.toString();
+            throw new RegistrationException(errorMsg);
         }
 
-        configurable.setConfiguration(provider.getConfiguration());
-        configuration = configurable.getConfiguration();
+        Map<String, Serializable> configuration = configurable.getConfiguration();
 
         // update: even when enabled this provider won't be active until registration
         pe = providerService.updateAttributeProvider(providerId,
@@ -272,23 +277,20 @@ public class AttributeProviderService {
      * Configuration schemas
      */
 
-    public JsonSchema getConfigurationSchema(String authority) {
-        try {
-            if (SystemKeys.AUTHORITY_INTERNAL.equals(authority)) {
-                return InternalAttributeProviderConfigMap.getConfigurationSchema();
-            } else if (SystemKeys.AUTHORITY_MAPPER.equals(authority)) {
-                return MapperAttributeProviderConfigMap.getConfigurationSchema();
-            } else if (SystemKeys.AUTHORITY_SCRIPT.equals(authority)) {
-                return ScriptAttributeProviderConfigMap.getConfigurationSchema();
-            } else if (SystemKeys.AUTHORITY_WEBHOOK.equals(authority)) {
-                return WebhookAttributeProviderConfigMap.getConfigurationSchema();
-            }
-        } catch (JsonMappingException e) {
-            e.printStackTrace();
-            return null;
-        }
+    /*
+     * Configuration schemas
+     */
 
-        throw new IllegalArgumentException("invalid authority");
+    public ConfigurableProperties getConfigurableProperties(String authority) throws NoSuchAuthorityException {
+        ConfigurationProvider<?, ConfigurableAttributeProvider, ?> configProvider = authorityService
+                .getAuthority(authority).getConfigurationProvider();
+        return configProvider.getDefaultConfigMap();
+    }
+
+    public JsonSchema getConfigurationSchema(String authority) throws NoSuchAuthorityException {
+        ConfigurationProvider<?, ConfigurableAttributeProvider, ?> configProvider = authorityService
+                .getAuthority(authority).getConfigurationProvider();
+        return configProvider.getSchema();
     }
 
     /*
