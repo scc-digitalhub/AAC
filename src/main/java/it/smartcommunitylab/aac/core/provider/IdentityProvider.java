@@ -31,8 +31,6 @@ public interface IdentityProvider<I extends UserIdentity, M extends ConfigMap, C
 
     public String getDescription();
 
-    public C getConfig();
-
     /*
      * Authoritative for the given identity model
      * 

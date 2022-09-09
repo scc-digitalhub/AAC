@@ -18,7 +18,7 @@ import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.IdentityAttributeProvider;
 
 public abstract class AbstractIdentityAttributeProvider<P extends UserAuthenticatedPrincipal, U extends UserAccount>
-        extends AbstractProvider
+        extends AbstractProvider<UserAttributes>
         implements IdentityAttributeProvider<P, U> {
 
     // services

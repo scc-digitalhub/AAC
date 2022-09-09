@@ -17,13 +17,15 @@ import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
 import it.smartcommunitylab.aac.core.model.Attribute;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
+import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.persistence.InternalAttributeEntity;
 import it.smartcommunitylab.aac.internal.service.InternalAttributeEntityService;
 
-public class InternalAttributeService extends AbstractProvider
-        implements it.smartcommunitylab.aac.core.provider.AttributeService {
+public class InternalAttributeService extends AbstractProvider<UserAttributes>
+        implements
+        it.smartcommunitylab.aac.core.provider.AttributeService<InternalAttributeProviderConfigMap, InternalAttributeProviderConfig> {
 
     public static final String ATTRIBUTE_MAPPING_FUNCTION = "attributeMapping";
 
@@ -72,6 +74,16 @@ public class InternalAttributeService extends AbstractProvider
     @Override
     public String getDescription() {
         return providerConfig.getDescription();
+    }
+
+    @Override
+    public InternalAttributeProviderConfig getConfig() {
+        return providerConfig;
+    }
+
+    @Override
+    public ConfigurableAttributeProvider getConfigurable() {
+        return providerConfig.getConfigurable();
     }
 
     @Override

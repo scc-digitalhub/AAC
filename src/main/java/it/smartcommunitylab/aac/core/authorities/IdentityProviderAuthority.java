@@ -3,15 +3,12 @@ package it.smartcommunitylab.aac.core.authorities;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
-import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
-import it.smartcommunitylab.aac.core.provider.IdentityConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProviderConfig;
 
 public interface IdentityProviderAuthority<S extends IdentityProvider<I, M, C>, I extends UserIdentity, M extends ConfigMap, C extends IdentityProviderConfig<M>>
-        extends
-        ProviderAuthority<S, UserIdentity, ConfigurableIdentityProvider, M, C> {
+        extends ProviderAuthority<S, UserIdentity, ConfigurableIdentityProvider, M, C> {
 
     /*
      * Filter provider exposes auth filters for registration in filter chain

@@ -1,12 +1,13 @@
 package it.smartcommunitylab.aac.core.authorities;
 
 import it.smartcommunitylab.aac.core.model.ConfigMap;
-import it.smartcommunitylab.aac.core.provider.AttributeConfigurationProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.AttributeProviderConfig;
 
-public interface AttributeProviderAuthority<S extends AttributeProvider<P>, C extends AttributeProviderConfig<P>, P extends ConfigMap>
-        extends ProviderAuthority<S> {
+public interface AttributeProviderAuthority<S extends AttributeProvider<M, C>, M extends ConfigMap, C extends AttributeProviderConfig<M>>
+        extends ProviderAuthority<S, UserAttributes, ConfigurableAttributeProvider, M, C> {
 
 //    
 //    /*
@@ -44,5 +45,5 @@ public interface AttributeProviderAuthority<S extends AttributeProvider<P>, C ex
     /*
      * Config provider exposes configuration validation and schema
      */
-    public AttributeConfigurationProvider<C, P> getConfigurationProvider();
+//    public AttributeConfigurationProvider<C, P> getConfigurationProvider();
 }

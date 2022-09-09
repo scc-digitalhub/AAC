@@ -7,8 +7,9 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.provider.AttributeProviderConfig;
 
-public abstract class AbstractAttributeProviderConfig<T extends AbstractConfigMap> extends AbstractProviderConfig<T>
-        implements AttributeProviderConfig<T> {
+public abstract class AbstractAttributeProviderConfig<M extends AbstractConfigMap>
+        extends AbstractProviderConfig<M, ConfigurableAttributeProvider>
+        implements AttributeProviderConfig<M> {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     protected String persistence;
@@ -16,7 +17,7 @@ public abstract class AbstractAttributeProviderConfig<T extends AbstractConfigMa
 
     protected Set<String> attributeSets;
 
-    protected AbstractAttributeProviderConfig(String authority, String provider, String realm, T configMap) {
+    protected AbstractAttributeProviderConfig(String authority, String provider, String realm, M configMap) {
         super(authority, provider, realm, configMap);
         this.attributeSets = Collections.emptySet();
     }
@@ -59,7 +60,8 @@ public abstract class AbstractAttributeProviderConfig<T extends AbstractConfigMa
         this.attributeSets = attributeSets;
     }
 
-    public ConfigurableAttributeProvider toConfigurableProvider() {
+    @Override
+    public ConfigurableAttributeProvider getConfigurable() {
         ConfigurableAttributeProvider cp = new ConfigurableAttributeProvider(getAuthority(),
                 getProvider(),
                 getRealm());

@@ -3,8 +3,11 @@ package it.smartcommunitylab.aac.core.provider;
 import java.util.Collection;
 
 import it.smartcommunitylab.aac.core.model.ConfigMap;
+import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.core.model.UserIdentity;
 
 /*
  * An attribute provider offers:
@@ -25,7 +28,8 @@ import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
  *  
  *  they should not handle identities
  */
-public interface AttributeProvider<P extends ConfigMap> extends ResourceProvider {
+public interface AttributeProvider<M extends ConfigMap, C extends AttributeProviderConfig<M>>
+        extends ConfigurableResourceProvider<UserAttributes, ConfigurableAttributeProvider, M, C> {
 
     /*
      * Config
@@ -33,8 +37,6 @@ public interface AttributeProvider<P extends ConfigMap> extends ResourceProvider
     public String getName();
 
     public String getDescription();
-
-    public AttributeProviderConfig<P> getConfig();
 
     /*
      * Attribute sets (for scopes)

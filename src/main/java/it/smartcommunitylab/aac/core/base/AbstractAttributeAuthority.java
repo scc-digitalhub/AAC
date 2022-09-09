@@ -18,23 +18,18 @@ import com.google.common.util.concurrent.UncheckedExecutionException;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
-import it.smartcommunitylab.aac.attributes.store.AttributeStore;
-import it.smartcommunitylab.aac.attributes.store.AutoJdbcAttributeStore;
-import it.smartcommunitylab.aac.attributes.store.InMemoryAttributeStore;
-import it.smartcommunitylab.aac.attributes.store.NullAttributeStore;
-import it.smartcommunitylab.aac.attributes.store.PersistentAttributeStore;
+import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.authorities.AttributeProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.AttributeConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.AttributeProviderConfig;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 
-public abstract class AbstractAttributeAuthority<S extends AttributeProvider<P>, C extends AttributeProviderConfig<P>, P extends ConfigMap>
-        implements AttributeProviderAuthority<S, C, P>, InitializingBean {
+public abstract class AbstractAttributeAuthority<S extends AttributeProvider<M, C>, M extends ConfigMap, C extends AttributeProviderConfig<M>>
+        implements AttributeProviderAuthority<S, M, C>, InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     protected final String authorityId;
@@ -42,11 +37,8 @@ public abstract class AbstractAttributeAuthority<S extends AttributeProvider<P>,
     // attributes sets service
     protected final AttributeService attributeService;
 
-    // system attributes store
-    protected final AutoJdbcAttributeStore jdbcAttributeStore;
-
     // configuration provider
-    protected AttributeConfigurationProvider<C, P> configProvider;
+    protected AttributeConfigurationProvider<M, C> configProvider;
 
     // attribute provider configs by id
     protected final ProviderConfigRepository<C> registrationRepository;
@@ -69,16 +61,14 @@ public abstract class AbstractAttributeAuthority<S extends AttributeProvider<P>,
 
     public AbstractAttributeAuthority(
             String authorityId,
-            AttributeService attributeService, AutoJdbcAttributeStore jdbcAttributeStore,
+            AttributeService attributeService,
             ProviderConfigRepository<C> registrationRepository) {
         Assert.hasText(authorityId, "authority id  is mandatory");
         Assert.notNull(attributeService, "attribute service is mandatory");
-        Assert.notNull(jdbcAttributeStore, "attribute store is mandatory");
         Assert.notNull(registrationRepository, "provider registration repository is mandatory");
 
         this.authorityId = authorityId;
         this.attributeService = attributeService;
-        this.jdbcAttributeStore = jdbcAttributeStore;
         this.registrationRepository = registrationRepository;
     }
 
@@ -88,13 +78,13 @@ public abstract class AbstractAttributeAuthority<S extends AttributeProvider<P>,
     }
 
     @Override
-    public AttributeConfigurationProvider<C, P> getConfigurationProvider() {
+    public AttributeConfigurationProvider<M, C> getConfigurationProvider() {
         return configProvider;
     }
 
     protected abstract S buildProvider(C config);
 
-    public void setConfigProvider(AttributeConfigurationProvider<C, P> configProvider) {
+    public void setConfigProvider(AttributeConfigurationProvider<M, C> configProvider) {
         Assert.notNull(configProvider, "config provider is mandatory");
         this.configProvider = configProvider;
     }
@@ -111,16 +101,16 @@ public abstract class AbstractAttributeAuthority<S extends AttributeProvider<P>,
     }
 
     @Override
-    public S registerProvider(ConfigurableProvider cp) {
-        // cast config and handle errors
-        ConfigurableAttributeProvider cap = null;
-        try {
-            ConfigurableAttributeProvider c = (ConfigurableAttributeProvider) cp;
-            cap = c;
-        } catch (ClassCastException e) {
-            logger.error("Wrong config class: " + e.getMessage());
-            throw new IllegalArgumentException("unsupported config");
-        }
+    public S registerProvider(ConfigurableAttributeProvider cap) {
+//        // cast config and handle errors
+//        ConfigurableAttributeProvider cap = null;
+//        try {
+//            ConfigurableAttributeProvider c = (ConfigurableAttributeProvider) cp;
+//            cap = c;
+//        } catch (ClassCastException e) {
+//            logger.error("Wrong config class: " + e.getMessage());
+//            throw new IllegalArgumentException("unsupported config");
+//        }
 
         // we support only attribute provider as resource providers
         if (cap != null
@@ -178,7 +168,7 @@ public abstract class AbstractAttributeAuthority<S extends AttributeProvider<P>,
     }
 
     @Override
-    public S getProvider(String providerId) {
+    public S findProvider(String providerId) {
         Assert.hasText(providerId, "provider id can not be null or empty");
 
         try {
@@ -189,28 +179,23 @@ public abstract class AbstractAttributeAuthority<S extends AttributeProvider<P>,
     }
 
     @Override
-    public List<S> getProviders(
+    public S getProvider(String providerId) throws NoSuchProviderException {
+        Assert.hasText(providerId, "provider id can not be null or empty");
+        S p = findProvider(providerId);
+        if (p == null) {
+            throw new NoSuchProviderException();
+        }
+
+        return p;
+    }
+
+    @Override
+    public List<S> getProvidersByRealm(
             String realm) {
         // we need to fetch registrations and get idp from cache, with optional load
         Collection<C> registrations = registrationRepository.findByRealm(realm);
-        return registrations.stream().map(r -> getProvider(r.getProvider()))
+        return registrations.stream().map(r -> findProvider(r.getProvider()))
                 .filter(p -> (p != null)).collect(Collectors.toList());
-    }
-
-    /*
-     * helpers
-     */
-
-    protected AttributeStore getAttributeStore(String providerId, String persistence) {
-        // we generate a new store for each provider
-        AttributeStore store = new NullAttributeStore();
-        if (SystemKeys.PERSISTENCE_LEVEL_REPOSITORY.equals(persistence)) {
-            store = new PersistentAttributeStore(getAuthorityId(), providerId, jdbcAttributeStore);
-        } else if (SystemKeys.PERSISTENCE_LEVEL_MEMORY.equals(persistence)) {
-            store = new InMemoryAttributeStore(getAuthorityId(), providerId);
-        }
-
-        return store;
     }
 
 }

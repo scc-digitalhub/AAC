@@ -22,9 +22,7 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
-import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
@@ -120,16 +118,16 @@ public abstract class AbstractIdentityAuthority<S extends IdentityProvider<I, M,
     }
 
     @Override
-    public S registerProvider(ConfigurableIdentityProvider cp) {
-        // cast config and handle errors
-        ConfigurableIdentityProvider cip = null;
-        try {
-            ConfigurableIdentityProvider c = (ConfigurableIdentityProvider) cp;
-            cip = c;
-        } catch (ClassCastException e) {
-            logger.error("Wrong config class: " + e.getMessage());
-            throw new IllegalArgumentException("unsupported config");
-        }
+    public S registerProvider(ConfigurableIdentityProvider cip) {
+//        // cast config and handle errors
+//        ConfigurableIdentityProvider cip = null;
+//        try {
+//            ConfigurableIdentityProvider c = (ConfigurableIdentityProvider) cp;
+//            cip = c;
+//        } catch (ClassCastException e) {
+//            logger.error("Wrong config class: " + e.getMessage());
+//            throw new IllegalArgumentException("unsupported config");
+//        }
 
         // we support only identity provider as resource providers
         if (cip != null

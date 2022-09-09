@@ -6,6 +6,7 @@ import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 
 public interface IdentityProviderConfig<M extends ConfigMap> extends ProviderConfig<M, ConfigurableIdentityProvider> {
+
     public String getIcon();
 
     public boolean isLinkable();

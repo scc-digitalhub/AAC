@@ -91,6 +91,7 @@ public abstract class AbstractIdentityProviderConfig<M extends AbstractConfigMap
         this.hookFunctions = hookFunctions;
     }
 
+    @Override
     public ConfigurableIdentityProvider getConfigurable() {
         ConfigurableIdentityProvider cp = new ConfigurableIdentityProvider(getAuthority(),
                 getProvider(),

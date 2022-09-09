@@ -10,24 +10,32 @@ import it.smartcommunitylab.aac.attributes.provider.ScriptAttributeProviderConfi
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
 import it.smartcommunitylab.aac.attributes.store.AttributeStore;
 import it.smartcommunitylab.aac.attributes.store.AutoJdbcAttributeStore;
+import it.smartcommunitylab.aac.attributes.store.InMemoryAttributeStore;
+import it.smartcommunitylab.aac.attributes.store.NullAttributeStore;
+import it.smartcommunitylab.aac.attributes.store.PersistentAttributeStore;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.core.base.AbstractAttributeAuthority;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 
 @Service
 public class ScriptAttributeAuthority extends
-        AbstractAttributeAuthority<ScriptAttributeProvider, ScriptAttributeProviderConfig, ScriptAttributeProviderConfigMap> {
+        AbstractAttributeAuthority<ScriptAttributeProvider, ScriptAttributeProviderConfigMap, ScriptAttributeProviderConfig> {
 
     // execution service for custom attributes mapping
     private final ScriptExecutionService executionService;
+
+    // system attributes store
+    protected final AutoJdbcAttributeStore jdbcAttributeStore;
 
     public ScriptAttributeAuthority(
             AttributeService attributeService, ScriptExecutionService executionService,
             AutoJdbcAttributeStore jdbcAttributeStore,
             ProviderConfigRepository<ScriptAttributeProviderConfig> registrationRepository) {
-        super(SystemKeys.AUTHORITY_SCRIPT, attributeService, jdbcAttributeStore, registrationRepository);
+        super(SystemKeys.AUTHORITY_SCRIPT, attributeService, registrationRepository);
         Assert.notNull(executionService, "script execution service is mandatory");
+        Assert.notNull(jdbcAttributeStore, "attribute store is mandatory");
 
+        this.jdbcAttributeStore = jdbcAttributeStore;
         this.executionService = executionService;
     }
 
@@ -45,4 +53,19 @@ public class ScriptAttributeAuthority extends
         return ap;
     }
 
+    /*
+     * helpers
+     */
+
+    protected AttributeStore getAttributeStore(String providerId, String persistence) {
+        // we generate a new store for each provider
+        AttributeStore store = new NullAttributeStore();
+        if (SystemKeys.PERSISTENCE_LEVEL_REPOSITORY.equals(persistence)) {
+            store = new PersistentAttributeStore(getAuthorityId(), providerId, jdbcAttributeStore);
+        } else if (SystemKeys.PERSISTENCE_LEVEL_MEMORY.equals(persistence)) {
+            store = new InMemoryAttributeStore(getAuthorityId(), providerId);
+        }
+
+        return store;
+    }
 }

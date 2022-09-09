@@ -26,12 +26,13 @@ import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
 import it.smartcommunitylab.aac.core.model.Attribute;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
+import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 
-public class MapperAttributeProvider extends AbstractProvider
-        implements AttributeProvider<MapperAttributeProviderConfigMap> {
+public class MapperAttributeProvider extends AbstractProvider<UserAttributes>
+        implements AttributeProvider<MapperAttributeProviderConfigMap, MapperAttributeProviderConfig> {
 
     // services
     private final AttributeService attributeService;
@@ -88,6 +89,11 @@ public class MapperAttributeProvider extends AbstractProvider
     @Override
     public MapperAttributeProviderConfig getConfig() {
         return providerConfig;
+    }
+
+    @Override
+    public ConfigurableAttributeProvider getConfigurable() {
+        return providerConfig.getConfigurable();
     }
 
     @Override
