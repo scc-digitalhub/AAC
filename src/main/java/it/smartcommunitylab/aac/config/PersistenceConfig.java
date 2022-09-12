@@ -33,10 +33,8 @@ import it.smartcommunitylab.aac.claims.InMemoryExtractorsRegistry;
 import it.smartcommunitylab.aac.claims.ResourceClaimsExtractorProvider;
 import it.smartcommunitylab.aac.claims.ScopeClaimsExtractorProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.core.provider.ProviderRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.InMemoryProviderConfigRepository;
-import it.smartcommunitylab.aac.core.service.InMemoryProviderRepository;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountRepository;
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeProviderConfig;
@@ -91,7 +89,7 @@ public class PersistenceConfig {
         return yamlObjectMapper;
     }
 
-    @Bean
+//    @Bean
     public YAMLFactory yamlFactory() {
         class CustomYAMLFactory extends YAMLFactory {
             private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
@@ -238,23 +236,23 @@ public class PersistenceConfig {
     }
 
     @Bean
-    public ProviderRepository<MapperAttributeProviderConfig> mapperProviderConfigRepository() {
-        return new InMemoryProviderRepository<MapperAttributeProviderConfig>();
+    public ProviderConfigRepository<MapperAttributeProviderConfig> mapperProviderConfigRepository() {
+        return new InMemoryProviderConfigRepository<MapperAttributeProviderConfig>();
     }
 
     @Bean
-    public ProviderRepository<ScriptAttributeProviderConfig> scriptProviderConfigRepository() {
-        return new InMemoryProviderRepository<ScriptAttributeProviderConfig>();
+    public ProviderConfigRepository<ScriptAttributeProviderConfig> scriptProviderConfigRepository() {
+        return new InMemoryProviderConfigRepository<ScriptAttributeProviderConfig>();
     }
 
     @Bean
-    public ProviderRepository<InternalAttributeProviderConfig> internalAttributeProviderConfigRepository() {
-        return new InMemoryProviderRepository<InternalAttributeProviderConfig>();
+    public ProviderConfigRepository<InternalAttributeProviderConfig> internalAttributeProviderConfigRepository() {
+        return new InMemoryProviderConfigRepository<InternalAttributeProviderConfig>();
     }
 
     @Bean
-    public ProviderRepository<WebhookAttributeProviderConfig> webhookAttributeProviderConfigRepository() {
-        return new InMemoryProviderRepository<WebhookAttributeProviderConfig>();
+    public ProviderConfigRepository<WebhookAttributeProviderConfig> webhookAttributeProviderConfigRepository() {
+        return new InMemoryProviderConfigRepository<WebhookAttributeProviderConfig>();
     }
 
 }

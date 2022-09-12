@@ -21,10 +21,11 @@ import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
-import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.core.service.AttributeProviderAuthorityService;
 import it.smartcommunitylab.aac.core.service.AttributeProviderService;
+import it.smartcommunitylab.aac.core.service.IdentityProviderAuthorityService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderService;
 import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.model.Realm;
@@ -44,17 +45,16 @@ public class ProviderManager {
     @Autowired
     private RealmService realmService;
 
-    // TODO cleanup usage of authorityManager here
-    // either move to authorityService or link controllers directly
     @Autowired
-    private AuthorityManager authorityManager;
+    private IdentityProviderAuthorityService identityProviderAuthorityService;
+
+    @Autowired
+    private AttributeProviderAuthorityService attributeProviderAuthorityService;
 
     /*
      * Public API: realm providers only.
      * 
      * For global providers we enable only a subset of features (RO)
-     * 
-     * TODO add permissions
      */
     public Collection<ConfigurableProvider> listProviders(String realm) throws NoSuchRealmException {
         List<ConfigurableProvider> providers = new ArrayList<>();
@@ -137,7 +137,7 @@ public class ProviderManager {
     }
 
     public void deleteProvider(String realm, String type, String providerId)
-            throws SystemException, NoSuchProviderException, NoSuchRealmException {
+            throws SystemException, NoSuchProviderException, NoSuchRealmException, NoSuchAuthorityException {
         if (TYPE_IDENTITY.equals(type)) {
             deleteIdentityProvider(realm, providerId);
         } else if (TYPE_ATTRIBUTES.equals(type)) {
@@ -241,7 +241,7 @@ public class ProviderManager {
     }
 
     public void deleteIdentityProvider(String realm, String providerId)
-            throws SystemException, NoSuchProviderException, NoSuchRealmException {
+            throws SystemException, NoSuchProviderException, NoSuchRealmException, NoSuchAuthorityException {
         Realm re = realmService.getRealm(realm);
         ConfigurableIdentityProvider ip = identityProviderService.getProvider(providerId);
 
@@ -250,12 +250,8 @@ public class ProviderManager {
         }
 
         // check if active, we don't support update for active providers
-        boolean isActive = false;
-        try {
-            isActive = authorityManager.isIdentityProviderRegistered(ip.getAuthority(), ip.getProvider());
-        } catch (SystemException | NoSuchAuthorityException e) {
-            logger.error("error fetching authority {}: {}", ip.getAuthority(), e.getMessage());
-        }
+        boolean isActive = identityProviderAuthorityService.getAuthority(ip.getAuthority())
+                .hasProvider(ip.getProvider());
 
         if (isActive) {
             throw new IllegalArgumentException("active providers can not be deleted");
@@ -281,11 +277,12 @@ public class ProviderManager {
         // check if active, we don't support update for active providers
         boolean isActive = false;
         try {
-            isActive = authorityManager.isIdentityProviderRegistered(ip.getAuthority(), ip.getProvider());
+            isActive = identityProviderAuthorityService.getAuthority(ip.getAuthority()).hasProvider(ip.getProvider());
             if (isActive) {
                 // make a quick unload
-                authorityManager.unregisterIdentityProvider(ip);
-                isActive = authorityManager.isIdentityProviderRegistered(ip.getAuthority(), ip.getProvider());
+                identityProviderAuthorityService.getAuthority(ip.getAuthority()).unregisterProvider(ip.getProvider());
+                isActive = identityProviderAuthorityService.getAuthority(ip.getAuthority())
+                        .hasProvider(ip.getProvider());
             }
         } catch (SystemException | NoSuchAuthorityException e) {
             logger.error("error fetching authority {}: {}", ip.getAuthority(), e.getMessage());
@@ -302,8 +299,8 @@ public class ProviderManager {
                     ip);
         }
 
-        IdentityProvider<UserIdentity> idp = authorityManager
-                .registerIdentityProvider(ip);
+        IdentityProvider<?, ?, ?> idp = identityProviderAuthorityService.getAuthority(ip.getAuthority())
+                .registerProvider(ip);
         isActive = idp != null;
 
         // TODO fetch registered status?
@@ -333,11 +330,11 @@ public class ProviderManager {
         }
 
         // check if active
-        boolean isActive = authorityManager.isIdentityProviderRegistered(ip.getAuthority(), ip.getProvider());
+        boolean isActive = identityProviderAuthorityService.getAuthority(ip.getAuthority())
+                .hasProvider(ip.getProvider());
 
         if (isActive) {
-
-            authorityManager.unregisterIdentityProvider(ip);
+            identityProviderAuthorityService.getAuthority(ip.getAuthority()).unregisterProvider(ip.getProvider());
             isActive = false;
 
             // TODO fetch registered status?
@@ -387,7 +384,7 @@ public class ProviderManager {
 
     public ConfigurableAttributeProvider addAttributeProvider(String realm,
             ConfigurableAttributeProvider provider)
-            throws RegistrationException, SystemException, NoSuchRealmException {
+            throws RegistrationException, SystemException, NoSuchRealmException, NoSuchAuthorityException {
 
         if (SystemKeys.REALM_GLOBAL.equals(realm) || SystemKeys.REALM_SYSTEM.equals(realm)) {
             // we do not persist in db global providers
@@ -401,7 +398,7 @@ public class ProviderManager {
 
     public ConfigurableAttributeProvider updateAttributeProvider(String realm,
             String providerId, ConfigurableAttributeProvider provider)
-            throws NoSuchProviderException, NoSuchRealmException {
+            throws NoSuchProviderException, NoSuchRealmException, NoSuchAuthorityException {
         Realm re = realmService.getRealm(realm);
         ConfigurableAttributeProvider ap = attributeProviderService.getProvider(providerId);
 
@@ -414,7 +411,7 @@ public class ProviderManager {
     }
 
     public void deleteAttributeProvider(String realm, String providerId)
-            throws SystemException, NoSuchProviderException, NoSuchRealmException {
+            throws SystemException, NoSuchProviderException, NoSuchRealmException, NoSuchAuthorityException {
         Realm re = realmService.getRealm(realm);
         ConfigurableAttributeProvider ap = attributeProviderService.getProvider(providerId);
 
@@ -423,7 +420,8 @@ public class ProviderManager {
         }
 
         // check if active, we don't support update for active providers
-        boolean isActive = authorityManager.isAttributeProviderRegistered(ap.getAuthority(), ap.getProvider());
+        boolean isActive = attributeProviderAuthorityService.getAuthority(ap.getAuthority())
+                .hasProvider(ap.getProvider());
 
         if (isActive) {
             throw new IllegalArgumentException("active providers can not be deleted");
@@ -435,7 +433,8 @@ public class ProviderManager {
     //
     public ConfigurableAttributeProvider registerAttributeProvider(
             String realm,
-            String providerId) throws SystemException, NoSuchRealmException, NoSuchProviderException {
+            String providerId)
+            throws SystemException, NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException {
 
         Realm re = realmService.getRealm(realm);
         // fetch, only persisted configurations can be registered
@@ -446,7 +445,8 @@ public class ProviderManager {
         }
 
         // check if active, we don't support update for active providers
-        boolean isActive = authorityManager.isAttributeProviderRegistered(ap.getAuthority(), ap.getProvider());
+        boolean isActive = attributeProviderAuthorityService.getAuthority(ap.getAuthority())
+                .hasProvider(ap.getProvider());
 
         if (isActive) {
             throw new IllegalArgumentException("active providers can not be registered again");
@@ -458,7 +458,8 @@ public class ProviderManager {
             ap = attributeProviderService.updateProvider(providerId, ap);
         }
 
-        AttributeProvider idp = authorityManager.registerAttributeProvider(ap);
+        AttributeProvider<?, ?> idp = attributeProviderAuthorityService.getAuthority(ap.getAuthority())
+                .registerProvider(ap);
         isActive = idp != null;
 
         // TODO fetch registered status?
@@ -470,7 +471,8 @@ public class ProviderManager {
 
     public ConfigurableAttributeProvider unregisterAttributeProvider(
             String realm,
-            String providerId) throws SystemException, NoSuchRealmException, NoSuchProviderException {
+            String providerId)
+            throws SystemException, NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException {
 
         Realm re = realmService.getRealm(realm);
         // fetch, only persisted configurations can be registered
@@ -487,11 +489,11 @@ public class ProviderManager {
         }
 
         // check if active
-        boolean isActive = authorityManager.isAttributeProviderRegistered(ap.getAuthority(), ap.getProvider());
+        boolean isActive = attributeProviderAuthorityService.getAuthority(ap.getAuthority())
+                .hasProvider(ap.getProvider());
 
         if (isActive) {
-
-            authorityManager.unregisterAttributeProvider(ap);
+            attributeProviderAuthorityService.getAuthority(ap.getAuthority()).unregisterProvider(ap.getProvider());
             isActive = false;
 
             // TODO fetch registered status?
@@ -509,10 +511,12 @@ public class ProviderManager {
     public boolean isProviderRegistered(String realm, ConfigurableProvider provider) throws SystemException {
         try {
             if (TYPE_IDENTITY.equals(provider.getType())) {
-                return authorityManager.isIdentityProviderRegistered(provider.getAuthority(), provider.getProvider());
+                return identityProviderAuthorityService.getAuthority(provider.getAuthority())
+                        .hasProvider(provider.getProvider());
             }
             if (TYPE_ATTRIBUTES.equals(provider.getType())) {
-                return authorityManager.isAttributeProviderRegistered(provider.getAuthority(), provider.getProvider());
+                return attributeProviderAuthorityService.getAuthority(provider.getAuthority())
+                        .hasProvider(provider.getProvider());
             }
         } catch (NoSuchAuthorityException e) {
             return false;

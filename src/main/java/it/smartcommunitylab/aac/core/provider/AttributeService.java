@@ -13,8 +13,8 @@ public interface AttributeService<M extends ConfigMap, C extends AttributeProvid
      * Attribute management
      */
 
-    public Collection<UserAttributes> putAttributes(String subjectId, Collection<AttributeSet> attributes);
+    public Collection<UserAttributes> putUserAttributes(String subjectId, Collection<AttributeSet> attributes);
 
-    public void deleteAttributes(String subjectId, String setId);
+    public UserAttributes putUserAttributes(String subjectId, String setId, AttributeSet attributes);
 
 }

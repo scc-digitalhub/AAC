@@ -94,9 +94,6 @@ public class UserManager {
 //    private UserEntityService userEntityService;
 
     @Autowired
-    private AuthorityManager authorityManager;
-
-    @Autowired
     private SearchableApprovalStore approvalStore;
 
     @Autowired

@@ -159,9 +159,9 @@ public class MapperAttributeProvider extends AbstractProvider<UserAttributes>
     }
 
     @Override
-    public Collection<UserAttributes> getUserAttributes(String subjectId) {
+    public Collection<UserAttributes> getUserAttributes(String userId) {
         // fetch from store
-        Map<String, Serializable> attributes = attributeStore.findAttributes(subjectId);
+        Map<String, Serializable> attributes = attributeStore.findAttributes(userId);
         if (attributes == null || attributes.isEmpty()) {
             return Collections.emptyList();
         }
@@ -171,20 +171,11 @@ public class MapperAttributeProvider extends AbstractProvider<UserAttributes>
         // build sets from stored values
         for (String setId : providerConfig.getAttributeSets()) {
             try {
-                AttributeSet as = attributeService.getAttributeSet(setId);
-                String prefix = setId + "|";
-                // TODO handle repeatable attributes by enum
-                Map<String, Serializable> principalAttributes = attributes.entrySet().stream()
-                        .filter(e -> e.getKey().startsWith(prefix))
-                        .collect(Collectors.toMap(e -> e.getKey().substring(prefix.length()), e -> e.getValue()));
-
-                // use exact mapper
-                ExactAttributesMapper mapper = new ExactAttributesMapper(as);
-                AttributeSet set = mapper.mapAttributes(principalAttributes);
+                AttributeSet set = readAttributes(setId, attributes);
                 if (set.getAttributes() != null && !set.getAttributes().isEmpty()) {
                     // build result
                     result.add(new DefaultUserAttributesImpl(
-                            getAuthority(), getProvider(), getRealm(), subjectId,
+                            getAuthority(), getProvider(), getRealm(), userId,
                             set));
                 }
             } catch (NoSuchAttributeSetException | RuntimeException e) {
@@ -195,9 +186,48 @@ public class MapperAttributeProvider extends AbstractProvider<UserAttributes>
     }
 
     @Override
+    public UserAttributes getUserAttributes(String userId, String setId) throws NoSuchAttributeSetException {
+        if (!providerConfig.getAttributeSets().contains(setId)) {
+            return null;
+        }
+
+        // fetch from store
+        Map<String, Serializable> attributes = attributeStore.findAttributes(userId);
+        if (attributes == null || attributes.isEmpty()) {
+            return null;
+        }
+
+        AttributeSet set = readAttributes(setId, attributes);
+        return new DefaultUserAttributesImpl(
+                getAuthority(), getProvider(), getRealm(), userId,
+                set);
+
+    }
+
+    @Override
     public void deleteUserAttributes(String subjectId) {
         // cleanup from store
         attributeStore.deleteAttributes(subjectId);
+    }
+
+    @Override
+    public void deleteUserAttributes(String userId, String setId) {
+        // nothing to do for mapper
+    }
+
+    private AttributeSet readAttributes(String setId, Map<String, Serializable> attributes)
+            throws NoSuchAttributeSetException {
+        AttributeSet as = attributeService.getAttributeSet(setId);
+        String prefix = setId + "|";
+        // TODO handle repeatable attributes by enum
+        Map<String, Serializable> principalAttributes = attributes.entrySet().stream()
+                .filter(e -> e.getKey().startsWith(prefix))
+                .collect(Collectors.toMap(e -> e.getKey().substring(prefix.length()), e -> e.getValue()));
+
+        // use exact mapper
+        ExactAttributesMapper mapper = new ExactAttributesMapper(as);
+        AttributeSet set = mapper.mapAttributes(principalAttributes);
+        return set;
     }
 
     private BaseAttributesMapper getAttributeMapper(String type, AttributeSet as) {

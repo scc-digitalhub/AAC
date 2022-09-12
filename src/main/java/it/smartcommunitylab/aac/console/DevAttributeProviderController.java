@@ -56,6 +56,7 @@ import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
+import it.smartcommunitylab.aac.core.service.AttributeProviderAuthorityService;
 import it.smartcommunitylab.aac.dto.FunctionValidationBean;
 
 @RestController
@@ -66,9 +67,6 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
     private final TypeReference<Map<String, List<ConfigurableAttributeProvider>>> typeRef = new TypeReference<Map<String, List<ConfigurableAttributeProvider>>>() {
     };
     private final String LIST_KEY = "providers";
-
-    @Autowired
-    private AuthorityManager authorityManager;
 
     @Autowired
     @Qualifier("yamlObjectMapper")

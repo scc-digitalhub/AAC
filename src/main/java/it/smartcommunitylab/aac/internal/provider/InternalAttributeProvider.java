@@ -25,7 +25,14 @@ public class InternalAttributeProvider<P extends InternalUserAuthenticatedPrinci
             String providerId,
             InternalIdentityProviderConfig providerConfig,
             String realm) {
-        super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
+        this(SystemKeys.AUTHORITY_INTERNAL, providerId, providerConfig, realm);
+    }
+
+    public InternalAttributeProvider(
+            String authority, String providerId,
+            InternalIdentityProviderConfig providerConfig,
+            String realm) {
+        super(authority, providerId, realm);
         Assert.notNull(providerConfig, "provider config is mandatory");
 
         // disable attribute store

@@ -134,53 +134,98 @@ public class InternalAttributeService extends AbstractProvider<UserAttributes>
     }
 
     @Override
+    public UserAttributes getUserAttributes(String subjectId, String setId) throws NoSuchAttributeSetException {
+        if (!providerConfig.getAttributeSets().contains(setId)) {
+            throw new IllegalArgumentException("set not enabled for this provider " + setId);
+        }
+
+        // build set from stored values
+
+        AttributeSet as = attributeService.getAttributeSet(setId);
+        // fetch from store
+        List<InternalAttributeEntity> attributes = attributeEntityService.findAttributes(getProvider(),
+                subjectId,
+                setId);
+
+        // translate to set
+        // TODO handle repeatable as enum
+        Map<String, Serializable> principalAttributes = attributes.stream()
+                .collect(Collectors.toMap(a -> a.getKey(), a -> a.getValue()));
+
+        // use exact mapper
+        ExactAttributesMapper mapper = new ExactAttributesMapper(as);
+        AttributeSet set = mapper.mapAttributes(principalAttributes);
+
+        // build result
+        return new DefaultUserAttributesImpl(
+                getAuthority(), getProvider(), getRealm(), subjectId,
+                set);
+    }
+
+    @Override
     public void deleteUserAttributes(String subjectId) {
         // cleanup from store
         attributeEntityService.deleteAttributes(getProvider(), subjectId);
     }
 
     @Override
-    public void deleteAttributes(String subjectId, String setId) {
+    public void deleteUserAttributes(String subjectId, String setId) {
         // cleanup matching from store
         attributeEntityService.deleteAttribute(getProvider(), subjectId, setId);
     }
 
     @Override
-    public Collection<UserAttributes> putAttributes(String subjectId, Collection<AttributeSet> attributeSets) {
+    public Collection<UserAttributes> putUserAttributes(String subjectId, Collection<AttributeSet> attributeSets) {
         List<UserAttributes> result = new ArrayList<>();
 
         // fetch sets and validate
         for (AttributeSet as : attributeSets) {
-            if (!providerConfig.getAttributeSets().contains(as.getIdentifier())) {
-                throw new IllegalArgumentException("set not enabled for this provider " + as.getIdentifier());
-            }
 
-            // unpack and save to store
-            Collection<Attribute> attrs = as.getAttributes();
-
-            // each set will overwrite previously stored values
-            List<InternalAttributeEntity> attributes = attributeEntityService.setAttributes(getProvider(), subjectId,
-                    as.getIdentifier(), attrs);
-            // translate to set
-            if (!attributes.isEmpty()) {
-                // TODO handle repeatable as enum
-                Map<String, Serializable> principalAttributes = attributes.stream()
-                        .collect(Collectors.toMap(a -> a.getKey(), a -> a.getValue()));
-
-                // use exact mapper
-                ExactAttributesMapper mapper = new ExactAttributesMapper(as);
-                AttributeSet set = mapper.mapAttributes(principalAttributes);
-
-                // build result
-                result.add(new DefaultUserAttributesImpl(
-                        getAuthority(), getProvider(), getRealm(), subjectId,
-                        set));
-            }
-
+            AttributeSet set = setAttributes(subjectId, as);
+            // build result
+            result.add(new DefaultUserAttributesImpl(
+                    getAuthority(), getProvider(), getRealm(), subjectId,
+                    set));
         }
 
         return result;
+    }
 
+    @Override
+    public UserAttributes putUserAttributes(String subjectId, String setId, AttributeSet attributeSet) {
+        // check match
+        if (!attributeSet.getIdentifier().equals(setId)) {
+            throw new IllegalArgumentException("set id mismatch");
+        }
+
+        AttributeSet set = setAttributes(subjectId, attributeSet);
+
+        // build result
+        return new DefaultUserAttributesImpl(
+                getAuthority(), getProvider(), getRealm(), subjectId,
+                set);
+    }
+
+    private AttributeSet setAttributes(String subjectId, AttributeSet as) {
+        if (!providerConfig.getAttributeSets().contains(as.getIdentifier())) {
+            throw new IllegalArgumentException("set not enabled for this provider " + as.getIdentifier());
+        }
+
+        // unpack and save to store
+        Collection<Attribute> attrs = as.getAttributes();
+
+        // each set will overwrite previously stored values
+        List<InternalAttributeEntity> attributes = attributeEntityService.setAttributes(getProvider(), subjectId,
+                as.getIdentifier(), attrs);
+        // translate to set
+        // TODO handle repeatable as enum
+        Map<String, Serializable> principalAttributes = attributes.stream()
+                .collect(Collectors.toMap(a -> a.getKey(), a -> a.getValue()));
+
+        // use exact mapper
+        ExactAttributesMapper mapper = new ExactAttributesMapper(as);
+        AttributeSet set = mapper.mapAttributes(principalAttributes);
+        return set;
     }
 
 }

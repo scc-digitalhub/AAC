@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.core.provider;
 
 import java.util.Collection;
 
+import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
@@ -107,9 +108,11 @@ public interface AttributeProvider<M extends ConfigMap, C extends AttributeProvi
 
 //    public Collection<UserAttributes> getAccountAttributes(String id);
 
-//    public UserAttributes getUserAttributes(String userId, String setId) throws NoSuchUserException;
+    public UserAttributes getUserAttributes(String userId, String setId) throws NoSuchAttributeSetException;
 
     public void deleteUserAttributes(String userId);
+
+    public void deleteUserAttributes(String userId, String setId) throws NoSuchAttributeSetException;
 
 //    public void deleteAccountAttributes(String id);
 

@@ -14,10 +14,7 @@ import it.smartcommunitylab.aac.core.auth.RequestAwareAuthenticationSuccessHandl
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
-import it.smartcommunitylab.aac.internal.auth.InternalConfirmKeyAuthenticationFilter;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
-import it.smartcommunitylab.aac.password.InternalPasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.auth.InternalLoginAuthenticationFilter;
 import it.smartcommunitylab.aac.password.auth.InternalResetKeyAuthenticationFilter;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
@@ -29,22 +26,17 @@ public class InternalPasswordFilterProvider implements FilterProvider {
     // TODO replace with credentials service when available as independent service
     private final InternalUserPasswordRepository passwordRepository;
 
-    // TODO remove
-    private final InternalUserConfirmKeyService confirmKeyService;
-
     private AuthenticationManager authManager;
 
     public InternalPasswordFilterProvider(
-            UserAccountService<InternalUserAccount> userAccountService, InternalUserConfirmKeyService confirmKeyService,
+            UserAccountService<InternalUserAccount> userAccountService,
             InternalUserPasswordRepository passwordRepository,
             ProviderConfigRepository<InternalPasswordIdentityProviderConfig> registrationRepository) {
         Assert.notNull(userAccountService, "account service is mandatory");
-        Assert.notNull(confirmKeyService, "confirm key service is mandatory");
         Assert.notNull(passwordRepository, "password repository is mandatory");
         Assert.notNull(registrationRepository, "registration repository is mandatory");
 
         this.userAccountService = userAccountService;
-        this.confirmKeyService = confirmKeyService;
         this.passwordRepository = passwordRepository;
         this.registrationRepository = registrationRepository;
     }
@@ -69,16 +61,16 @@ public class InternalPasswordFilterProvider implements FilterProvider {
                 userAccountService, passwordRepository, registrationRepository);
         resetKeyFilter.setAuthenticationSuccessHandler(successHandler());
 
-        // TODO remove when registration is handled only by internalService
-        InternalConfirmKeyAuthenticationFilter confirmKeyFilter = new InternalConfirmKeyAuthenticationFilter(
-                SystemKeys.AUTHORITY_PASSWORD,
-                confirmKeyService, registrationRepository,
-                InternalPasswordIdentityAuthority.AUTHORITY_URL + "confirm/{registrationId}", null);
-        confirmKeyFilter.setAuthenticationSuccessHandler(successHandler());
+//        // TODO remove when registration is handled only by internalService
+//        InternalConfirmKeyAuthenticationFilter confirmKeyFilter = new InternalConfirmKeyAuthenticationFilter(
+//                SystemKeys.AUTHORITY_PASSWORD,
+//                confirmKeyService, registrationRepository,
+//                InternalPasswordIdentityAuthority.AUTHORITY_URL + "confirm/{registrationId}", null);
+//        confirmKeyFilter.setAuthenticationSuccessHandler(successHandler());
 
         if (authManager != null) {
             loginFilter.setAuthenticationManager(authManager);
-            confirmKeyFilter.setAuthenticationManager(authManager);
+//            confirmKeyFilter.setAuthenticationManager(authManager);
             resetKeyFilter.setAuthenticationManager(authManager);
         }
 
@@ -86,7 +78,7 @@ public class InternalPasswordFilterProvider implements FilterProvider {
         List<Filter> filters = new ArrayList<>();
         filters.add(loginFilter);
         filters.add(resetKeyFilter);
-        filters.add(confirmKeyFilter);
+//        filters.add(confirmKeyFilter);
 
         return filters;
 

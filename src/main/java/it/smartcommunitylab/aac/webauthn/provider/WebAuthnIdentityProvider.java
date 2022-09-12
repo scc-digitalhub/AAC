@@ -30,8 +30,7 @@ import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserAuthenticatedPrincipa
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredential;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredentialsRepository;
 
-public class WebAuthnIdentityProvider
-        extends
+public class WebAuthnIdentityProvider extends
         AbstractIdentityProvider<InternalUserIdentity, InternalUserAccount, WebAuthnUserAuthenticatedPrincipal, WebAuthnIdentityProviderConfigMap, WebAuthnIdentityProviderConfig>
         implements IdentityCredentialsProvider<InternalUserAccount, WebAuthnCredential> {
 
@@ -62,7 +61,7 @@ public class WebAuthnIdentityProvider
                 config, realm);
         Assert.notNull(credentialsRepository, "credentials repository is mandatory");
 
-        logger.debug("create webauthn provider fwith id {}", String.valueOf(providerId));
+        logger.debug("create webauthn provider with id {}", String.valueOf(providerId));
         this.config = config;
 
         InternalIdentityProviderConfig internalConfig = config.toInternalProviderConfig();
@@ -78,8 +77,8 @@ public class WebAuthnIdentityProvider
                 credentialsService, config, realm);
 
         // build resource providers, we use our providerId to ensure consistency
-        this.attributeProvider = new InternalAttributeProvider<>(providerId, internalConfig, realm);
-
+        this.attributeProvider = new InternalAttributeProvider<>(SystemKeys.AUTHORITY_WEBAUTHN, providerId,
+                internalConfig, realm);
         this.accountProvider = new InternalAccountProvider(SystemKeys.AUTHORITY_WEBAUTHN, providerId,
                 userAccountService, internalConfig, realm);
 

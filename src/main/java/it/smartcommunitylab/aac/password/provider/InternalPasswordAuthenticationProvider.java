@@ -14,11 +14,10 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.crypto.InternalPasswordEncoder;
-import it.smartcommunitylab.aac.internal.auth.ConfirmKeyAuthenticationProvider;
 import it.smartcommunitylab.aac.internal.auth.ConfirmKeyAuthenticationToken;
 import it.smartcommunitylab.aac.internal.auth.InternalAuthenticationException;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.provider.InternalAccountService;
+import it.smartcommunitylab.aac.internal.provider.InternalAccountProvider;
 import it.smartcommunitylab.aac.password.auth.ResetKeyAuthenticationProvider;
 import it.smartcommunitylab.aac.password.auth.ResetKeyAuthenticationToken;
 import it.smartcommunitylab.aac.password.auth.UsernamePasswordAuthenticationProvider;
@@ -38,7 +37,7 @@ public class InternalPasswordAuthenticationProvider
 
     private final UserAccountService<InternalUserAccount> userAccountService;
     private final UsernamePasswordAuthenticationProvider authProvider;
-    private final ConfirmKeyAuthenticationProvider confirmKeyProvider;
+//    private final ConfirmKeyAuthenticationProvider confirmKeyProvider;
     private final ResetKeyAuthenticationProvider resetKeyProvider;
 
     // use a volatile password to mitigate timing attacks: ensures encoder is always
@@ -48,7 +47,7 @@ public class InternalPasswordAuthenticationProvider
 
     public InternalPasswordAuthenticationProvider(String providerId,
             UserAccountService<InternalUserAccount> userAccountService,
-            InternalAccountService accountService,
+            InternalAccountProvider accountService,
             InternalPasswordService passwordService,
             InternalPasswordIdentityProviderConfig providerConfig, String realm) {
         super(SystemKeys.AUTHORITY_PASSWORD, providerId, realm);
@@ -69,7 +68,7 @@ public class InternalPasswordAuthenticationProvider
 
         // build additional providers
         // TODO check config to see if these are available
-        confirmKeyProvider = new ConfirmKeyAuthenticationProvider(providerId, accountService, realm);
+//        confirmKeyProvider = new ConfirmKeyAuthenticationProvider(providerId, accountService, realm);
         resetKeyProvider = new ResetKeyAuthenticationProvider(providerId, accountService, passwordService,
                 realm);
 
@@ -131,13 +130,13 @@ public class InternalPasswordAuthenticationProvider
                 throw new InternalAuthenticationException(subject, username, credentials, "password", e,
                         e.getMessage());
             }
-        } else if (authentication instanceof ConfirmKeyAuthenticationToken) {
-            try {
-                return confirmKeyProvider.authenticate(authentication);
-            } catch (AuthenticationException e) {
-                throw new InternalAuthenticationException(subject, username, credentials, "confirmKey", e,
-                        e.getMessage());
-            }
+//        } else if (authentication instanceof ConfirmKeyAuthenticationToken) {
+//            try {
+//                return confirmKeyProvider.authenticate(authentication);
+//            } catch (AuthenticationException e) {
+//                throw new InternalAuthenticationException(subject, username, credentials, "confirmKey", e,
+//                        e.getMessage());
+//            }
         } else if (authentication instanceof ResetKeyAuthenticationToken) {
             try {
                 return resetKeyProvider.authenticate(authentication);
@@ -153,7 +152,7 @@ public class InternalPasswordAuthenticationProvider
     @Override
     public boolean supports(Class<?> authentication) {
         return (authProvider.supports(authentication)
-                || confirmKeyProvider.supports(authentication)
+//                || confirmKeyProvider.supports(authentication)
                 || resetKeyProvider.supports(authentication));
     }
 

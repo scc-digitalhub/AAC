@@ -5,8 +5,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 
-import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.ExtendedUserAuthenticationManager;
+import it.smartcommunitylab.aac.core.service.AttributeProviderAuthorityService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderAuthorityService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
@@ -16,10 +16,10 @@ import it.smartcommunitylab.aac.core.service.UserEntityService;
 public class UserAuthConfig {
 
     @Autowired
-    private AuthorityManager authorityManager;
+    private IdentityProviderAuthorityService identityProviderAuthorityService;
 
     @Autowired
-    private IdentityProviderAuthorityService identityProviderAuthorityService;
+    private AttributeProviderAuthorityService attributeProviderAuthorityService;
 
     @Autowired
     private SubjectService subjectService;
@@ -29,8 +29,9 @@ public class UserAuthConfig {
 
     @Bean
     public ExtendedUserAuthenticationManager extendedAuthenticationManager() throws Exception {
-        return new ExtendedUserAuthenticationManager(authorityManager, identityProviderAuthorityService, userService,
-                subjectService);
+        return new ExtendedUserAuthenticationManager(
+                identityProviderAuthorityService, attributeProviderAuthorityService,
+                userService, subjectService);
     }
 
 }
