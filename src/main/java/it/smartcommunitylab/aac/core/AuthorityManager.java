@@ -27,6 +27,7 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.AttributeService;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.core.service.AttributeProviderAuthorityService;
 import it.smartcommunitylab.aac.core.service.AttributeProviderService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderAuthorityService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderService;
@@ -43,61 +44,25 @@ public class AuthorityManager implements InitializingBean {
     /*
      * Services
      */
-    @Autowired
-    private IdentityProviderAuthorityService identityProviderAuthorityService;
 
     @Autowired
     private IdentityProviderService identityProviderService;
 
     @Autowired
+    private IdentityProviderAuthorityService identityProviderAuthorityService;
+
+    @Autowired
     private AttributeProviderService attributeProviderService;
 
-//    private Map<String, IdentityProviderAuthority<? extends UserIdentity>> identityProviderAuthorities;
-    private Map<String, AttributeAuthority> attributeAuthorities;
+    @Autowired
+    private AttributeProviderAuthorityService attributeProviderAuthorityService;
 
     /*
      * Constructor
      */
     public AuthorityManager() {
-        this.attributeAuthorities = Collections.emptyMap();
     }
 
-//    @Autowired
-//    public void setIdentityProviderAuthorities(
-//            Collection<IdentityProviderAuthority<? extends UserIdentity>> identityAuthorities) {
-//        Map<String, IdentityProviderAuthority<? extends UserIdentity>> map = identityAuthorities.stream()
-//                .collect(Collectors.toMap(e -> e.getAuthorityId(), e -> e));
-//
-//        this.identityProviderAuthorities = map;
-//    }
-
-    @Autowired
-    public void setAttributeAuthorities(Collection<AttributeAuthority> attributeAuthorities) {
-        Map<String, AttributeAuthority> map = attributeAuthorities.stream()
-                .collect(Collectors.toMap(e -> e.getAuthorityId(), e -> e));
-        this.attributeAuthorities = map;
-    }
-
-    @Override
-    public void afterPropertiesSet() throws Exception {
-//        Assert.notEmpty(identityProviderAuthorities, "at least one identity provider authority is required");
-    }
-
-    /*
-     * Attribute
-     */
-
-    /*
-     * Attribute providers
-     */
-
-    public AttributeAuthority getAttributeAuthority(String authority) {
-        return attributeAuthorities.get(authority);
-    }
-
-    public Collection<AttributeAuthority> listAttributeAuthorities() {
-        return attributeAuthorities.values();
-    }
 
     /*
      * Private loaders

@@ -32,7 +32,7 @@ import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.ClientManager;
-import it.smartcommunitylab.aac.core.ProviderManager;
+import it.smartcommunitylab.aac.core.IdentityProviderManager;
 import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.authorities.AttributeProviderAuthority;
 import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
@@ -102,7 +102,7 @@ public class AACBootstrap {
     private RealmManager realmManager;
 
     @Autowired
-    private ProviderManager providerManager;
+    private IdentityProviderManager identityProviderManager;
 
     @Autowired
     private ClientManager clientManager;
@@ -536,30 +536,32 @@ public class AACBootstrap {
                     throw new IllegalArgumentException("missing id");
                 }
                 // we support only idp for now
-                if (SystemKeys.RESOURCE_IDENTITY.equals(cp.getType())) {
-                    logger.debug("create or update provider " + cp.getProvider());
-                    ConfigurableIdentityProvider provider = providerManager.findIdentityProvider(cp.getRealm(),
-                            cp.getProvider());
-
+                // TODO refactor, this doesn't work oob
+//                if (SystemKeys.RESOURCE_IDENTITY.equals(cp.getType())) {
+//                    ConfigurableIdentityProvider ip = (ConfigurableIdentityProvider) cp;
+//                    logger.debug("create or update provider " + cp.getProvider());
+//                    ConfigurableIdentityProvider provider = identityProviderManager.findProvider(cp.getRealm(),
+//                            cp.getProvider());
+//
 //                    if (provider == null) {
-//                        provider = providerManager.addIdentityProvider(cp.getRealm(), cp);
+//                        provider = identityProviderManager.addProvider(cp.getRealm(), ip);
 //                    } else {
-//                        provider = providerManager.unregisterIdentityProvider(cp.getRealm(), cp.getProvider());
-//                        provider = providerManager.updateIdentityProvider(cp.getRealm(), cp.getProvider(), cp);
+//                        provider = identityProviderManager.unregisterProvider(cp.getRealm(), cp.getProvider());
+//                        provider = identityProviderManager.updateProvider(cp.getRealm(), cp.getProvider(), ip);
 //                    }
-
-                    if (cp.isEnabled()) {
-                        // register
-                        if (!providerManager.isProviderRegistered(cp.getRealm(), provider)) {
-                            provider = providerManager.registerIdentityProvider(provider.getRealm(),
-                                    provider.getProvider());
-                        }
-                    }
-
-                    // keep in cache
-                    providers.put(provider.getProvider(), provider);
-
-                }
+//
+//                    if (cp.isEnabled()) {
+//                        // register
+//                        if (!identityProviderManager.isProviderRegistered(cp.getRealm(), provider)) {
+//                            provider = identityProviderManager.registerProvider(provider.getRealm(),
+//                                    provider.getProvider());
+//                        }
+//                    }
+//
+//                    // keep in cache
+//                    providers.put(provider.getProvider(), provider);
+//
+//                }
 
             } catch (Exception e) {
                 logger.error("error creating provider " + String.valueOf(cp.getProvider()) + ": " + e.getMessage());

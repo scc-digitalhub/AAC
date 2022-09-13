@@ -40,8 +40,9 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.core.AttributeProviderManager;
 import it.smartcommunitylab.aac.core.ClientManager;
-import it.smartcommunitylab.aac.core.ProviderManager;
+import it.smartcommunitylab.aac.core.IdentityProviderManager;
 import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.SubjectManager;
 import it.smartcommunitylab.aac.core.UserDetails;
@@ -62,7 +63,10 @@ public class DevRealmController {
     private RealmManager realmManager;
 
     @Autowired
-    private ProviderManager providerManager;
+    private IdentityProviderManager identityProviderManager;
+
+    @Autowired
+    private AttributeProviderManager attributeProviderManager;
 
     @Autowired
     private ClientManager clientManager;
@@ -141,6 +145,7 @@ public class DevRealmController {
         Object export = r;
         String key = r.getSlug();
 
+        // TODO refactor export
         if (custom) {
             key = r.getSlug() + "-custom";
             export = Collections.singletonMap("customization", r.getCustomization());
@@ -148,7 +153,8 @@ public class DevRealmController {
             key = r.getSlug() + "-full";
             Map<String, Collection<? extends Object>> map = new HashMap<>();
             map.put("realms", Collections.singleton(r));
-            map.put("providers", providerManager.listProviders(realm));
+            map.put("identity_providers", identityProviderManager.listProviders(realm));
+            map.put("attribute_providers", attributeProviderManager.listProviders(realm));
             map.put("clients", clientManager.listClientApps(realm));
             map.put("services", serviceManager.listServices(realm));
             export = map;

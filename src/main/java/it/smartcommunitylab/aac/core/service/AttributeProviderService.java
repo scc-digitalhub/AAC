@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.DataBinder;
 import org.springframework.validation.SmartValidator;
@@ -33,6 +34,7 @@ import it.smartcommunitylab.aac.core.persistence.AttributeProviderEntity;
 import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 
 @Service
+@Transactional
 public class AttributeProviderService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -48,6 +50,7 @@ public class AttributeProviderService {
     public AttributeProviderService() {
     }
 
+    @Transactional(readOnly = true)
     public Collection<ConfigurableAttributeProvider> listProviders(String realm) {
         if (SystemKeys.REALM_GLOBAL.equals(realm) || SystemKeys.REALM_SYSTEM.equals(realm)) {
             // we do not persist in db global providers
@@ -60,23 +63,21 @@ public class AttributeProviderService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public ConfigurableAttributeProvider findProvider(String providerId) {
         AttributeProviderEntity pe = providerService.findAttributeProvider(providerId);
-
         if (pe == null) {
             return null;
         }
 
         return fromEntity(pe);
-
     }
 
+    @Transactional(readOnly = true)
     public ConfigurableAttributeProvider getProvider(String providerId)
             throws NoSuchProviderException {
         AttributeProviderEntity pe = providerService.getAttributeProvider(providerId);
-
         return fromEntity(pe);
-
     }
 
     public ConfigurableAttributeProvider addProvider(String realm,
@@ -181,7 +182,6 @@ public class AttributeProviderService {
                 configuration);
 
         return fromEntity(pe);
-
     }
 
     public ConfigurableAttributeProvider updateProvider(
@@ -267,26 +267,22 @@ public class AttributeProviderService {
 
     public void deleteProvider(String providerId)
             throws SystemException, NoSuchProviderException {
-
         AttributeProviderEntity pe = providerService.getAttributeProvider(providerId);
         providerService.deleteAttributeProvider(pe.getProviderId());
-
     }
 
     /*
      * Configuration schemas
      */
 
-    /*
-     * Configuration schemas
-     */
-
+    @Transactional(readOnly = true)
     public ConfigurableProperties getConfigurableProperties(String authority) throws NoSuchAuthorityException {
         ConfigurationProvider<?, ConfigurableAttributeProvider, ?> configProvider = authorityService
                 .getAuthority(authority).getConfigurationProvider();
         return configProvider.getDefaultConfigMap();
     }
 
+    @Transactional(readOnly = true)
     public JsonSchema getConfigurationSchema(String authority) throws NoSuchAuthorityException {
         ConfigurationProvider<?, ConfigurableAttributeProvider, ?> configProvider = authorityService
                 .getAuthority(authority).getConfigurationProvider();

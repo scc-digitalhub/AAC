@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.DataBinder;
 import org.springframework.validation.SmartValidator;
@@ -36,6 +37,7 @@ import it.smartcommunitylab.aac.core.persistence.IdentityProviderEntity;
 import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 
 @Service
+@Transactional
 public class IdentityProviderService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -132,6 +134,7 @@ public class IdentityProviderService {
         }
     }
 
+    @Transactional(readOnly = true)
     public Collection<ConfigurableIdentityProvider> listProviders(String realm) {
         if (SystemKeys.REALM_GLOBAL.equals(realm)) {
             // we do not persist in db global providers
@@ -148,6 +151,7 @@ public class IdentityProviderService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public ConfigurableIdentityProvider findProvider(String providerId) {
         // lookup in global map first
         if (systemIdps.containsKey(providerId)) {
@@ -155,15 +159,14 @@ public class IdentityProviderService {
         }
 
         IdentityProviderEntity pe = providerService.findIdentityProvider(providerId);
-
         if (pe == null) {
             return null;
         }
 
         return fromEntity(pe);
-
     }
 
+    @Transactional(readOnly = true)
     public ConfigurableIdentityProvider getProvider(String providerId)
             throws NoSuchProviderException {
         // lookup in global map first
@@ -172,9 +175,7 @@ public class IdentityProviderService {
         }
 
         IdentityProviderEntity pe = providerService.getIdentityProvider(providerId);
-
         return fromEntity(pe);
-
     }
 
     public ConfigurableIdentityProvider addProvider(String realm,
@@ -285,7 +286,6 @@ public class IdentityProviderService {
                 configuration, hookFunctions);
 
         return fromEntity(pe);
-
     }
 
     public ConfigurableIdentityProvider updateProvider(
@@ -377,22 +377,22 @@ public class IdentityProviderService {
 
     public void deleteProvider(String providerId)
             throws SystemException, NoSuchProviderException {
-
         IdentityProviderEntity pe = providerService.getIdentityProvider(providerId);
         providerService.deleteIdentityProvider(pe.getProviderId());
-
     }
 
     /*
      * Configuration schemas
      */
 
+    @Transactional(readOnly = true)
     public ConfigurableProperties getConfigurableProperties(String authority) throws NoSuchAuthorityException {
         ConfigurationProvider<?, ConfigurableIdentityProvider, ?> configProvider = authorityService
                 .getAuthority(authority).getConfigurationProvider();
         return configProvider.getDefaultConfigMap();
     }
 
+    @Transactional(readOnly = true)
     public JsonSchema getConfigurationSchema(String authority) throws NoSuchAuthorityException {
         ConfigurationProvider<?, ConfigurableIdentityProvider, ?> configProvider = authorityService
                 .getAuthority(authority).getConfigurationProvider();

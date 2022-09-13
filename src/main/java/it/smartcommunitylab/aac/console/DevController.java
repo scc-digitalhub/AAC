@@ -54,11 +54,12 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.config.ApplicationProperties;
 import it.smartcommunitylab.aac.core.ClientManager;
+import it.smartcommunitylab.aac.core.IdentityProviderManager;
 import it.smartcommunitylab.aac.core.MyUserManager;
-import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.UserManager;
+import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.dto.RealmStats;
@@ -89,7 +90,8 @@ public class DevController {
     @Autowired
     private UserManager userManager;
     @Autowired
-    private ProviderManager providerManager;
+    private IdentityProviderManager identityProviderManager;
+
     @Autowired
     private ClientManager clientManager;
 //    @Autowired
@@ -190,10 +192,11 @@ public class DevController {
             Long userCount = userManager.countUsers(realm);
             bean.setUsers(userCount);
 
-            Collection<ConfigurableProvider> providers = providerManager.listProviders(realm);
+            Collection<ConfigurableIdentityProvider> providers = identityProviderManager.listProviders(realm);
             bean.setProviders(providers.size());
 
-            int activeProviders = (int) providers.stream().filter(p -> providerManager.isProviderRegistered(realm, p))
+            int activeProviders = (int) providers.stream()
+                    .filter(p -> identityProviderManager.isProviderRegistered(realm, p))
                     .count();
             bean.setProvidersActive(activeProviders);
 
