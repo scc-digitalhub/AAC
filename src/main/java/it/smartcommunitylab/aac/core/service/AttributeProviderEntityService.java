@@ -1,7 +1,6 @@
 package it.smartcommunitylab.aac.core.service;
 
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -9,15 +8,13 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.core.persistence.AttributeProviderEntity;
 import it.smartcommunitylab.aac.core.persistence.AttributeProviderEntityRepository;
 
 @Service
 @Transactional
-public class AttributeProviderEntityService {
+public class AttributeProviderEntityService implements ProviderEntityService<AttributeProviderEntity> {
 
     private final AttributeProviderEntityRepository providerRepository;
 
@@ -27,32 +24,32 @@ public class AttributeProviderEntityService {
     }
 
     @Transactional(readOnly = true)
-    public List<AttributeProviderEntity> listAttributeProviders() {
+    public List<AttributeProviderEntity> listProviders() {
         return providerRepository.findAll();
     }
 
     @Transactional(readOnly = true)
-    public List<AttributeProviderEntity> listAttributeProvidersByAuthority(String authority) {
+    public List<AttributeProviderEntity> listProvidersByAuthority(String authority) {
         return providerRepository.findByAuthority(authority);
     }
 
     @Transactional(readOnly = true)
-    public List<AttributeProviderEntity> listAttributeProvidersByRealm(String realm) {
+    public List<AttributeProviderEntity> listProvidersByRealm(String realm) {
         return providerRepository.findByRealm(realm);
     }
 
     @Transactional(readOnly = true)
-    public List<AttributeProviderEntity> listAttributeProvidersByAuthorityAndRealm(String authority, String realm) {
+    public List<AttributeProviderEntity> listProvidersByAuthorityAndRealm(String authority, String realm) {
         return providerRepository.findByAuthorityAndRealm(authority, realm);
     }
 
     @Transactional(readOnly = true)
-    public AttributeProviderEntity findAttributeProvider(String providerId) {
+    public AttributeProviderEntity findProvider(String providerId) {
         return providerRepository.findByProviderId(providerId);
     }
 
     @Transactional(readOnly = true)
-    public AttributeProviderEntity getAttributeProvider(String providerId) throws NoSuchProviderException {
+    public AttributeProviderEntity getProvider(String providerId) throws NoSuchProviderException {
         AttributeProviderEntity p = providerRepository.findByProviderId(providerId);
         if (p == null) {
             throw new NoSuchProviderException();
@@ -61,7 +58,7 @@ public class AttributeProviderEntityService {
         return p;
     }
 
-    public AttributeProviderEntity createAttributeProvider() {
+    public AttributeProviderEntity createProvider() {
         // TODO ensure unique on multi node deploy: replace with idGenerator
         // (given that UUID is derived from timestamp we consider this safe enough)
         String id = UUID.randomUUID().toString();
@@ -69,63 +66,33 @@ public class AttributeProviderEntityService {
         return p;
     }
 
-    public AttributeProviderEntity addAttributeProvider(
-            String authority,
+    public AttributeProviderEntity saveProvider(
             String providerId,
-            String realm,
-            String name, String description,
-            String persistence, String events,
-            Collection<String> attributeSets,
-            Map<String, Serializable> configurationMap) {
-
-        AttributeProviderEntity p = new AttributeProviderEntity();
-        p.setAuthority(authority);
-        p.setProviderId(providerId);
-        p.setRealm(realm);
-        // disabled by default, need to be explicitly enabled
-        p.setEnabled(false);
-        p.setName(name);
-        p.setDescription(description);
-        p.setPersistence(persistence);
-        p.setEvents(events);
-        p.setAttributeSets(StringUtils.collectionToCommaDelimitedString(attributeSets));
-        p.setConfigurationMap(configurationMap);
-
-        p = providerRepository.saveAndFlush(p);
-
-        return p;
-    }
-
-    public AttributeProviderEntity updateAttributeProvider(
-            String providerId,
-            boolean enabled,
-            String name, String description,
-            String persistence, String events,
-            Collection<String> attributeSets,
-            Map<String, Serializable> configurationMap) throws NoSuchProviderException {
+            AttributeProviderEntity reg, Map<String, Serializable> configurationMap) {
 
         AttributeProviderEntity p = providerRepository.findByProviderId(providerId);
         if (p == null) {
-            throw new NoSuchProviderException();
+            p = new AttributeProviderEntity();
+            p.setProviderId(providerId);
+            p.setAuthority(reg.getAuthority());
+            p.setRealm(reg.getRealm());
         }
 
-        // update props
-        p.setName(name);
-        p.setDescription(description);
-        p.setPersistence(persistence);
-        p.setEvents(events);
-        p.setAttributeSets(StringUtils.collectionToCommaDelimitedString(attributeSets));
+        p.setEnabled(reg.isEnabled());
+        p.setName(reg.getName());
+        p.setDescription(reg.getDescription());
+        p.setPersistence(reg.getPersistence());
+        p.setEvents(reg.getEvents());
 
-        // we update both status and configuration at the same time
-        p.setEnabled(enabled);
+        p.setAttributeSets(reg.getAttributeSets());
         p.setConfigurationMap(configurationMap);
+
         p = providerRepository.saveAndFlush(p);
 
         return p;
-
     }
 
-    public void deleteAttributeProvider(String providerId) {
+    public void deleteProvider(String providerId) {
         AttributeProviderEntity p = providerRepository.findByProviderId(providerId);
         if (p != null) {
             providerRepository.delete(p);
