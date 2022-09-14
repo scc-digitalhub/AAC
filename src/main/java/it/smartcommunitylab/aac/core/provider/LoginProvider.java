@@ -1,6 +1,13 @@
 package it.smartcommunitylab.aac.core.provider;
 
-public interface LoginProvider extends ResourceProvider {
+public interface LoginProvider {
+    
+    public String getAuthority();
+
+    public String getProvider();
+
+    public String getRealm();
+    
     /*
      * Config
      */

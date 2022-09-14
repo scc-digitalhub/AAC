@@ -20,13 +20,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
+import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.authorities.AttributeAuthority;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
@@ -58,9 +59,6 @@ import it.smartcommunitylab.aac.roles.service.SubjectRoleService;
 @Service
 public class UserService {
 
-    @Autowired
-    private AuthorityManager authorityManager;
-
     // base services for users
     @Autowired
     private UserEntityService userService;
@@ -73,6 +71,12 @@ public class UserService {
 
     @Autowired
     private GroupService groupService;
+
+    @Autowired
+    private IdentityProviderAuthorityService identityProviderAuthorityService;
+
+    @Autowired
+    private AttributeProviderAuthorityService attributeProviderAuthorityService;
 //
 //    @Autowired
 //    private IdentityProviderService identityProviderService;
@@ -276,7 +280,10 @@ public class UserService {
 
         // same realm, fetch all idps
         // TODO we need an order criteria
-        for (IdentityProvider<UserIdentity> idp : authorityManager.fetchIdentityProviders(realm)) {
+        Collection<IdentityProvider<? extends UserIdentity, ?, ?>> providers = identityProviderAuthorityService
+                .getAuthorities().stream()
+                .flatMap(a -> a.getProvidersByRealm(realm).stream()).collect(Collectors.toList());
+        for (IdentityProvider<? extends UserIdentity, ?, ?> idp : providers) {
             identities.addAll(idp.listIdentities(subjectId));
         }
 
@@ -337,7 +344,10 @@ public class UserService {
 
         // fetch all identities from source realm
         // TODO we need an order criteria
-        for (IdentityProvider<UserIdentity> idp : authorityManager.fetchIdentityProviders(realm)) {
+        Collection<IdentityProvider<? extends UserIdentity, ?, ?>> providers = identityProviderAuthorityService
+                .getAuthorities().stream()
+                .flatMap(a -> a.getProvidersByRealm(realm).stream()).collect(Collectors.toList());
+        for (IdentityProvider<? extends UserIdentity, ?, ?> idp : providers) {
             identities.addAll(idp.listIdentities(subjectId));
         }
 
@@ -524,20 +534,23 @@ public class UserService {
         String realm = user.getRealm();
 
         // delete identities via (active) providers
-        for (IdentityProvider<UserIdentity> idp : authorityManager.fetchIdentityProviders(realm)) {
+        Collection<IdentityProvider<? extends UserIdentity, ?, ?>> idps = identityProviderAuthorityService
+                .getAuthorities().stream()
+                .flatMap(a -> a.getProvidersByRealm(realm).stream()).collect(Collectors.toList());
+        for (IdentityProvider<? extends UserIdentity, ?, ?> idp : idps) {
             // remove all identities
             idp.deleteIdentities(subjectId);
         }
 
         // attributes
-        for (AttributeAuthority aa : authorityManager.listAttributeAuthorities()) {
-            List<AttributeProvider> aps = aa.getAttributeProviders(realm);
-            for (AttributeProvider ap : aps) {
-                // remove all attributes
-                ap.deleteUserAttributes(subjectId);
-
-            }
+        Collection<AttributeProvider<?, ?>> aps = attributeProviderAuthorityService
+                .getAuthorities().stream()
+                .flatMap(a -> a.getProvidersByRealm(realm).stream()).collect(Collectors.toList());
+        for (AttributeProvider<?, ?> ap : aps) {
+            // remove all attributes
+            ap.deleteUserAttributes(subjectId);
         }
+
         // roles
         spaceRoleService.deleteRoles(subjectId);
 
@@ -594,24 +607,40 @@ public class UserService {
     }
 
     public Collection<UserAttributes> getUserAttributes(String subjectId, String realm, String provider)
-            throws NoSuchUserException, NoSuchProviderException {
+            throws NoSuchUserException, NoSuchProviderException, NoSuchAuthorityException {
         UserEntity u = userService.getUser(subjectId);
-        AttributeProvider ap = authorityManager.getAttributeProvider(provider);
+
+        // fetch config
+        ConfigurableAttributeProvider cap = attributeProviderService.getProvider(provider);
+        if (!cap.getRealm().equals(realm)) {
+            throw new IllegalArgumentException("realm mismatch");
+        }
+
+        // fetch active
+        AttributeProvider<?, ?> ap = attributeProviderAuthorityService.getAuthority(cap.getAuthority())
+                .getProvider(cap.getProvider());
+
         return ap.getUserAttributes(u.getUuid());
     }
 
     public UserAttributes getUserAttributes(String subjectId, String realm, String provider, String setId)
-            throws NoSuchUserException, NoSuchProviderException {
+            throws NoSuchUserException, NoSuchProviderException, NoSuchAuthorityException {
         UserEntity u = userService.getUser(subjectId);
-        ConfigurableAttributeProvider cp = attributeProviderService.getProvider(provider);
-        if (!cp.getRealm().equals(realm)) {
+
+        // fetch config
+        ConfigurableAttributeProvider cap = attributeProviderService.getProvider(provider);
+        if (!cap.getRealm().equals(realm)) {
             throw new IllegalArgumentException("realm mismatch");
         }
-        if (!cp.getAttributeSets().contains(setId)) {
+
+        if (!cap.getAttributeSets().contains(setId)) {
             throw new IllegalArgumentException("set not enabled for this provider");
         }
 
-        AttributeProvider ap = authorityManager.getAttributeProvider(provider);
+        // fetch active
+        AttributeProvider<?, ?> ap = attributeProviderAuthorityService.getAuthority(cap.getAuthority())
+                .getProvider(cap.getProvider());
+
         return ap.getUserAttributes(u.getUuid()).stream().filter(a -> a.getIdentifier().equals(setId)).findFirst()
                 .orElse(null);
     }
@@ -619,12 +648,15 @@ public class UserService {
     public UserAttributes setUserAttributes(String subjectId, String realm, String provider,
             AttributeSet attributeSet) throws NoSuchUserException, NoSuchProviderException {
         UserEntity u = userService.getUser(subjectId);
-        ConfigurableAttributeProvider cp = attributeProviderService.getProvider(provider);
-        if (!cp.getRealm().equals(realm)) {
+        String setId = attributeSet.getIdentifier();
+
+        // fetch config
+        ConfigurableAttributeProvider cap = attributeProviderService.getProvider(provider);
+        if (!cap.getRealm().equals(realm)) {
             throw new IllegalArgumentException("realm mismatch");
         }
-        String setId = attributeSet.getIdentifier();
-        if (!cp.getAttributeSets().contains(setId)) {
+
+        if (!cap.getAttributeSets().contains(setId)) {
             throw new IllegalArgumentException("set not enabled for this provider");
         }
 
@@ -633,16 +665,24 @@ public class UserService {
     }
 
     public void removeUserAttributes(String subjectId, String realm, String provider, String setId)
-            throws NoSuchProviderException {
-        ConfigurableAttributeProvider cp = attributeProviderService.getProvider(provider);
-        if (!cp.getRealm().equals(realm)) {
+            throws NoSuchProviderException, NoSuchAuthorityException, NoSuchAttributeSetException {
+
+        // fetch config
+        ConfigurableAttributeProvider cap = attributeProviderService.getProvider(provider);
+        if (!cap.getRealm().equals(realm)) {
             throw new IllegalArgumentException("realm mismatch");
         }
-        if (!cp.getAttributeSets().contains(setId)) {
+
+        if (!cap.getAttributeSets().contains(setId)) {
             throw new IllegalArgumentException("set not enabled for this provider");
         }
-        AttributeService as = authorityManager.getAttributeService(provider);
-        as.deleteAttributes(subjectId, setId);
+
+        // fetch active
+        AttributeProvider<?, ?> ap = attributeProviderAuthorityService.getAuthority(cap.getAuthority())
+                .getProvider(cap.getProvider());
+
+        // delete single set
+        ap.deleteUserAttributes(subjectId, setId);
     }
 
     /*
@@ -652,11 +692,11 @@ public class UserService {
     public Collection<UserAttributes> fetchUserAttributes(String subjectId, String realm) throws NoSuchUserException {
         List<UserAttributes> attributes = new ArrayList<>();
         // fetch from providers
-        for (AttributeAuthority aa : authorityManager.listAttributeAuthorities()) {
-            List<AttributeProvider> aps = aa.getAttributeProviders(realm);
-            for (AttributeProvider ap : aps) {
-                attributes.addAll(ap.getUserAttributes(subjectId));
-            }
+        Collection<AttributeProvider<?, ?>> aps = attributeProviderAuthorityService
+                .getAuthorities().stream()
+                .flatMap(a -> a.getProvidersByRealm(realm).stream()).collect(Collectors.toList());
+        for (AttributeProvider<?, ?> ap : aps) {
+            attributes.addAll(ap.getUserAttributes(subjectId));
         }
 
         return attributes;

@@ -11,12 +11,13 @@ import javax.persistence.Lob;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.repository.HashMapBase64Converter;
 import it.smartcommunitylab.aac.repository.HashMapConverter;
 
 @Entity
 @Table(name = "identity_providers")
-public class IdentityProviderEntity {
+public class IdentityProviderEntity implements ProviderEntity {
 
 //    @Id
 //    @GeneratedValue
@@ -93,6 +94,11 @@ public class IdentityProviderEntity {
 
     public void setAuthority(String authority) {
         this.authority = authority;
+    }
+
+    @Override
+    public String getProvider() {
+        return providerId;
     }
 
     public String getProviderId() {
@@ -197,6 +203,11 @@ public class IdentityProviderEntity {
 
     public void setHookFunctions(Map<String, String> hookFunctions) {
         this.hookFunctions = hookFunctions;
+    }
+
+    @Override
+    public String getType() {
+        return SystemKeys.RESOURCE_IDENTITY_PROVIDER;
     }
 
 }

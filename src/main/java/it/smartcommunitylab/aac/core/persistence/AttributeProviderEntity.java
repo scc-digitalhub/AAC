@@ -11,11 +11,12 @@ import javax.persistence.Lob;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.repository.HashMapConverter;
 
 @Entity
 @Table(name = "attribute_providers")
-public class AttributeProviderEntity {
+public class AttributeProviderEntity implements ProviderEntity {
 
     @NotNull
     private String authority;
@@ -66,6 +67,11 @@ public class AttributeProviderEntity {
 
     public void setAuthority(String authority) {
         this.authority = authority;
+    }
+
+    @Override
+    public String getProvider() {
+        return providerId;
     }
 
     public String getProviderId() {
@@ -146,6 +152,11 @@ public class AttributeProviderEntity {
 
     public void setConfigurationMap(Map<String, Serializable> configurationMap) {
         this.configurationMap = configurationMap;
+    }
+
+    @Override
+    public String getType() {
+        return SystemKeys.RESOURCE_ATTRIBUTE_PROVIDER;
     }
 
 }

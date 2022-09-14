@@ -19,7 +19,7 @@ import it.smartcommunitylab.aac.attributes.store.PersistentAttributeStore;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityAuthority;
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
@@ -30,7 +30,7 @@ import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 
 @Service
 public class AppleIdentityAuthority extends
-        AbstractIdentityAuthority<OIDCUserIdentity, AppleIdentityProvider, AppleIdentityProviderConfig, AppleIdentityProviderConfigMap>
+        AbstractIdentityAuthority<AppleIdentityProvider, OIDCUserIdentity, AppleIdentityProviderConfigMap, AppleIdentityProviderConfig>
         implements InitializingBean {
 
     public static final String AUTHORITY_URL = "/auth/apple/";
@@ -104,7 +104,7 @@ public class AppleIdentityAuthority extends
     }
 
     @Override
-    public AppleIdentityProvider registerProvider(ConfigurableProvider cp) {
+    public AppleIdentityProvider registerProvider(ConfigurableIdentityProvider cp) {
         if (cp != null
                 && getAuthorityId().equals(cp.getAuthority())
                 && SystemKeys.RESOURCE_IDENTITY.equals(cp.getType())) {

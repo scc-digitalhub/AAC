@@ -80,7 +80,7 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
         ConfigurableIdentityProvider provider = super.getIdp(realm, providerId);
 
         // fetch also configuration schema
-        JsonSchema schema = providerManager.getConfigurationSchema(realm, provider.getType(), provider.getAuthority());
+        JsonSchema schema = providerManager.getConfigurationSchema(realm, provider.getAuthority());
         provider.setSchema(schema);
 
         return provider;
@@ -96,7 +96,7 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
         ConfigurableIdentityProvider provider = super.addIdp(realm, registration);
 
         // fetch also configuration schema
-        JsonSchema schema = providerManager.getConfigurationSchema(realm, provider.getType(), provider.getAuthority());
+        JsonSchema schema = providerManager.getConfigurationSchema(realm, provider.getAuthority());
         provider.setSchema(schema);
 
         return provider;
@@ -113,7 +113,7 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
         ConfigurableIdentityProvider provider = super.updateIdp(realm, providerId, registration, Optional.of(false));
 
         // fetch also configuration schema
-        JsonSchema schema = providerManager.getConfigurationSchema(realm, provider.getType(), provider.getAuthority());
+        JsonSchema schema = providerManager.getConfigurationSchema(realm, provider.getAuthority());
         provider.setSchema(schema);
 
         return provider;
@@ -185,11 +185,10 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
                     logger.trace("provider bean: " + String.valueOf(reg));
                 }
                 // register
-                ConfigurableIdentityProvider provider = providerManager.addIdentityProvider(realm, reg);
+                ConfigurableIdentityProvider provider = providerManager.addProvider(realm, reg);
 
                 // fetch also configuration schema
-                JsonSchema schema = providerManager.getConfigurationSchema(realm, provider.getType(),
-                        provider.getAuthority());
+                JsonSchema schema = providerManager.getConfigurationSchema(realm, provider.getAuthority());
                 provider.setSchema(schema);
                 providers.add(provider);
             }
@@ -215,11 +214,12 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             HttpServletResponse res)
-            throws NoSuchProviderException, NoSuchRealmException, SystemException, IOException {
+            throws NoSuchProviderException, NoSuchRealmException, SystemException, IOException,
+            NoSuchAuthorityException {
         logger.debug("export idp {} for realm {}",
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
-        ConfigurableIdentityProvider provider = providerManager.getIdentityProvider(realm, providerId);
+        ConfigurableIdentityProvider provider = providerManager.getProvider(realm, providerId);
         String s = yamlObjectMapper.writeValueAsString(provider);
 
         // write as file

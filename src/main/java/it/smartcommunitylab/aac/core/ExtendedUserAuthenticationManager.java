@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +54,7 @@ import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
+import it.smartcommunitylab.aac.core.service.AttributeProviderAuthorityService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderAuthorityService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
@@ -72,23 +74,27 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final IdentityProviderAuthorityService identityProviderAuthorityService;
+    private final AttributeProviderAuthorityService attributeProviderAuthorityService;
     // TODO replace manager with services for idp and ap
-    private final AuthorityManager authorityManager;
+//    private final AuthorityManager authorityManager;
     private final UserEntityService userService;
     private final SubjectService subjectService;
 
     private AuthenticationEventPublisher eventPublisher;
 
     public ExtendedUserAuthenticationManager(
-            AuthorityManager authorityManager, IdentityProviderAuthorityService identityProviderAuthorityService,
+//            AuthorityManager authorityManager,
+            IdentityProviderAuthorityService identityProviderAuthorityService,
+            AttributeProviderAuthorityService attributeProviderAuthorityService,
             UserEntityService userService, SubjectService subjectService) {
-        Assert.notNull(authorityManager, "authority manager is required");
+//        Assert.notNull(authorityManager, "authority manager is required");
         Assert.notNull(identityProviderAuthorityService, "idp authority service is required");
+        Assert.notNull(attributeProviderAuthorityService, "attribute provider authority service is required");
         Assert.notNull(userService, "user service is required");
         Assert.notNull(subjectService, "subject service is required");
 
         this.identityProviderAuthorityService = identityProviderAuthorityService;
-        this.authorityManager = authorityManager;
+        this.attributeProviderAuthorityService = attributeProviderAuthorityService;
         this.userService = userService;
         this.subjectService = subjectService;
 
@@ -136,7 +142,7 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
                     throw new ProviderNotFoundException("provider not found");
                 }
 
-                IdentityProvider<? extends UserIdentity> idp = null;
+                IdentityProvider<? extends UserIdentity, ?, ?> idp = null;
                 if (StringUtils.hasText(authorityId)) {
                     // fast load
                     idp = fetchIdentityProvider(authorityId, providerId);
@@ -162,6 +168,7 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
                 // process with provider, no fallback
                 return doAuthenticate(request, eap);
             } else if (request instanceof RealmWrappedAuthenticationToken) {
+                // TODO drop support
                 RealmWrappedAuthenticationToken realmRequest = (RealmWrappedAuthenticationToken) authentication;
                 String authorityId = realmRequest.getAuthority();
                 String realm = realmRequest.getRealm();
@@ -178,24 +185,21 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
 
                 // since we don't have an authority we ask all idps to process, and keep the
                 // first not null result
-                List<IdentityProvider<? extends UserIdentity>> providers = new ArrayList<>();
+                Collection<IdentityProvider<? extends UserIdentity, ?, ?>> providers = Collections.emptyList();
 
                 if (StringUtils.hasText(authorityId)) {
-                    // fast load
-                    providers.addAll(fetchIdentityProviders(authorityId, realm));
+                    // direct load
+                    providers = fetchIdentityProviders(authorityId, realm);
                 } else {
-                    // from db
-                    try {
-                        providers.addAll(authorityManager.getIdentityProviders(realm));
-                    } catch (NoSuchRealmException re) {
-                        providers = Collections.emptyList();
-                    }
+                    // load all
+                    providers = identityProviderAuthorityService.getAuthorities().stream()
+                            .flatMap(a -> a.getProvidersByRealm(realm).stream()).collect(Collectors.toList());
                 }
 
                 UserAuthentication result = null;
 
                 // TODO rework loop
-                for (IdentityProvider<? extends UserIdentity> idp : providers) {
+                for (IdentityProvider<? extends UserIdentity, ?, ?> idp : providers) {
                     ExtendedAuthenticationProvider<? extends UserAuthenticatedPrincipal, ? extends UserAccount> eap = idp
                             .getAuthenticationProvider();
                     if (eap == null) {
@@ -320,7 +324,7 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
 
         // fetch identity provider for the given account
         // fast load skipping db
-        IdentityProvider<? extends UserIdentity> idp = fetchIdentityProvider(authorityId, providerId);
+        IdentityProvider<?, ?, ?> idp = fetchIdentityProvider(authorityId, providerId);
         if (idp == null) {
             // should not happen, provider has become unavailable during login
             throw new ProviderNotFoundException("provider not found");
@@ -356,9 +360,9 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
         if (subjectId == null && principal.isEmailVerified()) {
             // new or non-persisted account for idp, non resolvable
             // fallback to other idps from the same realm via verified emailAddress
-            Collection<IdentityProvider<UserIdentity>> idps = fetchIdentityProviders(realm);
+            Collection<IdentityProvider<?, ?, ?>> idps = fetchIdentityProviders(realm);
             // first result is ok
-            for (IdentityProvider<? extends UserIdentity> i : idps) {
+            for (IdentityProvider<?, ?, ?> i : idps) {
                 Subject ss = i.getSubjectResolver().resolveByEmailAddress(principal.getEmailAddress());
                 if (ss != null) {
                     subjectId = ss.getSubjectId();
@@ -517,8 +521,11 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
 
             // load additional attributes from providers
             UserDetails userDetails = userAuth.getUser();
-            Collection<AttributeProvider> attributeProviders = authorityManager.fetchAttributeProviders(realm);
-            for (AttributeProvider ap : attributeProviders) {
+            Collection<AttributeProvider<?, ?>> attributeProviders = attributeProviderAuthorityService.getAuthorities()
+                    .stream().flatMap(a -> a.getProvidersByRealm(realm).stream())
+                    .collect(Collectors.toList());
+
+            for (AttributeProvider<?, ?> ap : attributeProviders) {
                 // try to fetch attributes, don't stop authentication on errors
                 // attributes from aps are optional by definition
                 try {
@@ -556,11 +563,11 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
 
             // load additional identities from same realm providers
             // fast load, get only idp with persistence
-            Collection<IdentityProvider<UserIdentity>> idps = fetchIdentityProviders(realm);
+            Collection<IdentityProvider<? extends UserIdentity, ?, ?>> idps = fetchIdentityProviders(realm);
             // ask all providers except the one already used
-            for (IdentityProvider<UserIdentity> ip : idps) {
+            for (IdentityProvider<? extends UserIdentity, ?, ?> ip : idps) {
                 if (!providerId.equals(ip.getProvider())) {
-                    Collection<UserIdentity> identities = ip.listIdentities(subjectId, true);
+                    Collection<? extends UserIdentity> identities = ip.listIdentities(subjectId, true);
                     if (identities == null) {
                         // this idp does not support linking
                         continue;
@@ -629,9 +636,15 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
         }
     }
 
-    private IdentityProvider<UserIdentity> fetchIdentityProvider(String authorityId, String providerId) {
+    /*
+     * Idp helpers
+     * 
+     * TODO refactor and remove
+     */
+    private IdentityProvider<? extends UserIdentity, ?, ?> fetchIdentityProvider(String authorityId,
+            String providerId) {
         // lookup in authority
-        IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>, ?, ?> ia = identityProviderAuthorityService
+        IdentityProviderAuthority<?, ?, ?, ?> ia = identityProviderAuthorityService
                 .findAuthority(authorityId);
         if (ia == null) {
             return null;
@@ -643,25 +656,26 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
         }
     }
 
-    private Collection<IdentityProvider<UserIdentity>> fetchIdentityProviders(String authorityId, String realm) {
-        List<IdentityProvider<UserIdentity>> providers = new ArrayList<>();
+    private Collection<IdentityProvider<? extends UserIdentity, ?, ?>> fetchIdentityProviders(String authorityId,
+            String realm) {
+        List<IdentityProvider<? extends UserIdentity, ?, ?>> providers = new ArrayList<>();
         // lookup in authority
-        IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>, ?, ?> ia = identityProviderAuthorityService
+        IdentityProviderAuthority<?, ?, ?, ?> ia = identityProviderAuthorityService
                 .findAuthority(authorityId);
         if (ia != null) {
-            providers.addAll(ia.getProviders(realm));
+            providers.addAll(ia.getProvidersByRealm(realm));
         }
 
         return providers;
 
     }
 
-    private Collection<IdentityProvider<UserIdentity>> fetchIdentityProviders(String realm) {
-        List<IdentityProvider<UserIdentity>> providers = new ArrayList<>();
+    private Collection<IdentityProvider<? extends UserIdentity, ?, ?>> fetchIdentityProviders(String realm) {
+        List<IdentityProvider<? extends UserIdentity, ?, ?>> providers = new ArrayList<>();
 
-        for (IdentityProviderAuthority<UserIdentity, IdentityProvider<UserIdentity>, ?, ?> ia : identityProviderAuthorityService
+        for (IdentityProviderAuthority<?, ?, ?, ?> ia : identityProviderAuthorityService
                 .getAuthorities()) {
-            providers.addAll(ia.getProviders(realm));
+            providers.addAll(ia.getProvidersByRealm(realm));
         }
 
         return providers;

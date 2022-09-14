@@ -50,12 +50,12 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.controller.BaseAttributeProviderController;
-import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
+import it.smartcommunitylab.aac.core.service.AttributeProviderAuthorityService;
 import it.smartcommunitylab.aac.dto.FunctionValidationBean;
 
 @RestController
@@ -67,8 +67,9 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
     };
     private final String LIST_KEY = "providers";
 
+    // TODO replace with authorityManager to handle permissions
     @Autowired
-    private AuthorityManager authorityManager;
+    private AttributeProviderAuthorityService attributeProviderAuthorityService;
 
     @Autowired
     @Qualifier("yamlObjectMapper")
@@ -83,13 +84,12 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
     public ConfigurableAttributeProvider getAp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
-            throws NoSuchProviderException, NoSuchRealmException {
+            throws NoSuchProviderException, NoSuchRealmException, NoSuchAuthorityException {
         ConfigurableAttributeProvider provider = super.getAp(realm, providerId);
 
         // fetch also configuration schema
         try {
-            JsonSchema schema = providerManager.getConfigurationSchema(realm, provider.getType(),
-                    provider.getAuthority());
+            JsonSchema schema = providerManager.getConfigurationSchema(realm, provider.getAuthority());
             provider.setSchema(schema);
         } catch (NoSuchAuthorityException e) {
             throw new NoSuchProviderException();
@@ -103,11 +103,11 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
     public ConfigurableAttributeProvider addAp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration)
-            throws NoSuchRealmException, NoSuchAuthorityException {
+            throws NoSuchRealmException, NoSuchAuthorityException, RegistrationException, NoSuchProviderException {
         ConfigurableAttributeProvider provider = super.addAp(realm, registration);
 
         // fetch also configuration schema
-        JsonSchema schema = providerManager.getConfigurationSchema(realm, provider.getType(), provider.getAuthority());
+        JsonSchema schema = providerManager.getConfigurationSchema(realm, provider.getAuthority());
         provider.setSchema(schema);
 
         return provider;
@@ -124,7 +124,7 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
         ConfigurableAttributeProvider provider = super.updateAp(realm, providerId, registration, Optional.of(false));
 
         // fetch also configuration schema
-        JsonSchema schema = providerManager.getConfigurationSchema(realm, provider.getType(), provider.getAuthority());
+        JsonSchema schema = providerManager.getConfigurationSchema(realm, provider.getAuthority());
         provider.setSchema(schema);
 
         return provider;
@@ -138,8 +138,10 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             Authentication auth, HttpServletResponse res)
-            throws NoSuchProviderException, NoSuchRealmException, SystemException, IOException {
-        ConfigurableAttributeProvider provider = providerManager.getAttributeProvider(realm, providerId);
+            throws NoSuchProviderException, NoSuchRealmException, SystemException, IOException,
+            NoSuchAuthorityException {
+
+        ConfigurableAttributeProvider provider = providerManager.getProvider(realm, providerId);
 
         // check if registered
         boolean isRegistered = providerManager.isProviderRegistered(realm, provider);
@@ -147,7 +149,8 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
             throw new IllegalArgumentException("provider is not active");
         }
 
-        AttributeProvider ap = authorityManager.getAttributeProvider(providerId);
+        AttributeProvider<?, ?> ap = attributeProviderAuthorityService.getAuthority(provider.getAuthority())
+                .getProvider(providerId);
 
         // authentication should be a user authentication
         if (!(auth instanceof UserAuthentication)) {
@@ -268,11 +271,10 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
                 }
 
                 // register
-                ConfigurableAttributeProvider provider = providerManager.addAttributeProvider(realm, reg);
+                ConfigurableAttributeProvider provider = providerManager.addProvider(realm, reg);
 
                 // fetch also configuration schema
-                JsonSchema schema = providerManager.getConfigurationSchema(realm, provider.getType(),
-                        provider.getAuthority());
+                JsonSchema schema = providerManager.getConfigurationSchema(realm, provider.getAuthority());
                 provider.setSchema(schema);
                 providers.add(provider);
             }
@@ -298,11 +300,12 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             HttpServletResponse res)
-            throws NoSuchProviderException, NoSuchRealmException, SystemException, IOException {
+            throws NoSuchProviderException, NoSuchRealmException, SystemException, IOException,
+            NoSuchAuthorityException {
         logger.debug("export ap {} for realm {}",
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
-        ConfigurableAttributeProvider provider = providerManager.getAttributeProvider(realm, providerId);
+        ConfigurableAttributeProvider provider = providerManager.getProvider(realm, providerId);
         String s = yamlObjectMapper.writeValueAsString(provider);
 
         // write as file

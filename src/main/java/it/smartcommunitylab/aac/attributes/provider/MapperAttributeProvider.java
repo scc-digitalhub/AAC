@@ -26,12 +26,13 @@ import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
 import it.smartcommunitylab.aac.core.model.Attribute;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
-import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
+import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 
-public class MapperAttributeProvider extends AbstractProvider implements AttributeProvider {
+public class MapperAttributeProvider extends AbstractProvider<UserAttributes>
+        implements AttributeProvider<MapperAttributeProviderConfigMap, MapperAttributeProviderConfig> {
 
     // services
     private final AttributeService attributeService;
@@ -59,7 +60,7 @@ public class MapperAttributeProvider extends AbstractProvider implements Attribu
         this.providerConfig = config;
 
         // validate mapper type
-        String type = providerConfig.getConfigMap().getType();
+        String type = providerConfig.getMapperType();
         if (!DefaultAttributesMapper.TYPE.equals(type) && !ExactAttributesMapper.TYPE.equals(type)) {
             throw new IllegalArgumentException("invalid mapper type");
         }
@@ -86,14 +87,22 @@ public class MapperAttributeProvider extends AbstractProvider implements Attribu
     }
 
     @Override
+    public MapperAttributeProviderConfig getConfig() {
+        return providerConfig;
+    }
+
+    @Override
+    public ConfigurableAttributeProvider getConfigurable() {
+        return providerConfig.getConfigurable();
+    }
+
+    @Override
     public Collection<UserAttributes> convertPrincipalAttributes(UserAuthenticatedPrincipal principal,
             String subjectId) {
 
         if (providerConfig.getAttributeSets().isEmpty()) {
             return Collections.emptyList();
         }
-
-        MapperAttributeProviderConfigMap configMap = providerConfig.getConfigMap();
 
         List<UserAttributes> result = new ArrayList<>();
         Map<String, Serializable> principalAttributes = new HashMap<>();
@@ -120,7 +129,7 @@ public class MapperAttributeProvider extends AbstractProvider implements Attribu
                 AttributeSet as = attributeService.getAttributeSet(setId);
 
                 // build mapper as per config
-                BaseAttributesMapper mapper = getAttributeMapper(configMap.getType(), as);
+                BaseAttributesMapper mapper = getAttributeMapper(providerConfig.getMapperType(), as);
                 AttributeSet set = mapper.mapAttributes(principalAttributes);
                 if (set.getAttributes() != null && !set.getAttributes().isEmpty()) {
                     // build result
@@ -150,9 +159,9 @@ public class MapperAttributeProvider extends AbstractProvider implements Attribu
     }
 
     @Override
-    public Collection<UserAttributes> getUserAttributes(String subjectId) {
+    public Collection<UserAttributes> getUserAttributes(String userId) {
         // fetch from store
-        Map<String, Serializable> attributes = attributeStore.findAttributes(subjectId);
+        Map<String, Serializable> attributes = attributeStore.findAttributes(userId);
         if (attributes == null || attributes.isEmpty()) {
             return Collections.emptyList();
         }
@@ -162,20 +171,11 @@ public class MapperAttributeProvider extends AbstractProvider implements Attribu
         // build sets from stored values
         for (String setId : providerConfig.getAttributeSets()) {
             try {
-                AttributeSet as = attributeService.getAttributeSet(setId);
-                String prefix = setId + "|";
-                // TODO handle repeatable attributes by enum
-                Map<String, Serializable> principalAttributes = attributes.entrySet().stream()
-                        .filter(e -> e.getKey().startsWith(prefix))
-                        .collect(Collectors.toMap(e -> e.getKey().substring(prefix.length()), e -> e.getValue()));
-
-                // use exact mapper
-                ExactAttributesMapper mapper = new ExactAttributesMapper(as);
-                AttributeSet set = mapper.mapAttributes(principalAttributes);
+                AttributeSet set = readAttributes(setId, attributes);
                 if (set.getAttributes() != null && !set.getAttributes().isEmpty()) {
                     // build result
                     result.add(new DefaultUserAttributesImpl(
-                            getAuthority(), getProvider(), getRealm(), subjectId,
+                            getAuthority(), getProvider(), getRealm(), userId,
                             set));
                 }
             } catch (NoSuchAttributeSetException | RuntimeException e) {
@@ -186,9 +186,48 @@ public class MapperAttributeProvider extends AbstractProvider implements Attribu
     }
 
     @Override
+    public UserAttributes getUserAttributes(String userId, String setId) throws NoSuchAttributeSetException {
+        if (!providerConfig.getAttributeSets().contains(setId)) {
+            return null;
+        }
+
+        // fetch from store
+        Map<String, Serializable> attributes = attributeStore.findAttributes(userId);
+        if (attributes == null || attributes.isEmpty()) {
+            return null;
+        }
+
+        AttributeSet set = readAttributes(setId, attributes);
+        return new DefaultUserAttributesImpl(
+                getAuthority(), getProvider(), getRealm(), userId,
+                set);
+
+    }
+
+    @Override
     public void deleteUserAttributes(String subjectId) {
         // cleanup from store
         attributeStore.deleteAttributes(subjectId);
+    }
+
+    @Override
+    public void deleteUserAttributes(String userId, String setId) {
+        // nothing to do for mapper
+    }
+
+    private AttributeSet readAttributes(String setId, Map<String, Serializable> attributes)
+            throws NoSuchAttributeSetException {
+        AttributeSet as = attributeService.getAttributeSet(setId);
+        String prefix = setId + "|";
+        // TODO handle repeatable attributes by enum
+        Map<String, Serializable> principalAttributes = attributes.entrySet().stream()
+                .filter(e -> e.getKey().startsWith(prefix))
+                .collect(Collectors.toMap(e -> e.getKey().substring(prefix.length()), e -> e.getValue()));
+
+        // use exact mapper
+        ExactAttributesMapper mapper = new ExactAttributesMapper(as);
+        AttributeSet set = mapper.mapAttributes(principalAttributes);
+        return set;
     }
 
     private BaseAttributesMapper getAttributeMapper(String type, AttributeSet as) {

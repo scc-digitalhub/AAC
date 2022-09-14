@@ -93,10 +93,6 @@ public class WebAuthnCredentialsController {
             throw new IllegalArgumentException("error.unsupported_operation");
         }
 
-        if (!idp.getConfig().isEnableRegistration()) {
-            throw new IllegalArgumentException("error.unsupported_operation");
-        }
-
         // for internal username is accountId
         String username = account.getAccountId();
 
@@ -175,10 +171,6 @@ public class WebAuthnCredentialsController {
         WebAuthnCredentialsService service = idp.getCredentialsService();
 
         if (service == null) {
-            throw new IllegalArgumentException("error.unsupported_operation");
-        }
-
-        if (!idp.getConfig().isEnableRegistration()) {
             throw new IllegalArgumentException("error.unsupported_operation");
         }
 

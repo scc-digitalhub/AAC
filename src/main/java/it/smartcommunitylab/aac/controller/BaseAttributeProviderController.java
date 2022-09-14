@@ -33,7 +33,9 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
-import it.smartcommunitylab.aac.core.ProviderManager;
+import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.core.AttributeProviderManager;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 
 /*
@@ -44,7 +46,7 @@ import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 public class BaseAttributeProviderController implements InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    protected ProviderManager providerManager;
+    protected AttributeProviderManager providerManager;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -52,7 +54,7 @@ public class BaseAttributeProviderController implements InitializingBean {
     }
 
     @Autowired
-    public void setProviderManager(ProviderManager providerManager) {
+    public void setProviderManager(AttributeProviderManager providerManager) {
         this.providerManager = providerManager;
     }
 
@@ -74,7 +76,7 @@ public class BaseAttributeProviderController implements InitializingBean {
         logger.debug("list ap for realm {}",
                 StringUtils.trimAllWhitespace(realm));
 
-        return providerManager.listAttributeProviders(realm)
+        return providerManager.listProviders(realm)
                 .stream()
                 .map(cp -> {
                     cp.setRegistered(providerManager.isProviderRegistered(realm, cp));
@@ -87,12 +89,12 @@ public class BaseAttributeProviderController implements InitializingBean {
     public ConfigurableAttributeProvider getAp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
-            throws NoSuchProviderException, NoSuchRealmException {
+            throws NoSuchProviderException, NoSuchRealmException, NoSuchAuthorityException {
         logger.debug("get ap {} for realm {}",
                 StringUtils.trimAllWhitespace(providerId),
                 StringUtils.trimAllWhitespace(realm));
 
-        ConfigurableAttributeProvider provider = providerManager.getAttributeProvider(realm, providerId);
+        ConfigurableAttributeProvider provider = providerManager.getProvider(realm, providerId);
 
         // check if registered
         boolean isRegistered = providerManager.isProviderRegistered(realm, provider);
@@ -106,7 +108,7 @@ public class BaseAttributeProviderController implements InitializingBean {
     public ConfigurableAttributeProvider addAp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration)
-            throws NoSuchRealmException, NoSuchAuthorityException {
+            throws NoSuchRealmException, NoSuchAuthorityException, RegistrationException, NoSuchProviderException {
         logger.debug("add ap to realm {}",
                 StringUtils.trimAllWhitespace(realm));
 
@@ -133,7 +135,7 @@ public class BaseAttributeProviderController implements InitializingBean {
             logger.trace("ap bean: " + String.valueOf(provider));
         }
 
-        provider = providerManager.addAttributeProvider(realm, provider);
+        provider = providerManager.addProvider(realm, provider);
 
         return provider;
     }
@@ -149,12 +151,12 @@ public class BaseAttributeProviderController implements InitializingBean {
         logger.debug("update ap {} for realm {}",
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
-        ConfigurableAttributeProvider provider = providerManager.getAttributeProvider(realm, providerId);
+        ConfigurableAttributeProvider provider = providerManager.getProvider(realm, providerId);
 
         // if force disable provider
         boolean forceRegistration = force.orElse(false);
         if (forceRegistration && providerManager.isProviderRegistered(realm, provider)) {
-            provider = providerManager.unregisterAttributeProvider(realm, providerId);
+            provider = providerManager.unregisterProvider(realm, providerId);
         }
 
         // we update only configuration
@@ -178,12 +180,12 @@ public class BaseAttributeProviderController implements InitializingBean {
             logger.trace("ap bean: " + String.valueOf(provider));
         }
 
-        provider = providerManager.updateAttributeProvider(realm, providerId, provider);
+        provider = providerManager.updateProvider(realm, providerId, provider);
 
         // if force and enabled try to register
         if (forceRegistration && provider.isEnabled()) {
             try {
-                provider = providerManager.registerAttributeProvider(realm, providerId);
+                provider = providerManager.registerProvider(realm, providerId);
             } catch (Exception e) {
                 // ignore
             }
@@ -201,11 +203,11 @@ public class BaseAttributeProviderController implements InitializingBean {
     public void deleteAp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
-            throws NoSuchProviderException, NoSuchRealmException {
+            throws NoSuchProviderException, NoSuchRealmException, SystemException, NoSuchAuthorityException {
         logger.debug("delete ap {} for realm {}",
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
-        providerManager.deleteAttributeProvider(realm, providerId);
+        providerManager.deleteProvider(realm, providerId);
 
     }
 
@@ -218,12 +220,12 @@ public class BaseAttributeProviderController implements InitializingBean {
     public ConfigurableAttributeProvider registerAp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
-            throws NoSuchProviderException, NoSuchRealmException {
+            throws NoSuchProviderException, NoSuchRealmException, SystemException, NoSuchAuthorityException {
         logger.debug("register ap {} for realm {}",
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
-        ConfigurableAttributeProvider provider = providerManager.getAttributeProvider(realm, providerId);
-        provider = providerManager.registerAttributeProvider(realm, providerId);
+        ConfigurableAttributeProvider provider = providerManager.getProvider(realm, providerId);
+        provider = providerManager.registerProvider(realm, providerId);
 
         // check if registered
         boolean isRegistered = providerManager.isProviderRegistered(realm, provider);
@@ -238,12 +240,12 @@ public class BaseAttributeProviderController implements InitializingBean {
     public ConfigurableAttributeProvider unregisterAp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
-            throws NoSuchProviderException, NoSuchRealmException {
+            throws NoSuchProviderException, NoSuchRealmException, SystemException, NoSuchAuthorityException {
         logger.debug("unregister ap {} for realm {}",
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
-        ConfigurableAttributeProvider provider = providerManager.getAttributeProvider(realm, providerId);
-        provider = providerManager.unregisterAttributeProvider(realm, providerId);
+        ConfigurableAttributeProvider provider = providerManager.getProvider(realm, providerId);
+        provider = providerManager.unregisterProvider(realm, providerId);
 
         // check if registered
         boolean isRegistered = providerManager.isProviderRegistered(realm, provider);
@@ -265,8 +267,8 @@ public class BaseAttributeProviderController implements InitializingBean {
         logger.debug("get ap config schema for {} for realm {}",
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
-        ConfigurableAttributeProvider provider = providerManager.getAttributeProvider(realm, providerId);
-        return providerManager.getConfigurationSchema(realm, SystemKeys.RESOURCE_ATTRIBUTES, provider.getAuthority());
+        ConfigurableAttributeProvider provider = providerManager.getProvider(realm, providerId);
+        return providerManager.getConfigurationSchema(realm, provider.getAuthority());
     }
 
 }

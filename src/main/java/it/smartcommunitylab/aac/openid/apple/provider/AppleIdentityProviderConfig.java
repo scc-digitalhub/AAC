@@ -1,12 +1,9 @@
 package it.smartcommunitylab.aac.openid.apple.provider;
 
-import java.io.Serializable;
 import java.io.StringReader;
 import java.security.PrivateKey;
 import java.security.interfaces.ECPrivateKey;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
@@ -26,18 +23,15 @@ import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
 
-public class AppleIdentityProviderConfig extends AbstractIdentityProviderConfig {
+public class AppleIdentityProviderConfig extends AbstractIdentityProviderConfig<AppleIdentityProviderConfigMap> {
     private static final long serialVersionUID = SystemKeys.AAC_OIDC_SERIAL_VERSION;
 
     public static final String ISSUER_URI = "https://appleid.apple.com";
     public static final String AUTHORIZATION_URL = "https://appleid.apple.com/auth/authorize?response_mode=form_post";
 
-    private static final String[] DEFAULT_SCOPES = { "name", "email" };
-
     public static final String DEFAULT_REDIRECT_URL = "{baseUrl}" + AppleIdentityAuthority.AUTHORITY_URL
             + "{action}/{registrationId}";
 
-    private AppleIdentityProviderConfigMap configMap;
     private ClientRegistration clientRegistration;
     private ECPrivateKey privateKey;
 
@@ -45,29 +39,12 @@ public class AppleIdentityProviderConfig extends AbstractIdentityProviderConfig 
     private static final JcaPEMKeyConverter pemConverter = new JcaPEMKeyConverter();
 
     public AppleIdentityProviderConfig(String provider, String realm) {
-        super(SystemKeys.AUTHORITY_APPLE, provider, realm);
+        super(SystemKeys.AUTHORITY_APPLE, provider, realm, new AppleIdentityProviderConfigMap());
         this.clientRegistration = null;
-        this.configMap = new AppleIdentityProviderConfigMap();
-
     }
 
-    public AppleIdentityProviderConfigMap getConfigMap() {
-        return configMap;
-    }
-
-    public void setConfigMap(AppleIdentityProviderConfigMap configMap) {
-        this.configMap = configMap;
-    }
-
-    @Override
-    public Map<String, Serializable> getConfiguration() {
-        return configMap.getConfiguration();
-    }
-
-    @Override
-    public void setConfiguration(Map<String, Serializable> props) {
-        configMap = new AppleIdentityProviderConfigMap();
-        configMap.setConfiguration(props);
+    public AppleIdentityProviderConfig(ConfigurableIdentityProvider cp) {
+        super(cp);
     }
 
     public ClientRegistration getClientRegistration() {
@@ -201,23 +178,23 @@ public class AppleIdentityProviderConfig extends AbstractIdentityProviderConfig 
         return op;
     }
 
-    public static AppleIdentityProviderConfig fromConfigurableProvider(ConfigurableIdentityProvider cp) {
-        AppleIdentityProviderConfig ap = new AppleIdentityProviderConfig(cp.getProvider(), cp.getRealm());
-        ap.configMap = new AppleIdentityProviderConfigMap();
-        ap.configMap.setConfiguration(cp.getConfiguration());
-
-        ap.name = cp.getName();
-        ap.description = cp.getDescription();
-        ap.icon = cp.getIcon();
-
-        ap.linkable = cp.isLinkable();
-        ap.persistence = cp.getPersistence();
-        ap.events = cp.getEvents();
-        ap.position = cp.getPosition();
-        
-        ap.hookFunctions = (cp.getHookFunctions() != null ? cp.getHookFunctions() : Collections.emptyMap());
-
-        return ap;
-    }
+//    public static AppleIdentityProviderConfig fromConfigurableProvider(ConfigurableIdentityProvider cp) {
+//        AppleIdentityProviderConfig ap = new AppleIdentityProviderConfig(cp.getProvider(), cp.getRealm());
+//        ap.configMap = new AppleIdentityProviderConfigMap();
+//        ap.configMap.setConfiguration(cp.getConfiguration());
+//
+//        ap.name = cp.getName();
+//        ap.description = cp.getDescription();
+//        ap.icon = cp.getIcon();
+//
+//        ap.linkable = cp.isLinkable();
+//        ap.persistence = cp.getPersistence();
+//        ap.events = cp.getEvents();
+//        ap.position = cp.getPosition();
+//        
+//        ap.hookFunctions = (cp.getHookFunctions() != null ? cp.getHookFunctions() : Collections.emptyMap());
+//
+//        return ap;
+//    }
 
 }

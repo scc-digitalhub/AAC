@@ -29,7 +29,7 @@ import it.smartcommunitylab.aac.saml.model.SamlUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 
 @Transactional
-public class SamlAccountProvider extends AbstractProvider
+public class SamlAccountProvider extends AbstractProvider<SamlUserAccount>
         implements AccountProvider<SamlUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -39,13 +39,20 @@ public class SamlAccountProvider extends AbstractProvider
     private final SamlIdentityProviderConfig config;
 
     // attributes
-    protected final SamlAttributesMapper samlMapper;
+    private final SamlAttributesMapper samlMapper;
 
-    protected SamlAccountProvider(String providerId,
+    public SamlAccountProvider(String providerId,
             UserAccountService<SamlUserAccount> accountService,
             SamlIdentityProviderConfig config,
             String realm) {
-        super(SystemKeys.AUTHORITY_SAML, providerId, realm);
+        this(SystemKeys.AUTHORITY_SAML, providerId, accountService, config, realm);
+    }
+
+    public SamlAccountProvider(String authority, String providerId,
+            UserAccountService<SamlUserAccount> accountService,
+            SamlIdentityProviderConfig config,
+            String realm) {
+        super(authority, providerId, realm);
         Assert.notNull(accountService, "account service is mandatory");
         Assert.notNull(config, "provider config is mandatory");
 

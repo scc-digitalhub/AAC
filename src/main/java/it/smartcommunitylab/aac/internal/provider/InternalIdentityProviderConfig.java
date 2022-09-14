@@ -1,57 +1,26 @@
 package it.smartcommunitylab.aac.internal.provider;
 
-import java.io.Serializable;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.internal.model.CredentialsType;
 
-public class InternalIdentityProviderConfig extends AbstractIdentityProviderConfig {
+public class InternalIdentityProviderConfig extends AbstractIdentityProviderConfig<InternalIdentityProviderConfigMap> {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
-
-    protected static ObjectMapper mapper = new ObjectMapper();
-    protected final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
-    };
 
     private final static int MIN_DURATION = 300;
     private final static int MAX_SESSION_DURATION = 24 * 60 * 60; // 24h
-
-    // map capabilities
-    private InternalIdentityProviderConfigMap configMap;
 
     public InternalIdentityProviderConfig(String provider, String realm) {
         this(SystemKeys.AUTHORITY_INTERNAL, provider, realm);
     }
 
     public InternalIdentityProviderConfig(String authority, String provider, String realm) {
-        super(authority, provider, realm);
-        this.configMap = new InternalIdentityProviderConfigMap();
+        super(authority, provider, realm, new InternalIdentityProviderConfigMap());
     }
 
-    public InternalIdentityProviderConfigMap getConfigMap() {
-        return configMap;
-    }
-
-    public void setConfigMap(InternalIdentityProviderConfigMap configMap) {
-        this.configMap = configMap;
-    }
-
-    @Override
-    public Map<String, Serializable> getConfiguration() {
-        return configMap.getConfiguration();
-    }
-
-    @Override
-    public void setConfiguration(Map<String, Serializable> props) {
-        configMap = new InternalIdentityProviderConfigMap();
-        configMap.setConfiguration(props);
+    public InternalIdentityProviderConfig(ConfigurableIdentityProvider cp) {
+        super(cp);
     }
 
     public String getRepositoryId() {
@@ -65,7 +34,7 @@ public class InternalIdentityProviderConfig extends AbstractIdentityProviderConf
     }
 
     public CredentialsType getCredentialsType() {
-        return configMap.getCredentialsType() != null ? configMap.getCredentialsType() : CredentialsType.NONE;
+        return CredentialsType.NONE;
     }
 
     public boolean isScopedData() {

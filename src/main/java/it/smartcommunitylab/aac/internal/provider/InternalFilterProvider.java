@@ -20,7 +20,6 @@ import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
 public class InternalFilterProvider implements FilterProvider {
 
     private final ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository;
-    private final UserAccountService<InternalUserAccount> userAccountService;
     private final InternalUserConfirmKeyService confirmKeyService;
     private AuthenticationManager authManager;
 
@@ -31,7 +30,6 @@ public class InternalFilterProvider implements FilterProvider {
         Assert.notNull(confirmKeyService, "confirm key service is mandatory");
         Assert.notNull(registrationRepository, "registration repository is mandatory");
 
-        this.userAccountService = userAccountService;
         this.confirmKeyService = confirmKeyService;
         this.registrationRepository = registrationRepository;
     }
@@ -49,7 +47,7 @@ public class InternalFilterProvider implements FilterProvider {
     public Collection<Filter> getFilters() {
 
         // we expose only the confirmKey auth filter with default config
-        InternalConfirmKeyAuthenticationFilter<InternalIdentityProviderConfig> confirmKeyFilter = new InternalConfirmKeyAuthenticationFilter<>(
+        InternalConfirmKeyAuthenticationFilter confirmKeyFilter = new InternalConfirmKeyAuthenticationFilter(
                 confirmKeyService, registrationRepository);
         confirmKeyFilter.setAuthenticationSuccessHandler(successHandler());
 

@@ -1,7 +1,6 @@
 package it.smartcommunitylab.aac.internal.provider;
 
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.Map;
 
 import javax.validation.Valid;
@@ -10,25 +9,16 @@ import javax.validation.constraints.Max;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
-
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
+import it.smartcommunitylab.aac.core.base.AbstractConfigMap;
 import it.smartcommunitylab.aac.internal.model.CredentialsType;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class InternalIdentityProviderConfigMap implements ConfigurableProperties, Serializable {
-
+public class InternalIdentityProviderConfigMap extends AbstractConfigMap implements Serializable {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
-
-    protected static final ObjectMapper mapper = new ObjectMapper();
-    protected final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
-    };
 
     @Max(3 * 24 * 60 * 60)
     protected Integer maxSessionDuration;
@@ -111,21 +101,8 @@ public class InternalIdentityProviderConfigMap implements ConfigurableProperties
         this.confirmationValidity = confirmationValidity;
     }
 
-    @Override
     @JsonIgnore
-    public Map<String, Serializable> getConfiguration() {
-        // use mapper
-        mapper.setSerializationInclusion(Include.NON_EMPTY);
-        return mapper.convertValue(this, typeRef);
-    }
-
-    @Override
-    @JsonIgnore
-    public void setConfiguration(Map<String, Serializable> props) {
-        // use mapper
-        mapper.setSerializationInclusion(Include.NON_EMPTY);
-        InternalIdentityProviderConfigMap map = mapper.convertValue(props, InternalIdentityProviderConfigMap.class);
-
+    public void setConfiguration(InternalIdentityProviderConfigMap map) {
         this.maxSessionDuration = map.getMaxSessionDuration();
 
         this.credentialsType = map.getCredentialsType();
@@ -139,9 +116,18 @@ public class InternalIdentityProviderConfigMap implements ConfigurableProperties
         this.confirmationValidity = map.getConfirmationValidity();
     }
 
+    @Override
     @JsonIgnore
-    public static JsonSchema getConfigurationSchema() throws JsonMappingException {
-        JsonSchemaGenerator schemaGen = new JsonSchemaGenerator(mapper);
+    public void setConfiguration(Map<String, Serializable> props) {
+        // use mapper
+        mapper.setSerializationInclusion(Include.NON_EMPTY);
+        InternalIdentityProviderConfigMap map = mapper.convertValue(props, InternalIdentityProviderConfigMap.class);
+
+        setConfiguration(map);
+    }
+
+    @JsonIgnore
+    public JsonSchema getSchema() throws JsonMappingException {
         return schemaGen.generateSchema(InternalIdentityProviderConfigMap.class);
     }
 }

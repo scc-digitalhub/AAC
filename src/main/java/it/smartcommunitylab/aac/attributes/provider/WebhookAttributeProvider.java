@@ -43,13 +43,14 @@ import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
 import it.smartcommunitylab.aac.core.model.Attribute;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
-import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
+import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.oauth.flow.FlowExecutionException;
 
-public class WebhookAttributeProvider extends AbstractProvider implements AttributeProvider {
+public class WebhookAttributeProvider extends AbstractProvider<UserAttributes>
+        implements AttributeProvider<WebhookAttributeProviderConfigMap, WebhookAttributeProviderConfig> {
     private static final Logger logger = LoggerFactory.getLogger(WebhookAttributeProvider.class);
 
     public static final String ATTRIBUTE_MAPPING_FUNCTION = "attributeMapping";
@@ -133,6 +134,16 @@ public class WebhookAttributeProvider extends AbstractProvider implements Attrib
     @Override
     public String getDescription() {
         return providerConfig.getDescription();
+    }
+
+    @Override
+    public WebhookAttributeProviderConfig getConfig() {
+        return providerConfig;
+    }
+
+    @Override
+    public ConfigurableAttributeProvider getConfigurable() {
+        return providerConfig.getConfigurable();
     }
 
     @Override
@@ -258,16 +269,7 @@ public class WebhookAttributeProvider extends AbstractProvider implements Attrib
         // build sets from stored values
         for (String setId : providerConfig.getAttributeSets()) {
             try {
-                AttributeSet as = attributeService.getAttributeSet(setId);
-                String prefix = setId + "|";
-                // TODO handle repeatable attributes by enum
-                Map<String, Serializable> principalAttributes = attributes.entrySet().stream()
-                        .filter(e -> e.getKey().startsWith(prefix))
-                        .collect(Collectors.toMap(e -> e.getKey().substring(prefix.length()), e -> e.getValue()));
-
-                // use exact mapper
-                ExactAttributesMapper mapper = new ExactAttributesMapper(as);
-                AttributeSet set = mapper.mapAttributes(principalAttributes);
+                AttributeSet set = readAttributes(setId, attributes);
                 if (set.getAttributes() != null && !set.getAttributes().isEmpty()) {
                     // build result
                     result.add(new DefaultUserAttributesImpl(
@@ -282,9 +284,48 @@ public class WebhookAttributeProvider extends AbstractProvider implements Attrib
     }
 
     @Override
+    public UserAttributes getUserAttributes(String userId, String setId) throws NoSuchAttributeSetException {
+        if (!providerConfig.getAttributeSets().contains(setId)) {
+            return null;
+        }
+
+        // fetch from store
+        Map<String, Serializable> attributes = attributeStore.findAttributes(userId);
+        if (attributes == null || attributes.isEmpty()) {
+            return null;
+        }
+
+        AttributeSet set = readAttributes(setId, attributes);
+        return new DefaultUserAttributesImpl(
+                getAuthority(), getProvider(), getRealm(), userId,
+                set);
+
+    }
+
+    @Override
     public void deleteUserAttributes(String subjectId) {
         // cleanup from store
         attributeStore.deleteAttributes(subjectId);
+    }
+
+    @Override
+    public void deleteUserAttributes(String userId, String setId) {
+        // nothing to do
+    }
+
+    private AttributeSet readAttributes(String setId, Map<String, Serializable> attributes)
+            throws NoSuchAttributeSetException {
+        AttributeSet as = attributeService.getAttributeSet(setId);
+        String prefix = setId + "|";
+        // TODO handle repeatable attributes by enum
+        Map<String, Serializable> principalAttributes = attributes.entrySet().stream()
+                .filter(e -> e.getKey().startsWith(prefix))
+                .collect(Collectors.toMap(e -> e.getKey().substring(prefix.length()), e -> e.getValue()));
+
+        // use exact mapper
+        ExactAttributesMapper mapper = new ExactAttributesMapper(as);
+        AttributeSet set = mapper.mapAttributes(principalAttributes);
+        return set;
     }
 
 }

@@ -34,7 +34,15 @@ public class SamlAttributeProvider
             AttributeStore attributeStore,
             SamlIdentityProviderConfig providerConfig,
             String realm) {
-        super(SystemKeys.AUTHORITY_SAML, providerId, realm);
+        this(SystemKeys.AUTHORITY_SAML, providerId, attributeStore, providerConfig, realm);
+    }
+
+    public SamlAttributeProvider(
+            String authority, String providerId,
+            AttributeStore attributeStore,
+            SamlIdentityProviderConfig providerConfig,
+            String realm) {
+        super(authority, providerId, realm);
         Assert.notNull(providerConfig, "provider config is mandatory");
         Assert.notNull(attributeStore, "attribute store is mandatory");
 

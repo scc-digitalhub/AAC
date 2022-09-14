@@ -59,6 +59,8 @@ public class SystemKeys {
     public static final String RESOURCE_REALM = "realm";
     public static final String RESOURCE_CONFIG = "config";
     public static final String RESOURCE_LOGIN = "login";
+    public static final String RESOURCE_IDENTITY_PROVIDER = "identity_provider";
+    public static final String RESOURCE_ATTRIBUTE_PROVIDER = "attribute_provider";
 
     public static final String PATH_SEPARATOR = "/-/";
     public static final String ID_SEPARATOR = "|";

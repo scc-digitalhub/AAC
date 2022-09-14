@@ -41,13 +41,13 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.LoginException;
 import it.smartcommunitylab.aac.config.ApplicationProperties;
-import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.LoginProvider;
 import it.smartcommunitylab.aac.core.service.ClientDetailsService;
+import it.smartcommunitylab.aac.core.service.IdentityProviderAuthorityService;
 import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.model.Realm;
 
@@ -66,7 +66,7 @@ public class LoginController {
     private ResourceLoader resourceLoader;
 
     @Autowired
-    private AuthorityManager authorityManager;
+    private IdentityProviderAuthorityService identityProviderAuthorityService;
 
     @Autowired
     private RealmManager realmManager;
@@ -137,32 +137,21 @@ public class LoginController {
         return "redirect:/login";
     }
 
+    // TODO split mapping in 2
     @RequestMapping(value = {
             "/-/{realm}/login",
             "/-/{realm}/login/{providerId}"
     }, method = RequestMethod.GET)
     public String login(
-            @PathVariable("realm") Optional<String> realmKey,
+            @PathVariable("realm") String realm,
             @PathVariable("providerId") Optional<String> providerKey,
             @RequestParam(required = false, name = "client_id") Optional<String> clientKey,
             Model model,
             HttpServletRequest req, HttpServletResponse res) throws Exception {
 
         // TODO handle /login as COMMON login, ie any realm is valid
-        String realm = SystemKeys.REALM_SYSTEM;
-        String providerId = "";
-        String clientId = null;
-
-        // fetch realm+provider
-        if (realmKey.isPresent()) {
-            realm = realmKey.get();
-        }
-        if (providerKey.isPresent()) {
-            providerId = providerKey.get();
-        }
-        if (clientKey.isPresent()) {
-            clientId = clientKey.get();
-        }
+        String providerId = providerKey.isPresent() ? providerKey.get() : "";
+        String clientId = clientKey.isPresent() ? clientKey.get() : null;
 
         if (!StringUtils.hasText(realm)) {
             throw new IllegalArgumentException("no suitable realm for login");
@@ -191,14 +180,15 @@ public class LoginController {
         model.addAttribute("customization", resources);
 
         // fetch providers for given realm
-        Collection<IdentityProvider<UserIdentity>> providers = authorityManager
-                .getIdentityProviders(realm);
+        Collection<IdentityProvider<? extends UserIdentity, ?, ?>> providers = identityProviderAuthorityService
+                .getAuthorities().stream()
+                .flatMap(a -> a.getProvidersByRealm(realm).stream()).collect(Collectors.toList());
 
         if (StringUtils.hasText(providerId)) {
-            IdentityProvider<UserIdentity> idp = authorityManager
-                    .getIdentityProvider(providerId);
-            if (idp.getRealm().equals(realm)) {
-                providers = Collections.singleton(idp);
+            Optional<IdentityProvider<? extends UserIdentity, ?, ?>> idp = providers.stream()
+                    .filter(p -> p.getProvider().equals(providerId)).findFirst();
+            if (idp.isPresent() && idp.get().getRealm().equals(realm)) {
+                providers = Collections.singleton(idp.get());
             }
         }
 
@@ -215,9 +205,10 @@ public class LoginController {
             }
         }
 
-        // fetch as authorities model
+        // fetch login providers
+        // TODO refactor with proper provider + model
         List<LoginProvider> authorities = new ArrayList<>();
-        for (IdentityProvider<? extends UserIdentity> idp : providers) {
+        for (IdentityProvider<? extends UserIdentity, ?, ?> idp : providers) {
             LoginProvider a = idp.getLoginProvider();
             // lp is optional
             if (a != null) {
@@ -226,7 +217,6 @@ public class LoginController {
         }
 
         // bypass idp selection when only 1 is available
-
         if (authorities.size() == 1) {
             LoginProvider lab = authorities.get(0);
             // note: we can bypass only providers which expose a button,

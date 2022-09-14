@@ -2,9 +2,13 @@ package it.smartcommunitylab.aac.core.provider;
 
 import java.util.Collection;
 
-import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
+import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
+import it.smartcommunitylab.aac.core.model.ConfigMap;
+import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.core.model.UserIdentity;
 
 /*
  * An attribute provider offers:
@@ -25,7 +29,8 @@ import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
  *  
  *  they should not handle identities
  */
-public interface AttributeProvider extends ResourceProvider {
+public interface AttributeProvider<M extends ConfigMap, C extends AttributeProviderConfig<M>>
+        extends ConfigurableResourceProvider<UserAttributes, ConfigurableAttributeProvider, M, C> {
 
     /*
      * Config
@@ -103,9 +108,11 @@ public interface AttributeProvider extends ResourceProvider {
 
 //    public Collection<UserAttributes> getAccountAttributes(String id);
 
-//    public UserAttributes getUserAttributes(String userId, String setId) throws NoSuchUserException;
+    public UserAttributes getUserAttributes(String userId, String setId) throws NoSuchAttributeSetException;
 
     public void deleteUserAttributes(String userId);
+
+    public void deleteUserAttributes(String userId, String setId) throws NoSuchAttributeSetException;
 
 //    public void deleteAccountAttributes(String id);
 

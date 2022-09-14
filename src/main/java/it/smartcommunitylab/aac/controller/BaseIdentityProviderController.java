@@ -35,7 +35,7 @@ import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.core.ProviderManager;
+import it.smartcommunitylab.aac.core.IdentityProviderManager;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.service.IdentityProviderAuthorityService;
@@ -48,7 +48,7 @@ import it.smartcommunitylab.aac.core.service.IdentityProviderAuthorityService;
 public class BaseIdentityProviderController implements InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    protected ProviderManager providerManager;
+    protected IdentityProviderManager providerManager;
 
     // TODO evaluate replace with authorityManager
     protected IdentityProviderAuthorityService authorityService;
@@ -60,7 +60,7 @@ public class BaseIdentityProviderController implements InitializingBean {
     }
 
     @Autowired
-    public void setProviderManager(ProviderManager providerManager) {
+    public void setProviderManager(IdentityProviderManager providerManager) {
         this.providerManager = providerManager;
     }
 
@@ -102,7 +102,7 @@ public class BaseIdentityProviderController implements InitializingBean {
         logger.debug("list idp for realm {}",
                 StringUtils.trimAllWhitespace(realm));
 
-        return providerManager.listIdentityProviders(realm)
+        return providerManager.listProviders(realm)
                 .stream()
                 .map(cp -> {
                     cp.setRegistered(providerManager.isProviderRegistered(realm, cp));
@@ -149,7 +149,7 @@ public class BaseIdentityProviderController implements InitializingBean {
             logger.trace("idp bean: " + StringUtils.trimAllWhitespace(provider.toString()));
         }
 
-        provider = providerManager.addIdentityProvider(realm, provider);
+        provider = providerManager.addProvider(realm, provider);
 
         return provider;
     }
@@ -163,13 +163,12 @@ public class BaseIdentityProviderController implements InitializingBean {
         logger.debug("get idp {} for realm {}",
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
-        ConfigurableIdentityProvider provider = providerManager.getIdentityProvider(realm, providerId);
+        ConfigurableIdentityProvider provider = providerManager.getProvider(realm, providerId);
 
         // merge default properties
         Map<String, Serializable> configuration = new HashMap<>();
         configuration.putAll(provider.getConfiguration());
-        ConfigurableProperties cp = providerManager.getConfigurableProperties(realm, SystemKeys.RESOURCE_IDENTITY,
-                provider.getAuthority());
+        ConfigurableProperties cp = providerManager.getConfigurableProperties(realm, provider.getAuthority());
         Map<String, Serializable> dcp = cp.getConfiguration();
         dcp.entrySet().forEach(e -> {
             configuration.putIfAbsent(e.getKey(), e.getValue());
@@ -194,13 +193,13 @@ public class BaseIdentityProviderController implements InitializingBean {
         logger.debug("update idp {} for realm {}",
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
-        ConfigurableIdentityProvider provider = providerManager.getIdentityProvider(realm, providerId);
+        ConfigurableIdentityProvider provider = providerManager.getProvider(realm, providerId);
 
         // if force disable provider
         boolean forceRegistration = force.orElse(false);
         if (forceRegistration && providerManager.isProviderRegistered(realm, provider)) {
             try {
-                provider = providerManager.unregisterIdentityProvider(realm, providerId);
+                provider = providerManager.unregisterProvider(realm, providerId);
             } catch (NoSuchAuthorityException e) {
                 // skip
             }
@@ -235,12 +234,12 @@ public class BaseIdentityProviderController implements InitializingBean {
             logger.trace("idp bean: " + StringUtils.trimAllWhitespace(provider.toString()));
         }
 
-        provider = providerManager.updateIdentityProvider(realm, providerId, provider);
+        provider = providerManager.updateProvider(realm, providerId, provider);
 
         // if force and enabled try to register
         if (forceRegistration && provider.isEnabled()) {
             try {
-                provider = providerManager.registerIdentityProvider(realm, providerId);
+                provider = providerManager.registerProvider(realm, providerId);
             } catch (Exception e) {
                 // ignore
             }
@@ -258,11 +257,11 @@ public class BaseIdentityProviderController implements InitializingBean {
     public void deleteIdp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
-            throws NoSuchProviderException, NoSuchRealmException {
+            throws NoSuchProviderException, NoSuchRealmException, SystemException, NoSuchAuthorityException {
         logger.debug("delete idp {} for realm {}",
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
-        providerManager.deleteIdentityProvider(realm, providerId);
+        providerManager.deleteProvider(realm, providerId);
 
     }
 
@@ -279,8 +278,8 @@ public class BaseIdentityProviderController implements InitializingBean {
         logger.debug("register idp {} for realm {}",
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
-        ConfigurableIdentityProvider provider = providerManager.getIdentityProvider(realm, providerId);
-        provider = providerManager.registerIdentityProvider(realm, providerId);
+        ConfigurableIdentityProvider provider = providerManager.getProvider(realm, providerId);
+        provider = providerManager.registerProvider(realm, providerId);
 
         // check if registered
         boolean isRegistered = providerManager.isProviderRegistered(realm, provider);
@@ -299,8 +298,8 @@ public class BaseIdentityProviderController implements InitializingBean {
         logger.debug("unregister idp {} for realm {}",
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
-        ConfigurableIdentityProvider provider = providerManager.getIdentityProvider(realm, providerId);
-        provider = providerManager.unregisterIdentityProvider(realm, providerId);
+        ConfigurableIdentityProvider provider = providerManager.getProvider(realm, providerId);
+        provider = providerManager.unregisterProvider(realm, providerId);
 
         // check if registered
         boolean isRegistered = providerManager.isProviderRegistered(realm, provider);
@@ -322,8 +321,8 @@ public class BaseIdentityProviderController implements InitializingBean {
         logger.debug("get idp config schema for {} for realm {}",
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
-        ConfigurableIdentityProvider provider = providerManager.getIdentityProvider(realm, providerId);
-        return providerManager.getConfigurationSchema(realm, SystemKeys.RESOURCE_IDENTITY, provider.getAuthority());
+        ConfigurableIdentityProvider provider = providerManager.getProvider(realm, providerId);
+        return providerManager.getConfigurationSchema(realm, provider.getAuthority());
     }
 
 }

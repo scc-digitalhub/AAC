@@ -7,7 +7,7 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 
-public interface AccountProvider<U extends UserAccount> extends ResourceProvider {
+public interface AccountProvider<U extends UserAccount> extends ResourceProvider<U> {
 
     /*
      * Fetch accounts from this provider

@@ -3,6 +3,7 @@ package it.smartcommunitylab.aac.core.service;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,7 +15,7 @@ import it.smartcommunitylab.aac.core.persistence.IdentityProviderEntityRepositor
 
 @Service
 @Transactional
-public class IdentityProviderEntityService {
+public class IdentityProviderEntityService implements ProviderEntityService<IdentityProviderEntity> {
 
     private final IdentityProviderEntityRepository providerRepository;
 
@@ -24,32 +25,32 @@ public class IdentityProviderEntityService {
     }
 
     @Transactional(readOnly = true)
-    public List<IdentityProviderEntity> listIdentityProviders() {
+    public List<IdentityProviderEntity> listProviders() {
         return providerRepository.findAll();
     }
 
     @Transactional(readOnly = true)
-    public List<IdentityProviderEntity> listIdentityProvidersByAuthority(String authority) {
+    public List<IdentityProviderEntity> listProvidersByAuthority(String authority) {
         return providerRepository.findByAuthority(authority);
     }
 
     @Transactional(readOnly = true)
-    public List<IdentityProviderEntity> listIdentityProvidersByRealm(String realm) {
+    public List<IdentityProviderEntity> listProvidersByRealm(String realm) {
         return providerRepository.findByRealm(realm);
     }
 
     @Transactional(readOnly = true)
-    public List<IdentityProviderEntity> listIdentityProvidersByAuthorityAndRealm(String authority, String realm) {
+    public List<IdentityProviderEntity> listProvidersByAuthorityAndRealm(String authority, String realm) {
         return providerRepository.findByAuthorityAndRealm(authority, realm);
     }
 
     @Transactional(readOnly = true)
-    public IdentityProviderEntity findIdentityProvider(String providerId) {
+    public IdentityProviderEntity findProvider(String providerId) {
         return providerRepository.findByProviderId(providerId);
     }
 
     @Transactional(readOnly = true)
-    public IdentityProviderEntity getIdentityProvider(String providerId) throws NoSuchProviderException {
+    public IdentityProviderEntity getProvider(String providerId) throws NoSuchProviderException {
         IdentityProviderEntity p = providerRepository.findByProviderId(providerId);
         if (p == null) {
             throw new NoSuchProviderException();
@@ -58,7 +59,7 @@ public class IdentityProviderEntityService {
         return p;
     }
 
-    public IdentityProviderEntity createIdentityProvider() {
+    public IdentityProviderEntity createProvider() {
         // generate random
         String id = RandomStringUtils.randomAlphanumeric(8);
 
@@ -72,69 +73,35 @@ public class IdentityProviderEntityService {
         return p;
     }
 
-    public IdentityProviderEntity addIdentityProvider(
-            String authority,
+    public IdentityProviderEntity saveProvider(
             String providerId,
-            String realm,
-            String name, String description, String icon,
-            String persistence, String events, Integer position,
-            Map<String, Serializable> configurationMap,
-            Map<String, String> hookFunctions) {
-
-        IdentityProviderEntity p = new IdentityProviderEntity();
-        p.setAuthority(authority);
-        p.setProviderId(providerId);
-        p.setRealm(realm);
-        // disabled by default, need to be explicitly enabled
-        p.setEnabled(false);
-        p.setName(name);
-        p.setDescription(description);
-        p.setIcon(icon);
-        p.setPersistence(persistence);
-        p.setLinkable(true);
-        p.setEvents(events);
-        p.setPosition(position);
-        p.setConfigurationMap(configurationMap);
-        p.setHookFunctions(hookFunctions);
-
-        p = providerRepository.saveAndFlush(p);
-
-        return p;
-    }
-
-    public IdentityProviderEntity updateIdentityProvider(
-            String providerId,
-            boolean enabled, boolean linkable,
-            String name, String description, String icon,
-            String persistence, String events, Integer position,
-            Map<String, Serializable> configurationMap,
-            Map<String, String> hookFunctions) throws NoSuchProviderException {
+            IdentityProviderEntity reg, Map<String, Serializable> configurationMap) {
 
         IdentityProviderEntity p = providerRepository.findByProviderId(providerId);
         if (p == null) {
-            throw new NoSuchProviderException();
+            p = new IdentityProviderEntity();
+            p.setProviderId(providerId);
+            p.setAuthority(reg.getAuthority());
+            p.setRealm(reg.getRealm());
         }
 
-        // update props
-        p.setName(name);
-        p.setDescription(description);
-        p.setIcon(icon);
-        p.setPersistence(persistence);
-        p.setLinkable(linkable);
-        p.setEvents(events);
-        p.setPosition(position);
-        p.setHookFunctions(hookFunctions);
-
-        // we update both status and configuration at the same time
-        p.setEnabled(enabled);
+        p.setEnabled(reg.isEnabled());
+        p.setName(reg.getName());
+        p.setDescription(reg.getDescription());
+        p.setIcon(reg.getIcon());
+        p.setPersistence(reg.getPersistence());
+        p.setLinkable(reg.isLinkable());
+        p.setEvents(reg.getEvents());
+        p.setPosition(reg.getPosition());
         p.setConfigurationMap(configurationMap);
+        p.setHookFunctions(reg.getHookFunctions());
+
         p = providerRepository.saveAndFlush(p);
 
         return p;
-
     }
 
-    public void deleteIdentityProvider(String providerId) {
+    public void deleteProvider(String providerId) {
         IdentityProviderEntity p = providerRepository.findByProviderId(providerId);
         if (p != null) {
             providerRepository.delete(p);

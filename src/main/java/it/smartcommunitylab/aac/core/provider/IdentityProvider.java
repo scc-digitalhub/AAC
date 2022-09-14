@@ -4,7 +4,8 @@ import java.util.Collection;
 
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
-import it.smartcommunitylab.aac.core.base.AbstractIdentityProviderConfig;
+import it.smartcommunitylab.aac.core.model.ConfigMap;
+import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
@@ -18,8 +19,8 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
  * At minimum, we expect every provider to fulfill core attribute sets (basic, email, openid, account).
  */
 
-public interface IdentityProvider<I extends UserIdentity>
-        extends ResourceProvider {
+public interface IdentityProvider<I extends UserIdentity, M extends ConfigMap, C extends IdentityProviderConfig<M>>
+        extends ConfigurableResourceProvider<UserIdentity, ConfigurableIdentityProvider, M, C> {
 
     public static final String ATTRIBUTE_MAPPING_FUNCTION = "attributeMapping";
 
@@ -29,8 +30,6 @@ public interface IdentityProvider<I extends UserIdentity>
     public String getName();
 
     public String getDescription();
-
-    public AbstractIdentityProviderConfig getConfig();
 
     /*
      * Authoritative for the given identity model

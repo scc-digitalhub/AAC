@@ -26,22 +26,25 @@ import it.smartcommunitylab.aac.core.auth.ProviderWrappedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
+import it.smartcommunitylab.aac.core.base.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
+import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProviderConfig;
 
 /*
  * Handles login requests for internal authority, via extended auth manager
  */
-public class InternalConfirmKeyAuthenticationFilter<C extends InternalIdentityProviderConfig>
+public class InternalConfirmKeyAuthenticationFilter
         extends AbstractAuthenticationProcessingFilter {
 
     public static final String DEFAULT_FILTER_URI = InternalIdentityAuthority.AUTHORITY_URL
             + "confirm/{registrationId}";
 
-    private final ProviderConfigRepository<C> registrationRepository;
+    // TODO cleanup generic type, this should be internal only
+    private final ProviderConfigRepository<? extends AbstractIdentityProviderConfig<?>> registrationRepository;
     private final String authority;
 
 //    public static final String DEFAULT_FILTER_URI = "/auth/internal/";
@@ -60,13 +63,13 @@ public class InternalConfirmKeyAuthenticationFilter<C extends InternalIdentityPr
     private final InternalUserConfirmKeyService userAccountService;
 
     public InternalConfirmKeyAuthenticationFilter(InternalUserConfirmKeyService userAccountService,
-            ProviderConfigRepository<C> registrationRepository) {
+            ProviderConfigRepository<? extends AbstractIdentityProviderConfig<?>> registrationRepository) {
         this(SystemKeys.AUTHORITY_INTERNAL, userAccountService, registrationRepository, DEFAULT_FILTER_URI, null);
     }
 
     public InternalConfirmKeyAuthenticationFilter(String authority,
             InternalUserConfirmKeyService userAccountService,
-            ProviderConfigRepository<C> registrationRepository,
+            ProviderConfigRepository<? extends AbstractIdentityProviderConfig<?>> registrationRepository,
             String filterProcessingUrl, AuthenticationEntryPoint authenticationEntryPoint) {
         super(filterProcessingUrl);
         Assert.notNull(userAccountService, "user account service is required");
@@ -150,7 +153,7 @@ public class InternalConfirmKeyAuthenticationFilter<C extends InternalIdentityPr
 
         // fetch registrationId
         String providerId = requestMatcher.matcher(request).getVariables().get("registrationId");
-        InternalIdentityProviderConfig providerConfig = registrationRepository.findByProviderId(providerId);
+        AbstractIdentityProviderConfig<?> providerConfig = registrationRepository.findByProviderId(providerId);
 
         if (providerConfig == null) {
             throw new ProviderNotFoundException("no provider or realm found for this request");
@@ -168,7 +171,14 @@ public class InternalConfirmKeyAuthenticationFilter<C extends InternalIdentityPr
 
         // fetch account
         // TODO remove, let authProvider handle
-        String repositoryId = providerConfig.getRepositoryId();
+        String repositoryId = realm;
+
+        if (providerConfig instanceof InternalIdentityProviderConfig) {
+            repositoryId = ((InternalIdentityProviderConfig) providerConfig).getRepositoryId();
+        } else if (providerConfig instanceof InternalPasswordIdentityProviderConfig) {
+            repositoryId = ((InternalPasswordIdentityProviderConfig) providerConfig).getRepositoryId();
+        }
+
         InternalUserAccount account = userAccountService.findAccountByConfirmationKey(repositoryId, code);
         if (account == null) {
             // don't leak user does not exists

@@ -5,12 +5,13 @@ import java.util.Map;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.provider.IdentityProviderConfig;
 
-public abstract class AbstractIdentityProviderConfig extends AbstractProviderConfig {
+public abstract class AbstractIdentityProviderConfig<M extends AbstractConfigMap>
+        extends AbstractProviderConfig<M, ConfigurableIdentityProvider>
+        implements IdentityProviderConfig<M> {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
-    protected String name;
-    protected String description;
     protected String icon;
 
     protected Boolean linkable;
@@ -20,30 +21,22 @@ public abstract class AbstractIdentityProviderConfig extends AbstractProviderCon
 
     protected Map<String, String> hookFunctions;
 
-    protected AbstractIdentityProviderConfig(String authority, String provider, String realm) {
-        super(authority, provider, realm);
+    protected AbstractIdentityProviderConfig(String authority, String provider, String realm, M configMap) {
+        super(authority, provider, realm, configMap);
         this.hookFunctions = Collections.emptyMap();
     }
 
-    @Override
-    public final String getType() {
-        return SystemKeys.RESOURCE_IDENTITY;
-    }
+    protected AbstractIdentityProviderConfig(ConfigurableIdentityProvider cp) {
+        super(cp);
 
-    public String getName() {
-        return name;
-    }
+        this.icon = cp.getIcon();
 
-    public void setName(String name) {
-        this.name = name;
-    }
+        this.linkable = cp.isLinkable();
+        this.persistence = cp.getPersistence();
+        this.events = cp.getEvents();
+        this.position = cp.getPosition();
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
+        this.hookFunctions = (cp.getHookFunctions() != null ? cp.getHookFunctions() : Collections.emptyMap());
     }
 
     public String getIcon() {
@@ -98,7 +91,8 @@ public abstract class AbstractIdentityProviderConfig extends AbstractProviderCon
         this.hookFunctions = hookFunctions;
     }
 
-    public ConfigurableIdentityProvider toConfigurableProvider() {
+    @Override
+    public ConfigurableIdentityProvider getConfigurable() {
         ConfigurableIdentityProvider cp = new ConfigurableIdentityProvider(getAuthority(),
                 getProvider(),
                 getRealm());

@@ -25,7 +25,8 @@ import it.smartcommunitylab.aac.openid.provider.OIDCLoginProvider;
 import it.smartcommunitylab.aac.openid.provider.OIDCSubjectResolver;
 
 public class AppleIdentityProvider
-        extends AbstractIdentityProvider<OIDCUserIdentity, OIDCUserAccount, OIDCUserAuthenticatedPrincipal> {
+        extends
+        AbstractIdentityProvider<OIDCUserIdentity, OIDCUserAccount, OIDCUserAuthenticatedPrincipal, AppleIdentityProviderConfigMap, AppleIdentityProviderConfig> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -33,10 +34,9 @@ public class AppleIdentityProvider
     private final AppleIdentityProviderConfig config;
 
     // providers
-    // providers
     private final OIDCAccountProvider accountProvider;
     private final OIDCAttributeProvider attributeProvider;
-    protected final AppleAuthenticationProvider authenticationProvider;
+    private final AppleAuthenticationProvider authenticationProvider;
     private final OIDCSubjectResolver subjectResolver;
 
     public AppleIdentityProvider(

@@ -20,7 +20,8 @@ import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 
 public abstract class AbstractInternalIdentityProvider<P extends InternalUserAuthenticatedPrincipal, C extends UserCredentials>
-        extends AbstractIdentityProvider<InternalUserIdentity, InternalUserAccount, P>
+        extends
+        AbstractIdentityProvider<InternalUserIdentity, InternalUserAccount, P, InternalIdentityProviderConfigMap, InternalIdentityProviderConfig>
         implements ScopeableProvider {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 

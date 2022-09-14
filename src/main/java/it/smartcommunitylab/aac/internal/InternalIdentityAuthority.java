@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.authorities.IdentityServiceAuthority;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityAuthority;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
@@ -28,9 +27,9 @@ import it.smartcommunitylab.aac.utils.MailService;
 @Service
 public class InternalIdentityAuthority
         extends
-        AbstractIdentityAuthority<InternalUserIdentity, InternalIdentityService, InternalIdentityProviderConfig, InternalIdentityProviderConfigMap>
-        implements IdentityServiceAuthority<InternalUserIdentity, InternalUserAccount, InternalIdentityService>,
-        InitializingBean {
+        AbstractIdentityAuthority<InternalIdentityService, InternalUserIdentity, InternalIdentityProviderConfigMap, InternalIdentityProviderConfig>
+//        implements IdentityServiceAuthority<InternalUserIdentity, InternalUserAccount, InternalIdentityService>,
+        implements InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     public static final String AUTHORITY_URL = "/auth/internal/";

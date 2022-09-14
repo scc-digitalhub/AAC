@@ -120,10 +120,6 @@ public class WebAuthnRegistrationController {
             throw new IllegalArgumentException("error.unsupported_operation");
         }
 
-        if (!idp.getConfig().isEnableRegistration()) {
-            throw new IllegalArgumentException("error.unsupported_operation");
-        }
-
         logger.debug("register credentials for {} with provider {}", StringUtils.trimAllWhitespace(uuid),
                 StringUtils.trimAllWhitespace(providerId));
 
@@ -214,10 +210,6 @@ public class WebAuthnRegistrationController {
             throw new IllegalArgumentException("error.unsupported_operation");
         }
 
-        if (!idp.getConfig().isEnableRegistration()) {
-            throw new IllegalArgumentException("error.unsupported_operation");
-        }
-
         String displayName = reg.getDisplayName();
 
         logger.debug("build registration attestationOptions for user {}", StringUtils.trimAllWhitespace(username));
@@ -289,10 +281,6 @@ public class WebAuthnRegistrationController {
         WebAuthnCredentialsService service = idp.getCredentialsService();
 
         if (service == null) {
-            throw new IllegalArgumentException("error.unsupported_operation");
-        }
-
-        if (!idp.getConfig().isEnableRegistration()) {
             throw new IllegalArgumentException("error.unsupported_operation");
         }
 

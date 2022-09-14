@@ -6,15 +6,14 @@ import java.util.Map;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractProviderConfig;
-import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
+import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 
 /*
  * Expose provider configuration outside modules
  */
-public interface ConfigurationProvider<T extends ConfigurableProvider, C extends AbstractProviderConfig, P extends ConfigurableProperties>
-        extends ResourceProvider {
+public interface ConfigurationProvider<M extends ConfigMap, T extends ConfigurableProvider, C extends ProviderConfig<M, T>>
+        extends ResourceProvider<ProviderConfig<?, ?>> {
 
     default public String getType() {
         return SystemKeys.RESOURCE_CONFIG;
@@ -41,12 +40,22 @@ public interface ConfigurationProvider<T extends ConfigurableProvider, C extends
      * Expose and translate to valid configMap
      */
 
-    public P getDefaultConfigMap();
+    public M getDefaultConfigMap();
 
-    public P getConfigMap(Map<String, Serializable> map);
+    public M getConfigMap(Map<String, Serializable> map);
+
+    /*
+     * Validate configuration against schema and also policies (TODO)
+     */
+//    public boolean isConfigValid(T cp);
+//
+//    public boolean isConfigMapValid(M configMap);
 
     /*
      * Export the configuration schema for configMap
+     * 
+     * this schema should match M but could include descriptions, localized labels
+     * etc and should be used for API doc, UI forms etc
      */
 
     public JsonSchema getSchema();

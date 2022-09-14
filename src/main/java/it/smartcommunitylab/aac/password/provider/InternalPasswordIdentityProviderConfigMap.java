@@ -12,17 +12,32 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
-
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.base.AbstractConfigMap;
 import it.smartcommunitylab.aac.internal.model.CredentialsType;
-import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class InternalPasswordIdentityProviderConfigMap extends InternalIdentityProviderConfigMap {
-
+public class InternalPasswordIdentityProviderConfigMap extends AbstractConfigMap implements Serializable {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
+
+    /*
+     * Internal properties
+     * 
+     * TODO remove after internal service refactor
+     */
+    @Max(3 * 24 * 60 * 60)
+    protected Integer maxSessionDuration;
+
+    protected Boolean scopedData;
+
+    protected Boolean enableRegistration;
+    protected Boolean enableDelete;
+    protected Boolean enableUpdate;
+
+    protected Boolean confirmationRequired;
+    @Max(3 * 24 * 60 * 60)
+    protected Integer confirmationValidity;
 
     /*
      * Password properties
@@ -51,11 +66,8 @@ public class InternalPasswordIdentityProviderConfigMap extends InternalIdentityP
     private Integer passwordMaxDays;
 
     public InternalPasswordIdentityProviderConfigMap() {
-        super();
-        this.credentialsType = CredentialsType.PASSWORD;
     }
 
-    @Override
     public CredentialsType getCredentialsType() {
         return CredentialsType.PASSWORD;
     }
@@ -164,24 +176,74 @@ public class InternalPasswordIdentityProviderConfigMap extends InternalIdentityP
         this.passwordMaxDays = passwordMaxDays;
     }
 
-    @Override
-    @JsonIgnore
-    public Map<String, Serializable> getConfiguration() {
-        // use mapper
-        mapper.setSerializationInclusion(Include.NON_EMPTY);
-        return mapper.convertValue(this, typeRef);
+    public Integer getMaxSessionDuration() {
+        return maxSessionDuration;
     }
 
-    @Override
-    @JsonIgnore
-    public void setConfiguration(Map<String, Serializable> props) {
-        // set base via super
-        super.setConfiguration(props);
+    public void setMaxSessionDuration(Integer maxSessionDuration) {
+        this.maxSessionDuration = maxSessionDuration;
+    }
 
-        // use mapper for local
-        mapper.setSerializationInclusion(Include.NON_EMPTY);
-        InternalPasswordIdentityProviderConfigMap map = mapper.convertValue(props, InternalPasswordIdentityProviderConfigMap.class);
-        this.credentialsType = CredentialsType.PASSWORD;
+    public Boolean getScopedData() {
+        return scopedData;
+    }
+
+    public void setScopedData(Boolean scopedData) {
+        this.scopedData = scopedData;
+    }
+
+    public Boolean getEnableRegistration() {
+        return enableRegistration;
+    }
+
+    public void setEnableRegistration(Boolean enableRegistration) {
+        this.enableRegistration = enableRegistration;
+    }
+
+    public Boolean getEnableDelete() {
+        return enableDelete;
+    }
+
+    public void setEnableDelete(Boolean enableDelete) {
+        this.enableDelete = enableDelete;
+    }
+
+    public Boolean getEnableUpdate() {
+        return enableUpdate;
+    }
+
+    public void setEnableUpdate(Boolean enableUpdate) {
+        this.enableUpdate = enableUpdate;
+    }
+
+    public Boolean getConfirmationRequired() {
+        return confirmationRequired;
+    }
+
+    public void setConfirmationRequired(Boolean confirmationRequired) {
+        this.confirmationRequired = confirmationRequired;
+    }
+
+    public Integer getConfirmationValidity() {
+        return confirmationValidity;
+    }
+
+    public void setConfirmationValidity(Integer confirmationValidity) {
+        this.confirmationValidity = confirmationValidity;
+    }
+
+    @JsonIgnore
+    public void setConfiguration(InternalPasswordIdentityProviderConfigMap map) {
+        this.maxSessionDuration = map.getMaxSessionDuration();
+
+        this.scopedData = map.getScopedData();
+
+        this.enableRegistration = map.getEnableRegistration();
+        this.enableDelete = map.getEnableDelete();
+        this.enableUpdate = map.getEnableUpdate();
+
+        this.confirmationRequired = map.getConfirmationRequired();
+        this.confirmationValidity = map.getConfirmationValidity();
 
         this.enablePasswordReset = map.getEnablePasswordReset();
         this.enablePasswordSet = map.getEnablePasswordSet();
@@ -201,9 +263,20 @@ public class InternalPasswordIdentityProviderConfigMap extends InternalIdentityP
         this.displayAsButton = map.getDisplayAsButton();
     }
 
+    @Override
     @JsonIgnore
-    public static JsonSchema getConfigurationSchema() throws JsonMappingException {
-        JsonSchemaGenerator schemaGen = new JsonSchemaGenerator(mapper);
+    public void setConfiguration(Map<String, Serializable> props) {
+        // use mapper for local
+        mapper.setSerializationInclusion(Include.NON_EMPTY);
+        InternalPasswordIdentityProviderConfigMap map = mapper.convertValue(props,
+                InternalPasswordIdentityProviderConfigMap.class);
+
+        setConfiguration(map);
+    }
+
+    @Override
+    @JsonIgnore
+    public JsonSchema getSchema() throws JsonMappingException {
         return schemaGen.generateSchema(InternalPasswordIdentityProviderConfigMap.class);
     }
 }
