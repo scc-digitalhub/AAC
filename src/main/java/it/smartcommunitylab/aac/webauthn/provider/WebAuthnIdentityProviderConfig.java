@@ -1,6 +1,5 @@
 package it.smartcommunitylab.aac.webauthn.provider;
 
-import com.yubico.webauthn.data.ResidentKeyRequirement;
 import com.yubico.webauthn.data.UserVerificationRequirement;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -42,11 +41,6 @@ public class WebAuthnIdentityProviderConfig extends AbstractIdentityProviderConf
     public UserVerificationRequirement getRequireUserVerification() {
         return configMap.getRequireUserVerification() != null ? configMap.getRequireUserVerification()
                 : UserVerificationRequirement.PREFERRED;
-    }
-
-    public ResidentKeyRequirement getRequireResidentKey() {
-        return configMap.getRequireResidentKey() != null ? configMap.getRequireResidentKey()
-                : ResidentKeyRequirement.PREFERRED;
     }
 
     public int getLoginTimeout() {

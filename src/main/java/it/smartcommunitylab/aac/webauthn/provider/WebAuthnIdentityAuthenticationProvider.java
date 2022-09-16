@@ -29,7 +29,7 @@ import it.smartcommunitylab.aac.webauthn.auth.WebAuthnAuthenticationToken;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredential;
 
-public class WebAuthnAuthenticationProvider
+public class WebAuthnIdentityAuthenticationProvider
         extends ExtendedAuthenticationProvider<WebAuthnUserAuthenticatedPrincipal, InternalUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -39,7 +39,7 @@ public class WebAuthnAuthenticationProvider
     private final InternalAccountProvider accountProvider;
     private final WebAuthnIdentityCredentialsService credentialsService;
 
-    public WebAuthnAuthenticationProvider(String providerId,
+    public WebAuthnIdentityAuthenticationProvider(String providerId,
             InternalAccountProvider accountProvider,
             WebAuthnIdentityCredentialsService credentialsService,
             WebAuthnIdentityProviderConfig providerConfig, String realm) {

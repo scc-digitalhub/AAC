@@ -9,12 +9,12 @@ import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.webauthn.provider.WebAuthnFilterProvider;
+import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityFilterProvider;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProvider;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfigMap;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpService;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnLoginRpService;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserCredentialsService;
 import it.smartcommunitylab.aac.webauthn.store.WebAuthnAssertionRequestStore;
 
@@ -31,12 +31,12 @@ public class WebAuthnIdentityAuthority extends
     private final WebAuthnUserCredentialsService credentialsService;
 
     // filter provider
-    private final WebAuthnFilterProvider filterProvider;
+    private final WebAuthnIdentityFilterProvider filterProvider;
 
     public WebAuthnIdentityAuthority(
             UserAccountService<InternalUserAccount> userAccountService,
             WebAuthnUserCredentialsService credentialsService,
-            WebAuthnRpService rpService, WebAuthnAssertionRequestStore requestStore,
+            WebAuthnLoginRpService rpService, WebAuthnAssertionRequestStore requestStore,
             ProviderConfigRepository<WebAuthnIdentityProviderConfig> registrationRepository) {
         super(SystemKeys.AUTHORITY_WEBAUTHN, registrationRepository);
         Assert.notNull(userAccountService, "account service is mandatory");
@@ -48,7 +48,7 @@ public class WebAuthnIdentityAuthority extends
         this.credentialsService = credentialsService;
 
         // build filter provider
-        this.filterProvider = new WebAuthnFilterProvider(rpService, registrationRepository, requestStore);
+        this.filterProvider = new WebAuthnIdentityFilterProvider(rpService, registrationRepository, requestStore);
     }
 
     @Autowired
@@ -68,7 +68,7 @@ public class WebAuthnIdentityAuthority extends
     }
 
     @Override
-    public WebAuthnFilterProvider getFilterProvider() {
+    public WebAuthnIdentityFilterProvider getFilterProvider() {
         return filterProvider;
     }
 

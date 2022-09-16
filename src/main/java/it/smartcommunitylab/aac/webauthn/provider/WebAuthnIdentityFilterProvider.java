@@ -16,20 +16,20 @@ import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
 import it.smartcommunitylab.aac.webauthn.auth.WebAuthnAuthenticationFilter;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpService;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnLoginRpService;
 import it.smartcommunitylab.aac.webauthn.store.WebAuthnAssertionRequestStore;
 
-public class WebAuthnFilterProvider implements FilterProvider {
+public class WebAuthnIdentityFilterProvider implements FilterProvider {
 
-    private final WebAuthnRpService rpService;
+    private final WebAuthnLoginRpService rpService;
 
     private final ProviderConfigRepository<WebAuthnIdentityProviderConfig> registrationRepository;
     private final WebAuthnAssertionRequestStore requestStore;
 
     private AuthenticationManager authManager;
 
-    public WebAuthnFilterProvider(
-            WebAuthnRpService rpService,
+    public WebAuthnIdentityFilterProvider(
+            WebAuthnLoginRpService rpService,
             ProviderConfigRepository<WebAuthnIdentityProviderConfig> registrationRepository,
             WebAuthnAssertionRequestStore requestStore) {
         Assert.notNull(rpService, "webauthn rp service is mandatory");

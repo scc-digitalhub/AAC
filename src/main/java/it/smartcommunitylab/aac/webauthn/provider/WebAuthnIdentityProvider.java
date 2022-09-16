@@ -36,7 +36,7 @@ public class WebAuthnIdentityProvider extends
     private final WebAuthnIdentityCredentialsService credentialsService;
 
     // providers
-    private final WebAuthnAuthenticationProvider authenticationProvider;
+    private final WebAuthnIdentityAuthenticationProvider authenticationProvider;
     private final InternalAccountProvider accountProvider;
     private final InternalAttributeProvider<WebAuthnUserAuthenticatedPrincipal> attributeProvider;
     private final InternalSubjectResolver subjectResolver;
@@ -62,7 +62,7 @@ public class WebAuthnIdentityProvider extends
         // build providers
         this.credentialsService = new WebAuthnIdentityCredentialsService(providerId, userAccountService,
                 userCredentialsService, config, realm);
-        this.authenticationProvider = new WebAuthnAuthenticationProvider(providerId, accountProvider,
+        this.authenticationProvider = new WebAuthnIdentityAuthenticationProvider(providerId, accountProvider,
                 credentialsService, config, realm);
 
         // always expose a valid resolver to satisfy authenticationManager at post login
@@ -83,7 +83,7 @@ public class WebAuthnIdentityProvider extends
     }
 
     @Override
-    public WebAuthnAuthenticationProvider getAuthenticationProvider() {
+    public WebAuthnIdentityAuthenticationProvider getAuthenticationProvider() {
         return authenticationProvider;
     }
 

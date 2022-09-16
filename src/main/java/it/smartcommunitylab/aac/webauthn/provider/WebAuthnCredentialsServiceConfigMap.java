@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.Map;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.Pattern;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import com.yubico.webauthn.data.ResidentKeyRequirement;
 import com.yubico.webauthn.data.UserVerificationRequirement;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -19,31 +20,20 @@ import it.smartcommunitylab.aac.core.base.AbstractConfigMap;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class WebAuthnIdentityProviderConfigMap extends AbstractConfigMap implements Serializable {
+public class WebAuthnCredentialsServiceConfigMap extends AbstractConfigMap implements Serializable {
     private static final long serialVersionUID = SystemKeys.AAC_WEBAUTHN_SERIAL_VERSION;
-
-    @Max(3 * 24 * 60 * 60)
-    protected Integer maxSessionDuration;
 
     @Pattern(regexp = SystemKeys.SLUG_PATTERN)
     private String repositoryId;
 
-    private Boolean displayAsButton;
-
     private Boolean allowUntrustedAttestation;
     private UserVerificationRequirement requireUserVerification;
+    private ResidentKeyRequirement requireResidentKey;
 
-    private Integer loginTimeout;
+    @Min(30)
+    private Integer registrationTimeout;
 
-    public WebAuthnIdentityProviderConfigMap() {
-    }
-
-    public Integer getMaxSessionDuration() {
-        return maxSessionDuration;
-    }
-
-    public void setMaxSessionDuration(Integer maxSessionDuration) {
-        this.maxSessionDuration = maxSessionDuration;
+    public WebAuthnCredentialsServiceConfigMap() {
     }
 
     public String getRepositoryId() {
@@ -52,14 +42,6 @@ public class WebAuthnIdentityProviderConfigMap extends AbstractConfigMap impleme
 
     public void setRepositoryId(String repositoryId) {
         this.repositoryId = repositoryId;
-    }
-
-    public Boolean getDisplayAsButton() {
-        return displayAsButton;
-    }
-
-    public void setDisplayAsButton(Boolean displayAsButton) {
-        this.displayAsButton = displayAsButton;
     }
 
     public Boolean getAllowUntrustedAttestation() {
@@ -78,24 +60,31 @@ public class WebAuthnIdentityProviderConfigMap extends AbstractConfigMap impleme
         this.requireUserVerification = requireUserVerification;
     }
 
-    public Integer getLoginTimeout() {
-        return loginTimeout;
+    protected ResidentKeyRequirement getRequireResidentKey() {
+        return requireResidentKey;
     }
 
-    public void setLoginTimeout(Integer loginTimeout) {
-        this.loginTimeout = loginTimeout;
+    protected void setRequireResidentKey(ResidentKeyRequirement requireResidentKey) {
+        this.requireResidentKey = requireResidentKey;
+    }
+
+    public Integer getRegistrationTimeout() {
+        return registrationTimeout;
+    }
+
+    public void setRegistrationTimeout(Integer registrationTimeout) {
+        this.registrationTimeout = registrationTimeout;
     }
 
     @JsonIgnore
-    public void setConfiguration(WebAuthnIdentityProviderConfigMap map) {
-        this.maxSessionDuration = map.getMaxSessionDuration();
+    public void setConfiguration(WebAuthnCredentialsServiceConfigMap map) {
         this.repositoryId = map.getRepositoryId();
 
-        this.displayAsButton = map.getDisplayAsButton();
         this.allowUntrustedAttestation = map.getAllowUntrustedAttestation();
+        this.requireResidentKey = map.getRequireResidentKey();
         this.requireUserVerification = map.getRequireUserVerification();
 
-        this.loginTimeout = map.getLoginTimeout();
+        this.registrationTimeout = map.getRegistrationTimeout();
     }
 
     @Override
@@ -103,14 +92,14 @@ public class WebAuthnIdentityProviderConfigMap extends AbstractConfigMap impleme
     public void setConfiguration(Map<String, Serializable> props) {
         // use mapper for local
         mapper.setSerializationInclusion(Include.NON_EMPTY);
-        WebAuthnIdentityProviderConfigMap map = mapper.convertValue(props, WebAuthnIdentityProviderConfigMap.class);
+        WebAuthnCredentialsServiceConfigMap map = mapper.convertValue(props, WebAuthnCredentialsServiceConfigMap.class);
 
         setConfiguration(map);
     }
 
     @JsonIgnore
     public JsonSchema getSchema() throws JsonMappingException {
-        return schemaGen.generateSchema(WebAuthnIdentityProviderConfigMap.class);
+        return schemaGen.generateSchema(WebAuthnCredentialsServiceConfigMap.class);
     }
 
 }
