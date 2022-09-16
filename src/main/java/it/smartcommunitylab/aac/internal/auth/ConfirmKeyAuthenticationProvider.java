@@ -16,26 +16,20 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.provider.InternalAccountService;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityConfirmService;
 
 public class ConfirmKeyAuthenticationProvider implements AuthenticationProvider {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-//    private final String realm;
-//    private final String providerId;
-
-    private final InternalAccountService accountService;
+    private final InternalIdentityConfirmService confirmService;
 
     public ConfirmKeyAuthenticationProvider(String providerId,
-            InternalAccountService accountService,
+            InternalIdentityConfirmService confirmService,
             String realm) {
         Assert.hasText(providerId, "provider can not be null or empty");
-        Assert.notNull(accountService, "account service is mandatory");
+        Assert.notNull(confirmService, "account confirm service is mandatory");
 
-//        this.realm = realm;
-//        this.providerId = providerId;
-
-        this.accountService = accountService;
+        this.confirmService = confirmService;
     }
 
     @Override
@@ -53,13 +47,13 @@ public class ConfirmKeyAuthenticationProvider implements AuthenticationProvider 
         }
 
         try {
-            InternalUserAccount account = accountService.findAccountByUsername(username);
+            InternalUserAccount account = confirmService.findAccountByUsername(username);
             if (account == null) {
                 throw new BadCredentialsException("invalid request");
             }
 
             // do confirm
-            account = accountService.confirmAccountViaKey(key);
+            account = confirmService.confirmAccount(username, key);
             if (!account.isConfirmed()) {
                 throw new BadCredentialsException("invalid request");
             }

@@ -28,7 +28,7 @@ import it.smartcommunitylab.aac.internal.model.CredentialsType;
 @Table(name = "internal_users_webauthn_credentials", uniqueConstraints = @UniqueConstraint(columnNames = {
         "provider_id", "user_handle", "credential_id" }))
 @EntityListeners(AuditingEntityListener.class)
-public class WebAuthnCredential extends AbstractUserCredentials
+public class WebAuthnUserCredential extends AbstractUserCredentials
         implements CredentialsContainer, Serializable {
 
     private static final long serialVersionUID = SystemKeys.AAC_WEBAUTHN_SERIAL_VERSION;
@@ -112,7 +112,7 @@ public class WebAuthnCredential extends AbstractUserCredentials
 
     private transient String realm;
 
-    public WebAuthnCredential() {
+    public WebAuthnUserCredential() {
         super(SystemKeys.AUTHORITY_WEBAUTHN, null, null, null);
     }
 

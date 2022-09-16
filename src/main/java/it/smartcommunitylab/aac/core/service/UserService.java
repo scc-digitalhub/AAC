@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,27 +19,35 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.MissingDataException;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableIdentityService;
+import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.AttributeService;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.groups.service.GroupService;
 import it.smartcommunitylab.aac.model.Group;
+import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.Subject;
@@ -58,6 +68,7 @@ import it.smartcommunitylab.aac.roles.service.SubjectRoleService;
  */
 @Service
 public class UserService {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // base services for users
     @Autowired
@@ -77,12 +88,24 @@ public class UserService {
 
     @Autowired
     private AttributeProviderAuthorityService attributeProviderAuthorityService;
-//
-//    @Autowired
-//    private IdentityProviderService identityProviderService;
+
+    @Autowired
+    private IdentityServiceAuthorityService identityServiceAuthorityService;
+
+    @Autowired
+    private CredentialsServiceAuthorityService credentialsServiceAuthorityService;
+
+    @Autowired
+    private IdentityProviderService identityProviderService;
 
     @Autowired
     private AttributeProviderService attributeProviderService;
+
+    @Autowired
+    private IdentityServiceService identityServiceService;
+
+    @Autowired
+    private CredentialsServiceService credentialsServiceService;
 
     @Autowired
     private SpaceRoleService spaceRoleService;
@@ -534,22 +557,19 @@ public class UserService {
         String realm = user.getRealm();
 
         // delete identities via (active) providers
-        Collection<IdentityProvider<? extends UserIdentity, ?, ?>> idps = identityProviderAuthorityService
-                .getAuthorities().stream()
-                .flatMap(a -> a.getProvidersByRealm(realm).stream()).collect(Collectors.toList());
-        for (IdentityProvider<? extends UserIdentity, ?, ?> idp : idps) {
-            // remove all identities
-            idp.deleteIdentities(subjectId);
-        }
+        identityProviderAuthorityService.getAuthorities().stream()
+                .flatMap(a -> a.getProvidersByRealm(realm).stream())
+                .forEach(p -> p.deleteIdentities(subjectId));
 
-        // attributes
-        Collection<AttributeProvider<?, ?>> aps = attributeProviderAuthorityService
-                .getAuthorities().stream()
-                .flatMap(a -> a.getProvidersByRealm(realm).stream()).collect(Collectors.toList());
-        for (AttributeProvider<?, ?> ap : aps) {
-            // remove all attributes
-            ap.deleteUserAttributes(subjectId);
-        }
+        // delete identities via (active) services
+        identityServiceAuthorityService.getAuthorities().stream()
+                .flatMap(a -> a.getProvidersByRealm(realm).stream())
+                .forEach(s -> s.deleteIdentities(subjectId));
+
+        // delete attributes via (active) providers
+        attributeProviderAuthorityService.getAuthorities().stream()
+                .flatMap(a -> a.getProvidersByRealm(realm).stream())
+                .forEach(ap -> ap.deleteUserAttributes(subjectId));
 
         // roles
         spaceRoleService.deleteRoles(subjectId);
@@ -560,25 +580,196 @@ public class UserService {
     }
 
     @Transactional(readOnly = false)
-    public User blockUser(String subjectId) throws NoSuchUserException, NoSuchRealmException {
-        userService.blockUser(subjectId);
-        return getUser(subjectId);
+    public User blockUser(String userId) throws NoSuchUserException, NoSuchRealmException {
+        userService.blockUser(userId);
+        return getUser(userId);
     }
 
     @Transactional(readOnly = false)
-    public User activateUser(String subjectId) throws NoSuchUserException, NoSuchRealmException {
-        userService.activateUser(subjectId);
-        return getUser(subjectId);
+    public User activateUser(String userId) throws NoSuchUserException, NoSuchRealmException {
+        userService.activateUser(userId);
+        return getUser(userId);
     }
 
     @Transactional(readOnly = false)
-    public User inactivateUser(String subjectId) throws NoSuchUserException, NoSuchRealmException {
-        userService.inactivateUser(subjectId);
-        return getUser(subjectId);
+    public User inactivateUser(String userId) throws NoSuchUserException, NoSuchRealmException {
+        userService.inactivateUser(userId);
+        return getUser(userId);
+    }
+
+    /*
+     * User identities
+     * 
+     * action via services
+     */
+    @Transactional(readOnly = false)
+    public UserIdentity createUserIdentity(String userId, String providerId,
+            UserIdentity reg)
+            throws NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
+        logger.debug("create user {} identity via provider {}", StringUtils.trimAllWhitespace(userId),
+                StringUtils.trimAllWhitespace(providerId));
+
+        if (reg == null) {
+            throw new MissingDataException("registration");
+        }
+
+        // fetch service
+        ConfigurableIdentityService cp = identityServiceService.getProvider(providerId);
+        IdentityService<? extends UserIdentity, ? extends UserAccount, ?, ?> service = identityServiceAuthorityService
+                .getAuthority(cp.getAuthority()).getProvider(cp.getProvider());
+
+        // execute
+        return service.createIdentity(userId, reg);
+    }
+
+    @Transactional(readOnly = false)
+    public UserIdentity updateUserIdentity(String userId, String providerId, String identityId,
+            UserIdentity reg)
+            throws NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
+        logger.debug("update user {} identity {} via provider {}", StringUtils.trimAllWhitespace(userId),
+                StringUtils.trimAllWhitespace(identityId), StringUtils.trimAllWhitespace(providerId));
+
+        if (reg == null) {
+            throw new MissingDataException("registration");
+        }
+
+        // fetch service
+        ConfigurableIdentityService cp = identityServiceService.getProvider(providerId);
+        IdentityService<? extends UserIdentity, ? extends UserAccount, ?, ?> service = identityServiceAuthorityService
+                .getAuthority(cp.getAuthority()).getProvider(cp.getProvider());
+
+        // execute
+        return service.updateIdentity(userId, identityId, reg);
+    }
+
+    @Transactional(readOnly = false)
+    public UserIdentity verifyUserIdentity(String userId, String providerId, String identityId)
+            throws NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
+        logger.debug("verify user {} identity {} via provider {}", StringUtils.trimAllWhitespace(userId),
+                StringUtils.trimAllWhitespace(identityId), StringUtils.trimAllWhitespace(providerId));
+
+        // fetch service
+        ConfigurableIdentityService cp = identityServiceService.getProvider(providerId);
+        IdentityService<? extends UserIdentity, ? extends UserAccount, ?, ?> service = identityServiceAuthorityService
+                .getAuthority(cp.getAuthority()).getProvider(cp.getProvider());
+
+        // execute
+        service.getAccountService().verifyAccount(identityId);
+
+        return service.getIdentity(userId, identityId);
+    }
+
+    @Transactional(readOnly = false)
+    public UserIdentity confirmUserIdentity(String userId, String providerId, String identityId)
+            throws NoSuchUserException, NoSuchProviderException, RegistrationException,
+            NoSuchAuthorityException {
+        logger.debug("confirm user {} identity {} via provider {}", StringUtils.trimAllWhitespace(userId),
+                StringUtils.trimAllWhitespace(identityId), StringUtils.trimAllWhitespace(providerId));
+
+        // fetch service
+        ConfigurableIdentityService cp = identityServiceService.getProvider(providerId);
+        IdentityService<? extends UserIdentity, ? extends UserAccount, ?, ?> service = identityServiceAuthorityService
+                .getAuthority(cp.getAuthority()).getProvider(cp.getProvider());
+
+        // execute
+        service.getAccountService().confirmAccount(identityId);
+
+        return service.getIdentity(userId, identityId);
+    }
+
+    @Transactional(readOnly = false)
+    public UserIdentity unconfirmUserIdentity(String userId, String providerId, String identityId)
+            throws NoSuchUserException, NoSuchProviderException, RegistrationException,
+            NoSuchAuthorityException {
+        logger.debug("verify user {} identity {} via provider {}", StringUtils.trimAllWhitespace(userId),
+                StringUtils.trimAllWhitespace(identityId), StringUtils.trimAllWhitespace(providerId));
+
+        // fetch service
+        ConfigurableIdentityService cp = identityServiceService.getProvider(providerId);
+        IdentityService<? extends UserIdentity, ? extends UserAccount, ?, ?> service = identityServiceAuthorityService
+                .getAuthority(cp.getAuthority()).getProvider(cp.getProvider());
+
+        // execute
+        service.getAccountService().unconfirmAccount(identityId);
+
+        return service.getIdentity(userId, identityId);
+    }
+
+    /*
+     * User identities
+     * 
+     * actions via providers
+     */
+    @Transactional(readOnly = false)
+    public UserIdentity getUserIdentity(String userId, String providerId, String identityId)
+            throws NoSuchUserException, NoSuchProviderException, NoSuchAuthorityException {
+        logger.debug("get user {} identity {} via provider {}", StringUtils.trimAllWhitespace(userId),
+                StringUtils.trimAllWhitespace(identityId), StringUtils.trimAllWhitespace(providerId));
+
+        // fetch idp
+        ConfigurableIdentityProvider cp = identityProviderService.getProvider(providerId);
+        IdentityProvider<? extends UserIdentity, ?, ?> idp = identityProviderAuthorityService
+                .getAuthority(cp.getAuthority()).getProvider(cp.getProvider());
+
+        // execute
+        return idp.getIdentity(userId, identityId);
+    }
+
+    @Transactional(readOnly = false)
+    public void deleteUserIdentity(String userId, String providerId, String identityId)
+            throws NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
+        logger.debug("delete user {} identity {} via provider {}", StringUtils.trimAllWhitespace(userId),
+                StringUtils.trimAllWhitespace(identityId), StringUtils.trimAllWhitespace(providerId));
+
+        // fetch idp
+        ConfigurableIdentityProvider cp = identityProviderService.getProvider(providerId);
+        IdentityProvider<? extends UserIdentity, ?, ?> idp = identityProviderAuthorityService
+                .getAuthority(cp.getAuthority()).getProvider(cp.getProvider());
+
+        // delete via provider
+        idp.deleteIdentity(userId, identityId);
+    }
+
+    @Transactional(readOnly = false)
+    public UserIdentity lockUserIdentity(String userId, String providerId, String identityId)
+            throws NoSuchUserException, NoSuchProviderException, NoSuchAuthorityException {
+        logger.debug("lock user {} identity {} via provider {}", StringUtils.trimAllWhitespace(userId),
+                StringUtils.trimAllWhitespace(identityId), StringUtils.trimAllWhitespace(providerId));
+
+        // fetch idp
+        ConfigurableIdentityProvider cp = identityProviderService.getProvider(providerId);
+        IdentityProvider<? extends UserIdentity, ?, ?> idp = identityProviderAuthorityService
+                .getAuthority(cp.getAuthority()).getProvider(cp.getProvider());
+
+        // lock account to disable login
+        idp.getAccountProvider().lockAccount(identityId);
+
+        return idp.getIdentity(userId, identityId, false);
+    }
+
+    @Transactional(readOnly = false)
+    public UserIdentity unlockUserIdentity(String userId, String providerId, String identityId)
+            throws NoSuchUserException, NoSuchProviderException, NoSuchAuthorityException {
+        logger.debug("lock user {} identity {} via provider {}", StringUtils.trimAllWhitespace(userId),
+                StringUtils.trimAllWhitespace(identityId), StringUtils.trimAllWhitespace(providerId));
+
+        // fetch idp
+        ConfigurableIdentityProvider cp = identityProviderService.getProvider(providerId);
+        IdentityProvider<? extends UserIdentity, ?, ?> idp = identityProviderAuthorityService
+                .getAuthority(cp.getAuthority()).getProvider(cp.getProvider());
+
+        // unlock account to enable login
+        idp.getAccountProvider().unlockAccount(identityId);
+
+        return idp.getIdentity(userId, identityId, false);
     }
 
     // TODO user registration with authority via given provider
     // TODO user removal with authority via given provider
+
+    /*
+     * User authorities
+     */
 
     public Collection<GrantedAuthority> getUserAuthorities(String subjectId, String realm) throws NoSuchUserException {
         UserEntity u = userService.getUser(subjectId);
@@ -684,6 +875,10 @@ public class UserService {
         // delete single set
         ap.deleteUserAttributes(subjectId, setId);
     }
+
+    /*
+     * User credentials
+     */
 
     /*
      * Related data

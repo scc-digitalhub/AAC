@@ -46,7 +46,7 @@ import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.webauthn.auth.WebAuthnAuthenticationException;
 import it.smartcommunitylab.aac.webauthn.model.CredentialCreationInfo;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationRequest;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredentialsRepository;
+import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredentialsRepository;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 
 @Service
@@ -57,7 +57,7 @@ public class WebAuthnRpService {
     private String applicationUrl;
 
     private final UserAccountService<InternalUserAccount> userAccountService;
-    private final WebAuthnCredentialsRepository credentialsRepository;
+    private final WebAuthnUserCredentialsRepository credentialsRepository;
     private final ProviderConfigRepository<WebAuthnIdentityProviderConfig> registrationRepository;
 
     // leverage a local cache for fetching rps
@@ -101,7 +101,7 @@ public class WebAuthnRpService {
             });
 
     public WebAuthnRpService(UserAccountService<InternalUserAccount> userAccountService,
-            WebAuthnCredentialsRepository credentialsRepository,
+            WebAuthnUserCredentialsRepository credentialsRepository,
             ProviderConfigRepository<WebAuthnIdentityProviderConfig> registrationRepository) {
         Assert.notNull(userAccountService, "user account service is mandatory");
         Assert.notNull(credentialsRepository, "credentials repository is mandatory");

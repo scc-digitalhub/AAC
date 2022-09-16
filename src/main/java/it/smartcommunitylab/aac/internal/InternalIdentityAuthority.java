@@ -2,34 +2,27 @@ package it.smartcommunitylab.aac.internal;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityAuthority;
-import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
-import it.smartcommunitylab.aac.core.service.SubjectService;
-import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.provider.InternalFilterProvider;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityFilterProvider;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
-import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
 import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
-import it.smartcommunitylab.aac.utils.MailService;
 
 @Service
 public class InternalIdentityAuthority
         extends
-        AbstractIdentityAuthority<InternalIdentityService, InternalUserIdentity, InternalIdentityProviderConfigMap, InternalIdentityProviderConfig>
-//        implements IdentityServiceAuthority<InternalUserIdentity, InternalUserAccount, InternalIdentityService>,
-        implements InitializingBean {
+        AbstractIdentityAuthority<InternalIdentityProvider, InternalUserIdentity, InternalIdentityProviderConfigMap, InternalIdentityProviderConfig> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     public static final String AUTHORITY_URL = "/auth/internal/";
@@ -39,17 +32,12 @@ public class InternalIdentityAuthority
     private final InternalUserConfirmKeyService confirmKeyService;
 
     // filter provider
-    private final InternalFilterProvider filterProvider;
-
-    // services
-    protected MailService mailService;
-    protected RealmAwareUriBuilder uriBuilder;
+    private final InternalIdentityFilterProvider filterProvider;
 
     public InternalIdentityAuthority(
-            UserEntityService userEntityService, SubjectService subjectService,
             UserAccountService<InternalUserAccount> userAccountService, InternalUserConfirmKeyService confirmKeyService,
             ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository) {
-        super(SystemKeys.AUTHORITY_INTERNAL, userEntityService, subjectService, registrationRepository);
+        super(SystemKeys.AUTHORITY_INTERNAL, registrationRepository);
         Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(confirmKeyService, "confirm key service is mandatory");
 
@@ -57,7 +45,8 @@ public class InternalIdentityAuthority
         this.confirmKeyService = confirmKeyService;
 
         // build filter provider
-        this.filterProvider = new InternalFilterProvider(userAccountService, confirmKeyService, registrationRepository);
+        this.filterProvider = new InternalIdentityFilterProvider(userAccountService, confirmKeyService,
+                registrationRepository);
     }
 
     @Autowired
@@ -66,38 +55,18 @@ public class InternalIdentityAuthority
         this.configProvider = configProvider;
     }
 
-    @Autowired
-    public void setMailService(MailService mailService) {
-        this.mailService = mailService;
-    }
-
-    @Autowired
-    public void setUriBuilder(RealmAwareUriBuilder uriBuilder) {
-        this.uriBuilder = uriBuilder;
-    }
-
     @Override
-    public void afterPropertiesSet() throws Exception {
-        super.afterPropertiesSet();
-    }
-
-    @Override
-    public InternalIdentityService buildProvider(InternalIdentityProviderConfig config) {
-        InternalIdentityService idp = new InternalIdentityService(
+    public InternalIdentityProvider buildProvider(InternalIdentityProviderConfig config) {
+        InternalIdentityProvider idp = new InternalIdentityProvider(
                 config.getProvider(),
-                userEntityService,
                 accountService, confirmKeyService,
-                subjectService,
                 config, config.getRealm());
 
-        // set services
-        idp.setMailService(mailService);
-        idp.setUriBuilder(uriBuilder);
         return idp;
     }
 
     @Override
-    public InternalFilterProvider getFilterProvider() {
+    public InternalIdentityFilterProvider getFilterProvider() {
         return filterProvider;
     }
 

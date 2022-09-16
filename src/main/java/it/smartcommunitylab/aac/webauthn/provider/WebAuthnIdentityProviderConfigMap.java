@@ -5,6 +5,7 @@ import java.util.Map;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
+import javax.validation.constraints.Pattern;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -25,13 +26,15 @@ public class WebAuthnIdentityProviderConfigMap extends AbstractConfigMap impleme
     @Max(3 * 24 * 60 * 60)
     protected Integer maxSessionDuration;
 
-    private Boolean displayAsButton;
-    private Boolean allowUntrustedAttestation;
+    @Pattern(regexp = SystemKeys.SLUG_PATTERN)
+    private String repositoryId;
 
+    private Boolean displayAsButton;
+
+    private Boolean allowUntrustedAttestation;
     private UserVerificationRequirement requireUserVerification;
     private ResidentKeyRequirement requireResidentKey;
 
-    private Integer registrationTimeout;
     private Integer loginTimeout;
 
     public WebAuthnIdentityProviderConfigMap() {
@@ -43,6 +46,14 @@ public class WebAuthnIdentityProviderConfigMap extends AbstractConfigMap impleme
 
     public void setMaxSessionDuration(Integer maxSessionDuration) {
         this.maxSessionDuration = maxSessionDuration;
+    }
+
+    public String getRepositoryId() {
+        return repositoryId;
+    }
+
+    public void setRepositoryId(String repositoryId) {
+        this.repositoryId = repositoryId;
     }
 
     public Boolean getDisplayAsButton() {
@@ -77,14 +88,6 @@ public class WebAuthnIdentityProviderConfigMap extends AbstractConfigMap impleme
         this.requireResidentKey = requireResidentKey;
     }
 
-    public Integer getRegistrationTimeout() {
-        return registrationTimeout;
-    }
-
-    public void setRegistrationTimeout(Integer registrationTimeout) {
-        this.registrationTimeout = registrationTimeout;
-    }
-
     public Integer getLoginTimeout() {
         return loginTimeout;
     }
@@ -96,6 +99,7 @@ public class WebAuthnIdentityProviderConfigMap extends AbstractConfigMap impleme
     @JsonIgnore
     public void setConfiguration(WebAuthnIdentityProviderConfigMap map) {
         this.maxSessionDuration = map.getMaxSessionDuration();
+        this.repositoryId = map.getRepositoryId();
 
         this.displayAsButton = map.getDisplayAsButton();
         this.allowUntrustedAttestation = map.getAllowUntrustedAttestation();
@@ -103,7 +107,6 @@ public class WebAuthnIdentityProviderConfigMap extends AbstractConfigMap impleme
         this.requireResidentKey = map.getRequireResidentKey();
         this.requireUserVerification = map.getRequireUserVerification();
 
-        this.registrationTimeout = map.getRegistrationTimeout();
         this.loginTimeout = map.getLoginTimeout();
     }
 

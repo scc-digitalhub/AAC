@@ -56,8 +56,9 @@ public class OAuth2IdpAwareLoginUrlConverter implements LoginUrlRequestConverter
                 // TODO check if active
 
                 // fetch providers for given realm
-                IdentityProvider<?, ?, ?> provider = authorityService.getAuthority(idp.getAuthority()).getProvider(
-                        idp.getProvider());
+                IdentityProvider<?, ?, ?, ?, ?> provider = authorityService.getAuthority(idp.getAuthority())
+                        .getProvider(
+                                idp.getProvider());
                 if (provider == null) {
                     throw new NoSuchProviderException();
                 }

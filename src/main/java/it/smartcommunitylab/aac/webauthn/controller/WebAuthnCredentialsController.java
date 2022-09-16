@@ -36,7 +36,7 @@ import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredential;
+import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredential;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsService;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProvider;
 
@@ -122,7 +122,7 @@ public class WebAuthnCredentialsController {
         model.addAttribute("customization", resources);
 
         // fetch credentials
-        List<WebAuthnCredential> credentials = service.findCredentialsByUsername(username);
+        List<WebAuthnUserCredential> credentials = service.findCredentialsByUsername(username);
         model.addAttribute("credentials", credentials);
 
         // build url
@@ -175,7 +175,7 @@ public class WebAuthnCredentialsController {
         }
 
         // get
-        WebAuthnCredential cred = service.findCredentialById(id);
+        WebAuthnUserCredential cred = service.findCredentialById(id);
         if (cred == null) {
             throw new RegistrationException();
         }

@@ -94,7 +94,7 @@ public class InternalPasswordCredentialsController {
             throw new NoSuchProviderException();
         }
         // fetch credentials service if available
-        InternalPasswordService service = idp.getCredentialsService();
+        InternalPasswordIdentityCredentialsService service = idp.getCredentialsService();
 
         if (service == null) {
             throw new IllegalArgumentException("error.unsupported_operation");
@@ -168,7 +168,7 @@ public class InternalPasswordCredentialsController {
             InternalPasswordIdentityProvider idp = internalAuthority.getProvider(providerId);
 
             // fetch credentials service if available
-            InternalPasswordService service = idp.getCredentialsService();
+            InternalPasswordIdentityCredentialsService service = idp.getCredentialsService();
 
             if (service == null) {
                 throw new IllegalArgumentException("error.unsupported_operation");
@@ -365,7 +365,7 @@ public class InternalPasswordCredentialsController {
 
             } else {
                 // direct call to reset
-                InternalPasswordService service = idp.getCredentialsService();
+                InternalPasswordIdentityCredentialsService service = idp.getCredentialsService();
                 service.resetCredentials(account.getUsername());
 
                 model.addAttribute("reg", reg);

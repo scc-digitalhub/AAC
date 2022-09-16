@@ -52,7 +52,7 @@ import it.smartcommunitylab.aac.webauthn.model.CredentialCreationInfo;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationRequest;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationResponse;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationStartRequest;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredential;
+import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredential;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsService;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProvider;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpService;
@@ -318,7 +318,7 @@ public class WebAuthnRegistrationController {
         }
 
         // create a new credential in repository for the result
-        WebAuthnCredential credential = new WebAuthnCredential();
+        WebAuthnUserCredential credential = new WebAuthnUserCredential();
         credential.setUsername(username);
         credential.setCredentialId(result.getKeyId().getId().getBase64Url());
         credential.setUserHandle(userHandle);

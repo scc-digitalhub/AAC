@@ -20,6 +20,7 @@ public class AttributeProviderConfigConverter
         AttributeProviderEntity pe = new AttributeProviderEntity();
 
         pe.setAuthority(reg.getAuthority());
+        pe.setProviderId(reg.getProvider());
         pe.setRealm(reg.getRealm());
         pe.setEnabled(reg.isEnabled());
 

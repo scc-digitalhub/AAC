@@ -12,7 +12,7 @@ import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 
 @Transactional
-public class SamlSubjectResolver extends AbstractProvider implements SubjectResolver<SamlUserAccount> {
+public class SamlSubjectResolver extends AbstractProvider<SamlUserAccount> implements SubjectResolver<SamlUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final UserAccountService<SamlUserAccount> accountService;

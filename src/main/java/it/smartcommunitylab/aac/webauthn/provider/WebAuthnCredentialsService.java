@@ -28,25 +28,25 @@ import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.provider.UserCredentialsService;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredential;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredentialsRepository;
+import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredential;
+import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredentialsRepository;
 
 @Transactional
-public class WebAuthnCredentialsService extends AbstractProvider
-        implements UserCredentialsService<WebAuthnCredential> {
+public class WebAuthnCredentialsService extends AbstractProvider<WebAuthnUserCredential>
+        implements UserCredentialsService<WebAuthnUserCredential> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final UserAccountService<InternalUserAccount> accountService;
 
     // TODO replace with service to detach from JPA
-    private WebAuthnCredentialsRepository credentialsRepository;
+    private WebAuthnUserCredentialsRepository credentialsRepository;
 
     // provider configuration
     private final WebAuthnIdentityProviderConfig config;
     private final String repositoryId;
 
     public WebAuthnCredentialsService(String providerId, UserAccountService<InternalUserAccount> userAccountService,
-            WebAuthnCredentialsRepository credentialsRepository,
+            WebAuthnUserCredentialsRepository credentialsRepository,
             WebAuthnIdentityProviderConfig providerConfig,
             String realm) {
         super(SystemKeys.AUTHORITY_WEBAUTHN, providerId, realm);
@@ -65,8 +65,8 @@ public class WebAuthnCredentialsService extends AbstractProvider
     }
 
     @Transactional(readOnly = true)
-    public WebAuthnCredential findCredentialById(String id) {
-        WebAuthnCredential c = credentialsRepository.findOne(id);
+    public WebAuthnUserCredential findCredentialById(String id) {
+        WebAuthnUserCredential c = credentialsRepository.findOne(id);
         if (c == null) {
             return null;
         }
@@ -83,8 +83,8 @@ public class WebAuthnCredentialsService extends AbstractProvider
      */
 
     @Transactional(readOnly = true)
-    public List<WebAuthnCredential> findCredentialsByUsername(String username) {
-        List<WebAuthnCredential> credentials = credentialsRepository.findByProviderAndUsername(repositoryId, username);
+    public List<WebAuthnUserCredential> findCredentialsByUsername(String username) {
+        List<WebAuthnUserCredential> credentials = credentialsRepository.findByProviderAndUsername(repositoryId, username);
         return credentials.stream()
                 .map(a -> {
                     return credentialsRepository.detach(a);
@@ -93,8 +93,8 @@ public class WebAuthnCredentialsService extends AbstractProvider
     }
 
     @Transactional(readOnly = true)
-    public List<WebAuthnCredential> findActiveCredentialsByUsername(String username) {
-        List<WebAuthnCredential> credentials = credentialsRepository.findByProviderAndUsername(repositoryId, username);
+    public List<WebAuthnUserCredential> findActiveCredentialsByUsername(String username) {
+        List<WebAuthnUserCredential> credentials = credentialsRepository.findByProviderAndUsername(repositoryId, username);
         return credentials.stream()
                 .filter(c -> STATUS_ACTIVE.equals(c.getStatus()))
                 .map(a -> {
@@ -104,8 +104,8 @@ public class WebAuthnCredentialsService extends AbstractProvider
     }
 
     @Transactional(readOnly = true)
-    public List<WebAuthnCredential> findActiveCredentialsByUserHandle(String userHandle) {
-        List<WebAuthnCredential> credentials = credentialsRepository.findByProviderAndUserHandle(repositoryId,
+    public List<WebAuthnUserCredential> findActiveCredentialsByUserHandle(String userHandle) {
+        List<WebAuthnUserCredential> credentials = credentialsRepository.findByProviderAndUserHandle(repositoryId,
                 userHandle);
         return credentials.stream()
                 .filter(c -> STATUS_ACTIVE.equals(c.getStatus()))
@@ -116,8 +116,8 @@ public class WebAuthnCredentialsService extends AbstractProvider
     }
 
     @Transactional(readOnly = true)
-    public List<WebAuthnCredential> findCredentialsByCredentialId(String credentialId) {
-        List<WebAuthnCredential> credentials = credentialsRepository.findByProviderAndCredentialId(repositoryId,
+    public List<WebAuthnUserCredential> findCredentialsByCredentialId(String credentialId) {
+        List<WebAuthnUserCredential> credentials = credentialsRepository.findByProviderAndCredentialId(repositoryId,
                 credentialId);
         return credentials.stream()
                 .map(a -> {
@@ -127,9 +127,9 @@ public class WebAuthnCredentialsService extends AbstractProvider
     }
 
     @Transactional(readOnly = true)
-    public WebAuthnCredential findCredentialByUserHandleAndCredentialId(String userHandle,
+    public WebAuthnUserCredential findCredentialByUserHandleAndCredentialId(String userHandle,
             String credentialId) {
-        WebAuthnCredential c = credentialsRepository.findByProviderAndUserHandleAndCredentialId(repositoryId,
+        WebAuthnUserCredential c = credentialsRepository.findByProviderAndUserHandleAndCredentialId(repositoryId,
                 userHandle,
                 credentialId);
         if (c == null) {
@@ -139,8 +139,8 @@ public class WebAuthnCredentialsService extends AbstractProvider
         return credentialsRepository.detach(c);
     }
 
-    public WebAuthnCredential addCredential(String userHandle, String credentialId,
-            WebAuthnCredential reg)
+    public WebAuthnUserCredential addCredential(String userHandle, String credentialId,
+            WebAuthnUserCredential reg)
             throws RegistrationException {
 
         // extract relevant data
@@ -155,7 +155,7 @@ public class WebAuthnCredentialsService extends AbstractProvider
         }
 
         // check duplicate
-        WebAuthnCredential c = credentialsRepository.findByProviderAndUserHandleAndCredentialId(repositoryId,
+        WebAuthnUserCredential c = credentialsRepository.findByProviderAndUserHandleAndCredentialId(repositoryId,
                 userHandle,
                 credentialId);
         if (c != null) {
@@ -178,7 +178,7 @@ public class WebAuthnCredentialsService extends AbstractProvider
         }
 
         // build model
-        c = new WebAuthnCredential();
+        c = new WebAuthnUserCredential();
         c.setId(id);
         c.setProvider(repositoryId);
 
@@ -208,10 +208,10 @@ public class WebAuthnCredentialsService extends AbstractProvider
         return c;
     }
 
-    public WebAuthnCredential updateCredential(String userHandle, String credentialId,
-            WebAuthnCredential reg) throws NoSuchCredentialException, RegistrationException {
+    public WebAuthnUserCredential updateCredential(String userHandle, String credentialId,
+            WebAuthnUserCredential reg) throws NoSuchCredentialException, RegistrationException {
         // fetch credential from repo via provided id
-        WebAuthnCredential c = credentialsRepository.findByProviderAndUserHandleAndCredentialId(repositoryId,
+        WebAuthnUserCredential c = credentialsRepository.findByProviderAndUserHandleAndCredentialId(repositoryId,
                 userHandle,
                 credentialId);
         if (c == null) {
@@ -244,10 +244,10 @@ public class WebAuthnCredentialsService extends AbstractProvider
         return c;
     }
 
-    public WebAuthnCredential updateCredentialCounter(String userHandle, String credentialId,
+    public WebAuthnUserCredential updateCredentialCounter(String userHandle, String credentialId,
             long count) throws NoSuchCredentialException, RegistrationException {
         // fetch credential from repo via provided id
-        WebAuthnCredential c = credentialsRepository.findByProviderAndUserHandleAndCredentialId(repositoryId,
+        WebAuthnUserCredential c = credentialsRepository.findByProviderAndUserHandleAndCredentialId(repositoryId,
                 userHandle,
                 credentialId);
         if (c == null) {
@@ -272,7 +272,7 @@ public class WebAuthnCredentialsService extends AbstractProvider
 
     public void deleteCredential(String userHandle, String credentialId) {
         // fetch credential from repo via provided id
-        WebAuthnCredential c = credentialsRepository.findByProviderAndUserHandleAndCredentialId(repositoryId,
+        WebAuthnUserCredential c = credentialsRepository.findByProviderAndUserHandleAndCredentialId(repositoryId,
                 userHandle,
                 credentialId);
         if (c != null) {
@@ -281,9 +281,9 @@ public class WebAuthnCredentialsService extends AbstractProvider
         }
     }
 
-    public WebAuthnCredential revokeCredential(String userHandle, String credentialId) throws NoSuchUserException {
+    public WebAuthnUserCredential revokeCredential(String userHandle, String credentialId) throws NoSuchUserException {
         // fetch credential from repo via provided id
-        WebAuthnCredential c = credentialsRepository.findByProviderAndUserHandleAndCredentialId(repositoryId,
+        WebAuthnUserCredential c = credentialsRepository.findByProviderAndUserHandleAndCredentialId(repositoryId,
                 userHandle,
                 credentialId);
         if (c == null) {
@@ -303,7 +303,7 @@ public class WebAuthnCredentialsService extends AbstractProvider
         return c;
     }
 
-    public void validateCredential(WebAuthnCredential reg) {
+    public void validateCredential(WebAuthnUserCredential reg) {
         // validate credentials
         if (!StringUtils.hasText(reg.getUserHandle())) {
             throw new MissingDataException("user-handle");
@@ -321,18 +321,18 @@ public class WebAuthnCredentialsService extends AbstractProvider
      */
 
     @Override
-    public WebAuthnCredential getCredentials(String username) throws NoSuchUserException {
+    public WebAuthnUserCredential getCredentials(String username) throws NoSuchUserException {
         // not available as single
         return null;
     }
 
     @Override
-    public WebAuthnCredential setCredentials(String username, UserCredentials cred) throws NoSuchUserException {
-        if (!(cred instanceof WebAuthnCredential)) {
+    public WebAuthnUserCredential setCredentials(String username, UserCredentials cred) throws NoSuchUserException {
+        if (!(cred instanceof WebAuthnUserCredential)) {
             throw new IllegalArgumentException("invalid credentials");
         }
 
-        WebAuthnCredential credentials = (WebAuthnCredential) cred;
+        WebAuthnUserCredential credentials = (WebAuthnUserCredential) cred;
         validateCredential(credentials);
 
         if (!username.equals(credentials.getUsername())) {
@@ -359,9 +359,9 @@ public class WebAuthnCredentialsService extends AbstractProvider
     @Override
     public void revokeCredentials(String username) throws NoSuchUserException {
         // fetch all credentials and revoke
-        List<WebAuthnCredential> credentials = findCredentialsByUsername(username);
+        List<WebAuthnUserCredential> credentials = findCredentialsByUsername(username);
         if (!credentials.isEmpty()) {
-            for (WebAuthnCredential c : credentials) {
+            for (WebAuthnUserCredential c : credentials) {
                 revokeCredential(c.getUserHandle(), c.getCredentialId());
             }
         }
@@ -370,17 +370,17 @@ public class WebAuthnCredentialsService extends AbstractProvider
     @Override
     public void deleteCredentials(String username) throws NoSuchUserException {
         // fetch all credentials and delete
-        List<WebAuthnCredential> credentials = findCredentialsByUsername(username);
+        List<WebAuthnUserCredential> credentials = findCredentialsByUsername(username);
         if (!credentials.isEmpty()) {
-            for (WebAuthnCredential c : credentials) {
+            for (WebAuthnUserCredential c : credentials) {
                 deleteCredential(c.getUserHandle(), c.getCredentialId());
             }
         }
     }
 
     @Override
-    public Collection<WebAuthnCredential> listCredentials(String username) throws NoSuchUserException {
-        List<WebAuthnCredential> credentials = findCredentialsByUsername(username);
+    public Collection<WebAuthnUserCredential> listCredentials(String username) throws NoSuchUserException {
+        List<WebAuthnUserCredential> credentials = findCredentialsByUsername(username);
 
         // erase key data from registrations
         credentials.forEach(c -> c.eraseCredentials());
@@ -389,14 +389,14 @@ public class WebAuthnCredentialsService extends AbstractProvider
     }
 
     @Override
-    public WebAuthnCredential getCredentials(String username, String credentialsId) throws NoSuchUserException {
-        Optional<WebAuthnCredential> cred = findCredentialsByUsername(username).stream()
+    public WebAuthnUserCredential getCredentials(String username, String credentialsId) throws NoSuchUserException {
+        Optional<WebAuthnUserCredential> cred = findCredentialsByUsername(username).stream()
                 .filter(c -> credentialsId.equals(c.getCredentialId()))
                 .findFirst();
         if (cred.isEmpty()) {
             throw new NoSuchUserException();
         }
-        WebAuthnCredential credential = cred.get();
+        WebAuthnUserCredential credential = cred.get();
 
         // erase key data from registration
         credential.eraseCredentials();
@@ -405,13 +405,13 @@ public class WebAuthnCredentialsService extends AbstractProvider
     }
 
     @Override
-    public WebAuthnCredential setCredentials(String username, String credentialsId, UserCredentials cred)
+    public WebAuthnUserCredential setCredentials(String username, String credentialsId, UserCredentials cred)
             throws NoSuchUserException, RegistrationException, NoSuchCredentialException {
-        if (!(cred instanceof WebAuthnCredential)) {
+        if (!(cred instanceof WebAuthnUserCredential)) {
             throw new IllegalArgumentException("invalid credentials");
         }
 
-        WebAuthnCredential credentials = (WebAuthnCredential) cred;
+        WebAuthnUserCredential credentials = (WebAuthnUserCredential) cred;
         validateCredential(credentials);
 
         if (!credentialsId.equals(credentials.getCredentialId())) {
@@ -431,7 +431,7 @@ public class WebAuthnCredentialsService extends AbstractProvider
         String userHandle = account.getUuid();
 
         // update existing credential or add as new
-        WebAuthnCredential c = findCredentialByUserHandleAndCredentialId(userHandle, credentialsId);
+        WebAuthnUserCredential c = findCredentialByUserHandleAndCredentialId(userHandle, credentialsId);
         if (c == null) {
             return this.addCredential(userHandle, credentialsId, credentials);
         } else {
@@ -446,13 +446,13 @@ public class WebAuthnCredentialsService extends AbstractProvider
 
     @Override
     public void revokeCredentials(String username, String credentialsId) throws NoSuchUserException {
-        Optional<WebAuthnCredential> cred = findCredentialsByUsername(username).stream()
+        Optional<WebAuthnUserCredential> cred = findCredentialsByUsername(username).stream()
                 .filter(c -> credentialsId.equals(c.getCredentialId()))
                 .findFirst();
         if (cred.isEmpty()) {
             throw new NoSuchUserException();
         }
-        WebAuthnCredential credential = cred.get();
+        WebAuthnUserCredential credential = cred.get();
 
         // revoke
         revokeCredential(credential.getUserHandle(), credential.getCredentialId());
@@ -460,13 +460,13 @@ public class WebAuthnCredentialsService extends AbstractProvider
 
     @Override
     public void deleteCredentials(String username, String credentialsId) throws NoSuchUserException {
-        Optional<WebAuthnCredential> cred = findCredentialsByUsername(username).stream()
+        Optional<WebAuthnUserCredential> cred = findCredentialsByUsername(username).stream()
                 .filter(c -> credentialsId.equals(c.getCredentialId()))
                 .findFirst();
         if (cred.isEmpty()) {
             throw new NoSuchUserException();
         }
-        WebAuthnCredential credential = cred.get();
+        WebAuthnUserCredential credential = cred.get();
 
         // delete
         deleteCredential(credential.getUserHandle(), credential.getCredentialId());

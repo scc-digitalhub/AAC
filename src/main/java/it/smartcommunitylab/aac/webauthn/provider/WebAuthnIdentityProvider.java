@@ -12,27 +12,20 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityProvider;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.core.provider.IdentityCredentialsProvider;
-import it.smartcommunitylab.aac.core.provider.SubjectResolver;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
-import it.smartcommunitylab.aac.core.service.SubjectService;
-import it.smartcommunitylab.aac.core.service.UserEntityService;
-import it.smartcommunitylab.aac.internal.model.CredentialsType;
 import it.smartcommunitylab.aac.internal.model.InternalLoginProvider;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeProvider;
-import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.provider.InternalSubjectResolver;
 import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredential;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredentialsRepository;
+import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredential;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserCredentialsService;
 
 public class WebAuthnIdentityProvider extends
-        AbstractIdentityProvider<InternalUserIdentity, InternalUserAccount, WebAuthnUserAuthenticatedPrincipal, WebAuthnIdentityProviderConfigMap, WebAuthnIdentityProviderConfig>
-        implements IdentityCredentialsProvider<InternalUserAccount, WebAuthnCredential> {
+        AbstractIdentityProvider<InternalUserIdentity, InternalUserAccount, WebAuthnUserAuthenticatedPrincipal, WebAuthnIdentityProviderConfigMap, WebAuthnIdentityProviderConfig> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -40,51 +33,41 @@ public class WebAuthnIdentityProvider extends
     private final WebAuthnIdentityProviderConfig config;
 
     // services
-    protected final UserAccountService<InternalUserAccount> userAccountService;
-    private final WebAuthnCredentialsService credentialsService;
+    private final WebAuthnIdentityCredentialsService credentialsService;
 
     // providers
-    protected final InternalAccountProvider accountProvider;
-    protected final InternalAttributeProvider<WebAuthnUserAuthenticatedPrincipal> attributeProvider;
-    protected final SubjectResolver<InternalUserAccount> subjectResolver;
     private final WebAuthnAuthenticationProvider authenticationProvider;
+    private final InternalAccountProvider accountProvider;
+    private final InternalAttributeProvider<WebAuthnUserAuthenticatedPrincipal> attributeProvider;
+    private final InternalSubjectResolver subjectResolver;
 
     public WebAuthnIdentityProvider(
             String providerId,
-            UserEntityService userEntityService, UserAccountService<InternalUserAccount> userAccountService,
-            SubjectService subjectService,
-            WebAuthnCredentialsRepository credentialsRepository,
+            UserAccountService<InternalUserAccount> userAccountService,
+            WebAuthnUserCredentialsService userCredentialsService,
             WebAuthnIdentityProviderConfig config,
             String realm) {
-        super(SystemKeys.AUTHORITY_WEBAUTHN, providerId,
-                userEntityService, userAccountService, subjectService,
-                config, realm);
-        Assert.notNull(credentialsRepository, "credentials repository is mandatory");
+        super(SystemKeys.AUTHORITY_WEBAUTHN, providerId, userAccountService, config, realm);
+        Assert.notNull(userCredentialsService, "credentials service is mandatory");
 
-        logger.debug("create webauthn provider with id {}", String.valueOf(providerId));
+        String repositoryId = config.getRepositoryId();
+        logger.debug("create webauthn provider with id {} repository {}", String.valueOf(providerId), repositoryId);
         this.config = config;
 
-        InternalIdentityProviderConfig internalConfig = config.toInternalProviderConfig();
-
-        // internal data repositories
-        this.userAccountService = userAccountService;
+        // build resource providers, we use our providerId to ensure consistency
+        this.attributeProvider = new InternalAttributeProvider<>(SystemKeys.AUTHORITY_WEBAUTHN, providerId, realm);
+        this.accountProvider = new InternalAccountProvider(SystemKeys.AUTHORITY_WEBAUTHN, providerId,
+                userAccountService, repositoryId, realm);
 
         // build providers
-        this.credentialsService = new WebAuthnCredentialsService(providerId, userAccountService, credentialsRepository,
-                config,
-                realm);
-        this.authenticationProvider = new WebAuthnAuthenticationProvider(providerId, userAccountService,
+        this.credentialsService = new WebAuthnIdentityCredentialsService(providerId, userAccountService,
+                userCredentialsService, config, realm);
+        this.authenticationProvider = new WebAuthnAuthenticationProvider(providerId, accountProvider,
                 credentialsService, config, realm);
-
-        // build resource providers, we use our providerId to ensure consistency
-        this.attributeProvider = new InternalAttributeProvider<>(SystemKeys.AUTHORITY_WEBAUTHN, providerId,
-                internalConfig, realm);
-        this.accountProvider = new InternalAccountProvider(SystemKeys.AUTHORITY_WEBAUTHN, providerId,
-                userAccountService, internalConfig, realm);
 
         // always expose a valid resolver to satisfy authenticationManager at post login
         // TODO refactor to avoid fetching via resolver at this stage
-        this.subjectResolver = new InternalSubjectResolver(providerId, userAccountService, internalConfig, realm);
+        this.subjectResolver = new InternalSubjectResolver(providerId, userAccountService, repositoryId, false, realm);
 
     }
 
@@ -92,11 +75,6 @@ public class WebAuthnIdentityProvider extends
     public boolean isAuthoritative() {
         // webauthn handles only login
         return false;
-    }
-
-    @Override
-    public CredentialsType getCredentialsType() {
-        return CredentialsType.WEBAUTHN;
     }
 
     @Override
@@ -109,8 +87,7 @@ public class WebAuthnIdentityProvider extends
         return authenticationProvider;
     }
 
-    @Override
-    public WebAuthnCredentialsService getCredentialsService() {
+    public WebAuthnIdentityCredentialsService getCredentialsService() {
         return credentialsService;
     }
 
@@ -125,7 +102,7 @@ public class WebAuthnIdentityProvider extends
     }
 
     @Override
-    public SubjectResolver<InternalUserAccount> getSubjectResolver() {
+    public InternalSubjectResolver getSubjectResolver() {
         return subjectResolver;
     }
 
@@ -139,10 +116,15 @@ public class WebAuthnIdentityProvider extends
 
         // if attributes then load credentials
         if (attributes != null) {
-            List<WebAuthnCredential> credentials = credentialsService
-                    .findActiveCredentialsByUsername(account.getUsername());
-            credentials.forEach(c -> c.eraseCredentials());
-            identity.setCredentials(credentials);
+            try {
+                List<WebAuthnUserCredential> credentials = credentialsService
+                        .findCredentialsByUsername(account.getUsername());
+                credentials.forEach(c -> c.eraseCredentials());
+                identity.setCredentials(credentials);
+            } catch (NoSuchUserException e) {
+                // this should not happen
+                logger.error("no user for account {}", String.valueOf(account.getUsername()));
+            }
         }
 
         return identity;
@@ -211,7 +193,7 @@ public class WebAuthnIdentityProvider extends
     @Override
     public void deleteIdentity(String userId, String username) throws NoSuchUserException {
         // remove all credentials
-        credentialsService.deleteCredentials(username);
+        credentialsService.deleteCredentialsByUsername(username);
 
         // call super to remove account
         super.deleteIdentity(userId, username);

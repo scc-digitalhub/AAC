@@ -21,18 +21,18 @@ import org.springframework.util.StringUtils;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredential;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredentialsRepository;
+import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredential;
+import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredentialsRepository;
 
 public class WebAuthnYubicoCredentialsRepository implements CredentialRepository {
 
     private final String repositoryId;
     private final UserAccountService<InternalUserAccount> userAccountService;
-    private final WebAuthnCredentialsRepository credentialsRepository;
+    private final WebAuthnUserCredentialsRepository credentialsRepository;
 
     public WebAuthnYubicoCredentialsRepository(String repositoryId,
             UserAccountService<InternalUserAccount> userAccountService,
-            WebAuthnCredentialsRepository credentialsRepository) {
+            WebAuthnUserCredentialsRepository credentialsRepository) {
         Assert.hasText(repositoryId, "repository identifier is required");
         Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(credentialsRepository, "credentials repository is mandatory");
@@ -45,14 +45,14 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
     @Override
     public Set<PublicKeyCredentialDescriptor> getCredentialIdsForUsername(String username) {
         // fetch all active credentials for this user
-        List<WebAuthnCredential> credentials = credentialsRepository.findByProviderAndUsername(repositoryId, username)
+        List<WebAuthnUserCredential> credentials = credentialsRepository.findByProviderAndUsername(repositoryId, username)
                 .stream()
                 .filter(c -> CredentialsStatus.ACTIVE.getValue().equals(c.getStatus()))
                 .collect(Collectors.toList());
 
         // build descriptors
         Set<PublicKeyCredentialDescriptor> descriptors = new HashSet<>();
-        for (WebAuthnCredential c : credentials) {
+        for (WebAuthnUserCredential c : credentials) {
             try {
                 Set<AuthenticatorTransport> transports = StringUtils.commaDelimitedListToSet(c.getTransports())
                         .stream()
@@ -121,7 +121,7 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
         String id = credentialId.getBase64Url();
         // yubico userhandle is uuid
         String uuid = new String(userHandle.getBytes());
-        WebAuthnCredential credential = credentialsRepository.findByProviderAndUserHandleAndCredentialId(repositoryId,
+        WebAuthnUserCredential credential = credentialsRepository.findByProviderAndUserHandleAndCredentialId(repositoryId,
                 uuid, id);
         if (credential == null) {
             return Optional.empty();
@@ -143,7 +143,7 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
 
         // we use yubico ids as base64
         String id = credentialId.getBase64Url();
-        List<WebAuthnCredential> credentials = credentialsRepository.findByProviderAndCredentialId(repositoryId,
+        List<WebAuthnUserCredential> credentials = credentialsRepository.findByProviderAndCredentialId(repositoryId,
                 id);
         return credentials.stream()
                 .map(c -> {
@@ -158,7 +158,7 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
 
     }
 
-    private RegisteredCredential toRegisteredCredential(WebAuthnCredential credential) throws Base64UrlException {
+    private RegisteredCredential toRegisteredCredential(WebAuthnUserCredential credential) throws Base64UrlException {
         return RegisteredCredential.builder()
                 .credentialId(ByteArray.fromBase64Url(credential.getCredentialId()))
                 .userHandle(new ByteArray(credential.getUserHandle().getBytes()))

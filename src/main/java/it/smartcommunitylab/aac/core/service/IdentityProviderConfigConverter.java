@@ -20,6 +20,7 @@ public class IdentityProviderConfigConverter
         IdentityProviderEntity pe = new IdentityProviderEntity();
 
         pe.setAuthority(reg.getAuthority());
+        pe.setProviderId(reg.getProvider());
         pe.setRealm(reg.getRealm());
         pe.setEnabled(reg.isEnabled());
         pe.setLinkable(reg.isLinkable());

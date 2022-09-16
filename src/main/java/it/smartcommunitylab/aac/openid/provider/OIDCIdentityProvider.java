@@ -15,8 +15,6 @@ import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityProvider;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
-import it.smartcommunitylab.aac.core.service.SubjectService;
-import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.openid.model.OIDCUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.openid.model.OIDCUserIdentity;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
@@ -41,23 +39,20 @@ public class OIDCIdentityProvider
 
     public OIDCIdentityProvider(
             String providerId,
-            UserEntityService userEntityService, UserAccountService<OIDCUserAccount> userAccountService,
-            SubjectService subjectService,
+            UserAccountService<OIDCUserAccount> userAccountService,
             AttributeStore attributeStore,
             OIDCIdentityProviderConfig config,
             String realm) {
-        this(SystemKeys.AUTHORITY_OIDC, providerId, userEntityService, userAccountService, subjectService,
-                attributeStore, config, realm);
+        this(SystemKeys.AUTHORITY_OIDC, providerId, userAccountService, attributeStore, config, realm);
     }
 
     public OIDCIdentityProvider(
             String authority, String providerId,
-            UserEntityService userEntityService, UserAccountService<OIDCUserAccount> userAccountService,
-            SubjectService subjectService,
+            UserAccountService<OIDCUserAccount> userAccountService,
             AttributeStore attributeStore,
             OIDCIdentityProviderConfig config,
             String realm) {
-        super(authority, providerId, userEntityService, userAccountService, subjectService, config, realm);
+        super(authority, providerId, userAccountService, config, realm);
         Assert.notNull(attributeStore, "attribute store is mandatory");
 
         logger.debug("create oidc provider for authority {} with id {}", String.valueOf(authority),

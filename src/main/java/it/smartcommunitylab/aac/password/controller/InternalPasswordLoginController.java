@@ -5,6 +5,10 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,9 +29,9 @@ import it.smartcommunitylab.aac.password.InternalPasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProvider;
 
 @Controller
-@RequestMapping
 public class InternalPasswordLoginController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
+    public static final String LOGIN_FORM_URL = InternalPasswordIdentityAuthority.AUTHORITY_URL + "form/{providerId}";
 
     @Autowired
     private InternalPasswordIdentityAuthority internalAuthority;
@@ -35,9 +39,9 @@ public class InternalPasswordLoginController {
     @Autowired
     private RealmManager realmManager;
 
-    @RequestMapping(value = "/auth/password/form/{providerId}", method = RequestMethod.GET)
+    @RequestMapping(value = LOGIN_FORM_URL, method = RequestMethod.GET)
     public String login(
-            @PathVariable("providerId") String providerId,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             Model model,
             HttpServletRequest req, HttpServletResponse res) throws Exception {
         // resolve provider
@@ -94,7 +98,6 @@ public class InternalPasswordLoginController {
         }
 
         return "login";
-
     }
 
 }

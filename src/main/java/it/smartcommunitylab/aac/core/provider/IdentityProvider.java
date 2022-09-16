@@ -19,17 +19,10 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
  * At minimum, we expect every provider to fulfill core attribute sets (basic, email, openid, account).
  */
 
-public interface IdentityProvider<I extends UserIdentity, M extends ConfigMap, C extends IdentityProviderConfig<M>>
+public interface IdentityProvider<I extends UserIdentity, U extends UserAccount, P extends UserAuthenticatedPrincipal, M extends ConfigMap, C extends IdentityProviderConfig<M>>
         extends ConfigurableResourceProvider<UserIdentity, ConfigurableIdentityProvider, M, C> {
 
     public static final String ATTRIBUTE_MAPPING_FUNCTION = "attributeMapping";
-
-    /*
-     * Config
-     */
-    public String getName();
-
-    public String getDescription();
 
     /*
      * Authoritative for the given identity model
@@ -45,14 +38,14 @@ public interface IdentityProvider<I extends UserIdentity, M extends ConfigMap, C
      * the resolution of UserPrincipal. Optionally they can expose a UserAccount
      * matching the principal, if available in the provider.
      */
-    public ExtendedAuthenticationProvider<? extends UserAuthenticatedPrincipal, ? extends UserAccount> getAuthenticationProvider();
+    public ExtendedAuthenticationProvider<P, U> getAuthenticationProvider();
 
     /*
      * Account provider acts as the source for user accounts, when the details are
      * persisted in the provider or available for requests. Do note that idps are
      * not required to persist accounts.
      */
-    public AccountProvider<? extends UserAccount> getAccountProvider();
+    public AccountProvider<U> getAccountProvider();
 
     /*
      * Attribute providers retrieve and format user properties available to the
@@ -60,7 +53,7 @@ public interface IdentityProvider<I extends UserIdentity, M extends ConfigMap, C
      * world.
      */
 
-    public IdentityAttributeProvider<? extends UserAuthenticatedPrincipal, ? extends UserAccount> getAttributeProvider();
+    public IdentityAttributeProvider<P, U> getAttributeProvider();
 
     /*
      * Subject resolvers can discover a matching user by receiving identifying
@@ -68,7 +61,7 @@ public interface IdentityProvider<I extends UserIdentity, M extends ConfigMap, C
      * registered accounts to find an existing identity for the same user.
      */
 
-    public SubjectResolver<? extends UserAccount> getSubjectResolver();
+    public SubjectResolver<U> getSubjectResolver();
 
     /*
      * Convert identities from authenticatedPrincipal. Used for login only.

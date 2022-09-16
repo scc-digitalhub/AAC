@@ -35,6 +35,7 @@ import it.smartcommunitylab.aac.claims.ScopeClaimsExtractorProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.InMemoryProviderConfigRepository;
+import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountRepository;
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeProviderConfig;
@@ -145,19 +146,21 @@ public class PersistenceConfig {
      */
 
     @Bean
-    public UserAccountService<OIDCUserAccount> oidcUserAccountService(OIDCUserAccountRepository accountRepository) {
-        return new OIDCUserAccountService(accountRepository);
+    public UserAccountService<OIDCUserAccount> oidcUserAccountService(OIDCUserAccountRepository accountRepository,
+            SubjectService subjectService) {
+        return new OIDCUserAccountService(accountRepository, subjectService);
     }
 
     @Bean
-    public UserAccountService<SamlUserAccount> samlUserAccountService(SamlUserAccountRepository accountRepository) {
-        return new SamlUserAccountService(accountRepository);
+    public UserAccountService<SamlUserAccount> samlUserAccountService(SamlUserAccountRepository accountRepository,
+            SubjectService subjectService) {
+        return new SamlUserAccountService(accountRepository, subjectService);
     }
 
     @Bean
     public UserAccountService<InternalUserAccount> internalUserAccountService(
-            InternalUserAccountRepository accountRepository) {
-        return new InternalUserAccountService(accountRepository);
+            InternalUserAccountRepository accountRepository, SubjectService subjectService) {
+        return new InternalUserAccountService(accountRepository, subjectService);
     }
 
     @Bean

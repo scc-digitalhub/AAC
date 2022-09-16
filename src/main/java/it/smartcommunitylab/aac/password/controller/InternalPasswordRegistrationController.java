@@ -147,7 +147,7 @@ public class InternalPasswordRegistrationController {
 //        }
 
         // fetch password service if available
-        InternalPasswordService service = idp.getCredentialsService();
+        InternalPasswordIdentityCredentialsService service = idp.getCredentialsService();
         if (service != null) {
             // expose password policy by passing idp config
             PasswordPolicy policy = service.getPasswordPolicy();
@@ -211,7 +211,7 @@ public class InternalPasswordRegistrationController {
             model.addAttribute("customization", resources);
 
             // fetch password service if available
-            InternalPasswordService passwordService = idp.getCredentialsService();
+            InternalPasswordIdentityCredentialsService passwordService = idp.getCredentialsService();
             if (passwordService != null) {
                 // expose password policy by passing idp config
                 PasswordPolicy policy = passwordService.getPasswordPolicy();

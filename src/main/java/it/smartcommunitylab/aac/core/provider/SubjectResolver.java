@@ -3,7 +3,7 @@ package it.smartcommunitylab.aac.core.provider;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.model.Subject;
 
-public interface SubjectResolver<A extends UserAccount> {
+public interface SubjectResolver<A extends UserAccount> extends ResourceProvider<A> {
 
     /*
      * Local id: direct resolve

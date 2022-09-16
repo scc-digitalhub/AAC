@@ -18,8 +18,6 @@ import it.smartcommunitylab.aac.core.base.AbstractIdentityAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
-import it.smartcommunitylab.aac.core.service.SubjectService;
-import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository;
 import it.smartcommunitylab.aac.saml.model.SamlUserIdentity;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
@@ -52,21 +50,19 @@ public class SamlIdentityAuthority extends
     private ScriptExecutionService executionService;
 
     public SamlIdentityAuthority(
-            UserEntityService userEntityService, SubjectService subjectService,
             UserAccountService<SamlUserAccount> userAccountService, AutoJdbcAttributeStore jdbcAttributeStore,
             ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository,
             @Qualifier("samlRelyingPartyRegistrationRepository") SamlRelyingPartyRegistrationRepository samlRelyingPartyRegistrationRepository) {
-        this(SystemKeys.AUTHORITY_SAML, userEntityService, subjectService, userAccountService, jdbcAttributeStore,
-                registrationRepository, samlRelyingPartyRegistrationRepository);
+        this(SystemKeys.AUTHORITY_SAML, userAccountService, jdbcAttributeStore, registrationRepository,
+                samlRelyingPartyRegistrationRepository);
     }
 
     public SamlIdentityAuthority(
             String authorityId,
-            UserEntityService userEntityService, SubjectService subjectService,
             UserAccountService<SamlUserAccount> userAccountService, AutoJdbcAttributeStore jdbcAttributeStore,
             ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository,
             @Qualifier("samlRelyingPartyRegistrationRepository") SamlRelyingPartyRegistrationRepository samlRelyingPartyRegistrationRepository) {
-        super(authorityId, userEntityService, subjectService, registrationRepository);
+        super(authorityId, registrationRepository);
         Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(jdbcAttributeStore, "attribute store is mandatory");
         Assert.notNull(samlRelyingPartyRegistrationRepository, "relayingParty registration repository is mandatory");
@@ -108,8 +104,8 @@ public class SamlIdentityAuthority extends
 
         SamlIdentityProvider idp = new SamlIdentityProvider(
                 authorityId, id,
-                userEntityService, accountService, subjectService,
-                attributeStore, config, config.getRealm());
+                accountService, attributeStore,
+                config, config.getRealm());
 
         idp.setExecutionService(executionService);
         return idp;

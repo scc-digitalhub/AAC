@@ -5,6 +5,7 @@ import java.util.Map;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
+import javax.validation.constraints.Pattern;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -23,16 +24,8 @@ public class InternalIdentityProviderConfigMap extends AbstractConfigMap impleme
     @Max(3 * 24 * 60 * 60)
     protected Integer maxSessionDuration;
 
-    protected CredentialsType credentialsType;
-    protected Boolean scopedData;
-
-    protected Boolean enableRegistration;
-    protected Boolean enableDelete;
-    protected Boolean enableUpdate;
-
-    protected Boolean confirmationRequired;
-    @Max(3 * 24 * 60 * 60)
-    protected Integer confirmationValidity;
+    @Pattern(regexp = SystemKeys.SLUG_PATTERN)
+    private String repositoryId;
 
     public InternalIdentityProviderConfigMap() {
     }
@@ -46,74 +39,21 @@ public class InternalIdentityProviderConfigMap extends AbstractConfigMap impleme
     }
 
     public CredentialsType getCredentialsType() {
-        return credentialsType;
+        return CredentialsType.NONE;
     }
 
-    public void setCredentialsType(CredentialsType credentialsType) {
-        this.credentialsType = credentialsType;
+    public String getRepositoryId() {
+        return repositoryId;
     }
 
-    public Boolean getScopedData() {
-        return scopedData;
-    }
-
-    public void setScopedData(Boolean scopedData) {
-        this.scopedData = scopedData;
-    }
-
-    public Boolean getEnableRegistration() {
-        return enableRegistration;
-    }
-
-    public void setEnableRegistration(Boolean enableRegistration) {
-        this.enableRegistration = enableRegistration;
-    }
-
-    public Boolean getEnableDelete() {
-        return enableDelete;
-    }
-
-    public void setEnableDelete(Boolean enableDelete) {
-        this.enableDelete = enableDelete;
-    }
-
-    public Boolean getEnableUpdate() {
-        return enableUpdate;
-    }
-
-    public void setEnableUpdate(Boolean enableUpdate) {
-        this.enableUpdate = enableUpdate;
-    }
-
-    public Boolean getConfirmationRequired() {
-        return confirmationRequired;
-    }
-
-    public void setConfirmationRequired(Boolean confirmationRequired) {
-        this.confirmationRequired = confirmationRequired;
-    }
-
-    public Integer getConfirmationValidity() {
-        return confirmationValidity;
-    }
-
-    public void setConfirmationValidity(Integer confirmationValidity) {
-        this.confirmationValidity = confirmationValidity;
+    public void setRepositoryId(String repositoryId) {
+        this.repositoryId = repositoryId;
     }
 
     @JsonIgnore
     public void setConfiguration(InternalIdentityProviderConfigMap map) {
         this.maxSessionDuration = map.getMaxSessionDuration();
-
-        this.credentialsType = map.getCredentialsType();
-        this.scopedData = map.getScopedData();
-
-        this.enableRegistration = map.getEnableRegistration();
-        this.enableDelete = map.getEnableDelete();
-        this.enableUpdate = map.getEnableUpdate();
-
-        this.confirmationRequired = map.getConfirmationRequired();
-        this.confirmationValidity = map.getConfirmationValidity();
+        this.repositoryId = map.getRepositoryId();
     }
 
     @Override

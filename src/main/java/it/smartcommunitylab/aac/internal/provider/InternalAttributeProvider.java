@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.util.Assert;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.AccountAttributesSet;
 import it.smartcommunitylab.aac.attributes.BasicAttributesSet;
@@ -23,17 +21,14 @@ public class InternalAttributeProvider<P extends InternalUserAuthenticatedPrinci
 
     public InternalAttributeProvider(
             String providerId,
-            InternalIdentityProviderConfig providerConfig,
             String realm) {
-        this(SystemKeys.AUTHORITY_INTERNAL, providerId, providerConfig, realm);
+        this(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
     }
 
     public InternalAttributeProvider(
             String authority, String providerId,
-            InternalIdentityProviderConfig providerConfig,
             String realm) {
         super(authority, providerId, realm);
-        Assert.notNull(providerConfig, "provider config is mandatory");
 
         // disable attribute store
         this.attributeStore = null;
@@ -43,7 +38,6 @@ public class InternalAttributeProvider<P extends InternalUserAuthenticatedPrinci
     protected List<UserAttributes> extractUserAttributes(InternalUserAccount account,
             Map<String, Serializable> principalAttributes) {
         List<UserAttributes> attributes = new ArrayList<>();
-//        String userId = exportInternalId(account.getUserId());
         String userId = account.getUserId();
 
         // build base

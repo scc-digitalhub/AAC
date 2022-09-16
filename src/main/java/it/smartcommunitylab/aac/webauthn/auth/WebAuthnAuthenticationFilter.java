@@ -38,7 +38,6 @@ import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 
 import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
-import it.smartcommunitylab.aac.webauthn.WebAuthnLoginAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpService;
 import it.smartcommunitylab.aac.webauthn.store.WebAuthnAssertionRequestStore;

@@ -20,7 +20,8 @@ import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.model.SubjectStatus;
 
 @Transactional
-public class InternalAccountProvider extends AbstractProvider implements AccountProvider<InternalUserAccount> {
+public class InternalAccountProvider extends AbstractProvider<InternalUserAccount>
+        implements AccountProvider<InternalUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final UserAccountService<InternalUserAccount> accountService;
@@ -28,23 +29,21 @@ public class InternalAccountProvider extends AbstractProvider implements Account
 
     public InternalAccountProvider(String providerId,
             UserAccountService<InternalUserAccount> accountService,
-            InternalIdentityProviderConfig config,
-            String realm) {
-        this(SystemKeys.AUTHORITY_INTERNAL, providerId, accountService, config, realm);
+            String repositoryId, String realm) {
+        this(SystemKeys.AUTHORITY_INTERNAL, providerId, accountService, repositoryId, realm);
     }
 
     public InternalAccountProvider(String authority, String providerId,
             UserAccountService<InternalUserAccount> accountService,
-            InternalIdentityProviderConfig config,
-            String realm) {
+            String repositoryId, String realm) {
         super(authority, providerId, realm);
         Assert.notNull(accountService, "account service is mandatory");
-        Assert.notNull(config, "provider config is mandatory");
+        Assert.hasText(repositoryId, "repository id is mandatory");
 
         this.accountService = accountService;
 
         // repositoryId from config
-        this.repositoryId = config.getRepositoryId();
+        this.repositoryId = repositoryId;
 
     }
 

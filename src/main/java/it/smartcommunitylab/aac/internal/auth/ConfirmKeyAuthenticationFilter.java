@@ -37,39 +37,28 @@ import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProvid
 /*
  * Handles login requests for internal authority, via extended auth manager
  */
-public class InternalConfirmKeyAuthenticationFilter
+public class ConfirmKeyAuthenticationFilter
         extends AbstractAuthenticationProcessingFilter {
 
     public static final String DEFAULT_FILTER_URI = InternalIdentityAuthority.AUTHORITY_URL
             + "confirm/{registrationId}";
 
-    // TODO cleanup generic type, this should be internal only
-    private final ProviderConfigRepository<? extends AbstractIdentityProviderConfig<?>> registrationRepository;
-    private final String authority;
-
-//    public static final String DEFAULT_FILTER_URI = "/auth/internal/";
-//    public static final String ACTION = "confirm";
-//    public static final String REALM_URI_VARIABLE_NAME = "realm";
-//    public static final String PROVIDER_URI_VARIABLE_NAME = "provider";
+    private final ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository;
 
     private final RequestMatcher requestMatcher;
-//    private final RequestMatcher realmRequestMatcher;
-//    private final RequestMatcher providerRequestMatcher;
-//    private final RequestMatcher providerRealmRequestMatcher;
 
     private AuthenticationEntryPoint authenticationEntryPoint;
 
     // TODO remove
     private final InternalUserConfirmKeyService userAccountService;
 
-    public InternalConfirmKeyAuthenticationFilter(InternalUserConfirmKeyService userAccountService,
-            ProviderConfigRepository<? extends AbstractIdentityProviderConfig<?>> registrationRepository) {
-        this(SystemKeys.AUTHORITY_INTERNAL, userAccountService, registrationRepository, DEFAULT_FILTER_URI, null);
+    public ConfirmKeyAuthenticationFilter(InternalUserConfirmKeyService userAccountService,
+            ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository) {
+        this(userAccountService, registrationRepository, DEFAULT_FILTER_URI, null);
     }
 
-    public InternalConfirmKeyAuthenticationFilter(String authority,
-            InternalUserConfirmKeyService userAccountService,
-            ProviderConfigRepository<? extends AbstractIdentityProviderConfig<?>> registrationRepository,
+    public ConfirmKeyAuthenticationFilter(InternalUserConfirmKeyService userAccountService,
+            ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository,
             String filterProcessingUrl, AuthenticationEntryPoint authenticationEntryPoint) {
         super(filterProcessingUrl);
         Assert.notNull(userAccountService, "user account service is required");
@@ -78,32 +67,9 @@ public class InternalConfirmKeyAuthenticationFilter
         Assert.isTrue(filterProcessingUrl.contains("{registrationId}"),
                 "filterProcessesUrl must contain a {registrationId} match variable");
 
-        Assert.hasText(authority, "authority must be set");
-
         this.userAccountService = userAccountService;
         this.registrationRepository = registrationRepository;
 
-        this.authority = authority;
-
-//        // build a matcher for all requests
-//        RequestMatcher baseRequestMatcher = new AntPathRequestMatcher(filterProcessingUrl + ACTION);
-//
-//        realmRequestMatcher = new AntPathRequestMatcher(
-//                "/-/{" + REALM_URI_VARIABLE_NAME + "}" + filterProcessingUrl + ACTION);
-//
-//        providerRequestMatcher = new AntPathRequestMatcher(
-//                filterProcessingUrl + ACTION + "/{" + PROVIDER_URI_VARIABLE_NAME + "}");
-//
-//        providerRealmRequestMatcher = new AntPathRequestMatcher(
-//                "/-/{" + REALM_URI_VARIABLE_NAME + "}" + filterProcessingUrl + ACTION + "/{"
-//                        + PROVIDER_URI_VARIABLE_NAME + "}");
-//
-//        // use both the global and the realm matcher
-//        requestMatcher = new OrRequestMatcher(
-//                baseRequestMatcher,
-//                providerRequestMatcher,
-//                realmRequestMatcher,
-//                providerRealmRequestMatcher);
         // we need to build a custom requestMatcher to extract variables from url
         this.requestMatcher = new AntPathRequestMatcher(filterProcessingUrl);
         setRequiresAuthenticationRequestMatcher(requestMatcher);
@@ -187,33 +153,13 @@ public class InternalConfirmKeyAuthenticationFilter
 
         String username = account.getUsername();
 
-        // TODO refactor!
-//        if (CredentialsType.PASSWORD == providerConfig.getCredentialsType()) {
-//            // fetch active password
-//            InternalUserPassword credentials = passwordRepository
-//                    .findByProviderAndUsernameAndStatusOrderByCreateDateDesc(
-//                            repositoryId, username,
-//                            CredentialsStatus.ACTIVE.getValue());
-//            if (credentials != null) {
-//                HttpSession session = request.getSession(true);
-//                if (session != null) {
-//                    // check if user needs to reset password, and add redirect
-//                    if (credentials.isChangeOnFirstAccess()) {
-//                        // TODO build url
-//                        session.setAttribute(RequestAwareAuthenticationSuccessHandler.SAVED_REQUEST,
-//                                "/changepwd/" + providerId + "/" + account.getUuid());
-//                    }
-//                }
-//            }
-//        }
-
         // build a request
         ConfirmKeyAuthenticationToken authenticationRequest = new ConfirmKeyAuthenticationToken(username,
                 code);
 
         ProviderWrappedAuthenticationToken wrappedAuthRequest = new ProviderWrappedAuthenticationToken(
                 authenticationRequest,
-                providerId, authority);
+                providerId, SystemKeys.AUTHORITY_INTERNAL);
 
         // also collect request details
         WebAuthenticationDetails webAuthenticationDetails = new WebAuthenticationDetails(request);

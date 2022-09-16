@@ -15,29 +15,28 @@ import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.password.auth.InternalLoginAuthenticationFilter;
-import it.smartcommunitylab.aac.password.auth.InternalResetKeyAuthenticationFilter;
-import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
+import it.smartcommunitylab.aac.password.auth.UsernamePasswordAuthenticationFilter;
+import it.smartcommunitylab.aac.password.auth.ResetKeyAuthenticationFilter;
+import it.smartcommunitylab.aac.password.service.InternalUserPasswordService;
 
 public class InternalPasswordFilterProvider implements FilterProvider {
 
     private final ProviderConfigRepository<InternalPasswordIdentityProviderConfig> registrationRepository;
     private final UserAccountService<InternalUserAccount> userAccountService;
-    // TODO replace with credentials service when available as independent service
-    private final InternalUserPasswordRepository passwordRepository;
+    private final InternalUserPasswordService userPasswordService;
 
     private AuthenticationManager authManager;
 
     public InternalPasswordFilterProvider(
             UserAccountService<InternalUserAccount> userAccountService,
-            InternalUserPasswordRepository passwordRepository,
+            InternalUserPasswordService userPasswordService,
             ProviderConfigRepository<InternalPasswordIdentityProviderConfig> registrationRepository) {
         Assert.notNull(userAccountService, "account service is mandatory");
-        Assert.notNull(passwordRepository, "password repository is mandatory");
+        Assert.notNull(userPasswordService, "password service is mandatory");
         Assert.notNull(registrationRepository, "registration repository is mandatory");
 
         this.userAccountService = userAccountService;
-        this.passwordRepository = passwordRepository;
+        this.userPasswordService = userPasswordService;
         this.registrationRepository = registrationRepository;
     }
 
@@ -51,26 +50,18 @@ public class InternalPasswordFilterProvider implements FilterProvider {
     }
 
     @Override
-    public List<Filter> getFilters() {
-
-        InternalLoginAuthenticationFilter loginFilter = new InternalLoginAuthenticationFilter(
-                userAccountService, passwordRepository, registrationRepository);
+    public List<Filter> getAuthFilters() {
+        // build auth filters for user+password and resetKey
+        UsernamePasswordAuthenticationFilter loginFilter = new UsernamePasswordAuthenticationFilter(
+                userAccountService, userPasswordService, registrationRepository);
         loginFilter.setAuthenticationSuccessHandler(successHandler());
 
-        InternalResetKeyAuthenticationFilter resetKeyFilter = new InternalResetKeyAuthenticationFilter(
-                userAccountService, passwordRepository, registrationRepository);
+        ResetKeyAuthenticationFilter resetKeyFilter = new ResetKeyAuthenticationFilter(
+                userAccountService, userPasswordService, registrationRepository);
         resetKeyFilter.setAuthenticationSuccessHandler(successHandler());
-
-//        // TODO remove when registration is handled only by internalService
-//        InternalConfirmKeyAuthenticationFilter confirmKeyFilter = new InternalConfirmKeyAuthenticationFilter(
-//                SystemKeys.AUTHORITY_PASSWORD,
-//                confirmKeyService, registrationRepository,
-//                InternalPasswordIdentityAuthority.AUTHORITY_URL + "confirm/{registrationId}", null);
-//        confirmKeyFilter.setAuthenticationSuccessHandler(successHandler());
 
         if (authManager != null) {
             loginFilter.setAuthenticationManager(authManager);
-//            confirmKeyFilter.setAuthenticationManager(authManager);
             resetKeyFilter.setAuthenticationManager(authManager);
         }
 
@@ -78,10 +69,15 @@ public class InternalPasswordFilterProvider implements FilterProvider {
         List<Filter> filters = new ArrayList<>();
         filters.add(loginFilter);
         filters.add(resetKeyFilter);
-//        filters.add(confirmKeyFilter);
 
         return filters;
 
+    }
+
+    @Override
+    public Collection<Filter> getChainFilters() {
+        // TODO build chain filter to check password set/expire/reset etc
+        return null;
     }
 
     @Override

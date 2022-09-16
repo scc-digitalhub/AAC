@@ -11,6 +11,11 @@ import it.smartcommunitylab.aac.core.model.Resource;
  */
 public interface ConfigurableResourceProvider<R extends Resource, T extends ConfigurableProvider, M extends ConfigMap, C extends ProviderConfig<M, T>>
         extends ResourceProvider<R> {
+
+    public String getName();
+
+    public String getDescription();
+
     /*
      * Config
      */

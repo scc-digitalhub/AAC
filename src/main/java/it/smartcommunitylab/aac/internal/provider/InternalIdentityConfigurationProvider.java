@@ -1,13 +1,10 @@
 package it.smartcommunitylab.aac.internal.provider;
 
 import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.config.AuthoritiesProperties;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 
 @Service
 public class InternalIdentityConfigurationProvider
@@ -24,9 +21,8 @@ public class InternalIdentityConfigurationProvider
     }
 
     @Override
-    protected InternalIdentityProviderConfig buildConfig(ConfigurableProvider cp) {
-        Assert.isInstanceOf(ConfigurableIdentityProvider.class, cp);
-        return new InternalIdentityProviderConfig((ConfigurableIdentityProvider) cp);
+    protected InternalIdentityProviderConfig buildConfig(ConfigurableIdentityProvider cp) {
+        return new InternalIdentityProviderConfig(cp);
     }
 
 }

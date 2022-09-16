@@ -13,17 +13,17 @@ import it.smartcommunitylab.aac.core.auth.RequestAwareAuthenticationSuccessHandl
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
-import it.smartcommunitylab.aac.internal.auth.InternalConfirmKeyAuthenticationFilter;
+import it.smartcommunitylab.aac.internal.auth.ConfirmKeyAuthenticationFilter;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
 
-public class InternalFilterProvider implements FilterProvider {
+public class InternalIdentityFilterProvider implements FilterProvider {
 
     private final ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository;
     private final InternalUserConfirmKeyService confirmKeyService;
     private AuthenticationManager authManager;
 
-    public InternalFilterProvider(UserAccountService<InternalUserAccount> userAccountService,
+    public InternalIdentityFilterProvider(UserAccountService<InternalUserAccount> userAccountService,
             InternalUserConfirmKeyService confirmKeyService,
             ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository) {
         Assert.notNull(userAccountService, "account service is mandatory");
@@ -44,10 +44,9 @@ public class InternalFilterProvider implements FilterProvider {
     }
 
     @Override
-    public Collection<Filter> getFilters() {
-
+    public Collection<Filter> getAuthFilters() {
         // we expose only the confirmKey auth filter with default config
-        InternalConfirmKeyAuthenticationFilter confirmKeyFilter = new InternalConfirmKeyAuthenticationFilter(
+        ConfirmKeyAuthenticationFilter confirmKeyFilter = new ConfirmKeyAuthenticationFilter(
                 confirmKeyService, registrationRepository);
         confirmKeyFilter.setAuthenticationSuccessHandler(successHandler());
 
@@ -56,6 +55,11 @@ public class InternalFilterProvider implements FilterProvider {
         }
 
         return Collections.singletonList(confirmKeyFilter);
+    }
+
+    @Override
+    public Collection<Filter> getChainFilters() {
+        return null;
     }
 
     @Override

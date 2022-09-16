@@ -10,10 +10,9 @@ import it.smartcommunitylab.aac.core.provider.SubjectResolver;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
-import it.smartcommunitylab.aac.openid.service.OIDCUserAccountService;
 
 @Transactional
-public class OIDCSubjectResolver extends AbstractProvider implements SubjectResolver<OIDCUserAccount> {
+public class OIDCSubjectResolver extends AbstractProvider<OIDCUserAccount> implements SubjectResolver<OIDCUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final UserAccountService<OIDCUserAccount> accountService;

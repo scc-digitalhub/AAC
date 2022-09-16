@@ -52,7 +52,7 @@ public class SamlFilterProvider implements FilterProvider {
     }
 
     @Override
-    public List<Filter> getFilters() {
+    public List<Filter> getAuthFilters() {
         // build request repository bound to session
         Saml2AuthenticationRequestRepository<Saml2AuthenticationRequestContext> authenticationRequestRepository = new HttpSessionSaml2AuthenticationRequestRepository();
 
@@ -85,6 +85,11 @@ public class SamlFilterProvider implements FilterProvider {
 
         return filters;
 
+    }
+
+    @Override
+    public Collection<Filter> getChainFilters() {
+        return null;
     }
 
     @Override

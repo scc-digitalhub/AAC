@@ -5,15 +5,17 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.DuplicatedDataException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.core.service.SubjectService;
+import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.model.SubjectStatus;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountId;
@@ -30,10 +32,14 @@ public class OIDCUserAccountService implements UserAccountService<OIDCUserAccoun
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final OIDCUserAccountRepository accountRepository;
+    private final SubjectService subjectService;
 
-    public OIDCUserAccountService(OIDCUserAccountRepository accountRepository) {
+    public OIDCUserAccountService(OIDCUserAccountRepository accountRepository, SubjectService subjectService) {
         Assert.notNull(accountRepository, "account repository is required");
+        Assert.notNull(subjectService, "subject service is mandatory");
+
         this.accountRepository = accountRepository;
+        this.subjectService = subjectService;
     }
 
     @Transactional(readOnly = true)
@@ -120,12 +126,31 @@ public class OIDCUserAccountService implements UserAccountService<OIDCUserAccoun
                 throw new DuplicatedDataException("subject");
             }
 
+            // create subject when needed
+            String uuid = reg.getUuid();
+            if (!StringUtils.hasText(uuid)) {
+                uuid = subjectService.generateUuid(SystemKeys.RESOURCE_ACCOUNT);
+            }
+
+            Subject s = subjectService.findSubject(uuid);
+            if (s == null) {
+                logger.debug("create new subject for sub {}", String.valueOf(subject));
+                s = subjectService.addSubject(uuid, reg.getRealm(), SystemKeys.RESOURCE_ACCOUNT, subject);
+            } else {
+                if (!s.getRealm().equals(reg.getRealm())
+                        || !SystemKeys.RESOURCE_ACCOUNT.equals(s.getType())
+                        || !subject.equals(s.getSubjectId())) {
+                    throw new RegistrationException("subject-mismatch");
+                }
+            }
+            
             // extract attributes and build model
             account = new OIDCUserAccount(reg.getAuthority());
             account.setProvider(repository);
             account.setSubject(subject);
 
-            account.setUuid(reg.getUuid());
+            account.setUuid(s.getSubjectId());
+
             account.setUserId(reg.getUserId());
             account.setRealm(reg.getRealm());
 
@@ -151,7 +176,6 @@ public class OIDCUserAccountService implements UserAccountService<OIDCUserAccoun
             }
 
             return account;
-
         } catch (Exception e) {
             throw new RegistrationException(e.getMessage());
         }
@@ -220,6 +244,13 @@ public class OIDCUserAccountService implements UserAccountService<OIDCUserAccoun
     public void deleteAccount(String repository, String subject) {
         OIDCUserAccount account = accountRepository.findOne(new OIDCUserAccountId(repository, subject));
         if (account != null) {
+            String uuid = account.getUuid();
+            if (uuid != null) {
+                // remove subject if exists
+                logger.debug("delete subject {} for sub {}", String.valueOf(uuid), String.valueOf(subject));
+                subjectService.deleteSubject(uuid);
+            }
+
             logger.debug("delete account with subject {} repository {}", String.valueOf(subject),
                     String.valueOf(repository));
             accountRepository.delete(account);

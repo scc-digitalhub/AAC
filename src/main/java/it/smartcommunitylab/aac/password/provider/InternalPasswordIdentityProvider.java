@@ -13,80 +13,64 @@ import it.smartcommunitylab.aac.core.base.AbstractIdentityProvider;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.core.provider.IdentityCredentialsProvider;
-import it.smartcommunitylab.aac.core.provider.SubjectResolver;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
-import it.smartcommunitylab.aac.core.service.SubjectService;
-import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.internal.model.CredentialsType;
 import it.smartcommunitylab.aac.internal.model.InternalLoginProvider;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeProvider;
-import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.provider.InternalSubjectResolver;
 import it.smartcommunitylab.aac.password.InternalPasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.model.InternalPasswordUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
-import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
-import it.smartcommunitylab.aac.password.service.InternalPasswordService;
+import it.smartcommunitylab.aac.password.service.InternalUserPasswordService;
 import it.smartcommunitylab.aac.utils.MailService;
 
 public class InternalPasswordIdentityProvider extends
-        AbstractIdentityProvider<InternalUserIdentity, InternalUserAccount, InternalPasswordUserAuthenticatedPrincipal, InternalPasswordIdentityProviderConfigMap, InternalPasswordIdentityProviderConfig>
-        implements IdentityCredentialsProvider<InternalUserAccount, InternalUserPassword> {
+        AbstractIdentityProvider<InternalUserIdentity, InternalUserAccount, InternalPasswordUserAuthenticatedPrincipal, InternalPasswordIdentityProviderConfigMap, InternalPasswordIdentityProviderConfig> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // provider configuration
     private final InternalPasswordIdentityProviderConfig config;
 
     // services
-    private final UserAccountService<InternalUserAccount> userAccountService;
-    private final InternalPasswordService passwordService;
+    private final InternalPasswordIdentityCredentialsService passwordService;
 
     // providers
     private final InternalPasswordAuthenticationProvider authenticationProvider;
-    protected final InternalAccountProvider accountProvider;
-    protected final InternalAttributeProvider<InternalPasswordUserAuthenticatedPrincipal> attributeProvider;
-    protected final SubjectResolver<InternalUserAccount> subjectResolver;
+    private final InternalAccountProvider accountProvider;
+    private final InternalAttributeProvider<InternalPasswordUserAuthenticatedPrincipal> attributeProvider;
+    private final InternalSubjectResolver subjectResolver;
 
     public InternalPasswordIdentityProvider(
             String providerId,
-            UserEntityService userEntityService, UserAccountService<InternalUserAccount> userAccountService,
-            SubjectService subjectService,
-            InternalUserPasswordRepository passwordRepository,
+            UserAccountService<InternalUserAccount> userAccountService,
+            InternalUserPasswordService userPasswordService,
             InternalPasswordIdentityProviderConfig config,
             String realm) {
-        super(SystemKeys.AUTHORITY_PASSWORD, providerId,
-                userEntityService, userAccountService, subjectService,
-                config, realm);
-        Assert.notNull(passwordRepository, "password repository is mandatory");
+        super(SystemKeys.AUTHORITY_PASSWORD, providerId, userAccountService, config, realm);
+        Assert.notNull(userPasswordService, "password service is mandatory");
 
-        logger.debug("create password provider with id {}", String.valueOf(providerId));
+        String repositoryId = config.getRepositoryId();
+        logger.debug("create password provider with id {} repository {}", String.valueOf(providerId), repositoryId);
         this.config = config;
 
-        InternalIdentityProviderConfig internalConfig = config.toInternalProviderConfig();
-
-        // internal data repositories
-        this.userAccountService = userAccountService;
-
         // build resource providers, we use our providerId to ensure consistency
-        this.attributeProvider = new InternalAttributeProvider<>(SystemKeys.AUTHORITY_PASSWORD, providerId,
-                internalConfig, realm);
+        this.attributeProvider = new InternalAttributeProvider<>(SystemKeys.AUTHORITY_PASSWORD, providerId, realm);
         this.accountProvider = new InternalAccountProvider(SystemKeys.AUTHORITY_PASSWORD, providerId,
-                userAccountService, internalConfig, realm);
+                userAccountService, repositoryId, realm);
 
         // build providers
-        this.passwordService = new InternalPasswordService(providerId, userAccountService, passwordRepository, config,
-                realm);
-        this.authenticationProvider = new InternalPasswordAuthenticationProvider(providerId, userAccountService,
-                accountProvider, passwordService, config, realm);
+        this.passwordService = new InternalPasswordIdentityCredentialsService(providerId, userAccountService,
+                userPasswordService,
+                config, realm);
+        this.authenticationProvider = new InternalPasswordAuthenticationProvider(providerId, accountProvider,
+                passwordService, config, realm);
 
         // always expose a valid resolver to satisfy authenticationManager at post login
         // TODO refactor to avoid fetching via resolver at this stage
-        this.subjectResolver = new InternalSubjectResolver(providerId, userAccountService, internalConfig, realm);
-
+        this.subjectResolver = new InternalSubjectResolver(providerId, userAccountService, repositoryId, false, realm);
     }
 
     public void setMailService(MailService mailService) {
@@ -117,8 +101,7 @@ public class InternalPasswordIdentityProvider extends
         return authenticationProvider;
     }
 
-    @Override
-    public InternalPasswordService getCredentialsService() {
+    public InternalPasswordIdentityCredentialsService getCredentialsService() {
         return passwordService;
     }
 
@@ -133,7 +116,7 @@ public class InternalPasswordIdentityProvider extends
     }
 
     @Override
-    public SubjectResolver<InternalUserAccount> getSubjectResolver() {
+    public InternalSubjectResolver getSubjectResolver() {
         return subjectResolver;
     }
 
@@ -148,10 +131,15 @@ public class InternalPasswordIdentityProvider extends
 
         // if attributes then load credentials
         if (attributes != null) {
-            InternalUserPassword password = passwordService.findPassword(account.getUsername());
-            if (password != null) {
-                password.eraseCredentials();
-                identity.setCredentials(Collections.singletonList(password));
+            try {
+                InternalUserPassword password = passwordService.findPassword(account.getUsername());
+                if (password != null) {
+                    password.eraseCredentials();
+                    identity.setCredentials(Collections.singletonList(password));
+                }
+            } catch (NoSuchUserException e) {
+                // this should not happen
+                logger.error("no user for account {}", String.valueOf(account.getUsername()));
             }
         }
 
@@ -217,143 +205,10 @@ public class InternalPasswordIdentityProvider extends
         return identity;
     }
 
-//    /*
-//     * User registration
-//     * 
-//     * TODO remove and handle via internalIdentityService
-//     */
-//
-//    public InternalUserIdentity registerIdentity(
-//            String userId, UserIdentity registration, UserCredentials credentials)
-//            throws NoSuchUserException, RegistrationException {
-//        if (!config.isEnableRegistration()) {
-//            throw new IllegalArgumentException("registration is disabled for this provider");
-//        }
-//
-//        if (registration == null) {
-//            throw new RegistrationException();
-//        }
-//
-//        Assert.isInstanceOf(InternalUserIdentity.class, registration,
-//                "registration must be an instance of internal user identity");
-//        InternalUserIdentity reg = (InternalUserIdentity) registration;
-//
-//        InternalUserPassword password = null;
-//        if (credentials != null) {
-//            Assert.isInstanceOf(InternalUserPassword.class, credentials,
-//                    "credentials must be an instance of internal user password");
-//            password = (InternalUserPassword) credentials;
-//        }
-//
-//        // check email for confirmation when required
-//        if (config.isConfirmationRequired()) {
-//            if (reg.getEmailAddress() == null) {
-//                throw new MissingDataException("email");
-//            }
-//
-//            String email = Jsoup.clean(reg.getEmailAddress(), Safelist.none());
-//            if (!StringUtils.hasText(email)) {
-//                throw new MissingDataException("email");
-//            }
-//        }
-//
-//        // check password when provided
-//        if (password != null) {
-//            passwordService.validatePassword(password.getPassword());
-//        }
-//
-//        // registration is create but user-initiated
-//        InternalUserIdentity identity = createIdentity(userId, registration);
-//        InternalUserAccount account = identity.getAccount();
-//        String username = account.getUsername();
-//
-//        if (config.isConfirmationRequired() && !account.isConfirmed()) {
-//            account = accountService.verifyAccount(username);
-//        }
-//
-//        // with optional credentials
-//        if (password != null) {
-//            passwordService.setPassword(username, password.getPassword(), false);
-//        }
-//
-//        return identity;
-//    }
-//
-//    private InternalUserIdentity createIdentity(
-//            String userId, UserIdentity registration)
-//            throws NoSuchUserException, RegistrationException {
-//
-//        // create is always enabled
-//        if (registration == null) {
-//            throw new RegistrationException();
-//        }
-//
-//        Assert.isInstanceOf(InternalUserIdentity.class, registration,
-//                "registration must be an instance of internal user identity");
-//        InternalUserIdentity reg = (InternalUserIdentity) registration;
-//
-//        // check for account details
-//        InternalUserAccount account = reg.getAccount();
-//        if (account == null) {
-//            throw new MissingDataException("account");
-//        }
-//
-//        // validate base param, nothing to do when missing
-//        String username = reg.getUsername();
-//        if (StringUtils.hasText(username)) {
-//            username = Jsoup.clean(username, Safelist.none());
-//        }
-//        if (!StringUtils.hasText(username)) {
-//            throw new MissingDataException("username");
-//        }
-//        String emailAddress = reg.getEmailAddress();
-//
-//        // no additional attributes supported
-//
-//        // we expect subject to be valid, or null if we need to create
-//        UserEntity user = null;
-//        if (!StringUtils.hasText(userId)) {
-//            String realm = getRealm();
-//
-//            userId = userEntityService.createUser(realm).getUuid();
-//            user = userEntityService.addUser(userId, realm, username, emailAddress);
-//            userId = user.getUuid();
-//        } else {
-//            // check if exists
-//            userEntityService.getUser(userId);
-//        }
-//
-//        // make sure userId is correct
-//        account.setUserId(userId);
-//
-//        try {
-//            // create internal account
-//            account = accountService.createAccount(account);
-//
-//            // store and update attributes
-//            // we shouldn't have additional attributes for internal
-//
-//            // use builder to properly map attributes
-//            InternalUserIdentity identity = new InternalUserIdentity(getAuthority(), getProvider(), getRealm(),
-//                    account);
-//
-//            // no attribute sets
-//            // this identity has no credentials
-//            return identity;
-//        } catch (RegistrationException | IllegalArgumentException e) {
-//            // cleanup subject if we created it
-//            if (user != null) {
-//                userEntityService.deleteUser(userId);
-//            }
-//
-//            throw e;
-//        }
-//    }
-
     @Override
     public void deleteIdentity(String userId, String username) throws NoSuchUserException {
         // remove all credentials
-        passwordService.deleteCredentials(username);
+        passwordService.deletePassword(username);
 
         // call super to remove account
         super.deleteIdentity(userId, username);
@@ -375,7 +230,7 @@ public class InternalPasswordIdentityProvider extends
     }
 
     public String getResetUrl() {
-        return getCredentialsService().getResetUrl();
+        return InternalPasswordIdentityAuthority.AUTHORITY_URL + "reset/" + getProvider();
     }
 
     public String getLoginForm() {

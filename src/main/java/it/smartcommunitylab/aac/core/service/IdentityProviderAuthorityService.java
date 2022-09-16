@@ -14,16 +14,8 @@ public class IdentityProviderAuthorityService extends
         implements InitializingBean {
 
     public IdentityProviderAuthorityService(
-//            Collection<IdentityProviderAuthority<IdentityProvider<? extends UserIdentity, ? extends ConfigMap, IdentityProviderConfig<?>>, ? extends UserIdentity, ? extends ConfigMap, IdentityProviderConfig<?>>> authorities) {
             Collection<IdentityProviderAuthority<?, ?, ?, ?>> authorities) {
         super(SystemKeys.RESOURCE_IDENTITY);
-
-////        @SuppressWarnings("unchecked")
-//        Map<String, IdentityProviderAuthority<IdentityProvider<? extends UserIdentity, ? extends ConfigMap, IdentityProviderConfig<?>>, ? extends UserIdentity, ? extends ConfigMap, IdentityProviderConfig<?>>> map = authorities
-//                .stream()
-////                .map(a -> (IdentityProviderAuthority<IdentityProvider<?>, IdentityProviderConfig<?>>) a)
-//                .collect(Collectors.toMap(e -> e.getAuthorityId(), e -> e));
-
         this.setAuthorities(authorities);
     }
 

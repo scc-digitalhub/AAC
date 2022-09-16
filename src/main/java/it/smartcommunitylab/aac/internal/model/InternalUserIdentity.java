@@ -46,7 +46,6 @@ public class InternalUserIdentity extends AbstractIdentity {
         this.account = null;
     }
 
-    @Deprecated
     public InternalUserIdentity(String provider, String realm, InternalUserAccount account) {
         this(SystemKeys.AUTHORITY_INTERNAL, provider, realm, account);
     }
@@ -59,7 +58,6 @@ public class InternalUserIdentity extends AbstractIdentity {
         super.setUserId(account.getUserId());
     }
 
-    @Deprecated
     public InternalUserIdentity(String provider, String realm, InternalUserAccount account,
             InternalUserAuthenticatedPrincipal principal) {
         this(SystemKeys.AUTHORITY_INTERNAL, provider, realm, account, principal);

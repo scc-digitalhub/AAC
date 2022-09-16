@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.password.auth;
+package it.smartcommunitylab.aac.webauthn.auth;
 
 import java.util.Collections;
 import java.util.Map;
@@ -14,13 +14,15 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponents;
 
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
-import it.smartcommunitylab.aac.password.InternalPasswordIdentityAuthority;
+import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
 
-public class InternalLoginAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPoint {
+public class WebAuthnLoginAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPoint {
 
-    public static final String DEFAULT_FILTER_URI = InternalPasswordIdentityAuthority.AUTHORITY_URL + "login/{registrationId}";
-    public static final String DEFAULT_LOGIN_URI = InternalPasswordIdentityAuthority.AUTHORITY_URL + "form/{registrationId}";
-    public static final String SUPER_LOGIN_URI = "/login";
+    public static final String DEFAULT_FILTER_URI = WebAuthnIdentityAuthority.AUTHORITY_URL
+            + "startRegistration/{" + WebAuthnLoginAuthenticationEntryPoint.PROVIDER_URI_VARIABLE_NAME + "}";
+    public static final String DEFAULT_LOGIN_URI = WebAuthnIdentityAuthority.AUTHORITY_URL + "form/{"
+            + WebAuthnLoginAuthenticationEntryPoint.PROVIDER_URI_VARIABLE_NAME + "}";
+    public static final String SUPER_LOGIN_URI = "/webauthn/authenticate";
 
     public static final String PROVIDER_URI_VARIABLE_NAME = "registrationId";
 
@@ -28,15 +30,15 @@ public class InternalLoginAuthenticationEntryPoint extends LoginUrlAuthenticatio
     private RequestMatcher providerRequestMatcher;
     public RealmAwarePathUriBuilder realmUriBuilder;
 
-    public InternalLoginAuthenticationEntryPoint() {
+    public WebAuthnLoginAuthenticationEntryPoint() {
         this(SUPER_LOGIN_URI);
     }
 
-    public InternalLoginAuthenticationEntryPoint(String loginUrl) {
+    public WebAuthnLoginAuthenticationEntryPoint(String loginUrl) {
         this(loginUrl, DEFAULT_LOGIN_URI, DEFAULT_FILTER_URI);
     }
 
-    public InternalLoginAuthenticationEntryPoint(String loginUrl, String loginFormUrl, String filterUrl) {
+    public WebAuthnLoginAuthenticationEntryPoint(String loginUrl, String loginFormUrl, String filterUrl) {
         super(loginUrl);
         this.loginFormUrl = loginFormUrl;
 
@@ -95,7 +97,8 @@ public class InternalLoginAuthenticationEntryPoint extends LoginUrlAuthenticatio
             String u = u2.toUriString();
             return u;
 
-//            return realmUriBuilder.buildUri(request, null, getLoginFormUrl()).expand(params).toUriString();
+            // return realmUriBuilder.buildUri(request, null,
+            // getLoginFormUrl()).expand(params).toUriString();
         }
 
         return getLoginFormUrl().replaceAll("\\{" + PROVIDER_URI_VARIABLE_NAME + "\\}", provider);

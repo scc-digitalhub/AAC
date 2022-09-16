@@ -52,7 +52,7 @@ public class WebAuthnFilterProvider implements FilterProvider {
     }
 
     @Override
-    public List<Filter> getFilters() {
+    public List<Filter> getAuthFilters() {
 
         WebAuthnAuthenticationFilter loginFilter = new WebAuthnAuthenticationFilter(rpService, requestStore,
                 registrationRepository);
@@ -63,6 +63,11 @@ public class WebAuthnFilterProvider implements FilterProvider {
         }
 
         return Collections.singletonList(loginFilter);
+    }
+
+    @Override
+    public Collection<Filter> getChainFilters() {
+        return null;
     }
 
     @Override
@@ -78,4 +83,5 @@ public class WebAuthnFilterProvider implements FilterProvider {
     private RequestAwareAuthenticationSuccessHandler successHandler() {
         return new RequestAwareAuthenticationSuccessHandler();
     }
+
 }
