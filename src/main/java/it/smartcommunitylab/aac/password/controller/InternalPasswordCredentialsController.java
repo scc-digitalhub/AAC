@@ -36,11 +36,13 @@ import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.password.InternalPasswordIdentityAuthority;
+import it.smartcommunitylab.aac.password.PasswordCredentialsAuthority;
 import it.smartcommunitylab.aac.password.dto.UserPasswordBean;
 import it.smartcommunitylab.aac.password.model.PasswordPolicy;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProvider;
-import it.smartcommunitylab.aac.password.service.InternalPasswordService;
+import it.smartcommunitylab.aac.password.provider.PasswordCredentialsService;
+import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsService;
 
 @Controller
 @RequestMapping
@@ -50,7 +52,7 @@ public class InternalPasswordCredentialsController {
     private AuthenticationHelper authHelper;
 
     @Autowired
-    private InternalPasswordIdentityAuthority internalAuthority;
+    private PasswordCredentialsAuthority passwordAuthority;
 
     @Autowired
     private RealmManager realmManager;
@@ -89,17 +91,7 @@ public class InternalPasswordCredentialsController {
         UserAccount account = identity.getAccount();
 
         // fetch provider
-        InternalPasswordIdentityProvider idp = internalAuthority.getProvider(providerId);
-        if (idp == null) {
-            throw new NoSuchProviderException();
-        }
-        // fetch credentials service if available
-        InternalPasswordIdentityCredentialsService service = idp.getCredentialsService();
-
-        if (service == null) {
-            throw new IllegalArgumentException("error.unsupported_operation");
-        }
-
+        PasswordCredentialsService service = passwordAuthority.getProvider(providerId);
         if (!service.canSet()) {
             throw new IllegalArgumentException("error.unsupported_operation");
         }
@@ -165,15 +157,7 @@ public class InternalPasswordCredentialsController {
             UserAccount account = identity.getAccount();
 
             // fetch provider
-            InternalPasswordIdentityProvider idp = internalAuthority.getProvider(providerId);
-
-            // fetch credentials service if available
-            InternalPasswordIdentityCredentialsService service = idp.getCredentialsService();
-
-            if (service == null) {
-                throw new IllegalArgumentException("error.unsupported_operation");
-            }
-
+            PasswordCredentialsService service = passwordAuthority.getProvider(providerId);
             if (!service.canSet()) {
                 throw new IllegalArgumentException("error.unsupported_operation");
             }
@@ -256,17 +240,15 @@ public class InternalPasswordCredentialsController {
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             Model model) throws NoSuchProviderException, NoSuchRealmException {
 
-        // resolve provider
         // fetch provider
-        InternalPasswordIdentityProvider idp = internalAuthority.getProvider(providerId);
-
-        if (!idp.getCredentialsService().canReset()) {
-            throw new RegistrationException("unsupported_operation");
+        PasswordCredentialsService service = passwordAuthority.getProvider(providerId);
+        if (!service.canReset()) {
+            throw new IllegalArgumentException("error.unsupported_operation");
         }
 
         model.addAttribute("providerId", providerId);
 
-        String realm = idp.getRealm();
+        String realm = service.getRealm();
         model.addAttribute("realm", realm);
 
         String displayName = null;
@@ -308,16 +290,13 @@ public class InternalPasswordCredentialsController {
             BindingResult result) {
 
         try {
-
-            // resolve provider
             // fetch provider
-            InternalPasswordIdentityProvider idp = internalAuthority.getProvider(providerId);
-
-            if (!idp.getCredentialsService().canReset()) {
-                throw new RegistrationException("unsupported_operation");
+            PasswordCredentialsService service = passwordAuthority.getProvider(providerId);
+            if (!service.canReset()) {
+                throw new IllegalArgumentException("error.unsupported_operation");
             }
 
-            String realm = idp.getRealm();
+            String realm = service.getRealm();
 
             // build model for result
             model.addAttribute("providerId", providerId);
@@ -355,23 +334,21 @@ public class InternalPasswordCredentialsController {
                 return "registration/resetpwd";
             }
 
-            // resolve user
-            InternalUserAccount account = idp.getAccountProvider().findAccountByEmail(email);
-            if (account == null || (!account.isConfirmed() && idp.getConfig().isConfirmationRequired())) {
+            // resolve username
+            String username = service.findUsernameByEmail(email);
+            if (username == null) {
                 // don't leak error
 //                result.rejectValue("email", "error.invalid_email");
 //                return "registration/resetpwd";
                 throw new RegistrationException("bad_credentials");
-
-            } else {
-                // direct call to reset
-                InternalPasswordIdentityCredentialsService service = idp.getCredentialsService();
-                service.resetCredentials(account.getUsername());
-
-                model.addAttribute("reg", reg);
-
-                return "registration/resetsuccess";
             }
+
+            // direct call to reset
+            service.resetCredentials(username);
+
+            model.addAttribute("reg", reg);
+
+            return "registration/resetsuccess";
         } catch (RegistrationException e) {
             model.addAttribute("error", e.getMessage());
             return "registration/resetpwd";

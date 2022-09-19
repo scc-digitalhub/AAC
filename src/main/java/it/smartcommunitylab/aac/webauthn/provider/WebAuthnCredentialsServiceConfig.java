@@ -28,6 +28,11 @@ public class WebAuthnCredentialsServiceConfig
     /*
      * config flags
      */
+    public boolean isRequireAccountConfirmation() {
+        return configMap.getRequireAccountConfirmation() != null
+                ? configMap.getRequireAccountConfirmation().booleanValue()
+                : true;
+    }
 
     public boolean isAllowedUnstrustedAttestation() {
         return configMap.getAllowUntrustedAttestation() != null

@@ -3,7 +3,6 @@ package it.smartcommunitylab.aac.password.provider;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractCredentialsServiceConfig;
 import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsService;
-import it.smartcommunitylab.aac.internal.model.CredentialsType;
 
 public class PasswordCredentialsServiceConfig
         extends AbstractCredentialsServiceConfig<PasswordCredentialsServiceConfigMap> {
@@ -21,13 +20,19 @@ public class PasswordCredentialsServiceConfig
         super(cp);
     }
 
-    public CredentialsType getCredentialsType() {
-        return CredentialsType.PASSWORD;
+    public String getRepositoryId() {
+        return configMap.getRepositoryId() != null ? configMap.getRepositoryId() : getRealm();
     }
 
     /*
      * config flags
      */
+    public boolean isRequireAccountConfirmation() {
+        return configMap.getRequireAccountConfirmation() != null
+                ? configMap.getRequireAccountConfirmation().booleanValue()
+                : true;
+    }
+
     public boolean isEnablePasswordReset() {
         return configMap.getEnablePasswordReset() != null ? configMap.getEnablePasswordReset().booleanValue() : true;
     }

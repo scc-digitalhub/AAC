@@ -33,6 +33,8 @@ public class WebAuthnCredentialsServiceConfigMap extends AbstractConfigMap imple
     @Min(30)
     private Integer registrationTimeout;
 
+    private Boolean requireAccountConfirmation;
+
     public WebAuthnCredentialsServiceConfigMap() {
     }
 
@@ -76,6 +78,14 @@ public class WebAuthnCredentialsServiceConfigMap extends AbstractConfigMap imple
         this.registrationTimeout = registrationTimeout;
     }
 
+    public Boolean getRequireAccountConfirmation() {
+        return requireAccountConfirmation;
+    }
+
+    public void setRequireAccountConfirmation(Boolean requireAccountConfirmation) {
+        this.requireAccountConfirmation = requireAccountConfirmation;
+    }
+
     @JsonIgnore
     public void setConfiguration(WebAuthnCredentialsServiceConfigMap map) {
         this.repositoryId = map.getRepositoryId();
@@ -85,6 +95,7 @@ public class WebAuthnCredentialsServiceConfigMap extends AbstractConfigMap imple
         this.requireUserVerification = map.getRequireUserVerification();
 
         this.registrationTimeout = map.getRegistrationTimeout();
+        this.requireAccountConfirmation = map.getRequireAccountConfirmation();
     }
 
     @Override

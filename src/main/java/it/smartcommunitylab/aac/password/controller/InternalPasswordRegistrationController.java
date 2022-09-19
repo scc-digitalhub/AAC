@@ -67,13 +67,11 @@ import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountService;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
-import it.smartcommunitylab.aac.internal.provider.AbstractInternalIdentityProvider;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.password.InternalPasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.model.PasswordPolicy;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProvider;
-import it.smartcommunitylab.aac.password.service.InternalPasswordService;
 
 /**
  * @author raman
@@ -96,217 +94,217 @@ public class InternalPasswordRegistrationController {
     @Autowired
     private MessageSource messageSource;
 
-    /**
-     * Redirect to registration page
-     */
-    @Hidden
-    @RequestMapping(value = "/auth/password/register/{providerId}", method = RequestMethod.GET)
-    public String registrationPage(
-            @PathVariable("providerId") String providerId,
-            Model model) throws NoSuchProviderException, NoSuchRealmException {
-
-        // resolve provider
-        InternalPasswordIdentityProvider idp = internalAuthority.getProvider(providerId);
-        if (!idp.getConfig().isEnableRegistration()) {
-            throw new RegistrationException("unsupported_operation");
-        }
-
-        model.addAttribute("providerId", providerId);
-
-        String realm = idp.getRealm();
-        model.addAttribute("realm", realm);
-
-        Realm re = realmManager.getRealm(realm);
-        String displayName = re.getName();
-        Map<String, String> resources = new HashMap<>();
-        if (!realm.equals(SystemKeys.REALM_COMMON)) {
-            re = realmManager.getRealm(realm);
-            displayName = re.getName();
-            CustomizationBean gcb = re.getCustomization("global");
-            if (gcb != null) {
-                resources.putAll(gcb.getResources());
-            }
-            CustomizationBean rcb = re.getCustomization("registration");
-            if (rcb != null) {
-                resources.putAll(rcb.getResources());
-            }
-        }
-
-        model.addAttribute("displayName", displayName);
-        model.addAttribute("customization", resources);
-
-        // build model
-        model.addAttribute("reg", new UserRegistrationBean());
-
-//        // check if we have a clientId
-//        String clientId = (String) req.getSession().getAttribute(OAuth2Utils.CLIENT_ID);
-//        if (clientId != null) {
-//            // fetch client customizations for login screen
-//            Map<String, String> customizations = clientDetailsAdapter.getClientCustomizations(clientId);
-//            model.addAllAttributes(customizations);
+//    /**
+//     * Redirect to registration page
+//     */
+//    @Hidden
+//    @RequestMapping(value = "/auth/password/register/{providerId}", method = RequestMethod.GET)
+//    public String registrationPage(
+//            @PathVariable("providerId") String providerId,
+//            Model model) throws NoSuchProviderException, NoSuchRealmException {
+//
+//        // resolve provider
+//        InternalPasswordIdentityProvider idp = internalAuthority.getProvider(providerId);
+//        if (!idp.getConfig().isEnableRegistration()) {
+//            throw new RegistrationException("unsupported_operation");
 //        }
-
-        // fetch password service if available
-        InternalPasswordIdentityCredentialsService service = idp.getCredentialsService();
-        if (service != null) {
-            // expose password policy by passing idp config
-            PasswordPolicy policy = service.getPasswordPolicy();
-            model.addAttribute("policy", policy);
-            String passwordPattern = service.getPasswordPattern();
-            model.addAttribute("passwordPattern", passwordPattern);
-        }
-
-        // build url
-        // TODO handle via urlBuilder or entryPoint
-        model.addAttribute("registrationUrl", "/auth/password/register/" + providerId);
-        // set idp form as login url
-        model.addAttribute("loginUrl", "/auth/password/form/" + providerId);
-
-        return "registration/register";
-    }
-
-    /**
-     * Register the user and redirect to the 'registersuccess' page
-     */
-    @Hidden
-    @RequestMapping(value = "/auth/password/register/{providerId}", method = RequestMethod.POST)
-    public String register(Model model,
-            @PathVariable("providerId") String providerId,
-            @ModelAttribute("reg") @Valid UserRegistrationBean reg,
-            BindingResult result,
-            HttpServletRequest req) {
-
-        try {
-
-            // resolve provider
-            InternalPasswordIdentityProvider idp = internalAuthority.getProvider(providerId);
-
-            if (!idp.getConfig().isEnableRegistration()) {
-                throw new RegistrationException("unsupported_operation");
-            }
-
-            String realm = idp.getRealm();
-
-            // build model for result
-            model.addAttribute("providerId", providerId);
-            model.addAttribute("realm", realm);
-
-            Realm re = realmManager.getRealm(realm);
-            String displayName = re.getName();
-            Map<String, String> resources = new HashMap<>();
-            if (!realm.equals(SystemKeys.REALM_COMMON)) {
-                re = realmManager.getRealm(realm);
-                displayName = re.getName();
-                CustomizationBean gcb = re.getCustomization("global");
-                if (gcb != null) {
-                    resources.putAll(gcb.getResources());
-                }
-                CustomizationBean rcb = re.getCustomization("registration");
-                if (rcb != null) {
-                    resources.putAll(rcb.getResources());
-                }
-            }
-
-            model.addAttribute("displayName", displayName);
-            model.addAttribute("customization", resources);
-
-            // fetch password service if available
-            InternalPasswordIdentityCredentialsService passwordService = idp.getCredentialsService();
-            if (passwordService != null) {
-                // expose password policy by passing idp config
-                PasswordPolicy policy = passwordService.getPasswordPolicy();
-                model.addAttribute("policy", policy);
-                String passwordPattern = passwordService.getPasswordPattern();
-                model.addAttribute("passwordPattern", passwordPattern);
-            }
-
-            model.addAttribute("registrationUrl", "/auth/password/register/" + providerId);
-
-            // set idp form as login url
-            model.addAttribute("loginUrl", "/auth/password/form/" + providerId);
-
-            if (result.hasErrors()) {
-                model.addAttribute("error", InvalidDataException.ERROR);
-                // check if custom msg available
-                Optional<FieldError> fieldError = Optional.ofNullable(result.getFieldError());
-                if (fieldError.isPresent()) {
-                    String errorMsg = fieldError.get().getDefaultMessage();
-
-                    if (errorMsg != null && errorMsg.startsWith("error.")) {
-                        model.addAttribute("error", errorMsg);
-                    }
-                }
-
-                return "registration/register";
-            }
-
-            String username = reg.getEmail();
-            String password = reg.getPassword();
-            String email = reg.getEmail();
-            String name = reg.getName();
-            String surname = reg.getSurname();
-            String lang = reg.getLang();
-
-            // validate password
-            // TODO rework flow
-            if (passwordService != null && StringUtils.hasText(password)) {
-                passwordService.validatePassword(password);
-            }
-
-            // convert registration model to internal model
-            InternalUserAccount account = new InternalUserAccount();
-            account.setUsername(username);
-//            account.setPassword(password);
-            account.setEmail(email);
-            account.setName(name);
-            account.setSurname(surname);
-            account.setLang(lang);
-
-            // TODO handle additional attributes from registration
-
-            // TODO handle subject resolution to link with existing accounts
-            // either via current session or via providers from same realm
-            // TODO force require confirmation if linking
-            String subjectId = null;
-
-            // build reg model
-            InternalUserIdentity identity = new InternalUserIdentity(idp.getAuthority(), idp.getProvider(),
-                    idp.getRealm(), account);
-
-            // register password
-            UserCredentials credentials = null;
-            if (passwordService != null && StringUtils.hasText(password)) {
-                InternalUserPassword pwd = new InternalUserPassword();
-                pwd.setUserId(identity.getUserId());
-                pwd.setUsername(username);
-                pwd.setPassword(password);
-
-                credentials = pwd;
-            }
-
-            // register
-            identity = idp.registerIdentity(subjectId, identity, credentials);
-
-            model.addAttribute("identity", identity);
-
-            return "registration/regsuccess";
-        } catch (InvalidDataException | MissingDataException | DuplicatedDataException e) {
-            StringBuilder msg = new StringBuilder();
-            msg.append(messageSource.getMessage(e.getMessage(), null, req.getLocale()));
-            msg.append(": ");
-            msg.append(messageSource.getMessage("field." + e.getField(), null, req.getLocale()));
-
-            model.addAttribute("error", msg.toString());
-            return "attributes/form";
-        } catch (RegistrationException e) {
-            model.addAttribute("error", e.getMessage());
-            return "registration/register";
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-            model.addAttribute("error", RegistrationException.ERROR);
-            return "registration/register";
-        }
-    }
+//
+//        model.addAttribute("providerId", providerId);
+//
+//        String realm = idp.getRealm();
+//        model.addAttribute("realm", realm);
+//
+//        Realm re = realmManager.getRealm(realm);
+//        String displayName = re.getName();
+//        Map<String, String> resources = new HashMap<>();
+//        if (!realm.equals(SystemKeys.REALM_COMMON)) {
+//            re = realmManager.getRealm(realm);
+//            displayName = re.getName();
+//            CustomizationBean gcb = re.getCustomization("global");
+//            if (gcb != null) {
+//                resources.putAll(gcb.getResources());
+//            }
+//            CustomizationBean rcb = re.getCustomization("registration");
+//            if (rcb != null) {
+//                resources.putAll(rcb.getResources());
+//            }
+//        }
+//
+//        model.addAttribute("displayName", displayName);
+//        model.addAttribute("customization", resources);
+//
+//        // build model
+//        model.addAttribute("reg", new UserRegistrationBean());
+//
+////        // check if we have a clientId
+////        String clientId = (String) req.getSession().getAttribute(OAuth2Utils.CLIENT_ID);
+////        if (clientId != null) {
+////            // fetch client customizations for login screen
+////            Map<String, String> customizations = clientDetailsAdapter.getClientCustomizations(clientId);
+////            model.addAllAttributes(customizations);
+////        }
+//
+//        // fetch password service if available
+//        InternalPasswordIdentityCredentialsService service = idp.getCredentialsService();
+//        if (service != null) {
+//            // expose password policy by passing idp config
+//            PasswordPolicy policy = service.getPasswordPolicy();
+//            model.addAttribute("policy", policy);
+//            String passwordPattern = service.getPasswordPattern();
+//            model.addAttribute("passwordPattern", passwordPattern);
+//        }
+//
+//        // build url
+//        // TODO handle via urlBuilder or entryPoint
+//        model.addAttribute("registrationUrl", "/auth/password/register/" + providerId);
+//        // set idp form as login url
+//        model.addAttribute("loginUrl", "/auth/password/form/" + providerId);
+//
+//        return "registration/register";
+//    }
+//
+//    /**
+//     * Register the user and redirect to the 'registersuccess' page
+//     */
+//    @Hidden
+//    @RequestMapping(value = "/auth/password/register/{providerId}", method = RequestMethod.POST)
+//    public String register(Model model,
+//            @PathVariable("providerId") String providerId,
+//            @ModelAttribute("reg") @Valid UserRegistrationBean reg,
+//            BindingResult result,
+//            HttpServletRequest req) {
+//
+//        try {
+//
+//            // resolve provider
+//            InternalPasswordIdentityProvider idp = internalAuthority.getProvider(providerId);
+//
+//            if (!idp.getConfig().isEnableRegistration()) {
+//                throw new RegistrationException("unsupported_operation");
+//            }
+//
+//            String realm = idp.getRealm();
+//
+//            // build model for result
+//            model.addAttribute("providerId", providerId);
+//            model.addAttribute("realm", realm);
+//
+//            Realm re = realmManager.getRealm(realm);
+//            String displayName = re.getName();
+//            Map<String, String> resources = new HashMap<>();
+//            if (!realm.equals(SystemKeys.REALM_COMMON)) {
+//                re = realmManager.getRealm(realm);
+//                displayName = re.getName();
+//                CustomizationBean gcb = re.getCustomization("global");
+//                if (gcb != null) {
+//                    resources.putAll(gcb.getResources());
+//                }
+//                CustomizationBean rcb = re.getCustomization("registration");
+//                if (rcb != null) {
+//                    resources.putAll(rcb.getResources());
+//                }
+//            }
+//
+//            model.addAttribute("displayName", displayName);
+//            model.addAttribute("customization", resources);
+//
+//            // fetch password service if available
+//            InternalPasswordIdentityCredentialsService passwordService = idp.getCredentialsService();
+//            if (passwordService != null) {
+//                // expose password policy by passing idp config
+//                PasswordPolicy policy = passwordService.getPasswordPolicy();
+//                model.addAttribute("policy", policy);
+//                String passwordPattern = passwordService.getPasswordPattern();
+//                model.addAttribute("passwordPattern", passwordPattern);
+//            }
+//
+//            model.addAttribute("registrationUrl", "/auth/password/register/" + providerId);
+//
+//            // set idp form as login url
+//            model.addAttribute("loginUrl", "/auth/password/form/" + providerId);
+//
+//            if (result.hasErrors()) {
+//                model.addAttribute("error", InvalidDataException.ERROR);
+//                // check if custom msg available
+//                Optional<FieldError> fieldError = Optional.ofNullable(result.getFieldError());
+//                if (fieldError.isPresent()) {
+//                    String errorMsg = fieldError.get().getDefaultMessage();
+//
+//                    if (errorMsg != null && errorMsg.startsWith("error.")) {
+//                        model.addAttribute("error", errorMsg);
+//                    }
+//                }
+//
+//                return "registration/register";
+//            }
+//
+//            String username = reg.getEmail();
+//            String password = reg.getPassword();
+//            String email = reg.getEmail();
+//            String name = reg.getName();
+//            String surname = reg.getSurname();
+//            String lang = reg.getLang();
+//
+//            // validate password
+//            // TODO rework flow
+//            if (passwordService != null && StringUtils.hasText(password)) {
+//                passwordService.validatePassword(password);
+//            }
+//
+//            // convert registration model to internal model
+//            InternalUserAccount account = new InternalUserAccount();
+//            account.setUsername(username);
+////            account.setPassword(password);
+//            account.setEmail(email);
+//            account.setName(name);
+//            account.setSurname(surname);
+//            account.setLang(lang);
+//
+//            // TODO handle additional attributes from registration
+//
+//            // TODO handle subject resolution to link with existing accounts
+//            // either via current session or via providers from same realm
+//            // TODO force require confirmation if linking
+//            String subjectId = null;
+//
+//            // build reg model
+//            InternalUserIdentity identity = new InternalUserIdentity(idp.getAuthority(), idp.getProvider(),
+//                    idp.getRealm(), account);
+//
+//            // register password
+//            UserCredentials credentials = null;
+//            if (passwordService != null && StringUtils.hasText(password)) {
+//                InternalUserPassword pwd = new InternalUserPassword();
+//                pwd.setUserId(identity.getUserId());
+//                pwd.setUsername(username);
+//                pwd.setPassword(password);
+//
+//                credentials = pwd;
+//            }
+//
+//            // register
+//            identity = idp.registerIdentity(subjectId, identity, credentials);
+//
+//            model.addAttribute("identity", identity);
+//
+//            return "registration/regsuccess";
+//        } catch (InvalidDataException | MissingDataException | DuplicatedDataException e) {
+//            StringBuilder msg = new StringBuilder();
+//            msg.append(messageSource.getMessage(e.getMessage(), null, req.getLocale()));
+//            msg.append(": ");
+//            msg.append(messageSource.getMessage("field." + e.getField(), null, req.getLocale()));
+//
+//            model.addAttribute("error", msg.toString());
+//            return "attributes/form";
+//        } catch (RegistrationException e) {
+//            model.addAttribute("error", e.getMessage());
+//            return "registration/register";
+//        } catch (Exception e) {
+//            logger.error(e.getMessage(), e);
+//            model.addAttribute("error", RegistrationException.ERROR);
+//            return "registration/register";
+//        }
+//    }
 
     /**
      * Register with the REST call

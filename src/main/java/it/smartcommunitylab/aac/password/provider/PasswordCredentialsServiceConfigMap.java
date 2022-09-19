@@ -6,6 +6,7 @@ import java.util.Map;
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
+import javax.validation.constraints.Pattern;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -14,12 +15,16 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractConfigMap;
-import it.smartcommunitylab.aac.internal.model.CredentialsType;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PasswordCredentialsServiceConfigMap extends AbstractConfigMap implements Serializable {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
+
+    @Pattern(regexp = SystemKeys.SLUG_PATTERN)
+    private String repositoryId;
+
+    private Boolean requireAccountConfirmation;
 
     /*
      * Password properties
@@ -56,8 +61,12 @@ public class PasswordCredentialsServiceConfigMap extends AbstractConfigMap imple
     public PasswordCredentialsServiceConfigMap() {
     }
 
-    public CredentialsType getCredentialsType() {
-        return CredentialsType.PASSWORD;
+    public String getRepositoryId() {
+        return repositoryId;
+    }
+
+    public void setRepositoryId(String repositoryId) {
+        this.repositoryId = repositoryId;
     }
 
     public Boolean getEnablePasswordReset() {
@@ -156,8 +165,19 @@ public class PasswordCredentialsServiceConfigMap extends AbstractConfigMap imple
         this.passwordMaxDays = passwordMaxDays;
     }
 
+    public Boolean getRequireAccountConfirmation() {
+        return requireAccountConfirmation;
+    }
+
+    public void setRequireAccountConfirmation(Boolean requireAccountConfirmation) {
+        this.requireAccountConfirmation = requireAccountConfirmation;
+    }
+
     @JsonIgnore
     public void setConfiguration(PasswordCredentialsServiceConfigMap map) {
+        this.repositoryId = map.getRepositoryId();
+        this.requireAccountConfirmation = map.getRequireAccountConfirmation();
+
         this.enablePasswordReset = map.getEnablePasswordReset();
         this.enablePasswordSet = map.getEnablePasswordSet();
         this.passwordResetValidity = map.getPasswordResetValidity();
