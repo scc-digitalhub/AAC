@@ -2,7 +2,6 @@ package it.smartcommunitylab.aac.webauthn.controller;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -11,9 +10,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
-import com.yubico.webauthn.RegistrationResult;
 import com.yubico.webauthn.data.AuthenticatorAttestationResponse;
-import com.yubico.webauthn.data.AuthenticatorTransport;
 import com.yubico.webauthn.data.ClientRegistrationExtensionOutputs;
 import com.yubico.webauthn.data.PublicKeyCredential;
 
@@ -45,17 +42,14 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.model.Realm;
-import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
+import it.smartcommunitylab.aac.webauthn.WebAuthnCredentialsAuthority;
 import it.smartcommunitylab.aac.webauthn.auth.WebAuthnAuthenticationException;
 import it.smartcommunitylab.aac.webauthn.model.AttestationResponse;
-import it.smartcommunitylab.aac.webauthn.model.CredentialCreationInfo;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationRequest;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationResponse;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationStartRequest;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredential;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsService;
-import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProvider;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpService;
 import it.smartcommunitylab.aac.webauthn.store.WebAuthnRegistrationRequestStore;
 
 /**
@@ -73,13 +67,10 @@ public class WebAuthnRegistrationController {
     private AuthenticationHelper authHelper;
 
     @Autowired
-    private WebAuthnIdentityAuthority webAuthnAuthority;
+    private WebAuthnCredentialsAuthority webAuthnAuthority;
 
     @Autowired
     private RealmManager realmManager;
-
-    @Autowired
-    private WebAuthnRpService rpService;
 
     @Autowired
     private WebAuthnRegistrationRequestStore requestStore;
@@ -111,14 +102,7 @@ public class WebAuthnRegistrationController {
         UserAccount account = identity.getAccount();
 
         // fetch provider
-        WebAuthnIdentityProvider idp = webAuthnAuthority.getProvider(providerId);
-
-        // fetch credentials service if available
-        WebAuthnCredentialsService service = idp.getCredentialsService();
-
-        if (service == null) {
-            throw new IllegalArgumentException("error.unsupported_operation");
-        }
+        WebAuthnCredentialsService service = webAuthnAuthority.getProvider(providerId);
 
         logger.debug("register credentials for {} with provider {}", StringUtils.trimAllWhitespace(uuid),
                 StringUtils.trimAllWhitespace(providerId));
@@ -129,7 +113,7 @@ public class WebAuthnRegistrationController {
         // build model for this account
         model.addAttribute("providerId", providerId);
 
-        String realm = idp.getRealm();
+        String realm = service.getRealm();
         model.addAttribute("realm", realm);
 
         Realm re = realmManager.getRealm(realm);
@@ -201,27 +185,12 @@ public class WebAuthnRegistrationController {
         }
 
         // fetch provider
-        WebAuthnIdentityProvider idp = webAuthnAuthority.getProvider(providerId);
-
-        // fetch credentials service if available
-        WebAuthnCredentialsService service = idp.getCredentialsService();
-
-        if (service == null) {
-            throw new IllegalArgumentException("error.unsupported_operation");
-        }
-
-        String displayName = reg.getDisplayName();
+        WebAuthnCredentialsService service = webAuthnAuthority.getProvider(providerId);
 
         logger.debug("build registration attestationOptions for user {}", StringUtils.trimAllWhitespace(username));
 
-        // build info via service
-        CredentialCreationInfo info = rpService.startRegistration(providerId, username, displayName);
-        String userHandle = new String(info.getUserHandle().getBytes());
-
-        // build a new request
-        WebAuthnRegistrationRequest request = new WebAuthnRegistrationRequest(userHandle);
-        request.setStartRequest(reg);
-        request.setCredentialCreationInfo(info);
+        // build a new request via service
+        WebAuthnRegistrationRequest request = service.startRegistration(username, reg);
 
         // store request
         String key = requestStore.store(request);
@@ -275,16 +244,9 @@ public class WebAuthnRegistrationController {
         }
 
         // fetch provider
-        WebAuthnIdentityProvider idp = webAuthnAuthority.getProvider(providerId);
+        WebAuthnCredentialsService service = webAuthnAuthority.getProvider(providerId);
 
-        // fetch credentials service if available
-        WebAuthnCredentialsService service = idp.getCredentialsService();
-
-        if (service == null) {
-            throw new IllegalArgumentException("error.unsupported_operation");
-        }
-
-        // register response for audit
+        // register response
         // TODO implement audit
         request.setAttestationResponse(body);
 
@@ -306,44 +268,25 @@ public class WebAuthnRegistrationController {
             throw new RegistrationException("invalid attestation");
         }
 
-        // complete registration via service
-        RegistrationResult result = rpService.finishRegistration(providerId, request, pkc);
+        // finish registration via service
+        request = service.finishRegistration(username, request, pkc);
         String userHandle = request.getUserHandle();
-
-        // register result
-        request.setRegistrationResult(result);
 
         if (logger.isTraceEnabled()) {
             logger.trace("request {}: {}", key, String.valueOf(request));
         }
 
-        // create a new credential in repository for the result
-        WebAuthnUserCredential credential = new WebAuthnUserCredential();
-        credential.setUsername(username);
-        credential.setCredentialId(result.getKeyId().getId().getBase64Url());
-        credential.setUserHandle(userHandle);
-
-        credential.setDisplayName(request.getStartRequest().getDisplayName());
-        credential.setPublicKeyCose(result.getPublicKeyCose().getBase64());
-        credential.setSignatureCount(result.getSignatureCount());
-
-        if (result.getKeyId().getTransports().isPresent()) {
-            Set<AuthenticatorTransport> transports = result.getKeyId().getTransports().get();
-            List<String> transportCodes = transports.stream().map(t -> t.getId()).collect(Collectors.toList());
-            credential.setTransports(StringUtils.collectionToCommaDelimitedString(transportCodes));
-        }
-
-        Boolean discoverable = result.isDiscoverable().isPresent() ? result.isDiscoverable().get() : null;
-        credential.setDiscoverable(discoverable);
-
-        // TODO add support for additional fields in registration
-        credential.setAttestationObject(pkc.getResponse().getAttestation().getBytes().getBase64());
-        credential.setClientData(pkc.getResponse().getClientDataJSON().getBase64());
+        // save successful registration as credential
+        WebAuthnUserCredential credential = service.saveRegistration(username, request);
 
         // register as new
         logger.debug("register credential {} for user {} via userHandle {}", credential.getCredentialId(),
                 StringUtils.trimAllWhitespace(username), userHandle);
         credential = service.setCredentials(username, credential);
+
+        if (logger.isTraceEnabled()) {
+            logger.trace("credential {}: {}", credential.getCredentialId(), String.valueOf(credential));
+        }
 
         String uuid = userHandle;
         return "redirect:/webauthn/credentials/" + providerId + "/" + uuid;

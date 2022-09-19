@@ -7,6 +7,6 @@ import it.smartcommunitylab.aac.core.provider.CredentialsServiceConfig;
 import it.smartcommunitylab.aac.core.provider.UserCredentialsService;
 
 public interface CredentialsServiceAuthority<S extends UserCredentialsService<R, M, C>, R extends UserCredentials, M extends ConfigMap, C extends CredentialsServiceConfig<M>>
-        extends ProviderAuthority<S, UserCredentials, ConfigurableCredentialsService, M, C> {
+        extends ProviderAuthority<S, R, ConfigurableCredentialsService, M, C> {
 
 }

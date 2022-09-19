@@ -16,7 +16,7 @@ import it.smartcommunitylab.aac.core.model.UserCredentials;
  */
 
 public interface UserCredentialsService<R extends UserCredentials, M extends ConfigMap, C extends CredentialsServiceConfig<M>>
-        extends ConfigurableResourceProvider<UserCredentials, ConfigurableCredentialsService, M, C> {
+        extends ConfigurableResourceProvider<R, ConfigurableCredentialsService, M, C> {
 
     /*
      * Set current credential (if only one is allowed) or all credentials

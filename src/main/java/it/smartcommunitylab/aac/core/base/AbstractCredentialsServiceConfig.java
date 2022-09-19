@@ -35,7 +35,7 @@ public abstract class AbstractCredentialsServiceConfig<M extends AbstractConfigM
         ConfigurableCredentialsService cs = new ConfigurableCredentialsService(getAuthority(),
                 getProvider(),
                 getRealm());
-        cs.setType(SystemKeys.RESOURCE_IDENTITY);
+        cs.setType(SystemKeys.RESOURCE_CREDENTIALS);
 
         cs.setName(getName());
         cs.setDescription(getDescription());

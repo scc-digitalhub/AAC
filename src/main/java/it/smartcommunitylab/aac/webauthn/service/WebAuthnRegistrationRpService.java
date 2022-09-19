@@ -51,6 +51,8 @@ public class WebAuthnRegistrationRpService {
 
     private final UserAccountService<InternalUserAccount> userAccountService;
     private final WebAuthnUserCredentialsRepository credentialsRepository;
+
+    // TODO evaluate removal and pass config as param in ops
     private final ProviderConfigRepository<WebAuthnCredentialsServiceConfig> registrationRepository;
 
     // leverage a local cache for fetching rps
@@ -134,11 +136,11 @@ public class WebAuthnRegistrationRpService {
             throw new NoSuchProviderException();
         }
 
-        // load account to check status
-        InternalUserAccount account = userAccountService.findAccountById(config.getRepositoryId(), username);
-        if (account == null) {
-            throw new NoSuchUserException();
-        }
+//        // load account to check status
+//        InternalUserAccount account = userAccountService.findAccountById(config.getRepositoryId(), username);
+//        if (account == null) {
+//            throw new NoSuchUserException();
+//        }
 
         Optional<ByteArray> userHandle = rp.getCredentialRepository().getUserHandleForUsername(username);
         if (userHandle.isEmpty()) {

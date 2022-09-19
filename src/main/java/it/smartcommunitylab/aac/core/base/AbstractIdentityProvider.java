@@ -27,7 +27,7 @@ import it.smartcommunitylab.aac.core.provider.UserAccountService;
 
 @Transactional
 public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends UserAccount, P extends UserAuthenticatedPrincipal, M extends ConfigMap, C extends IdentityProviderConfig<M>>
-        extends AbstractConfigurableProvider<UserIdentity, ConfigurableIdentityProvider, M, C>
+        extends AbstractConfigurableProvider<I, ConfigurableIdentityProvider, M, C>
         implements IdentityProvider<I, U, P, M, C>, InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 

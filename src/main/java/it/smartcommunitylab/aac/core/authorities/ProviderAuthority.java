@@ -23,6 +23,9 @@ public interface ProviderAuthority<S extends ConfigurableResourceProvider<R, T, 
 
     public String getAuthorityId();
 
+    // TODO replace with proper typing <T> on resource
+    public String getType();
+
     /*
      * Providers
      */
