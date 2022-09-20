@@ -180,12 +180,12 @@ public class LoginController {
         model.addAttribute("customization", resources);
 
         // fetch providers for given realm
-        Collection<IdentityProvider<? extends UserIdentity, ?, ?>> providers = identityProviderAuthorityService
+        Collection<IdentityProvider<? extends UserIdentity, ?, ?, ?, ?>> providers = identityProviderAuthorityService
                 .getAuthorities().stream()
                 .flatMap(a -> a.getProvidersByRealm(realm).stream()).collect(Collectors.toList());
 
         if (StringUtils.hasText(providerId)) {
-            Optional<IdentityProvider<? extends UserIdentity, ?, ?>> idp = providers.stream()
+            Optional<IdentityProvider<? extends UserIdentity, ?, ?, ?, ?>> idp = providers.stream()
                     .filter(p -> p.getProvider().equals(providerId)).findFirst();
             if (idp.isPresent() && idp.get().getRealm().equals(realm)) {
                 providers = Collections.singleton(idp.get());
@@ -208,7 +208,7 @@ public class LoginController {
         // fetch login providers
         // TODO refactor with proper provider + model
         List<LoginProvider> authorities = new ArrayList<>();
-        for (IdentityProvider<? extends UserIdentity, ?, ?> idp : providers) {
+        for (IdentityProvider<? extends UserIdentity, ?, ?, ?, ?> idp : providers) {
             LoginProvider a = idp.getLoginProvider();
             // lp is optional
             if (a != null) {

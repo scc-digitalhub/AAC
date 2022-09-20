@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
-import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityServiceConfigMap;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProviderConfigMap;
@@ -15,7 +15,7 @@ public class AuthoritiesProperties {
     // TODO add enable//disable flag on authorities
 
     @NestedConfigurationProperty
-    private InternalIdentityProviderConfigMap internal;
+    private InternalIdentityServiceConfigMap internal;
 
     @NestedConfigurationProperty
     private InternalPasswordIdentityProviderConfigMap password;
@@ -35,11 +35,11 @@ public class AuthoritiesProperties {
     @NestedConfigurationProperty
     private List<CustomAuthoritiesProperties> custom;
 
-    public InternalIdentityProviderConfigMap getInternal() {
+    public InternalIdentityServiceConfigMap getInternal() {
         return internal;
     }
 
-    public void setInternal(InternalIdentityProviderConfigMap internal) {
+    public void setInternal(InternalIdentityServiceConfigMap internal) {
         this.internal = internal;
     }
 

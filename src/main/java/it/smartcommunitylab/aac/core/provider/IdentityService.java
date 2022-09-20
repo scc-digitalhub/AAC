@@ -16,7 +16,7 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
  */
 
 public interface IdentityService<I extends UserIdentity, U extends UserAccount, M extends ConfigMap, C extends IdentityServiceConfig<M>>
-        extends ConfigurableResourceProvider<UserIdentity, ConfigurableIdentityService, M, C> {
+        extends ConfigurableResourceProvider<I, ConfigurableIdentityService, M, C> {
 
     /*
      * Services

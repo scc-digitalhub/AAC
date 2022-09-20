@@ -371,7 +371,7 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
     @Override
     @Transactional(readOnly = false)
     public void deleteIdentity(String userId, String accountId) throws NoSuchUserException {
-        logger.debug("delete identity with id {}", String.valueOf(accountId));
+        logger.debug("delete identity with id {} for user {}", String.valueOf(accountId), String.valueOf(userId));
 
         // delete account
         // authoritative deletes the registration with shared accounts
@@ -394,7 +394,7 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
     @Override
     @Transactional(readOnly = false)
     public void deleteIdentities(String userId) {
-        logger.debug("delete identity for user {}", String.valueOf(userId));
+        logger.debug("delete identities for user {}", String.valueOf(userId));
 
         Collection<U> accounts = getAccountProvider().listAccounts(userId);
         for (U account : accounts) {

@@ -11,14 +11,4 @@ public abstract class AbstractIdentityConfigurationProvider<C extends AbstractId
         super(authority);
     }
 
-//    @Override
-//    public C getConfig(ConfigurableIdentityProvider cp) {
-//        return super.getConfig(cp);
-//    }
-//
-//    @Override
-//    public C getConfig(ConfigurableIdentityProvider cp, boolean mergeDefault) {
-//        return super.getConfig(cp, mergeDefault);
-//    }
-
 }

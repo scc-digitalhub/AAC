@@ -133,4 +133,5 @@ public class InternalPasswordIdentityCredentialsService extends AbstractProvider
             mailService.sendEmail(account.getEmail(), template, account.getLang(), vars);
         }
     }
+
 }

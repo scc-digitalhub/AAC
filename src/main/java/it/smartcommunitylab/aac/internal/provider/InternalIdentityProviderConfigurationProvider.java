@@ -7,16 +7,16 @@ import it.smartcommunitylab.aac.core.base.AbstractIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 
 @Service
-public class InternalIdentityConfigurationProvider
+public class InternalIdentityProviderConfigurationProvider
         extends
-        AbstractIdentityConfigurationProvider<InternalIdentityProviderConfig, InternalIdentityProviderConfigMap> {
+        AbstractIdentityConfigurationProvider<InternalIdentityProviderConfig, InternalIdentityServiceConfigMap> {
 
-    public InternalIdentityConfigurationProvider(AuthoritiesProperties authoritiesProperties) {
+    public InternalIdentityProviderConfigurationProvider(AuthoritiesProperties authoritiesProperties) {
         super(SystemKeys.AUTHORITY_INTERNAL);
         if (authoritiesProperties != null && authoritiesProperties.getInternal() != null) {
             setDefaultConfigMap(authoritiesProperties.getInternal());
         } else {
-            setDefaultConfigMap(new InternalIdentityProviderConfigMap());
+            setDefaultConfigMap(new InternalIdentityServiceConfigMap());
         }
     }
 

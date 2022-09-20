@@ -40,6 +40,8 @@ public interface ProviderAuthority<S extends ConfigurableResourceProvider<R, T, 
 
     /*
      * Registration
+     * 
+     * TODO remove and make interface RO
      */
 
     public S registerProvider(T config)

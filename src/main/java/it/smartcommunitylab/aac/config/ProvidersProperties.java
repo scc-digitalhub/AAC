@@ -10,7 +10,7 @@ import javax.validation.constraints.NotNull;
 
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
-import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityServiceConfigMap;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfigMap;
 
@@ -180,7 +180,7 @@ public class ProvidersProperties {
         private List<SamlIdentityProviderConfigMap> saml;
 
         @NestedConfigurationProperty
-        private List<InternalIdentityProviderConfigMap> internal;
+        private List<InternalIdentityServiceConfigMap> internal;
 
         public List<OIDCIdentityProviderConfigMap> getOidc() {
             return oidc;
@@ -198,11 +198,11 @@ public class ProvidersProperties {
             this.saml = saml;
         }
 
-        public List<InternalIdentityProviderConfigMap> getInternal() {
+        public List<InternalIdentityServiceConfigMap> getInternal() {
             return internal;
         }
 
-        public void setInternal(List<InternalIdentityProviderConfigMap> internal) {
+        public void setInternal(List<InternalIdentityServiceConfigMap> internal) {
             this.internal = internal;
         }
 

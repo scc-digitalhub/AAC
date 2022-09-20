@@ -161,6 +161,27 @@ public class PasswordCredentialsService extends
 
         return account.getUsername();
     }
+
+    public InternalUserPassword setPassword(String username, String password, boolean changeOnFirstAccess)
+            throws NoSuchUserException {
+        validatePassword(password);
+
+        // fetch user
+        InternalUserAccount account = accountService.findAccountById(repositoryId, username);
+        if (account == null) {
+            throw new NoSuchUserException();
+        }
+
+        // set new password as active
+        InternalUserPassword pass = passwordService.setPassword(repositoryId, username, password, changeOnFirstAccess,
+                config.getPasswordMaxDays(), config.getPasswordKeepNumber());
+
+        // password are encrypted, can't read
+        // we return a placeholder to describe status
+        pass.eraseCredentials();
+        return pass;
+    }
+
     /*
      * Credentials
      */
@@ -231,7 +252,6 @@ public class PasswordCredentialsService extends
         // we return a placeholder to describe status
         pass.eraseCredentials();
         return pass;
-
     }
 
     @Override

@@ -13,6 +13,7 @@ public interface AccountService<U extends UserAccount>
      * accountId is local to provider
      */
     public U createAccount(
+            String accountId,
             U account) throws NoSuchUserException, RegistrationException;
 
     public U updateAccount(

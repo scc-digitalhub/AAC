@@ -55,7 +55,7 @@ import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.dto.CustomizationBean;
-import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
+import it.smartcommunitylab.aac.internal.InternalIdentityServiceAuthority;
 import it.smartcommunitylab.aac.internal.dto.UserRegistrationBean;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
@@ -76,7 +76,7 @@ public class InternalRegistrationController {
     private AuthenticationHelper authHelper;
 
     @Autowired
-    private InternalIdentityAuthority internalAuthority;
+    private InternalIdentityServiceAuthority internalAuthority;
 
     @Autowired
     private RealmManager realmManager;

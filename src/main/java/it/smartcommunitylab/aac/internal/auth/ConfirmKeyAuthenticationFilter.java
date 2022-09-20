@@ -26,11 +26,12 @@ import it.smartcommunitylab.aac.core.auth.ProviderWrappedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
-import it.smartcommunitylab.aac.core.base.AbstractIdentityProviderConfig;
+import it.smartcommunitylab.aac.core.provider.ProviderConfig;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
+import it.smartcommunitylab.aac.internal.InternalIdentityProviderAuthority;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityServiceConfig;
 import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
 import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProviderConfig;
 
@@ -40,10 +41,10 @@ import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProvid
 public class ConfirmKeyAuthenticationFilter
         extends AbstractAuthenticationProcessingFilter {
 
-    public static final String DEFAULT_FILTER_URI = InternalIdentityAuthority.AUTHORITY_URL
+    public static final String DEFAULT_FILTER_URI = InternalIdentityProviderAuthority.AUTHORITY_URL
             + "confirm/{registrationId}";
 
-    private final ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository;
+    private final ProviderConfigRepository<InternalIdentityServiceConfig> registrationRepository;
 
     private final RequestMatcher requestMatcher;
 
@@ -53,12 +54,12 @@ public class ConfirmKeyAuthenticationFilter
     private final InternalUserConfirmKeyService userAccountService;
 
     public ConfirmKeyAuthenticationFilter(InternalUserConfirmKeyService userAccountService,
-            ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository) {
+            ProviderConfigRepository<InternalIdentityServiceConfig> registrationRepository) {
         this(userAccountService, registrationRepository, DEFAULT_FILTER_URI, null);
     }
 
     public ConfirmKeyAuthenticationFilter(InternalUserConfirmKeyService userAccountService,
-            ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository,
+            ProviderConfigRepository<InternalIdentityServiceConfig> registrationRepository,
             String filterProcessingUrl, AuthenticationEntryPoint authenticationEntryPoint) {
         super(filterProcessingUrl);
         Assert.notNull(userAccountService, "user account service is required");
@@ -119,7 +120,7 @@ public class ConfirmKeyAuthenticationFilter
 
         // fetch registrationId
         String providerId = requestMatcher.matcher(request).getVariables().get("registrationId");
-        AbstractIdentityProviderConfig<?> providerConfig = registrationRepository.findByProviderId(providerId);
+        ProviderConfig<?, ?> providerConfig = registrationRepository.findByProviderId(providerId);
 
         if (providerConfig == null) {
             throw new ProviderNotFoundException("no provider or realm found for this request");

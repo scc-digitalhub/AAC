@@ -1,5 +1,10 @@
 package it.smartcommunitylab.aac.internal.provider;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
@@ -12,14 +17,14 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.MissingDataException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
-import it.smartcommunitylab.aac.core.model.UserCredentials;
+import it.smartcommunitylab.aac.core.model.ConfigurableIdentityService;
+import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
-import it.smartcommunitylab.aac.core.provider.LoginProvider;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
-import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
@@ -28,43 +33,42 @@ import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
 import it.smartcommunitylab.aac.utils.MailService;
 
 public class InternalIdentityService
-        extends AbstractInternalIdentityProvider<InternalUserAuthenticatedPrincipal, UserCredentials>
-        implements IdentityService<InternalUserIdentity, InternalUserAccount>, InitializingBean {
+        extends
+        AbstractConfigurableProvider<InternalUserIdentity, ConfigurableIdentityService, InternalIdentityServiceConfigMap, InternalIdentityServiceConfig>
+        implements
+        IdentityService<InternalUserIdentity, InternalUserAccount, InternalIdentityServiceConfigMap, InternalIdentityServiceConfig>,
+        InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // provider configuration
-    private final InternalIdentityProviderConfig config;
+    private final InternalIdentityServiceConfig config;
 
     // services
     protected final UserEntityService userEntityService;
 
     // providers
     private final InternalAccountService accountService;
-    private final InternalAuthenticationProvider authenticationProvider;
 
     public InternalIdentityService(
             String providerId,
             UserEntityService userEntityService,
             UserAccountService<InternalUserAccount> userAccountService, InternalUserConfirmKeyService confirmKeyService,
-            SubjectService subjectService,
-            InternalIdentityProviderConfig config,
+            InternalIdentityServiceConfig providerConfig,
             String realm) {
         super(SystemKeys.AUTHORITY_INTERNAL, providerId,
-                userEntityService, userAccountService, subjectService,
-                config, realm);
+                realm, providerConfig);
+        Assert.notNull(userEntityService, "user entity service is mandatory");
         Assert.notNull(userAccountService, "user account service is mandatory");
+        Assert.notNull(confirmKeyService, "user confirm service is mandatory");
 
         // internal data repositories
         this.userEntityService = userEntityService;
 
         // config
-        this.config = config;
+        this.config = providerConfig;
 
         // build resource providers, we use our providerId to ensure consistency
         this.accountService = new InternalAccountService(providerId, userAccountService, confirmKeyService,
-                subjectService, config, realm);
-        this.authenticationProvider = new InternalAuthenticationProvider(providerId, userAccountService,
-                accountService,
                 config, realm);
 
     }
@@ -85,8 +89,18 @@ public class InternalIdentityService
     }
 
     @Override
-    public InternalIdentityProviderConfig getConfig() {
-        return config;
+    public String getName() {
+        return config.getName();
+    }
+
+    @Override
+    public String getDescription() {
+        return config.getDescription();
+    }
+
+    @Override
+    public String getType() {
+        return SystemKeys.RESOURCE_IDENTITY;
     }
 
     @Override
@@ -94,9 +108,83 @@ public class InternalIdentityService
         return accountService;
     }
 
+    protected InternalUserIdentity buildIdentity(InternalUserAccount account,
+            InternalUserAuthenticatedPrincipal principal,
+            Collection<UserAttributes> attributes) {
+        // build identity
+        InternalUserIdentity identity = new InternalUserIdentity(getAuthority(), getProvider(), getRealm(), account,
+                principal);
+        identity.setAttributes(attributes);
+
+        return identity;
+    }
+
     @Override
-    public InternalAuthenticationProvider getAuthenticationProvider() {
-        return authenticationProvider;
+    public InternalUserIdentity findIdentity(String userId, String username) {
+        logger.debug("find identity for id {} user {}", String.valueOf(username), String.valueOf(userId));
+
+        // lookup a matching account
+        InternalUserAccount account = accountService.findAccount(username);
+        if (account == null) {
+            return null;
+        }
+
+        // check userId matches
+        if (!account.getUserId().equals(userId)) {
+            return null;
+        }
+
+        // build identity without attributes or principal
+        InternalUserIdentity identity = buildIdentity(account, null, null);
+        if (logger.isTraceEnabled()) {
+            logger.trace("identity: {}", String.valueOf(identity));
+        }
+
+        return identity;
+    }
+
+    @Override
+    public InternalUserIdentity getIdentity(String userId, String username) throws NoSuchUserException {
+        logger.debug("get identity for id {} user {}", String.valueOf(username), String.valueOf(userId));
+
+        // lookup a matching account
+        InternalUserAccount account = accountService.getAccount(username);
+
+        // check userId matches
+        if (!account.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("user mismatch");
+        }
+
+        // build identity without attributes or principal
+        InternalUserIdentity identity = buildIdentity(account, null, null);
+        if (logger.isTraceEnabled()) {
+            logger.trace("identity: {}", String.valueOf(identity));
+        }
+
+        return identity;
+    }
+
+    @Override
+    public Collection<InternalUserIdentity> listIdentities(String userId) {
+        logger.debug("list identities for user {}", String.valueOf(userId));
+        // lookup for matching accounts
+        Collection<InternalUserAccount> accounts = accountService.listAccounts(userId);
+        if (accounts.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<InternalUserIdentity> identities = new ArrayList<>();
+        for (InternalUserAccount account : accounts) {
+
+            InternalUserIdentity identity = buildIdentity(account, null, null);
+            if (logger.isTraceEnabled()) {
+                logger.trace("identity: {}", String.valueOf(identity));
+            }
+
+            identities.add(identity);
+        }
+
+        return identities;
     }
 
     @Override
@@ -189,7 +277,7 @@ public class InternalIdentityService
 
         try {
             // create internal account
-            account = accountService.createAccount(account);
+            account = accountService.createAccount(username, account);
 
             // store and update attributes
             // we shouldn't have additional attributes for internal
@@ -252,38 +340,40 @@ public class InternalIdentityService
         return identity;
     }
 
-//    @Override
-//    public void deleteIdentity(String userId, String username) throws NoSuchUserException, RegistrationException {
-//        // get the internal account entity
-//        InternalUserAccount account = accountService.getAccount(username);
-//        if (account != null) {
-//            // check if userId matches account
-//            if (!account.getUserId().equals(userId)) {
-//                throw new RegistrationException("userid-mismatch");
-//            }
-//
-//            // delete account via service
-//            accountService.deleteAccount(username);
-//        }
-//    }
+    @Override
+    public void deleteIdentities(String userId) {
+        logger.debug("delete identities for user {}", String.valueOf(userId));
+        Collection<InternalUserAccount> accounts = accountService.listAccounts(userId);
+        for (InternalUserAccount account : accounts) {
+            try {
+                deleteIdentity(userId, account.getAccountId());
+            } catch (NoSuchUserException e) {
+            }
+        }
+    }
+
+    @Override
+    public void deleteIdentity(String userId, String username) throws NoSuchUserException, RegistrationException {
+        logger.debug("delete identity with id {} for user {}", String.valueOf(username), String.valueOf(userId));
+
+        // get the internal account entity
+        InternalUserAccount account = accountService.getAccount(username);
+        if (account != null) {
+            // check if userId matches account
+            if (!account.getUserId().equals(userId)) {
+                throw new RegistrationException("userid-mismatch");
+            }
+
+            // delete account via service
+            accountService.deleteAccount(username);
+        }
+    }
 
     @Override
     public String getRegistrationUrl() {
         // TODO filter
         // TODO build a realm-bound url, need updates on filters
         return "/auth/internal/register/" + getProvider();
-    }
-
-    @Override
-    public String getAuthenticationUrl() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public LoginProvider getLoginProvider() {
-        // no direct login available
-        return null;
     }
 
 }

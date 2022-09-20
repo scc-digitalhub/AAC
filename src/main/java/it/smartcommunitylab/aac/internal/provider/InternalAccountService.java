@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import javax.mail.MessagingException;
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
@@ -26,52 +27,35 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.provider.AccountService;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
-import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
-import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.model.SubjectStatus;
 import it.smartcommunitylab.aac.utils.MailService;
 
 @Transactional
-public class InternalAccountService extends InternalAccountProvider
-        implements AccountService<InternalUserAccount> {
+public class InternalAccountService extends InternalAccountProvider implements AccountService<InternalUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // provider configuration
-    private final InternalIdentityProviderConfig config;
+    private final InternalIdentityServiceConfig config;
 
     private final UserAccountService<InternalUserAccount> userAccountService;
     private final InternalUserConfirmKeyService confirmKeyService;
 
     private final String repositoryId;
 
-    private final SubjectService subjectService;
-
     private MailService mailService;
     private RealmAwareUriBuilder uriBuilder;
 
     public InternalAccountService(String providerId,
             UserAccountService<InternalUserAccount> userAccountService, InternalUserConfirmKeyService confirmKeyService,
-            SubjectService subjectService,
-            InternalIdentityProviderConfig providerConfig, String realm) {
-        this(SystemKeys.AUTHORITY_INTERNAL, providerId, userAccountService, confirmKeyService, subjectService,
-                providerConfig, realm);
-    }
-
-    public InternalAccountService(String authority, String providerId,
-            UserAccountService<InternalUserAccount> userAccountService, InternalUserConfirmKeyService confirmKeyService,
-            SubjectService subjectService,
-            InternalIdentityProviderConfig providerConfig, String realm) {
-        super(authority, providerId, userAccountService, providerConfig, realm);
+            InternalIdentityServiceConfig providerConfig, String realm) {
+        super(SystemKeys.AUTHORITY_INTERNAL, providerId, userAccountService, providerConfig.getRepositoryId(), realm);
         Assert.notNull(providerConfig, "provider config is mandatory");
-        Assert.notNull(userAccountService, "user account service is mandatory");
         Assert.notNull(confirmKeyService, "confirm key service is mandatory");
-        Assert.notNull(subjectService, "subject service is mandatory");
 
         this.userAccountService = userAccountService;
         this.confirmKeyService = confirmKeyService;
-        this.subjectService = subjectService;
         this.config = providerConfig;
 
         this.repositoryId = providerConfig.getRepositoryId();
@@ -90,20 +74,14 @@ public class InternalAccountService extends InternalAccountProvider
         InternalUserAccount account = findAccountByUsername(username);
 
         if (account != null) {
-            String uuid = account.getUuid();
-            if (uuid != null) {
-                // remove subject if exists
-                subjectService.deleteSubject(uuid);
-            }
-
             // remove account
             userAccountService.deleteAccount(repositoryId, username);
         }
     }
 
     @Override
-    public InternalUserAccount createAccount(@Valid InternalUserAccount reg)
-            throws NoSuchUserException, RegistrationException {
+    public InternalUserAccount createAccount(@NotBlank String username, @Valid InternalUserAccount reg)
+            throws RegistrationException {
         if (reg == null) {
             throw new RegistrationException();
         }
@@ -118,7 +96,7 @@ public class InternalAccountService extends InternalAccountProvider
         String realm = getRealm();
 
         // extract base fields
-        String username = Jsoup.clean(reg.getUsername(), Safelist.none());
+        username = Jsoup.clean(username, Safelist.none());
 
         // validate username
         if (!StringUtils.hasText(username)) {
@@ -152,14 +130,21 @@ public class InternalAccountService extends InternalAccountProvider
             throw new DuplicatedDataException("email");
         }
 
-        // generate uuid and register as subject
-        String uuid = subjectService.generateUuid(SystemKeys.RESOURCE_ACCOUNT);
-        Subject s = subjectService.addSubject(uuid, realm, SystemKeys.RESOURCE_ACCOUNT, username);
+        // get uuid and validate
+        String uuid = reg.getUuid();
+        if (StringUtils.hasText(uuid)) {
+            uuid = Jsoup.clean(uuid, Safelist.none());
+        }
+
+        if (!StringUtils.hasText(uuid) || uuid.length() < 5) {
+            // reset
+            uuid = null;
+        }
 
         account = new InternalUserAccount();
         account.setProvider(repositoryId);
         account.setUsername(username);
-        account.setUuid(s.getSubjectId());
+        account.setUuid(uuid);
 
         account.setUserId(userId);
         account.setRealm(realm);
@@ -186,7 +171,6 @@ public class InternalAccountService extends InternalAccountProvider
     @Override
     public InternalUserAccount updateAccount(String username, InternalUserAccount reg)
             throws NoSuchUserException, RegistrationException {
-        // TODO remove check here, should be on idp only
         if (!config.isEnableUpdate()) {
             throw new IllegalArgumentException("update is disabled for this provider");
         }
@@ -473,57 +457,57 @@ public class InternalAccountService extends InternalAccountProvider
     /*
      * Mail
      */
-    private void sendPasswordMail(InternalUserAccount account, String password)
-            throws MessagingException {
-        if (mailService != null) {
-            String realm = getRealm();
-            String loginUrl = "/login";
-            if (uriBuilder != null) {
-                loginUrl = uriBuilder.buildUrl(realm, loginUrl);
-            }
-
-            Map<String, String> action = new HashMap<>();
-            action.put("url", loginUrl);
-            action.put("text", "action.login");
-
-            Map<String, Object> vars = new HashMap<>();
-            vars.put("user", account);
-            vars.put("password", password);
-            vars.put("action", action);
-            vars.put("realm", account.getRealm());
-
-            String template = "password";
-            mailService.sendEmail(account.getEmail(), template, account.getLang(), vars);
-        }
-    }
-
-    private void sendPasswordAndConfirmationMail(InternalUserAccount account, String password, String key)
-            throws MessagingException {
-        if (mailService != null) {
-            // action is handled by global filter
-            String provider = getProvider();
-            String confirmUrl = "/auth/" + getAuthority() + "/confirm/" + provider + "?code="
-                    + key;
-            if (uriBuilder != null) {
-                confirmUrl = uriBuilder.buildUrl(null, confirmUrl);
-            }
-
-            Map<String, String> action = new HashMap<>();
-            action.put("url", confirmUrl);
-            action.put("text", "action.confirm");
-
-            Map<String, Object> vars = new HashMap<>();
-            vars.put("user", account);
-            vars.put("password", password);
-            vars.put("action", action);
-            vars.put("realm", account.getRealm());
-
-            // use confirm template and avoid sending temporary password
-            // TODO evaluate with credentials refactoring
-            String template = "confirmation";
-            mailService.sendEmail(account.getEmail(), template, account.getLang(), vars);
-        }
-    }
+//    private void sendPasswordMail(InternalUserAccount account, String password)
+//            throws MessagingException {
+//        if (mailService != null) {
+//            String realm = getRealm();
+//            String loginUrl = "/login";
+//            if (uriBuilder != null) {
+//                loginUrl = uriBuilder.buildUrl(realm, loginUrl);
+//            }
+//
+//            Map<String, String> action = new HashMap<>();
+//            action.put("url", loginUrl);
+//            action.put("text", "action.login");
+//
+//            Map<String, Object> vars = new HashMap<>();
+//            vars.put("user", account);
+//            vars.put("password", password);
+//            vars.put("action", action);
+//            vars.put("realm", account.getRealm());
+//
+//            String template = "password";
+//            mailService.sendEmail(account.getEmail(), template, account.getLang(), vars);
+//        }
+//    }
+//
+//    private void sendPasswordAndConfirmationMail(InternalUserAccount account, String password, String key)
+//            throws MessagingException {
+//        if (mailService != null) {
+//            // action is handled by global filter
+//            String provider = getProvider();
+//            String confirmUrl = "/auth/" + getAuthority() + "/confirm/" + provider + "?code="
+//                    + key;
+//            if (uriBuilder != null) {
+//                confirmUrl = uriBuilder.buildUrl(null, confirmUrl);
+//            }
+//
+//            Map<String, String> action = new HashMap<>();
+//            action.put("url", confirmUrl);
+//            action.put("text", "action.confirm");
+//
+//            Map<String, Object> vars = new HashMap<>();
+//            vars.put("user", account);
+//            vars.put("password", password);
+//            vars.put("action", action);
+//            vars.put("realm", account.getRealm());
+//
+//            // use confirm template and avoid sending temporary password
+//            // TODO evaluate with credentials refactoring
+//            String template = "confirmation";
+//            mailService.sendEmail(account.getEmail(), template, account.getLang(), vars);
+//        }
+//    }
 
     private void sendConfirmationMail(InternalUserAccount account, String key) throws MessagingException {
         if (mailService != null) {

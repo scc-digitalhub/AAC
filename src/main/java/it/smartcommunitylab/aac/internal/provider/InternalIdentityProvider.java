@@ -21,7 +21,7 @@ import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
 import it.smartcommunitylab.aac.password.model.InternalPasswordUserAuthenticatedPrincipal;
 
 public class InternalIdentityProvider extends
-        AbstractIdentityProvider<InternalUserIdentity, InternalUserAccount, InternalUserAuthenticatedPrincipal, InternalIdentityProviderConfigMap, InternalIdentityProviderConfig> {
+        AbstractIdentityProvider<InternalUserIdentity, InternalUserAccount, InternalUserAuthenticatedPrincipal, InternalIdentityServiceConfigMap, InternalIdentityProviderConfig> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // provider configuration

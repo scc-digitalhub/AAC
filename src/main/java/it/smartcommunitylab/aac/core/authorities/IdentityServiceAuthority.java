@@ -9,7 +9,7 @@ import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.provider.IdentityServiceConfig;
 
 public interface IdentityServiceAuthority<S extends IdentityService<I, U, M, C>, I extends UserIdentity, U extends UserAccount, M extends ConfigMap, C extends IdentityServiceConfig<M>>
-        extends ProviderAuthority<S, UserIdentity, ConfigurableIdentityService, M, C> {
+        extends ProviderAuthority<S, I, ConfigurableIdentityService, M, C> {
 
     /*
      * Filter provider exposes auth filters for registration in filter chain

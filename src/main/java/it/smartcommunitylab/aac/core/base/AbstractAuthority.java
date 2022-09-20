@@ -160,6 +160,15 @@ public abstract class AbstractAuthority<S extends ConfigurableResourceProvider<R
         Assert.hasText(providerId, "provider id can not be null or empty");
 
         try {
+            // check if config is still active
+            C config = registrationRepository.findByProviderId(providerId);
+            if (config == null) {
+                // cleanup cache
+                providers.invalidate(providerId);
+
+                return null;
+            }
+
             return providers.get(providerId);
         } catch (IllegalArgumentException | UncheckedExecutionException | ExecutionException e) {
             return null;
