@@ -257,12 +257,13 @@ public class BaseUserController implements InitializingBean {
 
     }
 
-    @PutMapping("/users/{realm}/{userId}/identity/{identityUuid}")
+    @PutMapping("/users/{realm}/{userId}/identity/{identityUuid}/{provider}")
     @Operation(summary = "update a specific identity for a specific user in realm")
     public UserIdentity updateUserIdentity(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String identityUuid,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String provider,
             @RequestBody @Valid @NotNull AbstractIdentity reg)
             throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException,
             NoSuchAuthorityException {
@@ -270,17 +271,17 @@ public class BaseUserController implements InitializingBean {
                 StringUtils.trimAllWhitespace(userId), StringUtils.trimAllWhitespace(realm));
 
         // extract from model
-        String provider = reg.getProvider();
         String identityId = reg.getId();
         return userManager.updateUserIdentity(realm, userId, provider, identityId, reg);
     }
 
-    @DeleteMapping("/users/{realm}/{userId}/identity/{identityUuid}")
+    @DeleteMapping("/users/{realm}/{userId}/identity/{identityUuid}/{provider}")
     @Operation(summary = "delete a specific identity from a specific user in realm")
     public void deleteUserIdentity(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String identityUuid)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String identityUuid,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String provider)
             throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException,
             NoSuchAuthorityException {
         logger.debug("update user {} for realm {}",
@@ -289,26 +290,27 @@ public class BaseUserController implements InitializingBean {
         // fetch from user
         // TODO refactor
         User user = userManager.getUser(realm, userId);
-        UserIdentity identity = user.getIdentities().stream().filter(i -> i.getUuid().equals(identityUuid)).findFirst()
-                .orElse(null);
+        UserIdentity identity = user.getIdentities().stream()
+                .filter(i -> i.getUuid().equals(identityUuid) && i.getProvider().equals(provider))
+                .findFirst().orElse(null);
 
         if (identity == null) {
             throw new NoSuchUserException();
         }
 
         // extract from model
-        String provider = identity.getProvider();
         String identityId = identity.getId();
 
         userManager.deleteUserIdentity(realm, userId, provider, identityId);
     }
 
-    @PutMapping("/users/{realm}/{userId}/identity/{identityUuid}/confirm")
+    @PutMapping("/users/{realm}/{userId}/identity/{identityUuid}/{provider}/confirm")
     @Operation(summary = "confirm an identity for a given user in realm")
     public UserIdentity confirmUserIdentity(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String identityUuid)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String identityUuid,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String provider)
             throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException,
             NoSuchAuthorityException {
         logger.debug("confirm identity {} for user {} for realm {}", StringUtils.trimAllWhitespace(identityUuid),
@@ -316,26 +318,27 @@ public class BaseUserController implements InitializingBean {
         // fetch from user
         // TODO refactor
         User user = userManager.getUser(realm, userId);
-        UserIdentity identity = user.getIdentities().stream().filter(i -> i.getUuid().equals(identityUuid)).findFirst()
-                .orElse(null);
+        UserIdentity identity = user.getIdentities().stream()
+                .filter(i -> i.getUuid().equals(identityUuid) && i.getProvider().equals(provider))
+                .findFirst().orElse(null);
 
         if (identity == null) {
             throw new NoSuchUserException();
         }
 
         // extract from model
-        String provider = identity.getProvider();
         String identityId = identity.getId();
 
         return userManager.confirmUserIdentity(realm, userId, provider, identityId);
     }
 
-    @DeleteMapping("/users/{realm}/{userId}/identity/{identityUuid}/confirm")
+    @DeleteMapping("/users/{realm}/{userId}/identity/{identityUuid}/{provider}/confirm")
     @Operation(summary = "unconfirm an identity for a given user in realm")
     public UserIdentity unconfirmUserIdentity(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String identityUuid)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String identityUuid,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String provider)
             throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException,
             NoSuchAuthorityException {
         logger.debug("unconfirm identity {} for user {} for realm {}", StringUtils.trimAllWhitespace(identityUuid),
@@ -343,26 +346,27 @@ public class BaseUserController implements InitializingBean {
         // fetch from user
         // TODO refactor
         User user = userManager.getUser(realm, userId);
-        UserIdentity identity = user.getIdentities().stream().filter(i -> i.getUuid().equals(identityUuid)).findFirst()
-                .orElse(null);
+        UserIdentity identity = user.getIdentities().stream()
+                .filter(i -> i.getUuid().equals(identityUuid) && i.getProvider().equals(provider))
+                .findFirst().orElse(null);
 
         if (identity == null) {
             throw new NoSuchUserException();
         }
 
         // extract from model
-        String provider = identity.getProvider();
         String identityId = identity.getId();
 
         return userManager.unconfirmUserIdentity(realm, userId, provider, identityId);
     }
 
-    @PostMapping("/users/{realm}/{userId}/identity/{identityUuid}/confirm")
+    @PostMapping("/users/{realm}/{userId}/identity/{identityUuid}/{provider}/confirm")
     @Operation(summary = "verify an identity for a given user in realm")
     public UserIdentity verifyUserIdentity(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String identityUuid)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String identityUuid,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String provider)
             throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException,
             NoSuchAuthorityException {
         logger.debug("verify identity {} for user {} for realm {}", StringUtils.trimAllWhitespace(identityUuid),
@@ -370,26 +374,27 @@ public class BaseUserController implements InitializingBean {
         // fetch from user
         // TODO refactor
         User user = userManager.getUser(realm, userId);
-        UserIdentity identity = user.getIdentities().stream().filter(i -> i.getUuid().equals(identityUuid)).findFirst()
-                .orElse(null);
+        UserIdentity identity = user.getIdentities().stream()
+                .filter(i -> i.getUuid().equals(identityUuid) && i.getProvider().equals(provider))
+                .findFirst().orElse(null);
 
         if (identity == null) {
             throw new NoSuchUserException();
         }
 
         // extract from model
-        String provider = identity.getProvider();
         String identityId = identity.getId();
 
         return userManager.verifyUserIdentity(realm, userId, provider, identityId);
     }
 
-    @PutMapping("/users/{realm}/{userId}/identity/{identityUuid}/status")
+    @PutMapping("/users/{realm}/{userId}/identity/{identityUuid}/{provider}/status")
     @Operation(summary = "update status for an identity for a given user in realm")
     public UserIdentity updateUserIdentityStatus(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String identityUuid,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String provider,
             @RequestBody @Valid @NotNull UserStatus reg)
             throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException,
             NoSuchAuthorityException {
@@ -399,15 +404,15 @@ public class BaseUserController implements InitializingBean {
         // fetch from user
         // TODO refactor
         User user = userManager.getUser(realm, userId);
-        UserIdentity identity = user.getIdentities().stream().filter(i -> i.getUuid().equals(identityUuid)).findFirst()
-                .orElse(null);
+        UserIdentity identity = user.getIdentities().stream()
+                .filter(i -> i.getUuid().equals(identityUuid) && i.getProvider().equals(provider))
+                .findFirst().orElse(null);
 
         if (identity == null) {
             throw new NoSuchUserException();
         }
 
         // extract from model
-        String provider = identity.getProvider();
         String identityId = identity.getId();
 
         SubjectStatus status = reg.getStatus();

@@ -68,7 +68,7 @@ angular.module('aac.controllers.realmusers', [])
             });
         }
 
-        //identities
+        //accounts
         service.createUserAccount = function (slug, subject, account) {
             return $http.post('console/dev/users/' + slug + '/' + subject + '/identity', account).then(function (data) {
                 return data.data;
@@ -84,42 +84,42 @@ angular.module('aac.controllers.realmusers', [])
                 return data.data;
             });
         }
-        service.updateUserAccount = function (slug, subject, identityUuid, account) {
-            return $http.put('console/dev/users/' + slug + '/' + subject + '/identity/' + identityUuid, account).then(function (data) {
+        service.updateUserAccount = function (slug, subject, identityUuid, provider, account) {
+            return $http.put('console/dev/users/' + slug + '/' + subject + '/identity/' + identityUuid + "/" + provider, account).then(function (data) {
                 return data.data;
             });
         }
 
-        service.removeUserAccount = function (slug, subject, identityUuid) {
-            return $http.delete('console/dev/users/' + slug + '/' + subject + '/identity/' + identityUuid).then(function (data) {
+        service.removeUserAccount = function (slug, subject, identityUuid, provider) {
+            return $http.delete('console/dev/users/' + slug + '/' + subject + '/identity/' + identityUuid + "/" + provider).then(function (data) {
                 return data.data;
             });
         }
 
-        service.lockUserAccount = function (slug, subject, identityUuid) {
-            return $http.put('console/dev/users/' + slug + '/' + subject + '/identity/' + identityUuid + '/status', { status: 'locked' }).then(function (data) {
+        service.lockUserAccount = function (slug, subject, identityUuid, provider) {
+            return $http.put('console/dev/users/' + slug + '/' + subject + '/identity/' + identityUuid + "/" + provider + '/status', { status: 'locked' }).then(function (data) {
                 return data.data;
             });
         }
 
-        service.unlockUserAccount = function (slug, subject, identityUuid) {
-            return $http.put('console/dev/users/' + slug + '/' + subject + '/identity/' + identityUuid + '/status', { status: 'active' }).then(function (data) {
+        service.unlockUserAccount = function (slug, subject, identityUuid, provider) {
+            return $http.put('console/dev/users/' + slug + '/' + subject + '/identity/' + identityUuid + "/" + provider + '/status', { status: 'active' }).then(function (data) {
                 return data.data;
             });
         }
 
-        service.verifyUserAccount = function (slug, subject, identityUuid) {
-            return $http.post('console/dev/users/' + slug + '/' + subject + '/identity/' + identityUuid + '/confirm', {}).then(function (data) {
+        service.verifyUserAccount = function (slug, subject, identityUuid, provider) {
+            return $http.post('console/dev/users/' + slug + '/' + subject + '/identity/' + identityUuid + "/" + provider + '/confirm', {}).then(function (data) {
                 return data.data;
             });
         }
-        service.confirmUserAccount = function (slug, subject, identityUuid) {
-            return $http.put('console/dev/users/' + slug + '/' + subject + '/identity/' + identityUuid + '/confirm', {}).then(function (data) {
+        service.confirmUserAccount = function (slug, subject, identityUuid, provider) {
+            return $http.put('console/dev/users/' + slug + '/' + subject + '/identity/' + identityUuid + "/" + provider + '/confirm', {}).then(function (data) {
                 return data.data;
             });
         }
-        service.unconfirmUserAccount = function (slug, subject, identityUuid) {
-            return $http.delete('console/dev/users/' + slug + '/' + subject + '/identity/' + identityUuid + '/confirm').then(function (data) {
+        service.unconfirmUserAccount = function (slug, subject, identityUuid, provider) {
+            return $http.delete('console/dev/users/' + slug + '/' + subject + '/identity/' + identityUuid + "/" + provider + '/confirm').then(function (data) {
                 return data.data;
             });
         }
@@ -248,7 +248,7 @@ angular.module('aac.controllers.realmusers', [])
                             var p = u.identities.map(function (i) {
                                 return $scope.providers[i.provider] ? $scope.providers[i.provider].name : i.provider;
                             });
-                            
+
                             //remove duplicates
                             u._providers = [...new Set(p)];
                         }
@@ -761,28 +761,45 @@ angular.module('aac.controllers.realmusers', [])
         $scope.reloadIdentity = function (data) {
             // var idps = $scope.idps;
             if (data && $scope.identities) {
-                //map to Map to update, then back
-                // workaround since ng-repeat doesn't support Map...
-                var identities = new Map($scope.identities.map(i => [i.uuid, i]));
-                identities.set(data.uuid,
-                    {
-                        ...data,
-                        // providerId: i.provider,
-                        // provider: idps.get(i.providerId),
-                        icon: iconIdp(data.provider)
+                //use map to update in place
+                var identities = $scope.identities.map(i => {
+                    if (i.uuid == data.uuid && i.provider == data.provider) {
+                        return {
+                            ...data,
+                            // providerId: i.provider,
+                            // provider: idps.get(i.providerId),
+                            icon: iconIdp(data.provider)
+                        }
                     }
-                );
+
+                    return i;
+                });
 
                 //note: could lose previous ordering...
-                $scope.identities = Array.from(identities.values());
+                $scope.identities = identities;
             }
         }
 
 
-        $scope.lockUserAccountDlg = function (uuid) {
-            $scope.lockUserAccount = function () {
-                $('#lockConfirm').modal('hide');
-                RealmUsers.lockUserAccount(slug, subjectId, uuid)
+        $scope.lockUserAccountDlg = function (account) {
+            if (account) {
+                $scope.lockUserAccount = function () {
+                    $('#lockConfirm').modal('hide');
+                    RealmUsers.lockUserAccount(slug, subjectId, account.uuid, account.provider)
+                        .then(function (data) {
+                            $scope.reloadIdentity(data);
+                            Utils.showSuccess();
+                        }).catch(function (err) {
+                            Utils.showError(err.data.message);
+                        });
+                }
+                $('#lockConfirm').modal({ keyboard: false });
+            }
+        }
+
+        $scope.unlockUserAccount = function (account) {
+            if (account) {
+                RealmUsers.unlockUserAccount(slug, subjectId, account.uuid, account.provider)
                     .then(function (data) {
                         $scope.reloadIdentity(data);
                         Utils.showSuccess();
@@ -790,23 +807,43 @@ angular.module('aac.controllers.realmusers', [])
                         Utils.showError(err.data.message);
                     });
             }
-            $('#lockConfirm').modal({ keyboard: false });
         }
 
-        $scope.unlockUserAccount = function (uuid) {
-            RealmUsers.unlockUserAccount(slug, subjectId, uuid)
-                .then(function (data) {
-                    $scope.reloadIdentity(data);
-                    Utils.showSuccess();
-                }).catch(function (err) {
-                    Utils.showError(err.data.message);
-                });
+        $scope.verifyUserAccountDlg = function (account) {
+            if (account) {
+                $scope.verifyUserAccount = function () {
+                    $('#verifyConfirm').modal('hide');
+                    RealmUsers.verifyUserAccount(slug, subjectId, account.uuid, account.provider)
+                        .then(function (data) {
+                            $scope.reloadIdentity(data);
+                            Utils.showSuccess();
+                        }).catch(function (err) {
+                            Utils.showError(err.data.message);
+                        });
+                }
+                $('#verifyConfirm').modal({ keyboard: false });
+            }
         }
 
-        $scope.verifyUserAccountDlg = function (uuid) {
-            $scope.verifyUserAccount = function () {
-                $('#verifyConfirm').modal('hide');
-                RealmUsers.verifyUserAccount(slug, subjectId, uuid)
+        $scope.confirmUserAccountDlg = function (account) {
+            if (account) {
+                $scope.confirmUserAccount = function () {
+                    $('#confirmConfirm').modal('hide');
+                    RealmUsers.confirmUserAccount(slug, subjectId, account.uuid, account.provider)
+                        .then(function (data) {
+                            $scope.reloadIdentity(data);
+                            Utils.showSuccess();
+                        }).catch(function (err) {
+                            Utils.showError(err.data.message);
+                        });
+                }
+                $('#confirmConfirm').modal({ keyboard: false });
+            }
+        }
+
+        $scope.unconfirmUserAccount = function (account) {
+            if (account) {
+                RealmUsers.unconfirmUserAccount(slug, subjectId, account.uuid, account.provider)
                     .then(function (data) {
                         $scope.reloadIdentity(data);
                         Utils.showSuccess();
@@ -814,53 +851,29 @@ angular.module('aac.controllers.realmusers', [])
                         Utils.showError(err.data.message);
                     });
             }
-            $('#verifyConfirm').modal({ keyboard: false });
         }
 
-        $scope.confirmUserAccountDlg = function (uuid) {
-            $scope.confirmUserAccount = function () {
-                $('#confirmConfirm').modal('hide');
-                RealmUsers.confirmUserAccount(slug, subjectId, uuid)
-                    .then(function (data) {
-                        $scope.reloadIdentity(data);
-                        Utils.showSuccess();
-                    }).catch(function (err) {
-                        Utils.showError(err.data.message);
-                    });
+        $scope.deleteUserAccountDlg = function (account) {
+            if (account) {
+                $scope.deleteUserAccount = function () {
+                    $('#deleteAccountConfirm').modal('hide');
+                    RealmUsers.removeUserAccount(slug, subjectId, account.uuid, account.provider)
+                        .then(function () {
+                            $scope.loadIdentities();
+                            Utils.showSuccess();
+                        }).catch(function (err) {
+                            Utils.showError(err.data.message);
+                        });
+                }
+                $('#deleteAccountConfirm').modal({ keyboard: false });
             }
-            $('#confirmConfirm').modal({ keyboard: false });
-        }
-
-        $scope.unconfirmUserAccount = function (uuid) {
-            RealmUsers.unconfirmUserAccount(slug, subjectId, uuid)
-                .then(function (data) {
-                    $scope.reloadIdentity(data);
-                    Utils.showSuccess();
-                }).catch(function (err) {
-                    Utils.showError(err.data.message);
-                });
-        }
-
-        $scope.deleteUserAccountDlg = function (uuid) {
-            $scope.deleteUserAccount = function () {
-                $('#deleteAccountConfirm').modal('hide');
-                RealmUsers.removeUserAccount(slug, subjectId, uuid)
-                    .then(function () {
-                        $scope.loadIdentities();
-                        Utils.showSuccess();
-                    }).catch(function (err) {
-                        Utils.showError(err.data.message);
-                    });
-            }
-            $('#deleteAccountConfirm').modal({ keyboard: false });
         }
 
 
-        $scope.editUserAccountDlg = function (uuid) {
-            var identity = $scope.identities.find(i => i.uuid === uuid);
-            if (identity && identity.account) {
+        $scope.editUserAccountDlg = function (account) {
+            if (account) {
                 $scope.modAccount = {
-                    ...identity.account,
+                    ...account,
                     realm: slug
                 };
 
@@ -874,6 +887,7 @@ angular.module('aac.controllers.realmusers', [])
             $('#editAccountModal').modal('hide');
             if ($scope.modAccount) {
                 var uuid = $scope.modAccount.uuid;
+                var provider = $scope.modAccount.provider;
 
                 //extract only base editable props
                 //TODO handle per authority
@@ -892,7 +906,7 @@ angular.module('aac.controllers.realmusers', [])
                         attributes: []
                     };
 
-                    RealmUsers.updateUserAccount(slug, subjectId, uuid, data)
+                    RealmUsers.updateUserAccount(slug, subjectId, uuid, provider, data)
                         .then(function (data) {
                             $scope.reloadIdentity(data);
                             Utils.showSuccess();

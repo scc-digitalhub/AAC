@@ -47,22 +47,22 @@
 						<button class="btn btn-secondary btn-sm" ng-click="inspectDlg(item)">Inspect</button>
 						<span ng-if="item.authority == 'internal' && item.account">
 							<button class="btn btn-warning btn-sm  text-right" ng-if="!item.account.locked"
-								ng-click="lockUserAccountDlg(item.uuid)">Lock</button>
+								ng-click="lockUserAccountDlg(item)">Lock</button>
 							<button class="btn btn-success btn-sm  text-right" ng-if="item.account.locked"
-								ng-click="unlockUserAccount(item.uuid)">Unlock</button>
+								ng-click="unlockUserAccount(item)">Unlock</button>
 
 							<button class="btn btn-success btn-sm  text-right" ng-disabled="item.account.locked"
-								ng-click="verifyUserAccountDlg(item.uuid)">Verify</button>
+								ng-click="verifyUserAccountDlg(item)">Verify</button>
 							<button class="btn btn-success btn-sm  text-right" ng-if="!item.account.confirmed"
 								ng-disabled="item.account.locked"
-								ng-click="confirmUserAccountDlg(item.uuid)">Confirm</button>
+								ng-click="confirmUserAccountDlg(item)">Confirm</button>
 							<button class="btn btn-warning btn-sm  text-right" ng-if="item.account.confirmed"
 								ng-disabled="item.account.locked"
-								ng-click="unconfirmUserAccount(item.uuid)">Un-confirm</button>
+								ng-click="unconfirmUserAccount(item)">Un-confirm</button>
 							<button class="btn btn-secondary btn-sm  text-right" ng-disabled="item.account.locked"
-								ng-click="editUserAccountDlg(item.uuid)">Edit</button>
+								ng-click="editUserAccountDlg(item)">Edit</button>
 						</span>
-						<button class="btn btn-danger btn-sm" ng-click="deleteUserAccountDlg(item.uuid)">Delete</button>
+						<button class="btn btn-danger btn-sm" ng-click="deleteUserAccountDlg(item)">Delete</button>
 					</td>
 				</tr>
 			</table>
