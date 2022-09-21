@@ -34,6 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
+import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchGroupException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
@@ -231,7 +232,7 @@ public class DevUsersController extends BaseUserController {
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String provider,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String identifier)
-            throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException, NoSuchAttributeSetException {
+            throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException, NoSuchAttributeSetException, NoSuchAuthorityException {
         UserAttributes ua = userManager.getUserAttributes(realm, userId, provider, identifier);
         return ResponseEntity.ok(ua);
     }
@@ -242,7 +243,7 @@ public class DevUsersController extends BaseUserController {
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String provider,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String identifier)
-            throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException, NoSuchAttributeSetException {
+            throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException, NoSuchAttributeSetException, NoSuchAuthorityException {
         userManager.removeUserAttributes(realm, userId, provider, identifier);
         return ResponseEntity.ok(null);
     }

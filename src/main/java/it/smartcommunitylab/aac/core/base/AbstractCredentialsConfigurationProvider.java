@@ -4,7 +4,7 @@ import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsService;
 import it.smartcommunitylab.aac.core.provider.CredentialsServiceConfig;
 import it.smartcommunitylab.aac.core.provider.CredentialsServiceConfigurationProvider;
 
-public abstract class AbstractCredentialsConfigurationProvider<C extends CredentialsServiceConfig<M>, M extends AbstractConfigMap>
+public abstract class AbstractCredentialsConfigurationProvider<M extends AbstractConfigMap, C extends CredentialsServiceConfig<M>>
         extends AbstractConfigurationProvider<M, ConfigurableCredentialsService, C>
         implements CredentialsServiceConfigurationProvider<M, C> {
 

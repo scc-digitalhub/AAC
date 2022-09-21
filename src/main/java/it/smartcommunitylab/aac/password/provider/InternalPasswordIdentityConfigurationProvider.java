@@ -8,7 +8,7 @@ import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 
 @Service
 public class InternalPasswordIdentityConfigurationProvider extends
-        AbstractIdentityConfigurationProvider<InternalPasswordIdentityProviderConfig, InternalPasswordIdentityProviderConfigMap> {
+        AbstractIdentityConfigurationProvider<InternalPasswordIdentityProviderConfigMap, InternalPasswordIdentityProviderConfig> {
 
     public InternalPasswordIdentityConfigurationProvider(AuthoritiesProperties authoritiesProperties) {
         super(SystemKeys.AUTHORITY_PASSWORD);

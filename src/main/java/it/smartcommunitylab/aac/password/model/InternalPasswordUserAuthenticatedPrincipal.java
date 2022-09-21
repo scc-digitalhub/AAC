@@ -10,7 +10,7 @@ import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipa
 public class InternalPasswordUserAuthenticatedPrincipal extends InternalUserAuthenticatedPrincipal
         implements CredentialsContainer {
 
-    private static final long serialVersionUID = SystemKeys.AAC_WEBAUTHN_SERIAL_VERSION;
+    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     public InternalPasswordUserAuthenticatedPrincipal(String provider, String realm, String userId, String username) {
         super(SystemKeys.AUTHORITY_PASSWORD, provider, realm, userId, username);

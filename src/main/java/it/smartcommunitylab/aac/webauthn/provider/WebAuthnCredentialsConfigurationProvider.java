@@ -7,7 +7,7 @@ import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsService;
 
 @Service
 public class WebAuthnCredentialsConfigurationProvider extends
-        AbstractCredentialsConfigurationProvider<WebAuthnCredentialsServiceConfig, WebAuthnCredentialsServiceConfigMap> {
+        AbstractCredentialsConfigurationProvider<WebAuthnCredentialsServiceConfigMap, WebAuthnCredentialsServiceConfig> {
 
     public WebAuthnCredentialsConfigurationProvider() {
         super(SystemKeys.AUTHORITY_WEBAUTHN);

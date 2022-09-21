@@ -13,6 +13,7 @@ import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.core.authorities.AuthorityService;
 import it.smartcommunitylab.aac.core.authorities.ProviderAuthority;
+import it.smartcommunitylab.aac.core.service.IdentityServiceAuthorityService;
 
 @Service
 @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')"
@@ -25,7 +26,11 @@ public class AuthorityManager implements InitializingBean {
      * Constructor
      */
     public AuthorityManager(Collection<AuthorityService<? extends ProviderAuthority<?, ?, ?, ?, ?>>> services) {
-        this.services = services.stream().collect(Collectors.toMap(a -> a.getType(), a -> a));
+        this.services = services.stream()
+                // skip identity services
+                // TODO refactor in accout service
+                .filter(s -> !(s instanceof IdentityServiceAuthorityService))
+                .collect(Collectors.toMap(a -> a.getType(), a -> a));
     }
 
     @Override

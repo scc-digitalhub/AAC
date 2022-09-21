@@ -1,29 +1,43 @@
 package it.smartcommunitylab.aac.core.base;
 
 import java.io.Serializable;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.util.Assert;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfig;
-import it.smartcommunitylab.aac.repository.ConfigMapConverter;
 
 public abstract class AbstractConfigurationProvider<M extends AbstractConfigMap, T extends ConfigurableProvider, C extends ProviderConfig<M, T>>
         implements ConfigurationProvider<M, T, C> {
+    protected final static ObjectMapper mapper = new ObjectMapper();
+    private final JavaType type;
 
     protected final String authority;
-    protected final ConfigMapConverter<M> configMapConverter = new ConfigMapConverter<>();
     protected M defaultConfigMap;
 
     public AbstractConfigurationProvider(String authority) {
         Assert.hasText(authority, "authority id is mandatory");
         this.authority = authority;
+
+        this.type = extractType();
+        Assert.notNull(type, "type could not be extracted");
+    }
+
+    private JavaType extractType() {
+        // resolve generics type via subclass trick
+        Type t = ((ParameterizedType) this.getClass().getGenericSuperclass()).getActualTypeArguments()[0];
+        return mapper.getTypeFactory().constructSimpleType((Class<?>) t, null);
     }
 
     protected void setDefaultConfigMap(M defaultConfigMap) {
@@ -69,7 +83,10 @@ public abstract class AbstractConfigurationProvider<M extends AbstractConfigMap,
     @Override
     public M getConfigMap(Map<String, Serializable> map) {
         // return a valid config from props
-        return configMapConverter.convert(map);
+        // use mapper
+        mapper.setSerializationInclusion(Include.NON_EMPTY);
+        M m = mapper.convertValue(map, type);
+        return m;
     }
 
     @Override

@@ -28,8 +28,8 @@ public class IdentityServiceService
         super(providerService);
 
         // set converters
-        this.setConfigConverter(new IdentityServiceConfigConverter());
-        this.setEntityConverter(new IdentityServiceEntityConverter());
+        setConfigConverter(new IdentityServiceConfigConverter());
+        setEntityConverter(new IdentityServiceEntityConverter());
 
         // create system services
         // we expect no client/services in global+system realm!
@@ -92,7 +92,7 @@ public class IdentityServiceService
 
             pe.setEnabled(reg.isEnabled());
             pe.setConfigurationMap(reg.getConfiguration());
-            
+
             return pe;
         }
 

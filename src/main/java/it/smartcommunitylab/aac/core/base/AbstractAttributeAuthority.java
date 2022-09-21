@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.core.base;
 
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -44,6 +45,7 @@ public abstract class AbstractAttributeAuthority<S extends AttributeProvider<M, 
         return configProvider;
     }
 
+    @Autowired
     public void setConfigProvider(AttributeConfigurationProvider<M, C> configProvider) {
         Assert.notNull(configProvider, "config provider is mandatory");
         this.configProvider = configProvider;

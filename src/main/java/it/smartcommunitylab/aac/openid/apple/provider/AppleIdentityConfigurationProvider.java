@@ -8,7 +8,7 @@ import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 
 @Service
 public class AppleIdentityConfigurationProvider
-        extends AbstractIdentityConfigurationProvider<AppleIdentityProviderConfig, AppleIdentityProviderConfigMap> {
+        extends AbstractIdentityConfigurationProvider<AppleIdentityProviderConfigMap, AppleIdentityProviderConfig> {
 
     public AppleIdentityConfigurationProvider(AuthoritiesProperties authoritiesProperties) {
         super(SystemKeys.AUTHORITY_APPLE);

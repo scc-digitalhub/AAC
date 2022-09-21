@@ -12,8 +12,9 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 
+//TODO evaluate adding generic type and resolving javatype for conversion here
 public abstract class AbstractConfigMap implements ConfigMap {
-    protected static ObjectMapper mapper = new ObjectMapper();
+    protected final static ObjectMapper mapper = new ObjectMapper();
     private final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
     };
     protected static final JsonSchemaGenerator schemaGen = new JsonSchemaGenerator(mapper);

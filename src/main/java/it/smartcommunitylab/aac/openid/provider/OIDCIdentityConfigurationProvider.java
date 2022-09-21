@@ -9,7 +9,7 @@ import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 
 @Service
 public class OIDCIdentityConfigurationProvider extends
-        AbstractIdentityConfigurationProvider<OIDCIdentityProviderConfig, OIDCIdentityProviderConfigMap> {
+        AbstractIdentityConfigurationProvider<OIDCIdentityProviderConfigMap, OIDCIdentityProviderConfig> {
 
     @Autowired
     public OIDCIdentityConfigurationProvider(AuthoritiesProperties authoritiesProperties) {

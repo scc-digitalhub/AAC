@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import io.swagger.v3.oas.annotations.Operation;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
@@ -127,7 +128,7 @@ public class BaseUserController implements InitializingBean {
     public User inviteUser(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestBody @Valid @NotNull UserEmail reg)
-            throws NoSuchRealmException, RegistrationException, NoSuchProviderException {
+            throws NoSuchRealmException, RegistrationException, NoSuchProviderException, NoSuchAuthorityException {
         logger.debug("invite user {} for realm {}", StringUtils.trimAllWhitespace(reg.getEmail()),
                 StringUtils.trimAllWhitespace(realm));
 
@@ -136,7 +137,7 @@ public class BaseUserController implements InitializingBean {
         }
 
         // invite a user
-        User u = userManager.inviteUser(realm, reg.getEmail());
+        User u = userManager.inviteUser(realm, null, reg.getEmail());
 
         // request verify for the user identity
         u.getIdentities().stream()
@@ -146,7 +147,7 @@ public class BaseUserController implements InitializingBean {
                         try {
                             i = userManager.verifyUserIdentity(realm, u.getSubjectId(), i.getProvider(), i.getId());
                         } catch (RegistrationException | NoSuchRealmException | NoSuchUserException
-                                | NoSuchProviderException e) {
+                                | NoSuchProviderException | NoSuchAuthorityException e) {
                             // skip
                             logger.error("error verifying invited user {}:{} {} for realm {}",
                                     u.getSubjectId(), i.getId(),
@@ -192,7 +193,8 @@ public class BaseUserController implements InitializingBean {
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
             @RequestBody @Valid @NotNull AbstractIdentity reg)
-            throws NoSuchRealmException, RegistrationException, NoSuchUserException, NoSuchProviderException {
+            throws NoSuchRealmException, RegistrationException, NoSuchUserException, NoSuchProviderException,
+            NoSuchAuthorityException {
         logger.debug("register user for realm {}",
                 StringUtils.trimAllWhitespace(realm));
 
@@ -262,7 +264,8 @@ public class BaseUserController implements InitializingBean {
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String identityUuid,
             @RequestBody @Valid @NotNull AbstractIdentity reg)
-            throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException {
+            throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException,
+            NoSuchAuthorityException {
         logger.debug("update user {} for realm {}",
                 StringUtils.trimAllWhitespace(userId), StringUtils.trimAllWhitespace(realm));
 
@@ -278,7 +281,8 @@ public class BaseUserController implements InitializingBean {
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String identityUuid)
-            throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException {
+            throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException,
+            NoSuchAuthorityException {
         logger.debug("update user {} for realm {}",
                 StringUtils.trimAllWhitespace(userId), StringUtils.trimAllWhitespace(realm));
 
@@ -305,7 +309,8 @@ public class BaseUserController implements InitializingBean {
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String identityUuid)
-            throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException {
+            throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException,
+            NoSuchAuthorityException {
         logger.debug("confirm identity {} for user {} for realm {}", StringUtils.trimAllWhitespace(identityUuid),
                 StringUtils.trimAllWhitespace(userId), StringUtils.trimAllWhitespace(realm));
         // fetch from user
@@ -331,7 +336,8 @@ public class BaseUserController implements InitializingBean {
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String identityUuid)
-            throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException {
+            throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException,
+            NoSuchAuthorityException {
         logger.debug("unconfirm identity {} for user {} for realm {}", StringUtils.trimAllWhitespace(identityUuid),
                 StringUtils.trimAllWhitespace(userId), StringUtils.trimAllWhitespace(realm));
         // fetch from user
@@ -357,7 +363,8 @@ public class BaseUserController implements InitializingBean {
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String identityUuid)
-            throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException {
+            throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException,
+            NoSuchAuthorityException {
         logger.debug("verify identity {} for user {} for realm {}", StringUtils.trimAllWhitespace(identityUuid),
                 StringUtils.trimAllWhitespace(userId), StringUtils.trimAllWhitespace(realm));
         // fetch from user
@@ -384,7 +391,8 @@ public class BaseUserController implements InitializingBean {
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String identityUuid,
             @RequestBody @Valid @NotNull UserStatus reg)
-            throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException {
+            throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException,
+            NoSuchAuthorityException {
         logger.debug("update status for user {} for realm {}",
                 StringUtils.trimAllWhitespace(userId), StringUtils.trimAllWhitespace(realm));
 

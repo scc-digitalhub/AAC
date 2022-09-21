@@ -9,7 +9,7 @@ import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 @Service
 public class InternalIdentityProviderConfigurationProvider
         extends
-        AbstractIdentityConfigurationProvider<InternalIdentityProviderConfig, InternalIdentityServiceConfigMap> {
+        AbstractIdentityConfigurationProvider<InternalIdentityServiceConfigMap, InternalIdentityProviderConfig> {
 
     public InternalIdentityProviderConfigurationProvider(AuthoritiesProperties authoritiesProperties) {
         super(SystemKeys.AUTHORITY_INTERNAL);

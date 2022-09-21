@@ -49,6 +49,7 @@ public class SamlIdentityAuthority extends
     // execution service for custom attributes mapping
     private ScriptExecutionService executionService;
 
+    @Autowired
     public SamlIdentityAuthority(
             UserAccountService<SamlUserAccount> userAccountService, AutoJdbcAttributeStore jdbcAttributeStore,
             ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository,

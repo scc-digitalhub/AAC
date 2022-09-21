@@ -8,7 +8,7 @@ import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 
 @Service
 public class WebAuthnIdentityConfigurationProvider extends
-        AbstractIdentityConfigurationProvider<WebAuthnIdentityProviderConfig, WebAuthnIdentityProviderConfigMap> {
+        AbstractIdentityConfigurationProvider<WebAuthnIdentityProviderConfigMap, WebAuthnIdentityProviderConfig> {
 
     public WebAuthnIdentityConfigurationProvider(AuthoritiesProperties authoritiesProperties) {
         super(SystemKeys.AUTHORITY_WEBAUTHN);

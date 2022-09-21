@@ -7,7 +7,7 @@ import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsService;
 
 @Service
 public class PasswordCredentialsConfigurationProvider extends
-        AbstractCredentialsConfigurationProvider<PasswordCredentialsServiceConfig, PasswordCredentialsServiceConfigMap> {
+        AbstractCredentialsConfigurationProvider<PasswordCredentialsServiceConfigMap, PasswordCredentialsServiceConfig> {
 
     public PasswordCredentialsConfigurationProvider() {
         super(SystemKeys.AUTHORITY_PASSWORD);

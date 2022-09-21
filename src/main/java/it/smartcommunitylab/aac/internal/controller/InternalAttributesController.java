@@ -64,7 +64,7 @@ public class InternalAttributesController {
             Model model) throws NoSuchProviderException, NoSuchRealmException, NoSuchAttributeSetException {
 
         // resolve provider
-        InternalAttributeService as = internalAuthority.getAttributeService(providerId);
+        InternalAttributeService as = internalAuthority.getProvider(providerId);
         if (as == null) {
             throw new NoSuchProviderException();
         }
@@ -118,7 +118,7 @@ public class InternalAttributesController {
 
         try {
             // resolve provider
-            InternalAttributeService as = internalAuthority.getAttributeService(providerId);
+            InternalAttributeService as = internalAuthority.getProvider(providerId);
             if (as == null) {
                 throw new NoSuchProviderException();
             }

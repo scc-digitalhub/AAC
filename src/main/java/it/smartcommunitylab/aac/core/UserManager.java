@@ -61,8 +61,10 @@ import it.smartcommunitylab.aac.core.service.IdentityServiceService;
 import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.dto.ConnectedAppProfile;
+import it.smartcommunitylab.aac.internal.InternalIdentityServiceAuthority;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
 import it.smartcommunitylab.aac.model.Group;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.RealmRole;
@@ -114,8 +116,11 @@ public class UserManager {
 //    @Autowired
 //    private InternalUserManager internalUserManager;
 
-//    @Autowired
-//    private AttributeService attributeService;
+    @Autowired
+    private AttributeService attributeService;
+
+    @Autowired
+    private InternalIdentityServiceAuthority identityServiceAuthority;
 //
 //    @Autowired
 //    private IdentityProviderService identityProviderService;
@@ -285,6 +290,21 @@ public class UserManager {
         if (!StringUtils.hasText(emailAddress)) {
             throw new MissingDataException("email");
         }
+
+        InternalIdentityService ids = null;
+        if (StringUtils.hasText(provider)) {
+            ids = identityServiceAuthority.getProvider(provider);
+        } else {
+            // fetch default internal provider if unspecified
+            // TODO refactor
+            ids = identityServiceAuthority.getProvidersByRealm(realm).stream().findFirst().orElse(null);
+        }
+
+        if (ids == null) {
+            throw new NoSuchProviderException();
+        }
+
+        provider = ids.getProvider();
 
         // build only base identity
         InternalUserAccount account = new InternalUserAccount();
@@ -855,7 +875,8 @@ public class UserManager {
 
     public UserAttributes getUserAttributes(String realm, String subjectId,
             String provider, String identifier)
-            throws NoSuchUserException, NoSuchProviderException, NoSuchRealmException, NoSuchAttributeSetException {
+            throws NoSuchUserException, NoSuchProviderException, NoSuchRealmException, NoSuchAttributeSetException,
+            NoSuchAuthorityException {
 
         Realm r = realmService.getRealm(realm);
 
@@ -888,7 +909,8 @@ public class UserManager {
 
     public void removeUserAttributes(String realm, String subjectId,
             String provider, String identifier)
-            throws NoSuchUserException, NoSuchProviderException, NoSuchRealmException, NoSuchAttributeSetException {
+            throws NoSuchUserException, NoSuchProviderException, NoSuchRealmException, NoSuchAttributeSetException,
+            NoSuchAuthorityException {
         userService.removeUserAttributes(subjectId, realm, provider, identifier);
     }
 

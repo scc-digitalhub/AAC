@@ -9,7 +9,7 @@ import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 
 @Service
 public class SamlIdentityConfigurationProvider
-        extends AbstractIdentityConfigurationProvider<SamlIdentityProviderConfig, SamlIdentityProviderConfigMap> {
+        extends AbstractIdentityConfigurationProvider<SamlIdentityProviderConfigMap, SamlIdentityProviderConfig> {
 
     @Autowired
     public SamlIdentityConfigurationProvider(AuthoritiesProperties authoritiesProperties) {

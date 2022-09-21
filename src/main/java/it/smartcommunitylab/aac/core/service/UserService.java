@@ -2,7 +2,6 @@ package it.smartcommunitylab.aac.core.service;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -31,7 +30,6 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
@@ -42,12 +40,12 @@ import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
-import it.smartcommunitylab.aac.core.provider.AttributeService;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.groups.service.GroupService;
+import it.smartcommunitylab.aac.internal.InternalAttributeAuthority;
+import it.smartcommunitylab.aac.internal.provider.InternalAttributeService;
 import it.smartcommunitylab.aac.model.Group;
-import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.Subject;
@@ -94,6 +92,9 @@ public class UserService {
 
     @Autowired
     private CredentialsServiceAuthorityService credentialsServiceAuthorityService;
+
+    @Autowired
+    private InternalAttributeAuthority internalAttributeAuthority;
 
     @Autowired
     private IdentityProviderService identityProviderService;
@@ -303,10 +304,10 @@ public class UserService {
 
         // same realm, fetch all idps
         // TODO we need an order criteria
-        Collection<IdentityProvider<? extends UserIdentity, ?, ?>> providers = identityProviderAuthorityService
+        Collection<IdentityProvider<? extends UserIdentity, ?, ?, ?, ?>> providers = identityProviderAuthorityService
                 .getAuthorities().stream()
                 .flatMap(a -> a.getProvidersByRealm(realm).stream()).collect(Collectors.toList());
-        for (IdentityProvider<? extends UserIdentity, ?, ?> idp : providers) {
+        for (IdentityProvider<? extends UserIdentity, ?, ?, ?, ?> idp : providers) {
             identities.addAll(idp.listIdentities(subjectId));
         }
 
@@ -367,10 +368,10 @@ public class UserService {
 
         // fetch all identities from source realm
         // TODO we need an order criteria
-        Collection<IdentityProvider<? extends UserIdentity, ?, ?>> providers = identityProviderAuthorityService
+        Collection<IdentityProvider<? extends UserIdentity, ?, ?, ?, ?>> providers = identityProviderAuthorityService
                 .getAuthorities().stream()
                 .flatMap(a -> a.getProvidersByRealm(realm).stream()).collect(Collectors.toList());
-        for (IdentityProvider<? extends UserIdentity, ?, ?> idp : providers) {
+        for (IdentityProvider<? extends UserIdentity, ?, ?, ?, ?> idp : providers) {
             identities.addAll(idp.listIdentities(subjectId));
         }
 
@@ -708,7 +709,7 @@ public class UserService {
 
         // fetch idp
         ConfigurableIdentityProvider cp = identityProviderService.getProvider(providerId);
-        IdentityProvider<? extends UserIdentity, ?, ?> idp = identityProviderAuthorityService
+        IdentityProvider<? extends UserIdentity, ?, ?, ?, ?> idp = identityProviderAuthorityService
                 .getAuthority(cp.getAuthority()).getProvider(cp.getProvider());
 
         // execute
@@ -723,7 +724,7 @@ public class UserService {
 
         // fetch idp
         ConfigurableIdentityProvider cp = identityProviderService.getProvider(providerId);
-        IdentityProvider<? extends UserIdentity, ?, ?> idp = identityProviderAuthorityService
+        IdentityProvider<? extends UserIdentity, ?, ?, ?, ?> idp = identityProviderAuthorityService
                 .getAuthority(cp.getAuthority()).getProvider(cp.getProvider());
 
         // delete via provider
@@ -738,7 +739,7 @@ public class UserService {
 
         // fetch idp
         ConfigurableIdentityProvider cp = identityProviderService.getProvider(providerId);
-        IdentityProvider<? extends UserIdentity, ?, ?> idp = identityProviderAuthorityService
+        IdentityProvider<? extends UserIdentity, ?, ?, ?, ?> idp = identityProviderAuthorityService
                 .getAuthority(cp.getAuthority()).getProvider(cp.getProvider());
 
         // lock account to disable login
@@ -755,7 +756,7 @@ public class UserService {
 
         // fetch idp
         ConfigurableIdentityProvider cp = identityProviderService.getProvider(providerId);
-        IdentityProvider<? extends UserIdentity, ?, ?> idp = identityProviderAuthorityService
+        IdentityProvider<? extends UserIdentity, ?, ?, ?, ?> idp = identityProviderAuthorityService
                 .getAuthority(cp.getAuthority()).getProvider(cp.getProvider());
 
         // unlock account to enable login
@@ -851,8 +852,10 @@ public class UserService {
             throw new IllegalArgumentException("set not enabled for this provider");
         }
 
-        AttributeService as = authorityManager.getAttributeService(provider);
-        return as.putAttributes(subjectId, Collections.singleton(attributeSet)).stream().findFirst().orElse(null);
+        // supports only internal
+        // TODO refactor
+        InternalAttributeService as = internalAttributeAuthority.getProvider(provider);
+        return as.putUserAttributes(subjectId, setId, attributeSet);
     }
 
     public void removeUserAttributes(String subjectId, String realm, String provider, String setId)

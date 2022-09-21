@@ -31,7 +31,7 @@ public class PasswordCredentialsAuthority extends
             UserAccountService<InternalUserAccount> userAccountService,
             InternalUserPasswordService passwordService,
             ProviderConfigRepository<PasswordCredentialsServiceConfig> registrationRepository) {
-        super(SystemKeys.AUTHORITY_WEBAUTHN, registrationRepository);
+        super(SystemKeys.AUTHORITY_PASSWORD, registrationRepository);
         Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(passwordService, "password service is mandatory");
 
