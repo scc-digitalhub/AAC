@@ -31,7 +31,7 @@ import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.internal.InternalIdentityProviderAuthority;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
-import it.smartcommunitylab.aac.internal.provider.InternalIdentityServiceConfig;
+import it.smartcommunitylab.aac.internal.provider.InternalAccountServiceConfig;
 import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
 import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProviderConfig;
 
@@ -44,7 +44,7 @@ public class ConfirmKeyAuthenticationFilter
     public static final String DEFAULT_FILTER_URI = InternalIdentityProviderAuthority.AUTHORITY_URL
             + "confirm/{registrationId}";
 
-    private final ProviderConfigRepository<InternalIdentityServiceConfig> registrationRepository;
+    private final ProviderConfigRepository<InternalAccountServiceConfig> registrationRepository;
 
     private final RequestMatcher requestMatcher;
 
@@ -54,12 +54,12 @@ public class ConfirmKeyAuthenticationFilter
     private final InternalUserConfirmKeyService userAccountService;
 
     public ConfirmKeyAuthenticationFilter(InternalUserConfirmKeyService userAccountService,
-            ProviderConfigRepository<InternalIdentityServiceConfig> registrationRepository) {
+            ProviderConfigRepository<InternalAccountServiceConfig> registrationRepository) {
         this(userAccountService, registrationRepository, DEFAULT_FILTER_URI, null);
     }
 
     public ConfirmKeyAuthenticationFilter(InternalUserConfirmKeyService userAccountService,
-            ProviderConfigRepository<InternalIdentityServiceConfig> registrationRepository,
+            ProviderConfigRepository<InternalAccountServiceConfig> registrationRepository,
             String filterProcessingUrl, AuthenticationEntryPoint authenticationEntryPoint) {
         super(filterProcessingUrl);
         Assert.notNull(userAccountService, "user account service is required");

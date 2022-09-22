@@ -41,6 +41,7 @@ import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountReposito
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeProviderConfig;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityServiceConfig;
+import it.smartcommunitylab.aac.internal.provider.InternalAccountServiceConfig;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfig;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
@@ -227,8 +228,8 @@ public class PersistenceConfig {
      * implementation
      */
     @Bean
-    public ProviderConfigRepository<InternalIdentityServiceConfig> internalServiceConfigRepository() {
-        return new InMemoryProviderConfigRepository<InternalIdentityServiceConfig>();
+    public ProviderConfigRepository<InternalAccountServiceConfig> internalServiceConfigRepository() {
+        return new InMemoryProviderConfigRepository<InternalAccountServiceConfig>();
     }
 
     @Bean
@@ -279,6 +280,11 @@ public class PersistenceConfig {
     @Bean
     public ProviderConfigRepository<WebhookAttributeProviderConfig> webhookAttributeProviderConfigRepository() {
         return new InMemoryProviderConfigRepository<WebhookAttributeProviderConfig>();
+    }
+
+    @Bean
+    public ProviderConfigRepository<InternalIdentityServiceConfig> internalIdentityServiceConfigRepository() {
+        return new InMemoryProviderConfigRepository<InternalIdentityServiceConfig>();
     }
 
     @Bean

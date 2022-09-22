@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.core.provider;
 
 import java.util.Collection;
 
+import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
@@ -22,7 +23,13 @@ public interface IdentityService<I extends UserIdentity, U extends UserAccount, 
      * Services
      */
 
-    public AccountService<U> getAccountService();
+    public AccountService<U, ?, ?> getAccountService() throws NoSuchProviderException;
+
+    public AccountCredentialsService<?, ?, ?> getCredentialsService(String authority) throws NoSuchProviderException;
+
+    public Collection<AccountCredentialsService<?, ?, ?>> getCredentialsServices();
+
+//    public AttributeService<?, ?> getAttributeService();
 
     // TODO evaluate subjectResolver moved here, we manage accounts
 
@@ -33,6 +40,8 @@ public interface IdentityService<I extends UserIdentity, U extends UserAccount, 
     public I findIdentity(String userId, String identityId);
 
     public I getIdentity(String userId, String identityId) throws NoSuchUserException;
+
+    public I getIdentity(String userId, String identityId, boolean loadCredentials) throws NoSuchUserException;
 
     public Collection<I> listIdentities(String userId);
 

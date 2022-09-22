@@ -13,7 +13,6 @@ import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.LoginProvider;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
-import it.smartcommunitylab.aac.internal.model.CredentialsType;
 import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
@@ -50,8 +49,8 @@ public class InternalIdentityProvider extends
         this.config = config;
 
         // build resource providers, we use our providerId to ensure consistency
-        this.attributeProvider = new InternalAttributeProvider<>(SystemKeys.AUTHORITY_PASSWORD, providerId, realm);
-        this.accountProvider = new InternalAccountProvider(SystemKeys.AUTHORITY_PASSWORD, providerId,
+        this.attributeProvider = new InternalAttributeProvider<>(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
+        this.accountProvider = new InternalAccountProvider(SystemKeys.AUTHORITY_INTERNAL, providerId,
                 userAccountService, repositoryId, realm);
 
         // build providers
@@ -70,10 +69,6 @@ public class InternalIdentityProvider extends
         return true;
     }
 
-    public CredentialsType getCredentialsType() {
-        return CredentialsType.NONE;
-    }
-
     @Override
     public InternalIdentityProviderConfig getConfig() {
         return config;
@@ -81,6 +76,11 @@ public class InternalIdentityProvider extends
 
     @Override
     public InternalAccountProvider getAccountProvider() {
+        return accountProvider;
+    }
+
+    @Override
+    public InternalAccountProvider getAccountPrincipalConverter() {
         return accountProvider;
     }
 

@@ -87,6 +87,11 @@ public class SamlIdentityProvider
     }
 
     @Override
+    public SamlAccountProvider getAccountPrincipalConverter() {
+        return accountProvider;
+    }
+
+    @Override
     public SamlAttributeProvider getAttributeProvider() {
         return attributeProvider;
     }

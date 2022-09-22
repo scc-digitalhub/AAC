@@ -43,11 +43,16 @@ import it.smartcommunitylab.aac.common.LoginException;
 import it.smartcommunitylab.aac.config.ApplicationProperties;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.RealmManager;
+import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
+import it.smartcommunitylab.aac.core.provider.AccountService;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.provider.LoginProvider;
+import it.smartcommunitylab.aac.core.service.AccountServiceAuthorityService;
 import it.smartcommunitylab.aac.core.service.ClientDetailsService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderAuthorityService;
+import it.smartcommunitylab.aac.core.service.IdentityServiceAuthorityService;
 import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.model.Realm;
 
@@ -67,6 +72,9 @@ public class LoginController {
 
     @Autowired
     private IdentityProviderAuthorityService identityProviderAuthorityService;
+
+    @Autowired
+    private IdentityServiceAuthorityService identityServiceAuthorityService;
 
     @Autowired
     private RealmManager realmManager;
@@ -252,6 +260,17 @@ public class LoginController {
                 .collect(Collectors.toList()));
 
         model.addAttribute("authorities", loginAuthorities);
+
+        // fetch account services for user registration
+        Collection<IdentityService<? extends UserIdentity, ?, ?, ?>> services = identityServiceAuthorityService
+                .getAuthorities().stream()
+                .flatMap(a -> a.getProvidersByRealm(realm).stream()).collect(Collectors.toList());
+
+        // get registration entries
+        // TODO replace with model, with ordering etc
+        List<String> registrations = services.stream().map(s -> s.getRegistrationUrl()).filter(r -> r != null)
+                .collect(Collectors.toList());
+        model.addAttribute("registrations", registrations);
 
         // check errors
         Exception error = (Exception) req.getSession()

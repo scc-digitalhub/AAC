@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.password.provider;
 
 import org.springframework.stereotype.Service;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.config.CredentialsAuthoritiesProperties;
 import it.smartcommunitylab.aac.core.base.AbstractCredentialsConfigurationProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsService;
 
@@ -9,9 +10,14 @@ import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsService;
 public class PasswordCredentialsConfigurationProvider extends
         AbstractCredentialsConfigurationProvider<PasswordCredentialsServiceConfigMap, PasswordCredentialsServiceConfig> {
 
-    public PasswordCredentialsConfigurationProvider() {
+    public PasswordCredentialsConfigurationProvider(CredentialsAuthoritiesProperties authoritiesProperties) {
         super(SystemKeys.AUTHORITY_PASSWORD);
-        setDefaultConfigMap(new PasswordCredentialsServiceConfigMap());
+        if (authoritiesProperties != null && authoritiesProperties.getPassword() != null) {
+            setDefaultConfigMap(authoritiesProperties.getPassword());
+        } else {
+            setDefaultConfigMap(new PasswordCredentialsServiceConfigMap());
+        }
+
     }
 
     @Override

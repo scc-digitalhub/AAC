@@ -11,7 +11,7 @@ import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProvid
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfigMap;
 
-public class AuthoritiesProperties {
+public class IdentityAuthoritiesProperties {
     // TODO add enable//disable flag on authorities
 
     @NestedConfigurationProperty

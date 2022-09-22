@@ -97,6 +97,11 @@ public class OIDCIdentityProvider
     }
 
     @Override
+    public OIDCAccountProvider getAccountPrincipalConverter() {
+        return accountProvider;
+    }
+
+    @Override
     public OIDCAttributeProvider getAttributeProvider() {
         return attributeProvider;
     }

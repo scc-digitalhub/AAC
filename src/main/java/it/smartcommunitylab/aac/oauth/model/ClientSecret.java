@@ -19,7 +19,7 @@ import it.smartcommunitylab.aac.oauth.persistence.AbstractOAuth2ClientResource;
 public class ClientSecret extends AbstractOAuth2ClientResource implements ClientCredentials {
     private static final long serialVersionUID = SystemKeys.AAC_OAUTH2_SERIAL_VERSION;
 
-    private final String secret;
+    private String secret;
 
     public ClientSecret(String realm, String clientId, String secret) {
         super(realm, clientId);
@@ -45,6 +45,11 @@ public class ClientSecret extends AbstractOAuth2ClientResource implements Client
     @Override
     public String getId() {
         return getClientId() + "." + getType();
+    }
+
+    @Override
+    public void eraseCredentials() {
+        this.secret = null;
     }
 
 }

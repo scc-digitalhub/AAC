@@ -13,6 +13,7 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.core.provider.AccountPrincipalConverter;
 import it.smartcommunitylab.aac.core.provider.AccountProvider;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
@@ -21,7 +22,7 @@ import it.smartcommunitylab.aac.model.SubjectStatus;
 
 @Transactional
 public class InternalAccountProvider extends AbstractProvider<InternalUserAccount>
-        implements AccountProvider<InternalUserAccount> {
+        implements AccountProvider<InternalUserAccount>, AccountPrincipalConverter<InternalUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final UserAccountService<InternalUserAccount> accountService;
@@ -194,6 +195,25 @@ public class InternalAccountProvider extends AbstractProvider<InternalUserAccoun
         account.setProvider(getProvider());
 
         return account;
+    }
+
+    @Override
+    public void deleteAccount(String username) throws NoSuchUserException {
+        InternalUserAccount account = findAccountByUsername(username);
+
+        if (account != null) {
+            // remove account
+            accountService.deleteAccount(repositoryId, username);
+        }
+    }
+
+    @Override
+    public void deleteAccounts(String userId) {
+        List<InternalUserAccount> accounts = accountService.findAccountByUser(repositoryId, userId);
+        for (InternalUserAccount a : accounts) {
+            // remove account
+            accountService.deleteAccount(repositoryId, a.getUsername());
+        }
     }
 
     private InternalUserAccount updateStatus(String username, SubjectStatus newStatus)

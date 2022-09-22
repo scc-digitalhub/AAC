@@ -18,6 +18,7 @@ import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
+import it.smartcommunitylab.aac.core.provider.AccountPrincipalConverter;
 import it.smartcommunitylab.aac.core.provider.AccountProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityAttributeProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
@@ -90,6 +91,8 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
     @Override
     public abstract AccountProvider<U> getAccountProvider();
 
+    public abstract AccountPrincipalConverter<U> getAccountPrincipalConverter();
+
     @Override
     public abstract IdentityAttributeProvider<P, U> getAttributeProvider();
 
@@ -155,7 +158,7 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
                 String.valueOf(emailAddress));
 
         // convert to account
-        U reg = getAccountProvider().convertAccount(principal, userId);
+        U reg = getAccountPrincipalConverter().convertAccount(principal, userId);
 
         if (logger.isTraceEnabled()) {
             logger.trace("converted account: {}", String.valueOf(reg));

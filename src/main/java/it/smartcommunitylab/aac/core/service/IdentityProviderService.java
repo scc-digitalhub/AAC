@@ -12,7 +12,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.config.AuthoritiesProperties;
+import it.smartcommunitylab.aac.config.IdentityAuthoritiesProperties;
 import it.smartcommunitylab.aac.config.ProvidersProperties;
 import it.smartcommunitylab.aac.config.ProvidersProperties.ProviderConfiguration;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
@@ -28,7 +28,7 @@ public class IdentityProviderService
     private IdentityProviderAuthorityService authorityService;
 
     public IdentityProviderService(IdentityProviderEntityService providerService,
-            AuthoritiesProperties authoritiesProperties, ProvidersProperties providers) {
+            IdentityAuthoritiesProperties authoritiesProperties, ProvidersProperties providers) {
         super(providerService);
 
         // create system idps

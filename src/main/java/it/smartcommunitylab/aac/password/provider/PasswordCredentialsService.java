@@ -22,7 +22,7 @@ import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsService;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
-import it.smartcommunitylab.aac.core.provider.UserCredentialsService;
+import it.smartcommunitylab.aac.core.provider.AccountCredentialsService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.password.InternalPasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.model.PasswordPolicy;
@@ -33,7 +33,7 @@ import it.smartcommunitylab.aac.utils.MailService;
 public class PasswordCredentialsService extends
         AbstractConfigurableProvider<InternalUserPassword, ConfigurableCredentialsService, PasswordCredentialsServiceConfigMap, PasswordCredentialsServiceConfig>
         implements
-        UserCredentialsService<InternalUserPassword, PasswordCredentialsServiceConfigMap, PasswordCredentialsServiceConfig> {
+        AccountCredentialsService<InternalUserPassword, PasswordCredentialsServiceConfigMap, PasswordCredentialsServiceConfig> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -227,10 +227,10 @@ public class PasswordCredentialsService extends
             throw new NoSuchUserException();
         }
 
-        // check for confirmed
-        if (config.isRequireAccountConfirmation() && !account.isConfirmed()) {
-            throw new IllegalArgumentException("account-unconfirmed");
-        }
+//        // check for confirmed
+//        if (config.isRequireAccountConfirmation() && !account.isConfirmed()) {
+//            throw new IllegalArgumentException("account-unconfirmed");
+//        }
 
         // check if userId matches account
         if (!account.getUserId().equals(credentials.getUserId())) {
@@ -306,12 +306,7 @@ public class PasswordCredentialsService extends
     }
 
     @Override
-    public void deleteCredentials(String username) throws NoSuchUserException {
-        InternalUserAccount account = accountService.findAccountById(repositoryId, username);
-        if (account == null) {
-            throw new NoSuchUserException();
-        }
-
+    public void deleteCredentials(String username) {
         // delete all passwords
         passwordService.deletePassword(repositoryId, username);
     }

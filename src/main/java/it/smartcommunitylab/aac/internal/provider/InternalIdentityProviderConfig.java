@@ -17,7 +17,7 @@ public class InternalIdentityProviderConfig extends AbstractIdentityProviderConf
         super(cp);
     }
 
-    public InternalIdentityProviderConfig(InternalIdentityServiceConfig cp) {
+    public InternalIdentityProviderConfig(InternalAccountServiceConfig cp) {
         this(cp.getProvider(), cp.getRealm());
         this.name = cp.getName();
         this.description = cp.getDescription();

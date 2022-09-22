@@ -31,10 +31,10 @@ import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityFilterProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProvider;
-import it.smartcommunitylab.aac.internal.provider.InternalIdentityServiceConfigMap;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigurationProvider;
-import it.smartcommunitylab.aac.internal.provider.InternalIdentityServiceConfig;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityServiceConfigMap;
+import it.smartcommunitylab.aac.internal.provider.InternalAccountServiceConfig;
 import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
 
 @Service
@@ -58,7 +58,7 @@ public class InternalIdentityProviderAuthority
     protected InternalIdentityProviderConfigurationProvider configProvider;
 
     // provider configs by id
-    protected final ProviderConfigRepository<InternalIdentityServiceConfig> registrationRepository;
+    protected final ProviderConfigRepository<InternalAccountServiceConfig> registrationRepository;
 
     // loading cache for idps
     // TODO replace with external loadableProviderRepository for
@@ -70,7 +70,7 @@ public class InternalIdentityProviderAuthority
                 @Override
                 public InternalIdentityProvider load(final String id) throws Exception {
                     logger.debug("load config from repository for {}", id);
-                    InternalIdentityServiceConfig config = registrationRepository.findByProviderId(id);
+                    InternalAccountServiceConfig config = registrationRepository.findByProviderId(id);
 
                     if (config == null) {
                         throw new IllegalArgumentException("no configuration matching the given provider id");
@@ -84,7 +84,7 @@ public class InternalIdentityProviderAuthority
 
     public InternalIdentityProviderAuthority(
             UserAccountService<InternalUserAccount> userAccountService, InternalUserConfirmKeyService confirmKeyService,
-            ProviderConfigRepository<InternalIdentityServiceConfig> registrationRepository) {
+            ProviderConfigRepository<InternalAccountServiceConfig> registrationRepository) {
         Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(confirmKeyService, "confirm key service is mandatory");
         Assert.notNull(registrationRepository, "config repository is mandatory");
@@ -140,7 +140,7 @@ public class InternalIdentityProviderAuthority
 
     @Override
     public boolean hasProvider(String providerId) {
-        InternalIdentityServiceConfig registration = registrationRepository.findByProviderId(providerId);
+        InternalAccountServiceConfig registration = registrationRepository.findByProviderId(providerId);
         return (registration != null);
     }
 
@@ -150,7 +150,7 @@ public class InternalIdentityProviderAuthority
 
         try {
             // check if config is still active
-            InternalIdentityServiceConfig config = registrationRepository.findByProviderId(providerId);
+            InternalAccountServiceConfig config = registrationRepository.findByProviderId(providerId);
             if (config == null) {
                 // cleanup cache
                 providers.invalidate(providerId);
@@ -178,7 +178,7 @@ public class InternalIdentityProviderAuthority
     @Override
     public List<InternalIdentityProvider> getProvidersByRealm(String realm) {
         // we need to fetch registrations and get idp from cache, with optional load
-        Collection<InternalIdentityServiceConfig> registrations = registrationRepository.findByRealm(realm);
+        Collection<InternalAccountServiceConfig> registrations = registrationRepository.findByRealm(realm);
         return registrations.stream().map(r -> findProvider(r.getProvider()))
                 .filter(p -> (p != null)).collect(Collectors.toList());
     }
@@ -193,7 +193,7 @@ public class InternalIdentityProviderAuthority
     @Override
     public void unregisterProvider(String providerId) throws SystemException {
         // nothing to do
-
+        throw new RegistrationException();
     }
 
 }

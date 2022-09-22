@@ -10,14 +10,26 @@ import org.springframework.core.annotation.Order;
 public class PropertiesConfig {
     @Bean
     @ConfigurationProperties(prefix = "application")
-    public ApplicationProperties applicationPrps() {
+    public ApplicationProperties applicationProps() {
         return new ApplicationProperties();
     }
 
     @Bean
-    @ConfigurationProperties(prefix = "authorities")
-    public AuthoritiesProperties authoritiesProps() {
-        return new AuthoritiesProperties();
+    @ConfigurationProperties(prefix = "authorities.identity")
+    public IdentityAuthoritiesProperties identityAuthoritiesProps() {
+        return new IdentityAuthoritiesProperties();
+    }
+
+    @Bean
+    @ConfigurationProperties(prefix = "authorities.account")
+    public AccountAuthoritiesProperties accountAuthoritiesProps() {
+        return new AccountAuthoritiesProperties();
+    }
+
+    @Bean
+    @ConfigurationProperties(prefix = "authorities.credentials")
+    public CredentialsAuthoritiesProperties credentialsAuthoritiesProps() {
+        return new CredentialsAuthoritiesProperties();
     }
 
     @Bean

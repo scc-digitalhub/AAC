@@ -39,7 +39,7 @@ public class AuthoritiesConfig {
     @Bean
     public IdentityProviderAuthorityService identityProviderAuthorityService(
             Collection<IdentityProviderAuthority<?, ?, ?, ?>> authorities,
-            AuthoritiesProperties authsProps) {
+            IdentityAuthoritiesProperties authsProps) {
 
         // build a service with default from autowiring
         IdentityProviderAuthorityService service = new IdentityProviderAuthorityService(authorities);

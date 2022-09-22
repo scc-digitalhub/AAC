@@ -34,14 +34,14 @@ import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.model.ConfigurableIdentityService;
+import it.smartcommunitylab.aac.core.model.ConfigurableAccountService;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
+import it.smartcommunitylab.aac.core.provider.AccountService;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
-import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.groups.service.GroupService;
 import it.smartcommunitylab.aac.internal.InternalAttributeAuthority;
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeService;
@@ -88,7 +88,7 @@ public class UserService {
     private AttributeProviderAuthorityService attributeProviderAuthorityService;
 
     @Autowired
-    private IdentityServiceAuthorityService identityServiceAuthorityService;
+    private AccountServiceAuthorityService accountServiceAuthorityService;
 
     @Autowired
     private CredentialsServiceAuthorityService credentialsServiceAuthorityService;
@@ -103,7 +103,7 @@ public class UserService {
     private AttributeProviderService attributeProviderService;
 
     @Autowired
-    private IdentityServiceService identityServiceService;
+    private AccountServiceService identityServiceService;
 
     @Autowired
     private CredentialsServiceService credentialsServiceService;
@@ -562,10 +562,10 @@ public class UserService {
                 .flatMap(a -> a.getProvidersByRealm(realm).stream())
                 .forEach(p -> p.deleteIdentities(subjectId));
 
-        // delete identities via (active) services
-        identityServiceAuthorityService.getAuthorities().stream()
+        // delete accounts via (active) services
+        accountServiceAuthorityService.getAuthorities().stream()
                 .flatMap(a -> a.getProvidersByRealm(realm).stream())
-                .forEach(s -> s.deleteIdentities(subjectId));
+                .forEach(s -> s.deleteAccounts(subjectId));
 
         // delete attributes via (active) providers
         attributeProviderAuthorityService.getAuthorities().stream()
@@ -599,13 +599,12 @@ public class UserService {
     }
 
     /*
-     * User identities
+     * User account
      * 
      * action via services
      */
     @Transactional(readOnly = false)
-    public UserIdentity createUserIdentity(String userId, String providerId,
-            UserIdentity reg)
+    public UserAccount createUserAccount(String userId, String providerId, UserAccount reg)
             throws NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
         logger.debug("create user {} identity via provider {}", StringUtils.trimAllWhitespace(userId),
                 StringUtils.trimAllWhitespace(providerId));
@@ -615,85 +614,102 @@ public class UserService {
         }
 
         // fetch service
-        ConfigurableIdentityService cp = identityServiceService.getProvider(providerId);
-        IdentityService<? extends UserIdentity, ? extends UserAccount, ?, ?> service = identityServiceAuthorityService
+        ConfigurableAccountService cp = identityServiceService.getProvider(providerId);
+        AccountService<?, ?, ?> service = accountServiceAuthorityService
                 .getAuthority(cp.getAuthority()).getProvider(cp.getProvider());
 
         // execute
-        return service.createIdentity(userId, reg);
+        return service.createAccount(userId, reg);
     }
 
     @Transactional(readOnly = false)
-    public UserIdentity updateUserIdentity(String userId, String providerId, String identityId,
-            UserIdentity reg)
+    public UserAccount updateUserAccount(String userId, String providerId, String accountId, UserAccount reg)
             throws NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
         logger.debug("update user {} identity {} via provider {}", StringUtils.trimAllWhitespace(userId),
-                StringUtils.trimAllWhitespace(identityId), StringUtils.trimAllWhitespace(providerId));
+                StringUtils.trimAllWhitespace(accountId), StringUtils.trimAllWhitespace(providerId));
 
         if (reg == null) {
             throw new MissingDataException("registration");
         }
 
         // fetch service
-        ConfigurableIdentityService cp = identityServiceService.getProvider(providerId);
-        IdentityService<? extends UserIdentity, ? extends UserAccount, ?, ?> service = identityServiceAuthorityService
+        ConfigurableAccountService cp = identityServiceService.getProvider(providerId);
+        AccountService<?, ?, ?> service = accountServiceAuthorityService
                 .getAuthority(cp.getAuthority()).getProvider(cp.getProvider());
 
+        // find account and check user
+        UserAccount ua = service.getAccount(accountId);
+        if (!ua.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("user-mismatch");
+        }
+
         // execute
-        return service.updateIdentity(userId, identityId, reg);
+        return service.updateAccount(userId, accountId, reg);
     }
 
     @Transactional(readOnly = false)
-    public UserIdentity verifyUserIdentity(String userId, String providerId, String identityId)
+    public UserAccount verifyUserAccount(String userId, String providerId, String accountId)
             throws NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
         logger.debug("verify user {} identity {} via provider {}", StringUtils.trimAllWhitespace(userId),
-                StringUtils.trimAllWhitespace(identityId), StringUtils.trimAllWhitespace(providerId));
+                StringUtils.trimAllWhitespace(accountId), StringUtils.trimAllWhitespace(providerId));
 
         // fetch service
-        ConfigurableIdentityService cp = identityServiceService.getProvider(providerId);
-        IdentityService<? extends UserIdentity, ? extends UserAccount, ?, ?> service = identityServiceAuthorityService
+        ConfigurableAccountService cp = identityServiceService.getProvider(providerId);
+        AccountService<?, ?, ?> service = accountServiceAuthorityService
                 .getAuthority(cp.getAuthority()).getProvider(cp.getProvider());
 
-        // execute
-        service.getAccountService().verifyAccount(identityId);
+        // find account and check user
+        UserAccount ua = service.getAccount(accountId);
+        if (!ua.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("user-mismatch");
+        }
 
-        return service.getIdentity(userId, identityId);
+        // execute
+        return service.verifyAccount(accountId);
     }
 
     @Transactional(readOnly = false)
-    public UserIdentity confirmUserIdentity(String userId, String providerId, String identityId)
+    public UserAccount confirmUserAccount(String userId, String providerId, String accountId)
             throws NoSuchUserException, NoSuchProviderException, RegistrationException,
             NoSuchAuthorityException {
         logger.debug("confirm user {} identity {} via provider {}", StringUtils.trimAllWhitespace(userId),
-                StringUtils.trimAllWhitespace(identityId), StringUtils.trimAllWhitespace(providerId));
+                StringUtils.trimAllWhitespace(accountId), StringUtils.trimAllWhitespace(providerId));
 
         // fetch service
-        ConfigurableIdentityService cp = identityServiceService.getProvider(providerId);
-        IdentityService<? extends UserIdentity, ? extends UserAccount, ?, ?> service = identityServiceAuthorityService
+        ConfigurableAccountService cp = identityServiceService.getProvider(providerId);
+        AccountService<?, ?, ?> service = accountServiceAuthorityService
                 .getAuthority(cp.getAuthority()).getProvider(cp.getProvider());
 
-        // execute
-        service.getAccountService().confirmAccount(identityId);
+        // find account and check user
+        UserAccount ua = service.getAccount(accountId);
+        if (!ua.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("user-mismatch");
+        }
 
-        return service.getIdentity(userId, identityId);
+        // execute
+        return service.confirmAccount(accountId);
     }
 
     @Transactional(readOnly = false)
-    public UserIdentity unconfirmUserIdentity(String userId, String providerId, String identityId)
+    public UserAccount unconfirmUserAccount(String userId, String providerId, String accountId)
             throws NoSuchUserException, NoSuchProviderException, RegistrationException,
             NoSuchAuthorityException {
         logger.debug("verify user {} identity {} via provider {}", StringUtils.trimAllWhitespace(userId),
-                StringUtils.trimAllWhitespace(identityId), StringUtils.trimAllWhitespace(providerId));
+                StringUtils.trimAllWhitespace(accountId), StringUtils.trimAllWhitespace(providerId));
 
         // fetch service
-        ConfigurableIdentityService cp = identityServiceService.getProvider(providerId);
-        IdentityService<? extends UserIdentity, ? extends UserAccount, ?, ?> service = identityServiceAuthorityService
+        ConfigurableAccountService cp = identityServiceService.getProvider(providerId);
+        AccountService<?, ?, ?> service = accountServiceAuthorityService
                 .getAuthority(cp.getAuthority()).getProvider(cp.getProvider());
 
-        // execute
-        service.getAccountService().unconfirmAccount(identityId);
+        // find account and check user
+        UserAccount ua = service.getAccount(accountId);
+        if (!ua.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("user-mismatch");
+        }
 
-        return service.getIdentity(userId, identityId);
+        // execute
+        return service.unconfirmAccount(accountId);
     }
 
     /*
@@ -702,67 +718,80 @@ public class UserService {
      * actions via providers
      */
     @Transactional(readOnly = false)
-    public UserIdentity getUserIdentity(String userId, String providerId, String identityId)
+    public UserAccount getUserAccount(String userId, String providerId, String accountId)
             throws NoSuchUserException, NoSuchProviderException, NoSuchAuthorityException {
         logger.debug("get user {} identity {} via provider {}", StringUtils.trimAllWhitespace(userId),
-                StringUtils.trimAllWhitespace(identityId), StringUtils.trimAllWhitespace(providerId));
+                StringUtils.trimAllWhitespace(accountId), StringUtils.trimAllWhitespace(providerId));
 
         // fetch idp
         ConfigurableIdentityProvider cp = identityProviderService.getProvider(providerId);
         IdentityProvider<? extends UserIdentity, ?, ?, ?, ?> idp = identityProviderAuthorityService
                 .getAuthority(cp.getAuthority()).getProvider(cp.getProvider());
 
-        // execute
-        return idp.getIdentity(userId, identityId);
+        // find account and check user
+        UserAccount ua = idp.getAccountProvider().getAccount(accountId);
+        if (!ua.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("user-mismatch");
+        }
+
+        return ua;
     }
 
     @Transactional(readOnly = false)
-    public void deleteUserIdentity(String userId, String providerId, String identityId)
+    public void deleteUserAccount(String userId, String providerId, String accountId)
             throws NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
         logger.debug("delete user {} identity {} via provider {}", StringUtils.trimAllWhitespace(userId),
-                StringUtils.trimAllWhitespace(identityId), StringUtils.trimAllWhitespace(providerId));
+                StringUtils.trimAllWhitespace(accountId), StringUtils.trimAllWhitespace(providerId));
 
         // fetch idp
         ConfigurableIdentityProvider cp = identityProviderService.getProvider(providerId);
         IdentityProvider<? extends UserIdentity, ?, ?, ?, ?> idp = identityProviderAuthorityService
                 .getAuthority(cp.getAuthority()).getProvider(cp.getProvider());
 
-        // delete via provider
-        idp.deleteIdentity(userId, identityId);
+        // delete via idp provider to also clear attributes
+        idp.deleteIdentity(userId, accountId);
     }
 
     @Transactional(readOnly = false)
-    public UserIdentity lockUserIdentity(String userId, String providerId, String identityId)
+    public UserAccount lockUserAccount(String userId, String providerId, String accountId)
             throws NoSuchUserException, NoSuchProviderException, NoSuchAuthorityException {
         logger.debug("lock user {} identity {} via provider {}", StringUtils.trimAllWhitespace(userId),
-                StringUtils.trimAllWhitespace(identityId), StringUtils.trimAllWhitespace(providerId));
+                StringUtils.trimAllWhitespace(accountId), StringUtils.trimAllWhitespace(providerId));
 
         // fetch idp
         ConfigurableIdentityProvider cp = identityProviderService.getProvider(providerId);
         IdentityProvider<? extends UserIdentity, ?, ?, ?, ?> idp = identityProviderAuthorityService
                 .getAuthority(cp.getAuthority()).getProvider(cp.getProvider());
+
+        // find account and check user
+        UserAccount ua = idp.getAccountProvider().getAccount(accountId);
+        if (!ua.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("user-mismatch");
+        }
 
         // lock account to disable login
-        idp.getAccountProvider().lockAccount(identityId);
-
-        return idp.getIdentity(userId, identityId, false);
+        return idp.getAccountProvider().lockAccount(accountId);
     }
 
     @Transactional(readOnly = false)
-    public UserIdentity unlockUserIdentity(String userId, String providerId, String identityId)
+    public UserAccount unlockUserAccount(String userId, String providerId, String accountId)
             throws NoSuchUserException, NoSuchProviderException, NoSuchAuthorityException {
         logger.debug("lock user {} identity {} via provider {}", StringUtils.trimAllWhitespace(userId),
-                StringUtils.trimAllWhitespace(identityId), StringUtils.trimAllWhitespace(providerId));
+                StringUtils.trimAllWhitespace(accountId), StringUtils.trimAllWhitespace(providerId));
 
         // fetch idp
         ConfigurableIdentityProvider cp = identityProviderService.getProvider(providerId);
         IdentityProvider<? extends UserIdentity, ?, ?, ?, ?> idp = identityProviderAuthorityService
                 .getAuthority(cp.getAuthority()).getProvider(cp.getProvider());
 
-        // unlock account to enable login
-        idp.getAccountProvider().unlockAccount(identityId);
+        // find account and check user
+        UserAccount ua = idp.getAccountProvider().getAccount(accountId);
+        if (!ua.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("user-mismatch");
+        }
 
-        return idp.getIdentity(userId, identityId, false);
+        // unlock account to enable login
+        return idp.getAccountProvider().unlockAccount(accountId);
     }
 
     // TODO user registration with authority via given provider

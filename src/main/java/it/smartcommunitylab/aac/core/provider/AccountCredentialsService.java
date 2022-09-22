@@ -13,9 +13,10 @@ import it.smartcommunitylab.aac.core.model.UserCredentials;
  * Credentials service handles credentials associated to a single user account,
  * which is handled by a given identity service in the same realm
  * 
+ * TODO split in singleCredential/multiCredential
  */
 
-public interface UserCredentialsService<R extends UserCredentials, M extends ConfigMap, C extends CredentialsServiceConfig<M>>
+public interface AccountCredentialsService<R extends UserCredentials, M extends ConfigMap, C extends CredentialsServiceConfig<M>>
         extends ConfigurableResourceProvider<R, ConfigurableCredentialsService, M, C> {
 
     /*
@@ -30,11 +31,12 @@ public interface UserCredentialsService<R extends UserCredentials, M extends Con
 
     public void revokeCredentials(String accountId) throws NoSuchUserException, NoSuchCredentialException;
 
-    public void deleteCredentials(String accountId) throws NoSuchUserException;
+    public void deleteCredentials(String accountId);
 
     /*
      * Set specific credentials when more than one is allowed
      */
+
     public Collection<R> listCredentials(String accountId) throws NoSuchUserException;
 
     public R getCredentials(String accountId, String credentialsId)

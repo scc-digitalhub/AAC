@@ -222,8 +222,7 @@ public class InternalUserPasswordService {
 
     }
 
-    public void deletePassword(String repositoryId, String username)
-            throws NoSuchUserException {
+    public void deletePassword(String repositoryId, String username) {
         // TODO add locking for atomic operation
 
         // delete all passwords

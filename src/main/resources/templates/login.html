@@ -91,6 +91,17 @@
                                 </div>
                             </div>
                         </div>
+                        
+                        <div class="text-center mt-4" th:if="${registrations != null && registrations.size() > 0}">
+                            <div class="row d-flex justify-content-center">
+                                <div class="col col-12 mb-3" th:each="registrationUrl: ${registrations}">                                
+                                  <span class="small">
+                                      <a class="" th:href="${registrationUrl}" th:text="#{label.login_register}">Register</a>
+                                  </span>
+                                </div>
+                            </div>
+                        </div>
+                        
                     </div>
 
                     <!-- realm footer -->

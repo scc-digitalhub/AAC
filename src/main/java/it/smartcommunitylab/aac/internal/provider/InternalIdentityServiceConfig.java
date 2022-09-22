@@ -7,8 +7,6 @@ import it.smartcommunitylab.aac.core.model.ConfigurableIdentityService;
 public class InternalIdentityServiceConfig extends AbstractIdentityServiceConfig<InternalIdentityServiceConfigMap> {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
-    private final static int DEFAULT_CONFIRM_DURATION = 24 * 60 * 60; // 24h
-
     public InternalIdentityServiceConfig(String provider, String realm) {
         super(SystemKeys.AUTHORITY_INTERNAL, provider, realm, new InternalIdentityServiceConfigMap());
     }
@@ -35,18 +33,6 @@ public class InternalIdentityServiceConfig extends AbstractIdentityServiceConfig
 
     public boolean isEnableDelete() {
         return configMap.getEnableDelete() != null ? configMap.getEnableDelete().booleanValue() : true;
-    }
-
-    public boolean isConfirmationRequired() {
-        return configMap.getConfirmationRequired() != null ? configMap.getConfirmationRequired().booleanValue() : true;
-    }
-
-    /*
-     * default config
-     */
-    public int getConfirmationValidity() {
-        return configMap.getConfirmationValidity() != null ? configMap.getConfirmationValidity().intValue()
-                : DEFAULT_CONFIRM_DURATION;
     }
 
 }

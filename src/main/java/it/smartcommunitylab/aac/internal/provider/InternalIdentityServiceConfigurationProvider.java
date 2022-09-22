@@ -2,7 +2,7 @@ package it.smartcommunitylab.aac.internal.provider;
 
 import org.springframework.stereotype.Service;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.config.AuthoritiesProperties;
+import it.smartcommunitylab.aac.config.IdentityAuthoritiesProperties;
 import it.smartcommunitylab.aac.core.base.AbstractConfigurationProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityService;
 import it.smartcommunitylab.aac.core.provider.IdentityServiceConfigurationProvider;
@@ -14,7 +14,7 @@ public class InternalIdentityServiceConfigurationProvider
         implements
         IdentityServiceConfigurationProvider<InternalIdentityServiceConfigMap, InternalIdentityServiceConfig> {
 
-    public InternalIdentityServiceConfigurationProvider(AuthoritiesProperties authoritiesProperties) {
+    public InternalIdentityServiceConfigurationProvider(IdentityAuthoritiesProperties authoritiesProperties) {
         super(SystemKeys.AUTHORITY_INTERNAL);
         if (authoritiesProperties != null && authoritiesProperties.getInternal() != null) {
             setDefaultConfigMap(authoritiesProperties.getInternal());

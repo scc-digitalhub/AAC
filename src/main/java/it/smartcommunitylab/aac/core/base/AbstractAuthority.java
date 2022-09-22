@@ -193,5 +193,4 @@ public abstract class AbstractAuthority<S extends ConfigurableResourceProvider<R
         return registrations.stream().map(r -> findProvider(r.getProvider()))
                 .filter(p -> (p != null)).collect(Collectors.toList());
     }
-
 }

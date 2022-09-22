@@ -91,6 +91,11 @@ public class AppleIdentityProvider
     }
 
     @Override
+    public OIDCAccountProvider getAccountPrincipalConverter() {
+        return accountProvider;
+    }
+
+    @Override
     public OIDCAttributeProvider getAttributeProvider() {
         return attributeProvider;
     }

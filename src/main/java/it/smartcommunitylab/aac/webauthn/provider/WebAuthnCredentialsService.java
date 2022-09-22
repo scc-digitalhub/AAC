@@ -31,7 +31,7 @@ import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsService;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
-import it.smartcommunitylab.aac.core.provider.UserCredentialsService;
+import it.smartcommunitylab.aac.core.provider.AccountCredentialsService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.webauthn.model.AttestationResponse;
 import it.smartcommunitylab.aac.webauthn.model.CredentialCreationInfo;
@@ -46,7 +46,7 @@ public class WebAuthnCredentialsService
         extends
         AbstractConfigurableProvider<WebAuthnUserCredential, ConfigurableCredentialsService, WebAuthnCredentialsServiceConfigMap, WebAuthnCredentialsServiceConfig>
         implements
-        UserCredentialsService<WebAuthnUserCredential, WebAuthnCredentialsServiceConfigMap, WebAuthnCredentialsServiceConfig> {
+        AccountCredentialsService<WebAuthnUserCredential, WebAuthnCredentialsServiceConfigMap, WebAuthnCredentialsServiceConfig> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // services
@@ -287,7 +287,7 @@ public class WebAuthnCredentialsService
     }
 
     @Override
-    public void deleteCredentials(String username) throws NoSuchUserException {
+    public void deleteCredentials(String username) {
         // fetch all credentials and delete
         List<WebAuthnUserCredential> credentials = credentialsService.findCredentialsByUsername(repositoryId, username);
         if (!credentials.isEmpty()) {

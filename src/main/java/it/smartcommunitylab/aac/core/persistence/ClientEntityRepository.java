@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import it.smartcommunitylab.aac.repository.CustomJpaRepository;
 
 @Repository
-public interface ClientEntityRepository extends CustomJpaRepository<ClientEntity, Long> {
+public interface ClientEntityRepository extends CustomJpaRepository<ClientEntity, String> {
 
     ClientEntity findByClientId(String clientId);
 

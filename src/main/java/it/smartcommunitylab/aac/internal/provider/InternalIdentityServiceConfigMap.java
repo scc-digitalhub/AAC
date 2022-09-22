@@ -25,11 +25,6 @@ public class InternalIdentityServiceConfigMap extends AbstractConfigMap implemen
     private Boolean enableDelete;
     private Boolean enableUpdate;
 
-    private Boolean confirmationRequired;
-
-    @Max(3 * 24 * 60 * 60)
-    private Integer confirmationValidity;
-
     public InternalIdentityServiceConfigMap() {
     }
 
@@ -65,22 +60,6 @@ public class InternalIdentityServiceConfigMap extends AbstractConfigMap implemen
         this.enableUpdate = enableUpdate;
     }
 
-    public Boolean getConfirmationRequired() {
-        return confirmationRequired;
-    }
-
-    public void setConfirmationRequired(Boolean confirmationRequired) {
-        this.confirmationRequired = confirmationRequired;
-    }
-
-    public Integer getConfirmationValidity() {
-        return confirmationValidity;
-    }
-
-    public void setConfirmationValidity(Integer confirmationValidity) {
-        this.confirmationValidity = confirmationValidity;
-    }
-
     @JsonIgnore
     public void setConfiguration(InternalIdentityServiceConfigMap map) {
         this.maxSessionDuration = map.getMaxSessionDuration();
@@ -88,9 +67,6 @@ public class InternalIdentityServiceConfigMap extends AbstractConfigMap implemen
         this.enableRegistration = map.getEnableRegistration();
         this.enableDelete = map.getEnableDelete();
         this.enableUpdate = map.getEnableUpdate();
-
-        this.confirmationRequired = map.getConfirmationRequired();
-        this.confirmationValidity = map.getConfirmationValidity();
     }
 
     @Override

@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import it.smartcommunitylab.aac.repository.CustomJpaRepository;
 
 @Repository
-public interface CredentialsServiceEntityRepository extends CustomJpaRepository<CredentialsServiceEntity, Long> {
+public interface CredentialsServiceEntityRepository extends CustomJpaRepository<CredentialsServiceEntity, String> {
 
     CredentialsServiceEntity findByProviderId(String providerId);
 

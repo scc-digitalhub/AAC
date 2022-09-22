@@ -12,7 +12,7 @@ public interface IdentityServiceAuthority<S extends IdentityService<I, U, M, C>,
         extends ProviderAuthority<S, I, ConfigurableIdentityService, M, C> {
 
     /*
-     * Filter provider exposes auth filters for registration in filter chain
+     * Filter provider exposes filters for registration in filter chain
      */
     public FilterProvider getFilterProvider();
 

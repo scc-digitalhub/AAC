@@ -28,7 +28,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.mapper.ExactAttributesMapper;
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
 import it.smartcommunitylab.aac.audit.store.AuditEventStore;
@@ -42,29 +41,17 @@ import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
-import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
-import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserCredentials;
-import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.ClientEntity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
-import it.smartcommunitylab.aac.core.provider.IdentityProvider;
-import it.smartcommunitylab.aac.core.provider.IdentityService;
-import it.smartcommunitylab.aac.core.provider.ScopeableProvider;
-import it.smartcommunitylab.aac.core.service.AttributeProviderService;
 import it.smartcommunitylab.aac.core.service.ClientEntityService;
-import it.smartcommunitylab.aac.core.service.IdentityProviderService;
-import it.smartcommunitylab.aac.core.service.IdentityServiceAuthorityService;
-import it.smartcommunitylab.aac.core.service.IdentityServiceService;
 import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.dto.ConnectedAppProfile;
-import it.smartcommunitylab.aac.internal.InternalIdentityServiceAuthority;
-import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
+import it.smartcommunitylab.aac.internal.InternalAccountServiceAuthority;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
+import it.smartcommunitylab.aac.internal.provider.InternalAccountService;
 import it.smartcommunitylab.aac.model.Group;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.RealmRole;
@@ -120,7 +107,7 @@ public class UserManager {
     private AttributeService attributeService;
 
     @Autowired
-    private InternalIdentityServiceAuthority identityServiceAuthority;
+    private InternalAccountServiceAuthority accountServiceAuthority;
 //
 //    @Autowired
 //    private IdentityProviderService identityProviderService;
@@ -291,13 +278,13 @@ public class UserManager {
             throw new MissingDataException("email");
         }
 
-        InternalIdentityService ids = null;
+        InternalAccountService ids = null;
         if (StringUtils.hasText(provider)) {
-            ids = identityServiceAuthority.getProvider(provider);
+            ids = accountServiceAuthority.getProvider(provider);
         } else {
             // fetch default internal provider if unspecified
             // TODO refactor
-            ids = identityServiceAuthority.getProvidersByRealm(realm).stream().findFirst().orElse(null);
+            ids = accountServiceAuthority.getProvidersByRealm(realm).stream().findFirst().orElse(null);
         }
 
         if (ids == null) {
@@ -307,23 +294,20 @@ public class UserManager {
         provider = ids.getProvider();
 
         // build only base identity
-        InternalUserAccount account = new InternalUserAccount();
-        account.setUsername(emailAddress);
-        account.setEmail(emailAddress);
-        account.setRealm(realm);
-
-        InternalUserIdentity reg = new InternalUserIdentity(provider, realm, account);
+        InternalUserAccount reg = new InternalUserAccount();
+        reg.setUsername(emailAddress);
+        reg.setEmail(emailAddress);
+        reg.setRealm(realm);
 
         try {
             // create internal account
-            UserIdentity identity = userService.createUserIdentity(null, provider, reg);
-            String userId = identity.getUserId();
+            UserAccount account = userService.createUserAccount(null, provider, reg);
+            String userId = account.getUserId();
 
             // force verification
-            identity = userService.verifyUserIdentity(userId, provider, identity.getId());
+            account = userService.verifyUserAccount(userId, provider, account.getId());
 
             return userService.getUser(userId, r.getSlug());
-
         } catch (NoSuchUserException e) {
             logger.error(e.getMessage(), e);
             throw new RegistrationException();
@@ -379,10 +363,10 @@ public class UserManager {
     }
 
     /*
-     * User identities
+     * User accounts
      */
     @Transactional(readOnly = false)
-    public UserIdentity createUserIdentity(String realm, String userId, String providerId, UserIdentity reg)
+    public UserAccount createUserAccount(String realm, String userId, String providerId, UserAccount reg)
             throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException, RegistrationException,
             NoSuchAuthorityException {
         logger.debug("create user {} identity from realm {}", StringUtils.trimAllWhitespace(userId),
@@ -395,142 +379,12 @@ public class UserManager {
             throw new IllegalArgumentException("realm-mismatch");
         }
 
-        return userService.createUserIdentity(userId, providerId, reg);
-
-//        logger.debug("create user identity {} in realm {}", String.valueOf(reg), StringUtils.trimAllWhitespace(realm));
-//
-//        if (reg == null) {
-//            throw new MissingDataException("registration");
-//        }
-//
-//        Realm r = realmService.getRealm(realm);
-//
-//        IdentityProvider<UserIdentity> idp = null;
-//
-//        if (providerId != null) {
-//            idp = authorityManager.getIdentityProvider(providerId);
-//        } else {
-//            // discover type and try to fetch by authority
-//            // TODO refactor
-//            String authority = null;
-//            if (reg instanceof InternalUserIdentity) {
-//                authority = SystemKeys.AUTHORITY_INTERNAL;
-////            } else if (reg instanceof OIDCUserIdentity) {
-////                authority = SystemKeys.AUTHORITY_OIDC;
-////            } else if (reg instanceof SamlUserIdentity) {
-////                authority = SystemKeys.AUTHORITY_SAML;
-//            }
-//
-//            if (authority != null) {
-//                idp = searchIdp(r.getSlug(),
-//                        authority,
-//                        SystemKeys.RESOURCE_REALM);
-//
-//                if (idp == null) {
-//                    // fall back to any idp
-//                    idp = searchIdp(r.getSlug(), authority, null);
-//                }
-//            }
-//        }
-//
-//        if (idp == null) {
-//            throw new NoSuchProviderException();
-//        }
-//
-//        // check provider belongs to realm
-//        if (!r.getSlug().equals(idp.getRealm())) {
-//            throw new IllegalArgumentException("realm-mismatch");
-//        }
-//
-//        // cast to service
-//        // TODO rework to fetch as service, works only for INTERNAL authority
-//        if (!(idp instanceof IdentityService)) {
-//            throw new NoSuchProviderException();
-//        }
-//
-//        @SuppressWarnings("unchecked")
-//        IdentityService<? extends UserIdentity, ? extends UserAccount> ids = (IdentityService<? extends UserIdentity, ? extends UserAccount>) idp;
-//
-//        UserIdentity identity = ids.createIdentity(userId, reg);
-//        userId = identity.getUserId();
-//
-//        logger.debug("create user new identity {} in realm {}", StringUtils.trimAllWhitespace(userId),
-//                StringUtils.trimAllWhitespace(realm));
-//
-//        return identity;
+        return userService.createUserAccount(userId, providerId, reg);
     }
 
-//    @Transactional(readOnly = false)
-//    public UserIdentity registerUserIdentity(String realm, String userId, String providerId, UserIdentity reg,
-//            UserCredentials credentials)
-//            throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException, RegistrationException {
-//        logger.debug("register user identity {} in realm {}", String.valueOf(reg),
-//                StringUtils.trimAllWhitespace(realm));
-//
-//        if (reg == null) {
-//            throw new MissingDataException("registration");
-//        }
-//
-//        Realm r = realmService.getRealm(realm);
-//
-//        IdentityProvider<UserIdentity> idp = null;
-//
-//        if (providerId != null) {
-//            idp = authorityManager.getIdentityProvider(providerId);
-//        } else {
-//            // discover type and try to fetch by authority
-//            // TODO refactor
-//            String authority = null;
-//            if (reg instanceof InternalUserIdentity) {
-//                authority = SystemKeys.AUTHORITY_INTERNAL;
-////            } else if (reg instanceof OIDCUserIdentity) {
-////                authority = SystemKeys.AUTHORITY_OIDC;
-////            } else if (reg instanceof SamlUserIdentity) {
-////                authority = SystemKeys.AUTHORITY_SAML;
-//            }
-//
-//            if (authority != null) {
-//                idp = searchIdp(r.getSlug(),
-//                        authority,
-//                        SystemKeys.RESOURCE_REALM);
-//
-//                if (idp == null) {
-//                    // fall back to any idp
-//                    idp = searchIdp(r.getSlug(), authority, null);
-//                }
-//            }
-//        }
-//
-//        if (idp == null) {
-//            throw new NoSuchProviderException();
-//        }
-//
-//        // check provider belongs to realm
-//        if (!r.getSlug().equals(idp.getRealm())) {
-//            throw new IllegalArgumentException("realm-mismatch");
-//        }
-//
-//        // cast to service
-//        // TODO rework to fetch as service, works only for INTERNAL authority
-//        if (!(idp instanceof IdentityService)) {
-//            throw new NoSuchProviderException();
-//        }
-//
-//        @SuppressWarnings("unchecked")
-//        IdentityService<? extends UserIdentity, ? extends UserAccount> ids = (IdentityService<? extends UserIdentity, ? extends UserAccount>) idp;
-//
-//        // TODO support credentials
-//        UserIdentity identity = ids.registerIdentity(userId, reg);
-//        userId = identity.getUserId();
-//
-//        logger.debug("register user new identity {} in realm {}", userId, realm);
-//
-//        return identity;
-//    }
-
     @Transactional(readOnly = false)
-    public UserIdentity updateUserIdentity(String realm, String userId, String providerId, String identityId,
-            UserIdentity reg)
+    public UserAccount updateUserAccount(String realm, String userId, String providerId, String identityId,
+            UserAccount reg)
             throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException, RegistrationException,
             NoSuchAuthorityException {
         logger.debug("update user {} identity {} from realm {}", StringUtils.trimAllWhitespace(userId),
@@ -543,11 +397,11 @@ public class UserManager {
             throw new IllegalArgumentException("realm-mismatch");
         }
 
-        return userService.updateUserIdentity(userId, providerId, identityId, reg);
+        return userService.updateUserAccount(userId, providerId, identityId, reg);
     }
 
     @Transactional(readOnly = false)
-    public void deleteUserIdentity(String realm, String userId, String providerId, String identityId)
+    public void deleteUserAccount(String realm, String userId, String providerId, String identityId)
             throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException, RegistrationException,
             NoSuchAuthorityException {
         logger.debug("delete user {} identity {} from realm {}", StringUtils.trimAllWhitespace(userId),
@@ -560,11 +414,11 @@ public class UserManager {
             throw new IllegalArgumentException("realm-mismatch");
         }
 
-        userService.deleteUserIdentity(userId, providerId, identityId);
+        userService.deleteUserAccount(userId, providerId, identityId);
     }
 
     @Transactional(readOnly = false)
-    public UserIdentity verifyUserIdentity(String realm, String userId, String providerId, String identityId)
+    public UserAccount verifyUserAccount(String realm, String userId, String providerId, String identityId)
             throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException, RegistrationException,
             NoSuchAuthorityException {
         logger.debug("verify user {} identity {} from realm {}", StringUtils.trimAllWhitespace(userId),
@@ -577,11 +431,11 @@ public class UserManager {
             throw new IllegalArgumentException("realm-mismatch");
         }
 
-        return userService.verifyUserIdentity(userId, providerId, identityId);
+        return userService.verifyUserAccount(userId, providerId, identityId);
     }
 
     @Transactional(readOnly = false)
-    public UserIdentity confirmUserIdentity(String realm, String userId, String providerId, String identityId)
+    public UserAccount confirmUserAccount(String realm, String userId, String providerId, String identityId)
             throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException, RegistrationException,
             NoSuchAuthorityException {
         logger.debug("confirm user {} identity {} from realm {}", StringUtils.trimAllWhitespace(userId),
@@ -594,11 +448,11 @@ public class UserManager {
             throw new IllegalArgumentException("realm-mismatch");
         }
 
-        return userService.confirmUserIdentity(userId, providerId, identityId);
+        return userService.confirmUserAccount(userId, providerId, identityId);
     }
 
     @Transactional(readOnly = false)
-    public UserIdentity unconfirmUserIdentity(String realm, String userId, String providerId, String identityId)
+    public UserAccount unconfirmUserAccount(String realm, String userId, String providerId, String identityId)
             throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException, RegistrationException,
             NoSuchAuthorityException {
         logger.debug("unconfirm user {} identity {} from realm {}", StringUtils.trimAllWhitespace(userId),
@@ -611,11 +465,11 @@ public class UserManager {
             throw new IllegalArgumentException("realm-mismatch");
         }
 
-        return userService.unconfirmUserIdentity(userId, providerId, identityId);
+        return userService.unconfirmUserAccount(userId, providerId, identityId);
     }
 
     @Transactional(readOnly = false)
-    public UserIdentity lockUserIdentity(String realm, String userId, String providerId, String identityId)
+    public UserAccount lockUserAccount(String realm, String userId, String providerId, String identityId)
             throws NoSuchUserException, NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException {
         logger.debug("lock user {} identity {} from realm {}", StringUtils.trimAllWhitespace(userId),
                 StringUtils.trimAllWhitespace(identityId), StringUtils.trimAllWhitespace(realm));
@@ -627,11 +481,11 @@ public class UserManager {
             throw new IllegalArgumentException("realm-mismatch");
         }
 
-        return userService.lockUserIdentity(userId, providerId, identityId);
+        return userService.lockUserAccount(userId, providerId, identityId);
     }
 
     @Transactional(readOnly = false)
-    public UserIdentity unlockUserIdentity(String realm, String userId, String providerId, String identityId)
+    public UserAccount unlockUserAccount(String realm, String userId, String providerId, String identityId)
             throws NoSuchUserException, NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException {
         logger.debug("unlock user {} identity {} from realm {}", StringUtils.trimAllWhitespace(userId),
                 StringUtils.trimAllWhitespace(identityId), StringUtils.trimAllWhitespace(realm));
@@ -643,7 +497,7 @@ public class UserManager {
             throw new IllegalArgumentException("realm-mismatch");
         }
 
-        return userService.unlockUserIdentity(userId, providerId, identityId);
+        return userService.unlockUserAccount(userId, providerId, identityId);
     }
 
 //    /*

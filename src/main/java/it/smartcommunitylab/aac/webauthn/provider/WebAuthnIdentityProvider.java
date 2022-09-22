@@ -97,6 +97,11 @@ public class WebAuthnIdentityProvider extends
     }
 
     @Override
+    public InternalAccountProvider getAccountPrincipalConverter() {
+        return accountProvider;
+    }
+
+    @Override
     public InternalAttributeProvider<WebAuthnUserAuthenticatedPrincipal> getAttributeProvider() {
         return attributeProvider;
     }

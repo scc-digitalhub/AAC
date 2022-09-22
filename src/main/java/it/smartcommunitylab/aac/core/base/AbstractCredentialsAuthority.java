@@ -11,10 +11,10 @@ import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.provider.CredentialsServiceConfig;
 import it.smartcommunitylab.aac.core.provider.CredentialsServiceConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.core.provider.UserCredentialsService;
+import it.smartcommunitylab.aac.core.provider.AccountCredentialsService;
 
-public abstract class AbstractCredentialsAuthority<S extends UserCredentialsService<R, M, C>, R extends UserCredentials, M extends ConfigMap, C extends CredentialsServiceConfig<M>>
-        extends AbstractAuthority<S, R, ConfigurableCredentialsService, M, C>
+public abstract class AbstractCredentialsAuthority<S extends AccountCredentialsService<R, M, C>, R extends UserCredentials, M extends ConfigMap, C extends CredentialsServiceConfig<M>>
+        extends AbstractSingleProviderAuthority<S, R, ConfigurableCredentialsService, M, C>
         implements CredentialsServiceAuthority<S, R, M, C>, InitializingBean {
 
     // configuration provider

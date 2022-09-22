@@ -19,13 +19,13 @@ import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
 
 public class InternalIdentityFilterProvider implements FilterProvider {
 
-    private final ProviderConfigRepository<InternalIdentityServiceConfig> registrationRepository;
+    private final ProviderConfigRepository<InternalAccountServiceConfig> registrationRepository;
     private final InternalUserConfirmKeyService confirmKeyService;
     private AuthenticationManager authManager;
 
     public InternalIdentityFilterProvider(UserAccountService<InternalUserAccount> userAccountService,
             InternalUserConfirmKeyService confirmKeyService,
-            ProviderConfigRepository<InternalIdentityServiceConfig> registrationRepository) {
+            ProviderConfigRepository<InternalAccountServiceConfig> registrationRepository) {
         Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(confirmKeyService, "confirm key service is mandatory");
         Assert.notNull(registrationRepository, "registration repository is mandatory");

@@ -10,13 +10,11 @@ import it.smartcommunitylab.aac.core.authorities.IdentityServiceAuthority;
 import it.smartcommunitylab.aac.core.base.AbstractAuthorityService;
 
 @Service
-public class IdentityServiceAuthorityService extends
-        AbstractAuthorityService<IdentityServiceAuthority<?, ?, ?, ?, ?>>
+public class IdentityServiceAuthorityService extends AbstractAuthorityService<IdentityServiceAuthority<?, ?, ?, ?, ?>>
         implements InitializingBean {
 
-    public IdentityServiceAuthorityService(
-            Collection<IdentityServiceAuthority<?, ?, ?, ?, ?>> authorities) {
-        super(SystemKeys.RESOURCE_IDENTITY);
+    public IdentityServiceAuthorityService(Collection<IdentityServiceAuthority<?, ?, ?, ?, ?>> authorities) {
+        super(SystemKeys.RESOURCE_ACCOUNT);
 
         this.setAuthorities(authorities);
     }

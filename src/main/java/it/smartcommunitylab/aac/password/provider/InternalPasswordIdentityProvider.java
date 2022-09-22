@@ -111,6 +111,11 @@ public class InternalPasswordIdentityProvider extends
     }
 
     @Override
+    public InternalAccountProvider getAccountPrincipalConverter() {
+        return accountProvider;
+    }
+
+    @Override
     public InternalAttributeProvider<InternalPasswordUserAuthenticatedPrincipal> getAttributeProvider() {
         return attributeProvider;
     }
