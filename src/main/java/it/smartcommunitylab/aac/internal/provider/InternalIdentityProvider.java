@@ -17,7 +17,6 @@ import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipa
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
-import it.smartcommunitylab.aac.password.model.InternalPasswordUserAuthenticatedPrincipal;
 
 public class InternalIdentityProvider extends
         AbstractIdentityProvider<InternalUserIdentity, InternalUserAccount, InternalUserAuthenticatedPrincipal, InternalIdentityServiceConfigMap, InternalIdentityProviderConfig> {
@@ -116,13 +115,13 @@ public class InternalIdentityProvider extends
     @Transactional(readOnly = false)
     public InternalUserIdentity convertIdentity(UserAuthenticatedPrincipal authPrincipal, String userId)
             throws NoSuchUserException {
-        Assert.isInstanceOf(InternalPasswordUserAuthenticatedPrincipal.class, authPrincipal, "Wrong principal class");
+        Assert.isInstanceOf(InternalUserAuthenticatedPrincipal.class, authPrincipal, "Wrong principal class");
         logger.debug("convert principal to identity for user {}", String.valueOf(userId));
         if (logger.isTraceEnabled()) {
             logger.trace("principal {}", String.valueOf(authPrincipal));
         }
 
-        InternalPasswordUserAuthenticatedPrincipal principal = (InternalPasswordUserAuthenticatedPrincipal) authPrincipal;
+        InternalUserAuthenticatedPrincipal principal = (InternalUserAuthenticatedPrincipal) authPrincipal;
 
         // username binds all identity pieces together
         String username = principal.getUsername();

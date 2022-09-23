@@ -40,6 +40,9 @@ public class InternalIdentityServiceAuthority
     // configuration provider
     protected InternalIdentityServiceConfigurationProvider configProvider;
 
+    // services
+    private final UserEntityService userEntityService;
+
     public InternalIdentityServiceAuthority(
             UserEntityService userEntityService,
             InternalAccountServiceAuthority accountServiceAuthority,
@@ -51,6 +54,8 @@ public class InternalIdentityServiceAuthority
 
         this.accountServiceAuthority = accountServiceAuthority;
         this.credentialsServiceAuthorities = credentialsServiceAuthorities;
+
+        this.userEntityService = userEntityService;
     }
 
     @Autowired
@@ -71,7 +76,7 @@ public class InternalIdentityServiceAuthority
 
     protected InternalIdentityService buildProvider(InternalIdentityServiceConfig config) {
         InternalIdentityService idp = new InternalIdentityService(
-                config.getProvider(),
+                config.getProvider(), userEntityService,
                 config, config.getRealm());
 
         idp.setAccountServiceAuthority(accountServiceAuthority);
@@ -81,7 +86,7 @@ public class InternalIdentityServiceAuthority
 
     @Override
     public FilterProvider getFilterProvider() {
-        // TODO Auto-generated method stub
+        // TODO add filters for registration and for credentials management
         return null;
     }
 

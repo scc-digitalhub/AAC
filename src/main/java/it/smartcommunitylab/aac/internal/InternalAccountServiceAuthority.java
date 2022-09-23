@@ -9,6 +9,7 @@ import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.authorities.AccountServiceAuthority;
 import it.smartcommunitylab.aac.core.base.AbstractSingleProviderAuthority;
+import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.model.ConfigurableAccountService;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
@@ -20,6 +21,7 @@ import it.smartcommunitylab.aac.internal.provider.InternalAccountServiceConfigur
 import it.smartcommunitylab.aac.internal.provider.InternalAccountService;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountServiceConfig;
 import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
+import it.smartcommunitylab.aac.utils.MailService;
 
 @Service
 public class InternalAccountServiceAuthority
@@ -41,6 +43,9 @@ public class InternalAccountServiceAuthority
     // configuration provider
     protected InternalAccountServiceConfigurationProvider configProvider;
 
+    private MailService mailService;
+    private RealmAwareUriBuilder uriBuilder;
+    
     public InternalAccountServiceAuthority(
             UserEntityService userEntityService,
             UserAccountService<InternalUserAccount> userAccountService, InternalUserConfirmKeyService confirmKeyService,
@@ -61,6 +66,16 @@ public class InternalAccountServiceAuthority
         this.configProvider = configProvider;
     }
 
+    @Autowired
+    public void setMailService(MailService mailService) {
+        this.mailService = mailService;
+    }
+
+    @Autowired
+    public void setUriBuilder(RealmAwareUriBuilder uriBuilder) {
+        this.uriBuilder = uriBuilder;
+    }
+    
     @Override
     public InternalAccountServiceConfigurationProvider getConfigurationProvider() {
         return configProvider;
@@ -78,6 +93,9 @@ public class InternalAccountServiceAuthority
                 accountService, confirmKeyService,
                 config, config.getRealm());
 
+        idp.setMailService(mailService);
+        idp.setUriBuilder(uriBuilder);
+        
         return idp;
     }
 

@@ -206,6 +206,23 @@ public class PasswordCredentialsService extends
     }
 
     @Override
+    public InternalUserPassword addCredentials(String username, UserCredentials cred) throws NoSuchUserException {
+        // we support only password
+        if (!(cred instanceof InternalUserPassword)) {
+            throw new IllegalArgumentException("invalid credentials");
+        }
+
+        // with add we extract only password and rebuild the model
+        String password = ((InternalUserPassword) cred).getPassword();
+        InternalUserPassword pwd = new InternalUserPassword();
+        pwd.setUsername(username);
+        pwd.setPassword(password);
+
+        // replace active where preset via set
+        return setCredentials(username, pwd);
+    }
+
+    @Override
     public InternalUserPassword setCredentials(String username, UserCredentials cred)
             throws NoSuchUserException {
         if (!config.isEnablePasswordSet()) {
@@ -232,10 +249,10 @@ public class PasswordCredentialsService extends
 //            throw new IllegalArgumentException("account-unconfirmed");
 //        }
 
-        // check if userId matches account
-        if (!account.getUserId().equals(credentials.getUserId())) {
-            throw new IllegalArgumentException("invalid credentials");
-        }
+//        // check if userId matches account - disabled, belongs to manager
+//        if (!account.getUserId().equals(credentials.getUserId())) {
+//            throw new IllegalArgumentException("invalid credentials");
+//        }
 
         String password = credentials.getPassword();
         validatePassword(password);

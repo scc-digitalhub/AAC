@@ -13,6 +13,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.MissingDataException;
+import it.smartcommunitylab.aac.common.NoSuchCredentialException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
@@ -21,8 +22,10 @@ import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityService;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
+import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.provider.AccountCredentialsService;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
+import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.internal.InternalAccountServiceAuthority;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
@@ -42,14 +45,20 @@ public class InternalIdentityService
     private InternalAccountServiceAuthority accountServiceAuthority;
     private Map<String, CredentialsServiceAuthority<?, ?, ?, ?>> credentialsServiceAuthorities;
 
+    // services
+    private final UserEntityService userEntityService;
+
     public InternalIdentityService(
-            String providerId,
+            String providerId, UserEntityService userEntityService,
             InternalIdentityServiceConfig providerConfig,
             String realm) {
         super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm, providerConfig);
+        Assert.notNull(userEntityService, "user entity service is mandatory");
 
         // config
         this.config = providerConfig;
+
+        this.userEntityService = userEntityService;
     }
 
     @Override
@@ -254,18 +263,55 @@ public class InternalIdentityService
                 "registration must be an instance of internal user identity");
         InternalUserIdentity reg = (InternalUserIdentity) registration;
 
-        // register account via service
-        InternalUserAccount account = service.registerAccount(userId, reg.getAccount());
-        String username = account.getUsername();
-
-        // register credentials
+        UserEntity user = null;
+        InternalUserAccount account = null;
         List<UserCredentials> credentials = new ArrayList<>();
-        if (reg.getCredentials() != null) {
-            for (UserCredentials uc : reg.getCredentials()) {
+        boolean isNew = false;
+
+        try {
+            // check if user exists
+            if (userId != null) {
+                user = userEntityService.findUser(userId);
+                isNew = user == null;
+            }
+
+            // register account via service
+            account = service.registerAccount(userId, reg.getAccount());
+            userId = account.getUserId();
+            String username = account.getUsername();
+
+            // register credentials
+            if (reg.getCredentials() != null) {
+                for (UserCredentials uc : reg.getCredentials()) {
+                    AccountCredentialsService<?, ?, ?> cs = getCredentialsServices().stream()
+                            .filter(a -> a.getAuthority().equals(uc.getAuthority())).findFirst().orElse(null);
+                    if (cs != null) {
+                        // add as new
+                        credentials.add(cs.addCredentials(username, uc));
+                    }
+                }
+            }
+        } catch (RegistrationException e) {
+            // cleanup all new entities on error
+            if (account != null) {
+                service.deleteAccount(userId);
+
+                if (isNew) {
+                    // created by account service as new, delete orphan
+                    userEntityService.deleteUser(userId);
+                }
+            }
+
+            for (UserCredentials uc : credentials) {
                 AccountCredentialsService<?, ?, ?> cs = getCredentialsServices().stream()
                         .filter(a -> a.getAuthority().equals(uc.getAuthority())).findFirst().orElse(null);
                 if (cs != null) {
-                    credentials.add(cs.setCredentials(username, uc));
+                    try {
+                        // remove
+                        cs.deleteCredentials(uc.getAccountId(), uc.getId());
+                    } catch (NoSuchUserException | NoSuchCredentialException e1) {
+                        // ignore
+                    }
                 }
             }
         }

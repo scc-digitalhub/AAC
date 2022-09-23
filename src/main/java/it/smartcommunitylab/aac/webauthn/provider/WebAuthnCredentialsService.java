@@ -226,7 +226,7 @@ public class WebAuthnCredentialsService
         logger.debug("register credential {} for user {} via userHandle {}", credential.getCredentialId(),
                 StringUtils.trimAllWhitespace(username), userHandle);
 
-        credential = setCredentials(username, credential);
+        credential = addCredentials(username, credential);
 
         if (logger.isTraceEnabled()) {
             logger.trace("credential {}: {}", credential.getCredentialId(), String.valueOf(credential));
@@ -243,6 +243,16 @@ public class WebAuthnCredentialsService
     public WebAuthnUserCredential getCredentials(String username) throws NoSuchUserException {
         // not available as single
         return null;
+    }
+
+    @Override
+    public WebAuthnUserCredential addCredentials(String username, UserCredentials cred) throws NoSuchUserException {
+        if (!(cred instanceof WebAuthnUserCredential)) {
+            throw new IllegalArgumentException("invalid credentials");
+        }
+
+        // add is set since we support multiple active credentials
+        return setCredentials(username, cred);
     }
 
     @Override

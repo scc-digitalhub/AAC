@@ -92,6 +92,11 @@ public class InternalUserPassword extends AbstractUserCredentials
         return id;
     }
 
+    @Override
+    public String getAccountId() {
+        return username;
+    }
+
     public void setId(String id) {
         this.id = id;
     }

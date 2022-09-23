@@ -39,6 +39,8 @@ public interface AccountCredentialsService<R extends UserCredentials, M extends 
 
     public Collection<R> listCredentials(String accountId) throws NoSuchUserException;
 
+    public R addCredentials(String username, UserCredentials uc) throws NoSuchUserException;
+
     public R getCredentials(String accountId, String credentialsId)
             throws NoSuchUserException, NoSuchCredentialException;
 

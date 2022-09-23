@@ -184,17 +184,20 @@ public class InternalAccountService
 
     @Override
     public InternalUserAccount lockAccount(String username) throws NoSuchUserException, RegistrationException {
+        logger.debug("lock account with username {}", String.valueOf(username));
         return updateStatus(username, SubjectStatus.LOCKED);
     }
 
     @Override
     public InternalUserAccount unlockAccount(String username) throws NoSuchUserException, RegistrationException {
+        logger.debug("unlock account with username {}", String.valueOf(username));
         return updateStatus(username, SubjectStatus.ACTIVE);
     }
 
     @Override
     public InternalUserAccount linkAccount(String username, String userId)
             throws NoSuchUserException, RegistrationException {
+        logger.debug("link account with username {} to user {}", String.valueOf(username), String.valueOf(userId));
 
         // we expect user to be valid
         if (!StringUtils.hasText(userId)) {
@@ -225,8 +228,9 @@ public class InternalAccountService
 
     @Override
     public void deleteAccount(String username) throws NoSuchUserException {
-        InternalUserAccount account = findAccountByUsername(username);
+        logger.debug("delete account with username {}", String.valueOf(username));
 
+        InternalUserAccount account = findAccountByUsername(username);
         if (account != null) {
             // remove account
             userAccountService.deleteAccount(repositoryId, username);
@@ -235,6 +239,8 @@ public class InternalAccountService
 
     @Override
     public void deleteAccounts(String userId) {
+        logger.debug("delete accounts for user {}", String.valueOf(userId));
+
         List<InternalUserAccount> accounts = userAccountService.findAccountByUser(repositoryId, userId);
         for (InternalUserAccount a : accounts) {
             // remove account
@@ -256,6 +262,11 @@ public class InternalAccountService
         Assert.isInstanceOf(InternalUserAccount.class, registration,
                 "registration must be an instance of internal user account");
         InternalUserAccount reg = (InternalUserAccount) registration;
+
+        logger.debug("register a new account for user {}", String.valueOf(userId));
+        if (logger.isTraceEnabled()) {
+            logger.trace("registration: {}", String.valueOf(reg));
+        }
 
         // check email for confirmation when required
         if (config.isConfirmationRequired()) {
@@ -290,6 +301,11 @@ public class InternalAccountService
         Assert.isInstanceOf(InternalUserAccount.class, registration,
                 "registration must be an instance of internal user account");
         InternalUserAccount reg = (InternalUserAccount) registration;
+
+        logger.debug("create a new account for user {}", String.valueOf(userId));
+        if (logger.isTraceEnabled()) {
+            logger.trace("registration: {}", String.valueOf(reg));
+        }
 
         // validate base params, nothing to do when missing
         String emailAddress = reg.getEmailAddress();
@@ -405,6 +421,7 @@ public class InternalAccountService
                 "registration must be an instance of internal user account");
         InternalUserAccount reg = (InternalUserAccount) registration;
 
+        logger.debug("update account with username {} for user {}", String.valueOf(username), String.valueOf(userId));
         InternalUserAccount account = findAccountByUsername(username);
         if (account == null) {
             throw new NoSuchUserException();
@@ -478,6 +495,7 @@ public class InternalAccountService
     @Override
     public InternalUserAccount verifyAccount(String username)
             throws NoSuchUserException, RegistrationException {
+        logger.debug("verify account with username {}", String.valueOf(username));
 
         InternalUserAccount account = findAccountByUsername(username);
         if (account == null) {
@@ -517,6 +535,7 @@ public class InternalAccountService
     @Override
     public InternalUserAccount confirmAccount(String username)
             throws NoSuchUserException, RegistrationException {
+        logger.debug("confirm account with username {}", String.valueOf(username));
 
         InternalUserAccount account = findAccountByUsername(username);
         if (account == null) {
@@ -540,6 +559,7 @@ public class InternalAccountService
     @Override
     public InternalUserAccount unconfirmAccount(String username)
             throws NoSuchUserException, RegistrationException {
+        logger.debug("unconfirm account with username {}", String.valueOf(username));
 
         InternalUserAccount account = findAccountByUsername(username);
         if (account == null) {
@@ -620,6 +640,7 @@ public class InternalAccountService
 //    }
 
     public InternalUserAccount confirmAccountViaKey(String confirmationKey) throws NoSuchUserException {
+        logger.debug("confirm account via key {}", String.valueOf(confirmationKey));
 
         if (!StringUtils.hasText(confirmationKey)) {
             throw new IllegalArgumentException("empty-key");
@@ -690,6 +711,8 @@ public class InternalAccountService
 
     private InternalUserAccount updateStatus(String username, SubjectStatus newStatus)
             throws NoSuchUserException, RegistrationException {
+        logger.debug("update account with username {} to status {}", String.valueOf(username),
+                String.valueOf(newStatus));
 
         InternalUserAccount account = findAccountByUsername(username);
         if (account == null) {
@@ -770,6 +793,8 @@ public class InternalAccountService
 
     private void sendConfirmationMail(InternalUserAccount account, String key) throws MessagingException {
         if (mailService != null) {
+            logger.debug("send confirmation mail for account with username {}", String.valueOf(account.getUsername()));
+
             // action is handled by global filter
             String provider = getProvider();
 
@@ -789,8 +814,14 @@ public class InternalAccountService
             vars.put("realm", account.getRealm());
 
             String template = "confirmation";
+
+            logger.debug("send confirmation mail to {}", String.valueOf(account.getEmail()));
             mailService.sendEmail(account.getEmail(), template, account.getLang(), vars);
+        } else {
+            logger.debug("can't send confirmation mail for account with username {}: no mail service",
+                    String.valueOf(account.getUsername()));
         }
+
     }
 
     /*

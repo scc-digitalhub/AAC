@@ -10,9 +10,11 @@ import it.smartcommunitylab.aac.model.Credentials;
 
 public interface UserCredentials extends Credentials, CredentialsContainer, UserResource, Serializable {
 
-    boolean isChangeOnFirstAccess();
+    public String getAccountId();
 
-    CredentialsType getCredentialsType();
+    public boolean isChangeOnFirstAccess();
+
+    public CredentialsType getCredentialsType();
 
     default String getType() {
         return SystemKeys.RESOURCE_CREDENTIALS + "_" + getCredentialsType().getValue();

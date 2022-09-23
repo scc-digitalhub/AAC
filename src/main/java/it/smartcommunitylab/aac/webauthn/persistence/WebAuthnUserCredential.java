@@ -137,6 +137,11 @@ public class WebAuthnUserCredential extends AbstractUserCredentials
     }
 
     @Override
+    public String getAccountId() {
+        return username;
+    }
+
+    @Override
     @JsonIgnore
     public String getCredentials() {
         return publicKeyCose;
