@@ -9,6 +9,7 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.registration.ClientRegistrations;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 import org.springframework.util.StringUtils;
 
 import com.nimbusds.jose.jwk.JWK;
@@ -23,9 +24,6 @@ public class OIDCIdentityProviderConfig extends AbstractIdentityProviderConfig {
     private static final long serialVersionUID = SystemKeys.AAC_OIDC_SERIAL_VERSION;
 
     private static final String WELL_KNOWN_CONFIGURATION_OPENID = "/.well-known/openid-configuration";
-
-    public static final String DEFAULT_REDIRECT_URL = "{baseUrl}" + OIDCIdentityAuthority.AUTHORITY_URL
-            + "{action}/{registrationId}";
 
     private OIDCIdentityProviderConfigMap configMap;
     private ClientRegistration clientRegistration;
@@ -140,7 +138,8 @@ public class OIDCIdentityProviderConfig extends AbstractIdentityProviderConfig {
         // TODO check PKCE
         builder.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE);
         // add our redirect template
-        builder.redirectUri(DEFAULT_REDIRECT_URL);
+        String redirectUri = "{baseUrl}/auth/" + getAuthority() + "/{action}/{registrationId}";
+        builder.redirectUri(redirectUri);
 
         // set client
         builder.clientId(configMap.getClientId());
@@ -225,6 +224,11 @@ public class OIDCIdentityProviderConfig extends AbstractIdentityProviderConfig {
         } catch (ParseException e) {
             return null;
         }
+    }
+
+    public String getSubAttributeName() {
+        return StringUtils.hasText(configMap.getSubAttributeName()) ? configMap.getSubAttributeName()
+                : IdTokenClaimNames.SUB;
     }
 
     /*

@@ -6,8 +6,6 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.validation.Valid;
-import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -42,6 +40,8 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
 
     private String scope;
     private String userNameAttributeName;
+    private String subAttributeName;
+
     private Boolean trustEmailAddress;
     private Boolean requireEmailAddress;
     private Boolean alwaysTrustEmailAddress;
@@ -131,6 +131,14 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
 
     public void setUserNameAttributeName(String userNameAttributeName) {
         this.userNameAttributeName = userNameAttributeName;
+    }
+
+    public String getSubAttributeName() {
+        return subAttributeName;
+    }
+
+    public void setSubAttributeName(String subAttributeName) {
+        this.subAttributeName = subAttributeName;
     }
 
     public Boolean getTrustEmailAddress() {
@@ -245,6 +253,7 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
         this.enablePkce = map.getEnablePkce();
         this.scope = map.getScope();
         this.userNameAttributeName = map.getUserNameAttributeName();
+        this.subAttributeName = map.getSubAttributeName();
         this.trustEmailAddress = map.getTrustEmailAddress();
         this.alwaysTrustEmailAddress = map.getAlwaysTrustEmailAddress();
         this.requireEmailAddress = map.getRequireEmailAddress();
