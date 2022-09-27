@@ -152,11 +152,12 @@ authorities:
         clientName: Facebook
         clientAuthenticationMethod: client_secret_post
         scope: public_profile,email
-        authorizationUri: https://www.facebook.com/v2.8/dialog/oauth
-        tokenUri: https://graph.facebook.com/v2.8/oauth/access_token
+        authorizationUri: https://www.facebook.com/v15.0/dialog/oauth
+        tokenUri: https://graph.facebook.com/v15.0/oauth/access_token
+        jwksUri: https://www.facebook.com/.well-known/oauth/openid/jwks/
         userInfoUri: https://graph.facebook.com/me?fields=id,name,email
-        userNameAttributeName: id        
-        issuerUri: https://www.facebook.com
+        userNameAttributeName: email    
+        subNameAttributeName: id        
         trustEmailAddress: true
         enablePkce: false
     - id: github

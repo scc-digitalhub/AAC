@@ -61,6 +61,8 @@ public class OIDCLoginAuthenticationFilter extends AbstractAuthenticationProcess
     // we use this to persist request before redirect, and here to fetch details
     private AuthorizationRequestRepository<OAuth2AuthorizationRequest> authorizationRequestRepository;
 
+    private final String authorityId;
+
     public OIDCLoginAuthenticationFilter(
             ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository,
             ClientRegistrationRepository clientRegistrationRepository) {
@@ -83,6 +85,8 @@ public class OIDCLoginAuthenticationFilter extends AbstractAuthenticationProcess
 
         this.registrationRepository = registrationRepository;
         this.clientRegistrationRepository = clientRegistrationRepository;
+
+        this.authorityId = authority;
 
         // we need to build a custom requestMatcher to extract variables from url
         this.requestMatcher = new AntPathRequestMatcher(filterProcessingUrl);
@@ -206,7 +210,7 @@ public class OIDCLoginAuthenticationFilter extends AbstractAuthenticationProcess
         // providerId is registrationId
         ProviderWrappedAuthenticationToken wrappedAuthRequest = new ProviderWrappedAuthenticationToken(
                 authenticationRequest,
-                providerId, SystemKeys.AUTHORITY_OIDC);
+                providerId, authorityId);
 
         // also collect request details
         WebAuthenticationDetails webAuthenticationDetails = new WebAuthenticationDetails(request);

@@ -578,8 +578,8 @@ angular.module('aac.controllers.realmproviders', [])
                 });
         };
 
-        var initConfiguration = function (authority, config) {
-            if (authority == 'oidc') {
+        var initConfiguration = function (authority, config, schema) {
+            if (authority == 'oidc' || (schema && schema.id == 'urn:jsonschema:it:smartcommunitylab:aac:openid:provider:OIDCIdentityProviderConfigMap')) {
                 var scopes = [];
                 toChips(config.scope).forEach(function (s) {
                     scopes.push({ 'text': s });
@@ -601,8 +601,8 @@ angular.module('aac.controllers.realmproviders', [])
 
         }
 
-        var extractConfiguration = function (authority, config) {
-            if (authority == 'oidc') {
+        var extractConfiguration = function (authority, config, schema) {
+            if (authority == 'oidc' || (schema && schema.id == 'urn:jsonschema:it:smartcommunitylab:aac:openid:provider:OIDCIdentityProviderConfigMap')) {
                 var scopes = $scope.idpOidcScope.map(function (s) {
                     if ('text' in s) {
                         return s.text;
@@ -638,7 +638,7 @@ angular.module('aac.controllers.realmproviders', [])
             $scope.idp = data;
             $scope.providerIcon = iconProvider(data);
 
-            initConfiguration(data.authority, data.configuration);
+            initConfiguration(data.authority, data.configuration, data.schema);
 
             var attributeMapping = {
                 enabled: false,
@@ -681,7 +681,7 @@ angular.module('aac.controllers.realmproviders', [])
 
         $scope.saveProvider = function (provider) {
 
-            var configuration = extractConfiguration(provider.authority, provider.configuration);
+            var configuration = extractConfiguration(provider.authority, provider.configuration, provider.schema);
 
             var hookFunctions = provider.hookFunctions;
             if ($scope.attributeMapping.code != "") {

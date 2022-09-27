@@ -137,24 +137,31 @@
     <fieldset>
         <legend class="mb-4">Account Configuration</legend>
         <div class="row">
-            <div class="col-md-4">
+            <div class="col-md-6">
                 <div class="form-check">
                     <input class="form-check-input" name="trustEmailAddress" id="trustEmailAddress" type="checkbox"
                         ng-model="idp.configuration.trustEmailAddress">
                     <label for="trustEmailAddress">trustEmailAddress</label>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-6">
                 <div class="form-check">
                     <input class="form-check-input" name="alwaysTrustEmailAddress" id="alwaysTrustEmailAddress"
                         type="checkbox" ng-model="idp.configuration.alwaysTrustEmailAddress">
                     <label for="alwaysTrustEmailAddress">alwaysTrustEmailAddress</label>
                 </div>
             </div>
-            <div class="form-group col ">
+        </div>
+        <div class="row mt-4">
+            <div class="form-group col-md-6">
                 <label for="userNameAttributeName">Username attribute*</label>
                 <input required type="text" name="userNameAttributeName" class="form-control form-control-sm"
                     id="userNameAttributeName" ng-model="idp.configuration.userNameAttributeName">
+            </div>
+            <div class="form-group col-md-6 ">
+                <label for="subAttributeName">Subject attribute (if different from sub)</label>
+                <input type="text" name="subAttributeName" class="form-control form-control-sm"
+                    id="subAttributeName" ng-model="idp.configuration.subAttributeName">
             </div>
         </div>
     </fieldset>
