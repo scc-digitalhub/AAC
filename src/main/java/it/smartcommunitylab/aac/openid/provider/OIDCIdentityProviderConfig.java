@@ -243,7 +243,7 @@ public class OIDCIdentityProviderConfig extends AbstractIdentityProviderConfig<O
 //    }
 
     public String getRedirectUrl() {
-        return "{baseUrl}" + getAuthority() + "{action}/{registrationId}";
+        return "{baseUrl}/auth/" + getAuthority() + "/{action}/{registrationId}";
     }
 
 }
