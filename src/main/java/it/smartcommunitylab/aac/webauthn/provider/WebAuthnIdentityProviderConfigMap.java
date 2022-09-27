@@ -5,6 +5,7 @@ import java.util.Map;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.Pattern;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -12,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import com.yubico.webauthn.data.ResidentKeyRequirement;
 import com.yubico.webauthn.data.UserVerificationRequirement;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -32,8 +34,14 @@ public class WebAuthnIdentityProviderConfigMap extends AbstractConfigMap impleme
 
     private Boolean allowUntrustedAttestation;
     private UserVerificationRequirement requireUserVerification;
+    private ResidentKeyRequirement requireResidentKey;
 
+    @Min(30)
+    private Integer registrationTimeout;
+    @Min(10)
     private Integer loginTimeout;
+
+    private Boolean requireAccountConfirmation;
 
     public WebAuthnIdentityProviderConfigMap() {
     }
@@ -86,6 +94,30 @@ public class WebAuthnIdentityProviderConfigMap extends AbstractConfigMap impleme
         this.loginTimeout = loginTimeout;
     }
 
+    public ResidentKeyRequirement getRequireResidentKey() {
+        return requireResidentKey;
+    }
+
+    public void setRequireResidentKey(ResidentKeyRequirement requireResidentKey) {
+        this.requireResidentKey = requireResidentKey;
+    }
+
+    public Integer getRegistrationTimeout() {
+        return registrationTimeout;
+    }
+
+    public void setRegistrationTimeout(Integer registrationTimeout) {
+        this.registrationTimeout = registrationTimeout;
+    }
+
+    public Boolean getRequireAccountConfirmation() {
+        return requireAccountConfirmation;
+    }
+
+    public void setRequireAccountConfirmation(Boolean requireAccountConfirmation) {
+        this.requireAccountConfirmation = requireAccountConfirmation;
+    }
+
     @JsonIgnore
     public void setConfiguration(WebAuthnIdentityProviderConfigMap map) {
         this.maxSessionDuration = map.getMaxSessionDuration();
@@ -94,8 +126,11 @@ public class WebAuthnIdentityProviderConfigMap extends AbstractConfigMap impleme
         this.displayAsButton = map.getDisplayAsButton();
         this.allowUntrustedAttestation = map.getAllowUntrustedAttestation();
         this.requireUserVerification = map.getRequireUserVerification();
+        this.requireResidentKey = map.getRequireResidentKey();
 
         this.loginTimeout = map.getLoginTimeout();
+        this.registrationTimeout = map.getRegistrationTimeout();
+        this.requireAccountConfirmation = map.getRequireAccountConfirmation();
     }
 
     @Override

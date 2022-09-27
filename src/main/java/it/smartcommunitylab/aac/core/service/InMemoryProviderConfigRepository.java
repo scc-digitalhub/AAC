@@ -10,7 +10,8 @@ import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.core.base.AbstractProviderConfig;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 
-public class InMemoryProviderConfigRepository<U extends AbstractProviderConfig> implements ProviderConfigRepository<U> {
+public class InMemoryProviderConfigRepository<U extends AbstractProviderConfig<?, ?>>
+        implements ProviderConfigRepository<U> {
 
     private final Map<String, U> registrations;
 

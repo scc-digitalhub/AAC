@@ -44,9 +44,9 @@ import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserCredentialsService;
 @Transactional
 public class WebAuthnCredentialsService
         extends
-        AbstractConfigurableProvider<WebAuthnUserCredential, ConfigurableCredentialsService, WebAuthnCredentialsServiceConfigMap, WebAuthnCredentialsServiceConfig>
+        AbstractConfigurableProvider<WebAuthnUserCredential, ConfigurableCredentialsService, WebAuthnIdentityProviderConfigMap, WebAuthnCredentialsServiceConfig>
         implements
-        AccountCredentialsService<WebAuthnUserCredential, WebAuthnCredentialsServiceConfigMap, WebAuthnCredentialsServiceConfig> {
+        AccountCredentialsService<WebAuthnUserCredential, WebAuthnIdentityProviderConfigMap, WebAuthnCredentialsServiceConfig> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // services
