@@ -67,10 +67,10 @@ import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountService;
 import it.smartcommunitylab.aac.model.Realm;
-import it.smartcommunitylab.aac.password.InternalPasswordIdentityAuthority;
+import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.model.PasswordPolicy;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
-import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProvider;
+import it.smartcommunitylab.aac.password.provider.PasswordIdentityProvider;
 
 /**
  * @author raman
@@ -85,7 +85,7 @@ public class InternalPasswordRegistrationController {
     private AuthenticationHelper authHelper;
 
     @Autowired
-    private InternalPasswordIdentityAuthority internalAuthority;
+    private PasswordIdentityAuthority internalAuthority;
 
     @Autowired
     private RealmManager realmManager;

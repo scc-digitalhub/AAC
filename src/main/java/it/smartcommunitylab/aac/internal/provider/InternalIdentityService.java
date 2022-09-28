@@ -32,9 +32,9 @@ import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 
 public class InternalIdentityService
         extends
-        AbstractConfigurableProvider<InternalUserIdentity, ConfigurableIdentityService, InternalIdentityServiceConfigMap, InternalIdentityServiceConfig>
+        AbstractConfigurableProvider<InternalUserIdentity, ConfigurableIdentityService, InternalIdentityProviderConfigMap, InternalIdentityServiceConfig>
         implements
-        IdentityService<InternalUserIdentity, InternalUserAccount, InternalIdentityServiceConfigMap, InternalIdentityServiceConfig>,
+        IdentityService<InternalUserIdentity, InternalUserAccount, InternalIdentityProviderConfigMap, InternalIdentityServiceConfig>,
         InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 

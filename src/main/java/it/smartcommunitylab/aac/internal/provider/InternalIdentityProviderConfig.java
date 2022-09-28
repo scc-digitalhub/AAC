@@ -4,13 +4,13 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 
-public class InternalIdentityProviderConfig extends AbstractIdentityProviderConfig<InternalIdentityServiceConfigMap> {
+public class InternalIdentityProviderConfig extends AbstractIdentityProviderConfig<InternalIdentityProviderConfigMap> {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     private final static int MAX_SESSION_DURATION = 24 * 60 * 60; // 24h
 
     public InternalIdentityProviderConfig(String provider, String realm) {
-        super(SystemKeys.AUTHORITY_INTERNAL, provider, realm, new InternalIdentityServiceConfigMap());
+        super(SystemKeys.AUTHORITY_INTERNAL, provider, realm, new InternalIdentityProviderConfigMap());
     }
 
     public InternalIdentityProviderConfig(ConfigurableIdentityProvider cp) {

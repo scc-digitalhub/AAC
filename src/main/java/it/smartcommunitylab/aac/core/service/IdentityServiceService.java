@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityService;
 import it.smartcommunitylab.aac.core.persistence.IdentityServiceEntity;
@@ -35,12 +34,13 @@ public class IdentityServiceService
         // we expect no client/services in global+system realm!
         // note: we let registration with authorities to bootstrap
 
-        // enable internal for system by default
-        ConfigurableIdentityService internalConfig = new ConfigurableIdentityService(
-                SystemKeys.AUTHORITY_INTERNAL, SystemKeys.AUTHORITY_INTERNAL,
-                SystemKeys.REALM_SYSTEM);
-        logger.debug("configure internal service for system realm");
-        systemProviders.put(internalConfig.getProvider(), internalConfig);
+        // internal service is exposed by internal idp
+//        // enable internal for system by default
+//        ConfigurableIdentityService internalConfig = new ConfigurableIdentityService(
+//                SystemKeys.AUTHORITY_INTERNAL, SystemKeys.AUTHORITY_INTERNAL,
+//                SystemKeys.REALM_SYSTEM);
+//        logger.debug("configure internal service for system realm");
+//        systemProviders.put(internalConfig.getProvider(), internalConfig);
 
 //        ConfigurableIdentityService oidcConfig = new ConfigurableIdentityService(
 //                SystemKeys.AUTHORITY_OIDC, SystemKeys.AUTHORITY_OIDC,

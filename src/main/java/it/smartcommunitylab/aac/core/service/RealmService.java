@@ -194,6 +194,20 @@ public class RealmService implements InitializingBean {
     }
 
     @Transactional(readOnly = true)
+    public List<Realm> listSystemRealms() {
+        List<RealmEntity> realms = realmRepository.findAll();
+        return realms.stream().filter(r -> SystemKeys.REALM_SYSTEM.equals(r.getSlug())).map(r -> toRealm(r))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<Realm> listUserRealms() {
+        List<RealmEntity> realms = realmRepository.findAll();
+        return realms.stream().filter(r -> !SystemKeys.REALM_SYSTEM.equals(r.getSlug())).map(r -> toRealm(r))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public List<Realm> listRealms(boolean isPublic) {
         List<RealmEntity> realms = realmRepository.findByIsPublic(isPublic);
         return realms.stream().map(r -> toRealm(r)).collect(Collectors.toList());

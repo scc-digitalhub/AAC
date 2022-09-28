@@ -85,6 +85,13 @@ public class WebAuthnIdentityAuthenticationProvider
                 throw new BadCredentialsException("invalid user");
             }
 
+            // check whether confirmation is required and user is confirmed
+            if (config.isRequireAccountConfirmation() && !account.isConfirmed()) {
+                logger.debug("account is not verified and confirmation is required to login");
+                // throw generic error to avoid account status leak
+                throw new WebAuthnAuthenticationException(account.getUserId(), "invalid credentials");
+            }
+
             try {
                 // fetch associated credential
                 String credentialId = assertionResult.getCredentialId().getBase64Url();

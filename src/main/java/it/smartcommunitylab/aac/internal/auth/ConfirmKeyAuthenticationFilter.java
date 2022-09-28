@@ -26,14 +26,11 @@ import it.smartcommunitylab.aac.core.auth.ProviderWrappedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
-import it.smartcommunitylab.aac.core.provider.ProviderConfig;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.internal.InternalIdentityProviderAuthority;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
-import it.smartcommunitylab.aac.internal.provider.InternalAccountServiceConfig;
 import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
-import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProviderConfig;
 
 /*
  * Handles login requests for internal authority, via extended auth manager
@@ -44,7 +41,7 @@ public class ConfirmKeyAuthenticationFilter
     public static final String DEFAULT_FILTER_URI = InternalIdentityProviderAuthority.AUTHORITY_URL
             + "confirm/{registrationId}";
 
-    private final ProviderConfigRepository<InternalAccountServiceConfig> registrationRepository;
+    private final ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository;
 
     private final RequestMatcher requestMatcher;
 
@@ -54,12 +51,12 @@ public class ConfirmKeyAuthenticationFilter
     private final InternalUserConfirmKeyService userAccountService;
 
     public ConfirmKeyAuthenticationFilter(InternalUserConfirmKeyService userAccountService,
-            ProviderConfigRepository<InternalAccountServiceConfig> registrationRepository) {
+            ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository) {
         this(userAccountService, registrationRepository, DEFAULT_FILTER_URI, null);
     }
 
     public ConfirmKeyAuthenticationFilter(InternalUserConfirmKeyService userAccountService,
-            ProviderConfigRepository<InternalAccountServiceConfig> registrationRepository,
+            ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository,
             String filterProcessingUrl, AuthenticationEntryPoint authenticationEntryPoint) {
         super(filterProcessingUrl);
         Assert.notNull(userAccountService, "user account service is required");
@@ -120,8 +117,7 @@ public class ConfirmKeyAuthenticationFilter
 
         // fetch registrationId
         String providerId = requestMatcher.matcher(request).getVariables().get("registrationId");
-        ProviderConfig<?, ?> providerConfig = registrationRepository.findByProviderId(providerId);
-
+        InternalIdentityProviderConfig providerConfig = registrationRepository.findByProviderId(providerId);
         if (providerConfig == null) {
             throw new ProviderNotFoundException("no provider or realm found for this request");
         }
@@ -138,14 +134,7 @@ public class ConfirmKeyAuthenticationFilter
 
         // fetch account
         // TODO remove, let authProvider handle
-        String repositoryId = realm;
-
-        if (providerConfig instanceof InternalIdentityProviderConfig) {
-            repositoryId = ((InternalIdentityProviderConfig) providerConfig).getRepositoryId();
-        } else if (providerConfig instanceof InternalPasswordIdentityProviderConfig) {
-            repositoryId = ((InternalPasswordIdentityProviderConfig) providerConfig).getRepositoryId();
-        }
-
+        String repositoryId = providerConfig.getRepositoryId();
         InternalUserAccount account = userAccountService.findAccountByConfirmationKey(repositoryId, code);
         if (account == null) {
             // don't leak user does not exists

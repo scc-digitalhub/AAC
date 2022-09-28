@@ -2,8 +2,6 @@ package it.smartcommunitylab.aac.internal;
 
 import java.util.Collection;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -15,21 +13,22 @@ import it.smartcommunitylab.aac.core.base.AbstractSingleProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityService;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.core.service.TranslatorProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityServiceConfig;
-import it.smartcommunitylab.aac.internal.provider.InternalIdentityServiceConfigMap;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityServiceConfigurationProvider;
 
 @Service
 public class InternalIdentityServiceAuthority
         extends
-        AbstractSingleProviderAuthority<InternalIdentityService, InternalUserIdentity, ConfigurableIdentityService, InternalIdentityServiceConfigMap, InternalIdentityServiceConfig>
+        AbstractSingleProviderAuthority<InternalIdentityService, InternalUserIdentity, ConfigurableIdentityService, InternalIdentityProviderConfigMap, InternalIdentityServiceConfig>
         implements
-        IdentityServiceAuthority<InternalIdentityService, InternalUserIdentity, InternalUserAccount, InternalIdentityServiceConfigMap, InternalIdentityServiceConfig> {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+        IdentityServiceAuthority<InternalIdentityService, InternalUserIdentity, InternalUserAccount, InternalIdentityProviderConfigMap, InternalIdentityServiceConfig> {
 
     public static final String AUTHORITY_URL = "/auth/internal/";
 
@@ -47,8 +46,8 @@ public class InternalIdentityServiceAuthority
             UserEntityService userEntityService,
             InternalAccountServiceAuthority accountServiceAuthority,
             Collection<CredentialsServiceAuthority<?, ?, ?, ?>> credentialsServiceAuthorities,
-            ProviderConfigRepository<InternalIdentityServiceConfig> registrationRepository) {
-        super(SystemKeys.AUTHORITY_INTERNAL, registrationRepository);
+            ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository) {
+        super(SystemKeys.AUTHORITY_INTERNAL, new InternalConfigTranslatorRepository(registrationRepository));
         Assert.notNull(userEntityService, "user service is mandatory");
         Assert.notNull(accountServiceAuthority, "account service authority is mandatory");
 
@@ -88,6 +87,32 @@ public class InternalIdentityServiceAuthority
     public FilterProvider getFilterProvider() {
         // TODO add filters for registration and for credentials management
         return null;
+    }
+
+    @Override
+    public InternalIdentityService registerProvider(ConfigurableIdentityService cp) {
+        throw new IllegalArgumentException("direct registration not supported");
+    }
+
+    static class InternalConfigTranslatorRepository extends
+            TranslatorProviderConfigRepository<InternalIdentityProviderConfig, InternalIdentityServiceConfig> {
+
+        public InternalConfigTranslatorRepository(
+                ProviderConfigRepository<InternalIdentityProviderConfig> externalRepository) {
+            super(externalRepository);
+            setConverter((source) -> {
+                InternalIdentityServiceConfig config = new InternalIdentityServiceConfig(source.getProvider(),
+                        source.getRealm());
+                config.setName(source.getName());
+                config.setDescription(source.getDescription());
+
+                // we share the same configMap
+                config.setConfigMap(source.getConfigMap());
+                return config;
+
+            });
+        }
+
     }
 
 }

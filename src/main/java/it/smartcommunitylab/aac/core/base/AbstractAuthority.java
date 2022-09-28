@@ -117,6 +117,10 @@ public abstract class AbstractAuthority<S extends ConfigurableResourceProvider<R
             try {
                 // build config
                 C providerConfig = getConfigurationProvider().getConfig(cp);
+                if (logger.isTraceEnabled()) {
+                    logger.trace("provider active config: "
+                            + String.valueOf(providerConfig.getConfigMap().getConfiguration()));
+                }
 
                 // register, we defer loading
                 registrationRepository.addRegistration(providerConfig);

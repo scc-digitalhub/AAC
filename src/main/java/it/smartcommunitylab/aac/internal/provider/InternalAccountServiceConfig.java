@@ -4,13 +4,13 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractAccountServiceConfig;
 import it.smartcommunitylab.aac.core.model.ConfigurableAccountService;
 
-public class InternalAccountServiceConfig extends AbstractAccountServiceConfig<InternalAccountServiceConfigMap> {
+public class InternalAccountServiceConfig extends AbstractAccountServiceConfig<InternalIdentityProviderConfigMap> {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     private final static int DEFAULT_CONFIRM_DURATION = 24 * 60 * 60; // 24h
 
     public InternalAccountServiceConfig(String provider, String realm) {
-        super(SystemKeys.AUTHORITY_INTERNAL, provider, realm, new InternalAccountServiceConfigMap());
+        super(SystemKeys.AUTHORITY_INTERNAL, provider, realm, new InternalIdentityProviderConfigMap());
     }
 
     public InternalAccountServiceConfig(ConfigurableAccountService cp) {

@@ -5,7 +5,7 @@ import it.smartcommunitylab.aac.core.base.AbstractCredentialsServiceConfig;
 import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsService;
 
 public class PasswordCredentialsServiceConfig
-        extends AbstractCredentialsServiceConfig<PasswordCredentialsServiceConfigMap> {
+        extends AbstractCredentialsServiceConfig<PasswordIdentityProviderConfigMap> {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     private final static int MIN_DURATION = 300;
@@ -13,7 +13,7 @@ public class PasswordCredentialsServiceConfig
     private final static int PASSWORD_MAX_LENGTH = 75;
 
     public PasswordCredentialsServiceConfig(String provider, String realm) {
-        super(SystemKeys.AUTHORITY_PASSWORD, provider, realm, new PasswordCredentialsServiceConfigMap());
+        super(SystemKeys.AUTHORITY_PASSWORD, provider, realm, new PasswordIdentityProviderConfigMap());
     }
 
     public PasswordCredentialsServiceConfig(ConfigurableCredentialsService cp) {

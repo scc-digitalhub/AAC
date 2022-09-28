@@ -21,33 +21,33 @@ import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalSubjectResolver;
-import it.smartcommunitylab.aac.password.InternalPasswordIdentityAuthority;
+import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.model.InternalPasswordUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.password.service.InternalUserPasswordService;
 import it.smartcommunitylab.aac.utils.MailService;
 
-public class InternalPasswordIdentityProvider extends
-        AbstractIdentityProvider<InternalUserIdentity, InternalUserAccount, InternalPasswordUserAuthenticatedPrincipal, InternalPasswordIdentityProviderConfigMap, InternalPasswordIdentityProviderConfig> {
+public class PasswordIdentityProvider extends
+        AbstractIdentityProvider<InternalUserIdentity, InternalUserAccount, InternalPasswordUserAuthenticatedPrincipal, PasswordIdentityProviderConfigMap, PasswordIdentityProviderConfig> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // provider configuration
-    private final InternalPasswordIdentityProviderConfig config;
+    private final PasswordIdentityProviderConfig config;
 
     // services
-    private final InternalPasswordIdentityCredentialsService passwordService;
+    private final PasswordIdentityCredentialsService passwordService;
 
     // providers
-    private final InternalPasswordAuthenticationProvider authenticationProvider;
+    private final PasswordAuthenticationProvider authenticationProvider;
     private final InternalAccountProvider accountProvider;
     private final InternalAttributeProvider<InternalPasswordUserAuthenticatedPrincipal> attributeProvider;
     private final InternalSubjectResolver subjectResolver;
 
-    public InternalPasswordIdentityProvider(
+    public PasswordIdentityProvider(
             String providerId,
             UserAccountService<InternalUserAccount> userAccountService,
             InternalUserPasswordService userPasswordService,
-            InternalPasswordIdentityProviderConfig config,
+            PasswordIdentityProviderConfig config,
             String realm) {
         super(SystemKeys.AUTHORITY_PASSWORD, providerId, userAccountService, config, realm);
         Assert.notNull(userPasswordService, "password service is mandatory");
@@ -62,10 +62,10 @@ public class InternalPasswordIdentityProvider extends
                 userAccountService, repositoryId, realm);
 
         // build providers
-        this.passwordService = new InternalPasswordIdentityCredentialsService(providerId, userAccountService,
+        this.passwordService = new PasswordIdentityCredentialsService(providerId, userAccountService,
                 userPasswordService,
                 config, realm);
-        this.authenticationProvider = new InternalPasswordAuthenticationProvider(providerId, accountProvider,
+        this.authenticationProvider = new PasswordAuthenticationProvider(providerId, accountProvider,
                 passwordService, config, realm);
 
         // always expose a valid resolver to satisfy authenticationManager at post login
@@ -92,16 +92,16 @@ public class InternalPasswordIdentityProvider extends
     }
 
     @Override
-    public InternalPasswordIdentityProviderConfig getConfig() {
+    public PasswordIdentityProviderConfig getConfig() {
         return config;
     }
 
     @Override
-    public InternalPasswordAuthenticationProvider getAuthenticationProvider() {
+    public PasswordAuthenticationProvider getAuthenticationProvider() {
         return authenticationProvider;
     }
 
-    public InternalPasswordIdentityCredentialsService getCredentialsService() {
+    public PasswordIdentityCredentialsService getCredentialsService() {
         return passwordService;
     }
 
@@ -227,15 +227,15 @@ public class InternalPasswordIdentityProvider extends
 
     public String getLoginUrl() {
         // we use an address bound to provider, no reason to expose realm
-        return InternalPasswordIdentityAuthority.AUTHORITY_URL + "login/" + getProvider();
+        return PasswordIdentityAuthority.AUTHORITY_URL + "login/" + getProvider();
     }
 
     public String getFormUrl() {
-        return InternalPasswordIdentityAuthority.AUTHORITY_URL + "form/" + getProvider();
+        return PasswordIdentityAuthority.AUTHORITY_URL + "form/" + getProvider();
     }
 
     public String getResetUrl() {
-        return InternalPasswordIdentityAuthority.AUTHORITY_URL + "reset/" + getProvider();
+        return PasswordIdentityAuthority.AUTHORITY_URL + "reset/" + getProvider();
     }
 
     public String getLoginForm() {

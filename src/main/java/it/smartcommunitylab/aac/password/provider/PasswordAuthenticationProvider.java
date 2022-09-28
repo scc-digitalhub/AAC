@@ -22,14 +22,14 @@ import it.smartcommunitylab.aac.password.auth.UsernamePasswordAuthenticationProv
 import it.smartcommunitylab.aac.password.auth.UsernamePasswordAuthenticationToken;
 import it.smartcommunitylab.aac.password.model.InternalPasswordUserAuthenticatedPrincipal;
 
-public class InternalPasswordAuthenticationProvider
+public class PasswordAuthenticationProvider
         extends ExtendedAuthenticationProvider<InternalPasswordUserAuthenticatedPrincipal, InternalUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private static final String ACCOUNT_NOT_FOUND_PASSWORD = "internalAccountNotFoundPassword";
 
     // provider configuration
-    private final InternalPasswordIdentityProviderConfig config;
+    private final PasswordIdentityProviderConfig config;
 
     private final InternalAccountProvider accountProvider;
     private final UsernamePasswordAuthenticationProvider authProvider;
@@ -40,15 +40,15 @@ public class InternalPasswordAuthenticationProvider
     private volatile String userNotFoundEncodedPassword;
     private final PasswordEncoder passwordEncoder;
 
-    public InternalPasswordAuthenticationProvider(String providerId,
+    public PasswordAuthenticationProvider(String providerId,
             InternalAccountProvider accountProvider,
-            InternalPasswordIdentityCredentialsService passwordService,
-            InternalPasswordIdentityProviderConfig providerConfig, String realm) {
+            PasswordIdentityCredentialsService passwordService,
+            PasswordIdentityProviderConfig providerConfig, String realm) {
         super(SystemKeys.AUTHORITY_PASSWORD, providerId, realm);
         Assert.notNull(accountProvider, "account provider is mandatory");
         Assert.notNull(passwordService, "password service is mandatory");
         Assert.notNull(providerConfig, "provider config is mandatory");
-   
+
         this.config = providerConfig;
         this.accountProvider = accountProvider;
 
@@ -95,7 +95,7 @@ public class InternalPasswordAuthenticationProvider
         String subject = account.getUserId();
 
         // check whether confirmation is required and user is confirmed
-        if (config.isConfirmationRequired() && !account.isConfirmed()) {
+        if (config.isRequireAccountConfirmation() && !account.isConfirmed()) {
             logger.debug("account is not verified and confirmation is required to login");
             // throw generic error to avoid account status leak
             AuthenticationException e = new BadCredentialsException("invalid request");

@@ -25,16 +25,16 @@ import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.internal.auth.InternalAuthenticationException;
 import it.smartcommunitylab.aac.internal.model.InternalLoginProvider;
 import it.smartcommunitylab.aac.model.Realm;
-import it.smartcommunitylab.aac.password.InternalPasswordIdentityAuthority;
-import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProvider;
+import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
+import it.smartcommunitylab.aac.password.provider.PasswordIdentityProvider;
 
 @Controller
-public class InternalPasswordLoginController {
+public class PasswordLoginController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    public static final String LOGIN_FORM_URL = InternalPasswordIdentityAuthority.AUTHORITY_URL + "form/{providerId}";
+    public static final String LOGIN_FORM_URL = PasswordIdentityAuthority.AUTHORITY_URL + "form/{providerId}";
 
     @Autowired
-    private InternalPasswordIdentityAuthority internalAuthority;
+    private PasswordIdentityAuthority internalAuthority;
 
     @Autowired
     private RealmManager realmManager;
@@ -45,7 +45,7 @@ public class InternalPasswordLoginController {
             Model model,
             HttpServletRequest req, HttpServletResponse res) throws Exception {
         // resolve provider
-        InternalPasswordIdentityProvider idp = internalAuthority.getProvider(providerId);
+        PasswordIdentityProvider idp = internalAuthority.getProvider(providerId);
         model.addAttribute("providerId", providerId);
 
         String realm = idp.getRealm();

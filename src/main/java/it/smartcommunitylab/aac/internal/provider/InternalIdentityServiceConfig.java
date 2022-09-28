@@ -4,11 +4,11 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityServiceConfig;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityService;
 
-public class InternalIdentityServiceConfig extends AbstractIdentityServiceConfig<InternalIdentityServiceConfigMap> {
+public class InternalIdentityServiceConfig extends AbstractIdentityServiceConfig<InternalIdentityProviderConfigMap> {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     public InternalIdentityServiceConfig(String provider, String realm) {
-        super(SystemKeys.AUTHORITY_INTERNAL, provider, realm, new InternalIdentityServiceConfigMap());
+        super(SystemKeys.AUTHORITY_INTERNAL, provider, realm, new InternalIdentityProviderConfigMap());
     }
 
     public InternalIdentityServiceConfig(ConfigurableIdentityService cp) {

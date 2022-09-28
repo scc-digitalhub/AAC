@@ -17,17 +17,17 @@ import org.springframework.util.StringUtils;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountProvider;
-import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityCredentialsService;
+import it.smartcommunitylab.aac.password.provider.PasswordIdentityCredentialsService;
 
 public class UsernamePasswordAuthenticationProvider implements AuthenticationProvider {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final InternalAccountProvider accountProvider;
-    private final InternalPasswordIdentityCredentialsService passwordService;
+    private final PasswordIdentityCredentialsService passwordService;
 
     public UsernamePasswordAuthenticationProvider(String providerId,
             InternalAccountProvider accountProvider,
-            InternalPasswordIdentityCredentialsService passwordService,
+            PasswordIdentityCredentialsService passwordService,
             String realm) {
         Assert.hasText(providerId, "provider can not be null or empty");
         Assert.notNull(accountProvider, "account provider is mandatory");

@@ -15,7 +15,7 @@ import it.smartcommunitylab.aac.core.base.AbstractConfigMap;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class InternalIdentityServiceConfigMap extends AbstractConfigMap implements Serializable {
+public class InternalIdentityProviderConfigMap extends AbstractConfigMap implements Serializable {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     @Max(3 * 24 * 60 * 60)
@@ -25,7 +25,12 @@ public class InternalIdentityServiceConfigMap extends AbstractConfigMap implemen
     private Boolean enableDelete;
     private Boolean enableUpdate;
 
-    public InternalIdentityServiceConfigMap() {
+    private Boolean confirmationRequired;
+
+    @Max(3 * 24 * 60 * 60)
+    private Integer confirmationValidity;
+
+    public InternalIdentityProviderConfigMap() {
     }
 
     public Integer getMaxSessionDuration() {
@@ -60,13 +65,32 @@ public class InternalIdentityServiceConfigMap extends AbstractConfigMap implemen
         this.enableUpdate = enableUpdate;
     }
 
+    public Boolean getConfirmationRequired() {
+        return confirmationRequired;
+    }
+
+    public void setConfirmationRequired(Boolean confirmationRequired) {
+        this.confirmationRequired = confirmationRequired;
+    }
+
+    public Integer getConfirmationValidity() {
+        return confirmationValidity;
+    }
+
+    public void setConfirmationValidity(Integer confirmationValidity) {
+        this.confirmationValidity = confirmationValidity;
+    }
+
     @JsonIgnore
-    public void setConfiguration(InternalIdentityServiceConfigMap map) {
+    public void setConfiguration(InternalIdentityProviderConfigMap map) {
         this.maxSessionDuration = map.getMaxSessionDuration();
 
         this.enableRegistration = map.getEnableRegistration();
         this.enableDelete = map.getEnableDelete();
         this.enableUpdate = map.getEnableUpdate();
+
+        this.confirmationRequired = map.getConfirmationRequired();
+        this.confirmationValidity = map.getConfirmationValidity();
     }
 
     @Override
@@ -74,13 +98,13 @@ public class InternalIdentityServiceConfigMap extends AbstractConfigMap implemen
     public void setConfiguration(Map<String, Serializable> props) {
         // use mapper
         mapper.setSerializationInclusion(Include.NON_EMPTY);
-        InternalIdentityServiceConfigMap map = mapper.convertValue(props, InternalIdentityServiceConfigMap.class);
+        InternalIdentityProviderConfigMap map = mapper.convertValue(props, InternalIdentityProviderConfigMap.class);
 
         setConfiguration(map);
     }
 
     @JsonIgnore
     public JsonSchema getSchema() throws JsonMappingException {
-        return schemaGen.generateSchema(InternalIdentityServiceConfigMap.class);
+        return schemaGen.generateSchema(InternalIdentityProviderConfigMap.class);
     }
 }

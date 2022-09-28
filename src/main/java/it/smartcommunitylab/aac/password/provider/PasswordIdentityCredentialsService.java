@@ -17,16 +17,16 @@ import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.password.InternalPasswordIdentityAuthority;
+import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.password.service.InternalUserPasswordService;
 import it.smartcommunitylab.aac.utils.MailService;
 
 @Transactional
-public class InternalPasswordIdentityCredentialsService extends AbstractProvider<InternalUserPassword> {
+public class PasswordIdentityCredentialsService extends AbstractProvider<InternalUserPassword> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final InternalPasswordIdentityProviderConfig config;
+    private final PasswordIdentityProviderConfig config;
 
     private final InternalUserPasswordService passwordService;
     private final UserAccountService<InternalUserAccount> accountService;
@@ -35,9 +35,9 @@ public class InternalPasswordIdentityCredentialsService extends AbstractProvider
     private MailService mailService;
     private RealmAwareUriBuilder uriBuilder;
 
-    public InternalPasswordIdentityCredentialsService(String providerId,
+    public PasswordIdentityCredentialsService(String providerId,
             UserAccountService<InternalUserAccount> accountService, InternalUserPasswordService passwordService,
-            InternalPasswordIdentityProviderConfig config, String realm) {
+            PasswordIdentityProviderConfig config, String realm) {
         super(SystemKeys.AUTHORITY_PASSWORD, providerId, realm);
         Assert.notNull(accountService, "account service is mandatory");
         Assert.notNull(passwordService, "password service is mandatory");
@@ -115,7 +115,7 @@ public class InternalPasswordIdentityCredentialsService extends AbstractProvider
         if (mailService != null) {
             // action is handled by global filter
             String provider = getProvider();
-            String resetUrl = InternalPasswordIdentityAuthority.AUTHORITY_URL + "doreset/" + provider + "?code=" + key;
+            String resetUrl = PasswordIdentityAuthority.AUTHORITY_URL + "doreset/" + provider + "?code=" + key;
             if (uriBuilder != null) {
                 resetUrl = uriBuilder.buildUrl(null, resetUrl);
             }

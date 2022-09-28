@@ -35,12 +35,12 @@ public class AccountServiceService
         // we expect no client/services in global+system realm!
         // note: we let registration with authorities to bootstrap
 
-        // enable internal for system by default
-        ConfigurableAccountService internalConfig = new ConfigurableAccountService(
-                SystemKeys.AUTHORITY_INTERNAL, SystemKeys.AUTHORITY_INTERNAL,
-                SystemKeys.REALM_SYSTEM);
-        logger.debug("configure internal service for system realm");
-        systemProviders.put(internalConfig.getProvider(), internalConfig);
+        // internal for system is exposed by internal idp by default
+//        ConfigurableAccountService internalConfig = new ConfigurableAccountService(
+//                SystemKeys.AUTHORITY_INTERNAL, SystemKeys.AUTHORITY_INTERNAL,
+//                SystemKeys.REALM_SYSTEM);
+//        logger.debug("configure internal service for system realm");
+//        systemProviders.put(internalConfig.getProvider(), internalConfig);
 
 //        ConfigurableIdentityService oidcConfig = new ConfigurableIdentityService(
 //                SystemKeys.AUTHORITY_OIDC, SystemKeys.AUTHORITY_OIDC,

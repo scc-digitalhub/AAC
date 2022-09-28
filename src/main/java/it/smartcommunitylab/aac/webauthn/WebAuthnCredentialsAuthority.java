@@ -8,7 +8,6 @@ import it.smartcommunitylab.aac.core.base.AbstractCredentialsAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsService;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
-import it.smartcommunitylab.aac.core.service.TranslatorProviderConfigRepository;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredential;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsConfigurationProvider;
@@ -16,9 +15,15 @@ import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsService;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsServiceConfig;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfigMap;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnConfigTranslatorRepository;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnRegistrationRpService;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserCredentialsService;
 
+/*
+ * WebAuthn service depends on webauthn identity provider
+ * 
+ * every idp will expose a matching service with the same configuration for credentials handling
+ */
 @Service
 public class WebAuthnCredentialsAuthority extends
         AbstractCredentialsAuthority<WebAuthnCredentialsService, WebAuthnUserCredential, WebAuthnIdentityProviderConfigMap, WebAuthnCredentialsServiceConfig> {
@@ -68,27 +73,6 @@ public class WebAuthnCredentialsAuthority extends
     @Override
     public WebAuthnCredentialsService registerProvider(ConfigurableCredentialsService cp) {
         throw new IllegalArgumentException("direct registration not supported");
-    }
-
-    static class WebAuthnConfigTranslatorRepository extends
-            TranslatorProviderConfigRepository<WebAuthnIdentityProviderConfig, WebAuthnCredentialsServiceConfig> {
-
-        public WebAuthnConfigTranslatorRepository(
-                ProviderConfigRepository<WebAuthnIdentityProviderConfig> externalRepository) {
-            super(externalRepository);
-            setConverter((source) -> {
-                WebAuthnCredentialsServiceConfig config = new WebAuthnCredentialsServiceConfig(source.getProvider(),
-                        source.getRealm());
-                config.setName(source.getName());
-                config.setDescription(source.getDescription());
-
-                // we share the same configMap
-                config.setConfigMap(source.getConfigMap());
-                return config;
-
-            });
-        }
-
     }
 
 }

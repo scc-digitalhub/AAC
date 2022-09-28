@@ -36,8 +36,10 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.IdentityProviderManager;
+import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
+import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.service.IdentityProviderAuthorityService;
 
 /*
@@ -310,7 +312,7 @@ public class BaseIdentityProviderController implements InitializingBean {
     }
 
     /*
-     * Configuration schema
+     * Configuration
      */
     @GetMapping("/idps/{realm}/{providerId}/schema")
     @Operation(summary = "get an identity provider configuration schema")
@@ -323,6 +325,30 @@ public class BaseIdentityProviderController implements InitializingBean {
 
         ConfigurableIdentityProvider provider = providerManager.getProvider(realm, providerId);
         return providerManager.getConfigurationSchema(realm, provider.getAuthority());
+    }
+
+    @GetMapping("/idps/{realm}/{providerId}/config")
+    @Operation(summary = "get an identity provider active configuration")
+    public ConfigurableProperties getIdpConfiguration(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
+            throws NoSuchProviderException, NoSuchRealmException, NoSuchAuthorityException {
+        logger.debug("get idp config schema for {} for realm {}",
+                StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
+
+        ConfigurableIdentityProvider provider = providerManager.getProvider(realm, providerId);
+        if (!provider.isEnabled()) {
+            throw new NoSuchProviderException();
+        }
+
+        // load from authority
+        IdentityProvider<?, ?, ?, ? extends ConfigMap, ?> idp = authorityService.getAuthority(provider.getAuthority())
+                .getProvider(providerId);
+        if (idp == null) {
+            throw new NoSuchProviderException();
+        }
+
+        return idp.getConfigurable();
     }
 
 }

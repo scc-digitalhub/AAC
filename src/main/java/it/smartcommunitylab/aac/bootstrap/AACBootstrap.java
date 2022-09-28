@@ -63,6 +63,7 @@ import it.smartcommunitylab.aac.core.service.IdentityProviderAuthorityService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderService;
 import it.smartcommunitylab.aac.core.service.IdentityServiceAuthorityService;
 import it.smartcommunitylab.aac.core.service.IdentityServiceService;
+import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.core.service.AccountServiceAuthorityService;
 import it.smartcommunitylab.aac.core.service.AccountServiceService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
@@ -116,7 +117,7 @@ public class AACBootstrap {
 //    private AuthorityManager authorityManager;
 
     @Autowired
-    private RealmManager realmManager;
+    private RealmService realmService;
 
     @Autowired
     private ClientManager clientManager;
@@ -222,74 +223,26 @@ public class AACBootstrap {
         }
     }
 
-    private Map<String, IdentityProvider<? extends UserIdentity, ?, ?, ?, ?>> bootstrapSystemProviders()
+    private void bootstrapSystemProviders()
             throws NoSuchRealmException {
-        Map<String, IdentityProviderAuthority<?, ?, ?, ?>> ias = identityProviderAuthorityService
-                .getAuthorities().stream()
-                .collect(Collectors.toMap(a -> a.getAuthorityId(), a -> a));
-
+        // idps
         Collection<ConfigurableIdentityProvider> idps = identityProviderService.listProviders(SystemKeys.REALM_SYSTEM);
-        Map<String, IdentityProvider<? extends UserIdentity, ?, ?, ?, ?>> providers = new HashMap<>();
-        for (ConfigurableIdentityProvider idp : idps) {
-            // try register
-            if (idp.isEnabled()) {
-                try {
-                    // register directly with authority
-                    IdentityProviderAuthority<?, ?, ?, ?> ia = ias.get(idp.getAuthority());
-                    if (ia == null) {
-                        throw new IllegalArgumentException(
-                                "no authority for " + String.valueOf(idp.getAuthority()));
-                    }
+        registerIdentityProviders(idps);
 
-                    IdentityProvider<? extends UserIdentity, ?, ?, ?, ?> p = ia.registerProvider(idp);
-                    providers.put(p.getProvider(), p);
-                } catch (Exception e) {
-                    logger.error("error registering provider " + idp.getProvider() + " for realm "
-                            + idp.getRealm() + ": " + e.getMessage());
-
-                    if (logger.isTraceEnabled()) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-
-        return providers;
+        // nothing else to register for system
     }
 
     private void bootstrapAccountServices() {
         // load all realm providers from storage
-        Collection<Realm> realms = realmManager.listRealms();
+        Collection<Realm> realms = realmService.listUserRealms();
 
         // we iterate by realm to load consistently each realm
         // we use parallel to leverage default threadpool, loading should be thread-safe
         realms.parallelStream().forEach(realm -> {
             String slug = realm.getSlug();
             Collection<ConfigurableAccountService> idss = accountServiceService.listProviders(slug);
-
-            // make sure there is always an internal service available as default
-            if (idss.isEmpty()
-                    || idss.stream().noneMatch(i -> i.getAuthority().equals(SystemKeys.AUTHORITY_INTERNAL))) {
-                ConfigurableAccountService ids = new ConfigurableAccountService(
-                        SystemKeys.AUTHORITY_INTERNAL, null, slug);
-                try {
-                    ids = accountServiceService.addProvider(slug, ids);
-                } catch (RegistrationException | SystemException | NoSuchAuthorityException e) {
-                    // skip
-                    logger.error("error creating provider " + ids.getProvider() + " for realm "
-                            + ids.getRealm() + ": " + e.getMessage());
-                    if (logger.isTraceEnabled()) {
-                        e.printStackTrace();
-                    }
-                }
-
-                // re-read list
-                idss = accountServiceService.listProviders(slug);
-            }
-
             // register
             registerAccountServices(idss);
-
         });
     }
 
@@ -329,35 +282,13 @@ public class AACBootstrap {
 
     private void bootstrapCredentialsServices() {
         // load all realm providers from storage
-        Collection<Realm> realms = realmManager.listRealms();
+        Collection<Realm> realms = realmService.listUserRealms();
 
         // we iterate by realm to load consistently each realm
         // we use parallel to leverage default threadpool, loading should be thread-safe
         realms.parallelStream().forEach(realm -> {
             String slug = realm.getSlug();
             Collection<ConfigurableCredentialsService> css = credentialsServiceService.listProviders(slug);
-
-            // make sure there is always a password service available as default
-            if (css.isEmpty()
-                    || css.stream().noneMatch(i -> i.getAuthority().equals(SystemKeys.AUTHORITY_PASSWORD))) {
-                ConfigurableCredentialsService cs = new ConfigurableCredentialsService(
-                        SystemKeys.AUTHORITY_PASSWORD, null, slug);
-                try {
-                    cs = credentialsServiceService.addProvider(slug, cs);
-                } catch (RegistrationException | SystemException | NoSuchAuthorityException e) {
-                    // skip
-                    logger.error("error creating service " + cs.getProvider() + " for realm "
-                            + cs.getRealm() + ": " + e.getMessage());
-                    if (logger.isTraceEnabled()) {
-                        e.printStackTrace();
-                    }
-                }
-
-                // re-read list
-                css = credentialsServiceService.listProviders(slug);
-            }
-
-            // register
             registerCredentialsServices(css);
         });
     }
@@ -398,37 +329,15 @@ public class AACBootstrap {
 
     private void bootstrapIdentityServices() {
         // load all realm providers from storage
-        Collection<Realm> realms = realmManager.listRealms();
+        Collection<Realm> realms = realmService.listUserRealms();
 
         // we iterate by realm to load consistently each realm
         // we use parallel to leverage default threadpool, loading should be thread-safe
         realms.parallelStream().forEach(realm -> {
             String slug = realm.getSlug();
             Collection<ConfigurableIdentityService> idss = identityServiceService.listProviders(slug);
-
-            // make sure there is always an internal service available as default
-            if (idss.isEmpty()
-                    || idss.stream().noneMatch(i -> i.getAuthority().equals(SystemKeys.AUTHORITY_INTERNAL))) {
-                ConfigurableIdentityService ids = new ConfigurableIdentityService(
-                        SystemKeys.AUTHORITY_INTERNAL, null, slug);
-                try {
-                    ids = identityServiceService.addProvider(slug, ids);
-                } catch (RegistrationException | SystemException | NoSuchAuthorityException e) {
-                    // skip
-                    logger.error("error creating provider " + ids.getProvider() + " for realm "
-                            + ids.getRealm() + ": " + e.getMessage());
-                    if (logger.isTraceEnabled()) {
-                        e.printStackTrace();
-                    }
-                }
-
-                // re-read list
-                idss = identityServiceService.listProviders(slug);
-            }
-
             // register
             registerIdentityServices(idss);
-
         });
     }
 
@@ -468,12 +377,13 @@ public class AACBootstrap {
 
     private void bootstrapIdentityProviders() {
         // load all realm providers from storage
-        Collection<Realm> realms = realmManager.listRealms();
+        Collection<Realm> realms = realmService.listUserRealms();
 
         // we iterate by realm to load consistently each realm
         // we use parallel to leverage default threadpool, loading should be thread-safe
         realms.parallelStream().forEach(realm -> {
             Collection<ConfigurableIdentityProvider> idps = identityProviderService.listProviders(realm.getSlug());
+            // register
             registerIdentityProviders(idps);
         });
     }
@@ -514,7 +424,7 @@ public class AACBootstrap {
 
     private void bootstrapAttributeProviders() {
         // load all realm providers from storage
-        Collection<Realm> realms = realmManager.listRealms();
+        Collection<Realm> realms = realmService.listUserRealms();
 
         // we iterate by realm to load consistently each realm
         // we use parallel to leverage default threadpool, loading should be thread-safe
@@ -692,11 +602,14 @@ public class AACBootstrap {
 
                 logger.debug("create or update realm " + r.getSlug());
 
-                Realm realm = realmManager.findRealm(r.getSlug());
+                Realm realm = realmService.findRealm(r.getSlug());
                 if (realm == null) {
-                    realm = realmManager.addRealm(r);
+                    realm = realmService.addRealm(r.getSlug(), r.getName(), r.isEditable(), r.isPublic());
                 } else {
-                    realm = realmManager.updateRealm(r.getSlug(), r);
+                    // skip config maps
+                    // TODO put in dedicated providers + config
+                    realm = realmService.updateRealm(r.getSlug(), r.getName(), r.isEditable(), r.isPublic(), null,
+                            null);
                 }
 
                 // keep in cache

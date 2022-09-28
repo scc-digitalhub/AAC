@@ -4,10 +4,10 @@ import java.util.List;
 
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
-import it.smartcommunitylab.aac.internal.provider.InternalIdentityServiceConfigMap;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
-import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProviderConfigMap;
+import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfigMap;
 
@@ -15,10 +15,10 @@ public class IdentityAuthoritiesProperties {
     // TODO add enable//disable flag on authorities
 
     @NestedConfigurationProperty
-    private InternalIdentityServiceConfigMap internal;
+    private InternalIdentityProviderConfigMap internal;
 
     @NestedConfigurationProperty
-    private InternalPasswordIdentityProviderConfigMap password;
+    private PasswordIdentityProviderConfigMap password;
 
     @NestedConfigurationProperty
     private WebAuthnIdentityProviderConfigMap webauthn;
@@ -35,19 +35,19 @@ public class IdentityAuthoritiesProperties {
     @NestedConfigurationProperty
     private List<CustomAuthoritiesProperties> custom;
 
-    public InternalIdentityServiceConfigMap getInternal() {
+    public InternalIdentityProviderConfigMap getInternal() {
         return internal;
     }
 
-    public void setInternal(InternalIdentityServiceConfigMap internal) {
+    public void setInternal(InternalIdentityProviderConfigMap internal) {
         this.internal = internal;
     }
 
-    public InternalPasswordIdentityProviderConfigMap getPassword() {
+    public PasswordIdentityProviderConfigMap getPassword() {
         return password;
     }
 
-    public void setPassword(InternalPasswordIdentityProviderConfigMap password) {
+    public void setPassword(PasswordIdentityProviderConfigMap password) {
         this.password = password;
     }
 

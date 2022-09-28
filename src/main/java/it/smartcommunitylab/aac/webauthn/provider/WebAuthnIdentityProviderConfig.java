@@ -58,4 +58,10 @@ public class WebAuthnIdentityProviderConfig extends AbstractIdentityProviderConf
                 : false;
     }
 
+    public boolean isRequireAccountConfirmation() {
+        return configMap.getRequireAccountConfirmation() != null
+                ? configMap.getRequireAccountConfirmation().booleanValue()
+                : true;
+    }
+
 }

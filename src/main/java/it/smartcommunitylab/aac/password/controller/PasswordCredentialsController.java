@@ -35,17 +35,17 @@ import it.smartcommunitylab.aac.dto.UserEmail;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.model.Realm;
-import it.smartcommunitylab.aac.password.InternalPasswordIdentityAuthority;
+import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.PasswordCredentialsAuthority;
 import it.smartcommunitylab.aac.password.dto.UserPasswordBean;
 import it.smartcommunitylab.aac.password.model.PasswordPolicy;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
-import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProvider;
+import it.smartcommunitylab.aac.password.provider.PasswordIdentityProvider;
 import it.smartcommunitylab.aac.password.provider.PasswordCredentialsService;
 
 @Controller
 @RequestMapping
-public class InternalPasswordCredentialsController {
+public class PasswordCredentialsController {
 
     @Autowired
     private AuthenticationHelper authHelper;
@@ -54,7 +54,7 @@ public class InternalPasswordCredentialsController {
     private PasswordCredentialsAuthority passwordAuthority;
 
     @Autowired
-    private InternalPasswordIdentityAuthority identityAuthority;
+    private PasswordIdentityAuthority identityAuthority;
 
     @Autowired
     private RealmManager realmManager;
@@ -247,7 +247,7 @@ public class InternalPasswordCredentialsController {
             Model model) throws NoSuchProviderException, NoSuchRealmException {
 
         // fetch provider
-        InternalPasswordIdentityProvider idp = identityAuthority.getProvider(providerId);
+        PasswordIdentityProvider idp = identityAuthority.getProvider(providerId);
         if (!idp.getConfig().isEnablePasswordReset()) {
             throw new IllegalArgumentException("error.unsupported_operation");
         }
@@ -297,7 +297,7 @@ public class InternalPasswordCredentialsController {
 
         try {
             // fetch provider
-            InternalPasswordIdentityProvider idp = identityAuthority.getProvider(providerId);
+            PasswordIdentityProvider idp = identityAuthority.getProvider(providerId);
             if (!idp.getConfig().isEnablePasswordReset()) {
                 throw new IllegalArgumentException("error.unsupported_operation");
             }

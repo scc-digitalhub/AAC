@@ -10,16 +10,16 @@ import it.smartcommunitylab.aac.core.provider.AccountServiceConfigurationProvide
 @Service
 public class InternalAccountServiceConfigurationProvider
         extends
-        AbstractConfigurationProvider<InternalAccountServiceConfigMap, ConfigurableAccountService, InternalAccountServiceConfig>
+        AbstractConfigurationProvider<InternalIdentityProviderConfigMap, ConfigurableAccountService, InternalAccountServiceConfig>
         implements
-        AccountServiceConfigurationProvider<InternalAccountServiceConfigMap, InternalAccountServiceConfig> {
+        AccountServiceConfigurationProvider<InternalIdentityProviderConfigMap, InternalAccountServiceConfig> {
 
     public InternalAccountServiceConfigurationProvider(AccountAuthoritiesProperties authoritiesProperties) {
         super(SystemKeys.AUTHORITY_INTERNAL);
         if (authoritiesProperties != null && authoritiesProperties.getInternal() != null) {
             setDefaultConfigMap(authoritiesProperties.getInternal());
         } else {
-            setDefaultConfigMap(new InternalAccountServiceConfigMap());
+            setDefaultConfigMap(new InternalIdentityProviderConfigMap());
         }
     }
 

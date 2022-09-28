@@ -38,8 +38,9 @@ import it.smartcommunitylab.aac.utils.MailService;
 @Transactional
 public class InternalAccountService
         extends
-        AbstractConfigurableProvider<InternalUserAccount, ConfigurableAccountService, InternalAccountServiceConfigMap, InternalAccountServiceConfig>
-        implements AccountService<InternalUserAccount, InternalAccountServiceConfigMap, InternalAccountServiceConfig> {
+        AbstractConfigurableProvider<InternalUserAccount, ConfigurableAccountService, InternalIdentityProviderConfigMap, InternalAccountServiceConfig>
+        implements
+        AccountService<InternalUserAccount, InternalIdentityProviderConfigMap, InternalAccountServiceConfig> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // provider configuration

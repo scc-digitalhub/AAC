@@ -5,18 +5,18 @@ import it.smartcommunitylab.aac.core.base.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.internal.model.CredentialsType;
 
-public class InternalPasswordIdentityProviderConfig
-        extends AbstractIdentityProviderConfig<InternalPasswordIdentityProviderConfigMap> {
+public class PasswordIdentityProviderConfig
+        extends AbstractIdentityProviderConfig<PasswordIdentityProviderConfigMap> {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     private final static int DEFAULT_SESSION_DURATION = 24 * 60 * 60; // 24h
     private final static int DEFAULT_RESET_DURATION = 900; // 15m
 
-    public InternalPasswordIdentityProviderConfig(String provider, String realm) {
-        super(SystemKeys.AUTHORITY_PASSWORD, provider, realm, new InternalPasswordIdentityProviderConfigMap());
+    public PasswordIdentityProviderConfig(String provider, String realm) {
+        super(SystemKeys.AUTHORITY_PASSWORD, provider, realm, new PasswordIdentityProviderConfigMap());
     }
 
-    public InternalPasswordIdentityProviderConfig(ConfigurableIdentityProvider cp) {
+    public PasswordIdentityProviderConfig(ConfigurableIdentityProvider cp) {
         super(cp);
     }
 
@@ -58,8 +58,10 @@ public class InternalPasswordIdentityProviderConfig
     /*
      * Account confirmation
      */
-    public boolean isConfirmationRequired() {
-        return configMap.getConfirmationRequired() != null ? configMap.getConfirmationRequired().booleanValue() : true;
+    public boolean isRequireAccountConfirmation() {
+        return configMap.getRequireAccountConfirmation() != null
+                ? configMap.getRequireAccountConfirmation().booleanValue()
+                : true;
     }
 
 }

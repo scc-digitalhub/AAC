@@ -7,22 +7,22 @@ import it.smartcommunitylab.aac.core.base.AbstractIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 
 @Service
-public class InternalPasswordIdentityConfigurationProvider extends
-        AbstractIdentityConfigurationProvider<InternalPasswordIdentityProviderConfigMap, InternalPasswordIdentityProviderConfig> {
+public class PasswordIdentityConfigurationProvider extends
+        AbstractIdentityConfigurationProvider<PasswordIdentityProviderConfigMap, PasswordIdentityProviderConfig> {
 
-    public InternalPasswordIdentityConfigurationProvider(IdentityAuthoritiesProperties authoritiesProperties) {
+    public PasswordIdentityConfigurationProvider(IdentityAuthoritiesProperties authoritiesProperties) {
         super(SystemKeys.AUTHORITY_PASSWORD);
         if (authoritiesProperties != null && authoritiesProperties.getPassword() != null) {
             setDefaultConfigMap(authoritiesProperties.getPassword());
         } else {
-            setDefaultConfigMap(new InternalPasswordIdentityProviderConfigMap());
+            setDefaultConfigMap(new PasswordIdentityProviderConfigMap());
         }
 
     }
 
     @Override
-    protected InternalPasswordIdentityProviderConfig buildConfig(ConfigurableIdentityProvider cp) {
-        return new InternalPasswordIdentityProviderConfig(cp);
+    protected PasswordIdentityProviderConfig buildConfig(ConfigurableIdentityProvider cp) {
+        return new PasswordIdentityProviderConfig(cp);
     }
 
 }
