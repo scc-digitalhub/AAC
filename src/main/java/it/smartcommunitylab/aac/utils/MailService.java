@@ -113,6 +113,9 @@ public class MailService {
             throws MessagingException {
 
         logger.debug("send mail for " + String.valueOf(template) + " to " + String.valueOf(email));
+        if (logger.isTraceEnabled()) {
+            logger.trace("mail vars {}", vars.toString());
+        }
 
         final Context ctx = new Context();
         Locale locale = lang != null ? Locale.forLanguageTag(lang) : Locale.forLanguageTag(appProps.getLang());
@@ -128,6 +131,10 @@ public class MailService {
         application.put("logo", applicationLogo);
         application.put("email", appProps.getEmail());
         ctx.setVariable("application", application);
+
+        if (logger.isTraceEnabled()) {
+            logger.trace("application context {}", application.toString());
+        }
 
         // set template context
         String templatePath = "mail/messages/" + template + "_" + locale.getLanguage();
@@ -171,9 +178,9 @@ public class MailService {
         // render html mail from base template and message
         String htmlContent = this.templateEngine.process("mail/template", ctx);
         message.setText(htmlContent, true);
-        if (logger.isTraceEnabled()) {
-            logger.trace("send mail for " + String.valueOf(template) + " content:\n " + htmlContent);
-        }
+//        if (logger.isTraceEnabled()) {
+//            logger.trace("send mail for " + String.valueOf(template) + " content:\n " + htmlContent);
+//        }
 
         // send
         mailSender.send(mimeMessage);

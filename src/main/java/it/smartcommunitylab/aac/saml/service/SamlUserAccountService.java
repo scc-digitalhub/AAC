@@ -9,10 +9,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.DuplicatedDataException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.core.service.SubjectService;
+import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.model.SubjectStatus;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountId;
@@ -28,10 +31,14 @@ public class SamlUserAccountService implements UserAccountService<SamlUserAccoun
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final SamlUserAccountRepository accountRepository;
+    private final SubjectService subjectService;
 
-    public SamlUserAccountService(SamlUserAccountRepository accountRepository) {
+    public SamlUserAccountService(SamlUserAccountRepository accountRepository, SubjectService subjectService) {
         Assert.notNull(accountRepository, "account repository is required");
+        Assert.notNull(subjectService, "subject service is mandatory");
+
         this.accountRepository = accountRepository;
+        this.subjectService = subjectService;
     }
 
     @Transactional(readOnly = true)
@@ -118,12 +125,31 @@ public class SamlUserAccountService implements UserAccountService<SamlUserAccoun
                 throw new DuplicatedDataException("subjectId");
             }
 
+            // create subject when needed
+            String uuid = reg.getUuid();
+            if (!StringUtils.hasText(uuid)) {
+                uuid = subjectService.generateUuid(SystemKeys.RESOURCE_ACCOUNT);
+            }
+
+            Subject s = subjectService.findSubject(uuid);
+            if (s == null) {
+                logger.debug("create new subject for sub {}", String.valueOf(subjectId));
+                s = subjectService.addSubject(uuid, reg.getRealm(), SystemKeys.RESOURCE_ACCOUNT, subjectId);
+            } else {
+                if (!s.getRealm().equals(reg.getRealm())
+                        || !SystemKeys.RESOURCE_ACCOUNT.equals(s.getType())
+                        || !subjectId.equals(s.getSubjectId())) {
+                    throw new RegistrationException("subject-mismatch");
+                }
+            }
+
             // extract attributes and build model
             account = new SamlUserAccount(reg.getAuthority());
             account.setProvider(repository);
             account.setSubjectId(subjectId);
 
-            account.setUuid(reg.getUuid());
+            account.setUuid(s.getSubjectId());
+
             account.setUserId(reg.getUserId());
             account.setRealm(reg.getRealm());
 
@@ -147,7 +173,6 @@ public class SamlUserAccountService implements UserAccountService<SamlUserAccoun
             }
 
             return account;
-
         } catch (Exception e) {
             throw new RegistrationException(e.getMessage());
         }
@@ -213,6 +238,13 @@ public class SamlUserAccountService implements UserAccountService<SamlUserAccoun
     public void deleteAccount(String repository, String subjectId) {
         SamlUserAccount account = accountRepository.findOne(new SamlUserAccountId(repository, subjectId));
         if (account != null) {
+            String uuid = account.getUuid();
+            if (uuid != null) {
+                // remove subject if exists
+                logger.debug("delete subject {} for sub {}", String.valueOf(uuid), String.valueOf(subjectId));
+                subjectService.deleteSubject(uuid);
+            }
+
             logger.debug("delete account with subjectId {} repository {}", String.valueOf(subjectId),
                     String.valueOf(repository));
             accountRepository.delete(account);

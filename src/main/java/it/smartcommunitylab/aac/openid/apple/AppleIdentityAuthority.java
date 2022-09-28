@@ -18,19 +18,17 @@ import it.smartcommunitylab.aac.attributes.store.AutoJdbcAttributeStore;
 import it.smartcommunitylab.aac.attributes.store.PersistentAttributeStore;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.core.base.AbstractIdentityAuthority;
+import it.smartcommunitylab.aac.core.base.AbstractSingleProviderIdentityAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
-import it.smartcommunitylab.aac.core.service.SubjectService;
-import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.openid.model.OIDCUserIdentity;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 
 @Service
 public class AppleIdentityAuthority extends
-        AbstractIdentityAuthority<AppleIdentityProvider, OIDCUserIdentity, AppleIdentityProviderConfigMap, AppleIdentityProviderConfig>
+        AbstractSingleProviderIdentityAuthority<AppleIdentityProvider, OIDCUserIdentity, AppleIdentityProviderConfigMap, AppleIdentityProviderConfig>
         implements InitializingBean {
 
     public static final String AUTHORITY_URL = "/auth/apple/";
@@ -51,11 +49,10 @@ public class AppleIdentityAuthority extends
     private ScriptExecutionService executionService;
 
     public AppleIdentityAuthority(
-            UserEntityService userEntityService, SubjectService subjectService,
             UserAccountService<OIDCUserAccount> userAccountService, AutoJdbcAttributeStore jdbcAttributeStore,
             ProviderConfigRepository<AppleIdentityProviderConfig> registrationRepository,
             @Qualifier("appleClientRegistrationRepository") OIDCClientRegistrationRepository clientRegistrationRepository) {
-        super(SystemKeys.AUTHORITY_APPLE, userEntityService, subjectService, registrationRepository);
+        super(SystemKeys.AUTHORITY_APPLE, registrationRepository);
         Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(jdbcAttributeStore, "attribute store is mandatory");
         Assert.notNull(clientRegistrationRepository, "client registration repository is mandatory");
@@ -96,8 +93,8 @@ public class AppleIdentityAuthority extends
 
         AppleIdentityProvider idp = new AppleIdentityProvider(
                 id,
-                userEntityService, accountService, subjectService,
-                attributeStore, config, config.getRealm());
+                accountService, attributeStore,
+                config, config.getRealm());
 
         idp.setExecutionService(executionService);
         return idp;

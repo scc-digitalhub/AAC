@@ -5,10 +5,8 @@ import java.util.Collection;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
-import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.core.model.UserIdentity;
 
 /*
  * An attribute provider offers:
@@ -31,13 +29,6 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
  */
 public interface AttributeProvider<M extends ConfigMap, C extends AttributeProviderConfig<M>>
         extends ConfigurableResourceProvider<UserAttributes, ConfigurableAttributeProvider, M, C> {
-
-    /*
-     * Config
-     */
-    public String getName();
-
-    public String getDescription();
 
     /*
      * Attribute sets (for scopes)

@@ -23,7 +23,7 @@ import it.smartcommunitylab.aac.oauth.persistence.AbstractOAuth2ClientResource;
 public class ClientJwks extends AbstractOAuth2ClientResource implements ClientCredentials {
     private static final long serialVersionUID = SystemKeys.AAC_OAUTH2_SERIAL_VERSION;
 
-    private final String jwks;
+    private String jwks;
 
     public ClientJwks(String realm, String clientId, String jwks) {
         super(realm, clientId);
@@ -63,6 +63,11 @@ public class ClientJwks extends AbstractOAuth2ClientResource implements ClientCr
     @Override
     public String getId() {
         return getClientId() + "." + getType();
+    }
+
+    @Override
+    public void eraseCredentials() {
+        this.jwks = null;
     }
 
 }

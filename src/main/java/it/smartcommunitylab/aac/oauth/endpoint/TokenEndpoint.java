@@ -34,6 +34,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import it.smartcommunitylab.aac.Config;
@@ -82,7 +84,7 @@ public class TokenEndpoint implements InitializingBean {
             @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = it.smartcommunitylab.aac.oauth.request.TokenRequest.class)) }))
     @RequestMapping(value = { TOKEN_URL }, method = RequestMethod.POST)
     public ResponseEntity<TokenResponse> postAccessToken(
-            @RequestBody Map<String, String> parameters,
+            @RequestParam Map<String, String> parameters,
             Authentication authentication)
             throws ClientRegistrationException, OAuth2Exception, SystemException {
 

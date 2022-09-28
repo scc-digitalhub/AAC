@@ -22,7 +22,7 @@ public class AttributeProviderAuthorityService extends
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        Assert.notEmpty(authorities, "at least one identity provider authority is required");
+        Assert.notEmpty(authorities, "at least one provider authority is required");
     }
 
 }

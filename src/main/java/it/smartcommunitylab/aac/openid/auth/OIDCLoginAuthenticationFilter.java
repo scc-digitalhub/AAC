@@ -52,6 +52,7 @@ public class OIDCLoginAuthenticationFilter extends AbstractAuthenticationProcess
     public static final String DEFAULT_FILTER_URI = OIDCIdentityAuthority.AUTHORITY_URL + "login/{registrationId}";
 
     private final RequestMatcher requestMatcher;
+    private final String authority;
 
     // we need to load client registration
     private final ClientRegistrationRepository clientRegistrationRepository;
@@ -80,6 +81,8 @@ public class OIDCLoginAuthenticationFilter extends AbstractAuthenticationProcess
         Assert.hasText(filterProcessingUrl, "filterProcessesUrl must contain a URL pattern");
         Assert.isTrue(filterProcessingUrl.contains("{registrationId}"),
                 "filterProcessesUrl must contain a {registrationId} match variable");
+
+        this.authority = authority;
 
         this.registrationRepository = registrationRepository;
         this.clientRegistrationRepository = clientRegistrationRepository;
@@ -206,7 +209,7 @@ public class OIDCLoginAuthenticationFilter extends AbstractAuthenticationProcess
         // providerId is registrationId
         ProviderWrappedAuthenticationToken wrappedAuthRequest = new ProviderWrappedAuthenticationToken(
                 authenticationRequest,
-                providerId, SystemKeys.AUTHORITY_OIDC);
+                providerId, authority);
 
         // also collect request details
         WebAuthenticationDetails webAuthenticationDetails = new WebAuthenticationDetails(request);

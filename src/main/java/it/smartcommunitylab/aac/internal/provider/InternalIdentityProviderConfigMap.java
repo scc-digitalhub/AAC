@@ -5,7 +5,6 @@ import java.util.Map;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -13,7 +12,6 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractConfigMap;
-import it.smartcommunitylab.aac.internal.model.CredentialsType;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -23,16 +21,14 @@ public class InternalIdentityProviderConfigMap extends AbstractConfigMap impleme
     @Max(3 * 24 * 60 * 60)
     protected Integer maxSessionDuration;
 
-    protected CredentialsType credentialsType;
-    protected Boolean scopedData;
+    private Boolean enableRegistration;
+    private Boolean enableDelete;
+    private Boolean enableUpdate;
 
-    protected Boolean enableRegistration;
-    protected Boolean enableDelete;
-    protected Boolean enableUpdate;
+    private Boolean confirmationRequired;
 
-    protected Boolean confirmationRequired;
     @Max(3 * 24 * 60 * 60)
-    protected Integer confirmationValidity;
+    private Integer confirmationValidity;
 
     public InternalIdentityProviderConfigMap() {
     }
@@ -43,22 +39,6 @@ public class InternalIdentityProviderConfigMap extends AbstractConfigMap impleme
 
     public void setMaxSessionDuration(Integer maxSessionDuration) {
         this.maxSessionDuration = maxSessionDuration;
-    }
-
-    public CredentialsType getCredentialsType() {
-        return credentialsType;
-    }
-
-    public void setCredentialsType(CredentialsType credentialsType) {
-        this.credentialsType = credentialsType;
-    }
-
-    public Boolean getScopedData() {
-        return scopedData;
-    }
-
-    public void setScopedData(Boolean scopedData) {
-        this.scopedData = scopedData;
     }
 
     public Boolean getEnableRegistration() {
@@ -104,9 +84,6 @@ public class InternalIdentityProviderConfigMap extends AbstractConfigMap impleme
     @JsonIgnore
     public void setConfiguration(InternalIdentityProviderConfigMap map) {
         this.maxSessionDuration = map.getMaxSessionDuration();
-
-        this.credentialsType = map.getCredentialsType();
-        this.scopedData = map.getScopedData();
 
         this.enableRegistration = map.getEnableRegistration();
         this.enableDelete = map.getEnableDelete();

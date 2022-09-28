@@ -7,10 +7,10 @@ import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 
 @Service
 public class ScriptAttributeConfigurationProvider extends
-        AbstractAttributeConfigurationProvider<ScriptAttributeProviderConfig, ScriptAttributeProviderConfigMap> {
+        AbstractAttributeConfigurationProvider<ScriptAttributeProviderConfigMap, ScriptAttributeProviderConfig> {
 
     public ScriptAttributeConfigurationProvider() {
-        super(SystemKeys.AUTHORITY_MAPPER);
+        super(SystemKeys.AUTHORITY_SCRIPT);
         setDefaultConfigMap(new ScriptAttributeProviderConfigMap());
     }
 

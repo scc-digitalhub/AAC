@@ -7,8 +7,8 @@ import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProviderConfig;
 
-public interface IdentityProviderAuthority<S extends IdentityProvider<I, M, C>, I extends UserIdentity, M extends ConfigMap, C extends IdentityProviderConfig<M>>
-        extends ProviderAuthority<S, UserIdentity, ConfigurableIdentityProvider, M, C> {
+public interface IdentityProviderAuthority<S extends IdentityProvider<I, ?, ?, M, C>, I extends UserIdentity, M extends ConfigMap, C extends IdentityProviderConfig<M>>
+        extends ProviderAuthority<S, I, ConfigurableIdentityProvider, M, C> {
 
     /*
      * Filter provider exposes auth filters for registration in filter chain

@@ -11,9 +11,12 @@ import javax.validation.constraints.Size;
 import org.springframework.boot.context.properties.ConstructorBinding;
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -46,6 +49,7 @@ public class ConfigurableProvider implements ConfigurableProperties {
 
     protected Map<String, Serializable> configuration;
 
+    @JsonProperty(access = Access.READ_ONLY)
     protected JsonSchema schema;
 
     public ConfigurableProvider(String authority, String provider, String realm, String type) {
@@ -164,9 +168,5 @@ public class ConfigurableProvider implements ConfigurableProperties {
     public void setRegistered(Boolean registered) {
         this.registered = registered;
     }
-
-    public static final String TYPE_IDENTITY = SystemKeys.RESOURCE_IDENTITY;
-
-    public static final String TYPE_ATTRIBUTES = SystemKeys.RESOURCE_ATTRIBUTES;
 
 }

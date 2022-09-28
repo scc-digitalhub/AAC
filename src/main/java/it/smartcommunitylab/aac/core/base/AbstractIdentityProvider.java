@@ -18,40 +18,33 @@ import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
+import it.smartcommunitylab.aac.core.provider.AccountPrincipalConverter;
 import it.smartcommunitylab.aac.core.provider.AccountProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityAttributeProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProviderConfig;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
-import it.smartcommunitylab.aac.core.service.SubjectService;
-import it.smartcommunitylab.aac.core.service.UserEntityService;
-import it.smartcommunitylab.aac.model.Subject;
 
 @Transactional
 public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends UserAccount, P extends UserAuthenticatedPrincipal, M extends ConfigMap, C extends IdentityProviderConfig<M>>
-        extends AbstractConfigurableProvider<UserIdentity, ConfigurableIdentityProvider, M, C>
-        implements IdentityProvider<I, M, C>, InitializingBean {
+        extends AbstractConfigurableProvider<I, ConfigurableIdentityProvider, M, C>
+        implements IdentityProvider<I, U, P, M, C>, InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // services
-    protected final UserEntityService userEntityService;
     protected final UserAccountService<U> userAccountService;
-    protected final SubjectService subjectService;
 
     // provider configuration
     private final C config;
 
     public AbstractIdentityProvider(
             String authority, String providerId,
-            UserEntityService userEntityService, UserAccountService<U> userAccountService,
-            SubjectService subjectService,
+            UserAccountService<U> userAccountService,
             C config,
             String realm) {
         super(authority, providerId, realm, config);
         Assert.notNull(userAccountService, "user account service is mandatory");
-        Assert.notNull(userEntityService, "user service is mandatory");
-        Assert.notNull(subjectService, "subject service is mandatory");
         Assert.notNull(config, "provider config is mandatory");
 
         Assert.isTrue(authority.equals(config.getAuthority()),
@@ -64,9 +57,7 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
                 String.valueOf(providerId));
 
         // internal data repositories
-        this.userEntityService = userEntityService;
         this.userAccountService = userAccountService;
-        this.subjectService = subjectService;
 
         // config
         this.config = config;
@@ -99,6 +90,8 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
 
     @Override
     public abstract AccountProvider<U> getAccountProvider();
+
+    public abstract AccountPrincipalConverter<U> getAccountPrincipalConverter();
 
     @Override
     public abstract IdentityAttributeProvider<P, U> getAttributeProvider();
@@ -165,7 +158,7 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
                 String.valueOf(emailAddress));
 
         // convert to account
-        U reg = getAccountProvider().convertAccount(principal, userId);
+        U reg = getAccountPrincipalConverter().convertAccount(principal, userId);
 
         if (logger.isTraceEnabled()) {
             logger.trace("converted account: {}", String.valueOf(reg));
@@ -185,14 +178,6 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
         // look in service for existing accounts
         U account = userAccountService.findAccountById(repositoryId, id);
         if (account == null) {
-            if (reg instanceof AbstractAccount) {
-                // create subject
-                logger.debug("create new subject for id {}", String.valueOf(id));
-                String uuid = subjectService.generateUuid(SystemKeys.RESOURCE_ACCOUNT);
-                Subject s = subjectService.addSubject(uuid, getRealm(), SystemKeys.RESOURCE_ACCOUNT, username);
-                ((AbstractAccount) reg).setUuid(s.getSubjectId());
-            }
-
             // create account
             // TODO add config flag to disable creation
             logger.debug("create as new account with id {}", String.valueOf(id));
@@ -389,7 +374,7 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
     @Override
     @Transactional(readOnly = false)
     public void deleteIdentity(String userId, String accountId) throws NoSuchUserException {
-        logger.debug("delete identity with id {}", String.valueOf(accountId));
+        logger.debug("delete identity with id {} for user {}", String.valueOf(accountId), String.valueOf(userId));
 
         // delete account
         // authoritative deletes the registration with shared accounts
@@ -399,12 +384,6 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
             // check userId matches
             if (!account.getUserId().equals(userId)) {
                 throw new IllegalArgumentException("user mismatch");
-            }
-
-            String uuid = account.getUuid();
-            if (uuid != null) {
-                // remove subject if exists
-                subjectService.deleteSubject(uuid);
             }
 
             // remove account
@@ -418,7 +397,7 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
     @Override
     @Transactional(readOnly = false)
     public void deleteIdentities(String userId) {
-        logger.debug("delete identity for user {}", String.valueOf(userId));
+        logger.debug("delete identities for user {}", String.valueOf(userId));
 
         Collection<U> accounts = getAccountProvider().listAccounts(userId);
         for (U account : accounts) {

@@ -11,25 +11,27 @@ import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.model.Subject;
 
-public class InternalSubjectResolver extends AbstractProvider
+public class InternalSubjectResolver extends AbstractProvider<InternalUserAccount>
         implements SubjectResolver<InternalUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     public final static String[] ATTRIBUTES = { "email" };
 
     private final UserAccountService<InternalUserAccount> accountService;
-    private final InternalIdentityProviderConfig config;
 
+    private final boolean isLinkable;
     private final String repositoryId;
 
     public InternalSubjectResolver(String providerId, UserAccountService<InternalUserAccount> userAccountService,
-            InternalIdentityProviderConfig providerConfig, String realm) {
+            String repositoryId, boolean isLinkable, String realm) {
         super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
         Assert.notNull(userAccountService, "user account service is mandatory");
-        this.accountService = userAccountService;
-        this.config = providerConfig;
+        Assert.hasText(repositoryId, "repository id is mandatory");
 
-        this.repositoryId = config.getRepositoryId();
+        this.accountService = userAccountService;
+
+        this.isLinkable = isLinkable;
+        this.repositoryId = repositoryId;
     }
 
     @Override
@@ -68,7 +70,7 @@ public class InternalSubjectResolver extends AbstractProvider
 
     @Override
     public Subject resolveByEmailAddress(String email) {
-        if (!config.isLinkable()) {
+        if (!isLinkable) {
             return null;
         }
 

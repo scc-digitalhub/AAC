@@ -10,18 +10,21 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.DuplicatedDataException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountId;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountRepository;
+import it.smartcommunitylab.aac.model.Subject;
 
 /*
  * An internal service which handles persistence for internal user accounts, via JPA
  * 
- *  We enforce detach on fetch to keep internal datasource isolated.
+ * We enforce detach on fetch to keep internal datasource isolated.
  */
 
 @Transactional
@@ -30,10 +33,14 @@ public class InternalUserAccountService
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final InternalUserAccountRepository accountRepository;
+    private final SubjectService subjectService;
 
-    public InternalUserAccountService(InternalUserAccountRepository accountRepository) {
+    public InternalUserAccountService(InternalUserAccountRepository accountRepository, SubjectService subjectService) {
         Assert.notNull(accountRepository, "account repository is required");
+        Assert.notNull(subjectService, "subject service is mandatory");
+
         this.accountRepository = accountRepository;
+        this.subjectService = subjectService;
     }
 
     @Transactional(readOnly = true)
@@ -136,12 +143,31 @@ public class InternalUserAccountService
                 throw new DuplicatedDataException("username");
             }
 
+            // create subject when needed
+            String uuid = reg.getUuid();
+            if (!StringUtils.hasText(uuid)) {
+                uuid = subjectService.generateUuid(SystemKeys.RESOURCE_ACCOUNT);
+            }
+
+            Subject s = subjectService.findSubject(uuid);
+            if (s == null) {
+                logger.debug("create new subject for username {}", String.valueOf(username));
+                s = subjectService.addSubject(uuid, reg.getRealm(), SystemKeys.RESOURCE_ACCOUNT, username);
+            } else {
+                if (!s.getRealm().equals(reg.getRealm())
+                        || !SystemKeys.RESOURCE_ACCOUNT.equals(s.getType())
+                        || !username.equals(s.getSubjectId())) {
+                    throw new RegistrationException("subject-mismatch");
+                }
+            }
+
             // we explode model
             account = new InternalUserAccount(reg.getAuthority());
             account.setProvider(repository);
             account.setUsername(username);
 
-            account.setUuid(reg.getUuid());
+            account.setUuid(s.getSubjectId());
+
             account.setUserId(reg.getUserId());
             account.setRealm(reg.getRealm());
             account.setStatus(reg.getStatus());
@@ -189,10 +215,11 @@ public class InternalUserAccountService
             // we support username update
             account.setUsername(reg.getUsername());
 
-            // support uuid change if provided
-            if (StringUtils.hasText(reg.getUuid())) {
-                account.setUuid(reg.getUuid());
-            }
+            // DISABLED uuid change
+//            // support uuid change if provided
+//            if (StringUtils.hasText(reg.getUuid())) {
+//                account.setUuid(reg.getUuid());
+//            }
 
             // we explode model and update every field
             account.setAuthority(reg.getAuthority());
@@ -223,12 +250,55 @@ public class InternalUserAccountService
     public void deleteAccount(String repository, String username) {
         InternalUserAccount account = accountRepository.findOne(new InternalUserAccountId(repository, username));
         if (account != null) {
+            String uuid = account.getUuid();
+            if (uuid != null) {
+                // remove subject if exists
+                logger.debug("delete subject {} for username {}", String.valueOf(uuid), String.valueOf(username));
+                subjectService.deleteSubject(uuid);
+            }
+
             logger.debug("delete account with username {} repository {}", String.valueOf(username),
                     String.valueOf(repository));
 
             accountRepository.delete(account);
         }
+    }
 
+    @Override
+    public InternalUserAccount confirmAccount(String repository, String username, String key)
+            throws NoSuchUserException, RegistrationException {
+        logger.debug("confirm account with username {} in repository {}", String.valueOf(username),
+                String.valueOf(repository));
+
+        if (logger.isTraceEnabled()) {
+            logger.trace("key: {}", String.valueOf(key));
+        }
+        InternalUserAccount account = accountRepository.findOne(new InternalUserAccountId(repository, username));
+        if (account == null) {
+            throw new NoSuchUserException();
+        }
+
+        if (!StringUtils.hasText(key) || !key.equals(account.getConfirmationKey())) {
+            throw new RegistrationException();
+        }
+
+        try {
+            // override confirm
+            account.setConfirmed(true);
+            account.setConfirmationDeadline(null);
+            account.setConfirmationKey(null);
+
+            account = accountRepository.saveAndFlush(account);
+            account = accountRepository.detach(account);
+
+            if (logger.isTraceEnabled()) {
+                logger.trace("account: {}", String.valueOf(account));
+            }
+
+            return account;
+        } catch (Exception e) {
+            throw new RegistrationException(e.getMessage());
+        }
     }
 
 }

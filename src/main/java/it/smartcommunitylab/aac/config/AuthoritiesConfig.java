@@ -9,23 +9,14 @@ import org.springframework.util.StringUtils;
 import it.smartcommunitylab.aac.attributes.store.AutoJdbcAttributeStore;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
-import it.smartcommunitylab.aac.core.base.AbstractAuthorityService;
-import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.model.UserIdentity;
-import it.smartcommunitylab.aac.core.provider.IdentityProvider;
-import it.smartcommunitylab.aac.core.provider.IdentityProviderConfig;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderAuthorityService;
 import it.smartcommunitylab.aac.core.service.InMemoryProviderConfigRepository;
-import it.smartcommunitylab.aac.core.service.SubjectService;
-import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.openid.OIDCIdentityAuthority;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
-import it.smartcommunitylab.aac.openid.model.OIDCUserIdentity;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityConfigurationProvider;
-import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProvider;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
 
@@ -35,12 +26,6 @@ import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
 @Configuration
 @Order(12)
 public class AuthoritiesConfig {
-
-    @Autowired
-    private UserEntityService userEntityService;
-
-    @Autowired
-    private SubjectService subjectService;
 
     @Autowired
     private UserAccountService<OIDCUserAccount> oidcUserAccountService;
@@ -54,7 +39,7 @@ public class AuthoritiesConfig {
     @Bean
     public IdentityProviderAuthorityService identityProviderAuthorityService(
             Collection<IdentityProviderAuthority<?, ?, ?, ?>> authorities,
-            AuthoritiesProperties authsProps) {
+            IdentityAuthoritiesProperties authsProps) {
 
         // build a service with default from autowiring
         IdentityProviderAuthorityService service = new IdentityProviderAuthorityService(authorities);
@@ -85,7 +70,6 @@ public class AuthoritiesConfig {
                         // instantiate authority
                         OIDCIdentityAuthority auth = new OIDCIdentityAuthority(
                                 id,
-                                userEntityService, subjectService,
                                 oidcUserAccountService, jdbcAttributeStore,
                                 registrationRepository,
                                 clientRegistrationRepository);

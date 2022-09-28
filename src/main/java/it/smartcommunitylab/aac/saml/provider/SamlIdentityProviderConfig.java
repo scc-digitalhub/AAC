@@ -330,42 +330,4 @@ public class SamlIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         return sb.toString();
     }
 
-    /*
-     * builders
-     */
-//    public static ConfigurableIdentityProvider toConfigurableProvider(SamlIdentityProviderConfig sp) {
-//        ConfigurableIdentityProvider cp = new ConfigurableIdentityProvider(SystemKeys.AUTHORITY_SAML, sp.getProvider(),
-//                sp.getRealm());
-//        cp.setType(SystemKeys.RESOURCE_IDENTITY);
-//        cp.setPersistence(sp.getPersistence());
-//
-//        cp.setName(sp.getName());
-//        cp.setDescription(sp.getDescription());
-//        cp.setHookFunctions(sp.getHookFunctions());
-//
-//        cp.setEnabled(true);
-//        cp.setLinkable(sp.isLinkable());
-//        cp.setConfiguration(sp.getConfiguration());
-//        return cp;
-//    }
-
-//    public static SamlIdentityProviderConfig fromConfigurableProvider(ConfigurableIdentityProvider cp) {
-//        SamlIdentityProviderConfig sp = new SamlIdentityProviderConfig(cp.getProvider(), cp.getRealm());
-//        sp.setConfiguration(cp.getConfiguration());
-//
-//        sp.name = cp.getName();
-//        sp.description = cp.getDescription();
-//        sp.icon = cp.getIcon();
-//
-//        sp.linkable = cp.isLinkable();
-//        sp.persistence = cp.getPersistence();
-//        sp.events = cp.getEvents();
-//        sp.position = cp.getPosition();
-//
-//        sp.hookFunctions = (cp.getHookFunctions() != null ? cp.getHookFunctions() : Collections.emptyMap());
-//
-//        return sp;
-//
-//    }
-
 }

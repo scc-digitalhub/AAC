@@ -23,6 +23,7 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.core.provider.AccountPrincipalConverter;
 import it.smartcommunitylab.aac.core.provider.AccountProvider;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.model.SubjectStatus;
@@ -30,7 +31,8 @@ import it.smartcommunitylab.aac.openid.model.OIDCUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 
 @Transactional
-public class OIDCAccountProvider extends AbstractProvider<OIDCUserAccount> implements AccountProvider<OIDCUserAccount> {
+public class OIDCAccountProvider extends AbstractProvider<OIDCUserAccount>
+        implements AccountProvider<OIDCUserAccount>, AccountPrincipalConverter<OIDCUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final UserAccountService<OIDCUserAccount> accountService;
@@ -240,6 +242,25 @@ public class OIDCAccountProvider extends AbstractProvider<OIDCUserAccount> imple
         account.setAuthority(getAuthority());
 
         return account;
+    }
+
+    @Override
+    public void deleteAccount(String subject) throws NoSuchUserException {
+        OIDCUserAccount account = findAccountBySubject(subject);
+
+        if (account != null) {
+            // remove account
+            accountService.deleteAccount(repositoryId, subject);
+        }
+    }
+
+    @Override
+    public void deleteAccounts(String userId) {
+        List<OIDCUserAccount> accounts = accountService.findAccountByUser(repositoryId, userId);
+        for (OIDCUserAccount a : accounts) {
+            // remove account
+            accountService.deleteAccount(repositoryId, a.getUsername());
+        }
     }
 
     private OIDCUserAccount updateStatus(String subject, SubjectStatus newStatus)

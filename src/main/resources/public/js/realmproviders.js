@@ -60,6 +60,12 @@ angular.module('aac.controllers.realmproviders', [])
             }
         }
 
+        service.getIdentityProviderConfig = function (slug, providerId) {
+            return $http.get('console/dev/idps/' + slug + '/' + providerId + '/config').then(function (data) {
+                return data.data;
+            });
+        }
+
         service.importIdentityProvider = function (slug, file, yaml, reset) {
             var fd = new FormData();
             if (yaml) {
@@ -735,6 +741,24 @@ angular.module('aac.controllers.realmproviders', [])
         $scope.exportProvider = function (provider) {
             RealmProviders.exportIdentityProvider(slug, provider.provider);
         };
+
+        $scope.inspectProvider = function (provider) {
+            if (provider && provider.enabled) {
+                RealmProviders.getIdentityProviderConfig(slug, provider.provider)
+                    .then(function (res) {
+                        $scope.inspectDlg(res);
+                    })
+                    .catch(function (err) {
+                        Utils.showError(err.data.message);
+                    });
+            }
+        }
+
+        $scope.inspectDlg = function (obj) {
+            $scope.modObj = obj;
+            $scope.modObj.json = JSON.stringify(obj, null, 3);
+            $('#inspectModal').modal({ keyboard: false });
+        }
 
         $scope.applyProviderTemplate = function () {
             var configuration = $scope.idp.configuration;

@@ -1,24 +1,14 @@
 package it.smartcommunitylab.aac.core.base;
 
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.provider.IdentityConfigurationProvider;
+import it.smartcommunitylab.aac.core.provider.IdentityProviderConfigurationProvider;
 
-public abstract class AbstractIdentityConfigurationProvider<C extends AbstractIdentityProviderConfig<M>, M extends AbstractConfigMap>
+public abstract class AbstractIdentityConfigurationProvider<M extends AbstractConfigMap, C extends AbstractIdentityProviderConfig<M>>
         extends AbstractConfigurationProvider<M, ConfigurableIdentityProvider, C>
-        implements IdentityConfigurationProvider<M, C> {
+        implements IdentityProviderConfigurationProvider<M, C> {
 
     public AbstractIdentityConfigurationProvider(String authority) {
         super(authority);
     }
-
-//    @Override
-//    public C getConfig(ConfigurableIdentityProvider cp) {
-//        return super.getConfig(cp);
-//    }
-//
-//    @Override
-//    public C getConfig(ConfigurableIdentityProvider cp, boolean mergeDefault) {
-//        return super.getConfig(cp, mergeDefault);
-//    }
 
 }

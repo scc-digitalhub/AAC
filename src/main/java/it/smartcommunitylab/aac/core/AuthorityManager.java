@@ -17,48 +17,49 @@ import it.smartcommunitylab.aac.core.authorities.ProviderAuthority;
 @Service
 @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')"
         + " or hasAuthority(#realm+':" + Config.R_ADMIN + "')")
-public class AuthorityManager implements InitializingBean {
+public class AuthorityManager {
 
-    private Map<String, AuthorityService<? extends ProviderAuthority<?, ?, ?, ?, ?>>> services;
-
-    /*
-     * Constructor
-     */
-    public AuthorityManager(Collection<AuthorityService<? extends ProviderAuthority<?, ?, ?, ?, ?>>> services) {
-        this.services = services.stream().collect(Collectors.toMap(a -> a.getType(), a -> a));
-    }
-
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        Assert.notNull(services, "services must not be null");
-    }
-
-    private AuthorityService<? extends ProviderAuthority<?, ?, ?, ?, ?>> getService(String type) {
-        if (!services.containsKey(type)) {
-            throw new IllegalArgumentException("invalid_type");
-        }
-
-        return services.get(type);
-    }
-
-    /*
-     * Authorities
-     * 
-     * every realm has all authorities, nothing to check
-     */
-    public ProviderAuthority<?, ?, ?, ?, ?> findAuthority(String realm, String type, String id)
-            throws NoSuchAuthorityException {
-        return getService(type).findAuthority(id);
-    }
-
-    public ProviderAuthority<?, ?, ?, ?, ?> getAuthority(String realm, String type, String id)
-            throws NoSuchAuthorityException {
-        return getService(type).getAuthority(id);
-    }
-
-    public Collection<? extends ProviderAuthority<?, ?, ?, ?, ?>> getAuthorities(String realm, String type) {
-        return getService(type).getAuthorities();
-    }
+//    private Map<String, AuthorityService<? extends ProviderAuthority<?, ?, ?, ?, ?>>> services;
+//
+//    /*
+//     * Constructor
+//     */
+//    public AuthorityManager(Collection<AuthorityService<? extends ProviderAuthority<?, ?, ?, ?, ?>>> services) {
+//        this.services = services.stream()
+//                .collect(Collectors.toMap(a -> a.getType(), a -> a));
+//    }
+//
+//    @Override
+//    public void afterPropertiesSet() throws Exception {
+//        Assert.notNull(services, "services must not be null");
+//    }
+//
+//    private AuthorityService<? extends ProviderAuthority<?, ?, ?, ?, ?>> getService(String type) {
+//        if (!services.containsKey(type)) {
+//            throw new IllegalArgumentException("invalid_type");
+//        }
+//
+//        return services.get(type);
+//    }
+//
+//    /*
+//     * Authorities
+//     * 
+//     * every realm has all authorities, nothing to check
+//     */
+//    public ProviderAuthority<?, ?, ?, ?, ?> findAuthority(String realm, String type, String id)
+//            throws NoSuchAuthorityException {
+//        return getService(type).findAuthority(id);
+//    }
+//
+//    public ProviderAuthority<?, ?, ?, ?, ?> getAuthority(String realm, String type, String id)
+//            throws NoSuchAuthorityException {
+//        return getService(type).getAuthority(id);
+//    }
+//
+//    public Collection<? extends ProviderAuthority<?, ?, ?, ?, ?>> getAuthorities(String realm, String type) {
+//        return getService(type).getAuthorities();
+//    }
 
 //    /*
 //     * Private loaders

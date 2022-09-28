@@ -1,7 +1,8 @@
 package it.smartcommunitylab.aac.webauthn.model;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotBlank;
+import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -9,10 +10,19 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class WebAuthnRegistrationStartRequest {
 
-    @NotNull
+    @NotBlank
     private String username;
 
     private String displayName;
+
+    public WebAuthnRegistrationStartRequest() {
+    }
+
+    public WebAuthnRegistrationStartRequest(String username, String displayName) {
+        Assert.hasText(username, "username can not be null or blank");
+        this.username = username;
+        this.displayName = displayName;
+    }
 
     public String getUsername() {
         return username;

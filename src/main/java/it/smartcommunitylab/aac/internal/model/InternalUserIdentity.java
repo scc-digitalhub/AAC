@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.internal.model;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -14,11 +15,12 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractIdentity;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
+import it.smartcommunitylab.aac.core.model.UserCredentialsIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class InternalUserIdentity extends AbstractIdentity {
+public class InternalUserIdentity extends AbstractIdentity implements UserCredentialsIdentity {
 
     // use a global version as serial uid
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
@@ -31,7 +33,7 @@ public class InternalUserIdentity extends AbstractIdentity {
 
     // credentials (when available)
     // TODO evaluate exposing on identity model for all providers
-    private List<? extends UserCredentials> credentials;
+    private List<UserCredentials> credentials;
 
     // attributes map for sets associated with this identity
     private Map<String, UserAttributes> attributes;
@@ -46,7 +48,6 @@ public class InternalUserIdentity extends AbstractIdentity {
         this.account = null;
     }
 
-    @Deprecated
     public InternalUserIdentity(String provider, String realm, InternalUserAccount account) {
         this(SystemKeys.AUTHORITY_INTERNAL, provider, realm, account);
     }
@@ -59,7 +60,6 @@ public class InternalUserIdentity extends AbstractIdentity {
         super.setUserId(account.getUserId());
     }
 
-    @Deprecated
     public InternalUserIdentity(String provider, String realm, InternalUserAccount account,
             InternalUserAuthenticatedPrincipal principal) {
         this(SystemKeys.AUTHORITY_INTERNAL, provider, realm, account, principal);
@@ -104,12 +104,20 @@ public class InternalUserIdentity extends AbstractIdentity {
         return account.getEmail();
     }
 
-    public List<? extends UserCredentials> getCredentials() {
+    public List<UserCredentials> getCredentials() {
         return credentials;
     }
 
-    public void setCredentials(List<? extends UserCredentials> credentials) {
-        this.credentials = credentials;
+    public void setCredentials(Collection<? extends UserCredentials> credentials) {
+        this.credentials = new ArrayList<>(credentials);
+    }
+
+    @Override
+    public void eraseCredentials() {
+        if (this.credentials != null) {
+            credentials.stream().forEach(c -> c.eraseCredentials());
+        }
+
     }
 
 //    @Override

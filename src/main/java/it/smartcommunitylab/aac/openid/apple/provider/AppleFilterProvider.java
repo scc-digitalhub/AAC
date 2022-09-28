@@ -46,7 +46,7 @@ public class AppleFilterProvider implements FilterProvider {
     }
 
     @Override
-    public List<Filter> getFilters() {
+    public List<Filter> getAuthFilters() {
         // build filters bound to shared client + request repos
         AuthorizationRequestRepository<OAuth2AuthorizationRequest> authorizationRequestRepository = new HttpSessionOAuth2AuthorizationRequestRepository();
 
@@ -73,7 +73,11 @@ public class AppleFilterProvider implements FilterProvider {
         filters.add(redirectFilter);
 
         return filters;
+    }
 
+    @Override
+    public Collection<Filter> getChainFilters() {
+        return null;
     }
 
     @Override

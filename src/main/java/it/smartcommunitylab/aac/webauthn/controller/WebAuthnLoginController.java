@@ -40,7 +40,7 @@ import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnAuthenticationStartRequest;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnLoginResponse;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProvider;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpService;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnLoginRpService;
 import it.smartcommunitylab.aac.webauthn.store.WebAuthnAssertionRequestStore;
 
 @Controller
@@ -55,7 +55,7 @@ public class WebAuthnLoginController {
     private RealmManager realmManager;
 
     @Autowired
-    private WebAuthnRpService rpService;
+    private WebAuthnLoginRpService rpService;
 
     @Autowired
     private WebAuthnAssertionRequestStore requestStore;

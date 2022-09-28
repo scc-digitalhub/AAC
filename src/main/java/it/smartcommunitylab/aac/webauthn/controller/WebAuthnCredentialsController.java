@@ -1,7 +1,7 @@
 package it.smartcommunitylab.aac.webauthn.controller;
 
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -35,10 +35,9 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.model.Realm;
-import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredential;
+import it.smartcommunitylab.aac.webauthn.WebAuthnCredentialsAuthority;
+import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredential;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsService;
-import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProvider;
 
 @Controller
 @RequestMapping
@@ -49,7 +48,7 @@ public class WebAuthnCredentialsController {
     private AuthenticationHelper authHelper;
 
     @Autowired
-    private WebAuthnIdentityAuthority webAuthnAuthority;
+    private WebAuthnCredentialsAuthority webAuthnAuthority;
 
     @Autowired
     private RealmManager realmManager;
@@ -59,7 +58,7 @@ public class WebAuthnCredentialsController {
     public String credentialsPage(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid,
-            Model model) throws NoSuchProviderException, NoSuchRealmException {
+            Model model) throws NoSuchProviderException, NoSuchRealmException, NoSuchUserException {
         // first check uuid vs user
         UserDetails user = authHelper.getUserDetails();
         if (user == null) {
@@ -84,14 +83,7 @@ public class WebAuthnCredentialsController {
         UserAccount account = identity.getAccount();
 
         // fetch provider
-        WebAuthnIdentityProvider idp = webAuthnAuthority.getProvider(providerId);
-
-        // fetch credentials service if available
-        WebAuthnCredentialsService service = idp.getCredentialsService();
-
-        if (service == null) {
-            throw new IllegalArgumentException("error.unsupported_operation");
-        }
+        WebAuthnCredentialsService service = webAuthnAuthority.getProvider(providerId);
 
         // for internal username is accountId
         String username = account.getAccountId();
@@ -99,7 +91,7 @@ public class WebAuthnCredentialsController {
         // build model for this account
         model.addAttribute("providerId", providerId);
 
-        String realm = idp.getRealm();
+        String realm = service.getRealm();
         model.addAttribute("realm", realm);
 
         Realm re = realmManager.getRealm(realm);
@@ -122,7 +114,7 @@ public class WebAuthnCredentialsController {
         model.addAttribute("customization", resources);
 
         // fetch credentials
-        List<WebAuthnCredential> credentials = service.findCredentialsByUsername(username);
+        Collection<WebAuthnUserCredential> credentials = service.listCredentials(username);
         model.addAttribute("credentials", credentials);
 
         // build url
@@ -165,17 +157,10 @@ public class WebAuthnCredentialsController {
         String username = identity.getAccount().getUsername();
 
         // fetch provider
-        WebAuthnIdentityProvider idp = webAuthnAuthority.getProvider(providerId);
-
-        // fetch credentials service if available
-        WebAuthnCredentialsService service = idp.getCredentialsService();
-
-        if (service == null) {
-            throw new IllegalArgumentException("error.unsupported_operation");
-        }
+        WebAuthnCredentialsService service = webAuthnAuthority.getProvider(providerId);
 
         // get
-        WebAuthnCredential cred = service.findCredentialById(id);
+        WebAuthnUserCredential cred = service.getCredentials(username, id);
         if (cred == null) {
             throw new RegistrationException();
         }

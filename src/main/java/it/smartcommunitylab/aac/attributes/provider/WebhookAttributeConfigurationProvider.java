@@ -7,10 +7,10 @@ import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 
 @Service
 public class WebhookAttributeConfigurationProvider extends
-        AbstractAttributeConfigurationProvider<WebhookAttributeProviderConfig, WebhookAttributeProviderConfigMap> {
+        AbstractAttributeConfigurationProvider<WebhookAttributeProviderConfigMap, WebhookAttributeProviderConfig> {
 
     public WebhookAttributeConfigurationProvider() {
-        super(SystemKeys.AUTHORITY_MAPPER);
+        super(SystemKeys.AUTHORITY_WEBHOOK);
         setDefaultConfigMap(new WebhookAttributeProviderConfigMap());
     }
 

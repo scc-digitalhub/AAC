@@ -4,6 +4,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -11,7 +12,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.config.AuthoritiesProperties;
+import it.smartcommunitylab.aac.config.IdentityAuthoritiesProperties;
 import it.smartcommunitylab.aac.config.ProvidersProperties;
 import it.smartcommunitylab.aac.config.ProvidersProperties.ProviderConfiguration;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
@@ -20,13 +21,14 @@ import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 
 @Service
 @Transactional
-public class IdentityProviderService extends ConfigurableProviderService<ConfigurableIdentityProvider, IdentityProviderEntity> {
+public class IdentityProviderService
+        extends ConfigurableProviderService<ConfigurableIdentityProvider, IdentityProviderEntity> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private IdentityProviderAuthorityService authorityService;
 
     public IdentityProviderService(IdentityProviderEntityService providerService,
-            AuthoritiesProperties authoritiesProperties, ProvidersProperties providers) {
+            IdentityAuthoritiesProperties authoritiesProperties, ProvidersProperties providers) {
         super(providerService);
 
         // create system idps
@@ -34,15 +36,15 @@ public class IdentityProviderService extends ConfigurableProviderService<Configu
         // we expect no client/services in global+system realm!
         // note: we let registration with authorities to bootstrap
 
-        // always internal idp for system, required by admin account
-        ConfigurableIdentityProvider internalIdpConfig = new ConfigurableIdentityProvider(
+        // always configure internal + password idp for system, required by admin
+        // account
+        // TODO make configurable
+        ConfigurableIdentityProvider internalConfig = new ConfigurableIdentityProvider(
                 SystemKeys.AUTHORITY_INTERNAL, SystemKeys.AUTHORITY_INTERNAL,
                 SystemKeys.REALM_SYSTEM);
         logger.debug("configure internal idp for system realm");
-        systemProviders.put(internalIdpConfig.getProvider(), internalIdpConfig);
+        systemProviders.put(internalConfig.getProvider(), internalConfig);
 
-        // always configure internal password idp for system, required by admin account
-        // TODO make configurable
         ConfigurableIdentityProvider internalPasswordIdpConfig = new ConfigurableIdentityProvider(
                 SystemKeys.AUTHORITY_PASSWORD, SystemKeys.AUTHORITY_INTERNAL + "_" + SystemKeys.AUTHORITY_PASSWORD,
                 SystemKeys.REALM_SYSTEM);
@@ -116,6 +118,18 @@ public class IdentityProviderService extends ConfigurableProviderService<Configu
     protected ConfigurationProvider<?, ?, ?> getConfigurationProvider(String authority)
             throws NoSuchAuthorityException {
         return authorityService.getAuthority(authority).getConfigurationProvider();
+    }
+
+    @Autowired
+    @Override
+    public void setConfigConverter(Converter<ConfigurableIdentityProvider, IdentityProviderEntity> configConverter) {
+        this.configConverter = configConverter;
+    }
+
+    @Autowired
+    @Override
+    public void setEntityConverter(Converter<IdentityProviderEntity, ConfigurableIdentityProvider> entityConverter) {
+        this.entityConverter = entityConverter;
     }
 
 }

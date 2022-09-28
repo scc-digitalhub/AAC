@@ -66,12 +66,10 @@ public abstract class ConfigurableProviderService<C extends ConfigurableProvider
         this.validator = validator;
     }
 
-    @Autowired
     public void setConfigConverter(Converter<C, E> configConverter) {
         this.configConverter = configConverter;
     }
 
-    @Autowired
     public void setEntityConverter(Converter<E, C> entityConverter) {
         this.entityConverter = entityConverter;
     }
@@ -216,7 +214,7 @@ public abstract class ConfigurableProviderService<C extends ConfigurableProvider
 
         // we validate config by converting to specific configMap
         ConfigurationProvider<?, ?, ?> configProvider = getConfigurationProvider(authority);
-        ConfigurableProperties configurable = configProvider.getConfigMap(provider.getConfiguration());
+        ConfigMap configurable = configProvider.getConfigMap(provider.getConfiguration());
 
         // check with validator
         if (validator != null) {

@@ -442,8 +442,8 @@ public class RealmManager {
         if (user == null && StringUtils.hasText(email)) {
             // invite in sys realm by email
             try {
-                user = userManager.inviteUser(SystemKeys.REALM_SYSTEM, email);
-            } catch (NoSuchRealmException | NoSuchProviderException e) {
+                user = userManager.inviteUser(SystemKeys.REALM_SYSTEM, SystemKeys.AUTHORITY_INTERNAL, email);
+            } catch (NoSuchRealmException | NoSuchProviderException | NoSuchAuthorityException e) {
                 // nothing we can do, registration is unavailable
             }
         }

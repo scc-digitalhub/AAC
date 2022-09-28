@@ -22,6 +22,7 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.core.provider.AccountPrincipalConverter;
 import it.smartcommunitylab.aac.core.provider.AccountProvider;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.model.SubjectStatus;
@@ -30,7 +31,7 @@ import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 
 @Transactional
 public class SamlAccountProvider extends AbstractProvider<SamlUserAccount>
-        implements AccountProvider<SamlUserAccount> {
+        implements AccountProvider<SamlUserAccount>, AccountPrincipalConverter<SamlUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final UserAccountService<SamlUserAccount> accountService;
@@ -229,6 +230,25 @@ public class SamlAccountProvider extends AbstractProvider<SamlUserAccount>
         account.setAuthority(getAuthority());
 
         return account;
+    }
+
+    @Override
+    public void deleteAccount(String subjectId) throws NoSuchUserException {
+        SamlUserAccount account = findAccountBySubjectId(subjectId);
+
+        if (account != null) {
+            // remove account
+            accountService.deleteAccount(repositoryId, subjectId);
+        }
+    }
+
+    @Override
+    public void deleteAccounts(String userId) {
+        List<SamlUserAccount> accounts = accountService.findAccountByUser(repositoryId, userId);
+        for (SamlUserAccount a : accounts) {
+            // remove account
+            accountService.deleteAccount(repositoryId, a.getUsername());
+        }
     }
 
     private SamlUserAccount updateStatus(String subjectId, SubjectStatus newStatus)

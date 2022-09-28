@@ -5,6 +5,8 @@ import java.util.Map;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.Pattern;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -25,14 +27,21 @@ public class WebAuthnIdentityProviderConfigMap extends AbstractConfigMap impleme
     @Max(3 * 24 * 60 * 60)
     protected Integer maxSessionDuration;
 
-    private Boolean displayAsButton;
-    private Boolean allowUntrustedAttestation;
+    @Pattern(regexp = SystemKeys.SLUG_PATTERN)
+    private String repositoryId;
 
+    private Boolean displayAsButton;
+
+    private Boolean allowUntrustedAttestation;
     private UserVerificationRequirement requireUserVerification;
     private ResidentKeyRequirement requireResidentKey;
 
+    @Min(30)
     private Integer registrationTimeout;
+    @Min(10)
     private Integer loginTimeout;
+
+    private Boolean requireAccountConfirmation;
 
     public WebAuthnIdentityProviderConfigMap() {
     }
@@ -43,6 +52,14 @@ public class WebAuthnIdentityProviderConfigMap extends AbstractConfigMap impleme
 
     public void setMaxSessionDuration(Integer maxSessionDuration) {
         this.maxSessionDuration = maxSessionDuration;
+    }
+
+    public String getRepositoryId() {
+        return repositoryId;
+    }
+
+    public void setRepositoryId(String repositoryId) {
+        this.repositoryId = repositoryId;
     }
 
     public Boolean getDisplayAsButton() {
@@ -69,11 +86,19 @@ public class WebAuthnIdentityProviderConfigMap extends AbstractConfigMap impleme
         this.requireUserVerification = requireUserVerification;
     }
 
-    protected ResidentKeyRequirement getRequireResidentKey() {
+    public Integer getLoginTimeout() {
+        return loginTimeout;
+    }
+
+    public void setLoginTimeout(Integer loginTimeout) {
+        this.loginTimeout = loginTimeout;
+    }
+
+    public ResidentKeyRequirement getRequireResidentKey() {
         return requireResidentKey;
     }
 
-    protected void setRequireResidentKey(ResidentKeyRequirement requireResidentKey) {
+    public void setRequireResidentKey(ResidentKeyRequirement requireResidentKey) {
         this.requireResidentKey = requireResidentKey;
     }
 
@@ -85,26 +110,27 @@ public class WebAuthnIdentityProviderConfigMap extends AbstractConfigMap impleme
         this.registrationTimeout = registrationTimeout;
     }
 
-    public Integer getLoginTimeout() {
-        return loginTimeout;
+    public Boolean getRequireAccountConfirmation() {
+        return requireAccountConfirmation;
     }
 
-    public void setLoginTimeout(Integer loginTimeout) {
-        this.loginTimeout = loginTimeout;
+    public void setRequireAccountConfirmation(Boolean requireAccountConfirmation) {
+        this.requireAccountConfirmation = requireAccountConfirmation;
     }
 
     @JsonIgnore
     public void setConfiguration(WebAuthnIdentityProviderConfigMap map) {
         this.maxSessionDuration = map.getMaxSessionDuration();
+        this.repositoryId = map.getRepositoryId();
 
         this.displayAsButton = map.getDisplayAsButton();
         this.allowUntrustedAttestation = map.getAllowUntrustedAttestation();
-
-        this.requireResidentKey = map.getRequireResidentKey();
         this.requireUserVerification = map.getRequireUserVerification();
+        this.requireResidentKey = map.getRequireResidentKey();
 
-        this.registrationTimeout = map.getRegistrationTimeout();
         this.loginTimeout = map.getLoginTimeout();
+        this.registrationTimeout = map.getRegistrationTimeout();
+        this.requireAccountConfirmation = map.getRequireAccountConfirmation();
     }
 
     @Override

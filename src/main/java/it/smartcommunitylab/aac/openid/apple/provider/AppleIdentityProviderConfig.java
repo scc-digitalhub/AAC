@@ -178,23 +178,4 @@ public class AppleIdentityProviderConfig extends AbstractIdentityProviderConfig<
         return op;
     }
 
-//    public static AppleIdentityProviderConfig fromConfigurableProvider(ConfigurableIdentityProvider cp) {
-//        AppleIdentityProviderConfig ap = new AppleIdentityProviderConfig(cp.getProvider(), cp.getRealm());
-//        ap.configMap = new AppleIdentityProviderConfigMap();
-//        ap.configMap.setConfiguration(cp.getConfiguration());
-//
-//        ap.name = cp.getName();
-//        ap.description = cp.getDescription();
-//        ap.icon = cp.getIcon();
-//
-//        ap.linkable = cp.isLinkable();
-//        ap.persistence = cp.getPersistence();
-//        ap.events = cp.getEvents();
-//        ap.position = cp.getPosition();
-//        
-//        ap.hookFunctions = (cp.getHookFunctions() != null ? cp.getHookFunctions() : Collections.emptyMap());
-//
-//        return ap;
-//    }
-
 }

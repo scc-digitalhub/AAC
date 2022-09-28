@@ -38,9 +38,8 @@ import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 
 import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
-import it.smartcommunitylab.aac.webauthn.WebAuthnLoginAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpService;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnLoginRpService;
 import it.smartcommunitylab.aac.webauthn.store.WebAuthnAssertionRequestStore;
 
 public class WebAuthnAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
@@ -54,16 +53,16 @@ public class WebAuthnAuthenticationFilter extends AbstractAuthenticationProcessi
 
     private AuthenticationEntryPoint authenticationEntryPoint;
 
-    private final WebAuthnRpService rpService;
+    private final WebAuthnLoginRpService rpService;
     private final WebAuthnAssertionRequestStore requestStore;
 
-    public WebAuthnAuthenticationFilter(WebAuthnRpService rpService,
+    public WebAuthnAuthenticationFilter(WebAuthnLoginRpService rpService,
             WebAuthnAssertionRequestStore requestStore,
             ProviderConfigRepository<WebAuthnIdentityProviderConfig> registrationRepository) {
         this(rpService, requestStore, registrationRepository, DEFAULT_FILTER_URI, null);
     }
 
-    public WebAuthnAuthenticationFilter(WebAuthnRpService rpService,
+    public WebAuthnAuthenticationFilter(WebAuthnLoginRpService rpService,
             WebAuthnAssertionRequestStore requestStore,
             ProviderConfigRepository<WebAuthnIdentityProviderConfig> registrationRepository,
             String filterProcessingUrl, AuthenticationEntryPoint authenticationEntryPoint) {

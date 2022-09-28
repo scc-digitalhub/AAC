@@ -7,7 +7,7 @@ import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 
 @Service
 public class MapperAttributeConfigurationProvider extends
-        AbstractAttributeConfigurationProvider<MapperAttributeProviderConfig, MapperAttributeProviderConfigMap> {
+        AbstractAttributeConfigurationProvider<MapperAttributeProviderConfigMap, MapperAttributeProviderConfig> {
 
     public MapperAttributeConfigurationProvider() {
         super(SystemKeys.AUTHORITY_MAPPER);
