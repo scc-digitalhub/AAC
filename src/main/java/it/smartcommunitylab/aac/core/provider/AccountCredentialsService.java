@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.core.provider;
 
 import java.util.Collection;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchCredentialException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
@@ -67,5 +68,9 @@ public interface AccountCredentialsService<R extends UserCredentials, M extends 
      * MFA should be removed or revoked.
      */
     public String getResetUrl();
+
+    default public String getType() {
+        return SystemKeys.RESOURCE_CREDENTIALS;
+    }
 
 }

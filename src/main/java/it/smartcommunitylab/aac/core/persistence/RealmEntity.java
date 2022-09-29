@@ -18,7 +18,6 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import it.smartcommunitylab.aac.repository.HashMapConverter;
-import it.smartcommunitylab.aac.repository.NestedMapConverter;
 
 @Entity
 @Table(name = "realms")
@@ -49,15 +48,11 @@ public class RealmEntity {
     @Column(name = "is_public")
     private boolean isPublic;
 
+    // TODO move to oauth2ConfigProvider
     @Lob
     @Column(name = "oauth_configuration_map")
     @Convert(converter = HashMapConverter.class)
     private Map<String, Serializable> oauthConfigurationMap;
-
-    @Lob
-    @Column(name = "customizations")
-    @Convert(converter = NestedMapConverter.class)
-    private Map<String, Map<String, String>> customizations;
 
     public String getName() {
         return name;
@@ -113,14 +108,6 @@ public class RealmEntity {
 
     public void setOAuthConfigurationMap(Map<String, Serializable> oauthConfigurationMap) {
         this.oauthConfigurationMap = oauthConfigurationMap;
-    }
-
-    public Map<String, Map<String, String>> getCustomizations() {
-        return customizations;
-    }
-
-    public void setCustomizations(Map<String, Map<String, String>> customizations) {
-        this.customizations = customizations;
     }
 
 }

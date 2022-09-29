@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.core.provider;
 
 import java.util.Collection;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
@@ -106,5 +107,9 @@ public interface AttributeProvider<M extends ConfigMap, C extends AttributeProvi
     public void deleteUserAttributes(String userId, String setId) throws NoSuchAttributeSetException;
 
 //    public void deleteAccountAttributes(String id);
+
+    default public String getType() {
+        return SystemKeys.RESOURCE_ATTRIBUTES;
+    }
 
 }

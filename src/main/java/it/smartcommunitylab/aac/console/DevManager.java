@@ -51,7 +51,6 @@ import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.service.ClientDetailsService;
 import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.core.service.UserService;
-import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.dto.FunctionValidationBean;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.ScopeType;
@@ -394,34 +393,34 @@ public class DevManager {
         return functionBean;
     }
 
-    /*
-     * Realm customization
-     */
-
-    public String previewRealmTemplate(String realm, String template, CustomizationBean cb, WebContext ctx)
-            throws NoSuchRealmException {
-
-        Realm re = realmService.getRealm(realm);
-
-        if (!template.equals(cb.getIdentifier())) {
-            throw new IllegalArgumentException("customization does not match template");
-        }
-
-        // build model
-        Map<String, Object> model = new HashMap<>();
-        model.put("realm", realm);
-        model.put("displayName", re.getName());
-        model.put("customization", cb.getResources());
-
-        // Create the HTML body using Thymeleaf
-        for (String var : model.keySet()) {
-            ctx.setVariable(var, model.get(var));
-        }
-
-        final String html = this.templateEngine.process(template, ctx);
-
-        return html;
-    }
+//    /*
+//     * Realm customization
+//     */
+//
+//    public String previewRealmTemplate(String realm, String template, CustomizationBean cb, WebContext ctx)
+//            throws NoSuchRealmException {
+//
+//        Realm re = realmService.getRealm(realm);
+//
+//        if (!template.equals(cb.getIdentifier())) {
+//            throw new IllegalArgumentException("customization does not match template");
+//        }
+//
+//        // build model
+//        Map<String, Object> model = new HashMap<>();
+//        model.put("realm", realm);
+//        model.put("displayName", re.getName());
+//        model.put("customization", cb.getResources());
+//
+//        // Create the HTML body using Thymeleaf
+//        for (String var : model.keySet()) {
+//            ctx.setVariable(var, model.get(var));
+//        }
+//
+//        final String html = this.templateEngine.process(template, ctx);
+//
+//        return html;
+//    }
 
     /*
      * OAuth2

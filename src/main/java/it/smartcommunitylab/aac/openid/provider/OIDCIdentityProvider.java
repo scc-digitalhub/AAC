@@ -25,9 +25,6 @@ public class OIDCIdentityProvider
         AbstractIdentityProvider<OIDCUserIdentity, OIDCUserAccount, OIDCUserAuthenticatedPrincipal, OIDCIdentityProviderConfigMap, OIDCIdentityProviderConfig> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    // provider configuration
-    private final OIDCIdentityProviderConfig config;
-
     // providers
     private final OIDCAccountProvider accountProvider;
     private final OIDCAttributeProvider attributeProvider;
@@ -57,7 +54,6 @@ public class OIDCIdentityProvider
 
         logger.debug("create oidc provider for authority {} with id {}", String.valueOf(authority),
                 String.valueOf(providerId));
-        this.config = config;
 
         // build resource providers, we use our providerId to ensure consistency
         this.accountProvider = new OIDCAccountProvider(authority, providerId, userAccountService, config, realm);
@@ -79,11 +75,6 @@ public class OIDCIdentityProvider
 
     public void setExecutionService(ScriptExecutionService executionService) {
         this.authenticationProvider.setExecutionService(executionService);
-    }
-
-    @Override
-    public OIDCIdentityProviderConfig getConfig() {
-        return config;
     }
 
     @Override

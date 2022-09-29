@@ -32,8 +32,21 @@ import it.smartcommunitylab.aac.claims.ExtractorsRegistry;
 import it.smartcommunitylab.aac.claims.InMemoryExtractorsRegistry;
 import it.smartcommunitylab.aac.claims.ResourceClaimsExtractorProvider;
 import it.smartcommunitylab.aac.claims.ScopeClaimsExtractorProvider;
+import it.smartcommunitylab.aac.core.persistence.AccountServiceEntity;
+import it.smartcommunitylab.aac.core.persistence.AccountServiceEntityRepository;
+import it.smartcommunitylab.aac.core.persistence.AttributeProviderEntity;
+import it.smartcommunitylab.aac.core.persistence.AttributeProviderEntityRepository;
+import it.smartcommunitylab.aac.core.persistence.CredentialsServiceEntity;
+import it.smartcommunitylab.aac.core.persistence.CredentialsServiceEntityRepository;
+import it.smartcommunitylab.aac.core.persistence.IdentityProviderEntity;
+import it.smartcommunitylab.aac.core.persistence.IdentityProviderEntityRepository;
+import it.smartcommunitylab.aac.core.persistence.IdentityServiceEntity;
+import it.smartcommunitylab.aac.core.persistence.IdentityServiceEntityRepository;
+import it.smartcommunitylab.aac.core.persistence.TemplateProviderEntity;
+import it.smartcommunitylab.aac.core.persistence.TemplateProviderEntityRepository;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.core.service.ConfigurableProviderEntityService;
 import it.smartcommunitylab.aac.core.service.InMemoryProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
@@ -57,6 +70,7 @@ import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
 import it.smartcommunitylab.aac.saml.service.SamlUserAccountService;
 import it.smartcommunitylab.aac.scope.InMemoryScopeRegistry;
 import it.smartcommunitylab.aac.scope.ScopeProvider;
+import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfig;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredentialsRepository;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsServiceConfig;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
@@ -152,14 +166,14 @@ public class PersistenceConfig {
      */
 
     @Bean
-    public UserAccountService<OIDCUserAccount> oidcUserAccountService(OIDCUserAccountRepository accountRepository,
-            SubjectService subjectService) {
+    public UserAccountService<OIDCUserAccount> oidcUserAccountService(
+            OIDCUserAccountRepository accountRepository, SubjectService subjectService) {
         return new OIDCUserAccountService(accountRepository, subjectService);
     }
 
     @Bean
-    public UserAccountService<SamlUserAccount> samlUserAccountService(SamlUserAccountRepository accountRepository,
-            SubjectService subjectService) {
+    public UserAccountService<SamlUserAccount> samlUserAccountService(
+            SamlUserAccountRepository accountRepository, SubjectService subjectService) {
         return new SamlUserAccountService(accountRepository, subjectService);
     }
 
@@ -170,7 +184,8 @@ public class PersistenceConfig {
     }
 
     @Bean
-    public InternalUserPasswordService internalUserPasswordService(InternalUserPasswordRepository passwordRepository) {
+    public InternalUserPasswordService internalUserPasswordService(
+            InternalUserPasswordRepository passwordRepository) {
         return new InternalUserPasswordService(passwordRepository);
     }
 
@@ -178,6 +193,42 @@ public class PersistenceConfig {
     public WebAuthnUserCredentialsService webAuthnCredentialsService(
             WebAuthnUserCredentialsRepository credentialsRepository) {
         return new WebAuthnUserCredentialsService(credentialsRepository);
+    }
+
+    @Bean
+    public ConfigurableProviderEntityService<AccountServiceEntity> accountServiceEntityService(
+            AccountServiceEntityRepository accountServiceRepository) {
+        return new ConfigurableProviderEntityService<>(accountServiceRepository);
+    }
+
+    @Bean
+    public ConfigurableProviderEntityService<AttributeProviderEntity> attributeProviderEntityService(
+            AttributeProviderEntityRepository attributeProviderRepository) {
+        return new ConfigurableProviderEntityService<>(attributeProviderRepository);
+    }
+
+    @Bean
+    public ConfigurableProviderEntityService<CredentialsServiceEntity> credentialsServiceEntityService(
+            CredentialsServiceEntityRepository credentialsServiceRepository) {
+        return new ConfigurableProviderEntityService<>(credentialsServiceRepository);
+    }
+
+    @Bean
+    public ConfigurableProviderEntityService<IdentityProviderEntity> identityProviderEntityService(
+            IdentityProviderEntityRepository identityProviderRepository) {
+        return new ConfigurableProviderEntityService<>(identityProviderRepository);
+    }
+
+    @Bean
+    public ConfigurableProviderEntityService<IdentityServiceEntity> identityServiceEntityService(
+            IdentityServiceEntityRepository identityServiceRepository) {
+        return new ConfigurableProviderEntityService<>(identityServiceRepository);
+    }
+
+    @Bean
+    public ConfigurableProviderEntityService<TemplateProviderEntity> templateProviderEntityService(
+            TemplateProviderEntityRepository templateProviderRepository) {
+        return new ConfigurableProviderEntityService<>(templateProviderRepository);
     }
 
     @Bean
@@ -232,52 +283,52 @@ public class PersistenceConfig {
 
     @Bean
     public ProviderConfigRepository<InternalIdentityProviderConfig> internalProviderConfigRepository() {
-        return new InMemoryProviderConfigRepository<InternalIdentityProviderConfig>();
+        return new InMemoryProviderConfigRepository<>();
     }
 
     @Bean
     public ProviderConfigRepository<PasswordIdentityProviderConfig> internalPasswordProviderConfigRepository() {
-        return new InMemoryProviderConfigRepository<PasswordIdentityProviderConfig>();
+        return new InMemoryProviderConfigRepository<>();
     }
 
     @Bean
     public ProviderConfigRepository<OIDCIdentityProviderConfig> oidcProviderConfigRepository() {
-        return new InMemoryProviderConfigRepository<OIDCIdentityProviderConfig>();
+        return new InMemoryProviderConfigRepository<>();
     }
 
     @Bean
     public ProviderConfigRepository<AppleIdentityProviderConfig> appleProviderConfigRepository() {
-        return new InMemoryProviderConfigRepository<AppleIdentityProviderConfig>();
+        return new InMemoryProviderConfigRepository<>();
     }
 
     @Bean
     public ProviderConfigRepository<SamlIdentityProviderConfig> samlProviderConfigRepository() {
-        return new InMemoryProviderConfigRepository<SamlIdentityProviderConfig>();
+        return new InMemoryProviderConfigRepository<>();
     }
 
     @Bean
     public ProviderConfigRepository<WebAuthnIdentityProviderConfig> webAuthnProviderConfigRepository() {
-        return new InMemoryProviderConfigRepository<WebAuthnIdentityProviderConfig>();
+        return new InMemoryProviderConfigRepository<>();
     }
 
     @Bean
     public ProviderConfigRepository<MapperAttributeProviderConfig> mapperProviderConfigRepository() {
-        return new InMemoryProviderConfigRepository<MapperAttributeProviderConfig>();
+        return new InMemoryProviderConfigRepository<>();
     }
 
     @Bean
     public ProviderConfigRepository<ScriptAttributeProviderConfig> scriptProviderConfigRepository() {
-        return new InMemoryProviderConfigRepository<ScriptAttributeProviderConfig>();
+        return new InMemoryProviderConfigRepository<>();
     }
 
     @Bean
     public ProviderConfigRepository<InternalAttributeProviderConfig> internalAttributeProviderConfigRepository() {
-        return new InMemoryProviderConfigRepository<InternalAttributeProviderConfig>();
+        return new InMemoryProviderConfigRepository<>();
     }
 
     @Bean
     public ProviderConfigRepository<WebhookAttributeProviderConfig> webhookAttributeProviderConfigRepository() {
-        return new InMemoryProviderConfigRepository<WebhookAttributeProviderConfig>();
+        return new InMemoryProviderConfigRepository<>();
     }
 
 //    @Bean
@@ -298,5 +349,10 @@ public class PersistenceConfig {
     public ProviderConfigRepository<WebAuthnCredentialsServiceConfig> webauthnCredentialsServiceConfigRepository(
             ProviderConfigRepository<WebAuthnIdentityProviderConfig> externalRepository) {
         return new WebAuthnConfigTranslatorRepository(externalRepository);
+    }
+
+    @Bean
+    public ProviderConfigRepository<RealmTemplateProviderConfig> templateProviderConfigRepository() {
+        return new InMemoryProviderConfigRepository<>();
     }
 }

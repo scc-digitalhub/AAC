@@ -5,19 +5,42 @@ import java.util.Map;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchTemplateException;
+import it.smartcommunitylab.aac.core.model.ConfigMap;
+import it.smartcommunitylab.aac.core.model.ConfigurableTemplateProvider;
 import it.smartcommunitylab.aac.core.model.Template;
 
-public interface TemplateProvider extends ResourceProvider<Template> {
+/*
+ * Template providers expose template for multi-language customization of views
+ */
+public interface TemplateProvider<T extends Template, M extends ConfigMap, C extends TemplateProviderConfig<M>>
+        extends ConfigurableResourceProvider<T, ConfigurableTemplateProvider, M, C> {
 
+    /*
+     * Get languages enabled for this provider
+     */
     public Collection<String> getLanguages();
 
-    public Collection<Template> getTemplates();
+    /*
+     * Get a list of template keys managed by this provider
+     */
+    public Collection<String> getTemplates();
 
-    public Map<String, String> getContext();
+//    public Collection<Template> getTemplates();
 
+    /*
+     * Get a blank template as source for customization
+     */
     public Template getTemplate(String template) throws NoSuchTemplateException;
 
+    /*
+     * Get a localized template for view
+     */
     public Template getTemplate(String template, String language) throws NoSuchTemplateException;
+
+    /*
+     * Context for extensions
+     */
+    public Map<String, String> getContext();
 
     default String getType() {
         return SystemKeys.RESOURCE_TEMPLATE;

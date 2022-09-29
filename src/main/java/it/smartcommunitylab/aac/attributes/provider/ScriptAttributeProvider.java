@@ -23,7 +23,7 @@ import it.smartcommunitylab.aac.attributes.store.AttributeStore;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
-import it.smartcommunitylab.aac.core.base.AbstractProvider;
+import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
 import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
 import it.smartcommunitylab.aac.core.model.Attribute;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
@@ -32,7 +32,8 @@ import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 
-public class ScriptAttributeProvider extends AbstractProvider<UserAttributes>
+public class ScriptAttributeProvider extends
+        AbstractConfigurableProvider<UserAttributes, ConfigurableAttributeProvider, ScriptAttributeProviderConfigMap, ScriptAttributeProviderConfig>
         implements AttributeProvider<ScriptAttributeProviderConfigMap, ScriptAttributeProviderConfig> {
 
     public static final String ATTRIBUTE_MAPPING_FUNCTION = "attributeMapping";
@@ -41,27 +42,19 @@ public class ScriptAttributeProvider extends AbstractProvider<UserAttributes>
     private final AttributeService attributeService;
     private final AttributeStore attributeStore;
 
-    private final ScriptAttributeProviderConfig providerConfig;
     private ScriptExecutionService executionService;
 
     public ScriptAttributeProvider(
             String providerId,
             AttributeService attributeService, AttributeStore attributeStore,
-            ScriptAttributeProviderConfig config,
+            ScriptAttributeProviderConfig providerConfig,
             String realm) {
-        super(SystemKeys.AUTHORITY_SCRIPT, providerId, realm);
-        Assert.notNull(config, "provider config is mandatory");
+        super(SystemKeys.AUTHORITY_SCRIPT, providerId, realm, providerConfig);
         Assert.notNull(attributeService, "attribute service is mandatory");
         Assert.notNull(attributeStore, "attribute store is mandatory");
 
         this.attributeService = attributeService;
         this.attributeStore = attributeStore;
-
-        // check configuration
-        Assert.isTrue(providerId.equals(config.getProvider()),
-                "configuration does not match this provider");
-        Assert.isTrue(realm.equals(config.getRealm()), "configuration does not match this provider");
-        this.providerConfig = config;
 
         // validate code type
         String code = providerConfig.getConfigMap().getPlaintext();
@@ -80,39 +73,13 @@ public class ScriptAttributeProvider extends AbstractProvider<UserAttributes>
     }
 
     @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_ATTRIBUTES;
-    }
-
-    @Override
-    public String getName() {
-        return providerConfig.getName();
-    }
-
-    @Override
-    public String getDescription() {
-        return providerConfig.getDescription();
-    }
-
-    @Override
-    public ScriptAttributeProviderConfig getConfig() {
-        return providerConfig;
-    }
-
-    @Override
-    public ConfigurableAttributeProvider getConfigurable() {
-        return providerConfig.getConfigurable();
-    }
-
-    @Override
     public Collection<UserAttributes> convertPrincipalAttributes(UserAuthenticatedPrincipal principal,
             String subjectId) {
-
-        if (providerConfig.getAttributeSets().isEmpty()) {
+        if (config.getAttributeSets().isEmpty()) {
             return Collections.emptyList();
         }
 
-        ScriptAttributeProviderConfigMap configMap = providerConfig.getConfigMap();
+        ScriptAttributeProviderConfigMap configMap = config.getConfigMap();
 
         List<UserAttributes> result = new ArrayList<>();
         Map<String, Serializable> principalAttributes = new HashMap<>();
@@ -136,7 +103,7 @@ public class ScriptAttributeProvider extends AbstractProvider<UserAttributes>
         Map<String, ExactAttributesMapper> mappers = new HashMap<>();
 
         // fetch attribute sets
-        for (String setId : providerConfig.getAttributeSets()) {
+        for (String setId : config.getAttributeSets()) {
             try {
                 AttributeSet as = attributeService.getAttributeSet(setId);
 
@@ -203,7 +170,7 @@ public class ScriptAttributeProvider extends AbstractProvider<UserAttributes>
         List<UserAttributes> result = new ArrayList<>();
 
         // build sets from stored values
-        for (String setId : providerConfig.getAttributeSets()) {
+        for (String setId : config.getAttributeSets()) {
             try {
                 AttributeSet set = readAttributes(setId, attributes);
                 if (set.getAttributes() != null && !set.getAttributes().isEmpty()) {
@@ -221,7 +188,7 @@ public class ScriptAttributeProvider extends AbstractProvider<UserAttributes>
 
     @Override
     public UserAttributes getUserAttributes(String userId, String setId) throws NoSuchAttributeSetException {
-        if (!providerConfig.getAttributeSets().contains(setId)) {
+        if (!config.getAttributeSets().contains(setId)) {
             return null;
         }
 

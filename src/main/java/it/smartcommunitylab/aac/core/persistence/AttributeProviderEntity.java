@@ -24,7 +24,7 @@ public class AttributeProviderEntity implements ProviderEntity {
     @Id
     @NotNull
     @Column(name = "provider_id", length = 128, unique = true)
-    private String providerId;
+    private String provider;
 
     @NotNull
     @Column(length = 128)
@@ -58,7 +58,7 @@ public class AttributeProviderEntity implements ProviderEntity {
     }
 
     public AttributeProviderEntity(String providerId) {
-        this.providerId = providerId;
+        this.provider = providerId;
     }
 
     public String getAuthority() {
@@ -69,17 +69,12 @@ public class AttributeProviderEntity implements ProviderEntity {
         this.authority = authority;
     }
 
-    @Override
     public String getProvider() {
-        return providerId;
+        return provider;
     }
 
-    public String getProviderId() {
-        return providerId;
-    }
-
-    public void setProviderId(String providerId) {
-        this.providerId = providerId;
+    public void setProvider(String provider) {
+        this.provider = provider;
     }
 
     public String getRealm() {

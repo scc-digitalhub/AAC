@@ -28,9 +28,6 @@ public class AppleIdentityProvider
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    // provider configuration
-    private final AppleIdentityProviderConfig config;
-
     // providers
     private final OIDCAccountProvider accountProvider;
     private final OIDCAttributeProvider attributeProvider;
@@ -47,7 +44,6 @@ public class AppleIdentityProvider
         Assert.notNull(attributeStore, "attribute store is mandatory");
 
         logger.debug("create apple provider  with id {}", String.valueOf(providerId));
-        this.config = config;
 
         OIDCIdentityProviderConfig oidcConfig = config.toOidcProviderConfig();
 

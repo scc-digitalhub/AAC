@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.core.provider;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
@@ -44,4 +45,8 @@ public interface AccountService<U extends UserAccount, M extends ConfigMap, C ex
     public String getRegistrationUrl();
 
 //    public RegistrationProvider getRegistrationProvider();
+
+    default public String getType() {
+        return SystemKeys.RESOURCE_ACCOUNT;
+    }
 }

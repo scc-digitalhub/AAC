@@ -61,7 +61,6 @@ import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.UserManager;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
-import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.dto.RealmStats;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
@@ -239,26 +238,26 @@ public class DevController {
         return ResponseEntity.ok(bean);
     }
 
-    @PostMapping("/console/dev/realms/{realm}/custom")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
-    public void previewRealm(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestParam(required = true) @Valid @NotBlank String template,
-            @RequestBody @Valid @NotNull CustomizationBean cb,
-            HttpServletRequest req, HttpServletResponse res)
-            throws NoSuchRealmException, SystemException, IOException {
-
-        WebContext ctx = new WebContext(req, res, servletContext, req.getLocale());
-        String s = devManager.previewRealmTemplate(realm, template, cb, ctx);
-
-        // write as file
-        res.setContentType("text/html");
-        ServletOutputStream out = res.getOutputStream();
-        out.write(s.getBytes(StandardCharsets.UTF_8));
-        out.flush();
-        out.close();
-
-    }
+//    @PostMapping("/console/dev/realms/{realm}/custom")
+//    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
+//    public void previewRealm(
+//            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+//            @RequestParam(required = true) @Valid @NotBlank String template,
+//            @RequestBody @Valid @NotNull CustomizationBean cb,
+//            HttpServletRequest req, HttpServletResponse res)
+//            throws NoSuchRealmException, SystemException, IOException {
+//
+//        WebContext ctx = new WebContext(req, res, servletContext, req.getLocale());
+//        String s = devManager.previewRealmTemplate(realm, template, cb, ctx);
+//
+//        // write as file
+//        res.setContentType("text/html");
+//        ServletOutputStream out = res.getOutputStream();
+//        out.write(s.getBytes(StandardCharsets.UTF_8));
+//        out.flush();
+//        out.close();
+//
+//    }
 
 //    /*
 //     * Scopes and resources

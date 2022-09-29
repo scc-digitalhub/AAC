@@ -23,7 +23,11 @@ public class TemplateProviderEntity implements ProviderEntity {
 
     @Id
     @NotNull
-    @Column(name = "realm", length = 128, unique = true)
+    @Column(name = "provider_id", length = 128, unique = true)
+    private String provider;
+
+    @NotNull
+    @Column(name = "realm", length = 128)
     private String realm;
 
     private String name;
@@ -49,6 +53,14 @@ public class TemplateProviderEntity implements ProviderEntity {
 
     public TemplateProviderEntity(String realm) {
         this.realm = realm;
+    }
+
+    public String getProvider() {
+        return provider;
+    }
+
+    public void setProvider(String provider) {
+        this.provider = provider;
     }
 
     public String getAuthority() {
@@ -110,12 +122,6 @@ public class TemplateProviderEntity implements ProviderEntity {
     @Override
     public String getType() {
         return SystemKeys.RESOURCE_TEMPLATE;
-    }
-
-    @Override
-    public String getProvider() {
-        // one provider per realm by design, reuse id
-        return getRealm();
     }
 
 }

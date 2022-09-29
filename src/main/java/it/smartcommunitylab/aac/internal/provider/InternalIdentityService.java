@@ -38,9 +38,6 @@ public class InternalIdentityService
         InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    // provider configuration
-    private final InternalIdentityServiceConfig config;
-
     // provider authorities
     private InternalAccountServiceAuthority accountServiceAuthority;
     private Map<String, CredentialsServiceAuthority<?, ?, ?, ?>> credentialsServiceAuthorities;
@@ -54,9 +51,6 @@ public class InternalIdentityService
             String realm) {
         super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm, providerConfig);
         Assert.notNull(userEntityService, "user entity service is mandatory");
-
-        // config
-        this.config = providerConfig;
 
         this.userEntityService = userEntityService;
     }
@@ -76,21 +70,6 @@ public class InternalIdentityService
             this.credentialsServiceAuthorities = credentialsServiceAuthorities
                     .stream().collect(Collectors.toMap(a -> a.getAuthorityId(), a -> a));
         }
-    }
-
-    @Override
-    public String getName() {
-        return config.getName();
-    }
-
-    @Override
-    public String getDescription() {
-        return config.getDescription();
-    }
-
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_IDENTITY;
     }
 
     @Override

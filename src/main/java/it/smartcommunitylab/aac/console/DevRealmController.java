@@ -136,7 +136,6 @@ public class DevRealmController {
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public void exportRealm(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestParam(required = false, defaultValue = "false") boolean custom,
             @RequestParam(required = false, defaultValue = "false") boolean full,
             HttpServletResponse res)
             throws NoSuchRealmException, SystemException, IOException {
@@ -146,10 +145,7 @@ public class DevRealmController {
         String key = r.getSlug();
 
         // TODO refactor export
-        if (custom) {
-            key = r.getSlug() + "-custom";
-            export = Collections.singletonMap("customization", r.getCustomization());
-        } else if (full) {
+        if (full) {
             key = r.getSlug() + "-full";
             Map<String, Collection<? extends Object>> map = new HashMap<>();
             map.put("realms", Collections.singleton(r));

@@ -21,8 +21,6 @@ public interface ProviderEntityService<P extends ProviderEntity> {
 
     public P getProvider(String providerId) throws NoSuchProviderException;
 
-    public P createProvider();
-
     public P saveProvider(String providerId, P reg, Map<String, Serializable> configuration);
 
     public void deleteProvider(String providerId);

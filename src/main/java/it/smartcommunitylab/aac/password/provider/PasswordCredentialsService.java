@@ -42,7 +42,6 @@ public class PasswordCredentialsService extends
     private final InternalUserPasswordService passwordService;
 
     // provider configuration
-    private final PasswordCredentialsServiceConfig config;
     private final String repositoryId;
 
     private MailService mailService;
@@ -61,7 +60,6 @@ public class PasswordCredentialsService extends
         this.repositoryId = providerConfig.getRepositoryId();
         logger.debug("create password credentials service with id {} repository {}", String.valueOf(providerId),
                 repositoryId);
-        this.config = providerConfig;
 
         this.accountService = userAccountService;
         this.passwordService = passwordService;
@@ -73,21 +71,6 @@ public class PasswordCredentialsService extends
 
     public void setUriBuilder(RealmAwareUriBuilder uriBuilder) {
         this.uriBuilder = uriBuilder;
-    }
-
-    @Override
-    public String getName() {
-        return config.getName();
-    }
-
-    @Override
-    public String getDescription() {
-        return config.getDescription();
-    }
-
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_CREDENTIALS;
     }
 
     public boolean canSet() {
@@ -403,29 +386,29 @@ public class PasswordCredentialsService extends
     /*
      * Mail
      */
-    private void sendPasswordMail(InternalUserAccount account, String password)
-            throws MessagingException {
-        if (mailService != null) {
-            String realm = getRealm();
-            String loginUrl = "/login";
-            if (uriBuilder != null) {
-                loginUrl = uriBuilder.buildUrl(realm, loginUrl);
-            }
-
-            Map<String, String> action = new HashMap<>();
-            action.put("url", loginUrl);
-            action.put("text", "action.login");
-
-            Map<String, Object> vars = new HashMap<>();
-            vars.put("user", account);
-            vars.put("password", password);
-            vars.put("action", action);
-            vars.put("realm", account.getRealm());
-
-            String template = "password";
-            mailService.sendEmail(account.getEmail(), template, account.getLang(), vars);
-        }
-    }
+//    private void sendPasswordMail(InternalUserAccount account, String password)
+//            throws MessagingException {
+//        if (mailService != null) {
+//            String realm = getRealm();
+//            String loginUrl = "/login";
+//            if (uriBuilder != null) {
+//                loginUrl = uriBuilder.buildUrl(realm, loginUrl);
+//            }
+//
+//            Map<String, String> action = new HashMap<>();
+//            action.put("url", loginUrl);
+//            action.put("text", "action.login");
+//
+//            Map<String, Object> vars = new HashMap<>();
+//            vars.put("user", account);
+//            vars.put("password", password);
+//            vars.put("action", action);
+//            vars.put("realm", account.getRealm());
+//
+//            String template = "password";
+//            mailService.sendEmail(account.getEmail(), template, account.getLang(), vars);
+//        }
+//    }
 
     private void sendResetMail(InternalUserAccount account, String key) throws MessagingException {
         if (mailService != null) {

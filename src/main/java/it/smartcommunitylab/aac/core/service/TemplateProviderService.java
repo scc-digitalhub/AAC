@@ -20,11 +20,10 @@ import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 @Transactional
 public class TemplateProviderService
         extends ConfigurableProviderService<ConfigurableTemplateProvider, TemplateProviderEntity> {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private TemplateProviderAuthorityService authorityService;
 
-    public TemplateProviderService(TemplateProviderEntityService providerService) {
+    public TemplateProviderService(ConfigurableProviderEntityService<TemplateProviderEntity> providerService) {
         super(providerService);
 
         // set converters
@@ -51,6 +50,7 @@ public class TemplateProviderService
             TemplateProviderEntity pe = new TemplateProviderEntity();
 
             pe.setAuthority(reg.getAuthority());
+            pe.setProvider(reg.getProvider());
             pe.setRealm(reg.getRealm());
 
             String name = reg.getName();
@@ -79,7 +79,7 @@ public class TemplateProviderService
 
         @Override
         public ConfigurableTemplateProvider convert(TemplateProviderEntity pe) {
-            ConfigurableTemplateProvider cp = new ConfigurableTemplateProvider(pe.getAuthority(), pe.getRealm(),
+            ConfigurableTemplateProvider cp = new ConfigurableTemplateProvider(pe.getAuthority(), pe.getProvider(),
                     pe.getRealm());
 
             cp.setName(pe.getName());

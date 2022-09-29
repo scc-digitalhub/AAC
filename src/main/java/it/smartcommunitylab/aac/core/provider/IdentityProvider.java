@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.core.provider;
 
 import java.util.Collection;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
@@ -138,4 +139,8 @@ public interface IdentityProvider<I extends UserIdentity, U extends UserAccount,
 //     * Additional action urls
 //     */
 //    public Map<String, String> getActionUrls();
+
+    default public String getType() {
+        return SystemKeys.RESOURCE_IDENTITY;
+    }
 }

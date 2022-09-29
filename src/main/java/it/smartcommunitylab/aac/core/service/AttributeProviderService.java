@@ -25,7 +25,7 @@ public class AttributeProviderService
 
     private AttributeProviderAuthorityService authorityService;
 
-    public AttributeProviderService(AttributeProviderEntityService providerService) {
+    public AttributeProviderService(ConfigurableProviderEntityService<AttributeProviderEntity> providerService) {
         super(providerService);
         setEntityConverter(new AttributeProviderEntityConverter());
         setConfigConverter(new AttributeProviderConfigConverter());
@@ -47,7 +47,7 @@ public class AttributeProviderService
 
         @Override
         public ConfigurableAttributeProvider convert(AttributeProviderEntity pe) {
-            ConfigurableAttributeProvider cp = new ConfigurableAttributeProvider(pe.getAuthority(), pe.getProviderId(),
+            ConfigurableAttributeProvider cp = new ConfigurableAttributeProvider(pe.getAuthority(), pe.getProvider(),
                     pe.getRealm());
             cp.setConfiguration(pe.getConfigurationMap());
             cp.setEnabled(pe.isEnabled());
@@ -74,7 +74,7 @@ public class AttributeProviderService
             AttributeProviderEntity pe = new AttributeProviderEntity();
 
             pe.setAuthority(reg.getAuthority());
-            pe.setProviderId(reg.getProvider());
+            pe.setProvider(reg.getProvider());
             pe.setRealm(reg.getRealm());
             pe.setEnabled(reg.isEnabled());
 

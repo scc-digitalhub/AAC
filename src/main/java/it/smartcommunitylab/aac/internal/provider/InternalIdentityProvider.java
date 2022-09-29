@@ -22,9 +22,6 @@ public class InternalIdentityProvider extends
         AbstractIdentityProvider<InternalUserIdentity, InternalUserAccount, InternalUserAuthenticatedPrincipal, InternalIdentityProviderConfigMap, InternalIdentityProviderConfig> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    // provider configuration
-    private final InternalIdentityProviderConfig config;
-
     // services
     private final InternalIdentityConfirmService confirmService;
 
@@ -45,7 +42,6 @@ public class InternalIdentityProvider extends
 
         String repositoryId = config.getRepositoryId();
         logger.debug("create internal provider with id {} repository {}", String.valueOf(providerId), repositoryId);
-        this.config = config;
 
         // build resource providers, we use our providerId to ensure consistency
         this.attributeProvider = new InternalAttributeProvider<>(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
@@ -66,11 +62,6 @@ public class InternalIdentityProvider extends
     @Override
     public boolean isAuthoritative() {
         return true;
-    }
-
-    @Override
-    public InternalIdentityProviderConfig getConfig() {
-        return config;
     }
 
     @Override

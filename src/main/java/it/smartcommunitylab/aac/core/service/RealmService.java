@@ -1,8 +1,6 @@
 package it.smartcommunitylab.aac.core.service;
 
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +23,6 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.persistence.RealmEntity;
 import it.smartcommunitylab.aac.core.persistence.RealmEntityRepository;
-import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ConfigurationMap;
 
@@ -137,8 +134,7 @@ public class RealmService implements InitializingBean {
     }
 
     public Realm updateRealm(String slug, String name, boolean isEditable, boolean isPublic,
-            Map<String, Serializable> oauthConfigurationMap,
-            Map<String, Map<String, String>> customizations)
+            Map<String, Serializable> oauthConfigurationMap)
             throws NoSuchRealmException {
         if (SystemKeys.REALM_GLOBAL.equals(slug) || SystemKeys.REALM_SYSTEM.equals(slug)) {
             throw new IllegalArgumentException("system realms are immutable");
@@ -153,22 +149,6 @@ public class RealmService implements InitializingBean {
         r.setEditable(isEditable);
         r.setPublic(isPublic);
 
-        Map<String, Map<String, String>> customMap = null;
-        if (customizations != null) {
-            customMap = new HashMap<>();
-            for (Map.Entry<String, Map<String, String>> e : customizations.entrySet()) {
-                if (StringUtils.hasText(e.getKey()) && e.getValue() != null) {
-                    Map<String, String> vv = e.getValue().entrySet().stream()
-                            .filter(ee -> StringUtils.hasText(ee.getValue()))
-                            .collect(Collectors.toMap(ee -> ee.getKey(), ee -> ee.getValue()));
-
-                    if (!vv.isEmpty()) {
-                        customMap.put(e.getKey(), vv);
-                    }
-                }
-            }
-        }
-        r.setCustomizations(customMap);
         r.setOAuthConfigurationMap(oauthConfigurationMap);
         r = realmRepository.save(r);
 
@@ -245,25 +225,6 @@ public class RealmService implements InitializingBean {
             oauth2ConfigMap.setConfiguration(re.getOAuthConfigurationMap());
         }
         r.setOAuthConfiguration(oauth2ConfigMap);
-
-        // build a template customization map
-        Map<String, CustomizationBean> map = new HashMap<>();
-        r.setCustomization(Collections.emptyList());
-
-        if (re.getCustomizations() != null) {
-            re.getCustomizations().entrySet().stream().forEach(m -> {
-                if (m.getValue() != null) {
-                    String k = m.getKey();
-                    if (!map.containsKey(k)) {
-                        map.put(k, new CustomizationBean(k));
-                    }
-
-                    map.get(k).setResources(m.getValue());
-                }
-            });
-        }
-
-        r.setCustomization(map.values().stream().collect(Collectors.toList()));
 
         return r;
     }

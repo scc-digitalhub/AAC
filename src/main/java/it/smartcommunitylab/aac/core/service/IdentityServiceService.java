@@ -2,8 +2,6 @@ package it.smartcommunitylab.aac.core.service;
 
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Service;
@@ -19,11 +17,10 @@ import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 @Transactional
 public class IdentityServiceService
         extends ConfigurableProviderService<ConfigurableIdentityService, IdentityServiceEntity> {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private IdentityServiceAuthorityService authorityService;
 
-    public IdentityServiceService(IdentityServiceEntityService providerService) {
+    public IdentityServiceService(ConfigurableProviderEntityService<IdentityServiceEntity> providerService) {
         super(providerService);
 
         // set converters
@@ -31,9 +28,6 @@ public class IdentityServiceService
         setEntityConverter(new IdentityServiceEntityConverter());
 
         // create system services
-        // we expect no client/services in global+system realm!
-        // note: we let registration with authorities to bootstrap
-
         // internal service is exposed by internal idp
 //        // enable internal for system by default
 //        ConfigurableIdentityService internalConfig = new ConfigurableIdentityService(
@@ -73,7 +67,7 @@ public class IdentityServiceService
             IdentityServiceEntity pe = new IdentityServiceEntity();
 
             pe.setAuthority(reg.getAuthority());
-            pe.setProviderId(reg.getProvider());
+            pe.setProvider(reg.getProvider());
             pe.setRealm(reg.getRealm());
 
             String name = reg.getName();
@@ -102,7 +96,7 @@ public class IdentityServiceService
 
         @Override
         public ConfigurableIdentityService convert(IdentityServiceEntity pe) {
-            ConfigurableIdentityService cp = new ConfigurableIdentityService(pe.getAuthority(), pe.getProviderId(),
+            ConfigurableIdentityService cp = new ConfigurableIdentityService(pe.getAuthority(), pe.getProvider(),
                     pe.getRealm());
 
             cp.setName(pe.getName());

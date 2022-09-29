@@ -20,7 +20,7 @@ public class CredentialsServiceService
 
     private CredentialsServiceAuthorityService authorityService;
 
-    public CredentialsServiceService(CredentialsServiceEntityService providerService) {
+    public CredentialsServiceService(ConfigurableProviderEntityService<CredentialsServiceEntity> providerService) {
         super(providerService);
 
         // set converters
@@ -50,7 +50,7 @@ public class CredentialsServiceService
             CredentialsServiceEntity pe = new CredentialsServiceEntity();
 
             pe.setAuthority(reg.getAuthority());
-            pe.setProviderId(reg.getProvider());
+            pe.setProvider(reg.getProvider());
             pe.setRealm(reg.getRealm());
 
             String name = reg.getName();
@@ -80,7 +80,7 @@ public class CredentialsServiceService
         @Override
         public ConfigurableCredentialsService convert(CredentialsServiceEntity pe) {
             ConfigurableCredentialsService cp = new ConfigurableCredentialsService(pe.getAuthority(),
-                    pe.getProviderId(),
+                    pe.getProvider(),
                     pe.getRealm());
 
             cp.setName(pe.getName());

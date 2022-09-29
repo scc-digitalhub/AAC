@@ -58,6 +58,7 @@ import it.smartcommunitylab.aac.repository.IsolationSupportHibernateJpaDialect;
         "it.smartcommunitylab.aac.password.persistence",
         "it.smartcommunitylab.aac.webauthn.persistence",
         "it.smartcommunitylab.aac.groups.persistence",
+        "it.smartcommunitylab.aac.templates.persistence",
 
 })
 @EnableJpaRepositories(basePackages = {
@@ -72,6 +73,7 @@ import it.smartcommunitylab.aac.repository.IsolationSupportHibernateJpaDialect;
         "it.smartcommunitylab.aac.password.persistence",
         "it.smartcommunitylab.aac.webauthn.persistence",
         "it.smartcommunitylab.aac.groups.persistence",
+        "it.smartcommunitylab.aac.templates.persistence",
         "it.smartcommunitylab.aac.repository",
 }, queryLookupStrategy = QueryLookupStrategy.Key.CREATE_IF_NOT_FOUND)
 @EnableJpaAuditing
@@ -136,7 +138,7 @@ public class DatabaseConfig {
         props.setProperty("hibernate.hbm2ddl.auto", "update");
         bean.setJpaProperties(props);
 
-        // explicitely mark packages for persistence unit
+        // explicitly mark packages for persistence unit
         // TODO rework, align with @EntityScan
         // spring boot 2.x should fix the issue
         bean.setPackagesToScan(
@@ -150,6 +152,7 @@ public class DatabaseConfig {
                 "it.smartcommunitylab.aac.attributes.persistence",
                 "it.smartcommunitylab.aac.password.persistence",
                 "it.smartcommunitylab.aac.webauthn.persistence",
+                "it.smartcommunitylab.aac.templates.persistence",
                 "it.smartcommunitylab.aac.groups.persistence");
 //		bean.setPersistenceUnitManager(null);
 
