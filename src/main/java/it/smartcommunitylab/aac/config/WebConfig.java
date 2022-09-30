@@ -16,6 +16,7 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.web.filter.ShallowEtagHeaderFilter;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.CookieLocaleResolver;
@@ -23,6 +24,7 @@ import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.templates.TemplateHandlerInterceptor;
 
 /*
  * Configure web container before security  
@@ -30,6 +32,9 @@ import it.smartcommunitylab.aac.SystemKeys;
 @Configuration
 @Order(20)
 public class WebConfig implements WebMvcConfigurer {
+
+    @Autowired
+    TemplateHandlerInterceptor templateInterceptor;
 
     @Bean
     public CookieLocaleResolver getLocaleResolver() {
@@ -99,6 +104,14 @@ public class WebConfig implements WebMvcConfigurer {
         MappingJackson2HttpMessageConverter yamlConverter = new MappingJackson2HttpMessageConverter(yamlObjectMapper);
         yamlConverter.setSupportedMediaTypes(Arrays.asList(SystemKeys.MEDIA_TYPE_YML, SystemKeys.MEDIA_TYPE_YAML));
         converters.add(yamlConverter);
+    }
+
+    /*
+     * Template interceptor
+     */
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(templateInterceptor);
     }
 
 }

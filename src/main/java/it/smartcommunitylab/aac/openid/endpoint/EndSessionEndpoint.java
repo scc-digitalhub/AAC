@@ -3,8 +3,7 @@ package it.smartcommunitylab.aac.openid.endpoint;
 import java.io.IOException;
 import java.net.URI;
 import java.text.ParseException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Locale;
 import java.util.Optional;
 
 import javax.servlet.ServletException;
@@ -40,12 +39,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
-import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.ExtendedLogoutSuccessHandler;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.jwt.assertion.SelfAssertionValidator;
-import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 
@@ -83,19 +80,15 @@ public class EndSessionEndpoint {
     @Autowired
     private OAuth2ClientDetailsService clientDetailsService;
 
-    @Autowired
-    private RealmManager realmManager;
-
     @Operation(summary = "Logout with user confirmation")
     @RequestMapping(value = END_SESSION_URL, method = RequestMethod.GET)
     public String endSession(
             @RequestParam(value = "id_token_hint", required = false) @Pattern(regexp = SystemKeys.URI_PATTERN) String idTokenHint,
             @RequestParam(value = "post_logout_redirect_uri", required = false) @Pattern(regexp = SystemKeys.URI_PATTERN) String postLogoutRedirectUri,
             @RequestParam(value = STATE_KEY, required = false) @Pattern(regexp = SystemKeys.SPECIAL_PATTERN) String state,
-            HttpServletRequest request,
-            HttpServletResponse response,
-            HttpSession session,
-            Authentication auth, Model model) throws IOException, ServletException {
+            HttpServletRequest request, HttpServletResponse response,
+            HttpSession session, Locale locale,
+            Authentication auth, Model model) throws IOException, ServletException, NoSuchRealmException {
 
         // get userAuth
         UserAuthentication userAuth = authHelper.getUserAuthentication();
@@ -175,35 +168,14 @@ public class EndSessionEndpoint {
             model.addAttribute("fullname", userName);
             model.addAttribute("username", userName);
 
-            // add form action
-            // load realm customizations
+            // load realm props
             String realm = userAuth.getRealm();
+            model.addAttribute("realm", realm);
+            model.addAttribute("displayName", realm);
 
-            try {
-                String displayName = null;
-                Realm re = realmManager.getRealm(realm);
-                Map<String, String> resources = new HashMap<>();
-//                if (!realm.equals(SystemKeys.REALM_COMMON)) {
-//                    re = realmManager.getRealm(realm);
-//                    displayName = re.getName();
-//                    CustomizationBean gcb = re.getCustomization("global");
-//                    if (gcb != null) {
-//                        resources.putAll(gcb.getResources());
-//                    }
-//                    CustomizationBean lcb = re.getCustomization("endsession");
-//                    if (lcb != null) {
-//                        resources.putAll(lcb.getResources());
-//                    }
-//                }
-
-                model.addAttribute("displayName", displayName);
-                model.addAttribute("customization", resources);
-            } catch (NoSuchRealmException e) {
-                throw new IllegalArgumentException("Invalid realm");
-            }
-
+            // add form action
             model.addAttribute("formAction", END_SESSION_URL);
-            return "logout_confirmation";
+            return "endsession";
         }
     }
 
@@ -278,20 +250,5 @@ public class EndSessionEndpoint {
 
         }
     }
-
-//    private String readParameter(Map<String, String> requestParameters, String key, String pattern)
-//            throws IllegalArgumentException {
-//        if (!requestParameters.containsKey(key)) {
-//            return null;
-//        }
-//
-//        String raw = requestParameters.get(key);
-//        if (!raw.matches(pattern)) {
-//            throw new IllegalArgumentException(key + " does not match pattern " + String.valueOf(pattern));
-//        }
-//
-//        return raw.trim();
-//
-//    }
 
 }

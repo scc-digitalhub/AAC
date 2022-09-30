@@ -38,12 +38,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.LoginException;
 import it.smartcommunitylab.aac.config.ApplicationProperties;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.RealmManager;
-import it.smartcommunitylab.aac.core.model.Template;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
@@ -51,20 +49,12 @@ import it.smartcommunitylab.aac.core.provider.LoginProvider;
 import it.smartcommunitylab.aac.core.service.ClientDetailsService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderAuthorityService;
 import it.smartcommunitylab.aac.core.service.IdentityServiceAuthorityService;
-import it.smartcommunitylab.aac.core.service.TemplateProviderAuthorityService;
 import it.smartcommunitylab.aac.model.Realm;
-import it.smartcommunitylab.aac.templates.TemplateAuthority;
-import it.smartcommunitylab.aac.templates.model.FooterTemplate;
-import it.smartcommunitylab.aac.templates.model.LoginTemplate;
-import it.smartcommunitylab.aac.templates.provider.TemplateTemplateProvider;
 
 @Controller
 @RequestMapping
 public class LoginController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
-
-//    @Value("${application.name}")
-//    private String applicationName;
 
     @Autowired
     private ApplicationProperties appProps;
@@ -77,12 +67,6 @@ public class LoginController {
 
     @Autowired
     private IdentityServiceAuthorityService identityServiceAuthorityService;
-
-    @Autowired
-    private TemplateProviderAuthorityService templateProviderAuthorityService;
-
-    @Autowired
-    private TemplateAuthority templateAuthority;
 
     @Autowired
     private RealmManager realmManager;
@@ -173,26 +157,9 @@ public class LoginController {
             throw new IllegalArgumentException("no suitable realm for login");
         }
 
+        // load realm props
         model.addAttribute("realm", realm);
-
-        Realm re = realmManager.getRealm(realm);
-        String displayName = re.getName();
-
-        // fetch template
-        String lang = locale.getLanguage();
-        Template template = null;
-        Template footer = null;
-        TemplateTemplateProvider tp = templateAuthority
-                .findProvider(templateAuthority.getAuthorityId() + SystemKeys.SLUG_SEPARATOR + realm);
-        if (tp != null) {
-            template = tp.getTemplate(LoginTemplate.TEMPLATE, lang);
-            footer = tp.getTemplate(FooterTemplate.TEMPLATE, lang);
-        }
-
-        model.addAttribute("application", appProps);
-        model.addAttribute("displayName", displayName);
-        model.addAttribute("template", template);
-        model.addAttribute("footer", footer);
+        model.addAttribute("displayName", realm);
 
         // fetch providers for given realm
         Collection<IdentityProvider<? extends UserIdentity, ?, ?, ?, ?>> providers = identityProviderAuthorityService

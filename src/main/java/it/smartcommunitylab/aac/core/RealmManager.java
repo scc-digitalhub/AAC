@@ -37,6 +37,8 @@ import it.smartcommunitylab.aac.common.NoSuchServiceException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.config.ApplicationProperties;
+import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.Client;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
@@ -57,6 +59,12 @@ public class RealmManager {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final static int SLUG_MIN_LENGTH = 3;
+
+    @Autowired
+    private ApplicationProperties appProps;
+
+    @Autowired
+    private RealmAwareUriBuilder uriBuilder;
 
     @Autowired
     private RealmService realmService;
@@ -419,5 +427,25 @@ public class RealmManager {
         // assign developer role
         return updateDeveloper(realm, user.getSubjectId(), Collections.singleton(Config.R_DEVELOPER));
 
+    }
+
+    public ApplicationProperties getRealmProps(String realm) throws NoSuchRealmException {
+        // load realm
+        Realm r = realmService.getRealm(realm);
+
+        ApplicationProperties props = new ApplicationProperties();
+        props.setName(r.getName());
+
+        // build props from global
+        // TODO add fields to realm config
+        props.setEmail(appProps.getEmail());
+        props.setLang(appProps.getLang());
+        props.setLogo(appProps.getLogo());
+
+        // via urlBuilder
+        String url = uriBuilder.buildUrl(realm, "/");
+        props.setUrl(url);
+
+        return props;
     }
 }
