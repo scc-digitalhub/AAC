@@ -10,7 +10,7 @@ public class PasswordChangeTemplate extends FixedTemplateModel {
     private static final String[] KEYS = { "changepwd.text", "changepwd.success" };
 
     public PasswordChangeTemplate(String realm) {
-        super(SystemKeys.AUTHORITY_PASSWORD, realm, TEMPLATE, Arrays.asList(KEYS));
+        super(SystemKeys.AUTHORITY_PASSWORD, realm, null, TEMPLATE, Arrays.asList(KEYS));
     }
 
 }

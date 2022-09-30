@@ -6,9 +6,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -38,23 +37,26 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.LoginException;
 import it.smartcommunitylab.aac.config.ApplicationProperties;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.RealmManager;
-import it.smartcommunitylab.aac.core.model.UserAccount;
+import it.smartcommunitylab.aac.core.model.Template;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
-import it.smartcommunitylab.aac.core.provider.AccountService;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.provider.LoginProvider;
-import it.smartcommunitylab.aac.core.service.AccountServiceAuthorityService;
 import it.smartcommunitylab.aac.core.service.ClientDetailsService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderAuthorityService;
 import it.smartcommunitylab.aac.core.service.IdentityServiceAuthorityService;
-import it.smartcommunitylab.aac.dto.CustomizationBean;
+import it.smartcommunitylab.aac.core.service.TemplateProviderAuthorityService;
 import it.smartcommunitylab.aac.model.Realm;
+import it.smartcommunitylab.aac.templates.TemplateAuthority;
+import it.smartcommunitylab.aac.templates.model.FooterTemplate;
+import it.smartcommunitylab.aac.templates.model.LoginTemplate;
+import it.smartcommunitylab.aac.templates.provider.TemplateTemplateProvider;
 
 @Controller
 @RequestMapping
@@ -75,6 +77,12 @@ public class LoginController {
 
     @Autowired
     private IdentityServiceAuthorityService identityServiceAuthorityService;
+
+    @Autowired
+    private TemplateProviderAuthorityService templateProviderAuthorityService;
+
+    @Autowired
+    private TemplateAuthority templateAuthority;
 
     @Autowired
     private RealmManager realmManager;
@@ -154,7 +162,7 @@ public class LoginController {
             @PathVariable("realm") String realm,
             @PathVariable("providerId") Optional<String> providerKey,
             @RequestParam(required = false, name = "client_id") Optional<String> clientKey,
-            Model model,
+            Model model, Locale locale,
             HttpServletRequest req, HttpServletResponse res) throws Exception {
 
         // TODO handle /login as COMMON login, ie any realm is valid
@@ -167,25 +175,24 @@ public class LoginController {
 
         model.addAttribute("realm", realm);
 
-        String displayName = appProps.getName();
-        Realm re = null;
-        Map<String, String> resources = new HashMap<>();
-        if (!realm.equals(SystemKeys.REALM_COMMON)) {
-            re = realmManager.getRealm(realm);
-            displayName = re.getName();
-            CustomizationBean gcb = re.getCustomization("global");
-            if (gcb != null) {
-                resources.putAll(gcb.getResources());
-            }
-            CustomizationBean lcb = re.getCustomization("login");
-            if (lcb != null) {
-                resources.putAll(lcb.getResources());
-            }
+        Realm re = realmManager.getRealm(realm);
+        String displayName = re.getName();
+
+        // fetch template
+        String lang = locale.getLanguage();
+        Template template = null;
+        Template footer = null;
+        TemplateTemplateProvider tp = templateAuthority
+                .findProvider(templateAuthority.getAuthorityId() + SystemKeys.SLUG_SEPARATOR + realm);
+        if (tp != null) {
+            template = tp.getTemplate(LoginTemplate.TEMPLATE, lang);
+            footer = tp.getTemplate(FooterTemplate.TEMPLATE, lang);
         }
 
         model.addAttribute("application", appProps);
         model.addAttribute("displayName", displayName);
-        model.addAttribute("customization", resources);
+        model.addAttribute("template", template);
+        model.addAttribute("footer", footer);
 
         // fetch providers for given realm
         Collection<IdentityProvider<? extends UserIdentity, ?, ?, ?, ?>> providers = identityProviderAuthorityService

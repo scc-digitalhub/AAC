@@ -1,9 +1,14 @@
 package it.smartcommunitylab.aac.config;
 
+import java.util.Locale;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.web.servlet.LocaleResolver;
+import org.springframework.web.servlet.i18n.CookieLocaleResolver;
+
 import it.smartcommunitylab.aac.claims.ClaimsService;
 import it.smartcommunitylab.aac.claims.DefaultClaimsService;
 import it.smartcommunitylab.aac.claims.ExtractorsRegistry;
@@ -89,6 +94,16 @@ public class AACConfig {
     @Bean
     public RealmAwarePathUriBuilder realmUriBuilder() {
         return new RealmAwarePathUriBuilder(applicationUrl);
+    }
+
+    /*
+     * Locale resolver
+     */
+    @Bean //
+    public LocaleResolver localeResolver() {
+        // use cookie resolver without default to fallback on accept language header
+        CookieLocaleResolver localeResolver = new CookieLocaleResolver();
+        return localeResolver;
     }
 
 //    @Autowired

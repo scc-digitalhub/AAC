@@ -5,25 +5,68 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
+
 import org.springframework.util.Assert;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.Template;
 
+@Valid
+@JsonInclude(Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TemplateModel implements Template {
 
-    private final String authority;
-    private final String template;
+    @Size(max = 128)
+    @Pattern(regexp = SystemKeys.SLUG_PATTERN)
+    private String id;
 
+    @Size(max = 128)
+    @NotBlank
+    @Pattern(regexp = SystemKeys.SLUG_PATTERN)
+    private String authority;
+
+    @Size(max = 128)
+    @Pattern(regexp = SystemKeys.SLUG_PATTERN)
+    private String provider;
+
+    @Size(max = 128)
+    @NotBlank
+    @Pattern(regexp = SystemKeys.URI_PATTERN)
+    private String template;
+
+    @Size(max = 128)
+    @NotBlank
+    @Pattern(regexp = SystemKeys.SLUG_PATTERN)
     private String realm;
+
+    @Size(max = 32)
+    @NotBlank
     private String language;
+
     private Map<String, String> content;
 
-    public TemplateModel(String authority, String realm, String template) {
+    public TemplateModel() {
+
+    }
+
+    public TemplateModel(String authority, String realm, String provider, String template) {
         this.authority = authority;
         this.realm = realm;
         this.template = template;
         this.content = new HashMap<>();
         this.language = null;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     @Override
@@ -37,8 +80,13 @@ public class TemplateModel implements Template {
     }
 
     @Override
+    public String getProvider() {
+        return provider;
+    }
+
+    @Override
     public String getId() {
-        return template;
+        return id;
     }
 
     @Override
@@ -85,6 +133,24 @@ public class TemplateModel implements Template {
 
     public void setRealm(String realm) {
         this.realm = realm;
+    }
+
+    public void setAuthority(String authority) {
+        this.authority = authority;
+    }
+
+    public void setProvider(String provider) {
+        this.provider = provider;
+    }
+
+    public void setTemplate(String template) {
+        this.template = template;
+    }
+
+    @Override
+    public String toString() {
+        return "TemplateModel [id=" + id + ", authority=" + authority + ", provider=" + provider + ", template="
+                + template + ", realm=" + realm + ", language=" + language + ", content=" + content + "]";
     }
 
 }

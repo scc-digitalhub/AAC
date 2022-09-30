@@ -4,9 +4,12 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.NoSuchTemplateException;
@@ -16,6 +19,7 @@ import it.smartcommunitylab.aac.templates.persistence.TemplateEntityRepository;
 @Service
 @Transactional
 public class TemplateEntityService {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final TemplateEntityRepository templateRepository;
 
@@ -43,6 +47,12 @@ public class TemplateEntityService {
     @Transactional(readOnly = true)
     public TemplateEntity findTemplateBy(String authority, String realm, String template, String language) {
         return templateRepository.findByAuthorityAndRealmAndTemplateAndLanguage(authority, realm, template, language);
+    }
+
+    @Transactional(readOnly = true)
+    public Collection<TemplateEntity> findTemplatesByRealm(String realm) {
+        return templateRepository.findByRealm(realm);
+
     }
 
     @Transactional(readOnly = true)
@@ -75,6 +85,7 @@ public class TemplateEntityService {
         if (t != null) {
             throw new AlreadyRegisteredException();
         }
+        logger.debug("add template {}", StringUtils.trimAllWhitespace(id));
 
         t = new TemplateEntity(id, authority, realm);
         t.setTemplate(template);
@@ -82,6 +93,10 @@ public class TemplateEntityService {
         t.setContent(content);
 
         t = templateRepository.save(t);
+
+        if (logger.isTraceEnabled()) {
+            logger.trace("template entity: " + StringUtils.trimAllWhitespace(t.toString()));
+        }
         return t;
     }
 
@@ -94,17 +109,23 @@ public class TemplateEntityService {
         if (t == null) {
             throw new NoSuchTemplateException();
         }
+        logger.debug("update template {}", StringUtils.trimAllWhitespace(id));
 
         t.setLanguage(language);
         t.setContent(content);
 
         t = templateRepository.save(t);
+
+        if (logger.isTraceEnabled()) {
+            logger.trace("template entity: " + StringUtils.trimAllWhitespace(t.toString()));
+        }
         return t;
     }
 
     public void deleteTemplate(String id) {
         TemplateEntity t = templateRepository.findOne(id);
         if (t != null) {
+            logger.debug("delete template {}", StringUtils.trimAllWhitespace(id));
             templateRepository.delete(t);
         }
 

@@ -33,7 +33,6 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
-import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
@@ -117,20 +116,20 @@ public class UserApprovalEndpoint implements InitializingBean {
 
             try {
                 String displayName = null;
-                Realm re = null;
+                Realm re = re = realmManager.getRealm(realm);
                 Map<String, String> resources = new HashMap<>();
-                if (!realm.equals(SystemKeys.REALM_COMMON)) {
-                    re = realmManager.getRealm(realm);
-                    displayName = re.getName();
-                    CustomizationBean gcb = re.getCustomization("global");
-                    if (gcb != null) {
-                        resources.putAll(gcb.getResources());
-                    }
-                    CustomizationBean lcb = re.getCustomization("approval");
-                    if (lcb != null) {
-                        resources.putAll(lcb.getResources());
-                    }
-                }
+//                if (!realm.equals(SystemKeys.REALM_COMMON)) {
+//                    re = realmManager.getRealm(realm);
+//                    displayName = re.getName();
+//                    CustomizationBean gcb = re.getCustomization("global");
+//                    if (gcb != null) {
+//                        resources.putAll(gcb.getResources());
+//                    }
+//                    CustomizationBean lcb = re.getCustomization("approval");
+//                    if (lcb != null) {
+//                        resources.putAll(lcb.getResources());
+//                    }
+//                }
 
                 model.put("displayName", displayName);
                 model.put("customization", resources);

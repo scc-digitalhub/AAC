@@ -17,11 +17,6 @@ public interface Template extends Resource {
 
     public String get(String key);
 
-    default String getProvider() {
-        // single provider per authority/realm
-        return getAuthority() + "." + getRealm();
-    }
-
     default String getType() {
         return SystemKeys.RESOURCE_TEMPLATE;
     }

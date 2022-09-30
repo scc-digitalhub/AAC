@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
@@ -48,14 +49,14 @@ public abstract class AbstractTemplateProvider<T extends TemplateModel, M extend
     }
 
     @Override
-    public Collection<String> getTemplates() {
-        return factories.keySet();
-    }
-
-    @Override
     public Map<String, String> getContext() {
         // nothing available by default
         return Collections.emptyMap();
+    }
+
+    @Override
+    public Collection<Template> getTemplates() {
+        return factories.entrySet().stream().map(e -> e.getValue().get()).collect(Collectors.toList());
     }
 
     @Override
@@ -65,7 +66,25 @@ public abstract class AbstractTemplateProvider<T extends TemplateModel, M extend
             throw new NoSuchTemplateException();
         }
 
-        return sp.get();
+        TemplateModel m = sp.get();
+        m.setRealm(getRealm());
+        m.setProvider(getProvider());
+
+        return m;
+    }
+
+    @Override
+    public Collection<Template> getTemplates(String language) {
+        return factories.keySet().stream()
+                .map(e -> {
+                    try {
+                        return getTemplate(e, language);
+                    } catch (NoSuchTemplateException e1) {
+                        return null;
+                    }
+                })
+                .filter(t -> t != null)
+                .collect(Collectors.toList());
     }
 
     @Override

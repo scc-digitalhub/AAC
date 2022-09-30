@@ -71,6 +71,7 @@ public class SystemKeys {
     public static final String ID_SEPARATOR = "|";
     public static final String URN_PROTOCOL = "urn";
     public static final String URN_SEPARATOR = ":";
+    public static final String SLUG_SEPARATOR = "_";
 
     public static final String PATH_USER = "/user";
     public static final String PATH_DEV = "/dev";

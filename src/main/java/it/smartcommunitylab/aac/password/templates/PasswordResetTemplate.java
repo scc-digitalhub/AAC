@@ -10,7 +10,7 @@ public class PasswordResetTemplate extends FixedTemplateModel {
     private static final String[] KEYS = { "resetpwd.text", "resetpwd.success" };
 
     public PasswordResetTemplate(String realm) {
-        super(SystemKeys.AUTHORITY_PASSWORD, realm, TEMPLATE, Arrays.asList(KEYS));
+        super(SystemKeys.AUTHORITY_PASSWORD, realm, null, TEMPLATE, Arrays.asList(KEYS));
     }
 
 }

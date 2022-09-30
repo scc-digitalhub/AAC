@@ -106,4 +106,10 @@ public class TemplateEntity implements Serializable {
         this.content = content;
     }
 
+    @Override
+    public String toString() {
+        return "TemplateEntity [id=" + id + ", authority=" + authority + ", realm=" + realm + ", template=" + template
+                + ", language=" + language + ", content=" + content + "]";
+    }
+
 }

@@ -39,7 +39,6 @@ import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
-import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.webauthn.WebAuthnCredentialsAuthority;
@@ -119,18 +118,18 @@ public class WebAuthnRegistrationController {
         Realm re = realmManager.getRealm(realm);
         String displayName = re.getName();
         Map<String, String> resources = new HashMap<>();
-        if (!realm.equals(SystemKeys.REALM_COMMON)) {
-            re = realmManager.getRealm(realm);
-            displayName = re.getName();
-            CustomizationBean gcb = re.getCustomization("global");
-            if (gcb != null) {
-                resources.putAll(gcb.getResources());
-            }
-            CustomizationBean rcb = re.getCustomization("registration");
-            if (rcb != null) {
-                resources.putAll(rcb.getResources());
-            }
-        }
+//        if (!realm.equals(SystemKeys.REALM_COMMON)) {
+//            re = realmManager.getRealm(realm);
+//            displayName = re.getName();
+//            CustomizationBean gcb = re.getCustomization("global");
+//            if (gcb != null) {
+//                resources.putAll(gcb.getResources());
+//            }
+//            CustomizationBean rcb = re.getCustomization("registration");
+//            if (rcb != null) {
+//                resources.putAll(rcb.getResources());
+//            }
+//        }
 
         model.addAttribute("displayName", displayName);
         model.addAttribute("customization", resources);

@@ -146,7 +146,7 @@ public abstract class ConfigurableProviderService<C extends ConfigurableProvider
             }
 
             // validate
-            if (providerId.length() < 6 || !Pattern.matches(SystemKeys.SLUG_PATTERN, providerId)) {
+            if (providerId.length() < 3 || !Pattern.matches(SystemKeys.SLUG_PATTERN, providerId)) {
                 throw new RegistrationException("invalid id");
             }
 

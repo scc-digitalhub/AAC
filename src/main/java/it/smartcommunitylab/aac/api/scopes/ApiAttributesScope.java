@@ -16,7 +16,7 @@ public class ApiAttributesScope extends ApiScope {
 
     @Override
     public ScopeType getType() {
-        return ScopeType.USER;
+        return ScopeType.GENERIC;
     }
 
     // TODO replace with keys for i18n

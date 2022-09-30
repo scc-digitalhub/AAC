@@ -10,7 +10,7 @@ public class PasswordLoginTemplate extends FixedTemplateModel {
     private static final String[] KEYS = { "loginpwd.text" };
 
     public PasswordLoginTemplate(String realm) {
-        super(SystemKeys.AUTHORITY_PASSWORD, realm, TEMPLATE, Arrays.asList(KEYS));
+        super(SystemKeys.AUTHORITY_PASSWORD, realm, null, TEMPLATE, Arrays.asList(KEYS));
     }
 
 }

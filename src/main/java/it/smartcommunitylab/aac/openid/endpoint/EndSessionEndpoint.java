@@ -44,7 +44,6 @@ import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.ExtendedLogoutSuccessHandler;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
-import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.jwt.assertion.SelfAssertionValidator;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
@@ -182,20 +181,20 @@ public class EndSessionEndpoint {
 
             try {
                 String displayName = null;
-                Realm re = null;
+                Realm re = realmManager.getRealm(realm);
                 Map<String, String> resources = new HashMap<>();
-                if (!realm.equals(SystemKeys.REALM_COMMON)) {
-                    re = realmManager.getRealm(realm);
-                    displayName = re.getName();
-                    CustomizationBean gcb = re.getCustomization("global");
-                    if (gcb != null) {
-                        resources.putAll(gcb.getResources());
-                    }
-                    CustomizationBean lcb = re.getCustomization("endsession");
-                    if (lcb != null) {
-                        resources.putAll(lcb.getResources());
-                    }
-                }
+//                if (!realm.equals(SystemKeys.REALM_COMMON)) {
+//                    re = realmManager.getRealm(realm);
+//                    displayName = re.getName();
+//                    CustomizationBean gcb = re.getCustomization("global");
+//                    if (gcb != null) {
+//                        resources.putAll(gcb.getResources());
+//                    }
+//                    CustomizationBean lcb = re.getCustomization("endsession");
+//                    if (lcb != null) {
+//                        resources.putAll(lcb.getResources());
+//                    }
+//                }
 
                 model.addAttribute("displayName", displayName);
                 model.addAttribute("customization", resources);

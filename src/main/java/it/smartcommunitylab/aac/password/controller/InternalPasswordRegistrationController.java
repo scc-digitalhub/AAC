@@ -59,7 +59,6 @@ import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
-import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.internal.InternalIdentityProviderAuthority;
 import it.smartcommunitylab.aac.internal.dto.UserRegistrationBean;
 import it.smartcommunitylab.aac.internal.model.CredentialsType;
@@ -76,8 +75,8 @@ import it.smartcommunitylab.aac.password.provider.PasswordIdentityProvider;
  * @author raman
  *
  */
-@Controller
-@RequestMapping
+//@Controller
+//@RequestMapping
 public class InternalPasswordRegistrationController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 

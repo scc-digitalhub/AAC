@@ -13,8 +13,9 @@ public class FixedTemplateModel extends TemplateModel {
 
     public final Set<String> keys;
 
-    public FixedTemplateModel(String authority, String realm, String template, Collection<String> keys) {
-        super(authority, realm, template);
+    public FixedTemplateModel(String authority, String realm, String provider, String template,
+            Collection<String> keys) {
+        super(authority, realm, provider, template);
         this.keys = Collections.unmodifiableSortedSet(new TreeSet<>(keys));
     }
 

@@ -58,7 +58,6 @@ import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.provider.AccountCredentialsService;
-import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.internal.InternalAccountServiceAuthority;
 import it.smartcommunitylab.aac.internal.InternalIdentityServiceAuthority;
 import it.smartcommunitylab.aac.internal.dto.UserRegistrationBean;
@@ -140,18 +139,18 @@ public class InternalRegistrationController {
         Realm re = realmManager.getRealm(realm);
         String displayName = re.getName();
         Map<String, String> resources = new HashMap<>();
-        if (!realm.equals(SystemKeys.REALM_COMMON)) {
-            re = realmManager.getRealm(realm);
-            displayName = re.getName();
-            CustomizationBean gcb = re.getCustomization("global");
-            if (gcb != null) {
-                resources.putAll(gcb.getResources());
-            }
-            CustomizationBean rcb = re.getCustomization("registration");
-            if (rcb != null) {
-                resources.putAll(rcb.getResources());
-            }
-        }
+//        if (!realm.equals(SystemKeys.REALM_COMMON)) {
+//            re = realmManager.getRealm(realm);
+//            displayName = re.getName();
+//            CustomizationBean gcb = re.getCustomization("global");
+//            if (gcb != null) {
+//                resources.putAll(gcb.getResources());
+//            }
+//            CustomizationBean rcb = re.getCustomization("registration");
+//            if (rcb != null) {
+//                resources.putAll(rcb.getResources());
+//            }
+//        }
 
         model.addAttribute("displayName", displayName);
         model.addAttribute("customization", resources);
@@ -223,18 +222,18 @@ public class InternalRegistrationController {
             Realm re = realmManager.getRealm(realm);
             String displayName = re.getName();
             Map<String, String> resources = new HashMap<>();
-            if (!realm.equals(SystemKeys.REALM_COMMON)) {
-                re = realmManager.getRealm(realm);
-                displayName = re.getName();
-                CustomizationBean gcb = re.getCustomization("global");
-                if (gcb != null) {
-                    resources.putAll(gcb.getResources());
-                }
-                CustomizationBean rcb = re.getCustomization("registration");
-                if (rcb != null) {
-                    resources.putAll(rcb.getResources());
-                }
-            }
+//            if (!realm.equals(SystemKeys.REALM_COMMON)) {
+//                re = realmManager.getRealm(realm);
+//                displayName = re.getName();
+//                CustomizationBean gcb = re.getCustomization("global");
+//                if (gcb != null) {
+//                    resources.putAll(gcb.getResources());
+//                }
+//                CustomizationBean rcb = re.getCustomization("registration");
+//                if (rcb != null) {
+//                    resources.putAll(rcb.getResources());
+//                }
+//            }
 
             model.addAttribute("displayName", displayName);
             model.addAttribute("customization", resources);
@@ -302,18 +301,18 @@ public class InternalRegistrationController {
         Realm re = realmManager.getRealm(realm);
         String displayName = re.getName();
         Map<String, String> resources = new HashMap<>();
-        if (!realm.equals(SystemKeys.REALM_COMMON)) {
-            re = realmManager.getRealm(realm);
-            displayName = re.getName();
-            CustomizationBean gcb = re.getCustomization("global");
-            if (gcb != null) {
-                resources.putAll(gcb.getResources());
-            }
-            CustomizationBean rcb = re.getCustomization("registration");
-            if (rcb != null) {
-                resources.putAll(rcb.getResources());
-            }
-        }
+//        if (!realm.equals(SystemKeys.REALM_COMMON)) {
+//            re = realmManager.getRealm(realm);
+//            displayName = re.getName();
+//            CustomizationBean gcb = re.getCustomization("global");
+//            if (gcb != null) {
+//                resources.putAll(gcb.getResources());
+//            }
+//            CustomizationBean rcb = re.getCustomization("registration");
+//            if (rcb != null) {
+//                resources.putAll(rcb.getResources());
+//            }
+//        }
 
         model.addAttribute("displayName", displayName);
         model.addAttribute("customization", resources);
@@ -375,18 +374,18 @@ public class InternalRegistrationController {
             Realm re = realmManager.getRealm(realm);
             String displayName = re.getName();
             Map<String, String> resources = new HashMap<>();
-            if (!realm.equals(SystemKeys.REALM_COMMON)) {
-                re = realmManager.getRealm(realm);
-                displayName = re.getName();
-                CustomizationBean gcb = re.getCustomization("global");
-                if (gcb != null) {
-                    resources.putAll(gcb.getResources());
-                }
-                CustomizationBean rcb = re.getCustomization("registration");
-                if (rcb != null) {
-                    resources.putAll(rcb.getResources());
-                }
-            }
+//            if (!realm.equals(SystemKeys.REALM_COMMON)) {
+//                re = realmManager.getRealm(realm);
+//                displayName = re.getName();
+//                CustomizationBean gcb = re.getCustomization("global");
+//                if (gcb != null) {
+//                    resources.putAll(gcb.getResources());
+//                }
+//                CustomizationBean rcb = re.getCustomization("registration");
+//                if (rcb != null) {
+//                    resources.putAll(rcb.getResources());
+//                }
+//            }
 
             model.addAttribute("displayName", displayName);
             model.addAttribute("customization", resources);

@@ -14,6 +14,8 @@ public interface TemplateEntityRepository extends CustomJpaRepository<TemplateEn
     TemplateEntity findByAuthorityAndRealmAndTemplateAndLanguage(String authority, String realm, String template,
             String language);
 
+    List<TemplateEntity> findByRealm(String realm);
+
     List<TemplateEntity> findByAuthority(String authority);
 
     List<TemplateEntity> findByAuthorityAndRealm(String authority, String realm);

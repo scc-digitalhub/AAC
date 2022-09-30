@@ -20,21 +20,25 @@ public interface TemplateProvider<T extends Template, M extends ConfigMap, C ext
      */
     public Collection<String> getLanguages();
 
-    /*
-     * Get a list of template keys managed by this provider
-     */
-    public Collection<String> getTemplates();
+//    /*
+//     * Get a list of template keys managed by this provider
+//     */
+//    public Collection<String> getTemplateKeys();
 
 //    public Collection<Template> getTemplates();
 
     /*
      * Get a blank template as source for customization
      */
+    public Collection<Template> getTemplates();
+
     public Template getTemplate(String template) throws NoSuchTemplateException;
 
     /*
      * Get a localized template for view
      */
+    public Collection<Template> getTemplates(String language);
+
     public Template getTemplate(String template, String language) throws NoSuchTemplateException;
 
     /*

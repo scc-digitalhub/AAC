@@ -10,7 +10,7 @@ public class PasswordPolicyTemplate extends FixedTemplateModel {
     private static final String[] KEYS = { "pwdpolicy" };
 
     public PasswordPolicyTemplate(String realm) {
-        super(SystemKeys.AUTHORITY_PASSWORD, realm, TEMPLATE, Arrays.asList(KEYS));
+        super(SystemKeys.AUTHORITY_PASSWORD, realm, null, TEMPLATE, Arrays.asList(KEYS));
     }
 
 }
