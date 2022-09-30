@@ -145,7 +145,7 @@ public class InternalRegistrationController {
         model.addAttribute("accountUrl", "/account");
         model.addAttribute("changeUrl", "/changeaccount/" + providerId + "/" + uuid);
 
-        return "internal/change";
+        return "internal/changeaccount";
     }
 
     @PostMapping("/changeaccount/{providerId}/{uuid}")
@@ -218,19 +218,19 @@ public class InternalRegistrationController {
             model.addAttribute("changeUrl", "/changeaccount/" + providerId + "/" + uuid);
 
             if (result.hasErrors()) {
-                return "internal/change";
+                return "internal/changeaccount";
             }
 
             account = service.getAccountService().updateAccount(userId, username, account);
             model.addAttribute("account", account);
 
-            return "internal/change_success";
+            return "internal/changeaccount_success";
         } catch (RegistrationException e) {
             model.addAttribute("error", e.getMessage());
-            return "internal/change";
+            return "internal/changeaccount";
         } catch (Exception e) {
             model.addAttribute("error", RegistrationException.ERROR);
-            return "internal/change";
+            return "internal/changeaccount";
         }
     }
 
@@ -284,7 +284,7 @@ public class InternalRegistrationController {
         // set idp form as login url
         model.addAttribute("loginUrl", "/auth/internal/form/" + providerId);
 
-        return "internal/register";
+        return "internal/registeraccount";
     }
 
     /**
@@ -341,7 +341,7 @@ public class InternalRegistrationController {
                     }
                 }
 
-                return "internal/register";
+                return "internal/registeraccount";
             }
 
             String username = reg.getEmail();
@@ -391,7 +391,11 @@ public class InternalRegistrationController {
 
             model.addAttribute("identity", identity);
 
-            return "internal/register_success";
+            if (idp.getConfig().isConfirmationRequired()) {
+                return "internal/confirmaccount";
+            }
+
+            return "internal/registeraccount_success";
         } catch (InvalidDataException | MissingDataException | DuplicatedDataException e) {
             StringBuilder msg = new StringBuilder();
             msg.append(messageSource.getMessage(e.getMessage(), null, req.getLocale()));
@@ -399,14 +403,14 @@ public class InternalRegistrationController {
             msg.append(messageSource.getMessage("field." + e.getField(), null, req.getLocale()));
 
             model.addAttribute("error", msg.toString());
-            return "internal/register";
+            return "internal/registeraccount";
         } catch (RegistrationException e) {
             model.addAttribute("error", e.getMessage());
-            return "internal/register";
+            return "internal/registeraccount";
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             model.addAttribute("error", RegistrationException.ERROR);
-            return "internal/register";
+            return "internal/registeraccount";
         }
     }
 

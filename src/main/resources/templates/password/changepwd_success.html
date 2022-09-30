@@ -17,77 +17,31 @@
 -->
 
 <!doctype html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layout/card-border}" th:with="title='label.changepwd_success.title',icon='it-password-invisible'">
 
 <head>
-  <meta charset="utf-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-  <meta name="description" content="" />
-  <meta name="author" content="" />
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="-1" />
-  <!-- Design Italia -->
-  <link rel="stylesheet" th:href="@{/italia/css/bootstrap-italia.min.css}" />
-  <script th:inline="javascript">
-    const contextpath = /*[[@{/}]]*/ "/";
-    window.__PUBLIC_PATH__ = contextpath + 'italia/fonts'
-  </script>
-
-  <link th:href="@{/italia/style.css}" rel="stylesheet" />
-
-  <title th:text="#{label.changepwd_title}">AAC Change password</title>
+  <title th:text="#{label.changepwd_success.title}">AAC Change password</title>
 </head>
 
 <body>
-  <div class="container-sm">
+  <div layout:fragment="content">
 
-    <div class="row mt-2 mt-md-4 justify-content-center">
-      <div class="col-xl-5 col-lg-6 col-md-8 col-sm-10 card-wrapper card-space">
-        <div class="card border border-primary mb-4">
+    <!-- panel text -->
+    <div class="mt-3 mb-3 justify-content-center customization-block"
+      th:if="${template != null && template.get('changepwd_success.text') != null}"
+      th:utext="${template.get('changepwd_success.text')}">
+    </div>
 
-          <!-- card header -->
-          <div class="card-header pl-4 text-muted">
-            <span>
-              <svg class="icon icon-secondary icon-sm">
-                <use th:xlink:href="@{/italia/svg/sprite.svg#it-password-invisible}"></use>
-              </svg>
-            </span>
-            <span class="ml-1" th:text="#{label.changepwd_success_title}"></span>
-          </div>
+    <p class="mt-3 mb-3 text-center" th:text="#{label.changepwd_success.text}"></p>
 
-
-          <div class="card-body align-items-center">
-            <!-- realm logo  -->
-            <div class="card-logo">
-              <img class="" th:src="@{/logo}" th:alt="${displayName}">
-              <h4 class="text-center" th:text="${displayName}">AAC</h4>
-            </div>
-
-            <p class="text-center" th:text="#{label.changepwd_success_text}"></p>
-            <div class="row">
-              <!-- <div class="col-md-6 form-group">
-                <a class="btn btn-block btn-primary" href="resend" th:text="#{action.resend}"></a>
-              </div> -->
-              <div class="col-md-12 form-group text-center">
-                <a class="btn btn-primary" th:href="${accountUrl}" th:text="#{action.continue}"></a>
-              </div>
-            </div>
-          </div>
-
-          <!-- realm footer  -->
-          <div class="card-footer bg-primary text-white customization-block"
-            th:if="${customization != null && customization.get('footerText') != null}"
-            th:utext="${customization.get('footerText')}"></div>
-
-        </div>
+    <div class="text-center">
+      <div class="form-group">
+        <a class="btn btn-primary" th:href="${accountUrl}" th:text="#{action.continue}"></a>
       </div>
     </div>
 
-
   </div>
-  <script th:src="@{/italia/js/bootstrap-italia.bundle.min.js}" type="text/javascript" charset="utf-8"></script>
 </body>
 
 </html>

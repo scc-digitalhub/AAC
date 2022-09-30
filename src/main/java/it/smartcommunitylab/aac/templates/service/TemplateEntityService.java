@@ -13,6 +13,7 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.NoSuchTemplateException;
+import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.templates.persistence.TemplateEntity;
 import it.smartcommunitylab.aac.templates.persistence.TemplateEntityRepository;
 
@@ -80,11 +81,18 @@ public class TemplateEntityService {
             String id,
             String authority, String realm,
             String template, String language,
-            Map<String, String> content) {
+            Map<String, String> content) throws RegistrationException {
         TemplateEntity t = templateRepository.findOne(id);
         if (t != null) {
             throw new AlreadyRegisteredException();
         }
+
+        // check for same key
+        t = templateRepository.findByAuthorityAndRealmAndTemplateAndLanguage(authority, realm, template, language);
+        if (t != null) {
+            throw new AlreadyRegisteredException();
+        }
+
         logger.debug("add template {}", StringUtils.trimAllWhitespace(id));
 
         t = new TemplateEntity(id, authority, realm);

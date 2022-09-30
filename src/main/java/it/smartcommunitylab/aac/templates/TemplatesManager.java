@@ -44,22 +44,20 @@ public class TemplatesManager {
 
     public Collection<Template> listTemplates(String realm, String authority)
             throws NoSuchProviderException, NoSuchAuthorityException {
-        String providerId = authority + SystemKeys.SLUG_SEPARATOR + realm;
 
-        logger.debug("list templates for realm {} from authority {} provider {}", StringUtils.trimAllWhitespace(realm),
-                StringUtils.trimAllWhitespace(authority), StringUtils.trimAllWhitespace(providerId));
-        return authorityService.getAuthority(authority).getProvider(providerId).getTemplates();
+        logger.debug("list templates for realm {} from authority {}", StringUtils.trimAllWhitespace(realm),
+                StringUtils.trimAllWhitespace(authority));
+        return authorityService.getAuthority(authority).getProviderByRealm(realm).getTemplates();
     }
 
     public Template getTemplate(String realm, String authority, String template)
             throws NoSuchTemplateException, NoSuchProviderException, NoSuchAuthorityException {
-        String providerId = authority + SystemKeys.SLUG_SEPARATOR + realm;
 
-        logger.debug("get template {} for realm {} from authority {} provider {}",
+        logger.debug("get template {} for realm {} from authority {}",
                 StringUtils.trimAllWhitespace(template), StringUtils.trimAllWhitespace(realm),
-                StringUtils.trimAllWhitespace(authority), StringUtils.trimAllWhitespace(providerId));
+                StringUtils.trimAllWhitespace(authority));
 
-        return authorityService.getAuthority(authority).getProvider(providerId).getTemplate(template);
+        return authorityService.getAuthority(authority).getProviderByRealm(realm).getTemplate(template);
     }
 
     /*
@@ -118,8 +116,7 @@ public class TemplatesManager {
         logger.debug("add template {} with authority {} for realm {}", StringUtils.trimAllWhitespace(template),
                 StringUtils.trimAllWhitespace(authority), StringUtils.trimAllWhitespace(realm));
 
-        String providerId = authority + SystemKeys.SLUG_SEPARATOR + realm;
-        Template t = authorityService.getAuthority(authority).getProvider(providerId).getTemplate(template);
+        Template t = authorityService.getAuthority(authority).getProviderByRealm(realm).getTemplate(template);
         Collection<String> keys = t.keys();
 
         // check language
@@ -162,8 +159,7 @@ public class TemplatesManager {
                 StringUtils.trimAllWhitespace(id), StringUtils.trimAllWhitespace(authority),
                 StringUtils.trimAllWhitespace(realm));
 
-        String providerId = authority + SystemKeys.SLUG_SEPARATOR + realm;
-        Template t = authorityService.getAuthority(authority).getProvider(providerId).getTemplate(template);
+        Template t = authorityService.getAuthority(authority).getProviderByRealm(realm).getTemplate(template);
         Collection<String> keys = t.keys();
 
         // check language

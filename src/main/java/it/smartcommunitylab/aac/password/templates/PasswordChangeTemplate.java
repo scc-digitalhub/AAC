@@ -7,7 +7,7 @@ import it.smartcommunitylab.aac.templates.model.FixedTemplateModel;
 
 public class PasswordChangeTemplate extends FixedTemplateModel {
     public static final String TEMPLATE = "changepwd";
-    private static final String[] KEYS = { "changepwd.text", "changepwd.success" };
+    private static final String[] KEYS = { "changepwd.text", "changepwd_success.text" };
 
     public PasswordChangeTemplate(String realm) {
         super(SystemKeys.AUTHORITY_PASSWORD, realm, null, TEMPLATE, Arrays.asList(KEYS));

@@ -13,22 +13,16 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
-import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchTemplateException;
 import it.smartcommunitylab.aac.config.ApplicationProperties;
-import it.smartcommunitylab.aac.core.authorities.TemplateProviderAuthority;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.model.Template;
-import it.smartcommunitylab.aac.core.provider.TemplateProvider;
 import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.core.service.TemplateProviderAuthorityService;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.templates.model.FooterTemplate;
-import it.smartcommunitylab.aac.templates.model.LoginTemplate;
-import it.smartcommunitylab.aac.templates.provider.TemplateTemplateProvider;
 
 @Component
 public class TemplateHandlerInterceptor implements HandlerInterceptor {
@@ -125,15 +119,15 @@ public class TemplateHandlerInterceptor implements HandlerInterceptor {
                 Template template = null;
                 Template footer = null;
                 try {
-                    // fetch template from authority
-                    TemplateProviderAuthority<?, ?, ?, ?> ta = templateProviderAuthorityService.getAuthority(authority);
-                    TemplateProvider<?, ?, ?> tp = ta.getProvider(authority + SystemKeys.SLUG_SEPARATOR + realm);
-                    template = tp.getTemplate(name, lang);
-
                     // footer from base
                     footer = templateAuthority
-                            .getProvider(templateAuthority.getAuthorityId() + SystemKeys.SLUG_SEPARATOR + realm)
+                            .getProviderByRealm(realm)
                             .getTemplate(FooterTemplate.TEMPLATE, lang);
+
+                    // fetch template from authority
+                    template = templateProviderAuthorityService.getAuthority(authority)
+                            .getProviderByRealm(realm)
+                            .getTemplate(name, lang);
 
                 } catch (NoSuchAuthorityException | NoSuchProviderException | NoSuchTemplateException e) {
                     // skip templates on error
@@ -142,7 +136,7 @@ public class TemplateHandlerInterceptor implements HandlerInterceptor {
                 modelAndView.addObject("template", template);
                 modelAndView.addObject("footer", footer);
             }
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             // ignore errors to avoid stopping renderer
             logger.warn("error processing template: {}", e.getMessage());
         }
