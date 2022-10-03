@@ -146,7 +146,7 @@ public class WebAuthnRegistrationController {
         model.addAttribute("accountUrl", "/account");
 
         // return credentials registration page
-        return "webauthn/register";
+        return "webauthn/registercredentials";
     }
 
     /**
