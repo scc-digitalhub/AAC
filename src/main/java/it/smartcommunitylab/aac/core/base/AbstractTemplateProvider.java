@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.core.base;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -74,11 +75,13 @@ public abstract class AbstractTemplateProvider<T extends TemplateModel, M extend
     }
 
     @Override
-    public Collection<Template> getTemplates(String language) {
+    public Collection<Template> getTemplates(Locale locale) {
+        Assert.notNull(locale, "locale can not be null");
+
         return factories.keySet().stream()
                 .map(e -> {
                     try {
-                        return getTemplate(e, language);
+                        return getTemplate(e, locale);
                     } catch (NoSuchTemplateException e1) {
                         return null;
                     }
@@ -88,7 +91,10 @@ public abstract class AbstractTemplateProvider<T extends TemplateModel, M extend
     }
 
     @Override
-    public Template getTemplate(String template, String language) throws NoSuchTemplateException {
+    public Template getTemplate(String template, Locale locale) throws NoSuchTemplateException {
+        Assert.notNull(locale, "locale can not be null");
+
+        String language = locale.getLanguage();
         TemplateModel m = getTemplate(template);
         TemplateModel e = templateService.findTemplate(getAuthority(), getRealm(), template,
                 language);

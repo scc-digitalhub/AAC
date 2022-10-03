@@ -36,9 +36,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
+import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.AttributeProviderManager;
 import it.smartcommunitylab.aac.core.ClientManager;
@@ -47,11 +50,14 @@ import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.SubjectManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
+import it.smartcommunitylab.aac.core.model.ConfigurableTemplateProvider;
 import it.smartcommunitylab.aac.dto.UserSubject;
 import it.smartcommunitylab.aac.model.Developer;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.services.ServicesManager;
+import it.smartcommunitylab.aac.templates.TemplatesManager;
+import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfig;
 
 @RestController
 @Hidden
@@ -76,6 +82,9 @@ public class DevRealmController {
 
     @Autowired
     private SubjectManager subjectManager;
+
+    @Autowired
+    private TemplatesManager templatesManager;
 
 //    @Autowired
 //    private AuditManager auditManager;
@@ -238,6 +247,35 @@ public class DevRealmController {
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
             throws NoSuchRealmException, NoSuchSubjectException {
         return subjectManager.getSubject(realm, subjectId);
+    }
+
+    /*
+     * Realm templates / i18n config
+     */
+    @GetMapping("/realms/{realm}/i18n")
+    public ConfigurableTemplateProvider getTemplateProviderConfig(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
+            throws NoSuchProviderException, NoSuchRealmException {
+        // single config per realm
+        return templatesManager.getProviderByRealm(realm);
+    }
+
+    @PutMapping("/realms/{realm}/i18n")
+    public ConfigurableTemplateProvider setTemplateProviderConfig(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @Valid @NotNull ConfigurableTemplateProvider config)
+            throws NoSuchProviderException, NoSuchRealmException, RegistrationException, NoSuchAuthorityException {
+
+        // single config per realm, so either add as new or update
+        ConfigurableTemplateProvider cp = templatesManager.findProviderByRealm(realm);
+        if (cp == null) {
+            // add as new
+            return templatesManager.addProvider(realm, config);
+        } else {
+            config.setProvider(cp.getProvider());
+            return templatesManager.updateProvider(realm, cp.getProvider(), config);
+        }
+
     }
 
 }

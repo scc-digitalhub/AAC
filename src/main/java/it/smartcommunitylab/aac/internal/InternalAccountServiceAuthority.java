@@ -119,7 +119,8 @@ public class InternalAccountServiceAuthority
                 InternalAccountServiceConfig config = new InternalAccountServiceConfig(source.getProvider(),
                         source.getRealm());
                 config.setName(source.getName());
-                config.setDescription(source.getDescription());
+                config.setTitleMap(source.getTitleMap());
+                config.setDescriptionMap(source.getDescriptionMap());
 
                 // we share the same configMap
                 config.setConfigMap(source.getConfigMap());

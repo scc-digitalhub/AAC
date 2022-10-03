@@ -41,7 +41,8 @@ public class RealmTemplateProviderConfig
     public ConfigurableTemplateProvider getConfigurable() {
         ConfigurableTemplateProvider cp = new ConfigurableTemplateProvider(getAuthority(), getProvider(), getRealm());
         cp.setName(getName());
-        cp.setDescription(getDescription());
+        cp.setTitleMap(getTitleMap());
+        cp.setDescriptionMap(getDescriptionMap());
 
         cp.setLanguages(getLanguages());
 

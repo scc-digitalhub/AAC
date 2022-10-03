@@ -96,7 +96,8 @@ public class PasswordCredentialsAuthority extends
                 PasswordCredentialsServiceConfig config = new PasswordCredentialsServiceConfig(source.getProvider(),
                         source.getRealm());
                 config.setName(source.getName());
-                config.setDescription(source.getDescription());
+                config.setTitleMap(source.getTitleMap());
+                config.setDescriptionMap(source.getDescriptionMap());
 
                 // we share the same configMap
                 config.setConfigMap(source.getConfigMap());

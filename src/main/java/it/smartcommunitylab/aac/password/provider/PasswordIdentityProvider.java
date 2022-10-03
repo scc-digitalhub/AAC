@@ -236,7 +236,8 @@ public class PasswordIdentityProvider extends
     @Override
     public InternalLoginProvider getLoginProvider() {
         InternalLoginProvider ilp = new InternalLoginProvider(getProvider(), getRealm(), getName());
-        ilp.setDescription(getDescription());
+        ilp.setTitleMap(getTitleMap());
+        ilp.setDescriptionMap(getDescriptionMap());
 
         // login url is always form display
         ilp.setLoginUrl(getFormUrl());

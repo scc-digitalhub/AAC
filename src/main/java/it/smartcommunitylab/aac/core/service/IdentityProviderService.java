@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.core.service;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
@@ -85,7 +86,8 @@ public class IdentityProviderService
                                 providerConfig.getAuthority(),
                                 providerConfig.getProvider(), SystemKeys.REALM_SYSTEM);
                         provider.setName(providerConfig.getName());
-                        provider.setDescription(providerConfig.getDescription());
+                        provider.setTitleMap(providerConfig.getTitle());
+                        provider.setDescriptionMap(providerConfig.getDescription());
                         provider.setEnabled(true);
                         for (Map.Entry<String, String> entry : providerConfig.getConfiguration().entrySet()) {
                             provider.setConfigurationProperty(entry.getKey(), entry.getValue());
@@ -142,7 +144,8 @@ public class IdentityProviderService
             cp.setHookFunctions(pe.getHookFunctions() != null ? pe.getHookFunctions() : Collections.emptyMap());
 
             cp.setName(pe.getName());
-            cp.setDescription(pe.getDescription());
+            cp.setTitleMap(pe.getTitleMap());
+            cp.setDescriptionMap(pe.getDescriptionMap());
 
             return cp;
         }
@@ -163,21 +166,30 @@ public class IdentityProviderService
             pe.setLinkable(reg.isLinkable());
 
             String name = reg.getName();
-            String description = reg.getDescription();
-            String icon = reg.getIcon();
             if (StringUtils.hasText(name)) {
                 name = Jsoup.clean(name, Safelist.none());
             }
-            if (StringUtils.hasText(description)) {
-                description = Jsoup.clean(description, Safelist.none());
-            }
-            if (StringUtils.hasText(icon)) {
-                icon = Jsoup.clean(icon, Safelist.none());
-            }
-
             pe.setName(name);
-            pe.setDescription(description);
-            pe.setIcon(icon);
+
+            Map<String, String> titleMap = null;
+            if (reg.getTitleMap() != null) {
+                // cleanup every field via safelist
+                titleMap = reg.getTitleMap().entrySet().stream()
+                        .filter(e -> e.getValue() != null)
+                        .map(e -> Map.entry(e.getKey(), Jsoup.clean(e.getValue(), Safelist.none())))
+                        .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+            }
+            pe.setTitleMap(titleMap);
+
+            Map<String, String> descriptionMap = null;
+            if (reg.getDescriptionMap() != null) {
+                // cleanup every field via safelist
+                descriptionMap = reg.getDescriptionMap().entrySet().stream()
+                        .filter(e -> e.getValue() != null)
+                        .map(e -> Map.entry(e.getKey(), Jsoup.clean(e.getValue(), Safelist.none())))
+                        .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+            }
+            pe.setDescriptionMap(descriptionMap);
 
             // TODO add enum
             String persistence = reg.getPersistence();

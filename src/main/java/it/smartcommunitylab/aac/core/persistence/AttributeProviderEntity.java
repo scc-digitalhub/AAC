@@ -34,8 +34,19 @@ public class AttributeProviderEntity implements ProviderEntity {
     @Column(name = "enabled")
     private boolean enabled;
 
+    @NotNull
+    @Column(name = "name", length = 128)
     private String name;
-    private String description;
+
+    @Lob
+    @Column(name = "title_map")
+    @Convert(converter = HashMapConverter.class)
+    private Map<String, String> titleMap;
+
+    @Lob
+    @Column(name = "description_map")
+    @Convert(converter = HashMapConverter.class)
+    private Map<String, String> descriptionMap;
 
     @Column(name = "persistence_level", length = 32)
     private String persistence;
@@ -109,12 +120,20 @@ public class AttributeProviderEntity implements ProviderEntity {
         this.name = name;
     }
 
-    public String getDescription() {
-        return description;
+    public Map<String, String> getTitleMap() {
+        return titleMap;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setTitleMap(Map<String, String> titleMap) {
+        this.titleMap = titleMap;
+    }
+
+    public Map<String, String> getDescriptionMap() {
+        return descriptionMap;
+    }
+
+    public void setDescriptionMap(Map<String, String> descriptionMap) {
+        this.descriptionMap = descriptionMap;
     }
 
     public String getAttributeSets() {

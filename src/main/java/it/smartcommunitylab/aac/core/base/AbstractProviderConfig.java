@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import org.springframework.util.Assert;
@@ -35,7 +36,8 @@ public abstract class AbstractProviderConfig<M extends ConfigMap, T extends Conf
     private final String provider;
 
     protected String name;
-    protected String description;
+    protected Map<String, String> titleMap;
+    protected Map<String, String> descriptionMap;
 
     protected M configMap;
 
@@ -55,7 +57,8 @@ public abstract class AbstractProviderConfig<M extends ConfigMap, T extends Conf
     protected AbstractProviderConfig(T cp) {
         this(cp.getAuthority(), cp.getProvider(), cp.getRealm(), null);
         this.name = cp.getName();
-        this.description = cp.getDescription();
+        this.titleMap = cp.getTitleMap();
+        this.descriptionMap = cp.getDescriptionMap();
 
         // set config
         this.setConfiguration(cp.getConfiguration());
@@ -98,12 +101,38 @@ public abstract class AbstractProviderConfig<M extends ConfigMap, T extends Conf
         this.name = name;
     }
 
-    public String getDescription() {
-        return description;
+    public String getTitle(Locale locale) {
+        String lang = locale.getLanguage();
+        if (titleMap != null) {
+            return titleMap.get(lang);
+        }
+
+        return null;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public Map<String, String> getTitleMap() {
+        return titleMap;
+    }
+
+    public void setTitleMap(Map<String, String> titleMap) {
+        this.titleMap = titleMap;
+    }
+
+    public String getDescription(Locale locale) {
+        String lang = locale.getLanguage();
+        if (descriptionMap != null) {
+            return descriptionMap.get(lang);
+        }
+
+        return null;
+    }
+
+    public Map<String, String> getDescriptionMap() {
+        return descriptionMap;
+    }
+
+    public void setDescriptionMap(Map<String, String> descriptionMap) {
+        this.descriptionMap = descriptionMap;
     }
 
     public M getConfigMap() {

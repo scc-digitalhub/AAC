@@ -1,5 +1,8 @@
 package it.smartcommunitylab.aac.core.base;
 
+import java.util.Locale;
+import java.util.Map;
+
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.core.model.ConfigMap;
@@ -40,8 +43,30 @@ public abstract class AbstractConfigurableProvider<R extends Resource, T extends
     }
 
     @Override
-    public String getDescription() {
-        return config.getDescription();
+    public String getTitle(Locale locale) {
+        String lang = locale.getLanguage();
+        if (config.getTitleMap() != null) {
+            return config.getTitleMap().get(lang);
+        }
+
+        return null;
     }
 
+    @Override
+    public String getDescription(Locale locale) {
+        String lang = locale.getLanguage();
+        if (config.getDescriptionMap() != null) {
+            return config.getDescriptionMap().get(lang);
+        }
+
+        return null;
+    }
+
+    public Map<String, String> getTitleMap() {
+        return config.getTitleMap();
+    }
+
+    public Map<String, String> getDescriptionMap() {
+        return config.getDescriptionMap();
+    }
 }

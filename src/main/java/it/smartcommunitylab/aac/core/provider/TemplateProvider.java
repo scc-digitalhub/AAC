@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.core.provider;
 
 import java.util.Collection;
+import java.util.Locale;
 import java.util.Map;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -37,9 +38,9 @@ public interface TemplateProvider<T extends Template, M extends ConfigMap, C ext
     /*
      * Get a localized template for view
      */
-    public Collection<Template> getTemplates(String language);
+    public Collection<Template> getTemplates(Locale locale);
 
-    public Template getTemplate(String template, String language) throws NoSuchTemplateException;
+    public Template getTemplate(String template, Locale locale) throws NoSuchTemplateException;
 
     /*
      * Context for extensions

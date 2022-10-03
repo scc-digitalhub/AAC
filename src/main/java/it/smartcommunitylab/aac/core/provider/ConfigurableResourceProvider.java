@@ -1,5 +1,7 @@
 package it.smartcommunitylab.aac.core.provider;
 
+import java.util.Locale;
+
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.Resource;
@@ -14,7 +16,9 @@ public interface ConfigurableResourceProvider<R extends Resource, T extends Conf
 
     public String getName();
 
-    public String getDescription();
+    public String getTitle(Locale locale);
+
+    public String getDescription(Locale locale);
 
     /*
      * Config

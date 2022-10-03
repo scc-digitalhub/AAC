@@ -1,6 +1,8 @@
 package it.smartcommunitylab.aac.templates;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -12,20 +14,27 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
+import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchTemplateException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.core.ConfigurableProviderManager;
+import it.smartcommunitylab.aac.core.authorities.TemplateProviderAuthority;
+import it.smartcommunitylab.aac.core.model.ConfigurableTemplateProvider;
 import it.smartcommunitylab.aac.core.model.Template;
 import it.smartcommunitylab.aac.core.service.TemplateProviderAuthorityService;
+import it.smartcommunitylab.aac.core.service.TemplateProviderService;
 import it.smartcommunitylab.aac.templates.model.TemplateModel;
+import it.smartcommunitylab.aac.templates.service.LanguageService;
 import it.smartcommunitylab.aac.templates.service.TemplateService;
 
 @Service
 @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')"
         + " or hasAuthority(#realm+':" + Config.R_ADMIN + "')")
-public class TemplatesManager {
+public class TemplatesManager
+        extends ConfigurableProviderManager<ConfigurableTemplateProvider, TemplateProviderAuthority<?, ?, ?, ?>> {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
@@ -33,6 +42,36 @@ public class TemplatesManager {
 
     @Autowired
     private TemplateProviderAuthorityService authorityService;
+
+    public TemplatesManager(TemplateProviderService templateProviderService,
+            TemplateProviderAuthorityService templateProviderAuthorityService) {
+        super(templateProviderService, templateProviderAuthorityService);
+    }
+
+    /*
+     * Config per realm
+     */
+    public ConfigurableTemplateProvider findProviderByRealm(String realm) throws NoSuchRealmException {
+        // we expect a single provider per realm, so fetch first
+        return super.listProviders(realm).stream().findFirst().orElse(null);
+    }
+
+    public ConfigurableTemplateProvider getProviderByRealm(String realm)
+            throws NoSuchProviderException, NoSuchRealmException {
+        // fetch first if available
+        ConfigurableTemplateProvider provider = findProviderByRealm(realm);
+
+        if (provider == null) {
+            throw new NoSuchProviderException();
+        }
+
+        // check if languages are set, otherwise use default
+        if (provider.getLanguages() == null || provider.getLanguages().isEmpty()) {
+            provider.setLanguages(new HashSet<>(Arrays.asList(LanguageService.LANGUAGES)));
+        }
+
+        return provider;
+    }
 
     /*
      * Templates from authorities

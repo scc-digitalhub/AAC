@@ -62,9 +62,7 @@ public class ConfigurableProviderEntityService<P extends ProviderEntity> impleme
             P reg, Map<String, Serializable> configurationMap) {
         P p = reg;
 
-        if (providerId != null) {
-            p = providerRepository.findById(providerId).orElse(reg);
-        } else {
+        if (providerId == null) {
             providerId = generateId();
         }
 

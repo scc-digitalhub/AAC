@@ -9,7 +9,9 @@ public interface ProviderEntity extends Resource {
 
     public String getName();
 
-    public String getDescription();
+    public Map<String, String> getTitleMap();
+
+    public Map<String, String> getDescriptionMap();
 
     public boolean isEnabled();
 

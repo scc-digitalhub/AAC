@@ -1,7 +1,9 @@
 package it.smartcommunitylab.aac.core.service;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
@@ -53,8 +55,10 @@ public class AttributeProviderService
             cp.setEnabled(pe.isEnabled());
             cp.setPersistence(pe.getPersistence());
             cp.setEvents(pe.getEvents());
+
             cp.setName(pe.getName());
-            cp.setDescription(pe.getDescription());
+            cp.setTitleMap(pe.getTitleMap());
+            cp.setDescriptionMap(pe.getDescriptionMap());
 
             Set<String> attributeSets = pe.getAttributeSets() != null
                     ? StringUtils.commaDelimitedListToSet(pe.getAttributeSets())
@@ -79,16 +83,30 @@ public class AttributeProviderService
             pe.setEnabled(reg.isEnabled());
 
             String name = reg.getName();
-            String description = reg.getDescription();
             if (StringUtils.hasText(name)) {
                 name = Jsoup.clean(name, Safelist.none());
             }
-            if (StringUtils.hasText(description)) {
-                description = Jsoup.clean(description, Safelist.none());
-            }
-
             pe.setName(name);
-            pe.setDescription(description);
+
+            Map<String, String> titleMap = null;
+            if (reg.getTitleMap() != null) {
+                // cleanup every field via safelist
+                titleMap = reg.getTitleMap().entrySet().stream()
+                        .filter(e -> e.getValue() != null)
+                        .map(e -> Map.entry(e.getKey(), Jsoup.clean(e.getValue(), Safelist.none())))
+                        .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+            }
+            pe.setTitleMap(titleMap);
+
+            Map<String, String> descriptionMap = null;
+            if (reg.getDescriptionMap() != null) {
+                // cleanup every field via safelist
+                descriptionMap = reg.getDescriptionMap().entrySet().stream()
+                        .filter(e -> e.getValue() != null)
+                        .map(e -> Map.entry(e.getKey(), Jsoup.clean(e.getValue(), Safelist.none())))
+                        .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+            }
+            pe.setDescriptionMap(descriptionMap);
 
             // TODO add enum
             String persistence = reg.getPersistence();

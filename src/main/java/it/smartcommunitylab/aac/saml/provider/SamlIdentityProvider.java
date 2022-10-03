@@ -116,7 +116,9 @@ public class SamlIdentityProvider
     @Override
     public SamlLoginProvider getLoginProvider() {
         SamlLoginProvider lp = new SamlLoginProvider(getAuthority(), getProvider(), getRealm(), getName());
-        lp.setDescription(getDescription());
+        lp.setTitleMap(getTitleMap());
+        lp.setDescriptionMap(getDescriptionMap());
+
         lp.setLoginUrl(getAuthenticationUrl());
         lp.setPosition(getConfig().getPosition());
 

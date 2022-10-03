@@ -35,9 +35,19 @@ public class IdentityProviderEntity implements ProviderEntity {
     @Column(name = "enabled")
     private boolean enabled;
 
+    @NotNull
+    @Column(name = "name", length = 128)
     private String name;
-    private String description;
-    private String icon;
+
+    @Lob
+    @Column(name = "title_map")
+    @Convert(converter = HashMapConverter.class)
+    private Map<String, String> titleMap;
+
+    @Lob
+    @Column(name = "description_map")
+    @Convert(converter = HashMapConverter.class)
+    private Map<String, String> descriptionMap;
 
     @NotNull
     @Column(name = "linkable")
@@ -120,20 +130,20 @@ public class IdentityProviderEntity implements ProviderEntity {
         this.name = name;
     }
 
-    public String getDescription() {
-        return description;
+    public Map<String, String> getTitleMap() {
+        return titleMap;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setTitleMap(Map<String, String> titleMap) {
+        this.titleMap = titleMap;
     }
 
-    public String getIcon() {
-        return icon;
+    public Map<String, String> getDescriptionMap() {
+        return descriptionMap;
     }
 
-    public void setIcon(String icon) {
-        this.icon = icon;
+    public void setDescriptionMap(Map<String, String> descriptionMap) {
+        this.descriptionMap = descriptionMap;
     }
 
     public String getPersistence() {

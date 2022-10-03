@@ -70,7 +70,8 @@ public abstract class AbstractAttributeProviderConfig<M extends AbstractConfigMa
         cp.setEvents(getEvents());
 
         cp.setName(getName());
-        cp.setDescription(getDescription());
+        cp.setTitleMap(getTitleMap());
+        cp.setDescriptionMap(getDescriptionMap());
 
         cp.setEnabled(true);
         cp.setConfiguration(getConfiguration());

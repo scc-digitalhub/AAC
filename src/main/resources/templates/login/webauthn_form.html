@@ -8,7 +8,8 @@
 
 <body>
     <div th:fragment="login" class="border-bottom mb-2">
-        <p th:if="${authority.description != null}" th:text="${authority.description}"></p>
+        <p th:if="${authority.getDescription(#locale.language) != null}" th:text="${authority.getDescription(#locale.language)}"></p>
+
         <script th:src="@{/webauthn/js/webauthn.js}" type="text/javascript" charset="utf-8"></script>
         <div class="alert alert-danger" role="alert" th:id="${'webauthn_error_'+authority.provider}"
             style="display: none;"></div>

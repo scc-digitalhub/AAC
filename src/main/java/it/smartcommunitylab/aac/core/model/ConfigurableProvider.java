@@ -11,7 +11,6 @@ import javax.validation.constraints.Size;
 import org.springframework.boot.context.properties.ConstructorBinding;
 import org.springframework.util.StringUtils;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -45,7 +44,8 @@ public class ConfigurableProvider implements ConfigurableProperties {
     private Boolean registered;
 
     private String name;
-    private String description;
+    private Map<String, String> titleMap;
+    private Map<String, String> descriptionMap;
 
     protected Map<String, Serializable> configuration;
 
@@ -124,12 +124,20 @@ public class ConfigurableProvider implements ConfigurableProperties {
         }
     }
 
-    public String getDescription() {
-        return description;
+    public Map<String, String> getTitleMap() {
+        return titleMap;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setTitleMap(Map<String, String> titleMap) {
+        this.titleMap = titleMap;
+    }
+
+    public Map<String, String> getDescriptionMap() {
+        return descriptionMap;
+    }
+
+    public void setDescriptionMap(Map<String, String> descriptionMap) {
+        this.descriptionMap = descriptionMap;
     }
 
     @Override
@@ -167,6 +175,14 @@ public class ConfigurableProvider implements ConfigurableProperties {
 
     public void setRegistered(Boolean registered) {
         this.registered = registered;
+    }
+
+    @Override
+    public String toString() {
+        return "ConfigurableProvider [authority=" + authority + ", realm=" + realm + ", provider=" + provider
+                + ", type=" + type + ", enabled=" + enabled + ", registered=" + registered + ", name=" + name
+                + ", titleMap=" + titleMap + ", descriptionMap=" + descriptionMap + ", configuration=" + configuration
+                + "]";
     }
 
 }

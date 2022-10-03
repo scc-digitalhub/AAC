@@ -116,44 +116,19 @@ public class BaseIdentityProviderController implements InitializingBean {
     @Operation(summary = "add a new identity provider to a given realm")
     public ConfigurableIdentityProvider addIdp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestBody @Valid @NotNull ConfigurableIdentityProvider registration)
+            @RequestBody @Valid @NotNull ConfigurableIdentityProvider reg)
             throws NoSuchRealmException, NoSuchProviderException, RegistrationException, SystemException,
             NoSuchAuthorityException {
-        logger.debug("add idp to realm {}",
-                StringUtils.trimAllWhitespace(realm));
+        logger.debug("add idp to realm {}", StringUtils.trimAllWhitespace(realm));
 
-        // unpack and build model
-        String id = registration.getProvider();
-        String authority = registration.getAuthority();
-        String name = registration.getName();
-        String description = registration.getDescription();
-        String persistence = registration.getPersistence();
-        String events = registration.getEvents();
-        Integer position = registration.getPosition();
-        boolean linkable = registration.isLinkable();
-
-        Map<String, Serializable> configuration = registration.getConfiguration();
-        Map<String, String> hookFunctions = registration.getHookFunctions();
-
-        ConfigurableIdentityProvider provider = new ConfigurableIdentityProvider(authority, id, realm);
-        provider.setName(name);
-        provider.setDescription(description);
-        provider.setEnabled(false);
-        provider.setPersistence(persistence);
-        provider.setLinkable(linkable);
-        provider.setEvents(events);
-        provider.setPosition(position);
-
-        provider.setConfiguration(configuration);
-        provider.setHookFunctions(hookFunctions);
+        // enforce realm match
+        reg.setRealm(realm);
 
         if (logger.isTraceEnabled()) {
-            logger.trace("idp bean: " + StringUtils.trimAllWhitespace(provider.toString()));
+            logger.trace("idp bean: " + StringUtils.trimAllWhitespace(reg.toString()));
         }
 
-        provider = providerManager.addProvider(realm, provider);
-
-        return provider;
+        return providerManager.addProvider(realm, reg);
     }
 
     @GetMapping("/idps/{realm}/{providerId}")
@@ -189,12 +164,16 @@ public class BaseIdentityProviderController implements InitializingBean {
     public ConfigurableIdentityProvider updateIdp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            @RequestBody @Valid @NotNull ConfigurableIdentityProvider registration,
+            @RequestBody @Valid @NotNull ConfigurableIdentityProvider reg,
             @RequestParam(required = false, defaultValue = "false") Optional<Boolean> force)
             throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException {
         logger.debug("update idp {} for realm {}",
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
+        // enforce realm match
+        reg.setRealm(realm);
+
+        // check if active
         ConfigurableIdentityProvider provider = providerManager.getProvider(realm, providerId);
 
         // if force disable provider
@@ -207,36 +186,11 @@ public class BaseIdentityProviderController implements InitializingBean {
             }
         }
 
-        // we update only configuration
-        String name = registration.getName();
-        String description = registration.getDescription();
-        String persistence = registration.getPersistence();
-        boolean enabled = registration.isEnabled();
-        String events = registration.getEvents();
-        Integer position = registration.getPosition();
-        boolean linkable = registration.isLinkable();
-
-        Map<String, Serializable> configuration = registration.getConfiguration();
-        Map<String, String> hookFunctions = registration.getHookFunctions();
-
-        provider.setName(name);
-        provider.setDescription(description);
-
-        provider.setEnabled(enabled);
-
-        provider.setPersistence(persistence);
-        provider.setLinkable(linkable);
-        provider.setEvents(events);
-        provider.setPosition(position);
-
-        provider.setHookFunctions(hookFunctions);
-        provider.setConfiguration(configuration);
-
         if (logger.isTraceEnabled()) {
-            logger.trace("idp bean: " + StringUtils.trimAllWhitespace(provider.toString()));
+            logger.trace("idp bean: " + StringUtils.trimAllWhitespace(reg.toString()));
         }
 
-        provider = providerManager.updateProvider(realm, providerId, provider);
+        provider = providerManager.updateProvider(realm, providerId, reg);
 
         // if force and enabled try to register
         if (forceRegistration && provider.isEnabled()) {

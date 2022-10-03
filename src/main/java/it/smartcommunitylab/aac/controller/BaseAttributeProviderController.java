@@ -1,10 +1,7 @@
 package it.smartcommunitylab.aac.controller;
 
-import java.io.Serializable;
 import java.util.Collection;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
@@ -107,37 +104,18 @@ public class BaseAttributeProviderController implements InitializingBean {
     @Operation(summary = "add a new attribute provider to a given realm")
     public ConfigurableAttributeProvider addAp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration)
+            @RequestBody @Valid @NotNull ConfigurableAttributeProvider reg)
             throws NoSuchRealmException, NoSuchAuthorityException, RegistrationException, NoSuchProviderException {
-        logger.debug("add ap to realm {}",
-                StringUtils.trimAllWhitespace(realm));
+        logger.debug("add ap to realm {}", StringUtils.trimAllWhitespace(realm));
 
-        // unpack and build model
-        String id = registration.getProvider();
-        String authority = registration.getAuthority();
-        String name = registration.getName();
-        String description = registration.getDescription();
-        String persistence = registration.getPersistence();
-        String events = registration.getEvents();
-        Set<String> attributeSets = registration.getAttributeSets();
-        Map<String, Serializable> configuration = registration.getConfiguration();
-
-        ConfigurableAttributeProvider provider = new ConfigurableAttributeProvider(authority, id, realm);
-        provider.setName(name);
-        provider.setDescription(description);
-        provider.setEnabled(false);
-        provider.setPersistence(persistence);
-        provider.setEvents(events);
-        provider.setAttributeSets(attributeSets);
-        provider.setConfiguration(configuration);
+        // enforce realm match
+        reg.setRealm(realm);
 
         if (logger.isTraceEnabled()) {
-            logger.trace("ap bean: " + String.valueOf(provider));
+            logger.trace("ap bean: " + String.valueOf(reg));
         }
 
-        provider = providerManager.addProvider(realm, provider);
-
-        return provider;
+        return providerManager.addProvider(realm, reg);
     }
 
     @PutMapping("/aps/{realm}/{providerId}")
@@ -145,12 +123,16 @@ public class BaseAttributeProviderController implements InitializingBean {
     public ConfigurableAttributeProvider updateAp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration,
+            @RequestBody @Valid @NotNull ConfigurableAttributeProvider reg,
             @RequestParam(required = false, defaultValue = "false") Optional<Boolean> force)
             throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException {
         logger.debug("update ap {} for realm {}",
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
+        // enforce realm match
+        reg.setRealm(realm);
+
+        // check if active
         ConfigurableAttributeProvider provider = providerManager.getProvider(realm, providerId);
 
         // if force disable provider
@@ -159,28 +141,11 @@ public class BaseAttributeProviderController implements InitializingBean {
             provider = providerManager.unregisterProvider(realm, providerId);
         }
 
-        // we update only configuration
-        String name = registration.getName();
-        String description = registration.getDescription();
-        String persistence = registration.getPersistence();
-        boolean enabled = registration.isEnabled();
-        String events = registration.getEvents();
-        Set<String> attributeSets = registration.getAttributeSets();
-        Map<String, Serializable> configuration = registration.getConfiguration();
-
-        provider.setName(name);
-        provider.setDescription(description);
-        provider.setEnabled(enabled);
-        provider.setPersistence(persistence);
-        provider.setEvents(events);
-        provider.setAttributeSets(attributeSets);
-        provider.setConfiguration(configuration);
-
         if (logger.isTraceEnabled()) {
-            logger.trace("ap bean: " + String.valueOf(provider));
+            logger.trace("ap bean: " + String.valueOf(reg));
         }
 
-        provider = providerManager.updateProvider(realm, providerId, provider);
+        provider = providerManager.updateProvider(realm, providerId, reg);
 
         // if force and enabled try to register
         if (forceRegistration && provider.isEnabled()) {

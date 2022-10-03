@@ -122,12 +122,12 @@ public class TemplateHandlerInterceptor implements HandlerInterceptor {
                     // footer from base
                     footer = templateAuthority
                             .getProviderByRealm(realm)
-                            .getTemplate(FooterTemplate.TEMPLATE, lang);
+                            .getTemplate(FooterTemplate.TEMPLATE, locale);
 
                     // fetch template from authority
                     template = templateProviderAuthorityService.getAuthority(authority)
                             .getProviderByRealm(realm)
-                            .getTemplate(name, lang);
+                            .getTemplate(name, locale);
 
                 } catch (NoSuchAuthorityException | NoSuchProviderException | NoSuchTemplateException e) {
                     // skip templates on error

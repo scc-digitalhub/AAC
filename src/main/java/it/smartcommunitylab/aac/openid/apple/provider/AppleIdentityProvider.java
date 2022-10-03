@@ -120,7 +120,9 @@ public class AppleIdentityProvider
     @Override
     public OIDCLoginProvider getLoginProvider() {
         OIDCLoginProvider lp = new OIDCLoginProvider(getAuthority(), getProvider(), getRealm(), getName());
-        lp.setDescription(getDescription());
+        lp.setTitleMap(getTitleMap());
+        lp.setDescriptionMap(getDescriptionMap());
+
         lp.setLoginUrl(getAuthenticationUrl());
 
         // explicitly set apple logo as icon

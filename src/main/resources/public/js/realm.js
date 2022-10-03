@@ -54,7 +54,7 @@ angular.module('aac.controllers.realm', [])
          });
       }
       rService.getResources = function (slug) {
-         return $http.get('console/dev/resources/' + slug ).then(function (data) {
+         return $http.get('console/dev/resources/' + slug).then(function (data) {
             return data.data;
          });
       }
@@ -99,6 +99,17 @@ angular.module('aac.controllers.realm', [])
       }
       rService.inviteDeveloper = function (slug, invite) {
          return $http.post('console/dev/realms/' + slug + '/developers', invite).then(function (data) {
+            return data.data;
+         });
+      }
+
+      rService.getI18NConfig = function (slug) {
+         return $http.get('console/dev/realms/' + slug + '/i18n').then(function (data) {
+            return data.data;
+         });
+      }
+      rService.setI18NConfig = function (slug, config) {
+         return $http.put('console/dev/realms/' + slug + '/i18n', config).then(function (data) {
             return data.data;
          });
       }

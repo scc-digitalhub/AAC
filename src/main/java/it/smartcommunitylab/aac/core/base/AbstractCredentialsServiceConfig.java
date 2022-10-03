@@ -38,7 +38,8 @@ public abstract class AbstractCredentialsServiceConfig<M extends AbstractConfigM
         cs.setType(SystemKeys.RESOURCE_CREDENTIALS);
 
         cs.setName(getName());
-        cs.setDescription(getDescription());
+        cs.setTitleMap(getTitleMap());
+        cs.setDescriptionMap(getDescriptionMap());
 
         cs.setRepositoryId(repositoryId);
 
