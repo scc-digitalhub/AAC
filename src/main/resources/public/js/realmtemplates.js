@@ -129,7 +129,7 @@ angular.module('aac.controllers.realmtemplates', ['ngSanitize'])
         };
 
         var init = function () {
-            RealmData.getI18NConfig(slug)
+            RealmData.getTemplatesConfig(slug)
                 .then(function (data) {
                     $scope.availableLanguages = data.languages;
                 })
@@ -438,9 +438,23 @@ angular.module('aac.controllers.realmtemplates', ['ngSanitize'])
         var extractPreview = function (html) {
             var parser = new DOMParser();
             var doc = parser.parseFromString(html, "text/html");
+
+            //extract also custom style if present
+            var css = doc.getElementById('customStyle');
+
+            if (css) {
+                //append to body
+                //DISABLED because this will impact console as well
+                //doc.body.appendChild(css);
+            }
+
+
             //skip sanitization, we trust output enough since it went though server sanitization
             //var content = $sanitize(doc.body.innerHTML);
-            return $sce.trustAsHtml(doc.body.innerHTML);
+            var content = doc.body.innerHTML;
+
+
+            return $sce.trustAsHtml(content);
         }
 
 

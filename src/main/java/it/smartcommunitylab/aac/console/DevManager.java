@@ -71,6 +71,7 @@ import it.smartcommunitylab.aac.scope.ScopeRegistry;
 import it.smartcommunitylab.aac.services.ScriptServiceClaimExtractor;
 import it.smartcommunitylab.aac.services.Service;
 import it.smartcommunitylab.aac.services.ServicesService;
+import it.smartcommunitylab.aac.templates.TemplateAuthority;
 import it.smartcommunitylab.aac.templates.TemplatesManager;
 import it.smartcommunitylab.aac.templates.model.TemplateModel;
 import it.smartcommunitylab.aac.templates.service.LanguageService;
@@ -130,6 +131,9 @@ public class DevManager {
 
     @Autowired
     private ViewResolver viewResolver;
+
+    @Autowired
+    private TemplateAuthority templateAuthority;
 
     /*
      * Claims
@@ -481,6 +485,10 @@ public class DevManager {
         if (modelAttributes != null) {
             modelAttributes.entrySet().forEach(e -> model.put(e.getKey(), e.getValue()));
         }
+
+        // get custom style
+        String customStyle = templateAuthority.getProviderByRealm(realm).getConfig().getCustomStyle();
+        model.put("customStyle", customStyle);
 
         // Create the HTML body using Thymeleaf
         for (String var : model.keySet()) {

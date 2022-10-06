@@ -36,6 +36,7 @@
     </script>
 
     <link th:href="@{/italia/style.css}" rel="stylesheet" />
+    <style th:if="${customStyle != null}" th:utext="${customStyle}" type="text/css" id="customStyle"></style>
 
     <title layout:title-pattern="$LAYOUT_TITLE - $CONTENT_TITLE" th:text="${appName}">AAC</title>
 </head>

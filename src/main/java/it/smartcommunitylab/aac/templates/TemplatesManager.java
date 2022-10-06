@@ -6,6 +6,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.safety.Cleaner;
+import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.common.InvalidDataException;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
@@ -73,6 +78,75 @@ public class TemplatesManager
         }
 
         return provider;
+    }
+
+    @Override
+    public ConfigurableTemplateProvider addProvider(String realm, ConfigurableTemplateProvider provider)
+            throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
+
+        // validate language
+        // TODO refactor
+        if (provider.getLanguages() != null) {
+            Collection<String> languages = provider.getLanguages();
+            if (!Arrays.asList(LanguageService.LANGUAGES).containsAll(languages)) {
+                throw new InvalidDataException("language");
+            }
+        }
+
+        // validate style
+        // TODO add css validator
+        if (provider.getCustomStyle() != null) {
+            // use wholetext to avoid escaping ><& etc.
+            // this could break the final document
+            // TODO use a proper CSS parser
+            Document dirty = Jsoup.parseBodyFragment(provider.getCustomStyle());
+            Cleaner cleaner = new Cleaner(Safelist.none());
+            Document clean = cleaner.clean(dirty);
+
+            String style = clean.body().wholeText();
+            provider.setCustomStyle(style);
+        }
+
+        ConfigurableTemplateProvider cp = super.addProvider(realm, provider);
+
+        // also register as active
+        cp = registerProvider(realm, cp.getProvider());
+        return cp;
+    }
+
+    @Override
+    public ConfigurableTemplateProvider updateProvider(String realm, String providerId,
+            ConfigurableTemplateProvider provider)
+            throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
+
+        // validate language
+        // TODO refactor
+        if (provider.getLanguages() != null) {
+            Collection<String> languages = provider.getLanguages();
+            if (!Arrays.asList(LanguageService.LANGUAGES).containsAll(languages)) {
+                throw new InvalidDataException("language");
+            }
+        }
+
+        // validate style
+        // TODO add css validator
+        if (provider.getCustomStyle() != null) {
+            // use wholetext to avoid escaping ><& etc.
+            // this could break the final document
+            // TODO use a proper CSS parser
+            Document dirty = Jsoup.parseBodyFragment(provider.getCustomStyle());
+            Cleaner cleaner = new Cleaner(Safelist.none());
+            Document clean = cleaner.clean(dirty);
+
+            String style = clean.body().wholeText();
+            provider.setCustomStyle(style);
+        }
+
+        ConfigurableTemplateProvider cp = super.updateProvider(realm, providerId, provider);
+
+        // also register as active
+        cp = registerProvider(realm, cp.getProvider());
+        return cp;
     }
 
     /*

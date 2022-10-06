@@ -17,6 +17,7 @@ public class RealmTemplateProviderConfig
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     private Set<String> languages;
+    private String customStyle;
 
     public RealmTemplateProviderConfig(String authority, String provider, String realm,
             TemplateProviderConfigMap configMap) {
@@ -27,6 +28,7 @@ public class RealmTemplateProviderConfig
     public RealmTemplateProviderConfig(ConfigurableTemplateProvider cp) {
         super(cp);
         this.languages = cp.getLanguages();
+        this.customStyle = cp.getCustomStyle();
     }
 
     public Set<String> getLanguages() {
@@ -37,6 +39,14 @@ public class RealmTemplateProviderConfig
         this.languages = languages;
     }
 
+    public String getCustomStyle() {
+        return customStyle;
+    }
+
+    public void setCustomStyle(String customStyle) {
+        this.customStyle = customStyle;
+    }
+
     @Override
     public ConfigurableTemplateProvider getConfigurable() {
         ConfigurableTemplateProvider cp = new ConfigurableTemplateProvider(getAuthority(), getProvider(), getRealm());
@@ -45,6 +55,7 @@ public class RealmTemplateProviderConfig
         cp.setDescriptionMap(getDescriptionMap());
 
         cp.setLanguages(getLanguages());
+        cp.setCustomStyle(getCustomStyle());
 
         cp.setEnabled(true);
         cp.setConfiguration(getConfiguration());

@@ -9,4 +9,6 @@ public interface TemplateProviderConfig<M extends ConfigMap> extends ProviderCon
 
     public Set<String> getLanguages();
 
+    public String getCustomStyle();
+
 }

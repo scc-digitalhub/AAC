@@ -43,7 +43,7 @@
             </p>
         </div>
 
-        <div class="text-center">
+        <div th:if="${account != null}" class="text-center">
             <div class="avatar-wrapper avatar-extra-text text-left p-2 mt-2 mb-2">
                 <div class="avatar size-xl">
                     <svg class="icon icon-secondary">
@@ -52,7 +52,7 @@
                 </div>
                 <div class="extra-text">
                     <h5 th:text="${fullname}"></h5>
-                    <span class="text-muted" th:text="${username}"></span>
+                    <span class="text-muted" th:text="${account.username}"></span>
                 </div>
             </div>
         </div>
@@ -67,8 +67,8 @@
             </div>
 
 
-            <div th:if="${resources != null && resources.size() > 0}" class="it-list-wrapper">
-                <p class="text-center" th:utext="#{label.user-approval.text_x(${clientName})}">Text:</p>
+            <div th:if="${client != null && resources != null && resources.size() > 0}" class="it-list-wrapper">
+                <p class="text-center" th:utext="#{label.user-approval.text_x(${client.name})}">Client</p>
                 <ul class="it-list mb-4 permission">
                     <li th:each="r : ${resources}">
                         <a href="#" onclick="return false;" class="active">

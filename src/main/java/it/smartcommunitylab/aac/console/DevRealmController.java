@@ -262,7 +262,7 @@ public class DevRealmController {
         return Arrays.asList(LanguageService.LANGUAGES);
     }
 
-    @GetMapping("/realms/{realm}/i18n")
+    @GetMapping("/realms/{realm}/templates/conf")
     public ConfigurableTemplateProvider getTemplateProviderConfig(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
             throws NoSuchProviderException, NoSuchRealmException {
@@ -270,7 +270,7 @@ public class DevRealmController {
         return templatesManager.getProviderByRealm(realm);
     }
 
-    @PutMapping("/realms/{realm}/i18n")
+    @PutMapping("/realms/{realm}/templates/conf")
     public ConfigurableTemplateProvider setTemplateProviderConfig(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestBody @Valid @NotNull ConfigurableTemplateProvider config)

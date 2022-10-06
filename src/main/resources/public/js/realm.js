@@ -108,13 +108,13 @@ angular.module('aac.controllers.realm', [])
             return data.data;
          });
       }
-      rService.getI18NConfig = function (slug) {
-         return $http.get('console/dev/realms/' + slug + '/i18n').then(function (data) {
+      rService.getTemplatesConfig = function (slug) {
+         return $http.get('console/dev/realms/' + slug + '/templates/conf').then(function (data) {
             return data.data;
          });
       }
-      rService.setI18NConfig = function (slug, config) {
-         return $http.put('console/dev/realms/' + slug + '/i18n', config).then(function (data) {
+      rService.setTemplatesConfig = function (slug, config) {
+         return $http.put('console/dev/realms/' + slug + '/templates/conf', config).then(function (data) {
             return data.data;
          });
       }
@@ -443,7 +443,7 @@ angular.module('aac.controllers.realm', [])
       $scope.formView = 'basic';
 
       $scope.aceOption = {
-         mode: 'html',
+         mode: 'css',
          theme: 'monokai',
          maxLines: 30,
          minLines: 12,
@@ -481,7 +481,7 @@ angular.module('aac.controllers.realm', [])
                $scope.loadDevelopers();
             })
             .then(function() {
-               $scope.loadI18N(); 
+               $scope.loadTemplatesConfig(); 
             })
             .catch(function (err) {
                Utils.showError('Failed to load realm : ' + err.data.message);
@@ -502,10 +502,10 @@ angular.module('aac.controllers.realm', [])
                $scope['$parent'].refresh();
             })
             .then(function() {
-               return RealmData.setI18NConfig(slug, $scope.settingsI18N);
+               return RealmData.setTemplatesConfig(slug, $scope.settingsTemplates);
             })
             .then(function(data) {
-               $scope.reloadI18N(data);
+               $scope.reloadTemplatesConfig(data);
                Utils.showSuccess();
             })
             .catch(function (err) {
@@ -587,18 +587,18 @@ angular.module('aac.controllers.realm', [])
          }
       }
 
-      $scope.loadI18N = function () {
-         RealmData.getI18NConfig(slug)
+      $scope.loadTemplatesConfig = function () {
+         RealmData.getTemplatesConfig(slug)
             .then(function (data) {
-               $scope.reloadI18N(data);
+               $scope.reloadTemplatesConfig(data);
             })
             .catch(function (err) {
                Utils.showError('Failed to update authorities: ' + err.data.message);
             });
       }
-      $scope.reloadI18N = function (data) {
+      $scope.reloadTemplatesConfig = function (data) {
          if (data) {
-            $scope.settingsI18N = data;
+            $scope.settingsTemplates = data;
          }
       }
 

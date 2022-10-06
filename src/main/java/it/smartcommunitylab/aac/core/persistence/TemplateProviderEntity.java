@@ -51,6 +51,10 @@ public class TemplateProviderEntity implements ProviderEntity {
     @Column(name = "languages")
     private String languages;
 
+    @Lob
+    @Column(name = "custom_style")
+    private String customStyle;
+
     // key-based configuration for persistence
     // converts to json via custom converter
     @Lob
@@ -128,6 +132,14 @@ public class TemplateProviderEntity implements ProviderEntity {
 
     public void setLanguages(String languages) {
         this.languages = languages;
+    }
+
+    public String getCustomStyle() {
+        return customStyle;
+    }
+
+    public void setCustomStyle(String customStyle) {
+        this.customStyle = customStyle;
     }
 
     public Map<String, Serializable> getConfigurationMap() {

@@ -31,7 +31,7 @@
     <p class="mt-3 mb-3 text-center" th:text="#{label.endsession.text}">Logout</p>
 
     <div class="text-center">
-      <div class="avatar-wrapper avatar-extra-text text-left p-2 mt-2 mb-2">
+      <div th:if="${account != null}" class="avatar-wrapper avatar-extra-text text-left p-2 mt-2 mb-2">
         <div class="avatar size-xl">
           <svg class="icon icon-secondary">
             <use th:xlink:href="@{/italia/svg/sprite.svg#it-user}"></use>
@@ -39,7 +39,7 @@
         </div>
         <div class="extra-text">
           <h5 th:text="${fullname}"></h5>
-          <span class="text-muted" th:text="${username}"></span>
+          <span class="text-muted" th:text="${account.username}"></span>
         </div>
       </div>
     </div>

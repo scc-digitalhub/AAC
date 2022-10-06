@@ -112,6 +112,7 @@ public class TemplateHandlerInterceptor implements HandlerInterceptor {
 
                 Template template = null;
                 Template footer = null;
+                String customStyle = null;
                 try {
                     // footer from base
                     footer = templateAuthority
@@ -123,12 +124,16 @@ public class TemplateHandlerInterceptor implements HandlerInterceptor {
                             .getProviderByRealm(realm)
                             .getTemplate(name, locale);
 
+                    // fetch custom style from config
+                    customStyle = templateAuthority.getProviderByRealm(realm).getConfig().getCustomStyle();
+
                 } catch (NoSuchAuthorityException | NoSuchProviderException | NoSuchTemplateException e) {
                     // skip templates on error
                 }
 
                 modelAndView.addObject("template", template);
                 modelAndView.addObject("footer", footer);
+                modelAndView.addObject("customStyle", customStyle);
             }
         } catch (RuntimeException e) {
             // ignore errors to avoid stopping renderer

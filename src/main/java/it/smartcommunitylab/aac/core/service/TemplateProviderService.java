@@ -80,6 +80,7 @@ public class TemplateProviderService
             pe.setDescriptionMap(descriptionMap);
 
             pe.setLanguages(StringUtils.collectionToCommaDelimitedString(reg.getLanguages()));
+            pe.setCustomStyle(reg.getCustomStyle());
 
             pe.setEnabled(reg.isEnabled());
             pe.setConfigurationMap(reg.getConfiguration());
@@ -101,6 +102,7 @@ public class TemplateProviderService
             cp.setDescriptionMap(pe.getDescriptionMap());
 
             cp.setLanguages(StringUtils.commaDelimitedListToSet(pe.getLanguages()));
+            cp.setCustomStyle(pe.getCustomStyle());
 
             cp.setEnabled(pe.isEnabled());
             cp.setConfiguration(pe.getConfigurationMap());

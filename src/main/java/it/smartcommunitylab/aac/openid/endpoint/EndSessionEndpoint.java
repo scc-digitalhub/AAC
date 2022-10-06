@@ -42,6 +42,7 @@ import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.ExtendedLogoutSuccessHandler;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
+import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.jwt.assertion.SelfAssertionValidator;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
@@ -166,7 +167,10 @@ public class EndSessionEndpoint {
                     : userDetails.getSubjectId();
 //            String fullName = userDetails.getFullName();
             model.addAttribute("fullname", userName);
-            model.addAttribute("username", userName);
+
+            // add account info
+            UserAccount account = userDetails.getIdentities().stream().findFirst().orElseThrow().getAccount();
+            model.addAttribute("account", account);
 
             // load realm props
             String realm = userAuth.getRealm();

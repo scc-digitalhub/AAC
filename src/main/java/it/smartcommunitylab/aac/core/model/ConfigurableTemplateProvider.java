@@ -19,6 +19,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 public class ConfigurableTemplateProvider extends ConfigurableProvider {
 
     private Set<String> languages;
+    private String customStyle;
 
     public ConfigurableTemplateProvider(String authority, String provider, String realm) {
         super(authority, provider, realm, SystemKeys.RESOURCE_TEMPLATE);
@@ -47,6 +48,14 @@ public class ConfigurableTemplateProvider extends ConfigurableProvider {
 
     public void setLanguages(Set<String> languages) {
         this.languages = languages;
+    }
+
+    public String getCustomStyle() {
+        return customStyle;
+    }
+
+    public void setCustomStyle(String customStyle) {
+        this.customStyle = customStyle;
     }
 
 }

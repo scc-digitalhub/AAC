@@ -30,6 +30,7 @@ import org.springframework.web.servlet.ModelAndView;
 import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
+import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.model.ResponseMode;
@@ -110,15 +111,17 @@ public class UserApprovalEndpoint implements InitializingBean {
             model.put("displayName", realm);
 
             // add client info
-            String clientName = StringUtils.hasText(clientDetails.getName()) ? clientDetails.getName() : clientId;
-            model.put("clientName", clientName);
+            model.put("client", clientDetails);
 
             // add user info
             String userName = StringUtils.hasText(userDetails.getUsername()) ? userDetails.getUsername()
                     : userDetails.getSubjectId();
 //            String fullName = userDetails.getFullName();
             model.put("fullname", userName);
-            model.put("username", userName);
+
+            // add account info
+            UserAccount account = userDetails.getIdentities().stream().findFirst().orElseThrow().getAccount();
+            model.put("account", account);
 
             // we have a list of scopes in model
             Set<String> scopes = delimitedStringToSet((String) model.get("scope"));

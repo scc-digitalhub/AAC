@@ -385,10 +385,10 @@ public class InternalRegistrationController {
             // register
             identity = idp.registerIdentity(subjectId, identity);
 
-            model.addAttribute("identity", identity);
+            model.addAttribute("account", account);
 
             if (idp.getConfig().isConfirmationRequired()) {
-                return "internal/confirmaccount";
+                return "internal/registeraccount_confirm";
             }
 
             return "internal/registeraccount_success";

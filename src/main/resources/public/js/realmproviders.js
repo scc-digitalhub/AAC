@@ -554,10 +554,9 @@ angular.module('aac.controllers.realmproviders', [])
                     $scope.realmUrls = data;
                 })
                 .then(function () {
-                    return RealmData.getI18NConfig(slug);
+                    return RealmData.getTemplatesConfig(slug);
                 })
                 .then(function (config) {
-                    $scope.i18nConfig = config;
                     var languages = [];
                     if (config.languages) {
                         languages = config.languages;
