@@ -69,7 +69,7 @@
             <div class="col-md-12 form-group">
                <label th:text="#{field.pwd} + '*: '"></label>
                <input class="form-control input-password" type="password" th:field="*{password}"
-                  th:pattern="${passwordPattern}" />
+                  th:pattern="${policy.passwordPattern}" />
                <span class="password-icon" aria-hidden="true">
                   <svg class="password-icon-visible icon icon-sm">
                      <use th:xlink:href="@{/italia/svg/sprite.svg#it-password-visible}"></use>
@@ -83,7 +83,7 @@
             <div class="col-md-12 form-group">
                <label th:text="#{field.pwd_confirm}  + '*: '"></label>
                <input class="form-control input-password " type="password" th:field="*{verifyPassword}"
-                  th:pattern="${passwordPattern}">
+                  th:pattern="${policy.passwordPattern}">
                <span class="password-icon" aria-hidden="true"> <svg class="password-icon-visible icon icon-sm">
                      <use th:xlink:href="@{/italia/svg/sprite.svg#it-password-visible}"></use>
                   </svg>

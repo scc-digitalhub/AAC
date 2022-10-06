@@ -2,17 +2,20 @@ package it.smartcommunitylab.aac.console;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-
+import org.apache.commons.lang3.LocaleUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -27,9 +30,9 @@ import org.springframework.security.oauth2.provider.code.AuthorizationCodeServic
 import org.springframework.security.oauth2.provider.implicit.ImplicitTokenRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-import org.thymeleaf.TemplateEngine;
+import org.springframework.web.servlet.View;
+import org.springframework.web.servlet.ViewResolver;
 import org.thymeleaf.context.WebContext;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.smartcommunitylab.aac.Config;
@@ -44,10 +47,12 @@ import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchServiceException;
 import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.config.ApplicationProperties;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
+import it.smartcommunitylab.aac.core.model.Template;
 import it.smartcommunitylab.aac.core.service.ClientDetailsService;
 import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.core.service.UserService;
@@ -66,6 +71,9 @@ import it.smartcommunitylab.aac.scope.ScopeRegistry;
 import it.smartcommunitylab.aac.services.ScriptServiceClaimExtractor;
 import it.smartcommunitylab.aac.services.Service;
 import it.smartcommunitylab.aac.services.ServicesService;
+import it.smartcommunitylab.aac.templates.TemplatesManager;
+import it.smartcommunitylab.aac.templates.model.TemplateModel;
+import it.smartcommunitylab.aac.templates.service.LanguageService;
 
 @Component
 public class DevManager {
@@ -74,6 +82,9 @@ public class DevManager {
 //    };
 //    private final TypeReference<ArrayList<Serializable>> serListTypeRef = new TypeReference<ArrayList<Serializable>>() {
 //    };
+
+    @Autowired
+    private ApplicationProperties appProps;
 
     @Autowired
     private AuthenticationHelper authHelper;
@@ -112,10 +123,13 @@ public class DevManager {
     private ServicesService servicesService;
 
     @Autowired
-    private TemplateEngine templateEngine;
+    private TemplatesManager templatesManager;
 
     @Autowired
     private RealmService realmService;
+
+    @Autowired
+    private ViewResolver viewResolver;
 
     /*
      * Claims
@@ -393,34 +407,100 @@ public class DevManager {
         return functionBean;
     }
 
-//    /*
-//     * Realm customization
-//     */
-//
-//    public String previewRealmTemplate(String realm, String template, CustomizationBean cb, WebContext ctx)
-//            throws NoSuchRealmException {
-//
-//        Realm re = realmService.getRealm(realm);
-//
-//        if (!template.equals(cb.getIdentifier())) {
-//            throw new IllegalArgumentException("customization does not match template");
-//        }
-//
-//        // build model
-//        Map<String, Object> model = new HashMap<>();
-//        model.put("realm", realm);
-//        model.put("displayName", re.getName());
-//        model.put("customization", cb.getResources());
-//
-//        // Create the HTML body using Thymeleaf
-//        for (String var : model.keySet()) {
-//            ctx.setVariable(var, model.get(var));
-//        }
-//
-//        final String html = this.templateEngine.process(template, ctx);
-//
-//        return html;
-//    }
+    /*
+     * Realm templates
+     */
+
+    public String previewRealmTemplate(String realm, String authority, String template, String id,
+            TemplateModel reg, WebContext ctx)
+            throws Exception {
+
+        Realm r = realmService.getRealm(realm);
+
+        if (reg == null) {
+            throw new IllegalArgumentException("invalid template");
+        }
+
+        if (!StringUtils.hasText(authority) || !StringUtils.hasText(template)) {
+            throw new IllegalArgumentException("invalid template");
+        }
+
+        if (!authority.equals(reg.getAuthority()) || !template.equals(reg.getTemplate())) {
+            throw new IllegalArgumentException("invalid template");
+        }
+
+        String view = template;
+        String language = reg.getLanguage();
+        Map<String, Object> model = new HashMap<>();
+
+        // validate language
+        // TODO refactor
+        if (!Arrays.asList(LanguageService.LANGUAGES).contains(language)) {
+            throw new IllegalArgumentException("invalid language");
+        }
+
+        // set locale from language
+        Locale locale = LocaleUtils.toLocale(language);
+        if (locale != null) {
+            ctx.setLocale(locale);
+        }
+
+        // fetch template to ensure it exists
+        Template t = templatesManager.getTemplate(realm, authority, view);
+
+        // sanitize model
+        reg = templatesManager.sanitizeTemplateModel(realm, id, reg);
+
+        model.put("template", reg);
+
+        // also set template with own key
+        model.put(view, reg);
+
+        // build model
+        model.put("realm", realm);
+
+        // app props
+        model.put("application", appProps);
+        model.put("appName", appProps.getName());
+
+        ApplicationProperties props = new ApplicationProperties();
+        props.setName(r.getName());
+
+        // build props from global
+        // TODO add fields to realm config
+        props.setEmail(appProps.getEmail());
+        props.setLang(appProps.getLang());
+        props.setLogo(appProps.getLogo());
+
+        String displayName = r.getName();
+        model.put("displayName", displayName);
+        model.put("props", props);
+
+        // model attributes from template
+        Map<String, Object> modelAttributes = t.getModelAttributes();
+        if (modelAttributes != null) {
+            modelAttributes.entrySet().forEach(e -> model.put(e.getKey(), e.getValue()));
+        }
+
+        // Create the HTML body using Thymeleaf
+        for (String var : model.keySet()) {
+            ctx.setVariable(var, model.get(var));
+        }
+
+        // derive view name by conventions
+        // [template]
+        // [authority]/[template]
+        String viewName = SystemKeys.AUTHORITY_TEMPLATE.equals(authority) ? view : authority + "/" + view;
+
+        // build view
+        View tf = viewResolver.resolveViewName(viewName, locale);
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        tf.render(model, ctx.getRequest(), response);
+        String html = response.getContentAsString();
+
+        return html;
+    }
 
     /*
      * OAuth2

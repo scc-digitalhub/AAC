@@ -7,7 +7,7 @@ import it.smartcommunitylab.aac.templates.model.FixedTemplateModel;
 
 public class PasswordResetTemplate extends FixedTemplateModel {
     public static final String TEMPLATE = "resetpwd";
-    private static final String[] KEYS = { "resetpwd.text", "resetpwd_success.text" };
+    private static final String[] KEYS = { "resetpwd.text" };
 
     public PasswordResetTemplate(String realm) {
         super(SystemKeys.AUTHORITY_PASSWORD, realm, null, TEMPLATE, Arrays.asList(KEYS));

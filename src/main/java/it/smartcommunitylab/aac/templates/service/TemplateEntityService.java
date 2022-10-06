@@ -6,6 +6,8 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -136,6 +138,18 @@ public class TemplateEntityService {
             logger.debug("delete template {}", StringUtils.trimAllWhitespace(id));
             templateRepository.delete(t);
         }
+
+    }
+
+    public Page<TemplateEntity> searchTemplatesByKeywords(String realm, String q, Pageable pageRequest) {
+        Page<TemplateEntity> page = StringUtils.hasText(q)
+                ? templateRepository.findByRealmAndAuthorityContainingIgnoreCaseOrRealmAndTemplateContainingIgnoreCase(
+                        realm,
+                        q, realm,
+                        q, pageRequest)
+                : templateRepository.findByRealm(realm, pageRequest);
+
+        return page;
 
     }
 

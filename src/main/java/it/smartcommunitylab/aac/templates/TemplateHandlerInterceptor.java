@@ -101,17 +101,11 @@ public class TemplateHandlerInterceptor implements HandlerInterceptor {
 
                 // extract template name by conventions
                 // [template]
-                // [template]_variants
-                // [authority]/[template]_[variants]
+                // [authority]/[template]
                 String[] s = viewName.split("/");
                 if (s.length == 2) {
                     authority = s[0];
                     name = s[1];
-                }
-
-                if (name.contains("_")) {
-                    s = name.split("_");
-                    name = s[0];
                 }
 
                 logger.debug("fetch templates for {}:{} for realm {} with language {}", authority, name, realm, lang);

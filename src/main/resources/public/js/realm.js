@@ -103,6 +103,11 @@ angular.module('aac.controllers.realm', [])
          });
       }
 
+      rService.getLanguages = function (slug) {
+         return $http.get('console/dev/realms/' + slug + '/languages').then(function (data) {
+            return data.data;
+         });
+      }
       rService.getI18NConfig = function (slug) {
          return $http.get('console/dev/realms/' + slug + '/i18n').then(function (data) {
             return data.data;
@@ -455,7 +460,15 @@ angular.module('aac.controllers.realm', [])
 
 
       var init = function () {
-         $scope.load();
+         RealmData.getLanguages(slug)
+            .then(function (data) {
+               $scope.availableLanguages = data;
+            })
+            .then(function () {
+               $scope.load();
+            }).catch(function (err) {
+               Utils.showError('Failed to load realm : ' + err.data.message);
+            });
       };
 
       $scope.load = function () {
@@ -466,6 +479,9 @@ angular.module('aac.controllers.realm', [])
             })
             .then(function () {
                $scope.loadDevelopers();
+            })
+            .then(function() {
+               $scope.loadI18N(); 
             })
             .catch(function (err) {
                Utils.showError('Failed to load realm : ' + err.data.message);
@@ -484,6 +500,12 @@ angular.module('aac.controllers.realm', [])
             .then(function (res) {
                $scope.reload(res);
                $scope['$parent'].refresh();
+            })
+            .then(function() {
+               return RealmData.setI18NConfig(slug, $scope.settingsI18N);
+            })
+            .then(function(data) {
+               $scope.reloadI18N(data);
                Utils.showSuccess();
             })
             .catch(function (err) {
@@ -562,6 +584,21 @@ angular.module('aac.controllers.realm', [])
                });
 
 
+         }
+      }
+
+      $scope.loadI18N = function () {
+         RealmData.getI18NConfig(slug)
+            .then(function (data) {
+               $scope.reloadI18N(data);
+            })
+            .catch(function (err) {
+               Utils.showError('Failed to update authorities: ' + err.data.message);
+            });
+      }
+      $scope.reloadI18N = function (data) {
+         if (data) {
+            $scope.settingsI18N = data;
          }
       }
 

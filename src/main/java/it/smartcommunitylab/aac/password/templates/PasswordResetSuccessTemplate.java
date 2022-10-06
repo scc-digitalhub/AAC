@@ -5,11 +5,11 @@ import java.util.Arrays;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.templates.model.FixedTemplateModel;
 
-public class PasswordChangeTemplate extends FixedTemplateModel {
-    public static final String TEMPLATE = "changepwd";
-    private static final String[] KEYS = { "changepwd.text" };
+public class PasswordResetSuccessTemplate extends FixedTemplateModel {
+    public static final String TEMPLATE = "resetpwd_success";
+    private static final String[] KEYS = { "resetpwd_success.text" };
 
-    public PasswordChangeTemplate(String realm) {
+    public PasswordResetSuccessTemplate(String realm) {
         super(SystemKeys.AUTHORITY_PASSWORD, realm, null, TEMPLATE, Arrays.asList(KEYS));
     }
 

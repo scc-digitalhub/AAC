@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.core.model;
 
 import java.util.Collection;
+import java.util.Map;
 
 import it.smartcommunitylab.aac.SystemKeys;
 
@@ -20,4 +21,6 @@ public interface Template extends Resource {
     default String getType() {
         return SystemKeys.RESOURCE_TEMPLATE;
     }
+
+    public Map<String, Object> getModelAttributes();
 }

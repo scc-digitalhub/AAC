@@ -98,33 +98,6 @@ public class PasswordCredentialsService extends
         return policy;
     }
 
-    public String getPasswordPattern() {
-        // translate policy to input pattern
-        StringBuilder sb = new StringBuilder();
-        if (config.isPasswordRequireAlpha()) {
-            // require alpha means any, we add pattern for [a-z]
-            // TODO fix pattern
-            sb.append("(?=.*[a-z])");
-        }
-        if (config.isPasswordRequireUppercaseAlpha()) {
-            sb.append("(?=.*[A-Z])");
-        }
-        if (config.isPasswordRequireNumber()) {
-            sb.append("(?=.*\\d)");
-        }
-        if (config.isPasswordRequireSpecial()) {
-            // TODO
-        }
-
-        // add length
-        sb
-                .append(".{")
-                .append(config.getPasswordMinLength()).append(",").append(config.getPasswordMaxLength())
-                .append("}");
-
-        return sb.toString();
-    }
-
     public boolean verifyPassword(String username, String password) throws NoSuchUserException {
         // fetch user
         InternalUserAccount account = accountService.findAccountById(repositoryId, username);

@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.console;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -58,6 +59,7 @@ import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.services.ServicesManager;
 import it.smartcommunitylab.aac.templates.TemplatesManager;
 import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfig;
+import it.smartcommunitylab.aac.templates.service.LanguageService;
 
 @RestController
 @Hidden
@@ -252,6 +254,14 @@ public class DevRealmController {
     /*
      * Realm templates / i18n config
      */
+    @GetMapping("/realms/{realm}/languages")
+    public Collection<String> getLanguages(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
+            throws NoSuchProviderException, NoSuchRealmException {
+        // return languages available system-wide
+        return Arrays.asList(LanguageService.LANGUAGES);
+    }
+
     @GetMapping("/realms/{realm}/i18n")
     public ConfigurableTemplateProvider getTemplateProviderConfig(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
@@ -263,7 +273,7 @@ public class DevRealmController {
     @PutMapping("/realms/{realm}/i18n")
     public ConfigurableTemplateProvider setTemplateProviderConfig(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @Valid @NotNull ConfigurableTemplateProvider config)
+            @RequestBody @Valid @NotNull ConfigurableTemplateProvider config)
             throws NoSuchProviderException, NoSuchRealmException, RegistrationException, NoSuchAuthorityException {
 
         // single config per realm, so either add as new or update

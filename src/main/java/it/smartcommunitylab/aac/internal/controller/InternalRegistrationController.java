@@ -274,15 +274,13 @@ public class InternalRegistrationController {
             // expose password policy by passing idp config
             PasswordPolicy policy = service.getPasswordPolicy();
             model.addAttribute("policy", policy);
-            String passwordPattern = service.getPasswordPattern();
-            model.addAttribute("passwordPattern", passwordPattern);
         }
 
         // build url
         // TODO handle via urlBuilder or entryPoint
         model.addAttribute("registrationUrl", "/auth/internal/register/" + providerId);
-        // set idp form as login url
-        model.addAttribute("loginUrl", "/auth/internal/form/" + providerId);
+        // set realm login url
+        model.addAttribute("loginUrl", "/-/" + realm);
 
         return "internal/registeraccount";
     }
@@ -320,14 +318,12 @@ public class InternalRegistrationController {
                 // expose password policy by passing idp config
                 PasswordPolicy policy = service.getPasswordPolicy();
                 model.addAttribute("policy", policy);
-                String passwordPattern = service.getPasswordPattern();
-                model.addAttribute("passwordPattern", passwordPattern);
             }
 
             model.addAttribute("registrationUrl", "/auth/internal/register/" + providerId);
 
-            // set idp form as login url
-            model.addAttribute("loginUrl", "/auth/internal/form/" + providerId);
+            // set realm login url
+            model.addAttribute("loginUrl", "/-/" + realm);
 
             if (result.hasErrors()) {
                 model.addAttribute("error", InvalidDataException.ERROR);

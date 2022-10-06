@@ -1,6 +1,8 @@
 package it.smartcommunitylab.aac.templates.service;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -8,11 +10,15 @@ import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import it.smartcommunitylab.aac.common.InvalidDataException;
 import it.smartcommunitylab.aac.common.NoSuchTemplateException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.templates.model.TemplateModel;
@@ -23,7 +29,10 @@ import it.smartcommunitylab.aac.templates.persistence.TemplateEntity;
 public class TemplateService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final static Safelist DEFAULT_WHITELIST = Safelist.relaxed();
+    // whitelist typography + links
+    private final static Safelist DEFAULT_WHITELIST = Safelist.relaxed()
+            .removeTags("img")
+            .addEnforcedAttribute("a", "rel", "nofollow");
 
     private final TemplateEntityService templateService;
 
@@ -129,6 +138,12 @@ public class TemplateService {
             throw new RegistrationException();
         }
 
+        // validate language
+        // TODO refactor
+        if (!Arrays.asList(LanguageService.LANGUAGES).contains(language)) {
+            throw new InvalidDataException("language");
+        }
+
         Map<String, String> content = null;
         if (reg.getContent() != null) {
             content = reg.getContent().entrySet().stream().map(e -> {
@@ -155,17 +170,13 @@ public class TemplateService {
             throw new RegistrationException();
         }
 
-        Map<String, String> content = null;
-        if (reg.getContent() != null) {
-            content = reg.getContent().entrySet().stream().map(e -> {
-                String v = e.getValue();
-                if (v == null) {
-                    return e;
-                }
-
-                return Map.entry(e.getKey(), Jsoup.clean(v, DEFAULT_WHITELIST));
-            }).collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+        // validate language
+        // TODO refactor
+        if (!Arrays.asList(LanguageService.LANGUAGES).contains(language)) {
+            throw new InvalidDataException("language");
         }
+
+        Map<String, String> content = sanitizeTemplate(id, reg);
 
         logger.debug("update template {}", StringUtils.trimAllWhitespace(id));
         TemplateEntity e = templateService.updateTemplate(id, language, content);
@@ -179,6 +190,22 @@ public class TemplateService {
         templateService.deleteTemplate(e.getId());
     }
 
+    public Map<String, String> sanitizeTemplate(String id, TemplateModel reg) {
+        Map<String, String> content = null;
+        if (reg.getContent() != null) {
+            content = reg.getContent().entrySet().stream().map(e -> {
+                String v = e.getValue();
+                if (v == null) {
+                    return e;
+                }
+
+                return Map.entry(e.getKey(), Jsoup.clean(v, DEFAULT_WHITELIST));
+            }).collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+        }
+
+        return content;
+    }
+
     /*
      * converter
      */
@@ -189,5 +216,16 @@ public class TemplateService {
         m.setContent(e.getContent());
 
         return m;
+    }
+
+    public Page<TemplateModel> searchTemplates(String realm, String query, Pageable pageRequest) {
+        Page<TemplateEntity> page = templateService.searchTemplatesByKeywords(realm, query, pageRequest);
+        List<TemplateModel> result = page.getContent().stream().map(t -> toModel(t))
+                .collect(Collectors.toList());
+
+        return PageableExecutionUtils.getPage(
+                result,
+                pageRequest,
+                () -> page.getTotalElements());
     }
 }

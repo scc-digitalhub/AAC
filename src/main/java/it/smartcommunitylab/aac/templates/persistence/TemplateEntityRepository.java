@@ -2,6 +2,8 @@ package it.smartcommunitylab.aac.templates.persistence;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import it.smartcommunitylab.aac.repository.CustomJpaRepository;
@@ -21,5 +23,11 @@ public interface TemplateEntityRepository extends CustomJpaRepository<TemplateEn
     List<TemplateEntity> findByAuthorityAndRealm(String authority, String realm);
 
     List<TemplateEntity> findByAuthorityAndRealmAndTemplate(String authority, String realm, String template);
+
+    Page<TemplateEntity> findByRealm(String realm, Pageable page);
+
+    Page<TemplateEntity> findByRealmAndAuthorityContainingIgnoreCaseOrRealmAndTemplateContainingIgnoreCase(
+            String realma,
+            String authority, String realmt, String template, Pageable page);
 
 }

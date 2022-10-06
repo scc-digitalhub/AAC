@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -142,6 +144,15 @@ public class TemplatesManager
         return templateService.listTemplates(authority, realm, template);
     }
 
+    public Page<TemplateModel> searchTemplateModels(String realm, String keywords, Pageable pageRequest) {
+        logger.debug("search templates for realm {} with keywords {}", StringUtils.trimAllWhitespace(realm),
+                StringUtils.trimAllWhitespace(keywords));
+
+        String query = StringUtils.trimAllWhitespace(keywords);
+        Page<TemplateModel> page = templateService.searchTemplates(realm, query, pageRequest);
+        return page;
+    }
+
     public TemplateModel addTemplateModel(String realm, TemplateModel reg)
             throws NoSuchTemplateException, NoSuchProviderException, NoSuchAuthorityException {
         // check model
@@ -233,4 +244,45 @@ public class TemplatesManager
                 StringUtils.trimAllWhitespace(id), m.getAuthority(), StringUtils.trimAllWhitespace(realm));
         templateService.deleteTemplate(id);
     }
+
+    public TemplateModel sanitizeTemplateModel(String realm, String id, TemplateModel reg)
+            throws NoSuchTemplateException, NoSuchProviderException, NoSuchAuthorityException {
+        TemplateModel m = templateService.getTemplate(id);
+        if (!realm.equals(m.getRealm())) {
+            throw new IllegalArgumentException("realm-mismatch");
+        }
+
+        // check model
+        String template = reg.getTemplate();
+        String authority = reg.getAuthority();
+
+        if (!StringUtils.hasText(authority) || !StringUtils.hasText(template)) {
+            throw new RegistrationException();
+        }
+
+        Template t = authorityService.getAuthority(authority).getProviderByRealm(realm).getTemplate(template);
+        Collection<String> keys = t.keys();
+
+        // check language
+        // TODO check if supported
+        String language = reg.getLanguage();
+        if (!StringUtils.hasText(language)) {
+            throw new RegistrationException();
+        }
+
+        // cleanup unregistered keys
+        Map<String, String> content = null;
+        if (reg.getContent() != null) {
+            content = reg.getContent().entrySet().stream()
+                    .filter(e -> keys.contains(e.getKey()))
+                    .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+        }
+        reg.setContent(content);
+
+        content = templateService.sanitizeTemplate(id, reg);
+        reg.setContent(content);
+
+        return reg;
+    }
+
 }

@@ -18,6 +18,7 @@ import org.yaml.snakeyaml.DumperOptions.ScalarStyle;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.core.io.IOContext;
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
@@ -107,6 +108,7 @@ public class PersistenceConfig {
         ObjectMapper yamlObjectMapper = new ObjectMapper(factory);
         yamlObjectMapper.registerModule(new JavaTimeModule());
         yamlObjectMapper.setSerializationInclusion(Include.NON_EMPTY);
+        yamlObjectMapper.configure(MapperFeature.USE_GETTERS_AS_SETTERS, false);
         return yamlObjectMapper;
     }
 

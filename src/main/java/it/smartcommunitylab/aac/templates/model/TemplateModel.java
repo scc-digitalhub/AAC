@@ -12,6 +12,8 @@ import javax.validation.constraints.Size;
 
 import org.springframework.util.Assert;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -53,6 +55,9 @@ public class TemplateModel implements Template {
 
     private Map<String, String> content;
 
+    @JsonIgnore
+    private Map<String, Object> modelAttributes;
+
     public TemplateModel() {
 
     }
@@ -63,6 +68,7 @@ public class TemplateModel implements Template {
         this.template = template;
         this.content = new HashMap<>();
         this.language = null;
+        this.modelAttributes = null;
     }
 
     public void setId(String id) {
@@ -99,7 +105,20 @@ public class TemplateModel implements Template {
         return language;
     }
 
+    @JsonIgnore
+    public String buildKey() {
+        // this key is unique
+        StringBuilder sb = new StringBuilder();
+        sb.append(authority).append(".");
+        sb.append(realm).append(".");
+        sb.append(template).append(".");
+        sb.append(language);
+
+        return sb.toString();
+    }
+
     @Override
+    @JsonGetter("keys")
     public Collection<String> keys() {
         return content != null ? content.keySet() : Collections.emptyList();
     }
@@ -110,6 +129,7 @@ public class TemplateModel implements Template {
         return content != null ? content.get(key) : null;
     }
 
+    @JsonIgnore
     public void set(String key, String value) {
         Assert.hasText(key, "key can not be null");
         if (content == null) {
@@ -145,6 +165,23 @@ public class TemplateModel implements Template {
 
     public void setTemplate(String template) {
         this.template = template;
+    }
+
+    public Map<String, Object> getModelAttributes() {
+        return modelAttributes;
+    }
+
+    public void setModelAttributes(Map<String, Object> modelAttributes) {
+        this.modelAttributes = modelAttributes;
+    }
+
+    public void setModelAttribute(String key, Object attribute) {
+        Assert.hasText(key, "key can not be null");
+        if (modelAttributes == null) {
+            modelAttributes = new HashMap<>();
+        }
+
+        modelAttributes.put(key, attribute);
     }
 
     @Override

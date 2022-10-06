@@ -157,4 +157,17 @@ public class BaseTemplatesController implements InitializingBean {
         return templatesManager.listTemplates(realm, authority);
     }
 
+    @GetMapping("/templates/{realm}/{authority}/{template}")
+    @Operation(summary = "get template for realm")
+    public Template getTemplate(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String authority,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String template)
+            throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, NoSuchTemplateException {
+        logger.debug("get template {} for realm {} authority {}", StringUtils.trimAllWhitespace(template),
+                StringUtils.trimAllWhitespace(realm), StringUtils.trimAllWhitespace(authority));
+
+        return templatesManager.getTemplate(realm, authority, template);
+    }
+
 }

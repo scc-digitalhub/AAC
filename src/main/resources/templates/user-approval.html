@@ -62,12 +62,12 @@
         <form id="confirmationForm" name="confirmationForm" th:action="${formAction}" method="post">
             <input type="hidden" name="key" id="key" th:value="${key}">
 
-            <div th:if="${hiddenResources.size() > 0}">
+            <div th:if="${hiddenResources != null && hiddenResources.size() > 0}">
                 <input th:each="r : ${hiddenResources}" type="hidden" th:id="${r.scope}" value="true">
             </div>
 
 
-            <div th:if="${resources.size() > 0}" class="it-list-wrapper">
+            <div th:if="${resources != null && resources.size() > 0}" class="it-list-wrapper">
                 <p class="text-center" th:utext="#{label.user-approval.text_x(${clientName})}">Text:</p>
                 <ul class="it-list mb-4 permission">
                     <li th:each="r : ${resources}">
