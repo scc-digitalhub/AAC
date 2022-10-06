@@ -267,7 +267,10 @@ public class AuthorizationEndpoint implements InitializingBean {
                 // we'll enforce it to complain with spec
                 Set<String> scopes = authorizationRequest.getScope();
                 if (scopes.contains(Config.SCOPE_OFFLINE_ACCESS)) {
-                    promptConsent = true;
+                    // let firstParty skip, others should comply
+                    if (!clientDetails.isFirstParty()) {
+                        promptConsent = true;
+                    }
                 }
 
                 // store request in repository for later use
