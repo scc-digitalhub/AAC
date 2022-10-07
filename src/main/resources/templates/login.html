@@ -45,7 +45,7 @@
             <p th:text="#{label.login.no_provider}">Login is disabled</p>
         </div>
 
-        <div class="text-center mt-4" th:if="${authorities != null && authorities.size() > 0}">
+        <div class="text-center mt-4 login-authorities" th:if="${authorities != null && authorities.size() > 0}">
             <div class="row d-flex justify-content-center">
                 <div class="col col-12 mb-3" th:each="authority: ${authorities}">
                     <div th:replace="${authority.fragment} :: login"></div>
@@ -53,7 +53,7 @@
             </div>
         </div>
 
-        <div class="text-center mt-4" th:if="${registrations != null && registrations.size() > 0}">
+        <div class="text-center mt-4 registration-authorities" th:if="${registrations != null && registrations.size() > 0}">
 
             <div class="mb-3 justify-content-center  customization-block"
                 th:if="${template != null && template.get('login.register') != null}"

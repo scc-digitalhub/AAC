@@ -280,7 +280,7 @@ public class InternalRegistrationController {
         // TODO handle via urlBuilder or entryPoint
         model.addAttribute("registrationUrl", "/auth/internal/register/" + providerId);
         // set realm login url
-        model.addAttribute("loginUrl", "/-/" + realm);
+        model.addAttribute("loginUrl", "/-/" + realm + "/login");
 
         return "internal/registeraccount";
     }
@@ -323,7 +323,7 @@ public class InternalRegistrationController {
             model.addAttribute("registrationUrl", "/auth/internal/register/" + providerId);
 
             // set realm login url
-            model.addAttribute("loginUrl", "/-/" + realm);
+            model.addAttribute("loginUrl", "/-/" + realm + "/login");
 
             if (result.hasErrors()) {
                 model.addAttribute("error", InvalidDataException.ERROR);

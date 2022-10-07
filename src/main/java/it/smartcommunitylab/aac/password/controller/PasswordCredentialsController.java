@@ -267,8 +267,8 @@ public class PasswordCredentialsController {
         // build url
         // TODO handle via urlBuilder or entryPoint
         model.addAttribute("resetUrl", "/auth/password/reset/" + providerId);
-        // set idp form as login url
-        model.addAttribute("loginUrl", "/auth/password/form/" + providerId);
+        // user realm login
+        model.addAttribute("loginUrl", "/-/" + realm + "/login");
 
         return "password/resetpwd";
     }
@@ -295,8 +295,8 @@ public class PasswordCredentialsController {
             model.addAttribute("displayName", realm);
 
             model.addAttribute("resetUrl", "/auth/password/reset/" + providerId);
-            // set idp form as login url
-            model.addAttribute("loginUrl", "/auth/password/form/" + providerId);
+            // user realm login
+            model.addAttribute("loginUrl", "/-/" + realm + "/login");
 
             // reset is available only by email
             String email = reg.getEmail();
@@ -324,6 +324,9 @@ public class PasswordCredentialsController {
             idp.getCredentialsService().resetPassword(username);
 
             model.addAttribute("reg", reg);
+
+            // set idp form as login url on success
+            model.addAttribute("loginUrl", "/auth/password/form/" + providerId);
 
             return "password/resetpwd_success";
         } catch (RegistrationException e) {
