@@ -371,62 +371,59 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
         reg.setJwksUri(configMap.getJwksUri());
 
         if (configMap.getAdditionalConfig() != null) {
-            try {
-                OAuth2ClientAdditionalConfig config = configMap.getAdditionalConfig();
+            OAuth2ClientAdditionalConfig config = configMap.getAdditionalConfig();
 
-                if (config.getResponseTypes() != null) {
-                    reg.setResponseTypes(
-                            config.getResponseTypes().stream().map(t -> t.getValue()).collect(Collectors.toSet()));
-                }
-
-                // TODO handle all response config as per openid DCR
-                // jwt
-                if (config.getJwtSignAlgorithm() != null) {
-                    reg.setJwtSignAlgorithm(config.getJwtSignAlgorithm().getValue());
-                }
-                if (config.getJwtEncAlgorithm() != null) {
-                    reg.setJwtEncAlgorithm(config.getJwtEncAlgorithm().getValue());
-                }
-                if (config.getJwtEncMethod() != null) {
-                    reg.setJwtEncMethod(config.getJwtEncMethod().getValue());
-                }
-
-                // idToken
-                if (config.getIdTokenSignAlgorithm() != null) {
-                    reg.setIdTokenSignAlgorithm(config.getIdTokenSignAlgorithm().getValue());
-                }
-                if (config.getIdTokenEncAlgorithm() != null) {
-                    reg.setIdTokenEncAlgorithm(config.getIdTokenEncAlgorithm().getValue());
-                }
-                if (config.getIdTokenEncMethod() != null) {
-                    reg.setIdTokenEncMethod(config.getIdTokenEncMethod().getValue());
-                }
-
-                // userinfo
-                if (config.getUserinfoSignAlgorithm() != null) {
-                    reg.setUserinfoSignAlgorithm(config.getUserinfoSignAlgorithm().getValue());
-                }
-                if (config.getUserinfoEncAlgorithm() != null) {
-                    reg.setUserinfoEncAlgorithm(config.getUserinfoEncAlgorithm().getValue());
-                }
-                if (config.getUserinfoEncMethod() != null) {
-                    reg.setUserinfoEncMethod(config.getUserinfoEncMethod().getValue());
-                }
-
-                // requestObj
-                if (config.getRequestobjSignAlgorithm() != null) {
-                    reg.setRequestobjSignAlgorithm(config.getRequestobjSignAlgorithm().getValue());
-                }
-                if (config.getRequestobjEncAlgorithm() != null) {
-                    reg.setRequestobjEncAlgorithm(config.getRequestobjEncAlgorithm().getValue());
-                }
-                if (config.getRequestobjEncMethod() != null) {
-                    reg.setRequestobjEncMethod(config.getRequestobjEncMethod().getValue());
-                }
-
-            } catch (Exception e) {
-                // ignore additional config
+            if (config.getResponseTypes() != null) {
+                reg.setResponseTypes(
+                        config.getResponseTypes().stream().map(t -> t.getValue()).collect(Collectors.toSet()));
             }
+
+            // TODO handle all response config as per openid DCR
+            // jwt
+            if (config.getJwtSignAlgorithm() != null) {
+                reg.setJwtSignAlgorithm(config.getJwtSignAlgorithm().getValue());
+            }
+            if (config.getJwtEncAlgorithm() != null) {
+                reg.setJwtEncAlgorithm(config.getJwtEncAlgorithm().getValue());
+            }
+            if (config.getJwtEncMethod() != null) {
+                reg.setJwtEncMethod(config.getJwtEncMethod().getValue());
+            }
+
+            // idToken
+            if (config.getIdTokenSignAlgorithm() != null) {
+                reg.setIdTokenSignAlgorithm(config.getIdTokenSignAlgorithm().getValue());
+            }
+            if (config.getIdTokenEncAlgorithm() != null) {
+                reg.setIdTokenEncAlgorithm(config.getIdTokenEncAlgorithm().getValue());
+            }
+            if (config.getIdTokenEncMethod() != null) {
+                reg.setIdTokenEncMethod(config.getIdTokenEncMethod().getValue());
+            }
+
+            // userinfo
+            if (config.getUserinfoSignAlgorithm() != null) {
+                reg.setUserinfoSignAlgorithm(config.getUserinfoSignAlgorithm().getValue());
+            }
+            if (config.getUserinfoEncAlgorithm() != null) {
+                reg.setUserinfoEncAlgorithm(config.getUserinfoEncAlgorithm().getValue());
+            }
+            if (config.getUserinfoEncMethod() != null) {
+                reg.setUserinfoEncMethod(config.getUserinfoEncMethod().getValue());
+            }
+
+            // requestObj
+            if (config.getRequestobjSignAlgorithm() != null) {
+                reg.setRequestobjSignAlgorithm(config.getRequestobjSignAlgorithm().getValue());
+            }
+            if (config.getRequestobjEncAlgorithm() != null) {
+                reg.setRequestobjEncAlgorithm(config.getRequestobjEncAlgorithm().getValue());
+            }
+            if (config.getRequestobjEncMethod() != null) {
+                reg.setRequestobjEncMethod(config.getRequestobjEncMethod().getValue());
+            }
+
+            // ignore additional config
         }
 
         // map additional info

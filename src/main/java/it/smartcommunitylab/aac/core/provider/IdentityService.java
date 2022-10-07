@@ -2,6 +2,8 @@ package it.smartcommunitylab.aac.core.provider;
 
 import java.util.Collection;
 
+import org.springframework.lang.Nullable;
+
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
@@ -53,10 +55,10 @@ public interface IdentityService<I extends UserIdentity, U extends UserAccount, 
      */
 
     public I createIdentity(
-            String userId, UserIdentity identity) throws NoSuchUserException, RegistrationException;
+            @Nullable String userId, UserIdentity identity) throws NoSuchUserException, RegistrationException;
 
     public I registerIdentity(
-            String userId, UserIdentity identity)
+            @Nullable String userId, UserIdentity identity)
             throws NoSuchUserException, RegistrationException;
 
     public I updateIdentity(

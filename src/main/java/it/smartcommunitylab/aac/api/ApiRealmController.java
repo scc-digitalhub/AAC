@@ -70,7 +70,7 @@ public class ApiRealmController {
         logger.debug("add realm");
 
         if (logger.isTraceEnabled()) {
-            logger.trace("realm bean: " + StringUtils.trimAllWhitespace(r.toString()));
+            logger.trace("realm bean: {}", StringUtils.trimAllWhitespace(r.toString()));
         }
         return realmManager.addRealm(r);
     }
@@ -101,7 +101,7 @@ public class ApiRealmController {
                 StringUtils.trimAllWhitespace(slug));
 
         if (logger.isTraceEnabled()) {
-            logger.trace("realm bean: " + StringUtils.trimAllWhitespace(r.toString()));
+            logger.trace("realm bean: {}", StringUtils.trimAllWhitespace(r.toString()));
         }
         return realmManager.updateRealm(slug, r);
     }

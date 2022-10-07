@@ -213,7 +213,7 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
             @RequestParam(required = false, defaultValue = "false") boolean reset,
             @RequestPart(name = "yaml", required = false) @Valid String yaml,
             @RequestPart(name = "file", required = false) @Valid MultipartFile file)
-            throws NoSuchRealmException, RegistrationException {
+            throws NoSuchRealmException, RegistrationException, NoSuchProviderException, NoSuchAuthorityException {
         logger.debug("import ap(s) to realm {}", StringUtils.trimAllWhitespace(realm));
 
         if (!StringUtils.hasText(yaml) && (file == null || file.isEmpty())) {
@@ -267,7 +267,7 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
                 }
 
                 if (logger.isTraceEnabled()) {
-                    logger.trace("provider bean: " + String.valueOf(reg));
+                    logger.trace("provider bean: {}", String.valueOf(reg));
                 }
 
                 // register
@@ -280,7 +280,7 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
             }
 
             return providers;
-        } catch (Exception e) {
+        } catch (RuntimeException | IOException e) {
             logger.error("error importing providers: " + e.getMessage());
             if (logger.isTraceEnabled()) {
                 e.printStackTrace();

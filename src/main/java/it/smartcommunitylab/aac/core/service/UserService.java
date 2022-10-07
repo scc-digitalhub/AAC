@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.support.PageableExecutionUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
@@ -604,9 +605,9 @@ public class UserService {
      * action via services
      */
     @Transactional(readOnly = false)
-    public UserAccount createUserAccount(String userId, String providerId, UserAccount reg)
+    public UserAccount createUserAccount(@Nullable String userId, String providerId, UserAccount reg)
             throws NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
-        logger.debug("create user {} identity via provider {}", StringUtils.trimAllWhitespace(userId),
+        logger.debug("create user {} identity via provider {}", StringUtils.trimAllWhitespace(String.valueOf(userId)),
                 StringUtils.trimAllWhitespace(providerId));
 
         if (reg == null) {

@@ -46,6 +46,7 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchServiceException;
+import it.smartcommunitylab.aac.common.NoSuchTemplateException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.config.ApplicationProperties;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
@@ -444,10 +445,8 @@ public class DevManager {
         }
 
         // set locale from language
-        Locale locale = LocaleUtils.toLocale(language);
-        if (locale != null) {
-            ctx.setLocale(locale);
-        }
+        Locale locale = LocaleUtils.toLocale(language) != null ? LocaleUtils.toLocale(language) : ctx.getLocale();
+        ctx.setLocale(locale);
 
         // fetch template to ensure it exists
         Template t = templatesManager.getTemplate(realm, authority, view);
@@ -502,6 +501,10 @@ public class DevManager {
 
         // build view
         View tf = viewResolver.resolveViewName(viewName, locale);
+        if (tf == null) {
+            throw new NoSuchTemplateException();
+        }
+
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         tf.render(model, ctx.getRequest(), response);

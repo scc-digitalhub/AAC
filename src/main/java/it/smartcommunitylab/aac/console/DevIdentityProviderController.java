@@ -128,7 +128,7 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
             @RequestParam(required = false, defaultValue = "false") boolean reset,
             @RequestPart(name = "yaml", required = false) @Valid String yaml,
             @RequestPart(name = "file", required = false) @Valid MultipartFile file)
-            throws NoSuchRealmException, RegistrationException {
+            throws NoSuchRealmException, RegistrationException, NoSuchProviderException, NoSuchAuthorityException {
         logger.debug("import idp(s) to realm {}", StringUtils.trimAllWhitespace(realm));
 
         if (!StringUtils.hasText(yaml) && (file == null || file.isEmpty())) {
@@ -182,7 +182,7 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
                 }
 
                 if (logger.isTraceEnabled()) {
-                    logger.trace("provider bean: " + String.valueOf(reg));
+                    logger.trace("provider bean: {}", String.valueOf(reg));
                 }
                 // register
                 ConfigurableIdentityProvider provider = providerManager.addProvider(realm, reg);
@@ -194,7 +194,7 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
             }
 
             return providers;
-        } catch (Exception e) {
+        } catch (RuntimeException | IOException e) {
             logger.error("error importing providers: " + e.getMessage());
             if (logger.isTraceEnabled()) {
                 e.printStackTrace();

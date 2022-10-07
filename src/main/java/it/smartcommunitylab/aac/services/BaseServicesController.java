@@ -80,7 +80,7 @@ public class BaseServicesController implements InitializingBean {
                 StringUtils.trimAllWhitespace(realm));
 
         if (logger.isTraceEnabled()) {
-            logger.trace("service bean " + StringUtils.trimAllWhitespace(s.toString()));
+            logger.trace("service bean {}", StringUtils.trimAllWhitespace(s.toString()));
         }
         return serviceManager.addService(realm, s);
     }
@@ -107,7 +107,7 @@ public class BaseServicesController implements InitializingBean {
                 StringUtils.trimAllWhitespace(serviceId), StringUtils.trimAllWhitespace(realm));
 
         if (logger.isTraceEnabled()) {
-            logger.trace("service bean " + StringUtils.trimAllWhitespace(s.toString()));
+            logger.trace("service bean {}", StringUtils.trimAllWhitespace(s.toString()));
         }
         return serviceManager.updateService(realm, serviceId, s);
     }
@@ -166,7 +166,7 @@ public class BaseServicesController implements InitializingBean {
                 StringUtils.trimAllWhitespace(serviceId), StringUtils.trimAllWhitespace(realm));
 
         if (logger.isTraceEnabled()) {
-            logger.trace("scope bean " + StringUtils.trimAllWhitespace(s.toString()));
+            logger.trace("scope bean {}", StringUtils.trimAllWhitespace(s.toString()));
         }
         return serviceManager.addServiceScope(realm, serviceId, s);
     }
@@ -198,7 +198,7 @@ public class BaseServicesController implements InitializingBean {
                 StringUtils.trimAllWhitespace(realm));
 
         if (logger.isTraceEnabled()) {
-            logger.trace("scope bean " + StringUtils.trimAllWhitespace(s.toString()));
+            logger.trace("scope bean {}", StringUtils.trimAllWhitespace(s.toString()));
         }
         return serviceManager.updateServiceScope(realm, serviceId, scope, s);
     }
@@ -243,7 +243,7 @@ public class BaseServicesController implements InitializingBean {
                 StringUtils.trimAllWhitespace(serviceId), StringUtils.trimAllWhitespace(realm));
 
         if (logger.isTraceEnabled()) {
-            logger.trace("claim bean " + StringUtils.trimAllWhitespace(s.toString()));
+            logger.trace("claim bean {}", StringUtils.trimAllWhitespace(s.toString()));
         }
         return serviceManager.addServiceClaim(realm, serviceId, s);
     }
@@ -275,7 +275,7 @@ public class BaseServicesController implements InitializingBean {
                 StringUtils.trimAllWhitespace(realm));
 
         if (logger.isTraceEnabled()) {
-            logger.trace("claim bean " + StringUtils.trimAllWhitespace(s.toString()));
+            logger.trace("claim bean {}", StringUtils.trimAllWhitespace(s.toString()));
         }
         return serviceManager.updateServiceClaim(realm, serviceId, key, s);
     }
@@ -369,7 +369,7 @@ public class BaseServicesController implements InitializingBean {
                 StringUtils.trimAllWhitespace(serviceId), StringUtils.trimAllWhitespace(realm));
 
         if (logger.isTraceEnabled()) {
-            logger.trace("client bean " + StringUtils.trimAllWhitespace(s.toString()));
+            logger.trace("client bean {}", StringUtils.trimAllWhitespace(s.toString()));
         }
         String type = s.getType();
         ServiceClient client = serviceManager.addServiceClient(realm, serviceId, type);

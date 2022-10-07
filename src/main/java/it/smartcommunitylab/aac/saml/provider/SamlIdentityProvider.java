@@ -124,15 +124,4 @@ public class SamlIdentityProvider
 
         return lp;
     }
-
-    public static final String[] SAML_ATTRIBUTES = {
-            "subject", "issuer", "issueInstant"
-    };
-
-    public static final String[] ACCOUNT_ATTRIBUTES = {
-            "username",
-            "name",
-            "email",
-            "locale"
-    };
 }

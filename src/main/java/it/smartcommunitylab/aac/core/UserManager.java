@@ -209,16 +209,16 @@ public class UserManager {
     }
 
     @Transactional(readOnly = false)
-    public Collection<GrantedAuthority> setAuthorities(String realm, String userId, Collection<String> roles)
+    public Collection<GrantedAuthority> setAuthorities(String realm, String userId, Collection<String> authorities)
             throws NoSuchUserException, NoSuchRealmException {
         logger.debug("update authorities for user {} in realm {}", StringUtils.trimAllWhitespace(userId),
                 StringUtils.trimAllWhitespace(realm));
         if (logger.isTraceEnabled()) {
-            logger.trace("authorities: " + String.valueOf(roles));
+            logger.trace("authorities: {}", String.valueOf(authorities));
         }
 
         Realm r = realmService.getRealm(realm);
-        return userService.setUserAuthorities(userId, r.getSlug(), roles);
+        return userService.setUserAuthorities(userId, r.getSlug(), authorities);
     }
 
     @Transactional(readOnly = false)

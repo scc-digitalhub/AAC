@@ -130,7 +130,7 @@ public abstract class ConfigurableProviderService<C extends ConfigurableProvider
             throws RegistrationException, SystemException, NoSuchAuthorityException {
         logger.debug("add provider for realm {}", StringUtils.trimAllWhitespace(realm));
         if (logger.isTraceEnabled()) {
-            logger.trace("provider bean: " + StringUtils.trimAllWhitespace(provider.toString()));
+            logger.trace("provider bean: {}", StringUtils.trimAllWhitespace(provider.toString()));
         }
         if (SystemKeys.REALM_GLOBAL.equals(realm) || SystemKeys.REALM_SYSTEM.equals(realm)) {
             // we do not persist in db global providers
@@ -186,7 +186,7 @@ public abstract class ConfigurableProviderService<C extends ConfigurableProvider
             throws NoSuchProviderException, NoSuchAuthorityException {
         logger.debug("update provider {}", StringUtils.trimAllWhitespace(providerId));
         if (logger.isTraceEnabled()) {
-            logger.trace("provider bean: " + StringUtils.trimAllWhitespace(provider.toString()));
+            logger.trace("provider bean: {}", StringUtils.trimAllWhitespace(provider.toString()));
         }
 
         E pe = providerService.getProvider(providerId);

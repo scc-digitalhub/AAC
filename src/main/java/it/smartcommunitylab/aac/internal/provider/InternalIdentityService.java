@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.MissingDataException;
@@ -221,7 +222,7 @@ public class InternalIdentityService
 
     @Override
     public InternalUserIdentity registerIdentity(
-            String userId, UserIdentity registration)
+            @Nullable String userId, UserIdentity registration)
             throws NoSuchUserException, RegistrationException {
         if (!config.isEnableRegistration()) {
             throw new IllegalArgumentException("registration is disabled for this provider");
@@ -301,7 +302,7 @@ public class InternalIdentityService
 
     @Override
     public InternalUserIdentity createIdentity(
-            String userId, UserIdentity registration)
+            @Nullable String userId, UserIdentity registration)
             throws NoSuchUserException, RegistrationException {
         // create is always enabled
         if (registration == null) {

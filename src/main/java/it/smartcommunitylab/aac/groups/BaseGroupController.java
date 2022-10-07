@@ -105,7 +105,7 @@ public class BaseGroupController implements InitializingBean {
         g.setMembers(reg.getMembers());
 
         if (logger.isTraceEnabled()) {
-            logger.trace("group bean: " + StringUtils.trimAllWhitespace(g.toString()));
+            logger.trace("group bean: {}", StringUtils.trimAllWhitespace(g.toString()));
         }
 
         g = groupManager.addGroup(realm, g);
@@ -149,7 +149,7 @@ public class BaseGroupController implements InitializingBean {
         g.setMembers(reg.getMembers());
 
         if (logger.isTraceEnabled()) {
-            logger.trace("group bean: " + StringUtils.trimAllWhitespace(g.toString()));
+            logger.trace("group bean: {}", StringUtils.trimAllWhitespace(g.toString()));
         }
 
         g = groupManager.updateGroup(realm, groupId, g);

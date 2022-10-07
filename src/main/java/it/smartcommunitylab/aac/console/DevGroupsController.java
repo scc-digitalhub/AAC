@@ -115,7 +115,7 @@ public class DevGroupsController extends BaseGroupController {
                 }
 
                 if (logger.isTraceEnabled()) {
-                    logger.trace("group bean: " + String.valueOf(reg));
+                    logger.trace("group bean: {}", String.valueOf(reg));
                 }
 
                 Group group = groupManager.addGroup(realm, reg);
@@ -123,7 +123,7 @@ public class DevGroupsController extends BaseGroupController {
             }
 
             return groups;
-        } catch (Exception e) {
+        } catch (RuntimeException | IOException e) {
             logger.error("error importing groups: " + e.getMessage());
             if (logger.isTraceEnabled()) {
                 e.printStackTrace();

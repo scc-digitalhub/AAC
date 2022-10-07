@@ -139,7 +139,7 @@ public class RealmManager {
         }
 
         if (logger.isTraceEnabled()) {
-            logger.trace("realm: " + slug + " name " + String.valueOf(name));
+            logger.trace("realm: {}", r.toString());
         }
 
         return realmService.addRealm(slug, name, r.isEditable(), r.isPublic());

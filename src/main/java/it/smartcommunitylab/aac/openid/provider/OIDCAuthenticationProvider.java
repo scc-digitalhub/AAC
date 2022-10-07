@@ -51,11 +51,11 @@ import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.openid.OIDCKeys;
 import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticationException;
 import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticationToken;
 import it.smartcommunitylab.aac.openid.model.OIDCUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
-import it.smartcommunitylab.aac.openid.service.OIDCUserAccountService;
 
 public class OIDCAuthenticationProvider
         extends ExtendedAuthenticationProvider<OIDCUserAuthenticatedPrincipal, OIDCUserAccount> {
@@ -261,7 +261,7 @@ public class OIDCAuthenticationProvider
                 // get all attributes from principal except jwt attrs
                 // TODO handle all attributes not only strings.
                 Map<String, Serializable> principalAttributes = user.getAttributes().entrySet().stream()
-                        .filter(e -> !ArrayUtils.contains(OIDCIdentityProvider.JWT_ATTRIBUTES, e.getKey()))
+                        .filter(e -> !OIDCKeys.JWT_ATTRIBUTES.contains(e.getKey()))
                         .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
                 // execute script
                 Map<String, Serializable> customAttributes = executionService.executeFunction(
@@ -272,7 +272,7 @@ public class OIDCAuthenticationProvider
                 if (customAttributes != null) {
                     // replace map
                     principalAttributes = customAttributes.entrySet().stream()
-                            .filter(e -> !ArrayUtils.contains(OIDCIdentityProvider.JWT_ATTRIBUTES, e.getKey()))
+                            .filter(e -> !OIDCKeys.JWT_ATTRIBUTES.contains(e.getKey()))
                             .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
                     user.setAttributes(principalAttributes);
                 }

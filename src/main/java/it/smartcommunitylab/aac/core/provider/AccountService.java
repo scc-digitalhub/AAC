@@ -1,5 +1,7 @@
 package it.smartcommunitylab.aac.core.provider;
 
+import org.springframework.lang.Nullable;
+
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
@@ -15,10 +17,10 @@ public interface AccountService<U extends UserAccount, M extends ConfigMap, C ex
      * 
      * accountId is local to provider
      */
-    public U registerAccount(String userId, UserAccount account)
+    public U registerAccount(@Nullable String userId, UserAccount account)
             throws NoSuchUserException, RegistrationException;
 
-    public U createAccount(String userId, UserAccount account)
+    public U createAccount(@Nullable String userId, UserAccount account)
             throws NoSuchUserException, RegistrationException;
 
     public U updateAccount(String userId, String accountId, UserAccount account)

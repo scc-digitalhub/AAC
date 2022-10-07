@@ -7,14 +7,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.saml.provider.SamlIdentityProvider;
+import it.smartcommunitylab.aac.saml.SamlKeys;
 
 public class SamlUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincipal {
 
@@ -64,7 +63,7 @@ public class SamlUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
         if (principal != null) {
             // get allowed attributes as strings or list of strings
             principal.getAttributes().entrySet().stream()
-                    .filter(e -> !ArrayUtils.contains(SamlIdentityProvider.SAML_ATTRIBUTES, e.getKey()))
+                    .filter(e -> !SamlKeys.SAML_ATTRIBUTES.contains(e.getKey()))
                     .filter(e -> (e.getValue() != null && !e.getValue().isEmpty()))
                     .forEach(e -> {
                         String key = e.getKey();

@@ -119,7 +119,7 @@ public class BaseUserController implements InitializingBean {
                 StringUtils.trimAllWhitespace(realm));
 
         if (logger.isTraceEnabled()) {
-            logger.trace("registration bean " + StringUtils.trimAllWhitespace(reg.toString()));
+            logger.trace("registration bean {}", StringUtils.trimAllWhitespace(reg.toString()));
         }
 
         // create a user without identities or accounts
@@ -137,7 +137,7 @@ public class BaseUserController implements InitializingBean {
                 StringUtils.trimAllWhitespace(realm));
 
         if (logger.isTraceEnabled()) {
-            logger.trace("registration bean " + StringUtils.trimAllWhitespace(reg.toString()));
+            logger.trace("registration bean {}", StringUtils.trimAllWhitespace(reg.toString()));
         }
 
         // invite a user

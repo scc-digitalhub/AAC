@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -31,6 +30,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.openid.OIDCKeys;
 import it.smartcommunitylab.aac.openid.apple.auth.AppleClientAuthenticationParametersConverter;
 import it.smartcommunitylab.aac.openid.apple.model.AppleOidcUserData;
 import it.smartcommunitylab.aac.attributes.OpenIdAttributesSet;
@@ -44,7 +44,6 @@ import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticationToken;
 import it.smartcommunitylab.aac.openid.model.OIDCUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.openid.provider.OIDCAuthenticationProvider;
-import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProvider;
 import it.smartcommunitylab.aac.openid.service.IdTokenOidcUserService;
 
 public class AppleAuthenticationProvider
@@ -214,7 +213,7 @@ public class AppleAuthenticationProvider
                 // get all attributes from principal except jwt attrs
                 // TODO handle all attributes not only strings.
                 Map<String, Serializable> principalAttributes = user.getAttributes().entrySet().stream()
-                        .filter(e -> !ArrayUtils.contains(OIDCIdentityProvider.JWT_ATTRIBUTES, e.getKey()))
+                        .filter(e -> !OIDCKeys.JWT_ATTRIBUTES.contains(e.getKey()))
                         .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
                 // execute script
                 Map<String, Serializable> customAttributes = executionService.executeFunction(
@@ -225,7 +224,7 @@ public class AppleAuthenticationProvider
                 if (customAttributes != null) {
                     // replace map
                     principalAttributes = customAttributes.entrySet().stream()
-                            .filter(e -> !ArrayUtils.contains(OIDCIdentityProvider.JWT_ATTRIBUTES, e.getKey()))
+                            .filter(e -> !OIDCKeys.JWT_ATTRIBUTES.contains(e.getKey()))
                             .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
                     user.setAttributes(principalAttributes);
                 }

@@ -101,7 +101,7 @@ public class BaseClientAppController implements InitializingBean {
         app.setRealm(realm);
 
         if (logger.isTraceEnabled()) {
-            logger.trace("app bean: " + StringUtils.trimAllWhitespace(app.toString()));
+            logger.trace("app bean: {}", StringUtils.trimAllWhitespace(app.toString()));
         }
 
         return clientManager.registerClientApp(realm, app);
@@ -120,7 +120,7 @@ public class BaseClientAppController implements InitializingBean {
         app.setRealm(realm);
 
         if (logger.isTraceEnabled()) {
-            logger.trace("app bean: " + StringUtils.trimAllWhitespace(app.toString()));
+            logger.trace("app bean: {}", StringUtils.trimAllWhitespace(app.toString()));
         }
 
         return clientManager.updateClientApp(realm, clientId, app);

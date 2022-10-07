@@ -3,13 +3,11 @@ package it.smartcommunitylab.aac.openid.provider;
 import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.attributes.OpenIdAttributesSet;
 import it.smartcommunitylab.aac.attributes.store.AttributeStore;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityProvider;
@@ -252,32 +250,5 @@ public class OIDCIdentityProvider
 
         return lp;
     }
-
-    public static final String[] JWT_ATTRIBUTES = {
-            IdTokenClaimNames.ACR,
-            IdTokenClaimNames.AMR,
-            IdTokenClaimNames.AT_HASH,
-            IdTokenClaimNames.AUD,
-            IdTokenClaimNames.AUTH_TIME,
-            IdTokenClaimNames.AZP,
-            IdTokenClaimNames.C_HASH,
-            IdTokenClaimNames.EXP,
-            IdTokenClaimNames.IAT,
-            IdTokenClaimNames.ISS,
-            IdTokenClaimNames.NONCE,
-            IdTokenClaimNames.SUB
-    };
-
-    public static final String[] ACCOUNT_ATTRIBUTES = {
-            "username",
-            OpenIdAttributesSet.NAME,
-            OpenIdAttributesSet.FAMILY_NAME,
-            OpenIdAttributesSet.GIVEN_NAME,
-            OpenIdAttributesSet.PREFERRED_USERNAME,
-            OpenIdAttributesSet.EMAIL,
-            OpenIdAttributesSet.EMAIL_VERIFIED,
-            OpenIdAttributesSet.PICTURE,
-            OpenIdAttributesSet.LOCALE
-    };
 
 }

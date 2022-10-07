@@ -157,7 +157,7 @@ public class DevClientAppController extends BaseClientAppController {
                 }
 
                 if (logger.isTraceEnabled()) {
-                    logger.trace("client bean: " + String.valueOf(reg));
+                    logger.trace("client bean: {}", String.valueOf(reg));
                 }
 
                 ClientApp clientApp = clientManager.registerClientApp(realm, reg);
@@ -173,7 +173,7 @@ public class DevClientAppController extends BaseClientAppController {
             }
 
             return ResponseEntity.ok(apps);
-        } catch (Exception e) {
+        } catch (RuntimeException | IOException e) {
             if (logger.isTraceEnabled()) {
                 e.printStackTrace();
             }

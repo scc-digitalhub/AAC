@@ -123,7 +123,7 @@ public class DevServicesController extends BaseServicesController {
                 }
 
                 if (logger.isTraceEnabled()) {
-                    logger.trace("service bean: " + String.valueOf(reg));
+                    logger.trace("service bean: {}", String.valueOf(reg));
                 }
 
                 Service service = serviceManager.addService(realm, reg);
@@ -131,7 +131,7 @@ public class DevServicesController extends BaseServicesController {
             }
 
             return services;
-        } catch (Exception e) {
+        } catch (RuntimeException | IOException e) {
             logger.error("import service(s) error: " + e.getMessage());
             if (logger.isTraceEnabled()) {
                 e.printStackTrace();

@@ -91,7 +91,7 @@ public abstract class BaseAttributeSetsController implements InitializingBean {
                 StringUtils.trimAllWhitespace(realm));
 
         if (logger.isTraceEnabled()) {
-            logger.trace("attribute set bean " + StringUtils.trimAllWhitespace(s.toString()));
+            logger.trace("attribute set bean {}", StringUtils.trimAllWhitespace(s.toString()));
         }
         return attributeManager.addAttributeSet(realm, s);
     }
@@ -107,7 +107,7 @@ public abstract class BaseAttributeSetsController implements InitializingBean {
                 StringUtils.trimAllWhitespace(setId), StringUtils.trimAllWhitespace(realm));
 
         if (logger.isTraceEnabled() && s != null) {
-            logger.trace("attribute set bean " + StringUtils.trimAllWhitespace(s.toString()));
+            logger.trace("attribute set bean {}", StringUtils.trimAllWhitespace(s.toString()));
         }
         return attributeManager.updateAttributeSet(realm, setId, s);
     }

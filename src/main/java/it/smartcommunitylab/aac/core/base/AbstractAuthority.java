@@ -101,7 +101,7 @@ public abstract class AbstractAuthority<S extends ConfigurableResourceProvider<R
 
             logger.debug("register provider {} for realm {}", providerId, realm);
             if (logger.isTraceEnabled()) {
-                logger.trace("provider config: " + String.valueOf(cp.getConfiguration()));
+                logger.trace("provider config: {}", String.valueOf(cp.getConfiguration()));
             }
 
             // check if exists or id clashes with another provider from a different realm
@@ -118,8 +118,8 @@ public abstract class AbstractAuthority<S extends ConfigurableResourceProvider<R
                 // build config
                 C providerConfig = getConfigurationProvider().getConfig(cp);
                 if (logger.isTraceEnabled()) {
-                    logger.trace("provider active config: "
-                            + String.valueOf(providerConfig.getConfigMap().getConfiguration()));
+                    logger.trace("provider active config: {}",
+                            String.valueOf(providerConfig.getConfigMap().getConfiguration()));
                 }
 
                 // register, we defer loading

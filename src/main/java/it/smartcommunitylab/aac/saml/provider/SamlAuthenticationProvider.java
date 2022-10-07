@@ -29,6 +29,7 @@ import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.saml.auth.SamlAuthenticationToken;
+import it.smartcommunitylab.aac.saml.SamlKeys;
 import it.smartcommunitylab.aac.saml.auth.SamlAuthenticationException;
 import it.smartcommunitylab.aac.saml.model.SamlUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
@@ -212,7 +213,7 @@ public class SamlAuthenticationProvider
                 // get all attributes from principal except jwt attrs
                 // TODO handle all attributes not only strings.
                 Map<String, Serializable> principalAttributes = user.getAttributes().entrySet().stream()
-                        .filter(e -> !ArrayUtils.contains(SamlIdentityProvider.SAML_ATTRIBUTES, e.getKey()))
+                        .filter(e -> !SamlKeys.SAML_ATTRIBUTES.contains(e.getKey()))
                         .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
                 // execute script
                 Map<String, Serializable> customAttributes = executionService.executeFunction(
@@ -223,7 +224,7 @@ public class SamlAuthenticationProvider
                 if (customAttributes != null) {
                     // replace map
                     principalAttributes = customAttributes.entrySet().stream()
-                            .filter(e -> !ArrayUtils.contains(SamlIdentityProvider.SAML_ATTRIBUTES, e.getKey()))
+                            .filter(e -> !SamlKeys.SAML_ATTRIBUTES.contains(e.getKey()))
                             .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
                     user.setAttributes(principalAttributes);
                 }

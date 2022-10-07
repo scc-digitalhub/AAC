@@ -109,7 +109,7 @@ public class DevAttributesController extends BaseAttributeSetsController {
                 reg.setRealm(realm);
 
                 if (logger.isTraceEnabled()) {
-                    logger.trace("attribute set bean: " + String.valueOf(reg));
+                    logger.trace("attribute set bean: {}", String.valueOf(reg));
                 }
 
                 // register
@@ -118,7 +118,7 @@ public class DevAttributesController extends BaseAttributeSetsController {
             }
 
             return attributeSets;
-        } catch (Exception e) {
+        } catch (RuntimeException | IOException e) {
             logger.error("import attribute set error: " + e.getMessage());
             if (logger.isTraceEnabled()) {
                 e.printStackTrace();

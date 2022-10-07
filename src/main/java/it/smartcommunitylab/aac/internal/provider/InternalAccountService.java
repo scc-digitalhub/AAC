@@ -11,6 +11,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.Nullable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -231,7 +232,7 @@ public class InternalAccountService
     }
 
     @Override
-    public InternalUserAccount registerAccount(String userId, UserAccount registration)
+    public InternalUserAccount registerAccount(@Nullable String userId, UserAccount registration)
             throws RegistrationException, NoSuchUserException {
         if (!config.isEnableRegistration()) {
             throw new IllegalArgumentException("registration is disabled for this provider");
@@ -274,7 +275,7 @@ public class InternalAccountService
     }
 
     @Override
-    public InternalUserAccount createAccount(String userId, UserAccount registration)
+    public InternalUserAccount createAccount(@Nullable String userId, UserAccount registration)
             throws RegistrationException, NoSuchUserException {
         if (registration == null) {
             throw new RegistrationException();

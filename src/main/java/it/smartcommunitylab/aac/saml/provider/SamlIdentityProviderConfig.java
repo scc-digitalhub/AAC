@@ -27,7 +27,7 @@ import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 public class SamlIdentityProviderConfig extends AbstractIdentityProviderConfig<SamlIdentityProviderConfigMap> {
     private static final long serialVersionUID = SystemKeys.AAC_SAML_SERIAL_VERSION;
 
-    private RelyingPartyRegistration relyingPartyRegistration;
+    private transient RelyingPartyRegistration relyingPartyRegistration;
 
     public SamlIdentityProviderConfig(String provider, String realm) {
         this(SystemKeys.AUTHORITY_SAML, provider, realm);

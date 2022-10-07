@@ -94,7 +94,7 @@ public class BaseRealmRolesController implements InitializingBean {
         r.setDescription(description);
 
         if (logger.isTraceEnabled()) {
-            logger.trace("role bean: " + StringUtils.trimAllWhitespace(r.toString()));
+            logger.trace("role bean: {}", StringUtils.trimAllWhitespace(r.toString()));
         }
 
         r = roleManager.addRealmRole(realm, r);
@@ -138,7 +138,7 @@ public class BaseRealmRolesController implements InitializingBean {
         r.setDescription(description);
 
         if (logger.isTraceEnabled()) {
-            logger.trace("role bean: " + StringUtils.trimAllWhitespace(r.toString()));
+            logger.trace("role bean: {}", StringUtils.trimAllWhitespace(r.toString()));
         }
 
         r = roleManager.updateRealmRole(realm, roleId, reg);

@@ -89,7 +89,8 @@ public class DevTemplatesController extends BaseTemplatesController {
             @RequestParam(required = false, defaultValue = "false") boolean reset,
             @RequestPart(name = "yaml", required = false) @Valid String yaml,
             @RequestPart(name = "file", required = false) @Valid MultipartFile file)
-            throws NoSuchRealmException, RegistrationException {
+            throws NoSuchRealmException, RegistrationException, NoSuchTemplateException, NoSuchProviderException,
+            NoSuchAuthorityException {
         logger.debug("import template(s) to realm {}", StringUtils.trimAllWhitespace(realm));
 
         if (!StringUtils.hasText(yaml) && (file == null || file.isEmpty())) {
@@ -142,7 +143,7 @@ public class DevTemplatesController extends BaseTemplatesController {
                 }
 
                 if (logger.isTraceEnabled()) {
-                    logger.trace("template bean: " + String.valueOf(reg));
+                    logger.trace("template bean: {}", String.valueOf(reg));
                 }
                 // register
                 TemplateModel template = templatesManager.addTemplateModel(realm, reg);
@@ -150,7 +151,7 @@ public class DevTemplatesController extends BaseTemplatesController {
             }
 
             return templates;
-        } catch (Exception e) {
+        } catch (RuntimeException | IOException e) {
             logger.error("error importing templates: " + e.getMessage());
             if (logger.isTraceEnabled()) {
                 e.printStackTrace();

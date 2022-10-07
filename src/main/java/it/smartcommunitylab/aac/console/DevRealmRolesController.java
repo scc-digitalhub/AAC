@@ -115,7 +115,7 @@ public class DevRealmRolesController extends BaseRealmRolesController {
                 }
 
                 if (logger.isTraceEnabled()) {
-                    logger.trace("role bean: " + String.valueOf(reg));
+                    logger.trace("role bean: {}", String.valueOf(reg));
                 }
 
                 RealmRole role = roleManager.addRealmRole(realm, reg);
@@ -123,7 +123,7 @@ public class DevRealmRolesController extends BaseRealmRolesController {
             }
 
             return roles;
-        } catch (Exception e) {
+        } catch (RuntimeException | IOException e) {
             logger.error("error importing roles: " + e.getMessage());
             if (logger.isTraceEnabled()) {
                 e.printStackTrace();

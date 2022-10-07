@@ -96,15 +96,14 @@ public class JwtClientAuthAssertionTokenValidator implements OAuth2TokenValidato
 
         // 6. issued at in the past
         Instant iat = now.minus(clockSkew);
-        if (token.hasClaim(JWTClaimNames.ISSUED_AT)) {
+        if (token.hasClaim(JWTClaimNames.ISSUED_AT) && token.getIssuedAt() != null) {
             if (now.plus(this.clockSkew).isBefore(token.getIssuedAt())) {
                 invalidClaims.add(JWTClaimNames.ISSUED_AT);
             }
 
             // also validate max validity against exp
-            if (token.getIssuedAt() != null) {
-                iat = token.getIssuedAt();
-            }
+            iat = token.getIssuedAt();
+
             if (iat.plus(this.maxValidity).isBefore(token.getExpiresAt())) {
                 invalidClaims.add(JWTClaimNames.ISSUED_AT);
             }

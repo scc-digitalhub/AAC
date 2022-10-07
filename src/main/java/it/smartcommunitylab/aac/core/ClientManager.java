@@ -315,7 +315,7 @@ public class ClientManager {
             app.setRealm(realm);
 
             if (logger.isTraceEnabled()) {
-                logger.trace("app :" + String.valueOf(app));
+                logger.trace("app: {}", StringUtils.trimAllWhitespace(String.valueOf(app)));
             }
 
             ClientApp clientApp = oauthClientAppService.registerClient(r.getSlug(), app);
@@ -360,7 +360,7 @@ public class ClientManager {
             }
 
             if (logger.isTraceEnabled()) {
-                logger.trace("app :" + String.valueOf(app));
+                logger.trace("app: {}", String.valueOf(app));
             }
 
             clientApp = oauthClientAppService.updateClient(clientId, app);
@@ -631,7 +631,7 @@ public class ClientManager {
         }
 
         if (logger.isTraceEnabled()) {
-            logger.trace("roles: " + String.valueOf(roles));
+            logger.trace("roles: {}", String.valueOf(roles));
         }
 
         Collection<RealmRole> realmRoles = subjectRoleService.setRoles(clientId, r.getSlug(), roles);
@@ -665,7 +665,7 @@ public class ClientManager {
         logger.debug("update authorities for app {} in realm {}", StringUtils.trimAllWhitespace(clientId),
                 StringUtils.trimAllWhitespace(realm));
         if (logger.isTraceEnabled()) {
-            logger.trace("authorities: " + String.valueOf(roles));
+            logger.trace("authorities: {}", String.valueOf(roles));
         }
 
         Realm r = realmService.getRealm(realm);

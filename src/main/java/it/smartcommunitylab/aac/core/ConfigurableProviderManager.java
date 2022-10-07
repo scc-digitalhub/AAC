@@ -98,7 +98,7 @@ public abstract class ConfigurableProviderManager<C extends ConfigurableProvider
             throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
         logger.debug("add provider to realm {}", StringUtils.trimAllWhitespace(realm));
         if (logger.isTraceEnabled()) {
-            logger.trace("provider bean: " + StringUtils.trimAllWhitespace(provider.toString()));
+            logger.trace("provider bean: {}", StringUtils.trimAllWhitespace(provider.toString()));
         }
 
         if (SystemKeys.REALM_GLOBAL.equals(realm) || SystemKeys.REALM_SYSTEM.equals(realm)) {
@@ -116,7 +116,7 @@ public abstract class ConfigurableProviderManager<C extends ConfigurableProvider
         logger.debug("update provider {} for realm {}", StringUtils.trimAllWhitespace(providerId),
                 StringUtils.trimAllWhitespace(realm));
         if (logger.isTraceEnabled()) {
-            logger.trace("provider bean: " + StringUtils.trimAllWhitespace(provider.toString()));
+            logger.trace("provider bean: {}", StringUtils.trimAllWhitespace(provider.toString()));
         }
 
         if (SystemKeys.REALM_GLOBAL.equals(realm) || SystemKeys.REALM_SYSTEM.equals(realm)) {

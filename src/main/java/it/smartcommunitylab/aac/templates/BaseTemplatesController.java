@@ -78,7 +78,7 @@ public class BaseTemplatesController implements InitializingBean {
 
         // use model as is
         if (logger.isTraceEnabled()) {
-            logger.trace("template bean: " + StringUtils.trimAllWhitespace(reg.toString()));
+            logger.trace("template bean: {}", StringUtils.trimAllWhitespace(reg.toString()));
         }
 
         TemplateModel m = templatesManager.addTemplateModel(realm, reg);
@@ -113,7 +113,7 @@ public class BaseTemplatesController implements InitializingBean {
 
         // use model as is
         if (logger.isTraceEnabled()) {
-            logger.trace("template bean: " + StringUtils.trimAllWhitespace(reg.toString()));
+            logger.trace("template bean: {}", StringUtils.trimAllWhitespace(reg.toString()));
         }
 
         m = templatesManager.updateTemplateModel(realm, templateId, reg);

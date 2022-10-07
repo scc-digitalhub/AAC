@@ -125,7 +125,7 @@ public class BaseIdentityProviderController implements InitializingBean {
         reg.setRealm(realm);
 
         if (logger.isTraceEnabled()) {
-            logger.trace("idp bean: " + StringUtils.trimAllWhitespace(reg.toString()));
+            logger.trace("idp bean: {}", StringUtils.trimAllWhitespace(reg.toString()));
         }
 
         return providerManager.addProvider(realm, reg);
@@ -187,7 +187,7 @@ public class BaseIdentityProviderController implements InitializingBean {
         }
 
         if (logger.isTraceEnabled()) {
-            logger.trace("idp bean: " + StringUtils.trimAllWhitespace(reg.toString()));
+            logger.trace("idp bean: {}", StringUtils.trimAllWhitespace(reg.toString()));
         }
 
         provider = providerManager.updateProvider(realm, providerId, reg);

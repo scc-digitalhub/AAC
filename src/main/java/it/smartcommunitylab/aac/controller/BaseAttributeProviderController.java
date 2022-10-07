@@ -112,7 +112,7 @@ public class BaseAttributeProviderController implements InitializingBean {
         reg.setRealm(realm);
 
         if (logger.isTraceEnabled()) {
-            logger.trace("ap bean: " + String.valueOf(reg));
+            logger.trace("ap bean: {}", StringUtils.trimAllWhitespace(reg.toString()));
         }
 
         return providerManager.addProvider(realm, reg);
@@ -142,7 +142,7 @@ public class BaseAttributeProviderController implements InitializingBean {
         }
 
         if (logger.isTraceEnabled()) {
-            logger.trace("ap bean: " + String.valueOf(reg));
+            logger.trace("ap bean: {}", StringUtils.trimAllWhitespace(reg.toString()));
         }
 
         provider = providerManager.updateProvider(realm, providerId, reg);

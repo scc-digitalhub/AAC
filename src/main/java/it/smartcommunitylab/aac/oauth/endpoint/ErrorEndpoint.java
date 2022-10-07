@@ -13,6 +13,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.util.HtmlUtils;
 
@@ -28,7 +29,7 @@ public class ErrorEndpoint {
     @Autowired
     private MessageSource messageSource;
 
-    @RequestMapping(value = ERROR_URL)
+    @RequestMapping(value = ERROR_URL, method = { RequestMethod.GET, RequestMethod.POST })
     public ModelAndView handleError(HttpServletRequest request) {
         // get error from request attribute
         Object error = request.getAttribute("error");

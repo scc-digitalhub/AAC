@@ -3,7 +3,6 @@ package it.smartcommunitylab.aac.openid.model;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.commons.lang.ArrayUtils;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.util.Assert;
@@ -12,7 +11,7 @@ import org.springframework.util.StringUtils;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.OpenIdAttributesSet;
 import it.smartcommunitylab.aac.core.base.AbstractAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProvider;
+import it.smartcommunitylab.aac.openid.OIDCKeys;
 
 public class OIDCUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincipal {
 
@@ -69,7 +68,7 @@ public class OIDCUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
             // TODO implement a mapper via script handling a json representation without
             // security related attributes
             principal.getAttributes().entrySet().stream()
-                    .filter(e -> !ArrayUtils.contains(OIDCIdentityProvider.JWT_ATTRIBUTES, e.getKey()))
+                    .filter(e -> !OIDCKeys.JWT_ATTRIBUTES.contains(e.getKey()))
                     .filter(e -> (e.getValue() != null))
                     .forEach(e -> {
                         // put if absent to pick only first value when repeated
@@ -80,7 +79,7 @@ public class OIDCUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
             if (isOidcUser()) {
                 ((OidcUser) principal).getClaims()
                         .entrySet().stream()
-                        .filter(e -> !ArrayUtils.contains(OIDCIdentityProvider.JWT_ATTRIBUTES, e.getKey()))
+                        .filter(e -> !OIDCKeys.JWT_ATTRIBUTES.contains(e.getKey()))
                         .filter(e -> (e.getValue() != null))
                         .forEach(e -> {
                             // put if absent to pick only first value when repeated
