@@ -19,33 +19,35 @@ import it.smartcommunitylab.aac.repository.HashMapConverter;
 @Table(name = "identity_providers")
 public class IdentityProviderEntity implements ProviderEntity {
 
-//    @Id
-//    @GeneratedValue
-//    private Long id;
-
     @NotNull
     private String authority;
 
     @Id
     @NotNull
     @Column(name = "provider_id", length = 128, unique = true)
-    private String providerId;
+    private String provider;
 
     @NotNull
     @Column(length = 128)
     private String realm;
 
-//    @NotNull
-//    @Column(name = "provider_type")
-//    private String type;
-
     @NotNull
     @Column(name = "enabled")
     private boolean enabled;
 
+    @NotNull
+    @Column(name = "name", length = 128)
     private String name;
-    private String description;
-    private String icon;
+
+    @Lob
+    @Column(name = "title_map")
+    @Convert(converter = HashMapConverter.class)
+    private Map<String, String> titleMap;
+
+    @Lob
+    @Column(name = "description_map")
+    @Convert(converter = HashMapConverter.class)
+    private Map<String, String> descriptionMap;
 
     @NotNull
     @Column(name = "linkable")
@@ -77,16 +79,8 @@ public class IdentityProviderEntity implements ProviderEntity {
     }
 
     public IdentityProviderEntity(String providerId) {
-        this.providerId = providerId;
+        this.provider = providerId;
     }
-
-//    public Long getId() {
-//        return id;
-//    }
-//
-//    public void setId(Long id) {
-//        this.id = id;
-//    }
 
     public String getAuthority() {
         return authority;
@@ -96,17 +90,12 @@ public class IdentityProviderEntity implements ProviderEntity {
         this.authority = authority;
     }
 
-    @Override
     public String getProvider() {
-        return providerId;
+        return provider;
     }
 
-    public String getProviderId() {
-        return providerId;
-    }
-
-    public void setProviderId(String providerId) {
-        this.providerId = providerId;
+    public void setProvider(String provider) {
+        this.provider = provider;
     }
 
     public String getRealm() {
@@ -116,14 +105,6 @@ public class IdentityProviderEntity implements ProviderEntity {
     public void setRealm(String realm) {
         this.realm = realm;
     }
-
-//    public String getType() {
-//        return type;
-//    }
-//
-//    public void setType(String type) {
-//        this.type = type;
-//    }
 
     public boolean isEnabled() {
         return enabled;
@@ -149,20 +130,20 @@ public class IdentityProviderEntity implements ProviderEntity {
         this.name = name;
     }
 
-    public String getDescription() {
-        return description;
+    public Map<String, String> getTitleMap() {
+        return titleMap;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setTitleMap(Map<String, String> titleMap) {
+        this.titleMap = titleMap;
     }
 
-    public String getIcon() {
-        return icon;
+    public Map<String, String> getDescriptionMap() {
+        return descriptionMap;
     }
 
-    public void setIcon(String icon) {
-        this.icon = icon;
+    public void setDescriptionMap(Map<String, String> descriptionMap) {
+        this.descriptionMap = descriptionMap;
     }
 
     public String getPersistence() {

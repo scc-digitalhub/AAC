@@ -35,4 +35,8 @@ public class InternalIdentityServiceConfig extends AbstractIdentityServiceConfig
         return configMap.getEnableDelete() != null ? configMap.getEnableDelete().booleanValue() : true;
     }
 
+    public boolean isConfirmationRequired() {
+        return configMap.getConfirmationRequired() != null ? configMap.getConfirmationRequired().booleanValue() : true;
+    }
+
 }

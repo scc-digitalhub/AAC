@@ -35,9 +35,6 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
     // services
     protected final UserAccountService<U> userAccountService;
 
-    // provider configuration
-    private final C config;
-
     public AbstractIdentityProvider(
             String authority, String providerId,
             UserAccountService<U> userAccountService,
@@ -58,9 +55,6 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
 
         // internal data repositories
         this.userAccountService = userAccountService;
-
-        // config
-        this.config = config;
     }
 
     @Override
@@ -406,16 +400,6 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
             } catch (NoSuchUserException e) {
             }
         }
-    }
-
-    @Override
-    public String getName() {
-        return config.getName();
-    }
-
-    @Override
-    public String getDescription() {
-        return config.getDescription();
     }
 
 }

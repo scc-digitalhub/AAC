@@ -553,17 +553,16 @@ angular.module('aac.controllers.realmproviders', [])
                 .then(function (data) {
                     $scope.realmUrls = data;
                 })
-                // .then(function () {
-                //     return RealmProviders.getIdentityProviderTemplates(slug);
-                // })
-                .then(function (data) {
-                    $scope.providerTemplates = data;
-
-                    //extract 
-                    $scope.oidcProviderTemplates = $scope.providerTemplates ? $scope.providerTemplates.filter(function (pt) { return pt.authority === 'oidc' }) : [];
-                    $scope.internalProviderTemplates = $scope.providerTemplates ? $scope.providerTemplates.filter(function (pt) { return pt.authority === 'internal' }) : [];
-                    $scope.samlProviderTemplates = $scope.providerTemplates ? $scope.providerTemplates.filter(function (pt) { return pt.authority === 'saml' }) : [];
-
+                .then(function () {
+                    return RealmData.getTemplatesConfig(slug);
+                })
+                .then(function (config) {
+                    var languages = [];
+                    if (config.languages) {
+                        languages = config.languages;
+                    }
+                    $scope.availableLanguages = languages;
+                    $scope.selectedLanguage = languages[0];
                 })
                 .then(function () {
                     return RealmProviders.getIdentityProvider(slug, providerId)
@@ -702,7 +701,8 @@ angular.module('aac.controllers.realmproviders', [])
                 type: provider.type,
                 authority: provider.authority,
                 name: provider.name,
-                description: provider.description,
+                titleMap: provider.titleMap,
+                descriptionMap: provider.descriptionMap,
                 displayMode: provider.displayMode,
                 enabled: provider.enabled,
                 persistence: provider.persistence,
@@ -823,6 +823,18 @@ angular.module('aac.controllers.realmproviders', [])
                     });
             }
         }
+
+        // $scope.toggleLang = function () {
+        //     if (lang && $scope.selectedLanguage !== lang && $scope.availableLanguages.includes(lang)) {
+        //         // switch lang
+        //         $scope.selectedLanguage = lang;
+
+        //         //switch fields content and map keys
+        //         fields.forEach(f => {
+
+        //         })
+        //     }
+        // }
 
         var iconProvider = function (ap) {
             var icons = ['facebook', 'google', 'microsoft', 'apple', 'instagram', 'github'];

@@ -43,9 +43,6 @@ public class InternalAccountService
         AccountService<InternalUserAccount, InternalIdentityProviderConfigMap, InternalAccountServiceConfig> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    // provider configuration
-    private final InternalAccountServiceConfig config;
-
     // services
     private final UserEntityService userEntityService;
     private final UserAccountService<InternalUserAccount> userAccountService;
@@ -72,8 +69,7 @@ public class InternalAccountService
         this.confirmKeyService = confirmKeyService;
 
         // config
-        this.config = providerConfig;
-        this.repositoryId = providerConfig.getRepositoryId();
+        this.repositoryId = config.getRepositoryId();
     }
 
     public void setMailService(MailService mailService) {
@@ -82,21 +78,6 @@ public class InternalAccountService
 
     public void setUriBuilder(RealmAwareUriBuilder uriBuilder) {
         this.uriBuilder = uriBuilder;
-    }
-
-    @Override
-    public String getName() {
-        return config.getName();
-    }
-
-    @Override
-    public String getDescription() {
-        return config.getDescription();
-    }
-
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_ACCOUNT;
     }
 
     @Override

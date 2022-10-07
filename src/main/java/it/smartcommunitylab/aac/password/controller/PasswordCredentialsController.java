@@ -1,7 +1,6 @@
 package it.smartcommunitylab.aac.password.controller;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -26,15 +25,12 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
-import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
-import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.dto.UserEmail;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.PasswordCredentialsAuthority;
 import it.smartcommunitylab.aac.password.dto.UserPasswordBean;
@@ -56,9 +52,6 @@ public class PasswordCredentialsController {
     @Autowired
     private PasswordIdentityAuthority identityAuthority;
 
-    @Autowired
-    private RealmManager realmManager;
-
     /*
      * Password change
      * 
@@ -69,9 +62,8 @@ public class PasswordCredentialsController {
     public String changepwd(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid,
-            HttpServletRequest request,
-            Model model)
-            throws NoSuchProviderException, NoSuchUserException {
+            HttpServletRequest request, Model model, Locale locale)
+            throws NoSuchProviderException, NoSuchUserException, NoSuchRealmException {
 
         // first check userid vs user
         UserDetails user = authHelper.getUserDetails();
@@ -125,17 +117,22 @@ public class PasswordCredentialsController {
         if (code != null) {
             model.addAttribute("resetCode", code);
         }
-        return "registration/changepwd";
+
+        // load realm props
+        String realm = user.getRealm();
+        model.addAttribute("realm", realm);
+        model.addAttribute("displayName", realm);
+
+        return "password/changepwd";
     }
 
     @PostMapping("/changepwd/{providerId}/{uuid}")
     public String changepwd(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid,
-            Model model,
+            Model model, Locale locale,
             @ModelAttribute("reg") @Valid UserPasswordBean reg,
-            HttpServletRequest request,
-            BindingResult result)
+            HttpServletRequest request, BindingResult result)
             throws NoSuchProviderException, NoSuchUserException {
 
         try {
@@ -188,8 +185,13 @@ public class PasswordCredentialsController {
             model.addAttribute("accountUrl", "/account");
             model.addAttribute("changeUrl", "/changepwd/" + providerId + "/" + uuid);
 
+            // load realm props
+            String realm = user.getRealm();
+            model.addAttribute("realm", realm);
+            model.addAttribute("displayName", realm);
+
             if (result.hasErrors()) {
-                return "registration/changepwd";
+                return "password/changepwd";
             }
 
             if (request.getSession().getAttribute("resetCode") == null) {
@@ -225,13 +227,13 @@ public class PasswordCredentialsController {
 
             request.getSession().removeAttribute("resetCode");
 
-            return "registration/changesuccess";
+            return "password/changepwd_success";
         } catch (RegistrationException e) {
             model.addAttribute("error", e.getMessage());
-            return "registration/changepwd";
+            return "password/changepwd";
         } catch (Exception e) {
             model.addAttribute("error", RegistrationException.ERROR);
-            return "registration/changepwd";
+            return "password/changepwd";
         }
     }
 
@@ -244,7 +246,7 @@ public class PasswordCredentialsController {
     @GetMapping("/auth/password/reset/{providerId}")
     public String resetPage(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            Model model) throws NoSuchProviderException, NoSuchRealmException {
+            Model model, Locale locale) throws NoSuchProviderException, NoSuchRealmException {
 
         // fetch provider
         PasswordIdentityProvider idp = identityAuthority.getProvider(providerId);
@@ -254,27 +256,10 @@ public class PasswordCredentialsController {
 
         model.addAttribute("providerId", providerId);
 
+        // load realm props
         String realm = idp.getRealm();
         model.addAttribute("realm", realm);
-
-        String displayName = null;
-        Realm re = null;
-        Map<String, String> resources = new HashMap<>();
-        if (!realm.equals(SystemKeys.REALM_COMMON)) {
-            re = realmManager.getRealm(realm);
-            displayName = re.getName();
-            CustomizationBean gcb = re.getCustomization("global");
-            if (gcb != null) {
-                resources.putAll(gcb.getResources());
-            }
-            CustomizationBean lcb = re.getCustomization("login");
-            if (lcb != null) {
-                resources.putAll(lcb.getResources());
-            }
-        }
-
-        model.addAttribute("displayName", displayName);
-        model.addAttribute("customization", resources);
+        model.addAttribute("displayName", realm);
 
         // build model
         model.addAttribute("reg", new UserEmail());
@@ -282,18 +267,17 @@ public class PasswordCredentialsController {
         // build url
         // TODO handle via urlBuilder or entryPoint
         model.addAttribute("resetUrl", "/auth/password/reset/" + providerId);
-        // set idp form as login url
-        model.addAttribute("loginUrl", "/auth/password/form/" + providerId);
+        // user realm login
+        model.addAttribute("loginUrl", "/-/" + realm + "/login");
 
-        return "registration/resetpwd";
+        return "password/resetpwd";
     }
 
     @PostMapping("/auth/password/reset/{providerId}")
     public String reset(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            Model model,
-            @ModelAttribute("reg") @Valid UserEmail reg,
-            BindingResult result) {
+            Model model, Locale locale,
+            @ModelAttribute("reg") @Valid UserEmail reg, BindingResult result) {
 
         try {
             // fetch provider
@@ -302,33 +286,17 @@ public class PasswordCredentialsController {
                 throw new IllegalArgumentException("error.unsupported_operation");
             }
 
-            String realm = idp.getRealm();
-
             // build model for result
             model.addAttribute("providerId", providerId);
+
+            // load realm props
+            String realm = idp.getRealm();
             model.addAttribute("realm", realm);
+            model.addAttribute("displayName", realm);
+
             model.addAttribute("resetUrl", "/auth/password/reset/" + providerId);
-            // set idp form as login url
-            model.addAttribute("loginUrl", "/auth/password/form/" + providerId);
-
-            String displayName = null;
-            Realm re = null;
-            Map<String, String> resources = new HashMap<>();
-            if (!realm.equals(SystemKeys.REALM_COMMON)) {
-                re = realmManager.getRealm(realm);
-                displayName = re.getName();
-                CustomizationBean gcb = re.getCustomization("global");
-                if (gcb != null) {
-                    resources.putAll(gcb.getResources());
-                }
-                CustomizationBean lcb = re.getCustomization("login");
-                if (lcb != null) {
-                    resources.putAll(lcb.getResources());
-                }
-            }
-
-            model.addAttribute("displayName", displayName);
-            model.addAttribute("customization", resources);
+            // user realm login
+            model.addAttribute("loginUrl", "/-/" + realm + "/login");
 
             // reset is available only by email
             String email = reg.getEmail();
@@ -337,7 +305,7 @@ public class PasswordCredentialsController {
             }
 
             if (result.hasErrors()) {
-                return "registration/resetpwd";
+                return "password/resetpwd";
             }
 
             // resolve username
@@ -345,7 +313,7 @@ public class PasswordCredentialsController {
             if (account == null) {
                 // don't leak error
 //                result.rejectValue("email", "error.invalid_email");
-//                return "registration/resetpwd";
+//                return "password/resetpwd";
                 throw new RegistrationException("invalid_email");
             }
 
@@ -357,13 +325,16 @@ public class PasswordCredentialsController {
 
             model.addAttribute("reg", reg);
 
-            return "registration/resetsuccess";
+            // set idp form as login url on success
+            model.addAttribute("loginUrl", "/auth/password/form/" + providerId);
+
+            return "password/resetpwd_success";
         } catch (RegistrationException e) {
             model.addAttribute("error", e.getMessage());
-            return "registration/resetpwd";
+            return "password/resetpwd";
         } catch (Exception e) {
             model.addAttribute("error", RegistrationException.ERROR);
-            return "registration/resetpwd";
+            return "password/resetpwd";
         }
     }
 

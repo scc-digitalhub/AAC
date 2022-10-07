@@ -37,7 +37,7 @@
 
   <link th:href="@{/italia/style.css}" rel="stylesheet" />
 
-  <title th:text="#{label.login_title}">AAC Login</title>
+  <title th:text="#{label.entrypoint.title}">AAC Login</title>
 </head>
 
 <body>
@@ -48,44 +48,42 @@
         <div class="card mt-5">
           <div class="card-logo">
             <img class="" th:src="@{/logo}" alt="AAC">
-            <h4 class="text-center" th:text="${displayName}">AAC</h4>            
+            <h4 class="text-center" th:text="${displayName}">AAC</h4>
           </div>
 
           <div class="alert alert-danger" role="alert" th:if="${error} != null" th:text="#{${error}}">Error text</div>
 
           <div class="text-center mt-4">
-            <p th:text="#{label.login_select_realm}">Login with</p>
+            <p th:text="#{label.entrypoint.select_realm}">Login with</p>
             <form th:action="${loginUrl}" th:object="${login}" method="post">
 
               <div class="col-md-12 form-group mt-5 mb-2">
                 <label th:text="#{field.realm}" for="realm" class="active">: </label>
                 <div class="bootstrap-select-wrapper border-bottom-0">
-                 <select class="" name="realm"
-                    required="required">
+                  <select class="" name="realm" required="required">
                     <option value="" th:text="#{action.select}"></option>
-                    <option th:each="r : ${realms}" th:value="${r.slug}"
-                       th:text="${r.name}"></option>
-                 </select>       
-                 </div>         
-                
+                    <option th:each="r : ${realms}" th:value="${r.slug}" th:text="${r.name}"></option>
+                  </select>
+                </div>
+
               </div>
 
               <div class="row px-2 mt-4 align-items-center">
                 <button class="btn btn-primary btn-block" th:text="#{action.continue}">Continue</button>
               </div>
-          </form>
+            </form>
+
+          </div>
+
+          <div class="text-center mt-4">
+            <p th:utext="#{label.entrypoint.dev_realm(${'/-/system'+loginUrl})}">Dev login</p>
+          </div>
+
 
         </div>
-        
-         <div class="text-center mt-4">
-            <p th:utext="#{label.login_dev_realm(${'/-/system'+loginUrl})}">Dev login</p>
-         </div>
-        
-        
       </div>
-    </div>
 
-   </div>
+    </div>
   </div>
   <script th:src="@{/italia/js/bootstrap-italia.bundle.min.js}" type="text/javascript" charset="utf-8"></script>
 </body>

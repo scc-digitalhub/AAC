@@ -12,8 +12,6 @@ public abstract class AbstractIdentityProviderConfig<M extends AbstractConfigMap
         implements IdentityProviderConfig<M> {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
-    protected String icon;
-
     protected Boolean linkable;
     protected String persistence;
     protected String events;
@@ -29,22 +27,12 @@ public abstract class AbstractIdentityProviderConfig<M extends AbstractConfigMap
     protected AbstractIdentityProviderConfig(ConfigurableIdentityProvider cp) {
         super(cp);
 
-        this.icon = cp.getIcon();
-
         this.linkable = cp.isLinkable();
         this.persistence = cp.getPersistence();
         this.events = cp.getEvents();
         this.position = cp.getPosition();
 
         this.hookFunctions = (cp.getHookFunctions() != null ? cp.getHookFunctions() : Collections.emptyMap());
-    }
-
-    public String getIcon() {
-        return icon;
-    }
-
-    public void setIcon(String icon) {
-        this.icon = icon;
     }
 
     public Boolean getLinkable() {
@@ -99,8 +87,8 @@ public abstract class AbstractIdentityProviderConfig<M extends AbstractConfigMap
         cp.setType(SystemKeys.RESOURCE_IDENTITY);
 
         cp.setName(getName());
-        cp.setDescription(getDescription());
-        cp.setIcon(getIcon());
+        cp.setTitleMap(getTitleMap());
+        cp.setDescriptionMap(getDescriptionMap());
 
         cp.setLinkable(isLinkable());
         cp.setPersistence(getPersistence());

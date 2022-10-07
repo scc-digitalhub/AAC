@@ -17,105 +17,58 @@
 -->
 
 <!doctype html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layout/card-border}" th:with="title='label.login.title',icon='it-key'">
 
 <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <meta name="description" content="" />
-    <meta name="author" content="" />
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="-1" />
-    <!-- Design Italia -->
-    <link rel="stylesheet" th:href="@{/italia/css/bootstrap-italia.min.css}" />
-    <script th:inline="javascript">
-        const contextpath = /*[[@{/}]]*/ "/";
-        window.__PUBLIC_PATH__ = contextpath + 'italia/fonts'
-    </script>
-
-    <link th:href="@{/italia/style.css}" rel="stylesheet" />
-
-    <title th:text="#{label.login_title}">AAC Login</title>
+    <title th:text="#{label.login.title}">AAC Login</title>
 </head>
 
 <body>
-    <div class="container-sm">
+    <div layout:fragment="content">
 
-        <div class="row mt-2 mt-md-4 justify-content-center">
-            <div class="col-xl-5 col-lg-6 col-md-8 col-sm-10 card-wrapper card-space">
-                <div class="card border mb-4" th:classappend="${error == null} ? 'border-primary' : 'border-danger border-3'">
-
-                    <!-- card header -->
-                    <div class="card-header pl-4 text-muted">
-                        <span>
-                            <svg class="icon icon-secondary icon-sm">
-                                <use th:xlink:href="@{/italia/svg/sprite.svg#it-key}"></use>
-                            </svg>
-                        </span>
-                        <span class="ml-1" th:text="#{label.login_title}"></span>
-                    </div>
-
-                    <div class="card-body align-items-center">
-                        <!-- realm logo  -->
-                        <div class="card-logo">
-                            <img class="" th:src="@{/logo}" th:alt="${displayName}">
-                            <h4 class="text-center" th:text="${displayName}">AAC</h4>
-                        </div>
-
-                        <!-- panel text -->
-                        <p class="mt-3 mb-3 text-center"
-                            th:if="${customization == null || customization.get('loginText') == null}"
-                            th:text="#{label.login_text}">Login with</p>
-                        <div class="mt-3 mb-3 justify-content-center  customization-block"
-                            th:if="${customization != null && customization.get('loginText') != null}"
-                            th:utext="${customization.get('loginText')}"></div>
+        <!-- panel text -->
+        <p class="mt-3 mb-3 text-center" th:if="${template == null || template.get('login.text') == null}"
+            th:text="#{label.login.text}">Login with</p>
+        <div class="mt-3 mb-3 justify-content-center  customization-block"
+            th:if="${template != null && template.get('login.text') != null}" th:utext="${template.get('login.text')}">
+        </div>
 
 
-                        <div th:if="${realm == 'system'}" class="alert alert-info" role="alert"
-                            th:text="#{alert.login_global}">
-                        </div>
+        <div th:if="${realm == 'system'}" class="alert alert-info" role="alert" th:text="#{alert.login_global}">
+        </div>
 
-                        <div class="alert alert-danger" role="alert" th:if="${error} != null" th:text="#{${error}}">
-                            Error text</div>
+        <div class="alert alert-danger" role="alert" th:if="${error} != null" th:text="#{${error}}">
+            Error text</div>
 
-                        <div class="text-center mt-4" th:if="${(authorities == null || authorities.size() == 0)}">
-                            <p th:text="#{label.login_no_provider}">Login is disabled</p>
-                        </div>
+        <div class="text-center mt-4" th:if="${(authorities == null || authorities.size() == 0)}">
+            <p th:text="#{label.login.no_provider}">Login is disabled</p>
+        </div>
 
-                        <div class="text-center mt-4" th:if="${authorities != null && authorities.size() > 0}">
-                            <div class="row d-flex justify-content-center">
-                                <div class="col col-12 mb-3" th:each="authority: ${authorities}">
-                                    <div th:replace="${authority.fragment} :: login"></div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="text-center mt-4" th:if="${registrations != null && registrations.size() > 0}">
-                            <div class="row d-flex justify-content-center">
-                                <div class="col col-12 mb-3" th:each="registrationUrl: ${registrations}">                                
-                                  <span class="small">
-                                      <a class="" th:href="${registrationUrl}" th:text="#{label.login_register}">Register</a>
-                                  </span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                    </div>
-
-                    <!-- realm footer -->
-                    <div class="card-footer bg-primary text-white customization-block"
-                        th:if="${customization != null && customization.get('footerText') != null}"
-                        th:utext="${customization.get('footerText')}"></div>
-
+        <div class="text-center mt-4 login-authorities" th:if="${authorities != null && authorities.size() > 0}">
+            <div class="row d-flex justify-content-center">
+                <div class="col col-12 mb-3" th:each="authority: ${authorities}">
+                    <div th:replace="${authority.fragment} :: login"></div>
                 </div>
             </div>
         </div>
 
+        <div class="text-center mt-4 registration-authorities" th:if="${registrations != null && registrations.size() > 0}">
+
+            <div class="mb-3 justify-content-center  customization-block"
+                th:if="${template != null && template.get('login.register') != null}"
+                th:utext="${template.get('login.register')}"></div>
+
+            <div class="row d-flex justify-content-center">
+                <div class="col col-12 mb-3" th:each="registrationUrl: ${registrations}">
+                    <span class="small">
+                        <a class="" th:href="${registrationUrl}" th:text="#{label.login.register}">Register</a>
+                    </span>
+                </div>
+            </div>
+        </div>
 
     </div>
-    <script th:src="@{/italia/js/bootstrap-italia.bundle.min.js}" type="text/javascript" charset="utf-8"></script>
 </body>
 
 </html>

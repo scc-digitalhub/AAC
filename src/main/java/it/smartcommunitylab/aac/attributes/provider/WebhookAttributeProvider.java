@@ -39,7 +39,7 @@ import it.smartcommunitylab.aac.attributes.mapper.ExactAttributesMapper;
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
 import it.smartcommunitylab.aac.attributes.store.AttributeStore;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
-import it.smartcommunitylab.aac.core.base.AbstractProvider;
+import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
 import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
 import it.smartcommunitylab.aac.core.model.Attribute;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
@@ -49,7 +49,8 @@ import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.oauth.flow.FlowExecutionException;
 
-public class WebhookAttributeProvider extends AbstractProvider<UserAttributes>
+public class WebhookAttributeProvider extends
+        AbstractConfigurableProvider<UserAttributes, ConfigurableAttributeProvider, WebhookAttributeProviderConfigMap, WebhookAttributeProviderConfig>
         implements AttributeProvider<WebhookAttributeProviderConfigMap, WebhookAttributeProviderConfig> {
     private static final Logger logger = LoggerFactory.getLogger(WebhookAttributeProvider.class);
 
@@ -64,28 +65,19 @@ public class WebhookAttributeProvider extends AbstractProvider<UserAttributes>
     private final AttributeService attributeService;
     private final AttributeStore attributeStore;
 
-    private final WebhookAttributeProviderConfig providerConfig;
-
     private RestTemplate restTemplate;
 
     public WebhookAttributeProvider(
             String providerId,
             AttributeService attributeService, AttributeStore attributeStore,
-            WebhookAttributeProviderConfig config,
+            WebhookAttributeProviderConfig providerConfig,
             String realm) {
-        super(SystemKeys.AUTHORITY_WEBHOOK, providerId, realm);
-        Assert.notNull(config, "provider config is mandatory");
+        super(SystemKeys.AUTHORITY_WEBHOOK, providerId, realm, providerConfig);
         Assert.notNull(attributeService, "attribute service is mandatory");
         Assert.notNull(attributeStore, "attribute store is mandatory");
 
         this.attributeService = attributeService;
         this.attributeStore = attributeStore;
-
-        // check configuration
-        Assert.isTrue(providerId.equals(config.getProvider()),
-                "configuration does not match this provider");
-        Assert.isTrue(realm.equals(config.getRealm()), "configuration does not match this provider");
-        this.providerConfig = config;
 
         // validate url
         String url = providerConfig.getConfigMap().getUrl();
@@ -122,39 +114,13 @@ public class WebhookAttributeProvider extends AbstractProvider<UserAttributes>
     }
 
     @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_ATTRIBUTES;
-    }
-
-    @Override
-    public String getName() {
-        return providerConfig.getName();
-    }
-
-    @Override
-    public String getDescription() {
-        return providerConfig.getDescription();
-    }
-
-    @Override
-    public WebhookAttributeProviderConfig getConfig() {
-        return providerConfig;
-    }
-
-    @Override
-    public ConfigurableAttributeProvider getConfigurable() {
-        return providerConfig.getConfigurable();
-    }
-
-    @Override
     public Collection<UserAttributes> convertPrincipalAttributes(UserAuthenticatedPrincipal principal,
             String subjectId) {
-
-        if (providerConfig.getAttributeSets().isEmpty()) {
+        if (config.getAttributeSets().isEmpty()) {
             return Collections.emptyList();
         }
 
-        WebhookAttributeProviderConfigMap configMap = providerConfig.getConfigMap();
+        WebhookAttributeProviderConfigMap configMap = config.getConfigMap();
 
         List<UserAttributes> result = new ArrayList<>();
         Map<String, Serializable> principalAttributes = new HashMap<>();
@@ -178,7 +144,7 @@ public class WebhookAttributeProvider extends AbstractProvider<UserAttributes>
         Map<String, ExactAttributesMapper> mappers = new HashMap<>();
 
         // fetch attribute sets
-        for (String setId : providerConfig.getAttributeSets()) {
+        for (String setId : config.getAttributeSets()) {
             try {
                 AttributeSet as = attributeService.getAttributeSet(setId);
 
@@ -267,7 +233,7 @@ public class WebhookAttributeProvider extends AbstractProvider<UserAttributes>
         List<UserAttributes> result = new ArrayList<>();
 
         // build sets from stored values
-        for (String setId : providerConfig.getAttributeSets()) {
+        for (String setId : config.getAttributeSets()) {
             try {
                 AttributeSet set = readAttributes(setId, attributes);
                 if (set.getAttributes() != null && !set.getAttributes().isEmpty()) {
@@ -285,7 +251,7 @@ public class WebhookAttributeProvider extends AbstractProvider<UserAttributes>
 
     @Override
     public UserAttributes getUserAttributes(String userId, String setId) throws NoSuchAttributeSetException {
-        if (!providerConfig.getAttributeSets().contains(setId)) {
+        if (!config.getAttributeSets().contains(setId)) {
             return null;
         }
 

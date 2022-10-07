@@ -31,7 +31,6 @@ import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.dto.AttributesRegistration;
 import it.smartcommunitylab.aac.dto.AttributesRegistration.AttributeRegistration;
-import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.internal.InternalAttributeAuthority;
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeService;
 import it.smartcommunitylab.aac.model.Realm;
@@ -85,14 +84,14 @@ public class InternalAttributesController {
         Realm re = realmManager.getRealm(realm);
         String displayName = re.getName();
         Map<String, String> resources = new HashMap<>();
-        if (!realm.equals(SystemKeys.REALM_COMMON)) {
-            re = realmManager.getRealm(realm);
-            displayName = re.getName();
-            CustomizationBean gcb = re.getCustomization("global");
-            if (gcb != null) {
-                resources.putAll(gcb.getResources());
-            }
-        }
+//        if (!realm.equals(SystemKeys.REALM_COMMON)) {
+//            re = realmManager.getRealm(realm);
+//            displayName = re.getName();
+//            CustomizationBean gcb = re.getCustomization("global");
+//            if (gcb != null) {
+//                resources.putAll(gcb.getResources());
+//            }
+//        }
 
         model.addAttribute("displayName", displayName);
         model.addAttribute("customization", resources);
@@ -152,14 +151,14 @@ public class InternalAttributesController {
             Realm re = realmManager.getRealm(realm);
             String displayName = re.getName();
             Map<String, String> resources = new HashMap<>();
-            if (!realm.equals(SystemKeys.REALM_COMMON)) {
-                re = realmManager.getRealm(realm);
-                displayName = re.getName();
-                CustomizationBean gcb = re.getCustomization("global");
-                if (gcb != null) {
-                    resources.putAll(gcb.getResources());
-                }
-            }
+//            if (!realm.equals(SystemKeys.REALM_COMMON)) {
+//                re = realmManager.getRealm(realm);
+//                displayName = re.getName();
+//                CustomizationBean gcb = re.getCustomization("global");
+//                if (gcb != null) {
+//                    resources.putAll(gcb.getResources());
+//                }
+//            }
 
             model.addAttribute("displayName", displayName);
             model.addAttribute("customization", resources);

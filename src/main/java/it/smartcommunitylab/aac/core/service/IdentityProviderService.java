@@ -1,6 +1,11 @@
 package it.smartcommunitylab.aac.core.service;
 
+import java.util.Collections;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,9 +32,13 @@ public class IdentityProviderService
 
     private IdentityProviderAuthorityService authorityService;
 
-    public IdentityProviderService(IdentityProviderEntityService providerService,
+    public IdentityProviderService(ConfigurableProviderEntityService<IdentityProviderEntity> providerService,
             IdentityAuthoritiesProperties authoritiesProperties, ProvidersProperties providers) {
         super(providerService);
+
+        // set converters
+        this.setConfigConverter(new IdentityProviderConfigConverter());
+        this.setEntityConverter(new IdentityProviderEntityConverter());
 
         // create system idps
         // these users access administrative contexts, they will have realm="system"
@@ -77,7 +86,8 @@ public class IdentityProviderService
                                 providerConfig.getAuthority(),
                                 providerConfig.getProvider(), SystemKeys.REALM_SYSTEM);
                         provider.setName(providerConfig.getName());
-                        provider.setDescription(providerConfig.getDescription());
+                        provider.setTitleMap(providerConfig.getTitle());
+                        provider.setDescriptionMap(providerConfig.getDescription());
                         provider.setEnabled(true);
                         for (Map.Entry<String, String> entry : providerConfig.getConfiguration().entrySet()) {
                             provider.setConfigurationProperty(entry.getKey(), entry.getValue());
@@ -120,16 +130,105 @@ public class IdentityProviderService
         return authorityService.getAuthority(authority).getConfigurationProvider();
     }
 
-    @Autowired
-    @Override
-    public void setConfigConverter(Converter<ConfigurableIdentityProvider, IdentityProviderEntity> configConverter) {
-        this.configConverter = configConverter;
+    static class IdentityProviderEntityConverter
+            implements Converter<IdentityProviderEntity, ConfigurableIdentityProvider> {
+
+        public ConfigurableIdentityProvider convert(IdentityProviderEntity pe) {
+            ConfigurableIdentityProvider cp = new ConfigurableIdentityProvider(pe.getAuthority(), pe.getProvider(),
+                    pe.getRealm());
+            cp.setConfiguration(pe.getConfigurationMap());
+            cp.setEnabled(pe.isEnabled());
+            cp.setPersistence(pe.getPersistence());
+            cp.setEvents(pe.getEvents());
+            cp.setPosition(pe.getPosition());
+            cp.setHookFunctions(pe.getHookFunctions() != null ? pe.getHookFunctions() : Collections.emptyMap());
+
+            cp.setName(pe.getName());
+            cp.setTitleMap(pe.getTitleMap());
+            cp.setDescriptionMap(pe.getDescriptionMap());
+
+            return cp;
+        }
+
     }
 
-    @Autowired
-    @Override
-    public void setEntityConverter(Converter<IdentityProviderEntity, ConfigurableIdentityProvider> entityConverter) {
-        this.entityConverter = entityConverter;
+    class IdentityProviderConfigConverter
+            implements Converter<ConfigurableIdentityProvider, IdentityProviderEntity> {
+
+        @Override
+        public IdentityProviderEntity convert(ConfigurableIdentityProvider reg) {
+            IdentityProviderEntity pe = new IdentityProviderEntity();
+
+            pe.setAuthority(reg.getAuthority());
+            pe.setProvider(reg.getProvider());
+            pe.setRealm(reg.getRealm());
+            pe.setEnabled(reg.isEnabled());
+            pe.setLinkable(reg.isLinkable());
+
+            String name = reg.getName();
+            if (StringUtils.hasText(name)) {
+                name = Jsoup.clean(name, Safelist.none());
+            }
+            pe.setName(name);
+
+            Map<String, String> titleMap = null;
+            if (reg.getTitleMap() != null) {
+                // cleanup every field via safelist
+                titleMap = reg.getTitleMap().entrySet().stream()
+                        .filter(e -> e.getValue() != null)
+                        .map(e -> Map.entry(e.getKey(), Jsoup.clean(e.getValue(), Safelist.none())))
+                        .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+            }
+            pe.setTitleMap(titleMap);
+
+            Map<String, String> descriptionMap = null;
+            if (reg.getDescriptionMap() != null) {
+                // cleanup every field via safelist
+                descriptionMap = reg.getDescriptionMap().entrySet().stream()
+                        .filter(e -> e.getValue() != null)
+                        .map(e -> Map.entry(e.getKey(), Jsoup.clean(e.getValue(), Safelist.none())))
+                        .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+            }
+            pe.setDescriptionMap(descriptionMap);
+
+            // TODO add enum
+            String persistence = reg.getPersistence();
+            if (!StringUtils.hasText(persistence)) {
+                persistence = SystemKeys.PERSISTENCE_LEVEL_REPOSITORY;
+            }
+
+            if (!SystemKeys.PERSISTENCE_LEVEL_REPOSITORY.equals(persistence)
+                    && !SystemKeys.PERSISTENCE_LEVEL_MEMORY.equals(persistence)
+                    && !SystemKeys.PERSISTENCE_LEVEL_SESSION.equals(persistence)
+                    && !SystemKeys.PERSISTENCE_LEVEL_NONE.equals(persistence)) {
+                throw new RegistrationException("invalid persistence level");
+            }
+
+            String events = reg.getEvents();
+            if (!StringUtils.hasText(events)) {
+                events = SystemKeys.EVENTS_LEVEL_DETAILS;
+            }
+
+            if (!SystemKeys.EVENTS_LEVEL_DETAILS.equals(events)
+                    && !SystemKeys.EVENTS_LEVEL_FULL.equals(events)
+                    && !SystemKeys.EVENTS_LEVEL_MINIMAL.equals(events)
+                    && !SystemKeys.EVENTS_LEVEL_NONE.equals(events)) {
+                throw new RegistrationException("invalid events level");
+            }
+
+            Integer position = (reg.getPosition() != null && reg.getPosition().intValue() > 0) ? reg.getPosition()
+                    : null;
+
+            pe.setPersistence(persistence);
+            pe.setEvents(events);
+            pe.setPosition(position);
+
+            pe.setConfigurationMap(reg.getConfiguration());
+            pe.setHookFunctions(reg.getHookFunctions());
+
+            return pe;
+        }
+
     }
 
 }

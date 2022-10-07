@@ -54,6 +54,7 @@ public class ProvidersProperties {
         this.templates = templates;
     }
 
+    // TODO drop class in favor of configurableProvider
     public static class ProviderConfiguration {
         @NotBlank
         private String authority;
@@ -70,7 +71,9 @@ public class ProvidersProperties {
 
         private String name;
 
-        private String description;
+        private Map<String, String> title;
+
+        private Map<String, String> description;
 
         private Map<String, String> configuration;
 
@@ -144,11 +147,19 @@ public class ProvidersProperties {
             this.name = name;
         }
 
-        public String getDescription() {
+        public Map<String, String> getTitle() {
+            return title;
+        }
+
+        public void setTitle(Map<String, String> title) {
+            this.title = title;
+        }
+
+        public Map<String, String> getDescription() {
             return description;
         }
 
-        public void setDescription(String description) {
+        public void setDescription(Map<String, String> description) {
             this.description = description;
         }
 

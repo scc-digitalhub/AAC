@@ -39,7 +39,8 @@ public abstract class AbstractAccountServiceConfig<M extends AbstractConfigMap>
         cp.setType(SystemKeys.RESOURCE_ACCOUNT);
 
         cp.setName(getName());
-        cp.setDescription(getDescription());
+        cp.setTitleMap(getTitleMap());
+        cp.setDescriptionMap(getDescriptionMap());
 
         cp.setRepositoryId(repositoryId);
 

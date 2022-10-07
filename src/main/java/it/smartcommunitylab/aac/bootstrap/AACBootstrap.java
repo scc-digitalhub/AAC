@@ -36,11 +36,11 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientManager;
-import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.authorities.AttributeProviderAuthority;
 import it.smartcommunitylab.aac.core.authorities.CredentialsServiceAuthority;
 import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
 import it.smartcommunitylab.aac.core.authorities.IdentityServiceAuthority;
+import it.smartcommunitylab.aac.core.authorities.TemplateProviderAuthority;
 import it.smartcommunitylab.aac.core.authorities.AccountServiceAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsService;
@@ -48,12 +48,13 @@ import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityService;
 import it.smartcommunitylab.aac.core.model.ConfigurableAccountService;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
-import it.smartcommunitylab.aac.core.model.UserIdentity;
+import it.smartcommunitylab.aac.core.model.ConfigurableTemplateProvider;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.provider.AccountService;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
+import it.smartcommunitylab.aac.core.provider.TemplateProvider;
 import it.smartcommunitylab.aac.core.provider.AccountCredentialsService;
 import it.smartcommunitylab.aac.core.service.AttributeProviderAuthorityService;
 import it.smartcommunitylab.aac.core.service.AttributeProviderService;
@@ -67,6 +68,8 @@ import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.core.service.AccountServiceAuthorityService;
 import it.smartcommunitylab.aac.core.service.AccountServiceService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
+import it.smartcommunitylab.aac.core.service.TemplateProviderAuthorityService;
+import it.smartcommunitylab.aac.core.service.TemplateProviderService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.internal.InternalAccountServiceAuthority;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
@@ -147,6 +150,9 @@ public class AACBootstrap {
     private CredentialsServiceAuthorityService credentialsServiceAuthorityService;
 
     @Autowired
+    private TemplateProviderAuthorityService templateProviderAuthorityService;
+
+    @Autowired
     private IdentityProviderService identityProviderService;
 
     @Autowired
@@ -160,6 +166,9 @@ public class AACBootstrap {
 
     @Autowired
     private CredentialsServiceService credentialsServiceService;
+
+    @Autowired
+    private TemplateProviderService templateProviderService;
 
     @Autowired
     private SpaceRoleService roleService;
@@ -208,6 +217,7 @@ public class AACBootstrap {
             bootstrapIdentityServices();
             bootstrapIdentityProviders();
             bootstrapAttributeProviders();
+            bootstrapTemplateProviders();
 
             // custom bootstrap
             if (apply) {
@@ -470,6 +480,77 @@ public class AACBootstrap {
         return providers;
     }
 
+    private void bootstrapTemplateProviders() {
+        // load all realm providers from storage
+        Collection<Realm> realms = realmService.listUserRealms();
+
+        // we iterate by realm to load consistently each realm
+        // we use parallel to leverage default threadpool, loading should be thread-safe
+        realms.parallelStream().forEach(realm -> {
+            Collection<ConfigurableTemplateProvider> providers = templateProviderService
+                    .listProviders(realm.getSlug());
+
+            // make sure there is always a default provider available
+            // use authority.realm slug as id
+            String id = SystemKeys.AUTHORITY_TEMPLATE + SystemKeys.SLUG_SEPARATOR + realm.getSlug();
+
+            if (providers.isEmpty()
+                    || providers.stream().noneMatch(i -> (i.getAuthority().equals(SystemKeys.AUTHORITY_TEMPLATE)
+                            && i.getProvider().equals(id)))) {
+                ConfigurableTemplateProvider p = new ConfigurableTemplateProvider(
+                        SystemKeys.AUTHORITY_TEMPLATE, id, realm.getSlug());
+                try {
+                    p = templateProviderService.addProvider(realm.getSlug(), p);
+                } catch (RegistrationException | SystemException | NoSuchAuthorityException e) {
+                    // skip
+                    logger.error("error creating provider " + p.getProvider() + " for realm "
+                            + p.getRealm() + ": " + e.getMessage());
+                    if (logger.isTraceEnabled()) {
+                        e.printStackTrace();
+                    }
+                }
+
+                // re-read list
+                providers = templateProviderService.listProviders(realm.getSlug());
+            }
+            registerTemplateProviders(providers);
+        });
+    }
+
+    private List<TemplateProvider<?, ?, ?>> registerTemplateProviders(Collection<ConfigurableTemplateProvider> tps) {
+        Map<String, TemplateProviderAuthority<?, ?, ?, ?>> tas = templateProviderAuthorityService
+                .getAuthorities().stream()
+                .collect(Collectors.toMap(a -> a.getAuthorityId(), a -> a));
+
+        List<TemplateProvider<?, ?, ?>> providers = new ArrayList<>();
+
+        for (ConfigurableTemplateProvider tp : tps) {
+            // try register
+            if (tp.isEnabled()) {
+                try {
+                    // register directly with authority
+                    TemplateProviderAuthority<?, ?, ?, ?> ta = tas.get(tp.getAuthority());
+                    if (ta == null) {
+                        throw new IllegalArgumentException(
+                                "no authority for " + String.valueOf(tp.getAuthority()));
+                    }
+
+                    TemplateProvider<?, ?, ?> p = ta.registerProvider(tp);
+                    providers.add(p);
+                } catch (Exception e) {
+                    logger.error("error registering provider " + tp.getProvider() + " for realm "
+                            + tp.getRealm() + ": " + e.getMessage());
+
+                    if (logger.isTraceEnabled()) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+
+        return providers;
+    }
+
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     private void bootstrapAdminUser(InternalAccountService idp, PasswordCredentialsService service)
             throws RegistrationException, NoSuchUserException {
@@ -608,8 +689,7 @@ public class AACBootstrap {
                 } else {
                     // skip config maps
                     // TODO put in dedicated providers + config
-                    realm = realmService.updateRealm(r.getSlug(), r.getName(), r.isEditable(), r.isPublic(), null,
-                            null);
+                    realm = realmService.updateRealm(r.getSlug(), r.getName(), r.isEditable(), r.isPublic(), null);
                 }
 
                 // keep in cache

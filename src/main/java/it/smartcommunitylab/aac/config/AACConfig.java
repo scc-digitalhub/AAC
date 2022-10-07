@@ -1,9 +1,16 @@
 package it.smartcommunitylab.aac.config;
 
+import java.util.Locale;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.web.servlet.LocaleResolver;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.i18n.CookieLocaleResolver;
+import org.thymeleaf.spring5.SpringTemplateEngine;
+
 import it.smartcommunitylab.aac.claims.ClaimsService;
 import it.smartcommunitylab.aac.claims.DefaultClaimsService;
 import it.smartcommunitylab.aac.claims.ExtractorsRegistry;
@@ -12,6 +19,8 @@ import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
 import it.smartcommunitylab.aac.core.provider.UserTranslator;
 import it.smartcommunitylab.aac.core.service.CoreUserTranslator;
 import it.smartcommunitylab.aac.core.service.UserService;
+import it.smartcommunitylab.aac.templates.TemplateHandlerInterceptor;
+import nz.net.ultraq.thymeleaf.layoutdialect.LayoutDialect;
 
 /*
  * AAC core config, all services should already be up and running now
@@ -90,6 +99,27 @@ public class AACConfig {
     public RealmAwarePathUriBuilder realmUriBuilder() {
         return new RealmAwarePathUriBuilder(applicationUrl);
     }
+
+    /*
+     * Locale resolver
+     */
+    @Bean //
+    public LocaleResolver localeResolver() {
+        // use cookie resolver without default to fallback on accept language header
+        CookieLocaleResolver localeResolver = new CookieLocaleResolver();
+        return localeResolver;
+    }
+
+//
+//    /*
+//     * Thymeleaf engine with extensions
+//     */
+//    @Bean
+//    public SpringTemplateEngine templateEngine() {
+//        SpringTemplateEngine templateEngine = new SpringTemplateEngine();
+//        templateEngine.addDialect(new LayoutDialect());
+//        return templateEngine;
+//    }
 
 //    @Autowired
 //    private UserRepository userRepository;

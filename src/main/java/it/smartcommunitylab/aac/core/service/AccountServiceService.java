@@ -1,16 +1,16 @@
 package it.smartcommunitylab.aac.core.service;
 
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.core.model.ConfigurableAccountService;
 import it.smartcommunitylab.aac.core.persistence.AccountServiceEntity;
@@ -20,11 +20,10 @@ import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 @Transactional
 public class AccountServiceService
         extends ConfigurableProviderService<ConfigurableAccountService, AccountServiceEntity> {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private AccountServiceAuthorityService authorityService;
 
-    public AccountServiceService(AccountServiceEntityService providerService) {
+    public AccountServiceService(ConfigurableProviderEntityService<AccountServiceEntity> providerService) {
         super(providerService);
 
         // set converters
@@ -32,27 +31,7 @@ public class AccountServiceService
         setEntityConverter(new AccountServiceEntityConverter());
 
         // create system services
-        // we expect no client/services in global+system realm!
-        // note: we let registration with authorities to bootstrap
-
         // internal for system is exposed by internal idp by default
-//        ConfigurableAccountService internalConfig = new ConfigurableAccountService(
-//                SystemKeys.AUTHORITY_INTERNAL, SystemKeys.AUTHORITY_INTERNAL,
-//                SystemKeys.REALM_SYSTEM);
-//        logger.debug("configure internal service for system realm");
-//        systemProviders.put(internalConfig.getProvider(), internalConfig);
-
-//        ConfigurableIdentityService oidcConfig = new ConfigurableIdentityService(
-//                SystemKeys.AUTHORITY_OIDC, SystemKeys.AUTHORITY_OIDC,
-//                SystemKeys.REALM_SYSTEM);
-//        logger.debug("configure oidc service for system realm");
-//        systemProviders.put(oidcConfig.getProvider(), oidcConfig);
-//
-//        ConfigurableIdentityService samlConfig = new ConfigurableIdentityService(
-//                SystemKeys.AUTHORITY_SAML, SystemKeys.AUTHORITY_SAML,
-//                SystemKeys.REALM_SYSTEM);
-//        logger.debug("configure saml service for system realm");
-//        systemProviders.put(samlConfig.getProvider(), samlConfig);
     }
 
     @Autowired
@@ -73,20 +52,34 @@ public class AccountServiceService
             AccountServiceEntity pe = new AccountServiceEntity();
 
             pe.setAuthority(reg.getAuthority());
-            pe.setProviderId(reg.getProvider());
+            pe.setProvider(reg.getProvider());
             pe.setRealm(reg.getRealm());
 
             String name = reg.getName();
-            String description = reg.getDescription();
             if (StringUtils.hasText(name)) {
                 name = Jsoup.clean(name, Safelist.none());
             }
-            if (StringUtils.hasText(description)) {
-                description = Jsoup.clean(description, Safelist.none());
-            }
-
             pe.setName(name);
-            pe.setDescription(description);
+
+            Map<String, String> titleMap = null;
+            if (reg.getTitleMap() != null) {
+                // cleanup every field via safelist
+                titleMap = reg.getTitleMap().entrySet().stream()
+                        .filter(e -> e.getValue() != null)
+                        .map(e -> Map.entry(e.getKey(), Jsoup.clean(e.getValue(), Safelist.none())))
+                        .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+            }
+            pe.setTitleMap(titleMap);
+
+            Map<String, String> descriptionMap = null;
+            if (reg.getDescriptionMap() != null) {
+                // cleanup every field via safelist
+                descriptionMap = reg.getDescriptionMap().entrySet().stream()
+                        .filter(e -> e.getValue() != null)
+                        .map(e -> Map.entry(e.getKey(), Jsoup.clean(e.getValue(), Safelist.none())))
+                        .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+            }
+            pe.setDescriptionMap(descriptionMap);
 
             pe.setRepositoryId(reg.getRepositoryId());
 
@@ -102,11 +95,12 @@ public class AccountServiceService
 
         @Override
         public ConfigurableAccountService convert(AccountServiceEntity pe) {
-            ConfigurableAccountService cp = new ConfigurableAccountService(pe.getAuthority(), pe.getProviderId(),
+            ConfigurableAccountService cp = new ConfigurableAccountService(pe.getAuthority(), pe.getProvider(),
                     pe.getRealm());
 
             cp.setName(pe.getName());
-            cp.setDescription(pe.getDescription());
+            cp.setTitleMap(pe.getTitleMap());
+            cp.setDescriptionMap(pe.getDescriptionMap());
 
             cp.setRepositoryId(pe.getRepositoryId());
 

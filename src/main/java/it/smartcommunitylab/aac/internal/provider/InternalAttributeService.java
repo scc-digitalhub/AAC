@@ -13,7 +13,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.mapper.ExactAttributesMapper;
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
-import it.smartcommunitylab.aac.core.base.AbstractProvider;
+import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
 import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
 import it.smartcommunitylab.aac.core.model.Attribute;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
@@ -23,7 +23,8 @@ import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.persistence.InternalAttributeEntity;
 import it.smartcommunitylab.aac.internal.service.InternalAttributeEntityService;
 
-public class InternalAttributeService extends AbstractProvider<UserAttributes>
+public class InternalAttributeService extends
+        AbstractConfigurableProvider<UserAttributes, ConfigurableAttributeProvider, InternalAttributeProviderConfigMap, InternalAttributeProviderConfig>
         implements
         it.smartcommunitylab.aac.core.provider.AttributeService<InternalAttributeProviderConfigMap, InternalAttributeProviderConfig> {
 
@@ -33,27 +34,18 @@ public class InternalAttributeService extends AbstractProvider<UserAttributes>
     private final AttributeService attributeService;
     private final InternalAttributeEntityService attributeEntityService;
 
-    private final InternalAttributeProviderConfig providerConfig;
-
     public InternalAttributeService(
             String providerId,
             AttributeService attributeService,
             InternalAttributeEntityService attributeEntityService,
-            InternalAttributeProviderConfig config,
+            InternalAttributeProviderConfig providerConfig,
             String realm) {
-        super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
-        Assert.notNull(config, "provider config is mandatory");
+        super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm, providerConfig);
         Assert.notNull(attributeService, "attribute service is mandatory");
         Assert.notNull(attributeEntityService, "attribute entity service is mandatory");
 
         this.attributeService = attributeService;
         this.attributeEntityService = attributeEntityService;
-
-        // check configuration
-        Assert.isTrue(providerId.equals(config.getProvider()),
-                "configuration does not match this provider");
-        Assert.isTrue(realm.equals(config.getRealm()), "configuration does not match this provider");
-        this.providerConfig = config;
 
         // validate attribute sets, if empty nothing to do
         if (providerConfig.getAttributeSets().isEmpty()) {
@@ -62,35 +54,10 @@ public class InternalAttributeService extends AbstractProvider<UserAttributes>
     }
 
     @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_ATTRIBUTES;
-    }
-
-    @Override
-    public String getName() {
-        return providerConfig.getName();
-    }
-
-    @Override
-    public String getDescription() {
-        return providerConfig.getDescription();
-    }
-
-    @Override
-    public InternalAttributeProviderConfig getConfig() {
-        return providerConfig;
-    }
-
-    @Override
-    public ConfigurableAttributeProvider getConfigurable() {
-        return providerConfig.getConfigurable();
-    }
-
-    @Override
     public Collection<UserAttributes> convertPrincipalAttributes(UserAuthenticatedPrincipal principal,
             String subjectId) {
 
-        if (providerConfig.getAttributeSets().isEmpty()) {
+        if (config.getAttributeSets().isEmpty()) {
             return Collections.emptyList();
         }
 
@@ -103,7 +70,7 @@ public class InternalAttributeService extends AbstractProvider<UserAttributes>
         List<UserAttributes> result = new ArrayList<>();
 
         // build sets from stored values
-        for (String setId : providerConfig.getAttributeSets()) {
+        for (String setId : config.getAttributeSets()) {
             try {
                 AttributeSet as = attributeService.getAttributeSet(setId);
                 // fetch from store
@@ -135,7 +102,7 @@ public class InternalAttributeService extends AbstractProvider<UserAttributes>
 
     @Override
     public UserAttributes getUserAttributes(String subjectId, String setId) throws NoSuchAttributeSetException {
-        if (!providerConfig.getAttributeSets().contains(setId)) {
+        if (!config.getAttributeSets().contains(setId)) {
             throw new IllegalArgumentException("set not enabled for this provider " + setId);
         }
 
@@ -207,7 +174,7 @@ public class InternalAttributeService extends AbstractProvider<UserAttributes>
     }
 
     private AttributeSet setAttributes(String subjectId, AttributeSet as) {
-        if (!providerConfig.getAttributeSets().contains(as.getIdentifier())) {
+        if (!config.getAttributeSets().contains(as.getIdentifier())) {
             throw new IllegalArgumentException("set not enabled for this provider " + as.getIdentifier());
         }
 

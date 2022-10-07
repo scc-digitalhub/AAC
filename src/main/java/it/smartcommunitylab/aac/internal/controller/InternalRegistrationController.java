@@ -17,8 +17,7 @@
 package it.smartcommunitylab.aac.internal.controller;
 
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -54,20 +53,13 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
-import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.provider.AccountCredentialsService;
-import it.smartcommunitylab.aac.dto.CustomizationBean;
-import it.smartcommunitylab.aac.internal.InternalAccountServiceAuthority;
 import it.smartcommunitylab.aac.internal.InternalIdentityServiceAuthority;
 import it.smartcommunitylab.aac.internal.dto.UserRegistrationBean;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.provider.InternalAccountService;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
-import it.smartcommunitylab.aac.model.Realm;
-import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.model.PasswordPolicy;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.password.provider.PasswordCredentialsService;
@@ -88,9 +80,6 @@ public class InternalRegistrationController {
     private InternalIdentityServiceAuthority internalAuthority;
 
     @Autowired
-    private RealmManager realmManager;
-
-    @Autowired
     private MessageSource messageSource;
 
     /*
@@ -101,7 +90,7 @@ public class InternalRegistrationController {
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid,
             HttpServletRequest request,
-            Model model)
+            Model model, Locale locale)
             throws NoSuchProviderException, NoSuchUserException, NoSuchRealmException {
 
         // first check userid vs user
@@ -129,32 +118,15 @@ public class InternalRegistrationController {
         InternalUserAccount account = identity.getAccount();
 
         // fetch provider
-        InternalIdentityService idp = internalAuthority.getProvider(providerId);
-        if (!idp.getConfig().isEnableUpdate()) {
+        InternalIdentityService service = internalAuthority.getProvider(providerId);
+        if (!service.getConfig().isEnableUpdate()) {
             throw new IllegalArgumentException("error.unsupported_operation");
         }
 
-        String realm = idp.getRealm();
+        // load realm props
+        String realm = service.getRealm();
         model.addAttribute("realm", realm);
-
-        Realm re = realmManager.getRealm(realm);
-        String displayName = re.getName();
-        Map<String, String> resources = new HashMap<>();
-        if (!realm.equals(SystemKeys.REALM_COMMON)) {
-            re = realmManager.getRealm(realm);
-            displayName = re.getName();
-            CustomizationBean gcb = re.getCustomization("global");
-            if (gcb != null) {
-                resources.putAll(gcb.getResources());
-            }
-            CustomizationBean rcb = re.getCustomization("registration");
-            if (rcb != null) {
-                resources.putAll(rcb.getResources());
-            }
-        }
-
-        model.addAttribute("displayName", displayName);
-        model.addAttribute("customization", resources);
+        model.addAttribute("displayName", realm);
 
         // for internal username is accountId
         String username = account.getAccountId();
@@ -173,14 +145,14 @@ public class InternalRegistrationController {
         model.addAttribute("accountUrl", "/account");
         model.addAttribute("changeUrl", "/changeaccount/" + providerId + "/" + uuid);
 
-        return "registration/changeaccount";
+        return "internal/changeaccount";
     }
 
     @PostMapping("/changeaccount/{providerId}/{uuid}")
     public String changeaccount(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid,
-            Model model,
+            Model model, Locale locale,
             @ModelAttribute("reg") @Valid UserRegistrationBean reg,
             HttpServletRequest request,
             BindingResult result)
@@ -217,27 +189,10 @@ public class InternalRegistrationController {
                 throw new IllegalArgumentException("error.unsupported_operation");
             }
 
+            // load realm props
             String realm = service.getRealm();
             model.addAttribute("realm", realm);
-
-            Realm re = realmManager.getRealm(realm);
-            String displayName = re.getName();
-            Map<String, String> resources = new HashMap<>();
-            if (!realm.equals(SystemKeys.REALM_COMMON)) {
-                re = realmManager.getRealm(realm);
-                displayName = re.getName();
-                CustomizationBean gcb = re.getCustomization("global");
-                if (gcb != null) {
-                    resources.putAll(gcb.getResources());
-                }
-                CustomizationBean rcb = re.getCustomization("registration");
-                if (rcb != null) {
-                    resources.putAll(rcb.getResources());
-                }
-            }
-
-            model.addAttribute("displayName", displayName);
-            model.addAttribute("customization", resources);
+            model.addAttribute("displayName", realm);
 
             // for internal username is accountId
             String username = account.getAccountId();
@@ -263,19 +218,19 @@ public class InternalRegistrationController {
             model.addAttribute("changeUrl", "/changeaccount/" + providerId + "/" + uuid);
 
             if (result.hasErrors()) {
-                return "registration/changeaccount";
+                return "internal/changeaccount";
             }
 
             account = service.getAccountService().updateAccount(userId, username, account);
             model.addAttribute("account", account);
 
-            return "registration/changesuccess";
+            return "internal/changeaccount_success";
         } catch (RegistrationException e) {
             model.addAttribute("error", e.getMessage());
-            return "registration/changeaccount";
+            return "internal/changeaccount";
         } catch (Exception e) {
             model.addAttribute("error", RegistrationException.ERROR);
-            return "registration/changeaccount";
+            return "internal/changeaccount";
         }
     }
 
@@ -286,7 +241,7 @@ public class InternalRegistrationController {
     @RequestMapping(value = "/auth/internal/register/{providerId}", method = RequestMethod.GET)
     public String registrationPage(
             @PathVariable("providerId") String providerId,
-            Model model) throws NoSuchProviderException, NoSuchRealmException {
+            Model model, Locale locale) throws NoSuchProviderException, NoSuchRealmException {
 
         // resolve provider
         InternalIdentityService idp = internalAuthority.getProvider(providerId);
@@ -296,27 +251,10 @@ public class InternalRegistrationController {
 
         model.addAttribute("providerId", providerId);
 
+        // load realm props
         String realm = idp.getRealm();
         model.addAttribute("realm", realm);
-
-        Realm re = realmManager.getRealm(realm);
-        String displayName = re.getName();
-        Map<String, String> resources = new HashMap<>();
-        if (!realm.equals(SystemKeys.REALM_COMMON)) {
-            re = realmManager.getRealm(realm);
-            displayName = re.getName();
-            CustomizationBean gcb = re.getCustomization("global");
-            if (gcb != null) {
-                resources.putAll(gcb.getResources());
-            }
-            CustomizationBean rcb = re.getCustomization("registration");
-            if (rcb != null) {
-                resources.putAll(rcb.getResources());
-            }
-        }
-
-        model.addAttribute("displayName", displayName);
-        model.addAttribute("customization", resources);
+        model.addAttribute("displayName", realm);
 
         // build model
         model.addAttribute("reg", new UserRegistrationBean());
@@ -336,17 +274,15 @@ public class InternalRegistrationController {
             // expose password policy by passing idp config
             PasswordPolicy policy = service.getPasswordPolicy();
             model.addAttribute("policy", policy);
-            String passwordPattern = service.getPasswordPattern();
-            model.addAttribute("passwordPattern", passwordPattern);
         }
 
         // build url
         // TODO handle via urlBuilder or entryPoint
         model.addAttribute("registrationUrl", "/auth/internal/register/" + providerId);
-        // set idp form as login url
-        model.addAttribute("loginUrl", "/auth/internal/form/" + providerId);
+        // set realm login url
+        model.addAttribute("loginUrl", "/-/" + realm + "/login");
 
-        return "registration/register";
+        return "internal/registeraccount";
     }
 
     /**
@@ -354,7 +290,7 @@ public class InternalRegistrationController {
      */
     @Hidden
     @RequestMapping(value = "/auth/internal/register/{providerId}", method = RequestMethod.POST)
-    public String register(Model model,
+    public String register(Model model, Locale locale,
             @PathVariable("providerId") String providerId,
             @ModelAttribute("reg") @Valid UserRegistrationBean reg,
             BindingResult result,
@@ -366,30 +302,13 @@ public class InternalRegistrationController {
                 throw new RegistrationException("unsupported_operation");
             }
 
-            String realm = idp.getRealm();
-
             // build model for result
             model.addAttribute("providerId", providerId);
+
+            // load realm props
+            String realm = idp.getRealm();
             model.addAttribute("realm", realm);
-
-            Realm re = realmManager.getRealm(realm);
-            String displayName = re.getName();
-            Map<String, String> resources = new HashMap<>();
-            if (!realm.equals(SystemKeys.REALM_COMMON)) {
-                re = realmManager.getRealm(realm);
-                displayName = re.getName();
-                CustomizationBean gcb = re.getCustomization("global");
-                if (gcb != null) {
-                    resources.putAll(gcb.getResources());
-                }
-                CustomizationBean rcb = re.getCustomization("registration");
-                if (rcb != null) {
-                    resources.putAll(rcb.getResources());
-                }
-            }
-
-            model.addAttribute("displayName", displayName);
-            model.addAttribute("customization", resources);
+            model.addAttribute("displayName", realm);
 
             // fetch password service if available
             AccountCredentialsService<?, ?, ?> cs = idp.getCredentialsService(SystemKeys.AUTHORITY_PASSWORD);
@@ -399,14 +318,12 @@ public class InternalRegistrationController {
                 // expose password policy by passing idp config
                 PasswordPolicy policy = service.getPasswordPolicy();
                 model.addAttribute("policy", policy);
-                String passwordPattern = service.getPasswordPattern();
-                model.addAttribute("passwordPattern", passwordPattern);
             }
 
             model.addAttribute("registrationUrl", "/auth/internal/register/" + providerId);
 
-            // set idp form as login url
-            model.addAttribute("loginUrl", "/auth/internal/form/" + providerId);
+            // set realm login url
+            model.addAttribute("loginUrl", "/-/" + realm + "/login");
 
             if (result.hasErrors()) {
                 model.addAttribute("error", InvalidDataException.ERROR);
@@ -420,7 +337,7 @@ public class InternalRegistrationController {
                     }
                 }
 
-                return "registration/register";
+                return "internal/registeraccount";
             }
 
             String username = reg.getEmail();
@@ -468,9 +385,13 @@ public class InternalRegistrationController {
             // register
             identity = idp.registerIdentity(subjectId, identity);
 
-            model.addAttribute("identity", identity);
+            model.addAttribute("account", account);
 
-            return "registration/regsuccess";
+            if (idp.getConfig().isConfirmationRequired()) {
+                return "internal/registeraccount_confirm";
+            }
+
+            return "internal/registeraccount_success";
         } catch (InvalidDataException | MissingDataException | DuplicatedDataException e) {
             StringBuilder msg = new StringBuilder();
             msg.append(messageSource.getMessage(e.getMessage(), null, req.getLocale()));
@@ -478,127 +399,15 @@ public class InternalRegistrationController {
             msg.append(messageSource.getMessage("field." + e.getField(), null, req.getLocale()));
 
             model.addAttribute("error", msg.toString());
-            return "attributes/form";
+            return "internal/registeraccount";
         } catch (RegistrationException e) {
             model.addAttribute("error", e.getMessage());
-            return "registration/register";
+            return "internal/registeraccount";
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             model.addAttribute("error", RegistrationException.ERROR);
-            return "registration/register";
+            return "internal/registeraccount";
         }
     }
 
-//    /**
-//     * Redirect to the resend page to ask for the email
-//     * 
-//     * @param model
-//     * @param username
-//     * @return
-//     */
-//    @ApiIgnore
-//    @RequestMapping(value = "/internal/resend")
-//    public String resendPage() {
-//        return "registration/resend";
-//    }
-
-//    /**
-//     * Resend the confirmation link to the registered user.
-//     * 
-//     * @param model
-//     * @param username
-//     * @return
-//     */
-//    @ApiIgnore
-//    @RequestMapping(value = "/internal/resend", method = RequestMethod.POST)
-//    public String resendConfirm(Model model, @RequestParam String username) {
-//        try {
-//            regService.resendConfirm(username);
-//            return "registration/regsuccess";
-//        } catch (RegistrationException e) {
-//            logger.error(e.getMessage(), e);
-//            model.addAttribute("error", e.getClass().getSimpleName());
-//            return "registration/resend";
-//        }
-//    }
-
-//    /**
-//     * Confirm the user given the confirmation code sent via mail. Redirect to
-//     * confirmsuccess page
-//     * 
-//     * @param model
-//     * @param confirmationCode
-//     * @return
-//     */
-//    @ApiIgnore
-//    @RequestMapping("/internal/confirm")
-//    public String confirm(Model model, @RequestParam String confirmationCode,
-//            @RequestParam(required = false) Boolean reset, HttpServletRequest req) {
-//        if (Boolean.TRUE.equals(reset)) {
-//            try {
-//                Registration user = regService.getUserByPwdResetToken(confirmationCode);
-//                req.getSession().setAttribute("changePwdEmail", user.getEmail());
-//                model.addAttribute("reg", new RegistrationBean());
-//                return "registration/changepwd";
-//            } catch (RegistrationException e) {
-//                e.printStackTrace();
-//                model.addAttribute("error", e.getClass().getSimpleName());
-//                return "registration/confirmerror";
-//            }
-//        } else {
-//            try {
-//                Registration user = regService.confirm(confirmationCode);
-//                if (!user.isChangeOnFirstAccess()) {
-//                    return "registration/confirmsuccess";
-//                } else {
-//                    req.getSession().setAttribute("changePwdEmail", user.getEmail());
-//                    model.addAttribute("reg", new RegistrationBean());
-//                    return "registration/changepwd";
-//                }
-//            } catch (RegistrationException e) {
-//                e.printStackTrace();
-//                model.addAttribute("error", e.getClass().getSimpleName());
-//                return "registration/confirmerror";
-//            }
-//        }
-//
-//    }
-
-//    @ApiIgnore
-//    @RequestMapping(value = "/internal/reset", method = RequestMethod.POST)
-//    public String reset(Model model, @RequestParam String username) {
-//        try {
-//            regService.resetPassword(username);
-//        } catch (RegistrationException e) {
-//            model.addAttribute("error", e.getClass().getSimpleName());
-//            return "registration/resetpwd";
-//        }
-//        return "registration/resetsuccess";
-//    }
-//
-//    @ApiIgnore
-//    @RequestMapping(value = "/internal/changepwd", method = RequestMethod.POST)
-//    public String changePwd(Model model,
-//            @ModelAttribute("reg") @Valid RegistrationBean reg,
-//            BindingResult result,
-//            HttpServletRequest req) {
-//        if (result.hasFieldErrors("password")) {
-//            return "registration/changepwd";
-//        }
-//        String userMail = (String) req.getSession().getAttribute("changePwdEmail");
-//        if (userMail == null) {
-//            model.addAttribute("error", RegistrationException.class.getSimpleName());
-//            return "registration/changepwd";
-//        }
-//        req.getSession().removeAttribute("changePwdEmail");
-//
-//        try {
-//            regService.updatePassword(userMail, reg.getPassword());
-//        } catch (RegistrationException e) {
-//            logger.error(e.getMessage(), e);
-//            model.addAttribute("error", e.getClass().getSimpleName());
-//            return "registration/changepwd";
-//        }
-//        return "registration/changesuccess";
-//    }
 }

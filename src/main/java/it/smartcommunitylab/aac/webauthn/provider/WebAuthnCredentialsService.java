@@ -55,7 +55,6 @@ public class WebAuthnCredentialsService
     private final WebAuthnRegistrationRpService rpService;
 
     // provider configuration
-    private final WebAuthnCredentialsServiceConfig config;
     private final String repositoryId;
 
     public WebAuthnCredentialsService(String providerId,
@@ -72,26 +71,10 @@ public class WebAuthnCredentialsService
         this.repositoryId = providerConfig.getRepositoryId();
         logger.debug("create webauthn credentials service with id {} repository {}", String.valueOf(providerId),
                 repositoryId);
-        this.config = providerConfig;
 
         this.accountService = userAccountService;
         this.credentialsService = credentialsService;
         this.rpService = rpService;
-    }
-
-    @Override
-    public String getName() {
-        return config.getName();
-    }
-
-    @Override
-    public String getDescription() {
-        return config.getDescription();
-    }
-
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_CREDENTIALS;
     }
 
     private void validateCredential(WebAuthnUserCredential reg) {

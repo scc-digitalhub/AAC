@@ -21,9 +21,6 @@ public class SamlIdentityProvider
         AbstractIdentityProvider<SamlUserIdentity, SamlUserAccount, SamlUserAuthenticatedPrincipal, SamlIdentityProviderConfigMap, SamlIdentityProviderConfig> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    // provider configuration
-    private final SamlIdentityProviderConfig config;
-
     // internal providers
     private final SamlAccountProvider accountProvider;
     private final SamlAttributeProvider attributeProvider;
@@ -49,7 +46,6 @@ public class SamlIdentityProvider
         Assert.notNull(attributeStore, "attribute store is mandatory");
 
         logger.debug("create saml provider with id {}", String.valueOf(providerId));
-        this.config = config;
 
         // build resource providers, we use our providerId to ensure consistency
         this.accountProvider = new SamlAccountProvider(authority, providerId, userAccountService, config, realm);
@@ -120,7 +116,9 @@ public class SamlIdentityProvider
     @Override
     public SamlLoginProvider getLoginProvider() {
         SamlLoginProvider lp = new SamlLoginProvider(getAuthority(), getProvider(), getRealm(), getName());
-        lp.setDescription(getDescription());
+        lp.setTitleMap(getTitleMap());
+        lp.setDescriptionMap(getDescriptionMap());
+
         lp.setLoginUrl(getAuthenticationUrl());
         lp.setPosition(getConfig().getPosition());
 

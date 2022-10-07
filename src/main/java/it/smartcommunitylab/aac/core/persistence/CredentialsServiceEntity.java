@@ -24,7 +24,7 @@ public class CredentialsServiceEntity implements ProviderEntity {
     @Id
     @NotNull
     @Column(name = "provider_id", length = 128, unique = true)
-    private String providerId;
+    private String provider;
 
     @NotNull
     @Column(length = 128)
@@ -37,8 +37,19 @@ public class CredentialsServiceEntity implements ProviderEntity {
     @Column(name = "repository_id", length = 128, unique = true)
     private String repositoryId;
 
+    @NotNull
+    @Column(name = "name", length = 128)
     private String name;
-    private String description;
+
+    @Lob
+    @Column(name = "title_map")
+    @Convert(converter = HashMapConverter.class)
+    private Map<String, String> titleMap;
+
+    @Lob
+    @Column(name = "description_map")
+    @Convert(converter = HashMapConverter.class)
+    private Map<String, String> descriptionMap;
 
     // key-based configuration for persistence
     // converts to json via custom converter
@@ -52,7 +63,7 @@ public class CredentialsServiceEntity implements ProviderEntity {
     }
 
     public CredentialsServiceEntity(String providerId) {
-        this.providerId = providerId;
+        this.provider = providerId;
     }
 
     public String getAuthority() {
@@ -63,17 +74,12 @@ public class CredentialsServiceEntity implements ProviderEntity {
         this.authority = authority;
     }
 
-    @Override
     public String getProvider() {
-        return providerId;
+        return provider;
     }
 
-    public String getProviderId() {
-        return providerId;
-    }
-
-    public void setProviderId(String providerId) {
-        this.providerId = providerId;
+    public void setProvider(String provider) {
+        this.provider = provider;
     }
 
     public String getRealm() {
@@ -100,12 +106,20 @@ public class CredentialsServiceEntity implements ProviderEntity {
         this.name = name;
     }
 
-    public String getDescription() {
-        return description;
+    public Map<String, String> getTitleMap() {
+        return titleMap;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setTitleMap(Map<String, String> titleMap) {
+        this.titleMap = titleMap;
+    }
+
+    public Map<String, String> getDescriptionMap() {
+        return descriptionMap;
+    }
+
+    public void setDescriptionMap(Map<String, String> descriptionMap) {
+        this.descriptionMap = descriptionMap;
     }
 
     public String getRepositoryId() {

@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:fragment="header">
+</head>
+
+<body>
+   <div th:fragment="card-footer">
+      <div class="card-footer bg-primary text-white" th:if="${footer != null && footer.get('footer.text') != null}" th:utext="${footer.get('footer.text')}"></div>
+   </div>
+</body>
+
+</html>

@@ -65,6 +65,30 @@ public class PasswordPolicy {
         this.passwordSupportWhitespace = passwordSupportWhitespace;
     }
 
+    public String getPasswordPattern() {
+        // translate policy to input pattern
+        StringBuilder sb = new StringBuilder();
+        if (isPasswordRequireAlpha()) {
+            // require alpha means any, we add pattern for [a-z]
+            // TODO fix pattern
+            sb.append("(?=.*[a-z])");
+        }
+        if (isPasswordRequireUppercaseAlpha()) {
+            sb.append("(?=.*[A-Z])");
+        }
+        if (isPasswordRequireNumber()) {
+            sb.append("(?=.*\\d)");
+        }
+        if (isPasswordRequireSpecial()) {
+            // TODO
+        }
+
+        // add length
+        sb.append(".{").append(getPasswordMinLength()).append(",").append(getPasswordMaxLength()).append("}");
+
+        return sb.toString();
+    }
+
     @Override
     // TODO replace with proper description supporting i18n
     public String toString() {

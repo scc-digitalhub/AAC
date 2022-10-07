@@ -2,9 +2,9 @@ package it.smartcommunitylab.aac.oauth.endpoint;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -28,13 +28,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import io.swagger.v3.oas.annotations.Hidden;
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.common.NoSuchRealmException;
-import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
-import it.smartcommunitylab.aac.dto.CustomizationBean;
-import it.smartcommunitylab.aac.model.Realm;
+import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.model.ResponseMode;
@@ -68,9 +64,6 @@ public class UserApprovalEndpoint implements InitializingBean {
     private OAuth2ClientDetailsService oauth2ClientDetailsService;
 
     @Autowired
-    private RealmManager realmManager;
-
-    @Autowired
     private ScopeRegistry scopeRegistry;
 
     @Override
@@ -83,7 +76,7 @@ public class UserApprovalEndpoint implements InitializingBean {
     @RequestMapping(value = ACCESS_CONFIRMATION_URL, method = RequestMethod.GET)
     public ModelAndView accessConfirmation(@RequestParam String key,
             Map<String, Object> model,
-            Authentication authentication, HttpServletRequest request) {
+            Authentication authentication, HttpServletRequest request, Locale locale) {
 
         if (!(authentication instanceof UserAuthentication) || !authentication.isAuthenticated()) {
             throw new InsufficientAuthenticationException("Invalid user authentication");
@@ -112,42 +105,23 @@ public class UserApprovalEndpoint implements InitializingBean {
                     authentication);
             model.putAll(approvalParameters);
 
-            // load realm customizations
+            // load realm props
             String realm = clientDetails.getRealm();
-
-            try {
-                String displayName = null;
-                Realm re = null;
-                Map<String, String> resources = new HashMap<>();
-                if (!realm.equals(SystemKeys.REALM_COMMON)) {
-                    re = realmManager.getRealm(realm);
-                    displayName = re.getName();
-                    CustomizationBean gcb = re.getCustomization("global");
-                    if (gcb != null) {
-                        resources.putAll(gcb.getResources());
-                    }
-                    CustomizationBean lcb = re.getCustomization("approval");
-                    if (lcb != null) {
-                        resources.putAll(lcb.getResources());
-                    }
-                }
-
-                model.put("displayName", displayName);
-                model.put("customization", resources);
-            } catch (NoSuchRealmException e) {
-                throw new IllegalArgumentException("Invalid realm");
-            }
+            model.put("realm", realm);
+            model.put("displayName", realm);
 
             // add client info
-            String clientName = StringUtils.hasText(clientDetails.getName()) ? clientDetails.getName() : clientId;
-            model.put("clientName", clientName);
+            model.put("client", clientDetails);
 
             // add user info
             String userName = StringUtils.hasText(userDetails.getUsername()) ? userDetails.getUsername()
                     : userDetails.getSubjectId();
 //            String fullName = userDetails.getFullName();
             model.put("fullname", userName);
-            model.put("username", userName);
+
+            // add account info
+            UserAccount account = userDetails.getIdentities().stream().findFirst().orElseThrow().getAccount();
+            model.put("account", account);
 
             // we have a list of scopes in model
             Set<String> scopes = delimitedStringToSet((String) model.get("scope"));
@@ -197,7 +171,7 @@ public class UserApprovalEndpoint implements InitializingBean {
             // TODO handle via urlBuilder
             model.put("formAction", APPROVAL_URL);
 
-            return new ModelAndView("access_confirmation", model);
+            return new ModelAndView("user-approval", model);
         } catch (RuntimeException e) {
             // send to error page
             model.put("error", e.getMessage());

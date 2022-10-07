@@ -32,7 +32,6 @@ import it.smartcommunitylab.aac.common.LoginException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.RealmManager;
-import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.internal.auth.InternalAuthenticationException;
 import it.smartcommunitylab.aac.internal.model.InternalLoginProvider;
 import it.smartcommunitylab.aac.model.Realm;
@@ -75,20 +74,20 @@ public class WebAuthnLoginController {
         Realm re = realmManager.getRealm(realm);
         String displayName = re.getName();
         Map<String, String> resources = new HashMap<>();
-        if (!realm.equals(SystemKeys.REALM_COMMON)) {
-            re = realmManager.getRealm(realm);
-            displayName = re.getName();
-            CustomizationBean gcb = re.getCustomization("global");
-            if (gcb != null) {
-                resources.putAll(gcb.getResources());
-            }
-            // disable realm login customization here,
-            // we have a per idp message where needed
-//            CustomizationBean rcb = re.getCustomization("login");
-//            if (rcb != null) {
-//                resources.putAll(rcb.getResources());
+//        if (!realm.equals(SystemKeys.REALM_COMMON)) {
+//            re = realmManager.getRealm(realm);
+//            displayName = re.getName();
+//            CustomizationBean gcb = re.getCustomization("global");
+//            if (gcb != null) {
+//                resources.putAll(gcb.getResources());
 //            }
-        }
+//            // disable realm login customization here,
+//            // we have a per idp message where needed
+////            CustomizationBean rcb = re.getCustomization("login");
+////            if (rcb != null) {
+////                resources.putAll(rcb.getResources());
+////            }
+//        }
 
         model.addAttribute("displayName", displayName);
         model.addAttribute("customization", resources);

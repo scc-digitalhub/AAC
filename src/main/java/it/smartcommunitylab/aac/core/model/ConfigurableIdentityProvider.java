@@ -29,7 +29,6 @@ public class ConfigurableIdentityProvider extends ConfigurableProvider {
     private String events;
     private Integer position;
 
-    private String icon;
     private Map<String, String> actionUrls;
     @JsonIgnore
     private Map<String, String> hookFunctions = new HashMap<>();
@@ -88,14 +87,6 @@ public class ConfigurableIdentityProvider extends ConfigurableProvider {
 
     public void setPosition(Integer position) {
         this.position = position;
-    }
-
-    public String getIcon() {
-        return icon;
-    }
-
-    public void setIcon(String icon) {
-        this.icon = icon;
     }
 
     public Map<String, String> getActionUrls() {

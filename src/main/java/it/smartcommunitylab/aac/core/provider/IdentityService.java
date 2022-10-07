@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.core.provider;
 
 import java.util.Collection;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
@@ -76,4 +77,7 @@ public interface IdentityService<I extends UserIdentity, U extends UserAccount, 
 
 //    public RegistrationProvider getRegistrationProvider();
 
+    default public String getType() {
+        return SystemKeys.RESOURCE_IDENTITY;
+    }
 }

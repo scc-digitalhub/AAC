@@ -1,5 +1,8 @@
 package it.smartcommunitylab.aac.core.service;
 
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +23,7 @@ public class CredentialsServiceService
 
     private CredentialsServiceAuthorityService authorityService;
 
-    public CredentialsServiceService(CredentialsServiceEntityService providerService) {
+    public CredentialsServiceService(ConfigurableProviderEntityService<CredentialsServiceEntity> providerService) {
         super(providerService);
 
         // set converters
@@ -50,20 +53,34 @@ public class CredentialsServiceService
             CredentialsServiceEntity pe = new CredentialsServiceEntity();
 
             pe.setAuthority(reg.getAuthority());
-            pe.setProviderId(reg.getProvider());
+            pe.setProvider(reg.getProvider());
             pe.setRealm(reg.getRealm());
 
             String name = reg.getName();
-            String description = reg.getDescription();
             if (StringUtils.hasText(name)) {
                 name = Jsoup.clean(name, Safelist.none());
             }
-            if (StringUtils.hasText(description)) {
-                description = Jsoup.clean(description, Safelist.none());
-            }
-
             pe.setName(name);
-            pe.setDescription(description);
+
+            Map<String, String> titleMap = null;
+            if (reg.getTitleMap() != null) {
+                // cleanup every field via safelist
+                titleMap = reg.getTitleMap().entrySet().stream()
+                        .filter(e -> e.getValue() != null)
+                        .map(e -> Map.entry(e.getKey(), Jsoup.clean(e.getValue(), Safelist.none())))
+                        .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+            }
+            pe.setTitleMap(titleMap);
+
+            Map<String, String> descriptionMap = null;
+            if (reg.getDescriptionMap() != null) {
+                // cleanup every field via safelist
+                descriptionMap = reg.getDescriptionMap().entrySet().stream()
+                        .filter(e -> e.getValue() != null)
+                        .map(e -> Map.entry(e.getKey(), Jsoup.clean(e.getValue(), Safelist.none())))
+                        .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+            }
+            pe.setDescriptionMap(descriptionMap);
 
             pe.setRepositoryId(reg.getRepositoryId());
             pe.setConfigurationMap(reg.getConfiguration());
@@ -80,12 +97,13 @@ public class CredentialsServiceService
         @Override
         public ConfigurableCredentialsService convert(CredentialsServiceEntity pe) {
             ConfigurableCredentialsService cp = new ConfigurableCredentialsService(pe.getAuthority(),
-                    pe.getProviderId(),
+                    pe.getProvider(),
                     pe.getRealm());
 
             cp.setName(pe.getName());
-            cp.setDescription(pe.getDescription());
-
+            cp.setTitleMap(pe.getTitleMap());
+            cp.setDescriptionMap(pe.getDescriptionMap());
+            
             cp.setRepositoryId(pe.getRepositoryId());
             cp.setConfiguration(pe.getConfigurationMap());
             cp.setEnabled(pe.isEnabled());

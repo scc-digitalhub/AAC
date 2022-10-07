@@ -1,19 +1,21 @@
 package it.smartcommunitylab.aac.core.provider;
 
 public interface LoginProvider {
-    
+
     public String getAuthority();
 
     public String getProvider();
 
     public String getRealm();
-    
+
     /*
      * Config
      */
     public String getName();
 
-    public String getDescription();
+    public String getTitle(String lang);
+
+    public String getDescription(String lang);
 
     public Integer getPosition();
 

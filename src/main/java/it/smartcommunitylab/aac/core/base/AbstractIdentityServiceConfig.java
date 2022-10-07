@@ -39,7 +39,8 @@ public abstract class AbstractIdentityServiceConfig<M extends AbstractConfigMap>
         cp.setType(SystemKeys.RESOURCE_IDENTITY);
 
         cp.setName(getName());
-        cp.setDescription(getDescription());
+        cp.setTitleMap(getTitleMap());
+        cp.setDescriptionMap(getDescriptionMap());
 
         cp.setRepositoryId(repositoryId);
 

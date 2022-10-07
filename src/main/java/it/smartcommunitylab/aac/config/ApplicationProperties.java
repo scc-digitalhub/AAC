@@ -2,10 +2,14 @@ package it.smartcommunitylab.aac.config;
 
 public class ApplicationProperties {
     private String url;
+
+    // TODO i18n
     private String name;
     private String email;
     private String logo;
     private String lang;
+
+    // TODO i18n
     private String footer;
 
     public String getUrl() {

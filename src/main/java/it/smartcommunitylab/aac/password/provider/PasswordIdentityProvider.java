@@ -31,9 +31,6 @@ public class PasswordIdentityProvider extends
         AbstractIdentityProvider<InternalUserIdentity, InternalUserAccount, InternalPasswordUserAuthenticatedPrincipal, PasswordIdentityProviderConfigMap, PasswordIdentityProviderConfig> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    // provider configuration
-    private final PasswordIdentityProviderConfig config;
-
     // services
     private final PasswordIdentityCredentialsService passwordService;
 
@@ -54,7 +51,6 @@ public class PasswordIdentityProvider extends
 
         String repositoryId = config.getRepositoryId();
         logger.debug("create password provider with id {} repository {}", String.valueOf(providerId), repositoryId);
-        this.config = config;
 
         // build resource providers, we use our providerId to ensure consistency
         this.attributeProvider = new InternalAttributeProvider<>(SystemKeys.AUTHORITY_PASSWORD, providerId, realm);
@@ -89,11 +85,6 @@ public class PasswordIdentityProvider extends
 
     public CredentialsType getCredentialsType() {
         return CredentialsType.PASSWORD;
-    }
-
-    @Override
-    public PasswordIdentityProviderConfig getConfig() {
-        return config;
     }
 
     @Override
@@ -245,7 +236,8 @@ public class PasswordIdentityProvider extends
     @Override
     public InternalLoginProvider getLoginProvider() {
         InternalLoginProvider ilp = new InternalLoginProvider(getProvider(), getRealm(), getName());
-        ilp.setDescription(getDescription());
+        ilp.setTitleMap(getTitleMap());
+        ilp.setDescriptionMap(getDescriptionMap());
 
         // login url is always form display
         ilp.setLoginUrl(getFormUrl());

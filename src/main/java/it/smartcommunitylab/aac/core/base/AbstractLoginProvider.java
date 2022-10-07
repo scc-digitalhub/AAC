@@ -1,8 +1,10 @@
 package it.smartcommunitylab.aac.core.base;
 
+import java.util.Locale;
+import java.util.Map;
+
 import org.springframework.util.Assert;
 
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.provider.LoginProvider;
 
@@ -23,7 +25,8 @@ public abstract class AbstractLoginProvider
     private Integer position;
 
     private String name;
-    private String description;
+    private Map<String, String> titleMap;
+    private Map<String, String> descriptionMap;
     private String icon;
     private String iconUrl;
 
@@ -91,12 +94,36 @@ public abstract class AbstractLoginProvider
         this.name = name;
     }
 
-    public String getDescription() {
-        return description;
+    public String getTitle(String lang) {
+        if (titleMap != null && lang != null) {
+            return titleMap.get(lang);
+        }
+
+        return name;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public String getDescription(String lang) {
+        if (descriptionMap != null && lang != null) {
+            return descriptionMap.get(lang);
+        }
+
+        return null;
+    }
+
+    public Map<String, String> getTitleMap() {
+        return titleMap;
+    }
+
+    public void setTitleMap(Map<String, String> titleMap) {
+        this.titleMap = titleMap;
+    }
+
+    public Map<String, String> getDescriptionMap() {
+        return descriptionMap;
+    }
+
+    public void setDescriptionMap(Map<String, String> descriptionMap) {
+        this.descriptionMap = descriptionMap;
     }
 
     public String getIcon() {

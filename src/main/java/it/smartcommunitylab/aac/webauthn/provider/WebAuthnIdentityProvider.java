@@ -26,11 +26,7 @@ import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserCredentialsService;
 
 public class WebAuthnIdentityProvider extends
         AbstractIdentityProvider<InternalUserIdentity, InternalUserAccount, WebAuthnUserAuthenticatedPrincipal, WebAuthnIdentityProviderConfigMap, WebAuthnIdentityProviderConfig> {
-
     private final Logger logger = LoggerFactory.getLogger(getClass());
-
-    // provider configuration
-    private final WebAuthnIdentityProviderConfig config;
 
     // services
     private final WebAuthnIdentityCredentialsService credentialsService;
@@ -52,7 +48,6 @@ public class WebAuthnIdentityProvider extends
 
         String repositoryId = config.getRepositoryId();
         logger.debug("create webauthn provider with id {} repository {}", String.valueOf(providerId), repositoryId);
-        this.config = config;
 
         // build resource providers, we use our providerId to ensure consistency
         this.attributeProvider = new InternalAttributeProvider<>(SystemKeys.AUTHORITY_WEBAUTHN, providerId, realm);
@@ -75,11 +70,6 @@ public class WebAuthnIdentityProvider extends
     public boolean isAuthoritative() {
         // webauthn handles only login
         return false;
-    }
-
-    @Override
-    public WebAuthnIdentityProviderConfig getConfig() {
-        return config;
     }
 
     @Override
@@ -226,7 +216,8 @@ public class WebAuthnIdentityProvider extends
     @Override
     public InternalLoginProvider getLoginProvider() {
         InternalLoginProvider ilp = new InternalLoginProvider(getProvider(), getRealm(), getName());
-        ilp.setDescription(getDescription());
+        ilp.setTitleMap(getTitleMap());
+        ilp.setDescriptionMap(getDescriptionMap());
 
         // login url is always form display
         ilp.setLoginUrl(getFormUrl());

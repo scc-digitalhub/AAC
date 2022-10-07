@@ -22,7 +22,7 @@ import it.smartcommunitylab.aac.attributes.mapper.ExactAttributesMapper;
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
 import it.smartcommunitylab.aac.attributes.store.AttributeStore;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
-import it.smartcommunitylab.aac.core.base.AbstractProvider;
+import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
 import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
 import it.smartcommunitylab.aac.core.model.Attribute;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
@@ -31,33 +31,26 @@ import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 
-public class MapperAttributeProvider extends AbstractProvider<UserAttributes>
+public class MapperAttributeProvider extends
+        AbstractConfigurableProvider<UserAttributes, ConfigurableAttributeProvider, MapperAttributeProviderConfigMap, MapperAttributeProviderConfig>
         implements AttributeProvider<MapperAttributeProviderConfigMap, MapperAttributeProviderConfig> {
 
     // services
     private final AttributeService attributeService;
     private final AttributeStore attributeStore;
 
-    private final MapperAttributeProviderConfig providerConfig;
-
     public MapperAttributeProvider(
             String providerId,
             AttributeService attributeService, AttributeStore attributeStore,
-            MapperAttributeProviderConfig config,
+            MapperAttributeProviderConfig providerConfig,
             String realm) {
-        super(SystemKeys.AUTHORITY_MAPPER, providerId, realm);
+        super(SystemKeys.AUTHORITY_MAPPER, providerId, realm, providerConfig);
         Assert.notNull(config, "provider config is mandatory");
         Assert.notNull(attributeService, "attribute service is mandatory");
         Assert.notNull(attributeStore, "attribute store is mandatory");
 
         this.attributeService = attributeService;
         this.attributeStore = attributeStore;
-
-        // check configuration
-        Assert.isTrue(providerId.equals(config.getProvider()),
-                "configuration does not match this provider");
-        Assert.isTrue(realm.equals(config.getRealm()), "configuration does not match this provider");
-        this.providerConfig = config;
 
         // validate mapper type
         String type = providerConfig.getMapperType();
@@ -72,35 +65,10 @@ public class MapperAttributeProvider extends AbstractProvider<UserAttributes>
     }
 
     @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_ATTRIBUTES;
-    }
-
-    @Override
-    public String getName() {
-        return providerConfig.getName();
-    }
-
-    @Override
-    public String getDescription() {
-        return providerConfig.getDescription();
-    }
-
-    @Override
-    public MapperAttributeProviderConfig getConfig() {
-        return providerConfig;
-    }
-
-    @Override
-    public ConfigurableAttributeProvider getConfigurable() {
-        return providerConfig.getConfigurable();
-    }
-
-    @Override
     public Collection<UserAttributes> convertPrincipalAttributes(UserAuthenticatedPrincipal principal,
             String subjectId) {
 
-        if (providerConfig.getAttributeSets().isEmpty()) {
+        if (config.getAttributeSets().isEmpty()) {
             return Collections.emptyList();
         }
 
@@ -124,12 +92,12 @@ public class MapperAttributeProvider extends AbstractProvider<UserAttributes>
         principalAttributes.put("realm", principal.getRealm());
 
         // fetch attribute sets
-        for (String setId : providerConfig.getAttributeSets()) {
+        for (String setId : config.getAttributeSets()) {
             try {
                 AttributeSet as = attributeService.getAttributeSet(setId);
 
                 // build mapper as per config
-                BaseAttributesMapper mapper = getAttributeMapper(providerConfig.getMapperType(), as);
+                BaseAttributesMapper mapper = getAttributeMapper(config.getMapperType(), as);
                 AttributeSet set = mapper.mapAttributes(principalAttributes);
                 if (set.getAttributes() != null && !set.getAttributes().isEmpty()) {
                     // build result
@@ -169,7 +137,7 @@ public class MapperAttributeProvider extends AbstractProvider<UserAttributes>
         List<UserAttributes> result = new ArrayList<>();
 
         // build sets from stored values
-        for (String setId : providerConfig.getAttributeSets()) {
+        for (String setId : config.getAttributeSets()) {
             try {
                 AttributeSet set = readAttributes(setId, attributes);
                 if (set.getAttributes() != null && !set.getAttributes().isEmpty()) {
@@ -187,7 +155,7 @@ public class MapperAttributeProvider extends AbstractProvider<UserAttributes>
 
     @Override
     public UserAttributes getUserAttributes(String userId, String setId) throws NoSuchAttributeSetException {
-        if (!providerConfig.getAttributeSets().contains(setId)) {
+        if (!config.getAttributeSets().contains(setId)) {
             return null;
         }
 

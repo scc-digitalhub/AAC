@@ -32,6 +32,7 @@ public class SystemKeys {
     public static final String AUTHORITY_APPLE = "apple";
     public static final String AUTHORITY_WEBAUTHN = "webauthn";
     public static final String AUTHORITY_PASSWORD = "password";
+    public static final String AUTHORITY_TEMPLATE = "template";
 
     public static final String CLIENT_TYPE_OAUTH2 = "oauth2";
     public static final String CLIENT_TYPE_SAML = "saml";
@@ -64,11 +65,13 @@ public class SystemKeys {
     public static final String RESOURCE_IDENTITY_SERVICE = "identity_service";
     public static final String RESOURCE_ATTRIBUTE_SERVICE = "attribute_service";
     public static final String RESOURCE_ACCOUNT_SERVICE = "account_service";
+    public static final String RESOURCE_TEMPLATE = "template";
 
     public static final String PATH_SEPARATOR = "/-/";
     public static final String ID_SEPARATOR = "|";
     public static final String URN_PROTOCOL = "urn";
     public static final String URN_SEPARATOR = ":";
+    public static final String SLUG_SEPARATOR = "_";
 
     public static final String PATH_USER = "/user";
     public static final String PATH_DEV = "/dev";

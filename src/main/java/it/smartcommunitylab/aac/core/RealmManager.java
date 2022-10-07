@@ -3,7 +3,6 @@ package it.smartcommunitylab.aac.core;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,13 +37,14 @@ import it.smartcommunitylab.aac.common.NoSuchServiceException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.config.ApplicationProperties;
+import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.Client;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.core.service.UserService;
-import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.groups.GroupManager;
 import it.smartcommunitylab.aac.model.Developer;
 import it.smartcommunitylab.aac.model.Group;
@@ -57,9 +57,14 @@ import it.smartcommunitylab.aac.services.ServicesManager;
 @Service
 public class RealmManager {
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final static Safelist WHITELIST_RELAXED_NOIMG = Config.WHITELIST_RELAXED_NOIMG;
 
-    private int minLength = 3;
+    private final static int SLUG_MIN_LENGTH = 3;
+
+    @Autowired
+    private ApplicationProperties appProps;
+
+    @Autowired
+    private RealmAwareUriBuilder uriBuilder;
 
     @Autowired
     private RealmService realmService;
@@ -129,8 +134,8 @@ public class RealmManager {
             throw new RegistrationException("name cannot be empty");
         }
 
-        if (slug.length() < minLength) {
-            throw new RegistrationException("slug min length is " + String.valueOf(minLength));
+        if (slug.length() < SLUG_MIN_LENGTH) {
+            throw new RegistrationException("slug min length is " + String.valueOf(SLUG_MIN_LENGTH));
         }
 
         if (logger.isTraceEnabled()) {
@@ -154,46 +159,12 @@ public class RealmManager {
             throw new RegistrationException("name cannot be empty");
         }
 
-        // explode customization
-        Map<String, Map<String, String>> customizationMap = null;
-        if (r.getCustomization() != null) {
-            customizationMap = new HashMap<>();
-
-            for (CustomizationBean cb : r.getCustomization()) {
-
-                String key = cb.getIdentifier();
-                if (StringUtils.hasText(key) && cb.getResources() != null) {
-                    Map<String, String> res = new HashMap<>();
-
-                    // sanitize
-                    for (Map.Entry<String, String> e : cb.getResources().entrySet()) {
-                        String k = e.getKey();
-                        String v = e.getValue();
-
-                        if (StringUtils.hasText(k)) {
-                            k = Jsoup.clean(k, Safelist.none());
-                        }
-                        if (StringUtils.hasText(v)) {
-                            v = Jsoup.clean(v, WHITELIST_RELAXED_NOIMG);
-                        }
-
-                        if (StringUtils.hasText(k)) {
-                            res.put(k, v);
-                        }
-                    }
-
-                    customizationMap.put(key, res);
-                }
-            }
-        }
-
         Map<String, Serializable> oauth2ConfigMap = null;
         if (r.getOAuthConfiguration() != null) {
             oauth2ConfigMap = r.getOAuthConfiguration().getConfiguration();
         }
 
-        Realm realm = realmService.updateRealm(slug, name, r.isEditable(), r.isPublic(), oauth2ConfigMap,
-                customizationMap);
+        Realm realm = realmService.updateRealm(slug, name, r.isEditable(), r.isPublic(), oauth2ConfigMap);
 
         return realm;
     }
@@ -456,5 +427,25 @@ public class RealmManager {
         // assign developer role
         return updateDeveloper(realm, user.getSubjectId(), Collections.singleton(Config.R_DEVELOPER));
 
+    }
+
+    public ApplicationProperties getRealmProps(String realm) throws NoSuchRealmException {
+        // load realm
+        Realm r = realmService.getRealm(realm);
+
+        ApplicationProperties props = new ApplicationProperties();
+        props.setName(r.getName());
+
+        // build props from global
+        // TODO add fields to realm config
+        props.setEmail(appProps.getEmail());
+        props.setLang(appProps.getLang());
+        props.setLogo(appProps.getLogo());
+
+        // via urlBuilder
+        String url = uriBuilder.buildUrl(realm, "/");
+        props.setUrl(url);
+
+        return props;
     }
 }
