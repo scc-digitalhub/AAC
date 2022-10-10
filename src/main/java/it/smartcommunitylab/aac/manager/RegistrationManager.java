@@ -276,6 +276,7 @@ public class RegistrationManager {
 			existing.setConfirmationDeadline(c.getTime());
 			String key = generateKey();
 			existing.setConfirmationKey(key);
+			existing.setChangeOnFirstAccess(true);
 //			existing.setPassword(null);
 			repository.save(existing);
 			sendResetMail(existing, key);

@@ -50,7 +50,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.apimanager.APIProviderManager;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.dto.RegistrationBean;
@@ -70,8 +69,6 @@ public class RegistrationController {
 
 	@Autowired
 	private RegistrationService regService;
-	@Autowired
-	private APIProviderManager apiProviderManager;
 	
 	/**
 	 * Login the user 
@@ -151,7 +148,7 @@ public class RegistrationController {
 			return "registration/register";
         }
 		try {
-			apiProviderManager.createAPIUser(reg);
+//			apiProviderManager.createAPIUser(reg);
 
 			regService.register(reg.getName(), reg.getSurname(), reg.getEmail(), reg.getPassword(), reg.getLang());
 			return "registration/regsuccess";
@@ -284,7 +281,6 @@ public class RegistrationController {
 		req.getSession().removeAttribute("changePwdEmail");
 		
 		try {
-			apiProviderManager.updatePassword(userMail, reg.getPassword());
 			regService.updatePassword(userMail, reg.getPassword());
 		} catch (RegistrationException e) {
 			logger.error(e.getMessage(), e);
