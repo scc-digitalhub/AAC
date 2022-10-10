@@ -295,7 +295,7 @@ public class OpenIDMetadataEndpoint {
         // unsupported
 //        m.put("token_endpoint_auth_signing_alg_values_supported",signAlgorithms);
 
-        m.put("display_types_supported", Collections.singleton("page"));
+        m.put("display_values_supported", Collections.singleton("page"));
         m.put("claim_types_supported", Collections.singleton("normal"));
 
         // TODO export claim names from providers
