@@ -186,7 +186,7 @@ public class RegistrationController {
 			return;
         }
 		try {
-			apiProviderManager.createAPIUser(reg);
+//			apiProviderManager.createAPIUser(reg);
 			regService.register(reg.getName(), reg.getSurname(), reg.getEmail(), reg.getPassword(), reg.getLang());
 		} catch(AlreadyRegisteredException e) {
 			res.setStatus(HttpStatus.CONFLICT.value());
