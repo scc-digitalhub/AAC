@@ -258,3 +258,7 @@ form .invalid-feedback {
    font-weight: bold;
 }
 
+.language-switch {
+   max-width: 160px;
+}
+

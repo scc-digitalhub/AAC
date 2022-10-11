@@ -2,15 +2,17 @@ package it.smartcommunitylab.aac.config;
 
 import java.util.Locale;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.LocaleResolver;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.i18n.CookieLocaleResolver;
-import org.thymeleaf.spring5.SpringTemplateEngine;
-
+import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import it.smartcommunitylab.aac.claims.ClaimsService;
 import it.smartcommunitylab.aac.claims.DefaultClaimsService;
 import it.smartcommunitylab.aac.claims.ExtractorsRegistry;
@@ -19,8 +21,6 @@ import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
 import it.smartcommunitylab.aac.core.provider.UserTranslator;
 import it.smartcommunitylab.aac.core.service.CoreUserTranslator;
 import it.smartcommunitylab.aac.core.service.UserService;
-import it.smartcommunitylab.aac.templates.TemplateHandlerInterceptor;
-import nz.net.ultraq.thymeleaf.layoutdialect.LayoutDialect;
 
 /*
  * AAC core config, all services should already be up and running now
@@ -31,6 +31,9 @@ public class AACConfig {
 
     @Value("${application.url}")
     private String applicationUrl;
+
+    @Autowired
+    private ApplicationProperties appProps;
 
     /*
      * Core aac should be bootstrapped before services, security etc
@@ -103,11 +106,21 @@ public class AACConfig {
     /*
      * Locale resolver
      */
-    @Bean //
+    @Bean("localeResolver")
     public LocaleResolver localeResolver() {
-        // use cookie resolver without default to fallback on accept language header
-        CookieLocaleResolver localeResolver = new CookieLocaleResolver();
-        return localeResolver;
+        // use cookie resolver with default
+        Assert.hasText(appProps.getLang(), "default app language must be set");
+        Locale locale = StringUtils.parseLocale(appProps.getLang());
+        CookieLocaleResolver resolver = new CookieLocaleResolver();
+        resolver.setDefaultLocale(locale);
+        return resolver;
+    }
+
+    @Bean
+    public LocaleChangeInterceptor localeChangeInterceptor() {
+        LocaleChangeInterceptor localeChangeInterceptor = new LocaleChangeInterceptor();
+        localeChangeInterceptor.setParamName("lang");
+        return localeChangeInterceptor;
     }
 
 //

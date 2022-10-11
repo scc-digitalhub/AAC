@@ -2,8 +2,6 @@ package it.smartcommunitylab.aac.config;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -19,11 +17,12 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import org.springframework.web.servlet.i18n.CookieLocaleResolver;
+import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.templates.LanguageHandlerInterceptor;
 import it.smartcommunitylab.aac.templates.TemplateHandlerInterceptor;
 
 /*
@@ -34,14 +33,17 @@ import it.smartcommunitylab.aac.templates.TemplateHandlerInterceptor;
 public class WebConfig implements WebMvcConfigurer {
 
     @Autowired
-    TemplateHandlerInterceptor templateInterceptor;
+    private TemplateHandlerInterceptor templateInterceptor;
 
-    @Bean
-    public CookieLocaleResolver getLocaleResolver() {
-        CookieLocaleResolver bean = new CookieLocaleResolver();
-        bean.setDefaultLocale(Locale.ITALY);
-        return bean;
-    }
+    @Autowired
+    private LocaleChangeInterceptor localeChangeInterceptor;
+
+    @Autowired
+    private LanguageHandlerInterceptor languageInterceptor;
+
+    /*
+     * ETag for cache
+     */
 
     @Bean
     FilterRegistrationBean<ShallowEtagHeaderFilter> shallowEtagBean() {
@@ -53,10 +55,18 @@ public class WebConfig implements WebMvcConfigurer {
         return filter;
     }
 
+    /*
+     * CORS
+     */
+
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**").allowedMethods("PUT", "DELETE", "GET", "POST").allowedOrigins("*");
     }
+
+    /*
+     * MVC config
+     */
 
     @Override
     public void configurePathMatch(final PathMatchConfigurer configurer) {
@@ -111,6 +121,8 @@ public class WebConfig implements WebMvcConfigurer {
      */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(localeChangeInterceptor);
+        registry.addInterceptor(languageInterceptor);
         registry.addInterceptor(templateInterceptor);
     }
 

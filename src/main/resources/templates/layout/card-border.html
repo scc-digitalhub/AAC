@@ -45,30 +45,59 @@
     <div class="container-sm">
 
         <div class="row mt-2 mt-md-4 justify-content-center">
-            <div class="col-xl-5 col-lg-6 col-md-8 col-sm-10 card-wrapper card-space">
-                <div class="card border mb-4"
-                    th:classappend="${error == null} ? 'border-primary' : 'border-danger border-3'">
+            <div class="col-xl-5 col-lg-6 col-md-8 col-sm-10">
+                <div class="card-wrapper">
+                    <div class="card border mb-4"
+                        th:classappend="${error == null} ? 'border-primary' : 'border-danger border-3'">
 
-                    <!-- card header -->
-                    <div>
-                        <div th:replace="partial/header :: card-header"></div>
+                        <!-- card header -->
+                        <div>
+                            <div th:replace="partial/header :: card-header"></div>
+                        </div>
+
+                        <!-- card body -->
+                        <div class="card-body align-items-center">
+
+                            <!-- card logo -->
+                            <div th:replace="partial/logo :: card-logo"></div>
+
+                            <!-- fragment content -->
+                            <div layout:fragment="content">Content</div>
+
+                        </div>
+
+                        <!-- card footer -->
+                        <div th:replace="partial/footer :: card-footer"></div>
+
                     </div>
-
-                    <!-- card body -->
-                    <div class="card-body align-items-center">
-
-                        <!-- card logo -->
-                        <div th:replace="partial/logo :: card-logo"></div>
-
-                        <!-- fragment content -->
-                        <div layout:fragment="content">Content</div>
-
-                    </div>
-
-                    <!-- card footer -->
-                    <div th:replace="partial/footer :: card-footer"></div>
-
                 </div>
+
+                <div class="footer-ext">
+                    <div th:if="${languages !=null}" class="language-switch pb-3 mb-3 ">
+                        <div class="btn-group">
+                            <button class="btn btn-sm text-right dropdown-toggle" type="button"
+                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                               
+                                <span th:text="#{'language.'+${language}}">lang</span>
+                                <svg class="icon-expand icon icon-sm">
+                                    <use th:xlink:href="@{/italia/svg/sprite.svg#it-expand}"></use>
+                                </svg>
+                            </button>
+                            <div class="dropdown-menu">
+                                <div class="link-list-wrapper">
+                                    <ul class="link-list">
+                                        <li th:each="lang : ${languages}">
+                                            <a class="dropdown-item list-item" th:href="${lang.url}">
+                                                <span th:text="${lang.label}">lang</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
 

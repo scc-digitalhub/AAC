@@ -12,7 +12,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import org.apache.commons.lang3.LocaleUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -445,7 +444,7 @@ public class DevManager {
         }
 
         // set locale from language
-        Locale locale = LocaleUtils.toLocale(language) != null ? LocaleUtils.toLocale(language) : ctx.getLocale();
+        Locale locale = StringUtils.parseLocale(language) != null ? StringUtils.parseLocale(language) : ctx.getLocale();
         ctx.setLocale(locale);
 
         // fetch template to ensure it exists

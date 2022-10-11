@@ -32,7 +32,8 @@ public class RealmTemplateProviderConfig
     }
 
     public Set<String> getLanguages() {
-        return languages != null ? languages : new TreeSet<>(Arrays.asList(LanguageService.LANGUAGES));
+        return (languages != null && !languages.isEmpty()) ? languages
+                : new TreeSet<>(Arrays.asList(LanguageService.LANGUAGES));
     }
 
     public void setLanguages(Set<String> languages) {
