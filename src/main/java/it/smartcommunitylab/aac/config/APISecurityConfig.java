@@ -43,7 +43,7 @@ public class APISecurityConfig {
         // match only API endpoints
         http.requestMatcher(getRequestMatcher())
                 .authorizeRequests((authorizeRequests) -> authorizeRequests
-                        .anyRequest().hasAnyAuthority(Config.R_USER, Config.R_CLIENT))
+                        .anyRequest().hasAnyAuthority(Config.R_USER, Config.R_ADMIN, Config.R_CLIENT))
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .opaqueToken(opaqueToken -> opaqueToken
                                 .introspector(tokenIntrospector)))

@@ -151,12 +151,16 @@ public class OAuth2ServerMetadataTest {
         // validate as URI
         assertDoesNotThrow(() -> {
             String issuer = (String) metadata.get("issuer");
-            URI uri = URI.create(issuer);
+            URI.create(issuer);
 
-            // no fragment or query allowed
-            assertThat(uri.getQuery()).isBlank();
-            assertThat(uri.getFragment()).isBlank();
         });
+
+        String issuer = (String) metadata.get("issuer");
+        URI uri = URI.create(issuer);
+
+        // no fragment or query allowed
+        assertThat(uri.getQuery()).isBlank();
+        assertThat(uri.getFragment()).isBlank();
     }
 
     /*

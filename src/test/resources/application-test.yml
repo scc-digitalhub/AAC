@@ -1,4 +1,3 @@
-  
 jdbc:
   dialect: org.hibernate.dialect.H2Dialect
   driver: org.h2.Driver
@@ -7,20 +6,10 @@ jdbc:
   password: ac
 
 logging:
-   level:
-      it.smartcommunitylab.aac: TRACE
-
-      
-oauth2:
-   jwt: true
-      
-# DEFAULT ADMIN CLIENT  
-adminClient:
-    id: test_client
-    secret: secret
-    scopes: clientmanagement,orgmanagement,apimanagement,openid,email,profile,user.roles.me,user.roles.read,profile.basicprofile.me,profile.accountprofile.me,profile.basicprofile.all,profile.accountprofile.all
-    redirects: http://localhost:8080
+  level:
+    it.smartcommunitylab.aac: TRACE
+    it.smartcommunitylab.aac.audit.AuthorizationEventListener: DEBUG
 
 #disable actuator
 management:
-   port: -1
+  port: -1
