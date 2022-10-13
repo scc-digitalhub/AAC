@@ -30,14 +30,13 @@ import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @ConstructorBinding
-@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
 @JsonSubTypes({
-        @Type(ConfigurableAccountService.class),
-        @Type(ConfigurableAttributeProvider.class),
-        @Type(ConfigurableCredentialsService.class),
-        @Type(ConfigurableIdentityProvider.class),
-        @Type(ConfigurableIdentityService.class),
-        @Type(ConfigurableTemplateProvider.class)
+        @Type(value = ConfigurableAccountService.class, name = SystemKeys.RESOURCE_ACCOUNT),
+        @Type(value = ConfigurableAttributeProvider.class, name = SystemKeys.RESOURCE_ATTRIBUTES),
+        @Type(value = ConfigurableCredentialsService.class, name = SystemKeys.RESOURCE_CREDENTIALS),
+        @Type(value = ConfigurableIdentityProvider.class, name = SystemKeys.RESOURCE_IDENTITY),
+        @Type(value = ConfigurableTemplateProvider.class, name = SystemKeys.RESOURCE_TEMPLATE)
 })
 public class ConfigurableProvider implements ConfigurableProperties {
 

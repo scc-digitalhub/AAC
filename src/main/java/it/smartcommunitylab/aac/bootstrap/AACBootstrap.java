@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.io.Resource;
@@ -68,6 +67,7 @@ import it.smartcommunitylab.aac.password.provider.PasswordCredentialsService;
 import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
 import it.smartcommunitylab.aac.services.Service;
 import it.smartcommunitylab.aac.services.ServicesManager;
+import it.smartcommunitylab.aac.services.ServicesService;
 
 @Component
 @Transactional
@@ -112,7 +112,7 @@ public class AACBootstrap {
     private ClientManager clientManager;
 
     @Autowired
-    private ServicesManager serviceManager;
+    private ServicesService serviceService;
 
     @Autowired
     private UserEntityService userService;
@@ -157,6 +157,8 @@ public class AACBootstrap {
             // build a security context as admin to bootstrap configs
             // initContext(adminUsername);
 
+            bootstrapSystemProviders();
+
             // bootstrap admin account
             // use first active service for system, from authority
             // we expect a single service anyway
@@ -186,6 +188,11 @@ public class AACBootstrap {
             logger.error("error bootstrapping: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    private void bootstrapSystemProviders() {
+        // bootstrap only idps
+        bootstrapIdentityProviders(SystemKeys.REALM_SYSTEM);
     }
 
     private void bootstrapIdentityProviders(String realm) {
@@ -458,6 +465,9 @@ public class AACBootstrap {
                             return;
                         }
 
+                        // enforce realm
+                        cp.setRealm(slug);
+
                         // validate id
                         if (!StringUtils.hasText(cp.getProvider())) {
                             // we ask id to be provided otherwise we would create a new one every time
@@ -479,6 +489,12 @@ public class AACBootstrap {
 
                                 p = identityProviderService.addProvider(slug, cp);
                             } else {
+                                // check again realm match over existing
+                                if (!slug.equals(p.getRealm())) {
+                                    logger.error("error creating identity provider, realm mismatch");
+                                    return;
+                                }
+
                                 logger.debug("update identity provider {} for realm {}", providerId,
                                         String.valueOf(cp.getRealm()));
 
@@ -515,6 +531,9 @@ public class AACBootstrap {
                             return;
                         }
 
+                        // enforce realm
+                        cp.setRealm(slug);
+
                         // validate id
                         if (!StringUtils.hasText(cp.getProvider())) {
                             // we ask id to be provided otherwise we would create a new one every time
@@ -535,6 +554,12 @@ public class AACBootstrap {
                                         String.valueOf(cp.getRealm()));
                                 p = attributeProviderService.addProvider(slug, cp);
                             } else {
+                                // check again realm match over existing
+                                if (!slug.equals(p.getRealm())) {
+                                    logger.error("error creating attribute provider, realm mismatch");
+                                    return;
+                                }
+
                                 logger.debug("update attribute provider {} for realm {}", providerId,
                                         String.valueOf(cp.getRealm()));
 
@@ -569,6 +594,9 @@ public class AACBootstrap {
                     if (StringUtils.hasText(cp.getRealm()) && !slug.equals(cp.getRealm())) {
                         logger.error("error creating template provider, realm mismatch");
                     } else {
+                        // enforce realm
+                        cp.setRealm(slug);
+
                         if (logger.isTraceEnabled()) {
                             logger.trace("provider: {}", String.valueOf(cp));
                         }
@@ -582,6 +610,12 @@ public class AACBootstrap {
 
                                 p = templateProviderService.addProvider(slug, cp);
                             } else {
+                                // check again realm match over existing
+                                if (!slug.equals(p.getRealm())) {
+                                    logger.error("error creating template provider, realm mismatch");
+                                    return;
+                                }
+
                                 logger.debug("update template provider {} for realm {}", providerId,
                                         String.valueOf(cp.getRealm()));
 
@@ -598,6 +632,9 @@ public class AACBootstrap {
                                             + e.getMessage());
                         }
                     }
+                } else {
+                    // check if exists via default bootstrap
+                    bootstrapTemplateProviders(slug);
                 }
 
                 /*
@@ -612,6 +649,9 @@ public class AACBootstrap {
                             logger.error("error creating service, realm mismatch");
                             return;
                         }
+
+                        // enforce realm
+                        s.setRealm(slug);
 
                         // validate id
                         if (!StringUtils.hasText(s.getServiceId())) {
@@ -633,18 +673,25 @@ public class AACBootstrap {
                         try {
                             // add or update via service
                             String id = s.getServiceId();
-                            Service service = serviceManager.findService(s.getRealm(), id);
+                            Service service = serviceService.findService(id);
                             if (service == null) {
                                 logger.debug("add service {} for realm {}", id, String.valueOf(s.getRealm()));
 
-                                service = serviceManager.addService(s.getRealm(), s);
+                                service = serviceService.addService(s.getRealm(), id, s.getNamespace(), s.getName(),
+                                        s.getDescription());
                             } else {
-                                logger.debug("add service {} for realm {}", id, String.valueOf(s.getRealm()));
+                                // check again realm match over existing
+                                if (!slug.equals(service.getRealm())) {
+                                    logger.error("error creating service, realm mismatch");
+                                    return;
+                                }
 
-                                service = serviceManager.updateService(s.getRealm(), s.getServiceId(), s);
+                                logger.debug("update service {} for realm {}", id, String.valueOf(s.getRealm()));
+
+                                service = serviceService.updateService(id, s.getName(), s.getDescription(), null);
                             }
 
-                        } catch (RegistrationException | NoSuchRealmException | NoSuchServiceException e) {
+                        } catch (RegistrationException | NoSuchServiceException e) {
                             logger.error(
                                     "error creating service " + String.valueOf(s.getServiceId()) + ": "
                                             + e.getMessage());
@@ -654,49 +701,55 @@ public class AACBootstrap {
 
                 /*
                  * ClientApp
+                 * 
+                 * TODO use service in place of manager to avoid permissions
                  */
-                if (rc.getClientApps() != null) {
-                    rc.getClientApps().forEach(app -> {
-                        logger.debug("create client app for realm {}", String.valueOf(app.getRealm()));
-
-                        // validate realm match
-                        if (!StringUtils.hasText(app.getRealm()) || !slug.equals(app.getRealm())) {
-                            logger.error("error creating service, realm mismatch");
-                            return;
-                        }
-                        if (!StringUtils.hasText(app.getClientId())) {
-                            // we ask id to be provided otherwise we create a new one every time
-                            logger.error("error creating client, missing clientId");
-                            throw new IllegalArgumentException("missing clientId");
-                        }
-
-                        if (logger.isTraceEnabled()) {
-                            logger.trace("app: {}", String.valueOf(app));
-                        }
-
-                        try {
-                            String clientId = app.getClientId();
-                            ClientApp client = clientManager.findClientApp(app.getRealm(), clientId);
-
-                            if (client == null) {
-                                logger.debug("add client app {} for realm {}", clientId,
-                                        String.valueOf(app.getRealm()));
-
-                                client = clientManager.registerClientApp(app.getRealm(), app);
-                            } else {
-                                logger.debug("update client app {} for realm {}", clientId,
-                                        String.valueOf(app.getRealm()));
-
-                                client = clientManager.updateClientApp(app.getRealm(), app.getClientId(), app);
-                            }
-
-                        } catch (RegistrationException | NoSuchClientException | NoSuchRealmException e) {
-                            logger.error(
-                                    "error creating client app " + String.valueOf(app.getClientId()) + ": "
-                                            + e.getMessage());
-                        }
-                    });
-                }
+//                if (rc.getClientApps() != null) {
+//                    rc.getClientApps().forEach(app -> {
+//                        logger.debug("create client app for realm {}", String.valueOf(app.getRealm()));
+//
+//                        // validate realm match
+//                        if (!StringUtils.hasText(app.getRealm()) || !slug.equals(app.getRealm())) {
+//                            logger.error("error creating service, realm mismatch");
+//                            return;
+//                        }
+//                
+//                        //enforce realm
+//                        app.setRealm(slug);
+//                
+//                        if (!StringUtils.hasText(app.getClientId())) {
+//                            // we ask id to be provided otherwise we create a new one every time
+//                            logger.error("error creating client, missing clientId");
+//                            throw new IllegalArgumentException("missing clientId");
+//                        }
+//
+//                        if (logger.isTraceEnabled()) {
+//                            logger.trace("app: {}", String.valueOf(app));
+//                        }
+//
+//                        try {
+//                            String clientId = app.getClientId();
+//                            ClientApp client = clientManager.findClientApp(app.getRealm(), clientId);
+//
+//                            if (client == null) {
+//                                logger.debug("add client app {} for realm {}", clientId,
+//                                        String.valueOf(app.getRealm()));
+//
+//                                client = clientManager.registerClientApp(app.getRealm(), app);
+//                            } else {
+//                                logger.debug("update client app {} for realm {}", clientId,
+//                                        String.valueOf(app.getRealm()));
+//
+//                                client = clientManager.updateClientApp(app.getRealm(), app.getClientId(), app);
+//                            }
+//
+//                        } catch (RegistrationException | NoSuchClientException | NoSuchRealmException e) {
+//                            logger.error(
+//                                    "error creating client app " + String.valueOf(app.getClientId()) + ": "
+//                                            + e.getMessage());
+//                        }
+//                    });
+//                }
 
                 /*
                  * User Accounts
