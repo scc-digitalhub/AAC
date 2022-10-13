@@ -3,6 +3,7 @@ package it.smartcommunitylab.aac.core;
 import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -15,32 +16,25 @@ import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.core.authorities.AuthorityService;
 import it.smartcommunitylab.aac.core.authorities.ProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
-import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
 import it.smartcommunitylab.aac.core.service.ConfigurableProviderService;
 import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.model.Realm;
 
-public abstract class ConfigurableProviderManager<C extends ConfigurableProvider, A extends ProviderAuthority<?, ?, C, ?, ?>> {
+public abstract class ConfigurableProviderManager<C extends ConfigurableProvider, A extends ProviderAuthority<?, ?, C, ?, ?>>
+        implements InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final ConfigurableProviderService<C, ? extends ProviderEntity> providerService;
-
-    private final AuthorityService<A> providerAuthorityService;
+    private final ConfigurableProviderService<A, C, ? extends ProviderEntity> providerService;
 
     private RealmService realmService;
 
-    public ConfigurableProviderManager(ConfigurableProviderService<C, ? extends ProviderEntity> providerService,
-            AuthorityService<A> providerAuthorityService) {
+    public ConfigurableProviderManager(ConfigurableProviderService<A, C, ? extends ProviderEntity> providerService) {
         Assert.notNull(providerService, "provider service is required");
-        Assert.notNull(providerAuthorityService, "authority service is required");
-
         this.providerService = providerService;
-        this.providerAuthorityService = providerAuthorityService;
     }
 
     @Autowired
@@ -48,10 +42,14 @@ public abstract class ConfigurableProviderManager<C extends ConfigurableProvider
         this.realmService = realmService;
     }
 
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        Assert.notNull(realmService, "realm service can not be null");
+    }
+
     /*
      * Configurable Providers
      */
-
     public Collection<C> listProviders(String realm) throws NoSuchRealmException {
         if (SystemKeys.REALM_GLOBAL.equals(realm) || SystemKeys.REALM_SYSTEM.equals(realm)) {
             return providerService.listProviders(realm);
@@ -87,9 +85,8 @@ public abstract class ConfigurableProviderManager<C extends ConfigurableProvider
 
         // deprecated, let controllers/managers ask for status where needed
         // this does not pertain to configuration
-        boolean isActive = providerAuthorityService.getAuthority(cp.getAuthority())
-                .hasProvider(cp.getProvider());
-        cp.setRegistered(isActive);
+        boolean isRegistered = providerService.isProviderRegistered(providerId);
+        cp.setRegistered(isRegistered);
 
         return cp;
     }
@@ -151,12 +148,10 @@ public abstract class ConfigurableProviderManager<C extends ConfigurableProvider
             throw new IllegalArgumentException("realm does not match provider");
         }
 
-        // check if active, we don't support delete for active providers
-        boolean isActive = providerAuthorityService.getAuthority(cp.getAuthority())
-                .hasProvider(cp.getProvider());
-
-        if (isActive) {
-            throw new IllegalArgumentException("active providers can not be deleted");
+        // check if registered, we don't support delete for active providers
+        boolean isRegistered = providerService.isProviderRegistered(providerId);
+        if (isRegistered) {
+            throw new IllegalArgumentException("registered providers can not be deleted");
         }
 
         providerService.deleteProvider(providerId);
@@ -180,18 +175,16 @@ public abstract class ConfigurableProviderManager<C extends ConfigurableProvider
             throw new IllegalArgumentException("realm does not match provider");
         }
 
-        // check if active
-        boolean isActive = providerAuthorityService.getAuthority(ip.getAuthority())
-                .hasProvider(ip.getProvider());
-        if (isActive) {
+        // check if registered
+        boolean isRegistered = providerService.isProviderRegistered(ip.getProvider());
+        if (isRegistered) {
             // make a quick unload
-            providerAuthorityService.getAuthority(ip.getAuthority()).unregisterProvider(ip.getProvider());
-            isActive = providerAuthorityService.getAuthority(ip.getAuthority())
-                    .hasProvider(ip.getProvider());
+            providerService.unregisterProvider(ip.getProvider());
+            isRegistered = providerService.isProviderRegistered(ip.getProvider());
         }
 
-        if (isActive) {
-            throw new IllegalArgumentException("active providers can not be registered again");
+        if (isRegistered) {
+            throw new IllegalArgumentException("registered providers can not be registered again");
         }
 
         // check if already enabled in config, or update
@@ -200,10 +193,10 @@ public abstract class ConfigurableProviderManager<C extends ConfigurableProvider
             ip = providerService.updateProvider(providerId, ip);
         }
 
-        ConfigurableResourceProvider<?, ?, ?, ?> idp = providerAuthorityService.getAuthority(ip.getAuthority())
-                .registerProvider(ip);
-        isActive = idp != null;
-        ip.setRegistered(isActive);
+        // register
+        providerService.registerProvider(providerId);
+        isRegistered = providerService.isProviderRegistered(ip.getProvider());
+        ip.setRegistered(isRegistered);
 
         return ip;
     }
@@ -232,14 +225,13 @@ public abstract class ConfigurableProviderManager<C extends ConfigurableProvider
             cp = providerService.updateProvider(providerId, cp);
         }
 
-        // check if active
-        boolean isActive = providerAuthorityService.getAuthority(cp.getAuthority())
-                .hasProvider(cp.getProvider());
+        // check if registered
+        boolean isRegistered = providerService.isProviderRegistered(providerId);
 
-        if (isActive) {
-            providerAuthorityService.getAuthority(cp.getAuthority()).unregisterProvider(cp.getProvider());
-            isActive = false;
-            cp.setRegistered(isActive);
+        if (isRegistered) {
+            providerService.unregisterProvider(cp.getProvider());
+            isRegistered = false;
+            cp.setRegistered(isRegistered);
         }
 
         return cp;
@@ -251,10 +243,13 @@ public abstract class ConfigurableProviderManager<C extends ConfigurableProvider
      * Support checking registration status
      */
     public boolean isProviderRegistered(String realm, C provider) throws SystemException {
+        if (provider == null) {
+            return false;
+        }
+
         try {
-            return providerAuthorityService.getAuthority(provider.getAuthority())
-                    .hasProvider(provider.getProvider());
-        } catch (NoSuchAuthorityException e) {
+            return providerService.isProviderRegistered(provider.getProvider());
+        } catch (NoSuchAuthorityException | NoSuchProviderException e) {
             return false;
         }
     }

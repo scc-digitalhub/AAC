@@ -1,9 +1,11 @@
 package it.smartcommunitylab.aac.core.service;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
@@ -13,13 +15,15 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.DataBinder;
+
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.config.IdentityAuthoritiesProperties;
 import it.smartcommunitylab.aac.config.ProvidersProperties;
-import it.smartcommunitylab.aac.config.ProvidersProperties.ProviderConfiguration;
+import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
+import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.persistence.IdentityProviderEntity;
 import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
@@ -27,14 +31,13 @@ import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 @Service
 @Transactional
 public class IdentityProviderService
-        extends ConfigurableProviderService<ConfigurableIdentityProvider, IdentityProviderEntity> {
+        extends
+        ConfigurableProviderService<IdentityProviderAuthority<?, ?, ?, ?>, ConfigurableIdentityProvider, IdentityProviderEntity> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private IdentityProviderAuthorityService authorityService;
-
-    public IdentityProviderService(ConfigurableProviderEntityService<IdentityProviderEntity> providerService,
-            IdentityAuthoritiesProperties authoritiesProperties, ProvidersProperties providers) {
-        super(providerService);
+    public IdentityProviderService(IdentityProviderAuthorityService authorityService,
+            ConfigurableProviderEntityService<IdentityProviderEntity> providerService) {
+        super(authorityService, providerService);
 
         // set converters
         this.setConfigConverter(new IdentityProviderConfigConverter());
@@ -59,75 +62,80 @@ public class IdentityProviderService
                 SystemKeys.REALM_SYSTEM);
         logger.debug("configure internal password idp for system realm");
         systemProviders.put(internalPasswordIdpConfig.getProvider(), internalPasswordIdpConfig);
+    }
 
+    @Autowired
+    private void setProviderProperties(ProvidersProperties providers) {
         // system providers
         if (providers != null) {
             // identity providers
-            for (ProviderConfiguration providerConfig : providers.getIdentity()) {
+            for (ConfigurableIdentityProvider cp : providers.getIdentity()) {
+                if (cp == null || !cp.isEnabled()) {
+                    continue;
+                }
+                String authority = cp.getAuthority();
+                if (!StringUtils.hasText(authority)) {
+                    continue;
+                }
+
+                // we handle only system providers, add others via bootstrap
+                if (StringUtils.hasText(cp.getRealm()) && !SystemKeys.REALM_SYSTEM.equals(cp.getRealm())) {
+                    logger.debug("skip provider {} for realm {}", cp.getAuthority(), String.valueOf(cp.getRealm()));
+                    continue;
+                }
+
+                String providerId = StringUtils.hasText(cp.getProvider()) ? cp.getProvider()
+                        : RandomStringUtils.randomAlphanumeric(10);
+                logger.debug("configure provider {}:{} for realm system", authority, providerId);
+                if (logger.isTraceEnabled()) {
+                    logger.trace("provider config: {}", String.valueOf(cp.getConfiguration()));
+                }
+
                 try {
-                    // check match, we import only idps
-                    if (!SystemKeys.RESOURCE_IDENTITY.equals(providerConfig.getType())) {
-                        continue;
+                    // we validate config by converting to specific configMap
+                    ConfigurationProvider<?, ?, ?> configProvider = getConfigurationProvider(authority);
+                    ConfigMap configurable = configProvider.getConfigMap(cp.getConfiguration());
+
+                    // check with validator
+                    if (validator != null) {
+                        DataBinder binder = new DataBinder(configurable);
+                        validator.validate(configurable, binder.getBindingResult());
+                        if (binder.getBindingResult().hasErrors()) {
+                            StringBuilder sb = new StringBuilder();
+                            binder.getBindingResult().getFieldErrors().forEach(e -> {
+                                sb.append(e.getField()).append(" ").append(e.getDefaultMessage());
+                            });
+                            String errorMsg = sb.toString();
+                            throw new RegistrationException(errorMsg);
+                        }
                     }
 
-                    if (providerConfig.getEnable() != null && !providerConfig.isEnabled()) {
-                        continue;
-                    }
+                    Map<String, Serializable> configuration = configurable.getConfiguration();
 
-                    // we handle only system providers, add others via bootstrap
-                    if (SystemKeys.REALM_SYSTEM.equals(providerConfig.getRealm())
-                            || !StringUtils.hasText(providerConfig.getRealm())) {
-                        logger.debug(
-                                "configure provider for " + providerConfig.getType() + " for system realm: "
-                                        + providerConfig.toString());
+                    // build a new config to detach from props
+                    ConfigurableIdentityProvider cip = new ConfigurableIdentityProvider(authority, providerId,
+                            SystemKeys.REALM_SYSTEM);
+                    cip.setName(cp.getName());
+                    cip.setTitleMap(cp.getTitleMap());
+                    cip.setDescriptionMap(cip.getDescriptionMap());
 
-                        // translate config
-                        ConfigurableIdentityProvider provider = new ConfigurableIdentityProvider(
-                                providerConfig.getAuthority(),
-                                providerConfig.getProvider(), SystemKeys.REALM_SYSTEM);
-                        provider.setName(providerConfig.getName());
-                        provider.setTitleMap(providerConfig.getTitle());
-                        provider.setDescriptionMap(providerConfig.getDescription());
-                        provider.setEnabled(true);
-                        for (Map.Entry<String, String> entry : providerConfig.getConfiguration().entrySet()) {
-                            provider.setConfigurationProperty(entry.getKey(), entry.getValue());
-                        }
+                    cip.setLinkable(true);
+                    cip.setPersistence(SystemKeys.PERSISTENCE_LEVEL_REPOSITORY);
+                    cip.setEvents(SystemKeys.EVENTS_LEVEL_DETAILS);
+                    cip.setPosition(cp.getPosition());
 
-                        // by default global providers persist account + attributes
-                        String persistenceLevel = SystemKeys.PERSISTENCE_LEVEL_REPOSITORY;
-                        if (StringUtils.hasText(providerConfig.getPersistence())) {
-                            // set persistence level
-                            persistenceLevel = providerConfig.getPersistence();
-                        }
-                        provider.setPersistence(persistenceLevel);
+                    cip.setEnabled(true);
+                    cip.setConfiguration(configuration);
 
-                        // set default event level
-                        String eventsLevel = SystemKeys.EVENTS_LEVEL_DETAILS;
-                        if (StringUtils.hasText(providerConfig.getEvents())) {
-                            // set persistence level
-                            eventsLevel = providerConfig.getEvents();
-                        }
-                        provider.setEvents(eventsLevel);
+                    // register
+                    systemProviders.put(providerId, cip);
 
-                        // register
-                        systemProviders.put(provider.getProvider(), provider);
-                    }
-                } catch (RegistrationException | SystemException | IllegalArgumentException ex) {
+                } catch (RegistrationException | SystemException | IllegalArgumentException
+                        | NoSuchAuthorityException ex) {
                     logger.error("error configuring provider :" + ex.getMessage(), ex);
                 }
             }
         }
-    }
-
-    @Autowired
-    public void setAuthorityService(IdentityProviderAuthorityService authorityService) {
-        this.authorityService = authorityService;
-    }
-
-    @Override
-    protected ConfigurationProvider<?, ?, ?> getConfigurationProvider(String authority)
-            throws NoSuchAuthorityException {
-        return authorityService.getAuthority(authority).getConfigurationProvider();
     }
 
     static class IdentityProviderEntityConverter

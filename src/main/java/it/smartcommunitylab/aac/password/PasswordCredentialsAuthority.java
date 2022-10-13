@@ -6,7 +6,7 @@ import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractCredentialsAuthority;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
-import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsService;
+import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.TranslatorProviderConfigRepository;
@@ -82,7 +82,7 @@ public class PasswordCredentialsAuthority extends
     }
 
     @Override
-    public PasswordCredentialsService registerProvider(ConfigurableCredentialsService cp) {
+    public PasswordCredentialsServiceConfig registerProvider(ConfigurableProvider cp) {
         throw new IllegalArgumentException("direct registration not supported");
     }
 

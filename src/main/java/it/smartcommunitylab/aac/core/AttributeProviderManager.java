@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.core.authorities.AttributeProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
-import it.smartcommunitylab.aac.core.service.AttributeProviderAuthorityService;
 import it.smartcommunitylab.aac.core.service.AttributeProviderService;
 
 @Service
@@ -14,9 +13,8 @@ import it.smartcommunitylab.aac.core.service.AttributeProviderService;
 public class AttributeProviderManager
         extends ConfigurableProviderManager<ConfigurableAttributeProvider, AttributeProviderAuthority<?, ?, ?>> {
 
-    public AttributeProviderManager(
-            AttributeProviderService providerService, AttributeProviderAuthorityService providerAuthorityService) {
-        super(providerService, providerAuthorityService);
+    public AttributeProviderManager(AttributeProviderService providerService) {
+        super(providerService);
     }
 
 }

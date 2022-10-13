@@ -50,9 +50,8 @@ public class TemplatesManager
     @Autowired
     private TemplateProviderAuthorityService authorityService;
 
-    public TemplatesManager(TemplateProviderService templateProviderService,
-            TemplateProviderAuthorityService templateProviderAuthorityService) {
-        super(templateProviderService, templateProviderAuthorityService);
+    public TemplatesManager(TemplateProviderService templateProviderService) {
+        super(templateProviderService);
     }
 
     /*

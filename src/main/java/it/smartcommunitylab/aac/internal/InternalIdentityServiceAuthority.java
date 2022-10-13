@@ -11,6 +11,7 @@ import it.smartcommunitylab.aac.core.authorities.CredentialsServiceAuthority;
 import it.smartcommunitylab.aac.core.authorities.IdentityServiceAuthority;
 import it.smartcommunitylab.aac.core.base.AbstractSingleProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityService;
+import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.TranslatorProviderConfigRepository;
@@ -90,7 +91,7 @@ public class InternalIdentityServiceAuthority
     }
 
     @Override
-    public InternalIdentityService registerProvider(ConfigurableIdentityService cp) {
+    public InternalIdentityServiceConfig registerProvider(ConfigurableProvider cp) {
         throw new IllegalArgumentException("direct registration not supported");
     }
 

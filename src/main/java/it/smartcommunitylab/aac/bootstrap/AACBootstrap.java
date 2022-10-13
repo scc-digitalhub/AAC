@@ -3,7 +3,6 @@ package it.smartcommunitylab.aac.bootstrap;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -30,43 +30,28 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
+import it.smartcommunitylab.aac.common.NoSuchClientException;
+import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.NoSuchServiceException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientManager;
-import it.smartcommunitylab.aac.core.authorities.AttributeProviderAuthority;
-import it.smartcommunitylab.aac.core.authorities.CredentialsServiceAuthority;
-import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
-import it.smartcommunitylab.aac.core.authorities.IdentityServiceAuthority;
+import it.smartcommunitylab.aac.core.authorities.AuthorityService;
 import it.smartcommunitylab.aac.core.authorities.TemplateProviderAuthority;
-import it.smartcommunitylab.aac.core.authorities.AccountServiceAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
-import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsService;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.model.ConfigurableIdentityService;
-import it.smartcommunitylab.aac.core.model.ConfigurableAccountService;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableTemplateProvider;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
-import it.smartcommunitylab.aac.core.provider.AccountService;
-import it.smartcommunitylab.aac.core.provider.AttributeProvider;
-import it.smartcommunitylab.aac.core.provider.IdentityProvider;
-import it.smartcommunitylab.aac.core.provider.IdentityService;
-import it.smartcommunitylab.aac.core.provider.TemplateProvider;
-import it.smartcommunitylab.aac.core.provider.AccountCredentialsService;
-import it.smartcommunitylab.aac.core.service.AttributeProviderAuthorityService;
+import it.smartcommunitylab.aac.core.provider.ProviderConfig;
+import it.smartcommunitylab.aac.core.provider.TemplateProviderConfig;
 import it.smartcommunitylab.aac.core.service.AttributeProviderService;
-import it.smartcommunitylab.aac.core.service.CredentialsServiceAuthorityService;
-import it.smartcommunitylab.aac.core.service.CredentialsServiceService;
-import it.smartcommunitylab.aac.core.service.IdentityProviderAuthorityService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderService;
-import it.smartcommunitylab.aac.core.service.IdentityServiceAuthorityService;
-import it.smartcommunitylab.aac.core.service.IdentityServiceService;
+import it.smartcommunitylab.aac.core.service.ProviderAuthorityService;
 import it.smartcommunitylab.aac.core.service.RealmService;
-import it.smartcommunitylab.aac.core.service.AccountServiceAuthorityService;
-import it.smartcommunitylab.aac.core.service.AccountServiceService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.TemplateProviderAuthorityService;
 import it.smartcommunitylab.aac.core.service.TemplateProviderService;
@@ -85,6 +70,7 @@ import it.smartcommunitylab.aac.services.Service;
 import it.smartcommunitylab.aac.services.ServicesManager;
 
 @Component
+@Transactional
 public class AACBootstrap {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -113,7 +99,7 @@ public class AACBootstrap {
     @Qualifier("yamlObjectMapper")
     private ObjectMapper yamlObjectMapper;
 
-//    @Autowired
+    @Autowired
     private BootstrapConfig config;
 
 //    @Autowired
@@ -135,21 +121,6 @@ public class AACBootstrap {
     private SubjectService subjectService;
 
     @Autowired
-    private IdentityProviderAuthorityService identityProviderAuthorityService;
-
-    @Autowired
-    private AttributeProviderAuthorityService attributeProviderAuthorityService;
-
-    @Autowired
-    private IdentityServiceAuthorityService identityServiceAuthorityService;
-
-    @Autowired
-    private AccountServiceAuthorityService accountServiceAuthorityService;
-
-    @Autowired
-    private CredentialsServiceAuthorityService credentialsServiceAuthorityService;
-
-    @Autowired
     private TemplateProviderAuthorityService templateProviderAuthorityService;
 
     @Autowired
@@ -157,15 +128,6 @@ public class AACBootstrap {
 
     @Autowired
     private AttributeProviderService attributeProviderService;
-
-    @Autowired
-    private IdentityServiceService identityServiceService;
-
-    @Autowired
-    private AccountServiceService accountServiceService;
-
-    @Autowired
-    private CredentialsServiceService credentialsServiceService;
 
     @Autowired
     private TemplateProviderService templateProviderService;
@@ -179,23 +141,21 @@ public class AACBootstrap {
     @Autowired
     private PasswordCredentialsAuthority passwordCredentialsAuthority;
 
+    @Autowired
+    private ProviderAuthorityService authorityService;
+
     @EventListener
-    public void onApplicationEvent(ApplicationReadyEvent event) {
+    public void onApplicationEvent(ApplicationStartedEvent event) {
+        bootstrap();
+    }
+
+    public void bootstrap() {
         try {
             // base initialization
-            logger.debug("application init");
-//            initServices();
+            logger.debug("application bootstrap");
 
             // build a security context as admin to bootstrap configs
             // initContext(adminUsername);
-
-//            if (authoritiesProps.getCustom() != null) {
-//                bootstrapCustomAuthorities(authoritiesProps.getCustom());
-//            }
-
-            // bootstrap providers
-            // TODO use a dedicated thread, or a multithread
-            bootstrapSystemProviders();
 
             // bootstrap admin account
             // use first active service for system, from authority
@@ -211,13 +171,8 @@ public class AACBootstrap {
                 bootstrapAdminUser(sysInternalIdp.get(), sysPasswordIdp.get());
             }
 
-            // bootstrap realm providers
-            bootstrapAccountServices();
-            bootstrapCredentialsServices();
-            bootstrapIdentityServices();
-            bootstrapIdentityProviders();
-            bootstrapAttributeProviders();
-            bootstrapTemplateProviders();
+            // validate and remediate realm provider configs
+            bootstrapRealmProviders();
 
             // custom bootstrap
             if (apply) {
@@ -233,16 +188,43 @@ public class AACBootstrap {
         }
     }
 
-    private void bootstrapSystemProviders()
-            throws NoSuchRealmException {
-        // idps
-        Collection<ConfigurableIdentityProvider> idps = identityProviderService.listProviders(SystemKeys.REALM_SYSTEM);
-        registerIdentityProviders(idps);
+    private void bootstrapIdentityProviders(String realm) {
+        identityProviderService.listProviders(realm).parallelStream().forEach(cp -> {
+            if (cp.isEnabled()) {
+                try {
+                    identityProviderService.registerProvider(cp.getProvider());
+                } catch (Exception e) {
+                    logger.error("error registering identity provider {}:{} for realm {}: {}",
+                            cp.getAuthority(), cp.getProvider(), cp.getRealm(),
+                            e.getMessage());
 
-        // nothing else to register for system
+                    if (logger.isTraceEnabled()) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
     }
 
-    private void bootstrapAccountServices() {
+    private void bootstrapAttributeProviders(String realm) {
+        attributeProviderService.listProviders(realm).parallelStream().forEach(cp -> {
+            if (cp.isEnabled()) {
+                try {
+                    attributeProviderService.registerProvider(cp.getProvider());
+                } catch (Exception e) {
+                    logger.error("error registering attribute provider {}:{} for realm {}: {}",
+                            cp.getAuthority(), cp.getProvider(), cp.getRealm(),
+                            e.getMessage());
+
+                    if (logger.isTraceEnabled()) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+    }
+
+    private void bootstrapRealmProviders() {
         // load all realm providers from storage
         Collection<Realm> realms = realmService.listUserRealms();
 
@@ -250,279 +232,50 @@ public class AACBootstrap {
         // we use parallel to leverage default threadpool, loading should be thread-safe
         realms.parallelStream().forEach(realm -> {
             String slug = realm.getSlug();
-            Collection<ConfigurableAccountService> idss = accountServiceService.listProviders(slug);
-            // register
-            registerAccountServices(idss);
+
+            // load providers in order, single thread
+            bootstrapTemplateProviders(slug);
+            bootstrapIdentityProviders(slug);
+            bootstrapAttributeProviders(slug);
         });
     }
 
-    private List<AccountService<?, ?, ?>> registerAccountServices(
-            Collection<ConfigurableAccountService> idss) {
-        Map<String, AccountServiceAuthority<?, ?, ?, ?>> ias = accountServiceAuthorityService
-                .getAuthorities().stream()
-                .collect(Collectors.toMap(a -> a.getAuthorityId(), a -> a));
+    private void bootstrapTemplateProviders(String realm) {
+        // load all
+        Collection<ConfigurableTemplateProvider> providers = templateProviderService.listProviders(realm);
 
-        List<AccountService<?, ?, ?>> services = new ArrayList<>();
+        // make sure there is always a default provider available
+        // use authority.realm slug as id
+        String id = SystemKeys.AUTHORITY_TEMPLATE + SystemKeys.SLUG_SEPARATOR + realm;
 
-        for (ConfigurableAccountService ids : idss) {
-            // try register
-            if (ids.isEnabled()) {
-                try {
-                    // register directly with authority
-                    AccountServiceAuthority<?, ?, ?, ?> ia = ias.get(ids.getAuthority());
-                    if (ia == null) {
-                        throw new IllegalArgumentException("no authority for " + String.valueOf(ids.getAuthority()));
-                    }
+        if (providers.isEmpty()
+                || providers.stream().noneMatch(i -> (i.getAuthority().equals(SystemKeys.AUTHORITY_TEMPLATE)
+                        && i.getProvider().equals(id)))) {
 
-                    AccountService<?, ?, ?> p = ia.registerProvider(ids);
-                    services.add(p);
-                } catch (Exception e) {
-                    logger.error("error registering provider " + ids.getProvider() + " for realm "
-                            + ids.getRealm() + ": " + e.getMessage());
-
-                    if (logger.isTraceEnabled()) {
-                        e.printStackTrace();
-                    }
+            // build one and register
+            ConfigurableTemplateProvider p = new ConfigurableTemplateProvider(
+                    SystemKeys.AUTHORITY_TEMPLATE, id, realm);
+            try {
+                p = templateProviderService.addProvider(realm, p);
+                templateProviderService.registerProvider(p.getProvider());
+            } catch (RegistrationException | SystemException | NoSuchAuthorityException | NoSuchRealmException
+                    | NoSuchProviderException e) {
+                // skip
+                logger.error("error creating provider " + p.getProvider() + " for realm "
+                        + p.getRealm() + ": " + e.getMessage());
+                if (logger.isTraceEnabled()) {
+                    e.printStackTrace();
                 }
             }
         }
-
-        return services;
     }
 
-    private void bootstrapCredentialsServices() {
-        // load all realm providers from storage
-        Collection<Realm> realms = realmService.listUserRealms();
-
-        // we iterate by realm to load consistently each realm
-        // we use parallel to leverage default threadpool, loading should be thread-safe
-        realms.parallelStream().forEach(realm -> {
-            String slug = realm.getSlug();
-            Collection<ConfigurableCredentialsService> css = credentialsServiceService.listProviders(slug);
-            registerCredentialsServices(css);
-        });
-    }
-
-    private List<AccountCredentialsService<?, ?, ?>> registerCredentialsServices(
-            Collection<ConfigurableCredentialsService> css) {
-        Map<String, CredentialsServiceAuthority<?, ?, ?, ?>> cas = credentialsServiceAuthorityService
-                .getAuthorities().stream()
-                .collect(Collectors.toMap(a -> a.getAuthorityId(), a -> a));
-
-        List<AccountCredentialsService<?, ?, ?>> services = new ArrayList<>();
-
-        for (ConfigurableCredentialsService cs : css) {
-            // try register
-            if (cs.isEnabled()) {
-                try {
-                    // register directly with authority
-                    CredentialsServiceAuthority<?, ?, ?, ?> ca = cas.get(cs.getAuthority());
-                    if (ca == null) {
-                        throw new IllegalArgumentException("no authority for " + String.valueOf(cs.getAuthority()));
-                    }
-
-                    AccountCredentialsService<?, ?, ?> s = ca.registerProvider(cs);
-                    services.add(s);
-                } catch (Exception e) {
-                    logger.error("error registering provider " + cs.getProvider() + " for realm "
-                            + cs.getRealm() + ": " + e.getMessage());
-
-                    if (logger.isTraceEnabled()) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-
-        return services;
-    }
-
-    private void bootstrapIdentityServices() {
-        // load all realm providers from storage
-        Collection<Realm> realms = realmService.listUserRealms();
-
-        // we iterate by realm to load consistently each realm
-        // we use parallel to leverage default threadpool, loading should be thread-safe
-        realms.parallelStream().forEach(realm -> {
-            String slug = realm.getSlug();
-            Collection<ConfigurableIdentityService> idss = identityServiceService.listProviders(slug);
-            // register
-            registerIdentityServices(idss);
-        });
-    }
-
-    private List<IdentityService<?, ?, ?, ?>> registerIdentityServices(
-            Collection<ConfigurableIdentityService> idss) {
-        Map<String, IdentityServiceAuthority<?, ?, ?, ?, ?>> ias = identityServiceAuthorityService
-                .getAuthorities().stream()
-                .collect(Collectors.toMap(a -> a.getAuthorityId(), a -> a));
-
-        List<IdentityService<?, ?, ?, ?>> services = new ArrayList<>();
-
-        for (ConfigurableIdentityService ids : idss) {
-            // try register
-            if (ids.isEnabled()) {
-                try {
-                    // register directly with authority
-                    IdentityServiceAuthority<?, ?, ?, ?, ?> ia = ias.get(ids.getAuthority());
-                    if (ia == null) {
-                        throw new IllegalArgumentException("no authority for " + String.valueOf(ids.getAuthority()));
-                    }
-
-                    IdentityService<?, ?, ?, ?> p = ia.registerProvider(ids);
-                    services.add(p);
-                } catch (Exception e) {
-                    logger.error("error registering provider " + ids.getProvider() + " for realm "
-                            + ids.getRealm() + ": " + e.getMessage());
-
-                    if (logger.isTraceEnabled()) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-
-        return services;
-    }
-
-    private void bootstrapIdentityProviders() {
-        // load all realm providers from storage
-        Collection<Realm> realms = realmService.listUserRealms();
-
-        // we iterate by realm to load consistently each realm
-        // we use parallel to leverage default threadpool, loading should be thread-safe
-        realms.parallelStream().forEach(realm -> {
-            Collection<ConfigurableIdentityProvider> idps = identityProviderService.listProviders(realm.getSlug());
-            // register
-            registerIdentityProviders(idps);
-        });
-    }
-
-    private List<IdentityProvider<?, ?, ?, ?, ?>> registerIdentityProviders(
-            Collection<ConfigurableIdentityProvider> idps) {
-        Map<String, IdentityProviderAuthority<?, ?, ?, ?>> ias = identityProviderAuthorityService
-                .getAuthorities().stream()
-                .collect(Collectors.toMap(a -> a.getAuthorityId(), a -> a));
-
-        List<IdentityProvider<?, ?, ?, ?, ?>> providers = new ArrayList<>();
-
-        for (ConfigurableIdentityProvider idp : idps) {
-            // try register
-            if (idp.isEnabled()) {
-                try {
-                    // register directly with authority
-                    IdentityProviderAuthority<?, ?, ?, ?> ia = ias.get(idp.getAuthority());
-                    if (ia == null) {
-                        throw new IllegalArgumentException("no authority for " + String.valueOf(idp.getAuthority()));
-                    }
-
-                    IdentityProvider<?, ?, ?, ?, ?> p = ia.registerProvider(idp);
-                    providers.add(p);
-                } catch (Exception e) {
-                    logger.error("error registering provider " + idp.getProvider() + " for realm "
-                            + idp.getRealm() + ": " + e.getMessage());
-
-                    if (logger.isTraceEnabled()) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-
-        return providers;
-    }
-
-    private void bootstrapAttributeProviders() {
-        // load all realm providers from storage
-        Collection<Realm> realms = realmService.listUserRealms();
-
-        // we iterate by realm to load consistently each realm
-        // we use parallel to leverage default threadpool, loading should be thread-safe
-        realms.parallelStream().forEach(realm -> {
-            Collection<ConfigurableAttributeProvider> providers = attributeProviderService
-                    .listProviders(realm.getSlug());
-
-            registerAttributeProviders(providers);
-        });
-    }
-
-    private List<AttributeProvider<?, ?>> registerAttributeProviders(Collection<ConfigurableAttributeProvider> as) {
-        Map<String, AttributeProviderAuthority<?, ?, ?>> ias = attributeProviderAuthorityService
-                .getAuthorities().stream()
-                .collect(Collectors.toMap(a -> a.getAuthorityId(), a -> a));
-
-        List<AttributeProvider<?, ?>> providers = new ArrayList<>();
-
-        for (ConfigurableAttributeProvider ap : as) {
-            // try register
-            if (ap.isEnabled()) {
-                try {
-                    // register directly with authority
-                    AttributeProviderAuthority<?, ?, ?> ia = ias.get(ap.getAuthority());
-                    if (ia == null) {
-                        throw new IllegalArgumentException(
-                                "no authority for " + String.valueOf(ap.getAuthority()));
-                    }
-
-                    AttributeProvider<?, ?> p = ia.registerProvider(ap);
-                    providers.add(p);
-                } catch (Exception e) {
-                    logger.error("error registering provider " + ap.getProvider() + " for realm "
-                            + ap.getRealm() + ": " + e.getMessage());
-
-                    if (logger.isTraceEnabled()) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-
-        return providers;
-    }
-
-    private void bootstrapTemplateProviders() {
-        // load all realm providers from storage
-        Collection<Realm> realms = realmService.listUserRealms();
-
-        // we iterate by realm to load consistently each realm
-        // we use parallel to leverage default threadpool, loading should be thread-safe
-        realms.parallelStream().forEach(realm -> {
-            Collection<ConfigurableTemplateProvider> providers = templateProviderService
-                    .listProviders(realm.getSlug());
-
-            // make sure there is always a default provider available
-            // use authority.realm slug as id
-            String id = SystemKeys.AUTHORITY_TEMPLATE + SystemKeys.SLUG_SEPARATOR + realm.getSlug();
-
-            if (providers.isEmpty()
-                    || providers.stream().noneMatch(i -> (i.getAuthority().equals(SystemKeys.AUTHORITY_TEMPLATE)
-                            && i.getProvider().equals(id)))) {
-                ConfigurableTemplateProvider p = new ConfigurableTemplateProvider(
-                        SystemKeys.AUTHORITY_TEMPLATE, id, realm.getSlug());
-                try {
-                    p = templateProviderService.addProvider(realm.getSlug(), p);
-                } catch (RegistrationException | SystemException | NoSuchAuthorityException e) {
-                    // skip
-                    logger.error("error creating provider " + p.getProvider() + " for realm "
-                            + p.getRealm() + ": " + e.getMessage());
-                    if (logger.isTraceEnabled()) {
-                        e.printStackTrace();
-                    }
-                }
-
-                // re-read list
-                providers = templateProviderService.listProviders(realm.getSlug());
-            }
-            registerTemplateProviders(providers);
-        });
-    }
-
-    private List<TemplateProvider<?, ?, ?>> registerTemplateProviders(Collection<ConfigurableTemplateProvider> tps) {
+    public List<TemplateProviderConfig<?>> registerTemplateProviders(Collection<ConfigurableTemplateProvider> tps) {
         Map<String, TemplateProviderAuthority<?, ?, ?, ?>> tas = templateProviderAuthorityService
                 .getAuthorities().stream()
                 .collect(Collectors.toMap(a -> a.getAuthorityId(), a -> a));
 
-        List<TemplateProvider<?, ?, ?>> providers = new ArrayList<>();
+        List<TemplateProviderConfig<?>> providers = new ArrayList<>();
 
         for (ConfigurableTemplateProvider tp : tps) {
             // try register
@@ -535,7 +288,7 @@ public class AACBootstrap {
                                 "no authority for " + String.valueOf(tp.getAuthority()));
                     }
 
-                    TemplateProvider<?, ?, ?> p = ta.registerProvider(tp);
+                    TemplateProviderConfig<?> p = ta.registerProvider(tp);
                     providers.add(p);
                 } catch (Exception e) {
                     logger.error("error registering provider " + tp.getProvider() + " for realm "
@@ -661,26 +414,25 @@ public class AACBootstrap {
         // read config
         config = yamlObjectMapper.readValue(res.getInputStream(), BootstrapConfig.class);
 
-        // TODO validation on imported beans
-
         /*
          * Realms creation
          */
-        logger.debug("create bootstrap realms");
+        logger.debug("bootstrap realms from config");
+        if (config.getRealms() == null) {
+            return;
+        }
 
-        // keep a cache of bootstrapped realms, we
-        // will process only content related to these realms
-        Map<String, Realm> realms = new HashMap<>();
+        config.getRealms().parallelStream().forEach(rc -> {
+            if (rc.getRealm() == null || !StringUtils.hasText(rc.getRealm().getSlug())) {
+                // we ask id to be provided otherwise we would create a new one every time
+                logger.error("error creating realm, missing slug");
+                return;
+            }
 
-        for (Realm r : config.getRealms()) {
+            String slug = rc.getRealm().getSlug();
 
             try {
-                if (!StringUtils.hasText(r.getSlug())) {
-                    // we ask id to be provided otherwise we create a new one every time
-                    logger.error("error creating realm, missing slug");
-                    throw new IllegalArgumentException("missing slug");
-                }
-
+                Realm r = rc.getRealm();
                 logger.debug("create or update realm " + r.getSlug());
 
                 Realm realm = realmService.findRealm(r.getSlug());
@@ -692,132 +444,271 @@ public class AACBootstrap {
                     realm = realmService.updateRealm(r.getSlug(), r.getName(), r.isEditable(), r.isPublic(), null);
                 }
 
-                // keep in cache
-                realms.put(realm.getSlug(), realm);
+                /*
+                 * IdP
+                 */
+                if (rc.getIdentityProviders() != null) {
+                    rc.getIdentityProviders().forEach(cp -> {
+
+                        logger.debug("create identity provider for realm {}", String.valueOf(cp.getRealm()));
+
+                        // validate realm match
+                        if (StringUtils.hasText(cp.getRealm()) && !slug.equals(cp.getRealm())) {
+                            logger.error("error creating identity provider, realm mismatch");
+                            return;
+                        }
+
+                        // validate id
+                        if (!StringUtils.hasText(cp.getProvider())) {
+                            // we ask id to be provided otherwise we would create a new one every time
+                            logger.error("error creating identity provider, missing id");
+                            throw new IllegalArgumentException("missing id");
+                        }
+
+                        if (logger.isTraceEnabled()) {
+                            logger.trace("provider: {}", String.valueOf(cp));
+                        }
+
+                        try {
+                            // add or update via service
+                            String providerId = cp.getProvider();
+                            ConfigurableIdentityProvider p = identityProviderService.findProvider(providerId);
+                            if (p == null) {
+                                logger.debug("add identity provider {} for realm {}", providerId,
+                                        String.valueOf(cp.getRealm()));
+
+                                p = identityProviderService.addProvider(slug, cp);
+                            } else {
+                                logger.debug("update identity provider {} for realm {}", providerId,
+                                        String.valueOf(cp.getRealm()));
+
+                                if (p.isEnabled()) {
+                                    identityProviderService.unregisterProvider(providerId);
+                                }
+
+                                p = identityProviderService.updateProvider(providerId, cp);
+                            }
+
+                            if (p.isEnabled()) {
+                                // register
+                                identityProviderService.registerProvider(p.getProvider());
+                            }
+                        } catch (RegistrationException | NoSuchRealmException | NoSuchProviderException
+                                | NoSuchAuthorityException e) {
+                            logger.error(
+                                    "error creating identity provider " + String.valueOf(cp.getProvider()) + ": "
+                                            + e.getMessage());
+                        }
+                    });
+                }
+
+                /*
+                 * Attribute providers
+                 */
+                if (rc.getAttributeProviders() != null) {
+                    rc.getAttributeProviders().forEach(cp -> {
+                        logger.debug("create attribute provider for realm {}", String.valueOf(cp.getRealm()));
+
+                        // validate realm match
+                        if (StringUtils.hasText(cp.getRealm()) && !slug.equals(cp.getRealm())) {
+                            logger.error("error creating attribute provider, realm mismatch");
+                            return;
+                        }
+
+                        // validate id
+                        if (!StringUtils.hasText(cp.getProvider())) {
+                            // we ask id to be provided otherwise we would create a new one every time
+                            logger.error("error creating attribute provider, missing id");
+                            throw new IllegalArgumentException("missing id");
+                        }
+
+                        if (logger.isTraceEnabled()) {
+                            logger.trace("provider: {}", String.valueOf(cp));
+                        }
+
+                        try {
+                            // add or update via service
+                            String providerId = cp.getProvider();
+                            ConfigurableAttributeProvider p = attributeProviderService.findProvider(providerId);
+                            if (p == null) {
+                                logger.debug("add attribute provider {} for realm {}", providerId,
+                                        String.valueOf(cp.getRealm()));
+                                p = attributeProviderService.addProvider(slug, cp);
+                            } else {
+                                logger.debug("update attribute provider {} for realm {}", providerId,
+                                        String.valueOf(cp.getRealm()));
+
+                                if (p.isEnabled()) {
+                                    attributeProviderService.unregisterProvider(providerId);
+                                }
+
+                                p = attributeProviderService.updateProvider(providerId, cp);
+                            }
+
+                            if (p.isEnabled()) {
+                                // register
+                                attributeProviderService.registerProvider(p.getProvider());
+                            }
+                        } catch (RegistrationException | NoSuchRealmException | NoSuchProviderException
+                                | NoSuchAuthorityException e) {
+                            logger.error(
+                                    "error creating attribute provider " + String.valueOf(cp.getProvider()) + ": "
+                                            + e.getMessage());
+                        }
+                    });
+                }
+
+                /*
+                 * Template provider
+                 */
+                if (rc.getTemplates() != null) {
+                    ConfigurableTemplateProvider cp = rc.getTemplates();
+                    logger.debug("create template provider for realm {}", String.valueOf(cp.getRealm()));
+
+                    // validate realm match
+                    if (StringUtils.hasText(cp.getRealm()) && !slug.equals(cp.getRealm())) {
+                        logger.error("error creating template provider, realm mismatch");
+                    } else {
+                        if (logger.isTraceEnabled()) {
+                            logger.trace("provider: {}", String.valueOf(cp));
+                        }
+                        try {
+                            // add or update via service
+                            String providerId = cp.getProvider();
+                            ConfigurableTemplateProvider p = templateProviderService.findProvider(providerId);
+                            if (p == null) {
+                                logger.debug("add template provider {} for realm {}", providerId,
+                                        String.valueOf(cp.getRealm()));
+
+                                p = templateProviderService.addProvider(slug, cp);
+                            } else {
+                                logger.debug("update template provider {} for realm {}", providerId,
+                                        String.valueOf(cp.getRealm()));
+
+                                templateProviderService.unregisterProvider(providerId);
+                                p = templateProviderService.updateProvider(providerId, cp);
+                            }
+
+                            // register
+                            templateProviderService.registerProvider(p.getProvider());
+                        } catch (RegistrationException | NoSuchRealmException | NoSuchProviderException
+                                | NoSuchAuthorityException e) {
+                            logger.error(
+                                    "error creating template provider " + String.valueOf(cp.getProvider()) + ": "
+                                            + e.getMessage());
+                        }
+                    }
+                }
+
+                /*
+                 * Services
+                 */
+                if (rc.getServices() != null) {
+                    rc.getServices().forEach(s -> {
+                        logger.debug("create service for realm {}", String.valueOf(s.getRealm()));
+
+                        // validate realm match
+                        if (!StringUtils.hasText(s.getRealm()) || !slug.equals(s.getRealm())) {
+                            logger.error("error creating service, realm mismatch");
+                            return;
+                        }
+
+                        // validate id
+                        if (!StringUtils.hasText(s.getServiceId())) {
+                            // we ask id to be provided otherwise we create a new one every time
+                            logger.error("error creating service, missing serviceId");
+                            throw new IllegalArgumentException("missing serviceId");
+                        }
+
+                        // validate namespace
+                        if (!StringUtils.hasText(s.getNamespace())) {
+                            logger.error("error creating service, missing namespace");
+                            throw new IllegalArgumentException("missing namespace");
+                        }
+
+                        if (logger.isTraceEnabled()) {
+                            logger.trace("service: {}", String.valueOf(s));
+                        }
+
+                        try {
+                            // add or update via service
+                            String id = s.getServiceId();
+                            Service service = serviceManager.findService(s.getRealm(), id);
+                            if (service == null) {
+                                logger.debug("add service {} for realm {}", id, String.valueOf(s.getRealm()));
+
+                                service = serviceManager.addService(s.getRealm(), s);
+                            } else {
+                                logger.debug("add service {} for realm {}", id, String.valueOf(s.getRealm()));
+
+                                service = serviceManager.updateService(s.getRealm(), s.getServiceId(), s);
+                            }
+
+                        } catch (RegistrationException | NoSuchRealmException | NoSuchServiceException e) {
+                            logger.error(
+                                    "error creating service " + String.valueOf(s.getServiceId()) + ": "
+                                            + e.getMessage());
+                        }
+                    });
+                }
+
+                /*
+                 * ClientApp
+                 */
+                if (rc.getClientApps() != null) {
+                    rc.getClientApps().forEach(app -> {
+                        logger.debug("create client app for realm {}", String.valueOf(app.getRealm()));
+
+                        // validate realm match
+                        if (!StringUtils.hasText(app.getRealm()) || !slug.equals(app.getRealm())) {
+                            logger.error("error creating service, realm mismatch");
+                            return;
+                        }
+                        if (!StringUtils.hasText(app.getClientId())) {
+                            // we ask id to be provided otherwise we create a new one every time
+                            logger.error("error creating client, missing clientId");
+                            throw new IllegalArgumentException("missing clientId");
+                        }
+
+                        if (logger.isTraceEnabled()) {
+                            logger.trace("app: {}", String.valueOf(app));
+                        }
+
+                        try {
+                            String clientId = app.getClientId();
+                            ClientApp client = clientManager.findClientApp(app.getRealm(), clientId);
+
+                            if (client == null) {
+                                logger.debug("add client app {} for realm {}", clientId,
+                                        String.valueOf(app.getRealm()));
+
+                                client = clientManager.registerClientApp(app.getRealm(), app);
+                            } else {
+                                logger.debug("update client app {} for realm {}", clientId,
+                                        String.valueOf(app.getRealm()));
+
+                                client = clientManager.updateClientApp(app.getRealm(), app.getClientId(), app);
+                            }
+
+                        } catch (RegistrationException | NoSuchClientException | NoSuchRealmException e) {
+                            logger.error(
+                                    "error creating client app " + String.valueOf(app.getClientId()) + ": "
+                                            + e.getMessage());
+                        }
+                    });
+                }
+
+                /*
+                 * User Accounts
+                 * 
+                 * TODO
+                 */
 
             } catch (Exception e) {
-                logger.error("error creating provider " + String.valueOf(r.getSlug()) + ": " + e.getMessage());
+                logger.error("error creating realm " + String.valueOf(slug) + ": " + e.getMessage());
                 e.printStackTrace();
             }
-        }
-
-        /*
-         * IdP
-         */
-        // keep a cache, we'll load users only to these providers
-        Map<String, ConfigurableProvider> providers = new HashMap<>();
-        for (ConfigurableProvider cp : config.getProviders()) {
-
-            try {
-                if (!realms.containsKey(cp.getRealm())) {
-                    // not managed here, skip
-                    continue;
-                }
-                if (!StringUtils.hasText(cp.getProvider())) {
-                    // we ask id to be provided otherwise we create a new one every time
-                    logger.error("error creating provider, missing id");
-                    throw new IllegalArgumentException("missing id");
-                }
-                // we support only idp for now
-                // TODO refactor, this doesn't work oob
-//                if (SystemKeys.RESOURCE_IDENTITY.equals(cp.getType())) {
-//                    ConfigurableIdentityProvider ip = (ConfigurableIdentityProvider) cp;
-//                    logger.debug("create or update provider " + cp.getProvider());
-//                    ConfigurableIdentityProvider provider = identityProviderManager.findProvider(cp.getRealm(),
-//                            cp.getProvider());
-//
-//                    if (provider == null) {
-//                        provider = identityProviderManager.addProvider(cp.getRealm(), ip);
-//                    } else {
-//                        provider = identityProviderManager.unregisterProvider(cp.getRealm(), cp.getProvider());
-//                        provider = identityProviderManager.updateProvider(cp.getRealm(), cp.getProvider(), ip);
-//                    }
-//
-//                    if (cp.isEnabled()) {
-//                        // register
-//                        if (!identityProviderManager.isProviderRegistered(cp.getRealm(), provider)) {
-//                            provider = identityProviderManager.registerProvider(provider.getRealm(),
-//                                    provider.getProvider());
-//                        }
-//                    }
-//
-//                    // keep in cache
-//                    providers.put(provider.getProvider(), provider);
-//
-//                }
-
-            } catch (Exception e) {
-                logger.error("error creating provider " + String.valueOf(cp.getProvider()) + ": " + e.getMessage());
-                e.printStackTrace();
-            }
-        }
-
-        /*
-         * Services
-         */
-        for (Service s : config.getServices()) {
-
-            try {
-                if (!StringUtils.hasText(s.getRealm()) || !realms.containsKey(s.getRealm())) {
-                    // not managed here, skip
-                    continue;
-                }
-                if (!StringUtils.hasText(s.getServiceId())) {
-                    // we ask id to be provided otherwise we create a new one every time
-                    logger.error("error creating service, missing serviceId");
-                    throw new IllegalArgumentException("missing serviceId");
-                }
-
-                if (!StringUtils.hasText(s.getNamespace())) {
-                    logger.error("error creating service, missing namespace");
-                    throw new IllegalArgumentException("missing namespace");
-                }
-
-                logger.debug("create or update service " + s.getServiceId());
-                Service service = serviceManager.findService(s.getRealm(), s.getServiceId());
-
-                if (service == null) {
-                    service = serviceManager.addService(s.getRealm(), s);
-                } else {
-                    service = serviceManager.updateService(s.getRealm(), s.getServiceId(), s);
-                }
-
-            } catch (Exception e) {
-                logger.error("error creating service " + String.valueOf(s.getServiceId()) + ": " + e.getMessage());
-                e.printStackTrace();
-            }
-        }
-
-        /*
-         * ClientApp
-         */
-        for (ClientApp ca : config.getClients()) {
-
-            try {
-                if (!StringUtils.hasText(ca.getRealm()) || !realms.containsKey(ca.getRealm())) {
-                    // not managed here, skip
-                    continue;
-                }
-                if (!StringUtils.hasText(ca.getClientId())) {
-                    // we ask id to be provided otherwise we create a new one every time
-                    logger.error("error creating client, missing clientId");
-                    throw new IllegalArgumentException("missing clientId");
-                }
-
-                logger.debug("create or update client " + ca.getClientId());
-                ClientApp client = clientManager.findClientApp(ca.getRealm(), ca.getClientId());
-
-                if (client == null) {
-                    client = clientManager.registerClientApp(ca.getRealm(), ca);
-                } else {
-                    client = clientManager.updateClientApp(ca.getRealm(), ca.getClientId(), ca);
-                }
-
-            } catch (Exception e) {
-                logger.error("error creating client " + String.valueOf(ca.getClientId()) + ": " + e.getMessage());
-                e.printStackTrace();
-            }
-        }
+        });
 
 //        // Internal users
 //        PasswordHash hasher = new PasswordHash();
@@ -904,7 +795,7 @@ public class AACBootstrap {
      * Call init on each service we expect services to be independent and to execute
      * in their own transaction to avoid rollback issues across services
      */
-    public void initServices() throws Exception {
+//    public void initServices() throws Exception {
 //        /*
 //         * Base user
 //         */
@@ -932,11 +823,39 @@ public class AACBootstrap {
 //        logger.trace("init client");
 //        clientManager.init();
 
-    }
+//    }
 
 //
 //    public void executeMigrations() {
 //
 //    }
+
+    public List<ProviderConfig<?, ?>> registerProviders(String type,
+            Collection<? extends ConfigurableProvider> cps) throws NoSuchProviderException {
+        AuthorityService<?> pas = authorityService.getAuthorityService(type);
+
+        List<ProviderConfig<?, ?>> configs = new ArrayList<>();
+
+        for (ConfigurableProvider cp : cps) {
+            // try register
+            if (cp.isEnabled()) {
+                try {
+                    // register directly with authority
+                    ProviderConfig<?, ?> c = pas.getAuthority(cp.getAuthority()).registerProvider(cp);
+                    configs.add(c);
+                } catch (Exception e) {
+                    logger.error("error registering provider {} {} for realm {}: {}",
+                            type, cp.getProvider(), cp.getRealm(),
+                            e.getMessage());
+
+                    if (logger.isTraceEnabled()) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+
+        return configs;
+    }
 
 }

@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.service.IdentityProviderAuthorityService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderService;
 
 @Service
@@ -14,9 +13,8 @@ import it.smartcommunitylab.aac.core.service.IdentityProviderService;
 public class IdentityProviderManager
         extends ConfigurableProviderManager<ConfigurableIdentityProvider, IdentityProviderAuthority<?, ?, ?, ?>> {
 
-    public IdentityProviderManager(IdentityProviderService identityProviderService,
-            IdentityProviderAuthorityService identityProviderAuthorityService) {
-        super(identityProviderService, identityProviderAuthorityService);
+    public IdentityProviderManager(IdentityProviderService identityProviderService) {
+        super(identityProviderService);
     }
 
 }

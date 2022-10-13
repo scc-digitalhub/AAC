@@ -15,15 +15,30 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
+import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 
 @Valid
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @ConstructorBinding
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
+@JsonSubTypes({
+        @Type(ConfigurableAccountService.class),
+        @Type(ConfigurableAttributeProvider.class),
+        @Type(ConfigurableCredentialsService.class),
+        @Type(ConfigurableIdentityProvider.class),
+        @Type(ConfigurableIdentityService.class),
+        @Type(ConfigurableTemplateProvider.class)
+})
 public class ConfigurableProvider implements ConfigurableProperties {
 
     @NotBlank

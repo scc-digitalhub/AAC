@@ -15,7 +15,7 @@ import it.smartcommunitylab.aac.attributes.store.PersistentAttributeStore;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityAuthority;
-import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
@@ -112,35 +112,26 @@ public class OIDCIdentityAuthority extends
     }
 
     @Override
-    public OIDCIdentityProvider registerProvider(ConfigurableIdentityProvider cp) {
-        if (cp != null
-                && getAuthorityId().equals(cp.getAuthority())
-                && SystemKeys.RESOURCE_IDENTITY.equals(cp.getType())) {
+    public OIDCIdentityProviderConfig registerProvider(ConfigurableProvider cp) {
+        // register and build via super
+        OIDCIdentityProviderConfig config = super.registerProvider(cp);
 
-            // fetch id from config
-            String providerId = cp.getProvider();
+        // fetch id from config
+        String providerId = cp.getProvider();
+        try {
+            // extract clientRegistration from config
+            ClientRegistration registration = config.getClientRegistration();
 
-            // register and build via super
-            OIDCIdentityProvider idp = super.registerProvider(cp);
+            // add client registration to registry
+            clientRegistrationRepository.addRegistration(registration);
 
-            try {
-                // extract clientRegistration from config
-                ClientRegistration registration = idp.getConfig().getClientRegistration();
+            return config;
+        } catch (Exception ex) {
+            // cleanup
+            clientRegistrationRepository.removeRegistration(providerId);
 
-                // add client registration to registry
-                clientRegistrationRepository.addRegistration(registration);
-
-                return idp;
-            } catch (Exception ex) {
-                // cleanup
-                clientRegistrationRepository.removeRegistration(providerId);
-
-                throw new RegistrationException("invalid provider configuration: " + ex.getMessage(), ex);
-            }
-        } else {
-            throw new IllegalArgumentException();
+            throw new RegistrationException("invalid provider configuration: " + ex.getMessage(), ex);
         }
-
     }
 
     @Override

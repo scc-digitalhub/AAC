@@ -5,62 +5,28 @@ import java.util.stream.Collectors;
 
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
+import it.smartcommunitylab.aac.core.authorities.IdentityServiceAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityService;
 import it.smartcommunitylab.aac.core.persistence.IdentityServiceEntity;
-import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 
 @Service
 @Transactional
 public class IdentityServiceService
-        extends ConfigurableProviderService<ConfigurableIdentityService, IdentityServiceEntity> {
+        extends
+        ConfigurableProviderService<IdentityServiceAuthority<?, ?, ?, ?, ?>, ConfigurableIdentityService, IdentityServiceEntity> {
 
-    private IdentityServiceAuthorityService authorityService;
-
-    public IdentityServiceService(ConfigurableProviderEntityService<IdentityServiceEntity> providerService) {
-        super(providerService);
+    public IdentityServiceService(IdentityServiceAuthorityService authorityService,
+            ConfigurableProviderEntityService<IdentityServiceEntity> providerService) {
+        super(authorityService, providerService);
 
         // set converters
         setConfigConverter(new IdentityServiceConfigConverter());
         setEntityConverter(new IdentityServiceEntityConverter());
-
-        // create system services
-        // internal service is exposed by internal idp
-//        // enable internal for system by default
-//        ConfigurableIdentityService internalConfig = new ConfigurableIdentityService(
-//                SystemKeys.AUTHORITY_INTERNAL, SystemKeys.AUTHORITY_INTERNAL,
-//                SystemKeys.REALM_SYSTEM);
-//        logger.debug("configure internal service for system realm");
-//        systemProviders.put(internalConfig.getProvider(), internalConfig);
-
-//        ConfigurableIdentityService oidcConfig = new ConfigurableIdentityService(
-//                SystemKeys.AUTHORITY_OIDC, SystemKeys.AUTHORITY_OIDC,
-//                SystemKeys.REALM_SYSTEM);
-//        logger.debug("configure oidc service for system realm");
-//        systemProviders.put(oidcConfig.getProvider(), oidcConfig);
-//
-//        ConfigurableIdentityService samlConfig = new ConfigurableIdentityService(
-//                SystemKeys.AUTHORITY_SAML, SystemKeys.AUTHORITY_SAML,
-//                SystemKeys.REALM_SYSTEM);
-//        logger.debug("configure saml service for system realm");
-//        systemProviders.put(samlConfig.getProvider(), samlConfig);
-    }
-
-    @Autowired
-    public void setAuthorityService(IdentityServiceAuthorityService authorityService) {
-        this.authorityService = authorityService;
-    }
-
-    @Override
-    protected ConfigurationProvider<?, ?, ?> getConfigurationProvider(String authority)
-            throws NoSuchAuthorityException {
-        return authorityService.getAuthority(authority).getConfigurationProvider();
     }
 
     class IdentityServiceConfigConverter implements Converter<ConfigurableIdentityService, IdentityServiceEntity> {

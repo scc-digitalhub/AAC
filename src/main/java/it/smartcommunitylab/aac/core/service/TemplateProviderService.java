@@ -5,42 +5,28 @@ import java.util.stream.Collectors;
 
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
+import it.smartcommunitylab.aac.core.authorities.TemplateProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableTemplateProvider;
 import it.smartcommunitylab.aac.core.persistence.TemplateProviderEntity;
-import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 
 @Service
 @Transactional
 public class TemplateProviderService
-        extends ConfigurableProviderService<ConfigurableTemplateProvider, TemplateProviderEntity> {
+        extends
+        ConfigurableProviderService<TemplateProviderAuthority<?, ?, ?, ?>, ConfigurableTemplateProvider, TemplateProviderEntity> {
 
-    private TemplateProviderAuthorityService authorityService;
-
-    public TemplateProviderService(ConfigurableProviderEntityService<TemplateProviderEntity> providerService) {
-        super(providerService);
+    public TemplateProviderService(TemplateProviderAuthorityService authorityService,
+            ConfigurableProviderEntityService<TemplateProviderEntity> providerService) {
+        super(authorityService, providerService);
 
         // set converters
         setConfigConverter(new TemplateProviderConfigConverter());
         setEntityConverter(new TemplateProviderEntityConverter());
-
-    }
-
-    @Autowired
-    public void setAuthorityService(TemplateProviderAuthorityService authorityService) {
-        this.authorityService = authorityService;
-    }
-
-    @Override
-    protected ConfigurationProvider<?, ?, ?> getConfigurationProvider(String authority)
-            throws NoSuchAuthorityException {
-        return authorityService.getAuthority(authority).getConfigurationProvider();
     }
 
     class TemplateProviderConfigConverter implements Converter<ConfigurableTemplateProvider, TemplateProviderEntity> {

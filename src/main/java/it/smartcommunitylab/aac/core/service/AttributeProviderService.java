@@ -7,41 +7,30 @@ import java.util.stream.Collectors;
 
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.core.authorities.AttributeProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.persistence.AttributeProviderEntity;
-import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 
 @Service
 @Transactional
 public class AttributeProviderService
-        extends ConfigurableProviderService<ConfigurableAttributeProvider, AttributeProviderEntity> {
+        extends
+        ConfigurableProviderService<AttributeProviderAuthority<?, ?, ?>, ConfigurableAttributeProvider, AttributeProviderEntity> {
 
-    private AttributeProviderAuthorityService authorityService;
+    public AttributeProviderService(AttributeProviderAuthorityService authorityService,
+            ConfigurableProviderEntityService<AttributeProviderEntity> providerService) {
+        super(authorityService, providerService);
 
-    public AttributeProviderService(ConfigurableProviderEntityService<AttributeProviderEntity> providerService) {
-        super(providerService);
+        // set converters
         setEntityConverter(new AttributeProviderEntityConverter());
         setConfigConverter(new AttributeProviderConfigConverter());
-    }
-
-    @Autowired
-    public void setAuthorityService(AttributeProviderAuthorityService authorityService) {
-        this.authorityService = authorityService;
-    }
-
-    @Override
-    protected ConfigurationProvider<?, ?, ?> getConfigurationProvider(String authority)
-            throws NoSuchAuthorityException {
-        return authorityService.getAuthority(authority).getConfigurationProvider();
     }
 
     class AttributeProviderEntityConverter

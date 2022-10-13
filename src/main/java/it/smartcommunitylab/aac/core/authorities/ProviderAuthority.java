@@ -23,7 +23,7 @@ public interface ProviderAuthority<S extends ConfigurableResourceProvider<R, T, 
 
     public String getAuthorityId();
 
-    // TODO replace with proper typing <T> on resource
+    // type should match configurableProvider type
     public String getType();
 
     /*
@@ -44,7 +44,7 @@ public interface ProviderAuthority<S extends ConfigurableResourceProvider<R, T, 
      * TODO remove and make interface RO
      */
 
-    public S registerProvider(T config)
+    public C registerProvider(ConfigurableProvider config)
             throws IllegalArgumentException, RegistrationException, SystemException;
 
     public void unregisterProvider(String providerId) throws SystemException;

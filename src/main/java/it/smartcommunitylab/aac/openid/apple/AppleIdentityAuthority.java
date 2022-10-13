@@ -19,7 +19,7 @@ import it.smartcommunitylab.aac.attributes.store.PersistentAttributeStore;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractSingleProviderIdentityAuthority;
-import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
@@ -101,35 +101,27 @@ public class AppleIdentityAuthority extends
     }
 
     @Override
-    public AppleIdentityProvider registerProvider(ConfigurableIdentityProvider cp) {
-        if (cp != null
-                && getAuthorityId().equals(cp.getAuthority())
-                && SystemKeys.RESOURCE_IDENTITY.equals(cp.getType())) {
+    public AppleIdentityProviderConfig registerProvider(ConfigurableProvider cp) {
+        // register and build via super
+        AppleIdentityProviderConfig config = super.registerProvider(cp);
 
-            // fetch id from config
-            String providerId = cp.getProvider();
+        // fetch id from config
+        String providerId = cp.getProvider();
 
-            // register and build via super
-            AppleIdentityProvider idp = super.registerProvider(cp);
+        try {
+            // extract clientRegistration from config
+            ClientRegistration registration = config.getClientRegistration();
 
-            try {
-                // extract clientRegistration from config
-                ClientRegistration registration = idp.getConfig().getClientRegistration();
+            // add client registration to registry
+            clientRegistrationRepository.addRegistration(registration);
 
-                // add client registration to registry
-                clientRegistrationRepository.addRegistration(registration);
+            return config;
+        } catch (Exception ex) {
+            // cleanup
+            clientRegistrationRepository.removeRegistration(providerId);
 
-                return idp;
-            } catch (Exception ex) {
-                // cleanup
-                clientRegistrationRepository.removeRegistration(providerId);
-
-                throw new RegistrationException("invalid provider configuration: " + ex.getMessage(), ex);
-            }
-        } else {
-            throw new IllegalArgumentException();
+            throw new RegistrationException("invalid provider configuration: " + ex.getMessage(), ex);
         }
-
     }
 
     @Override

@@ -25,8 +25,11 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
+import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.core.authorities.AuthorityService;
+import it.smartcommunitylab.aac.core.authorities.ProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
@@ -34,11 +37,12 @@ import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
 import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 
 @Transactional
-public abstract class ConfigurableProviderService<C extends ConfigurableProvider, E extends ProviderEntity>
+public abstract class ConfigurableProviderService<A extends ProviderAuthority<?, ?, C, ?, ?>, C extends ConfigurableProvider, E extends ProviderEntity>
         implements InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final ProviderEntityService<E> providerService;
+    protected final ProviderEntityService<E> providerService;
+    protected final AuthorityService<A> authorityService;
 
     // keep a local map for system providers since these are not in db
     // key is providerId
@@ -49,10 +53,13 @@ public abstract class ConfigurableProviderService<C extends ConfigurableProvider
     protected Converter<C, E> configConverter;
     protected Converter<E, C> entityConverter;
 
-    public ConfigurableProviderService(ProviderEntityService<E> providerService) {
+    public ConfigurableProviderService(AuthorityService<A> providerAuthorityService,
+            ProviderEntityService<E> providerService) {
+        Assert.notNull(providerAuthorityService, "authority service is required");
         Assert.notNull(providerService, "provider entity service is required");
 
         this.providerService = providerService;
+        this.authorityService = providerAuthorityService;
     }
 
     @Override
@@ -74,9 +81,14 @@ public abstract class ConfigurableProviderService<C extends ConfigurableProvider
         this.entityConverter = entityConverter;
     }
 
-    protected abstract ConfigurationProvider<?, ?, ?> getConfigurationProvider(String authority)
-            throws NoSuchAuthorityException;
+    protected ConfigurationProvider<?, ?, ?> getConfigurationProvider(String authority)
+            throws NoSuchAuthorityException {
+        return authorityService.getAuthority(authority).getConfigurationProvider();
+    }
 
+    /*
+     * CRUD via entities
+     */
     @Transactional(readOnly = true)
     public Collection<C> listProviders(String realm) {
         logger.debug("list providers for realm {}", StringUtils.trimAllWhitespace(realm));
@@ -237,6 +249,41 @@ public abstract class ConfigurableProviderService<C extends ConfigurableProvider
 
         E pe = providerService.getProvider(providerId);
         providerService.deleteProvider(pe.getProvider());
+    }
+
+    /*
+     * Config via authorities
+     */
+
+    public void registerProvider(String providerId)
+            throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
+        logger.debug("register provider {}", StringUtils.trimAllWhitespace(providerId));
+
+        // fetch, only persisted configurations can be registered
+        C cp = getProvider(providerId);
+
+        // always register and pop up errors
+        authorityService.getAuthority(cp.getAuthority()).registerProvider(cp);
+    }
+
+    public void unregisterProvider(String providerId)
+            throws NoSuchProviderException, SystemException, NoSuchAuthorityException {
+        logger.debug("unregister provider {}", StringUtils.trimAllWhitespace(providerId));
+
+        // fetch, only persisted configurations can be registered
+        C cp = getProvider(providerId);
+
+        // always unregister, when not active nothing will happen
+        authorityService.getAuthority(cp.getAuthority()).unregisterProvider(cp.getProvider());
+    }
+
+    public boolean isProviderRegistered(String providerId) throws NoSuchProviderException, NoSuchAuthorityException {
+        // fetch, only persisted configurations can be registered
+        C cp = getProvider(providerId);
+
+        // ask authority
+        return authorityService.getAuthority(cp.getAuthority()).hasProvider(cp.getProvider());
+
     }
 
     /*
