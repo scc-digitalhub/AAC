@@ -501,13 +501,19 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
         if (accessToken != null) {
             // calculate the token hash
             Base64URL at_hash = jwtService.hashAccessToken(oauth2ClientDetails, accessToken.getValue());
-            userClaims.put("at_hash", at_hash);
+
+            // serialize to avoid json-smart bugs
+            String value = at_hash != null ? at_hash.toString() : null;
+            userClaims.put("at_hash", value);
         }
 
         if (code != null) {
             // calculate the code hash
             Base64URL c_hash = jwtService.hashCode(oauth2ClientDetails, code);
-            userClaims.put("c_hash", c_hash);
+
+            // serialize to avoid json-smart bugs
+            String value = c_hash != null ? c_hash.toString() : null;
+            userClaims.put("c_hash", value);
         }
 
         return userClaims;
