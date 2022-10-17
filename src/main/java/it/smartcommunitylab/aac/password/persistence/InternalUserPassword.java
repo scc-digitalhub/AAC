@@ -36,11 +36,11 @@ public class InternalUserPassword extends AbstractUserCredentials
     @Id
     private String id;
 
-    // account id
     @NotBlank
     @Column(name = "provider_id", length = 128)
     private String provider;
 
+    // account id
     @NotBlank
     @Column(name = "username", length = 128)
     private String username;
@@ -138,6 +138,10 @@ public class InternalUserPassword extends AbstractUserCredentials
         this.username = username;
     }
 
+    public void setAccountId(String username) {
+        this.username = username;
+    }
+
     public String getPassword() {
         return password;
     }
@@ -206,6 +210,13 @@ public class InternalUserPassword extends AbstractUserCredentials
     public void eraseCredentials() {
         this.password = null;
         this.resetKey = null;
+    }
+
+    @Override
+    public String toString() {
+        return "InternalUserPassword [id=" + id + ", provider=" + provider + ", username=" + username + ", status="
+                + status + ", createDate=" + createDate + ", expirationDate=" + expirationDate + ", resetDeadline="
+                + resetDeadline + ", changeOnFirstAccess=" + changeOnFirstAccess + "]";
     }
 
 }

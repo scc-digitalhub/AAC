@@ -15,7 +15,7 @@ import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
  * 
  * all implementations should derive from this
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "authority")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "authority", visible=false)
 @JsonSubTypes({
         @Type(value = InternalUserAccount.class, name = "internal"),
         @Type(value = OIDCUserAccount.class, name = "oidc"),
@@ -39,6 +39,14 @@ public abstract class AbstractAccount extends AbstractBaseUserResource implement
         return SystemKeys.RESOURCE_ACCOUNT;
     }
 
+    public abstract String getStatus();
+
+    public abstract void setStatus(String status);
+
     public abstract void setUuid(String uuid);
+
+    public abstract void setRealm(String realm);
+
+    public abstract void setUserId(String userId);
 
 }

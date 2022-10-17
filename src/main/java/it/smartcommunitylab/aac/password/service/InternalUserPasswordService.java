@@ -151,7 +151,7 @@ public class InternalUserPasswordService {
                 }
             });
 
-            if (isReuse) {
+            if (isReuse && keepNumber > 0) {
                 throw new InvalidPasswordException("password-reuse");
             }
 

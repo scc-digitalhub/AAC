@@ -191,6 +191,10 @@ public class WebAuthnUserCredential extends AbstractUserCredentials
         this.username = username;
     }
 
+    public void setAccountId(String username) {
+        this.username = username;
+    }
+
     public String getUserHandle() {
         return userHandle;
     }
@@ -295,4 +299,12 @@ public class WebAuthnUserCredential extends AbstractUserCredentials
     public void eraseCredentials() {
         this.publicKeyCose = null;
     }
+
+    @Override
+    public String toString() {
+        return "WebAuthnUserCredential [id=" + id + ", provider=" + provider + ", username=" + username
+                + ", userHandle=" + userHandle + ", displayName=" + displayName + ", credentialId=" + credentialId
+                + ", status=" + status + ", createDate=" + createDate + ", lastUsedDate=" + lastUsedDate + "]";
+    }
+
 }

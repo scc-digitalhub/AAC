@@ -52,6 +52,7 @@ import it.smartcommunitylab.aac.core.SubjectManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.model.ConfigurableTemplateProvider;
+import it.smartcommunitylab.aac.dto.RealmConfig;
 import it.smartcommunitylab.aac.dto.UserSubject;
 import it.smartcommunitylab.aac.model.Developer;
 import it.smartcommunitylab.aac.model.Realm;
@@ -147,7 +148,7 @@ public class DevRealmController {
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public void exportRealm(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestParam(required = false, defaultValue = "false") boolean full,
+            @RequestParam(required = false, defaultValue = "false") boolean config,
             HttpServletResponse res)
             throws NoSuchRealmException, SystemException, IOException {
 
@@ -155,16 +156,10 @@ public class DevRealmController {
         Object export = r;
         String key = r.getSlug();
 
-        // TODO refactor export
-        if (full) {
-            key = r.getSlug() + "-full";
-            Map<String, Collection<? extends Object>> map = new HashMap<>();
-            map.put("realms", Collections.singleton(r));
-            map.put("identity_providers", identityProviderManager.listProviders(realm));
-            map.put("attribute_providers", attributeProviderManager.listProviders(realm));
-            map.put("clients", clientManager.listClientApps(realm));
-            map.put("services", serviceManager.listServices(realm));
-            export = map;
+        if (config) {
+            key = r.getSlug() + "-config";
+            RealmConfig rc = realmManager.getRealmConfig(realm);
+            export = rc;
         }
 
         String s = yamlObjectMapper.writeValueAsString(export);

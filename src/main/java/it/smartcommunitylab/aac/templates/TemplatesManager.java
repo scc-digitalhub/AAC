@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.InvalidDataException;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
@@ -55,7 +56,7 @@ public class TemplatesManager
     }
 
     /*
-     * Config per realm
+     * Config per realm we always expose a single config per realm
      */
     public ConfigurableTemplateProvider findProviderByRealm(String realm) throws NoSuchRealmException {
         // we expect a single provider per realm, so fetch first
@@ -63,12 +64,22 @@ public class TemplatesManager
     }
 
     public ConfigurableTemplateProvider getProviderByRealm(String realm)
-            throws NoSuchProviderException, NoSuchRealmException {
+            throws NoSuchProviderException, NoSuchRealmException, RegistrationException {
         // fetch first if available
         ConfigurableTemplateProvider provider = findProviderByRealm(realm);
 
         if (provider == null) {
-            throw new NoSuchProviderException();
+            // create as new
+            String id = SystemKeys.AUTHORITY_TEMPLATE + SystemKeys.SLUG_SEPARATOR + realm;
+            ConfigurableTemplateProvider cp = new ConfigurableTemplateProvider(SystemKeys.AUTHORITY_TEMPLATE, id,
+                    realm);
+
+            try {
+                provider = addProvider(realm, cp);
+            } catch (NoSuchAuthorityException e) {
+                throw new NoSuchProviderException();
+            }
+
         }
 
         // check if languages are set, otherwise use default

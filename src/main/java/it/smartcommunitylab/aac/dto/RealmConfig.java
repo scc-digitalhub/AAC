@@ -5,19 +5,21 @@ import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import org.springframework.util.Assert;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
+import it.smartcommunitylab.aac.core.base.AbstractAccount;
+import it.smartcommunitylab.aac.core.base.AbstractUserCredentials;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableTemplateProvider;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
-import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
-import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import it.smartcommunitylab.aac.services.Service;
 
 @Valid
@@ -42,9 +44,18 @@ public class RealmConfig {
     private List<ClientApp> clientApps;
 
     // user accounts
-    private List<InternalUserAccount> internalUsers;
-    private List<OIDCUserAccount> oidcUsers;
-    private List<SamlUserAccount> samlUsers;
+    private List<AbstractAccount> users;
+
+    // credentials
+    private List<AbstractUserCredentials> credentials;
+
+    public RealmConfig() {
+    }
+
+    public RealmConfig(Realm r) {
+        Assert.notNull(r, "realm can not be null");
+        this.realm = r;
+    }
 
     public Realm getRealm() {
         return realm;
@@ -94,28 +105,20 @@ public class RealmConfig {
         this.clientApps = clientApps;
     }
 
-    public List<InternalUserAccount> getInternalUsers() {
-        return internalUsers;
+    public List<AbstractAccount> getUsers() {
+        return users;
     }
 
-    public void setInternalUsers(List<InternalUserAccount> internalUsers) {
-        this.internalUsers = internalUsers;
+    public void setUsers(List<AbstractAccount> users) {
+        this.users = users;
     }
 
-    public List<OIDCUserAccount> getOidcUsers() {
-        return oidcUsers;
+    public List<AbstractUserCredentials> getCredentials() {
+        return credentials;
     }
 
-    public void setOidcUsers(List<OIDCUserAccount> oidcUsers) {
-        this.oidcUsers = oidcUsers;
-    }
-
-    public List<SamlUserAccount> getSamlUsers() {
-        return samlUsers;
-    }
-
-    public void setSamlUsers(List<SamlUserAccount> samlUsers) {
-        this.samlUsers = samlUsers;
+    public void setCredentials(List<AbstractUserCredentials> credentials) {
+        this.credentials = credentials;
     }
 
 }

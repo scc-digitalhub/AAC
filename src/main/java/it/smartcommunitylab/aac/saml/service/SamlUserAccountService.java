@@ -42,6 +42,16 @@ public class SamlUserAccountService implements UserAccountService<SamlUserAccoun
     }
 
     @Transactional(readOnly = true)
+    public List<SamlUserAccount> findAccountByRealm(String realm) {
+        logger.debug("find account for realm {}", String.valueOf(realm));
+
+        List<SamlUserAccount> accounts = accountRepository.findByRealm(realm);
+        return accounts.stream().map(a -> {
+            return accountRepository.detach(a);
+        }).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public SamlUserAccount findAccountById(String repository, String subjectId) {
         logger.debug("find account with subjectId {} in repository {}", String.valueOf(subjectId),
                 String.valueOf(repository));

@@ -44,6 +44,16 @@ public class InternalUserAccountService
     }
 
     @Transactional(readOnly = true)
+    public List<InternalUserAccount> findAccountByRealm(String realm) {
+        logger.debug("find account for realm {}", String.valueOf(realm));
+
+        List<InternalUserAccount> accounts = accountRepository.findByRealm(realm);
+        return accounts.stream().map(a -> {
+            return accountRepository.detach(a);
+        }).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public InternalUserAccount findAccountById(String repository, String username) {
         logger.debug("find account with username {} in repository {}", String.valueOf(username),
                 String.valueOf(repository));

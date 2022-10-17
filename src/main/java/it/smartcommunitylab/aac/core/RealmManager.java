@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.core;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -11,7 +12,6 @@ import java.util.stream.Stream;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
-
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
@@ -30,7 +30,6 @@ import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
-import it.smartcommunitylab.aac.common.NoSuchGroupException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchServiceException;
@@ -38,21 +37,36 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.config.ApplicationProperties;
+import it.smartcommunitylab.aac.core.base.AbstractAccount;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.Client;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableTemplateProvider;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.core.service.AttributeProviderService;
+import it.smartcommunitylab.aac.core.service.IdentityProviderService;
 import it.smartcommunitylab.aac.core.service.RealmService;
+import it.smartcommunitylab.aac.core.service.TemplateProviderService;
 import it.smartcommunitylab.aac.core.service.UserService;
-import it.smartcommunitylab.aac.groups.GroupManager;
+import it.smartcommunitylab.aac.dto.RealmConfig;
+import it.smartcommunitylab.aac.groups.service.GroupService;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Developer;
 import it.smartcommunitylab.aac.model.Group;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
+import it.smartcommunitylab.aac.password.service.InternalUserPasswordService;
 import it.smartcommunitylab.aac.roles.RealmRoleManager;
+import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import it.smartcommunitylab.aac.services.ServicesManager;
+import it.smartcommunitylab.aac.templates.model.TemplateModel;
+import it.smartcommunitylab.aac.templates.service.TemplateService;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserCredentialsService;
 
 @Service
 public class RealmManager {
@@ -76,10 +90,16 @@ public class RealmManager {
     private UserManager userManager;
 
     @Autowired
-    private IdentityProviderManager identityProviderManager;
+    private IdentityProviderService identityProviderService;
 
     @Autowired
-    private AttributeProviderManager attributeProviderManager;
+    private AttributeProviderService attributeProviderService;
+
+    @Autowired
+    private TemplateProviderService templateProviderService;
+
+    @Autowired
+    private TemplateService templateService;
 
     @Autowired
     private ServicesManager servicesManager;
@@ -91,10 +111,25 @@ public class RealmManager {
     protected AttributeSetsManager attributeManager;
 
     @Autowired
-    protected GroupManager groupManager;
+    protected GroupService groupService;
 
     @Autowired
     private RealmRoleManager roleManager;
+
+    @Autowired
+    private UserAccountService<InternalUserAccount> internalUserAccountService;
+
+    @Autowired
+    private UserAccountService<OIDCUserAccount> oidcUserAccountService;
+
+    @Autowired
+    private UserAccountService<SamlUserAccount> samlUserAccountService;
+
+    @Autowired
+    private WebAuthnUserCredentialsService webAuthnUserCredentialsService;
+
+    @Autowired
+    private InternalUserPasswordService internalUserPasswordService;
 
 //    @Autowired
 //    private SessionManager sessionManager;
@@ -220,15 +255,15 @@ public class RealmManager {
 
         if (realm != null && cleanup) {
             // remove all identity providers, will also invalidate sessions for idps
-            Collection<ConfigurableIdentityProvider> idps = identityProviderManager.listProviders(slug);
+            Collection<ConfigurableIdentityProvider> idps = identityProviderService.listProviders(slug);
             for (ConfigurableIdentityProvider provider : idps) {
                 try {
                     String providerId = provider.getProvider();
                     // stop provider, will terminate sessions
-                    identityProviderManager.unregisterProvider(slug, providerId);
+                    identityProviderService.unregisterProvider(providerId);
 
                     // remove provider
-                    identityProviderManager.deleteProvider(slug, providerId);
+                    identityProviderService.deleteProvider(providerId);
                 } catch (NoSuchProviderException | NoSuchAuthorityException | SystemException e) {
                     // skip
                     logger.error("Error deleting realm for provider {}: {}", provider.getProvider(), e.getMessage());
@@ -236,15 +271,31 @@ public class RealmManager {
             }
 
             // remove all attribute providers
-            Collection<ConfigurableAttributeProvider> aps = attributeProviderManager.listProviders(slug);
+            Collection<ConfigurableAttributeProvider> aps = attributeProviderService.listProviders(slug);
             for (ConfigurableAttributeProvider provider : aps) {
                 try {
                     String providerId = provider.getProvider();
                     // stop provider
-                    attributeProviderManager.unregisterProvider(slug, providerId);
+                    attributeProviderService.unregisterProvider(providerId);
 
                     // remove provider
-                    attributeProviderManager.deleteProvider(slug, providerId);
+                    attributeProviderService.deleteProvider(providerId);
+                } catch (NoSuchProviderException | NoSuchAuthorityException | SystemException e) {
+                    // skip
+                    logger.error("Error deleting realm for provider {}: {}", provider.getProvider(), e.getMessage());
+                }
+            }
+
+            // remove all template providers
+            Collection<ConfigurableTemplateProvider> tps = templateProviderService.listProviders(slug);
+            for (ConfigurableTemplateProvider provider : tps) {
+                try {
+                    String providerId = provider.getProvider();
+                    // stop provider
+                    templateProviderService.unregisterProvider(providerId);
+
+                    // remove provider
+                    templateProviderService.deleteProvider(providerId);
                 } catch (NoSuchProviderException | NoSuchAuthorityException | SystemException e) {
                     // skip
                     logger.error("Error deleting realm for provider {}: {}", provider.getProvider(), e.getMessage());
@@ -311,16 +362,12 @@ public class RealmManager {
             }
 
             // groups
-            Collection<Group> groups = groupManager.getGroups(slug);
+            Collection<Group> groups = groupService.listGroups(slug);
             for (Group group : groups) {
-                try {
-                    String groupId = group.getGroupId();
+                String groupId = group.getGroupId();
 
-                    // remove, should cleanup user association for leftovers
-                    groupManager.deleteGroup(slug, groupId);
-                } catch (NoSuchGroupException e) {
-                    // skip
-                }
+                // remove, should cleanup user association for leftovers
+                groupService.deleteGroup(slug, groupId);
             }
 
             // roles
@@ -331,6 +378,17 @@ public class RealmManager {
 
                     // remove, should cleanup user association for leftovers
                     roleManager.deleteRealmRole(slug, roleId);
+                } catch (Exception e) {
+                    // skip
+                }
+            }
+
+            // templates
+            Collection<TemplateModel> templates = templateService.listTemplatesByRealm(slug);
+            for (TemplateModel template : templates) {
+                try {
+                    String templateId = template.getId();
+                    templateService.deleteTemplate(templateId);
                 } catch (Exception e) {
                     // skip
                 }
@@ -447,5 +505,54 @@ public class RealmManager {
         props.setUrl(url);
 
         return props;
+    }
+
+    /*
+     * Realm full config
+     */
+
+    public RealmConfig getRealmConfig(String realm) throws NoSuchRealmException {
+        // load realm
+        Realm r = realmService.getRealm(realm);
+
+        // build config
+        RealmConfig rc = new RealmConfig(r);
+
+        // providers
+        Collection<ConfigurableIdentityProvider> idps = identityProviderService.listProviders(realm);
+        Collection<ConfigurableAttributeProvider> aps = attributeProviderService.listProviders(realm);
+        Collection<ConfigurableTemplateProvider> tps = templateProviderService.listProviders(realm);
+
+        rc.setIdentityProviders(new ArrayList<>(idps));
+        rc.setAttributeProviders(new ArrayList<>(aps));
+
+        if (!tps.isEmpty()) {
+            // pick first as config
+            // TODO refactor
+            rc.setTemplates(tps.iterator().next());
+        }
+
+        // services
+        List<it.smartcommunitylab.aac.services.Service> services = servicesManager.listServices(realm);
+        rc.setServices(services);
+
+        // clients
+        Collection<ClientApp> apps = clientManager.listClientApps(realm);
+        rc.setClientApps(new ArrayList<>(apps));
+
+        // user accounts
+        List<InternalUserAccount> internalUsers = internalUserAccountService.findAccountByRealm(realm);
+        List<OIDCUserAccount> oidcUsers = oidcUserAccountService.findAccountByRealm(realm);
+        List<SamlUserAccount> samlUsers = samlUserAccountService.findAccountByRealm(realm);
+
+        List<AbstractAccount> users = Stream.of(internalUsers, oidcUsers, samlUsers)
+                .flatMap(l -> l.stream())
+                .collect(Collectors.toList());
+
+        rc.setUsers(users);
+        // credentials
+        // TODO
+
+        return rc;
     }
 }

@@ -43,6 +43,16 @@ public class OIDCUserAccountService implements UserAccountService<OIDCUserAccoun
     }
 
     @Transactional(readOnly = true)
+    public List<OIDCUserAccount> findAccountByRealm(String realm) {
+        logger.debug("find account for realm {}", String.valueOf(realm));
+
+        List<OIDCUserAccount> accounts = accountRepository.findByRealm(realm);
+        return accounts.stream().map(a -> {
+            return accountRepository.detach(a);
+        }).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public OIDCUserAccount findAccountById(String repository, String subject) {
         logger.debug("find account with subject {} in repository {}", String.valueOf(subject),
                 String.valueOf(repository));
@@ -143,7 +153,7 @@ public class OIDCUserAccountService implements UserAccountService<OIDCUserAccoun
                     throw new RegistrationException("subject-mismatch");
                 }
             }
-            
+
             // extract attributes and build model
             account = new OIDCUserAccount(reg.getAuthority());
             account.setProvider(repository);
