@@ -519,7 +519,7 @@ angular.module('aac.controllers.realm', [])
       };
 
       $scope.exportRealm = function () {
-         window.open('console/dev/realms/' + $scope.realm.slug + '/export?full=1');
+         window.open('console/dev/realms/' + $scope.realm.slug + '/export?config=1');
       };
 
       $scope.deleteRealmDlg = function () {

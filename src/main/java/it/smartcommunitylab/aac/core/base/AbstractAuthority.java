@@ -90,12 +90,20 @@ public abstract class AbstractAuthority<S extends ConfigurableResourceProvider<R
     }
 
     @Override
-    public S registerProvider(T cp) {
+    public C registerProvider(ConfigurableProvider cp) {
+        // cast config and handle errors
+        T tcp = null;
+        try {
+            @SuppressWarnings("unchecked")
+            T t = (T) cp;
+            tcp = t;
+        } catch (ClassCastException e) {
+            logger.error("Wrong config class: " + e.getMessage());
+            throw new IllegalArgumentException("unsupported configurable class");
+        }
 
         // we support only matching provider as resource providers
-        if (cp != null
-                && getAuthorityId().equals(cp.getAuthority())
-                && getType().equals(cp.getType())) {
+        if (cp != null && getAuthorityId().equals(cp.getAuthority())) {
             String providerId = cp.getProvider();
             String realm = cp.getRealm();
 
@@ -116,7 +124,7 @@ public abstract class AbstractAuthority<S extends ConfigurableResourceProvider<R
 
             try {
                 // build config
-                C providerConfig = getConfigurationProvider().getConfig(cp);
+                C providerConfig = getConfigurationProvider().getConfig(tcp);
                 if (logger.isTraceEnabled()) {
                     logger.trace("provider active config: {}",
                             String.valueOf(providerConfig.getConfigMap().getConfiguration()));
@@ -125,8 +133,11 @@ public abstract class AbstractAuthority<S extends ConfigurableResourceProvider<R
                 // register, we defer loading
                 registrationRepository.addRegistration(providerConfig);
 
-                // load and return
-                return providers.get(providerId);
+                // load to warm cache
+                S rp = providers.get(providerId);
+
+                // return effective config
+                return rp.getConfig();
             } catch (Exception ex) {
                 // cleanup
                 registrationRepository.removeRegistration(providerId);
@@ -135,7 +146,7 @@ public abstract class AbstractAuthority<S extends ConfigurableResourceProvider<R
                 throw new RegistrationException("invalid provider configuration: " + ex.getMessage(), ex);
             }
         } else {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("illegal configurable");
         }
     }
 

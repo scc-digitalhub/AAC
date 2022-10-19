@@ -3,23 +3,14 @@ package it.smartcommunitylab.aac.core.base;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
-import it.smartcommunitylab.aac.common.NoSuchProviderException;
-import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.authorities.AuthorityService;
 import it.smartcommunitylab.aac.core.authorities.ProviderAuthority;
-import it.smartcommunitylab.aac.core.model.ConfigMap;
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
-import it.smartcommunitylab.aac.core.model.Resource;
-import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
-import it.smartcommunitylab.aac.core.provider.ProviderConfig;
-import it.smartcommunitylab.aac.core.provider.ResourceProvider;
 
 public abstract class AbstractAuthorityService<A extends ProviderAuthority<?, ?, ?, ?, ?>>
         implements AuthorityService<A> {

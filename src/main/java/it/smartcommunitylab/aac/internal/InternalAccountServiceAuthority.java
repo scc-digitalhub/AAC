@@ -9,6 +9,7 @@ import it.smartcommunitylab.aac.core.authorities.AccountServiceAuthority;
 import it.smartcommunitylab.aac.core.base.AbstractSingleProviderAuthority;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.model.ConfigurableAccountService;
+import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
@@ -105,7 +106,7 @@ public class InternalAccountServiceAuthority
     }
 
     @Override
-    public InternalAccountService registerProvider(ConfigurableAccountService cp) {
+    public InternalAccountServiceConfig registerProvider(ConfigurableProvider cp) {
         throw new IllegalArgumentException("direct registration not supported");
     }
 

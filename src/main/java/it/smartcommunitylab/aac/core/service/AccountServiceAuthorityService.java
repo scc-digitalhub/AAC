@@ -8,14 +8,14 @@ import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.authorities.AccountServiceAuthority;
 import it.smartcommunitylab.aac.core.base.AbstractAuthorityService;
+import it.smartcommunitylab.aac.core.model.ConfigurableAccountService;
 
 @Service
 public class AccountServiceAuthorityService extends AbstractAuthorityService<AccountServiceAuthority<?, ?, ?, ?>>
         implements InitializingBean {
 
     public AccountServiceAuthorityService(Collection<AccountServiceAuthority<?, ?, ?, ?>> authorities) {
-        super(SystemKeys.RESOURCE_ACCOUNT);
-
+        super(ConfigurableAccountService.class.getName());
         this.setAuthorities(authorities);
     }
 

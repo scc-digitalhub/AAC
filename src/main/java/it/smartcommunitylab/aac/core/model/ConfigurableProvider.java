@@ -15,15 +15,29 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
+import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 
 @Valid
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @ConstructorBinding
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
+@JsonSubTypes({
+        @Type(value = ConfigurableAccountService.class, name = SystemKeys.RESOURCE_ACCOUNT),
+        @Type(value = ConfigurableAttributeProvider.class, name = SystemKeys.RESOURCE_ATTRIBUTES),
+        @Type(value = ConfigurableCredentialsService.class, name = SystemKeys.RESOURCE_CREDENTIALS),
+        @Type(value = ConfigurableIdentityProvider.class, name = SystemKeys.RESOURCE_IDENTITY),
+        @Type(value = ConfigurableTemplateProvider.class, name = SystemKeys.RESOURCE_TEMPLATE)
+})
 public class ConfigurableProvider implements ConfigurableProperties {
 
     @NotBlank

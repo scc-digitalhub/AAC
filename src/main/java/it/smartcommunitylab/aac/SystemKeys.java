@@ -65,6 +65,8 @@ public class SystemKeys {
     public static final String RESOURCE_IDENTITY_SERVICE = "identity_service";
     public static final String RESOURCE_ATTRIBUTE_SERVICE = "attribute_service";
     public static final String RESOURCE_ACCOUNT_SERVICE = "account_service";
+    public static final String RESOURCE_CREDENTIALS_SERVICE = "credentials_service";
+    public static final String RESOURCE_TEMPLATE_PROVIDER = "template_provider";
     public static final String RESOURCE_TEMPLATE = "template";
 
     public static final String PATH_SEPARATOR = "/-/";

@@ -128,7 +128,8 @@ public class PersistenceConfig {
         return new CustomYAMLFactory()
                 .configure(YAMLGenerator.Feature.WRITE_DOC_START_MARKER, false)
                 .configure(YAMLGenerator.Feature.MINIMIZE_QUOTES, false)
-                .configure(YAMLGenerator.Feature.LITERAL_BLOCK_STYLE, true);
+                .configure(YAMLGenerator.Feature.LITERAL_BLOCK_STYLE, true)
+                .configure(YAMLGenerator.Feature.USE_NATIVE_TYPE_ID, false);
     }
 
     private YAMLGenerator yamlGenerator(IOContext ctxt, int jsonFeatures, int yamlFeatures,

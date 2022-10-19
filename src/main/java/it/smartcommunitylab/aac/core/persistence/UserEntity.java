@@ -203,4 +203,11 @@ public class UserEntity {
         return false;
     }
 
+    @Override
+    public String toString() {
+        return "UserEntity [uuid=" + uuid + ", realm=" + realm + ", username=" + username + ", emailAddress="
+                + emailAddress + ", emailVerified=" + emailVerified + ", status=" + status + ", expirationDate="
+                + expirationDate + ", createDate=" + createDate + ", modifiedDate=" + modifiedDate + "]";
+    }
+
 }

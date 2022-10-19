@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractCredentialsAuthority;
-import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsService;
+import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
@@ -71,7 +71,7 @@ public class WebAuthnCredentialsAuthority extends
     }
 
     @Override
-    public WebAuthnCredentialsService registerProvider(ConfigurableCredentialsService cp) {
+    public WebAuthnCredentialsServiceConfig registerProvider(ConfigurableProvider cp) {
         throw new IllegalArgumentException("direct registration not supported");
     }
 

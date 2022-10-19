@@ -23,10 +23,9 @@ public abstract class AbstractSingleProviderAuthority<S extends ConfigurableReso
     }
 
     @Override
-    public S registerProvider(T cp) {
+    public C registerProvider(ConfigurableProvider cp) {
         if (cp != null
-                && getAuthorityId().equals(cp.getAuthority())
-                && getType().equals(cp.getType())) {
+                && getAuthorityId().equals(cp.getAuthority())) {
             // enforce single per realm
             String realm = cp.getRealm();
             if (!registrationRepository.findByRealm(realm).isEmpty()) {

@@ -5,44 +5,28 @@ import java.util.stream.Collectors;
 
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
+import it.smartcommunitylab.aac.core.authorities.AccountServiceAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableAccountService;
 import it.smartcommunitylab.aac.core.persistence.AccountServiceEntity;
-import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 
 @Service
 @Transactional
 public class AccountServiceService
-        extends ConfigurableProviderService<ConfigurableAccountService, AccountServiceEntity> {
+        extends
+        ConfigurableProviderService<AccountServiceAuthority<?, ?, ?, ?>, ConfigurableAccountService, AccountServiceEntity> {
 
-    private AccountServiceAuthorityService authorityService;
-
-    public AccountServiceService(ConfigurableProviderEntityService<AccountServiceEntity> providerService) {
-        super(providerService);
+    public AccountServiceService(AccountServiceAuthorityService authorityService,
+            ConfigurableProviderEntityService<AccountServiceEntity> providerService) {
+        super(authorityService, providerService);
 
         // set converters
         setConfigConverter(new AccountServiceConfigConverter());
         setEntityConverter(new AccountServiceEntityConverter());
-
-        // create system services
-        // internal for system is exposed by internal idp by default
-    }
-
-    @Autowired
-    public void setAuthorityService(AccountServiceAuthorityService authorityService) {
-        this.authorityService = authorityService;
-    }
-
-    @Override
-    protected ConfigurationProvider<?, ?, ?> getConfigurationProvider(String authority)
-            throws NoSuchAuthorityException {
-        return authorityService.getAuthority(authority).getConfigurationProvider();
     }
 
     class AccountServiceConfigConverter implements Converter<ConfigurableAccountService, AccountServiceEntity> {

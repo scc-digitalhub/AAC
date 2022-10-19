@@ -1,25 +1,31 @@
 package it.smartcommunitylab.aac.core.provider;
 
 import java.util.List;
+
+import javax.validation.constraints.NotNull;
+
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 
 public interface UserAccountService<U extends UserAccount> {
 
-    public U findAccountById(String repository, String id);
+    public List<U> findAccountByRealm(@NotNull String realm);
 
-    public U findAccountByUuid(String repository, String uuid);
+    public U findAccountById(@NotNull String repository, @NotNull String id);
 
-    public List<U> findAccountByUsername(String repository, String username);
+    public U findAccountByUuid(@NotNull String repository, @NotNull String uuid);
 
-    public List<U> findAccountByEmail(String repository, String email);
+    public List<U> findAccountByUsername(@NotNull String repository, @NotNull String username);
 
-    public List<U> findAccountByUser(String repository, String userId);
+    public List<U> findAccountByEmail(@NotNull String repository, @NotNull String email);
 
-    public U addAccount(String repository, String id, U reg) throws RegistrationException;
+    public List<U> findAccountByUser(@NotNull String repository, @NotNull String userId);
 
-    public U updateAccount(String repository, String id, U reg) throws NoSuchUserException, RegistrationException;
+    public U addAccount(@NotNull String repository, @NotNull String id, @NotNull U reg) throws RegistrationException;
 
-    public void deleteAccount(String repository, String id);
+    public U updateAccount(@NotNull String repository, @NotNull String id, @NotNull U reg)
+            throws NoSuchUserException, RegistrationException;
+
+    public void deleteAccount(@NotNull String repository, @NotNull String id);
 }

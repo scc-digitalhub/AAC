@@ -15,7 +15,7 @@ import it.smartcommunitylab.aac.attributes.store.PersistentAttributeStore;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityAuthority;
-import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository;
@@ -113,35 +113,27 @@ public class SamlIdentityAuthority extends
     }
 
     @Override
-    public SamlIdentityProvider registerProvider(ConfigurableIdentityProvider cp) {
-        if (cp != null
-                && getAuthorityId().equals(cp.getAuthority())
-                && SystemKeys.RESOURCE_IDENTITY.equals(cp.getType())) {
+    public SamlIdentityProviderConfig registerProvider(ConfigurableProvider cp) {
+        // register and build via super
+        SamlIdentityProviderConfig config = super.registerProvider(cp);
 
-            // fetch id from config
-            String providerId = cp.getProvider();
+        // fetch id from config
+        String providerId = cp.getProvider();
 
-            // register and build via super
-            SamlIdentityProvider idp = super.registerProvider(cp);
+        try {
+            // extract clientRegistration from config
+            RelyingPartyRegistration registration = config.getRelyingPartyRegistration();
 
-            try {
-                // extract clientRegistration from config
-                RelyingPartyRegistration registration = idp.getConfig().getRelyingPartyRegistration();
+            // add client registration to registry
+            relyingPartyRegistrationRepository.addRegistration(registration);
 
-                // add client registration to registry
-                relyingPartyRegistrationRepository.addRegistration(registration);
+            return config;
+        } catch (Exception ex) {
+            // cleanup
+            relyingPartyRegistrationRepository.removeRegistration(providerId);
 
-                return idp;
-            } catch (Exception ex) {
-                // cleanup
-                relyingPartyRegistrationRepository.removeRegistration(providerId);
-
-                throw new RegistrationException("invalid provider configuration: " + ex.getMessage(), ex);
-            }
-        } else {
-            throw new IllegalArgumentException();
+            throw new RegistrationException("invalid provider configuration: " + ex.getMessage(), ex);
         }
-
     }
 
     @Override

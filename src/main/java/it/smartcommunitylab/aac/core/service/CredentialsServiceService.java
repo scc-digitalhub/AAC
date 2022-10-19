@@ -5,26 +5,24 @@ import java.util.stream.Collectors;
 
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
+import it.smartcommunitylab.aac.core.authorities.CredentialsServiceAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsService;
 import it.smartcommunitylab.aac.core.persistence.CredentialsServiceEntity;
-import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 
 @Service
 @Transactional
 public class CredentialsServiceService
-        extends ConfigurableProviderService<ConfigurableCredentialsService, CredentialsServiceEntity> {
+        extends
+        ConfigurableProviderService<CredentialsServiceAuthority<?, ?, ?, ?>, ConfigurableCredentialsService, CredentialsServiceEntity> {
 
-    private CredentialsServiceAuthorityService authorityService;
-
-    public CredentialsServiceService(ConfigurableProviderEntityService<CredentialsServiceEntity> providerService) {
-        super(providerService);
+    public CredentialsServiceService(CredentialsServiceAuthorityService authorityService,
+            ConfigurableProviderEntityService<CredentialsServiceEntity> providerService) {
+        super(authorityService, providerService);
 
         // set converters
         this.setConfigConverter(new CredentialsServiceConfigConverter());
@@ -32,17 +30,6 @@ public class CredentialsServiceService
 
         // nothing to initialize for system because password service derives from
         // password idp
-    }
-
-    @Autowired
-    public void setAuthorityService(CredentialsServiceAuthorityService authorityService) {
-        this.authorityService = authorityService;
-    }
-
-    @Override
-    protected ConfigurationProvider<?, ?, ?> getConfigurationProvider(String authority)
-            throws NoSuchAuthorityException {
-        return authorityService.getAuthority(authority).getConfigurationProvider();
     }
 
     class CredentialsServiceConfigConverter
@@ -103,7 +90,7 @@ public class CredentialsServiceService
             cp.setName(pe.getName());
             cp.setTitleMap(pe.getTitleMap());
             cp.setDescriptionMap(pe.getDescriptionMap());
-            
+
             cp.setRepositoryId(pe.getRepositoryId());
             cp.setConfiguration(pe.getConfigurationMap());
             cp.setEnabled(pe.isEnabled());
