@@ -3,19 +3,15 @@ package it.smartcommunitylab.aac.bootstrap;
 import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.event.EventListener;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
@@ -24,8 +20,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
@@ -53,19 +47,17 @@ import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.TemplateProviderService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.SubjectStatus;
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientAppService;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
-import it.smartcommunitylab.aac.openid.service.OIDCUserAccountService;
 import it.smartcommunitylab.aac.password.auth.UsernamePasswordAuthenticationToken;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.password.service.InternalUserPasswordService;
 import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
-import it.smartcommunitylab.aac.saml.service.SamlUserAccountService;
 import it.smartcommunitylab.aac.services.Service;
 import it.smartcommunitylab.aac.services.ServicesService;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserCredentialsService;
@@ -94,20 +86,10 @@ public class AACBootstrap {
     private String[] adminRoles;
 
     @Autowired
-    private ResourceLoader resourceLoader;
-
-    @Autowired
-    @Qualifier("yamlObjectMapper")
-    private ObjectMapper yamlObjectMapper;
-
-    @Autowired
     private BootstrapConfig config;
 
     @Autowired
     private RealmService realmService;
-
-    @Autowired
-    private ClientManager clientManager;
 
     @Autowired
     private ServicesService serviceService;
@@ -145,20 +127,23 @@ public class AACBootstrap {
     @Autowired
     private InternalUserPasswordService internalUserPasswordService;
 
+    @Autowired
+    private OAuth2ClientAppService clientAppService;
+
     @EventListener
     public void onApplicationEvent(ApplicationStartedEvent event) {
         // build a security context as admin to bootstrap configs
-        // TODO remove workaround
+        // DISABLED
         // do note this works ONLY for asynch events which execute in their own thread
         // AND breaks with parallelStream (which uses a shared forkPool)!
-        SecurityContext context = initContext(adminUsername);
+//        SecurityContext context = initContext(adminUsername);
 
         try {
             bootstrap();
         } finally {
-            if (context != null) {
-                SecurityContextHolder.clearContext();
-            }
+//            if (context != null) {
+//                SecurityContextHolder.clearContext();
+//            }
         }
     }
 
@@ -339,14 +324,9 @@ public class AACBootstrap {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void bootstrapConfig() throws Exception {
         // read configuration
-        Resource res = resourceLoader.getResource(source);
-        if (!res.exists()) {
-            logger.debug("no bootstrap file from " + source);
-            return;
+        if (config == null) {
+            throw new IllegalArgumentException("error loading config");
         }
-
-        // read config
-        config = yamlObjectMapper.readValue(res.getInputStream(), BootstrapConfig.class);
 
         /*
          * Realms creation
@@ -627,56 +607,68 @@ public class AACBootstrap {
                     });
                 }
 
-//                /*
-//                 * ClientApp
-//                 * 
-//                 */
-//                if (rc.getClientApps() != null) {
-//                    rc.getClientApps().forEach(app -> {
-//                        logger.debug("create client app for realm {}", String.valueOf(app.getRealm()));
-//
-//                        // validate realm match
-//                        if (!StringUtils.hasText(app.getRealm()) || !slug.equals(app.getRealm())) {
-//                            logger.error("error creating service, realm mismatch");
-//                            return;
-//                        }
-//
-//                        // enforce realm
-//                        app.setRealm(slug);
-//
-//                        if (!StringUtils.hasText(app.getClientId())) {
-//                            // we ask id to be provided otherwise we create a new one every time
-//                            logger.error("error creating client, missing clientId");
-//                            throw new IllegalArgumentException("missing clientId");
-//                        }
-//
-//                        if (logger.isTraceEnabled()) {
-//                            logger.trace("app: {}", String.valueOf(app));
-//                        }
-//
-//                        try {
-//                            String clientId = app.getClientId();
-//                            ClientApp client = clientManager.findClientApp(app.getRealm(), clientId);
-//
-//                            if (client == null) {
-//                                logger.debug("add client app {} for realm {}", clientId,
-//                                        String.valueOf(app.getRealm()));
-//
-//                                client = clientManager.registerClientApp(app.getRealm(), app);
-//                            } else {
-//                                logger.debug("update client app {} for realm {}", clientId,
-//                                        String.valueOf(app.getRealm()));
-//
-//                                client = clientManager.updateClientApp(app.getRealm(), app.getClientId(), app);
-//                            }
-//
-//                        } catch (RegistrationException | NoSuchClientException | NoSuchRealmException e) {
-//                            logger.error(
-//                                    "error creating client app " + String.valueOf(app.getClientId()) + ": "
-//                                            + e.getMessage());
-//                        }
-//                    });
-//                }
+                /*
+                 * ClientApp
+                 * 
+                 */
+                if (rc.getClientApps() != null) {
+                    rc.getClientApps().forEach(app -> {
+                        logger.debug("create client app for realm {}", String.valueOf(app.getRealm()));
+
+                        // validate realm match
+                        if (!StringUtils.hasText(app.getRealm()) || !slug.equals(app.getRealm())) {
+                            logger.error("error creating service, realm mismatch");
+                            return;
+                        }
+
+                        // enforce realm
+                        app.setRealm(slug);
+
+                        if (!StringUtils.hasText(app.getClientId())) {
+                            // we ask id to be provided otherwise we create a new one every time
+                            logger.error("error creating client, missing clientId");
+                            throw new IllegalArgumentException("missing clientId");
+                        }
+
+                        // support only oauth2 for now
+                        if (!SystemKeys.CLIENT_TYPE_OAUTH2.equals(app.getType())) {
+                            logger.error("unsupported client type {}", String.valueOf(app.getType()));
+                            return;
+                        }
+
+                        if (logger.isTraceEnabled()) {
+                            logger.trace("app: {}", String.valueOf(app));
+                        }
+
+                        try {
+                            String clientId = app.getClientId();
+                            ClientApp client = clientAppService.findClient(clientId);
+
+                            if (client == null) {
+                                logger.debug("add client app {} for realm {}", clientId,
+                                        String.valueOf(app.getRealm()));
+
+                                client = clientAppService.registerClient(app.getRealm(), app);
+                            } else {
+                                // check again realm match over existing
+                                if (!slug.equals(client.getRealm())) {
+                                    logger.error("error creating client app, realm mismatch");
+                                    return;
+                                }
+
+                                logger.debug("update client app {} for realm {}", clientId,
+                                        String.valueOf(app.getRealm()));
+
+                                client = clientAppService.updateClient(app.getClientId(), app);
+                            }
+
+                        } catch (NoSuchClientException e) {
+                            logger.error(
+                                    "error creating client app " + String.valueOf(app.getClientId()) + ": "
+                                            + e.getMessage());
+                        }
+                    });
+                }
 
                 /*
                  * User Accounts

@@ -1,18 +1,28 @@
 package it.smartcommunitylab.aac.config;
 
+import java.io.IOException;
 import java.util.Locale;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
+
+import com.fasterxml.jackson.core.exc.StreamReadException;
+import com.fasterxml.jackson.databind.DatabindException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import it.smartcommunitylab.aac.bootstrap.BootstrapConfig;
 import it.smartcommunitylab.aac.claims.ClaimsService;
 import it.smartcommunitylab.aac.claims.DefaultClaimsService;
 import it.smartcommunitylab.aac.claims.ExtractorsRegistry;
@@ -32,12 +42,47 @@ public class AACConfig {
     @Value("${application.url}")
     private String applicationUrl;
 
+    @Value("${bootstrap.file}")
+    private String bootstrapFile;
+
+    @Value("${bootstrap.apply}")
+    private boolean bootstrapApply;
+
     @Autowired
     private ApplicationProperties appProps;
+
+    @Autowired
+    private ResourceLoader resourceLoader;
+
+    @Autowired
+    @Qualifier("yamlObjectMapper")
+    private ObjectMapper yamlObjectMapper;
 
     /*
      * Core aac should be bootstrapped before services, security etc
      */
+
+    @Bean
+    public BootstrapConfig bootstrapConfig() throws IOException {
+        // manually load form yaml because spring properties
+        // can't bind abstract classes via jsonTypeInfo
+        // also a custom factory won't work because properties are exposed as strings.
+        BootstrapConfig config = new BootstrapConfig();
+
+        if (bootstrapApply && StringUtils.hasText(bootstrapFile)) {
+            // read configuration
+            Resource res = resourceLoader.getResource(bootstrapFile);
+            if (!res.exists()) {
+                throw new IllegalArgumentException("error loading bootstrap from " + bootstrapFile);
+            }
+
+            // read config
+            config = yamlObjectMapper.readValue(res.getInputStream(), BootstrapConfig.class);
+
+        }
+
+        return config;
+    }
 
 //    @Autowired
 //    private DataSource dataSource;
