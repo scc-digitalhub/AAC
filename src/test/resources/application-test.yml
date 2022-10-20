@@ -10,6 +10,11 @@ logging:
     it.smartcommunitylab.aac: TRACE
     it.smartcommunitylab.aac.audit.AuthorizationEventListener: DEBUG
 
+
+bootstrap:
+    apply: true
+    file: classpath:/bootstrap-test.yaml
+
 #disable actuator
 management:
   port: -1

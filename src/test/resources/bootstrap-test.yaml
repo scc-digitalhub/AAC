@@ -1,0 +1,62 @@
+realms:
+  - name: "test"
+    slug: "test"
+    public: true
+    identityProviders: 
+      - provider: password
+        authority: password   
+        name: password
+        type: identity        
+     
+    clientApps:
+      - clientId: "b8ae67a3-62ba-4741-ab16-2e40466e7b9a"
+        realm: "test"
+        type: "oauth2"
+        name: "test client basic"
+        description: "test client"
+        configuration:
+            authorizedGrantTypes:
+              - "refresh_token"
+              - "authorization_code"
+              - "client_credentials"
+              - "password"
+              - "implicit"
+            redirectUris:
+              - "http://localhost:9999"
+            accessTokenValidity: 300
+            authenticationMethods:
+              - "client_secret_basic"
+              - "client_secret_post"
+              - "none"
+            firstParty: true
+            clientSecret: "eSHUuN24ao3FfWRm7CJYnuiK98s"
+            tokenType: "jwt"
+        scopes:
+          - "openid"
+          - "offline_access"
+          - "email"
+          - "profile"
+          - "client.roles.me"
+        resourceIds: [
+            ]
+        providers:
+          - "password"
+        
+    users:
+      - username: test
+        email: test@local.it
+        type: account
+        authority: internal
+        name: Test
+        surname: User        
+    
+    credentials:
+      - type: credentials_password
+        username: test
+        password: test123
+
+
+
+
+
+                
