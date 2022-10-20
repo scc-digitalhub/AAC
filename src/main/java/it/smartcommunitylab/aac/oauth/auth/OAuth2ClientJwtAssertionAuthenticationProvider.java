@@ -16,6 +16,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.util.Assert;
@@ -169,7 +170,7 @@ public class OAuth2ClientJwtAssertionAuthenticationProvider extends ClientAuthen
             result.setWebAuthenticationDetails(authRequest.getWebAuthenticationDetails());
 
             return result;
-        } catch (ClientRegistrationException | ParseException | JOSEException e) {
+        } catch (ClientRegistrationException | ParseException | JOSEException | JwtException e) {
             throw new BadCredentialsException("invalid authentication");
         }
     }

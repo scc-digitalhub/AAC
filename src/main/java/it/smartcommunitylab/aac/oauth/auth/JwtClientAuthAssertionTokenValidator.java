@@ -111,12 +111,12 @@ public class JwtClientAuthAssertionTokenValidator implements OAuth2TokenValidato
 
         // 7. jti identifier to check replay
         // TODO evaluate, not supported
-        // for now check if set that id is not null
-        if (token.hasClaim(JWTClaimNames.JWT_ID)) {
-            String jti = token.getClaimAsString(JWTClaimNames.JWT_ID);
-            if (!StringUtils.hasText(jti)) {
-                invalidClaims.add(JWTClaimNames.JWT_ID);
-            }
+        // for now check that id is not null
+        // RFC7523 says field is OPTIONAL but OpenID says REQUIRED
+        // https://openid.net/specs/openid-connect-core-1_0.html#ClientAuthentication
+        String jti = token.getClaimAsString(JWTClaimNames.JWT_ID);
+        if (jti == null || !StringUtils.hasText(jti)) {
+            invalidClaims.add(JWTClaimNames.JWT_ID);
         }
 
         if (!invalidClaims.isEmpty()) {
