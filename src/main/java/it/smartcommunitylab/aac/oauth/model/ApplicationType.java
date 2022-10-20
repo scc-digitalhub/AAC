@@ -8,7 +8,8 @@ public enum ApplicationType {
     NATIVE("native"),
     WEB("web"),
     MACHINE("machine"),
-    SPA("spa");
+    SPA("spa"),
+    INTROSPECTION("introspection");
 
     private final String value;
 
