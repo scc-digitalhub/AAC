@@ -55,9 +55,6 @@ public class ClientRegistration {
     @JsonProperty("subject_type")
     private String subjectType;
 
-    @JsonProperty("token_type")
-    private String tokenType;
-
     @JsonProperty("token_endpoint_auth_method")
     private Set<String> authenticationMethods;
 
@@ -228,14 +225,6 @@ public class ClientRegistration {
 
     public void setSubjectType(String subjectType) {
         this.subjectType = subjectType;
-    }
-
-    public String getTokenType() {
-        return tokenType;
-    }
-
-    public void setTokenType(String tokenType) {
-        this.tokenType = tokenType;
     }
 
     public Set<String> getAuthenticationMethods() {

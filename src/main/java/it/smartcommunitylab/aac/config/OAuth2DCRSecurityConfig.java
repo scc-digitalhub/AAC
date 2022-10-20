@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.config;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,8 +10,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AnonymousAuthenticationProvider;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.server.resource.authentication.OpaqueTokenAuthenticationProvider;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -49,7 +53,12 @@ public class OAuth2DCRSecurityConfig {
         http.requestMatcher(getRequestMatcher())
                 .authorizeRequests((authorizeRequests) -> authorizeRequests
                         .anyRequest().hasAnyAuthority(Config.R_CLIENT, Config.R_USER, "ROLE_ANONYMOUS"))
-                // use bearer token auth
+                // bare authentication manager with only anonymous+bearer
+                .authenticationManager(
+                        new ProviderManager(
+                                new AnonymousAuthenticationProvider(UUID.randomUUID().toString()),
+                                new OpaqueTokenAuthenticationProvider(tokenIntrospector)))
+                // use bearer token auth, will add filter
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .opaqueToken(opaqueToken -> opaqueToken
                                 .introspector(tokenIntrospector)))

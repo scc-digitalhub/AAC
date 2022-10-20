@@ -146,10 +146,18 @@ public class ClientRegistrationEndpoint {
                             throw new BadClientCredentialsException();
                         }
 
-                        if (!((BearerTokenAuthentication) authentication).getToken().getScopes()
-                                .contains(Config.SCOPE_DYNAMIC_CLIENT_REGISTRATION)) {
+                        // DISABLED, we don't have access to scopes via introspector
+//                        if (!((BearerTokenAuthentication) authentication).getToken().getScopes()
+//                                .contains(Config.SCOPE_DYNAMIC_CLIENT_REGISTRATION)) {
+//                            throw new InsufficientAuthenticationException("missing dcr scope");
+//                        }
+
+                        // check via authorities
+                        if (authentication.getAuthorities().stream()
+                                .noneMatch(a -> "SCOPE_dcr".equals(a.getAuthority()))) {
                             throw new InsufficientAuthenticationException("missing dcr scope");
                         }
+
                         // same realm, valid bearer with dcr scope
                         approved = true;
                     }
