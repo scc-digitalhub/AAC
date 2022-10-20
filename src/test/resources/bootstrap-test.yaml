@@ -27,9 +27,20 @@ realms:
             authenticationMethods:
               - "client_secret_basic"
               - "client_secret_post"
+              - "client_secret_jwt"
+              - "private_key_jwt"
               - "none"
             firstParty: true
-            clientSecret: "eSHUuN24ao3FfWRm7CJYnuiK98s"
+            clientSecret: "eSHUuN24ao3FfWRm7CJYnuiK98sjuRg8"
+            jwks: "{\"keys\":[{\"p\":\"zcbX5-tyK01M6yStrH2jsUtEUtSJrftYvEUp8cuV0ZVnsCHOGwDkLc96FH8jyXW9wjm4IkJHNdhp-w8N1vfu2Hrm3abrXSdgl7MhuPOo93gkV6ZWZF53ieiRKkyadDNNTIufMJRhoTpewLpm7JaaCjX-40aJAaZcz5gFh-sAOHc\"\
+                ,\"kty\":\"RSA\",\"q\":\"oDUPIr0Wy_sztVvvfRFrReo77lRCEr4TGRbyvFhHTQXmEIR6IzVdApI_VYg8V3yUCUNfQRK3QDVhHE83qphMjxacSNu6tdTeKO_bYVRU8JYKY17j04N-8axgl0o-qv1VhKtyp79UYrBhP1kRFMgezVVIuJ01-feieUXE6hU-S8E\"\
+                ,\"d\":\"EU6rBQ0bsorWDaKEf2WA_EJeKrMB81o11ESXMqFUM6iTvbaGKLV8cfbgDVPVgbMA9YXAnr_OzTevT9Kj6X98YoCFf2mWc2eFo_80_jI2NcgPvDV5euxeVEKd_JveApRGTSIRLgSPOCzDU4RmhKMD83fVplP-8uzbZ_Sy9w9IpmQhemDE4_2nALON-6i6Id6pMRCWuk3WbN7EG6H6q726aUA0pcajv0ERQJNauKsqLRTUQ-N7-d2uC7rUuP9TtEV0J3yWmT_Ms6qQQopAFQBmPF9X1tmADQWtfRkrTf_fR7uoesNgyZ9Zh5AoSP60RccHfhaoEmq6PKPTdfBiAMNEAQ\"\
+                ,\"e\":\"AQAB\",\"use\":\"sig\",\"kid\":\"cce6d4e8-e8a4-4ceb-a9ca-9b6336220763\"\
+                ,\"qi\":\"Nz_ltI2rIyv9sx9oqUhcYsEUbarebFEDc1Cagahajow-w_iaAPTAIGxrS6u0wdAXRPyQhK8OUJTUkrEIhncsYNM9btdg75Jg0s3dVCSdTOBLYAcg4BnoCeZTy8bHmiGeReMao-Ud84tgxxp8VaCGK5xjX7_dcPeyyV2t2bwQbJU\"\
+                ,\"dp\":\"okO9d21rTwgasoXuyckdLq5ahzKACwjblUK466mNT4KQDAzsONEAHbuw2b7UGoXVB_Z549H901D_aXEaibxixKRNrtV0XbWybo1b9zt0rwg3KELLd0Qi4UXaSs-zMBRQTR8Afc9UGU4s769NgBzWBV1EzDWPzhRAtZZ8Lgy61Ms\"\
+                ,\"alg\":\"RS256\",\"dq\":\"eAYoV8NIL_v7ylSdQJrrPk71JWG0uqvyTOq3YknU6SyRJzDI_FW_X-zHTEIryvOHSMVTuMHXzl_vaDElKEa_nLe40JDl-dIHuq2wMuPmWvRdxgLSNqWeVlrpZo72Ek6HYkS8OlaKVwGDad1FgcdH5FePitglFyfibm7JzwGpUUE\"\
+                ,\"n\":\"gMbtRjk4fb-cQ63AWKWP-oRfPwvCzPep7MWBuKIHleEO1NFgeMgdDGt7H4Cp5b2T5TklGdJbD01TsQBXUFEWJZPhTlTOYv4rlS7_OhsZk5jsXDpLWMIv6qLTkSTQSgGnOEeQ3CB40DesTWt7Q3lj8BEBkv90sQ4ijV9qmf2qmV9cvAakfVxo74XvxHiX2Mn_Vs1xm1OQNQm9evsmDVJA_UTbGQIRRnAsAv3eot4Aok4dH2FS-pfrSGmuJlpWMAEOMYE8EkwH7OCymf5XaUFuH40FmwGvWlcMwJ5Lcm97BbS6JnDQkRlkJaAkJkXvXTC9pqmtXAnBeEX47qTGq4dutw\"\
+                }]}"     
             tokenType: "jwt"
         scopes:
           - "openid"
