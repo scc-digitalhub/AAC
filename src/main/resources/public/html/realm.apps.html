@@ -24,6 +24,7 @@
                         <li><a class="list-item" href=""
                                 ng-click="createClientAppDlg('machine')"><span>Machine</span></a></li>
                         <li><a class="list-item" href="" ng-click="createClientAppDlg('spa')"><span>SPA</span></a></li>
+                        <li><a class="list-item" href="" ng-click="createClientAppDlg('introspection')"><span>Introspection</span></a></li>
                     </ul>
                 </div>
             </div>
@@ -233,6 +234,9 @@
                                 <option value="machine"
                                     ng-selected="modClientApp.configuration.applicationType=='machine'"> Machine
                                 </option>
+                                <option value="introspection"
+                                    ng-selected="modClientApp.configuration.applicationType=='introspection'"> Introspection
+                                </option>                                
                             </select>
                         </div>
                     </div>

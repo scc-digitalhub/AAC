@@ -61,6 +61,8 @@ public class TokenIntrospection {
         n.add("iss");
         n.add("aud");
         n.add("azp");
+        // support access_token as jwt/opaque
+        n.add("access_token");
 
         RESERVED_CLAIM_NAMES = Collections.unmodifiableSet(n);
     }
@@ -101,6 +103,9 @@ public class TokenIntrospection {
 
     @JsonProperty("azp")
     private String authorizedParty;
+
+    @JsonProperty("access_token")
+    private String accessToken;
 
     @JsonIgnore
     Map<String, Serializable> claims;
@@ -200,6 +205,14 @@ public class TokenIntrospection {
 
     public void setAuthorizedParty(String authorizedParty) {
         this.authorizedParty = authorizedParty;
+    }
+
+    public String getAccessToken() {
+        return accessToken;
+    }
+
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
     }
 
     public boolean isActive() {

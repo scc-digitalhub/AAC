@@ -499,6 +499,13 @@ public class OAuth2ClientService implements ClientService {
             applicationTypeValue = ApplicationType.SPA.getValue();
         }
 
+        // validate types
+        if (ApplicationType.INTROSPECTION.getValue().equals(applicationTypeValue)) {
+            if (authorizedGrantTypes != null && !authorizedGrantTypes.isEmpty()) {
+                throw new IllegalArgumentException("Invalid grant type");
+            }
+        }
+
         String tokenTypeValue = null;
         if (tokenType != null) {
             if (!ArrayUtils.contains(TokenType.values(), tokenType)) {
@@ -636,6 +643,13 @@ public class OAuth2ClientService implements ClientService {
         } else {
             // default is web
             applicationTypeValue = ApplicationType.WEB.getValue();
+        }
+
+        // validate types
+        if (ApplicationType.INTROSPECTION.getValue().equals(applicationTypeValue)) {
+            if (authorizedGrantTypes != null && !authorizedGrantTypes.isEmpty()) {
+                throw new IllegalArgumentException("Invalid grant type");
+            }
         }
 
         String tokenTypeValue = null;

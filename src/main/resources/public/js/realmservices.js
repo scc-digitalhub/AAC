@@ -122,28 +122,6 @@ angular.module('aac.controllers.realmservices', [])
       });
     }
 
-    //clients
-    service.getClients = function (realm, serviceId) {
-      return $http.get('console/dev/services/' + realm + '/' + serviceId + '/clients').then(function (data) {
-        return data.data;
-      });
-    }
-    service.getClient = function (realm, serviceId, clientId) {
-      return $http.get('console/dev/services/' + realm + '/' + serviceId + '/clients/' + clientId).then(function (data) {
-        return data.data;
-      });
-    }
-    service.addClient = function (realm, serviceId, client) {
-      return $http.post('console/dev/services/' + realm + '/' + serviceId + '/clients', client).then(function (data) {
-        return data.data;
-      });
-    }
-    service.deleteClient = function (realm, serviceId, clientId) {
-      return $http.delete('console/dev/services/' + realm + '/' + serviceId + '/clients/' + clientId).then(function (data) {
-        return data.data;
-      });
-    }
-
     return service;
   })
 
@@ -306,7 +284,7 @@ angular.module('aac.controllers.realmservices', [])
 
 
 
-    //TODO unpack loaders for scopes, claims, clients, approvals..
+    //TODO unpack loaders for scopes, claims, approvals..
     $scope.load = function () {
 
       //TODO load mock/context data for claim mapping
@@ -363,16 +341,6 @@ angular.module('aac.controllers.realmservices', [])
 
 
           return data;
-        })
-        .then(function (data) {
-          return Promise.all(
-            data.clients.map(c => {
-              return RealmAppsData.getClientApp(slug, c.clientId);
-            })
-          );
-        }).then(function (clients) {
-          $scope.clients = clients;
-          return;
         })
         .then(function () {
           if ($scope.isAdmin) {
@@ -746,83 +714,6 @@ angular.module('aac.controllers.realmservices', [])
 
 
 
-    /*
-    * Clients
-    */
-
-    $scope.loadClients = function () {
-      RealmServices.getClients(slug, serviceId)
-        .then(function (data) {
-          return Promise.all(
-            data.map(c => {
-              return RealmAppsData.getClientApp(slug, c.clientId);
-            })
-          );
-        })
-        .then(function (clients) {
-          $scope.clients = clients;
-        })
-        .catch(function (err) {
-          Utils.showError('Failed to load service clients: ' + err.data.message);
-        });
-    }
-
-    $scope.createClientDlg = function (type) {
-      if (!type) {
-        type = 'introspect';
-      }
-      $scope.modClient = {
-        type: type,
-      };
-
-      $('#clientModal').modal({ keyboard: false });
-      Utils.refreshFormBS();
-    }
-
-
-    $scope.createClient = function () {
-      $('#clientModal').modal('hide');
-      if ($scope.modClient) {
-        var type = $scope.modClient.type;
-        if (!type) {
-          type = 'introspect';
-        }
-
-        var data = {
-          realm: $scope.service.realm,
-          serviceId: $scope.service.serviceId,
-          type: type
-        }
-
-        RealmServices.addClient($scope.service.realm, $scope.service.serviceId, data)
-          .then(function () {
-            Utils.showSuccess();
-            $scope.loadClients();
-          })
-          .catch(function (err) {
-            Utils.showError('Failed to create client: ' + err.data.message);
-          });
-
-
-        $scope.modClient = null;
-      }
-    }
-
-
-    $scope.removeClient = function (client) {
-      $scope.doDelete = function () {
-        $('#deleteConfirm').modal('hide');
-        RealmServices.deleteClient($scope.service.realm, $scope.service.serviceId, client.clientId)
-          .then(function () {
-            Utils.showSuccess();
-            $scope.loadClients();
-          })
-          .catch(function (err) {
-            Utils.showError('Failed to delete client: ' + err.data.message);
-          });
-      }
-      $('#deleteConfirm').modal({ keyboard: false });
-    };
 
     /*
     * Approvals

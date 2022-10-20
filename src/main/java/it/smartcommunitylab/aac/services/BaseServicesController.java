@@ -24,7 +24,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchClaimException;
-import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchServiceException;
@@ -341,68 +340,6 @@ public class BaseServicesController implements InitializingBean {
                 StringUtils.trimAllWhitespace(serviceId), StringUtils.trimAllWhitespace(realm));
 
         serviceManager.revokeServiceScopeApproval(realm, serviceId, scope, clientId);
-    }
-
-    /*
-     * Service client
-     */
-    @GetMapping("/services/{realm}/{serviceId}/clients")
-    @Operation(summary = "list client for a given service in realm")
-    public Collection<ServiceClient> listServiceClients(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId)
-            throws NoSuchServiceException, NoSuchRealmException {
-        logger.debug("list clients from service {} for realm {}",
-                StringUtils.trimAllWhitespace(serviceId), StringUtils.trimAllWhitespace(realm));
-
-        return serviceManager.listServiceClients(realm, serviceId);
-    }
-
-    @PostMapping("/services/{realm}/{serviceId}/clients")
-    @Operation(summary = "add a new client for a given service in realm")
-    public ServiceClient addServiceClient(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
-            @RequestBody @Valid @NotNull ServiceClient s)
-            throws NoSuchRealmException, NoSuchServiceException, RegistrationException {
-        logger.debug("add client to service {} for realm {}",
-                StringUtils.trimAllWhitespace(serviceId), StringUtils.trimAllWhitespace(realm));
-
-        if (logger.isTraceEnabled()) {
-            logger.trace("client bean {}", StringUtils.trimAllWhitespace(s.toString()));
-        }
-        String type = s.getType();
-        ServiceClient client = serviceManager.addServiceClient(realm, serviceId, type);
-
-        return client;
-    }
-
-    @GetMapping("/services/{realm}/{serviceId}/clients/{clientId}")
-    @Operation(summary = "get a specific client for a given service in realm")
-    public ServiceClient getServiceClients(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
-            throws NoSuchServiceException, NoSuchRealmException, NoSuchClientException {
-        logger.debug("get service client {} from service {} for realm {}",
-                StringUtils.trimAllWhitespace(clientId), StringUtils.trimAllWhitespace(serviceId),
-                StringUtils.trimAllWhitespace(realm));
-
-        return serviceManager.getServiceClient(realm, serviceId, clientId);
-    }
-
-    @DeleteMapping("/services/{realm}/{serviceId}/clients/{clientId}")
-    @Operation(summary = "delete a specific client for a given service in realm")
-    public void deleteServiceClient(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
-            throws NoSuchServiceException, NoSuchRealmException, NoSuchClientException {
-        logger.debug("delete service client {} from service {} for realm {}",
-                StringUtils.trimAllWhitespace(clientId), StringUtils.trimAllWhitespace(serviceId),
-                StringUtils.trimAllWhitespace(realm));
-
-        serviceManager.deleteServiceClient(realm, serviceId, clientId);
     }
 
 }

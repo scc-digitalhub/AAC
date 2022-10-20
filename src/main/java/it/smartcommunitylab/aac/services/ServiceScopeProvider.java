@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.util.Assert;
 
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.scope.Resource;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeApprover;
@@ -33,21 +32,14 @@ public class ServiceScopeProvider implements ScopeProvider {
         resource = new Resource(service.getNamespace());
         resource.setName(service.getName());
         resource.setDescription(service.getDescription());
-        
-        //add realm to resource
+
+        // add realm to resource
         resource.setRealm(service.getRealm());
 
         // build scopes
-        // include introspect client in audience
         Set<String> audience = new HashSet<>();
         audience.add(service.getNamespace());
-        if (service.getClients() != null) {
-            service.getClients().forEach(client -> {
-                if (SystemKeys.SERVICE_CLIENT_TYPE_INTROSPECT.equals(client.getType())) {
-                    audience.add(client.getClientId());
-                }
-            });
-        }
+
         List<Scope> scopes = service.getScopes().stream()
                 .map(s -> {
                     s.setAudience(audience);
