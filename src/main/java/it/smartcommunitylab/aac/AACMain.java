@@ -8,12 +8,17 @@ import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 
+import it.smartcommunitylab.aac.bootstrap.AACBootstrap;
+
 @SpringBootApplication
 public class AACMain {
-    
+
     @Autowired
     BuildProperties buildProperties;
-    
+
+    @Autowired
+    private AACBootstrap bootstrap;
+
     public static void main(String[] args) {
         SpringApplication.run(AACMain.class, args);
     }
@@ -25,6 +30,13 @@ public class AACMain {
         };
     }
 
+    @Bean
+    public CommandLineRunner bootstrapRunner(ApplicationContext ctx) {
+        return args -> {
+            bootstrap.bootstrap();
+        };
+    }
+
     public void printBanner() {
         String version = buildProperties.getVersion();
         System.out.println("======================================");
@@ -32,9 +44,9 @@ public class AACMain {
         System.out.println("     /\\       /\\   / ____|          ");
         System.out.println("    /  \\     /  \\ | |              ");
         System.out.println("   / /\\ \\   / /\\ \\| |            ");
-        System.out.println("  / ____ \\ / ____ \\ |____          "); 
+        System.out.println("  / ____ \\ / ____ \\ |____          ");
         System.out.println(" /_/    \\_/_/    \\_\\_____|       ");
-        System.out.println(" :ready                  (v."+version+")");
+        System.out.println(" :ready                  (v." + version + ")");
         System.out.println("======================================");
     }
 }

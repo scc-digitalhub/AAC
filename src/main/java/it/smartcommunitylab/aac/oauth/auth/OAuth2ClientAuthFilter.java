@@ -121,6 +121,7 @@ public class OAuth2ClientAuthFilter extends OncePerRequestFilter {
             Authentication authResult = attemptAuthentication(request, response);
             if (authResult == null) {
                 // nothing to do
+                filterChain.doFilter(request, response);
                 return;
             }
 
@@ -162,7 +163,7 @@ public class OAuth2ClientAuthFilter extends OncePerRequestFilter {
         // try conversion
         Authentication authRequest = this.authenticationConverter.convert(request);
         if (authRequest == null) {
-            return authRequest;
+            return null;
         }
 
         // make sure this is a client auth

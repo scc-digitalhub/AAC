@@ -130,7 +130,7 @@ public class AACBootstrap {
     @Autowired
     private OAuth2ClientAppService clientAppService;
 
-    @EventListener
+//    @EventListener
     public void onApplicationEvent(ApplicationStartedEvent event) {
         // build a security context as admin to bootstrap configs
         // DISABLED

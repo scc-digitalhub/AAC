@@ -16,6 +16,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.provider.error.OAuth2AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
@@ -80,9 +81,8 @@ public class OAuth2SecurityConfig {
                 // disable request cache, we override redirects but still better enforce it
                 .requestCache((requestCache) -> requestCache.disable())
                 .exceptionHandling()
-                // use 401
-//                .authenticationEntryPoint(new Http403ForbiddenEntryPoint())
-                .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                // use custom entrypoint with error message
+                .authenticationEntryPoint(new OAuth2AuthenticationEntryPoint())
                 .accessDeniedPage("/accesserror")
                 .and()
                 .cors().configurationSource(corsConfigurationSource())
