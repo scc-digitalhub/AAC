@@ -553,7 +553,7 @@ public class AACBootstrap {
                         logger.debug("create service for realm {}", String.valueOf(s.getRealm()));
 
                         // validate realm match
-                        if (!StringUtils.hasText(s.getRealm()) || !slug.equals(s.getRealm())) {
+                        if (StringUtils.hasText(s.getRealm()) && !slug.equals(s.getRealm())) {
                             logger.error("error creating service, realm mismatch");
                             return;
                         }
@@ -616,8 +616,8 @@ public class AACBootstrap {
                         logger.debug("create client app for realm {}", String.valueOf(app.getRealm()));
 
                         // validate realm match
-                        if (!StringUtils.hasText(app.getRealm()) || !slug.equals(app.getRealm())) {
-                            logger.error("error creating service, realm mismatch");
+                        if (StringUtils.hasText(app.getRealm()) && !slug.equals(app.getRealm())) {
+                            logger.error("error creating client, realm mismatch");
                             return;
                         }
 
