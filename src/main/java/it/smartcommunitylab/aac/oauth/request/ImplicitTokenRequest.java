@@ -31,22 +31,6 @@ public class ImplicitTokenRequest extends TokenRequest {
         this.redirectUri = redirectUri;
     }
 
-    public ImplicitTokenRequest(
-            AuthorizationRequest authorizationRequest) {
-        super(authorizationRequest.getRequestParameters(),
-                authorizationRequest.getClientId(), GRANT_TYPE,
-                authorizationRequest.getScope(),
-                authorizationRequest.getResourceIds(), null);
-
-        // extensions
-        Map<String, Serializable> extensions = authorizationRequest.getExtensions();
-        if (extensions.containsKey("audience")) {
-            Set<String> audience = StringUtils.commaDelimitedListToSet((String) extensions.get("audience"));
-            setAudience(audience);
-        }
-
-    }
-
     public String getRedirectUri() {
         return redirectUri;
     }

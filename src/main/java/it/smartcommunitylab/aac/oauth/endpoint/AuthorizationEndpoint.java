@@ -237,6 +237,9 @@ public class AuthorizationEndpoint implements InitializingBean {
                     throw new RedirectMismatchException("No valid redirectUri in request");
                 }
 
+                // always use resolved redirect for request
+                authorizationRequest.setRedirectUri(resolvedRedirectUri);
+
                 // validate scopes
                 oauth2AuthorizationRequestValidator.validateScope(authorizationRequest, clientDetails);
 

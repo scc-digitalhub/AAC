@@ -26,10 +26,10 @@ public class AuthorizationCodeTokenRequest extends TokenRequest {
     public AuthorizationCodeTokenRequest(
             Map<String, String> requestParameters,
             String clientId,
-            String code, String redirectUri,
+            String code, String redirectUri, Collection<String> scopes,
             Collection<String> resourceIds, Collection<String> audience) {
         super(requestParameters,
-                clientId, GRANT_TYPE, Collections.emptyList(),
+                clientId, GRANT_TYPE, scopes,
                 resourceIds, audience);
         Assert.hasText(code, "code is required");
 

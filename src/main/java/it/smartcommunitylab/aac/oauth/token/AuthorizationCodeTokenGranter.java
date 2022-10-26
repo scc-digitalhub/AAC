@@ -2,6 +2,8 @@ package it.smartcommunitylab.aac.oauth.token;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +12,7 @@ import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
 import org.springframework.security.oauth2.common.exceptions.InvalidGrantException;
 import org.springframework.security.oauth2.common.exceptions.InvalidRequestException;
+import org.springframework.security.oauth2.common.exceptions.InvalidScopeException;
 import org.springframework.security.oauth2.common.exceptions.RedirectMismatchException;
 import org.springframework.security.oauth2.common.util.OAuth2Utils;
 import org.springframework.security.oauth2.provider.ClientDetails;
@@ -23,7 +26,7 @@ import org.springframework.security.oauth2.provider.token.AuthorizationServerTok
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 
 public class AuthorizationCodeTokenGranter extends AbstractTokenGranter {
-    
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private static final String GRANT_TYPE = "authorization_code";
@@ -87,6 +90,18 @@ public class AuthorizationCodeTokenGranter extends AbstractTokenGranter {
         if (clientId != null && !clientId.equals(pendingClientId)) {
             // just a sanity check.
             throw new InvalidClientException("Client ID mismatch");
+        }
+
+        // check that scopes, when requested on token endpoint, are a subset of the
+        // authorized
+        if (tokenRequest.getScope() != null && pendingOAuth2Request.getScope() != null) {
+            Set<String> invalidScopes = tokenRequest.getScope().stream()
+                    .filter(s -> !pendingOAuth2Request.getScope().contains(s))
+                    .collect(Collectors.toSet());
+            if (!invalidScopes.isEmpty()) {
+                logger.debug("invalid scopes requested: " + String.valueOf(invalidScopes));
+                throw new InvalidScopeException(String.join(",", invalidScopes));
+            }
         }
 
         // Secret is not required in the authorization request, so it won't be available

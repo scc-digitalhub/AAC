@@ -30,6 +30,7 @@ import com.nimbusds.jose.PlainObject;
 import com.nimbusds.jose.util.JSONObjectUtils;
 import com.nimbusds.jwt.SignedJWT;
 
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.model.User;
@@ -46,7 +47,6 @@ import it.smartcommunitylab.aac.openid.common.exceptions.InvalidRequestObjectExc
 import it.smartcommunitylab.aac.openid.common.exceptions.UnsupportedRequestUriException;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
-import net.minidev.json.JSONObject;
 
 public class OAuth2RequestFactory
         implements OAuth2TokenRequestFactory, OAuth2AuthorizationRequestFactory,
@@ -88,111 +88,139 @@ public class OAuth2RequestFactory
 
     @Override
     public TokenRequest createTokenRequest(Map<String, String> requestParameters, OAuth2ClientDetails clientDetails) {
+        try {
+            // required parameters
+            String clientId = readParameter(requestParameters, "client_id", SLUG_PATTERN);
+            String grantType = readParameter(requestParameters, "grant_type", STRING_PATTERN);
 
-        // required parameters
-        String clientId = readParameter(requestParameters, "client_id", SLUG_PATTERN);
-        String grantType = readParameter(requestParameters, "grant_type", STRING_PATTERN);
-
-        // check if we didn't receive clientId, use authentication info
-        if (clientId == null) {
-            clientId = clientDetails.getClientId();
-        }
-
-        // check extensions and integrate modifications
-        if (flowExtensionsService != null) {
-            OAuthFlowExtensions ext = flowExtensionsService.getOAuthFlowExtensions(clientDetails);
-            if (ext != null) {
-
-                Map<String, String> parameters = ext.onBeforeTokenGrant(requestParameters, clientDetails);
-                if (parameters != null) {
-                    // merge parameters into request params
-                    requestParameters.putAll(parameters);
-                    // enforce base params consistency
-                    // TODO rewrite with proper merge with exclusion list
-                    requestParameters.put("client_id", clientId);
-                    requestParameters.put("grant_type", grantType);
+            // check if we didn't receive clientId, use authentication info
+            if (clientId == null) {
+                clientId = clientDetails.getClientId();
+            } else {
+                // check if clientId provided that it matches auth info
+                if (!clientId.equals(clientDetails.getClientId())) {
+                    throw new InvalidRequestException("wrong client");
                 }
             }
-        }
 
-        Set<String> scopes = delimitedStringToSet(decodeParameters(requestParameters.get("scope")));
+            // check extensions and integrate modifications
+            if (flowExtensionsService != null) {
+                OAuthFlowExtensions ext = flowExtensionsService.getOAuthFlowExtensions(clientDetails);
+                if (ext != null) {
 
-        // we collect serviceIds as resourceIds to mark these as audience
-        // TODO fix this, services are AUDIENCE not resources!
-        // we need a field in tokenRequest
-        Set<String> resourceIds = delimitedStringToSet(decodeParameters(requestParameters.get("resource")));
+                    Map<String, String> parameters = ext.onBeforeTokenGrant(requestParameters, clientDetails);
+                    if (parameters != null) {
+                        // merge parameters into request params
+                        requestParameters.putAll(parameters);
+                        // enforce base params consistency
+                        // TODO rewrite with proper merge with exclusion list
+                        requestParameters.put("client_id", clientId);
+                        requestParameters.put("grant_type", grantType);
+                    }
+                }
+            }
 
-        // also load resources derived from requested scope
-        resourceIds.addAll(extractResourceIds(scopes));
+            // check if scopes are requested or fall back
+            Set<String> scopes = null;
+            if (requestParameters.get("scope") != null) {
+                scopes = delimitedStringToSet(decodeParameters(requestParameters.get("scope")));
+            }
 
-        // depend on flow
-        // use per flow token request subtype
-        AuthorizationGrantType authorizationGrantType = AuthorizationGrantType.parse(grantType);
-        if (authorizationGrantType == AUTHORIZATION_CODE) {
-            String code = readParameter(requestParameters, "code", STRING_PATTERN);
-            String redirectUri = readParameter(requestParameters, "redirect_uri", URI_PATTERN);
+            // we collect serviceIds as resourceIds to mark these as audience
+            // TODO fix this, services are AUDIENCE not resources!
+            // we need a field in tokenRequest
+            Set<String> resourceIds = delimitedStringToSet(decodeParameters(requestParameters.get("resource")));
 
-            logger.trace("create token request for " + clientId
-                    + " grantType " + grantType
-                    + " code " + String.valueOf(code)
-                    + " redirectUri " + String.valueOf(redirectUri)
-                    + " resource ids " + resourceIds.toString());
+            // also load resources derived from requested scope
+            resourceIds.addAll(extractResourceIds(scopes));
 
-            return new AuthorizationCodeTokenRequest(requestParameters, clientId, code, redirectUri, resourceIds, null);
-        }
-        if (authorizationGrantType == IMPLICIT) {
-            // we can't build an implicit token request from params, only from authRequest
+            // depend on flow
+            // use per flow token request subtype
+            AuthorizationGrantType authorizationGrantType = AuthorizationGrantType.parse(grantType);
+            if (authorizationGrantType == AUTHORIZATION_CODE) {
+                String code = readParameter(requestParameters, "code", STRING_PATTERN);
+                String redirectUri = readParameter(requestParameters, "redirect_uri", URI_PATTERN);
+                // use scopes as requested
+                Set<String> requestScopes = scopes;
+
+                logger.trace("create token request for " + clientId
+                        + " grantType " + grantType
+                        + " code " + String.valueOf(code)
+                        + " redirectUri " + String.valueOf(redirectUri)
+                        + " scopes " + String.valueOf(requestScopes)
+                        + " resource ids " + resourceIds.toString());
+
+                return new AuthorizationCodeTokenRequest(requestParameters, clientId,
+                        code, redirectUri,
+                        requestScopes, resourceIds, null);
+            }
+            if (authorizationGrantType == IMPLICIT) {
+                // we can't build an implicit token request from params, only from authRequest
+                throw new UnsupportedGrantTypeException("Grant type not supported: " + grantType);
+            }
+            if (authorizationGrantType == PASSWORD) {
+                String username = readParameter(requestParameters, "username", EMAIL_PATTERN);
+                String password = requestParameters.get("password");
+                Set<String> requestScopes = extractScopes(scopes, clientDetails.getScope(), false);
+
+                // remove offline_access if requested and still present
+                // password flow does not support refresh tokens
+                if (requestScopes.contains(Config.SCOPE_OFFLINE_ACCESS)) {
+                    requestScopes.remove(Config.SCOPE_OFFLINE_ACCESS);
+                }
+
+                logger.trace("create token request for " + clientId
+                        + " grantType " + grantType
+                        + " user " + username
+                        + " scopes " + requestScopes.toString()
+                        + " resource ids " + resourceIds.toString());
+
+                return new ResourceOwnerPasswordTokenRequest(requestParameters, clientId,
+                        username, password,
+                        requestScopes, resourceIds,
+                        null);
+            }
+
+            if (authorizationGrantType == CLIENT_CREDENTIALS) {
+                Set<String> requestScopes = extractScopes(scopes, clientDetails.getScope(), true);
+
+                // remove offline_access if requested and still present
+                // client flow does not support refresh tokens
+                if (requestScopes.contains(Config.SCOPE_OFFLINE_ACCESS)) {
+                    requestScopes.remove(Config.SCOPE_OFFLINE_ACCESS);
+                }
+
+                logger.trace("create token request for " + clientId
+                        + " grantType " + grantType
+                        + " client " + clientId
+                        + " scopes " + requestScopes.toString()
+                        + " resource ids " + resourceIds.toString());
+
+                return new TokenRequest(requestParameters, clientId, authorizationGrantType.getValue(), requestScopes,
+                        resourceIds,
+                        null);
+            }
+
+            if (authorizationGrantType == REFRESH_TOKEN) {
+                // refresh tokens can ask scopes, but by default will get those in original
+                // request and not the client default
+                Set<String> requestScopes = scopes;
+
+                logger.trace("create token request for " + clientId
+                        + " grantType " + grantType
+                        + " client " + clientId
+                        + " scope " + requestScopes.toString()
+                        + " resource id " + resourceIds.toString());
+
+                return new TokenRequest(requestParameters, clientId, authorizationGrantType.getValue(), requestScopes,
+                        resourceIds,
+                        null);
+            }
+
             throw new UnsupportedGrantTypeException("Grant type not supported: " + grantType);
+        } catch (IllegalArgumentException e) {
+            throw new InvalidRequestException(e.getMessage());
         }
-        if (authorizationGrantType == PASSWORD) {
-            String username = readParameter(requestParameters, "username", EMAIL_PATTERN);
-            String password = requestParameters.get("password");
-            Set<String> requestScopes = extractScopes(scopes, clientDetails.getScope(), false);
-
-            logger.trace("create token request for " + clientId
-                    + " grantType " + grantType
-                    + " user " + username
-                    + " scopes " + requestScopes.toString()
-                    + " resource ids " + resourceIds.toString());
-
-            return new ResourceOwnerPasswordTokenRequest(requestParameters, clientId,
-                    username, password,
-                    requestScopes, resourceIds,
-                    null);
-        }
-
-        if (authorizationGrantType == CLIENT_CREDENTIALS) {
-            Set<String> requestScopes = extractScopes(scopes, clientDetails.getScope(), true);
-
-            logger.trace("create token request for " + clientId
-                    + " grantType " + grantType
-                    + " client " + clientId
-                    + " scopes " + requestScopes.toString()
-                    + " resource ids " + resourceIds.toString());
-
-            return new TokenRequest(requestParameters, clientId, authorizationGrantType.getValue(), requestScopes,
-                    resourceIds,
-                    null);
-        }
-
-        if (authorizationGrantType == REFRESH_TOKEN) {
-            // refresh tokens can ask scopes, but by default will get those in original
-            // request and not the client default
-            Set<String> requestScopes = scopes;
-
-            logger.trace("create token request for " + clientId
-                    + " grantType " + grantType
-                    + " client " + clientId
-                    + " scope " + requestScopes.toString()
-                    + " resource id " + resourceIds.toString());
-
-            return new TokenRequest(requestParameters, clientId, authorizationGrantType.getValue(), requestScopes,
-                    resourceIds,
-                    null);
-        }
-
-        throw new UnsupportedGrantTypeException("Grant type not supported: " + grantType);
-
     }
 
     @Override
@@ -200,12 +228,27 @@ public class OAuth2RequestFactory
         AuthorizationGrantType authorizationGrantType = AuthorizationGrantType.parse(grantType);
         // only implicit grant can convert request
         if (authorizationGrantType == IMPLICIT) {
-            // get parameters from authorization request
-            return new ImplicitTokenRequest(authorizationRequest);
+            // get scope from authorization request
+            Set<String> scope = authorizationRequest.getScope();
+
+            // remove offline_access if requested and still present
+            // implicit flow does not support refresh tokens
+            if (scope != null && scope.contains(Config.SCOPE_OFFLINE_ACCESS)) {
+                scope = authorizationRequest.getScope().stream().filter(s -> !Config.SCOPE_OFFLINE_ACCESS.equals(s))
+                        .collect(Collectors.toSet());
+            }
+
+            ImplicitTokenRequest tokenRequest = new ImplicitTokenRequest(
+                    authorizationRequest.getRequestParameters(),
+                    authorizationRequest.getClientId(),
+                    scope, authorizationRequest.getRedirectUri(),
+                    authorizationRequest.getResourceIds(), null);
+
+            return tokenRequest;
+
         }
 
         throw new UnsupportedGrantTypeException("Grant type not supported: " + grantType);
-
     }
 
     @Override
@@ -216,14 +259,14 @@ public class OAuth2RequestFactory
     @Override
     public AuthorizationRequest createAuthorizationRequest(Map<String, String> requestParameters,
             OAuth2ClientDetails clientDetails, User user) {
+        try {
+            // *always* required parameters
+            String clientId = readParameter(requestParameters, "client_id", SLUG_PATTERN);
+            String responseType = readParameter(requestParameters, "response_type", SPACE_STRING_PATTERN);
+            Set<String> responseTypes = delimitedStringToSet(decodeParameters(responseType));
 
-        // *always* required parameters
-        String clientId = readParameter(requestParameters, "client_id", SLUG_PATTERN);
-        String responseType = readParameter(requestParameters, "response_type", SPACE_STRING_PATTERN);
-        Set<String> responseTypes = delimitedStringToSet(decodeParameters(responseType));
-
-        // optional
-        String state = readParameter(requestParameters, "state", SPECIAL_PATTERN);
+            // optional
+            String state = readParameter(requestParameters, "state", SPECIAL_PATTERN);
 //        String state = null;
 //        try {
 //            state = readParameter(requestParameters, "state", SPECIAL_PATTERN);
@@ -245,138 +288,146 @@ public class OAuth2RequestFactory
 //            }
 //        }
 
-        String nonce = readParameter(requestParameters, "nonce", SPECIAL_PATTERN);
+            String nonce = readParameter(requestParameters, "nonce", SPECIAL_PATTERN);
 
-        // check if we didn't receive clientId, use authentication info
-        if (clientId == null) {
-            clientId = clientDetails.getClientId();
-        }
-
-        // check extensions and integrate modifications
-        if (flowExtensionsService != null) {
-            OAuthFlowExtensions ext = flowExtensionsService.getOAuthFlowExtensions(clientDetails);
-            if (ext != null) {
-
-                Map<String, String> parameters = ext.onBeforeUserApproval(requestParameters, user, clientDetails);
-                if (parameters != null) {
-                    // merge parameters into request params
-                    requestParameters.putAll(parameters);
-                    // enforce base params consistency
-                    // TODO rewrite with proper merge with exclusion list
-                    requestParameters.put("client_id", clientId);
-                    requestParameters.put("response_type", responseType);
-
-                    requestParameters.put("state", state);
-                    requestParameters.put("nonce", nonce);
-                }
-            }
-        }
-
-        Set<String> scopes = delimitedStringToSet(decodeParameters(requestParameters.get("scope")));
-        String redirectUri = readParameter(requestParameters, "redirect_uri", URI_PATTERN);
-        String responseMode = readParameter(requestParameters, "response_mode", STRING_PATTERN);
-        if (responseMode == null) {
-            responseMode = (responseTypes.contains("token") || responseTypes.contains("id_token")) ? "fragment"
-                    : "query";
-        }
-
-        Set<String> requestScopes = extractScopes(scopes, clientDetails.getScope(), false);
-
-        // we collect serviceIds as resourceIds to mark these as audience
-        // TODO fix this, services are AUDIENCE not resources!
-        // we need a field in tokenRequest
-        Set<String> resourceIds = delimitedStringToSet(decodeParameters(requestParameters.get("resource")));
-
-        // also load resources derived from requested scope
-        resourceIds.addAll(extractResourceIds(scopes));
-
-        Set<String> audience = delimitedStringToSet(decodeParameters(requestParameters.get("audience")));
-
-        Set<String> prompt = delimitedStringToSet(decodeParameters(requestParameters.get("prompt")));
-
-        // support request param only for openid
-        String request = requestParameters.get("request");
-        if (StringUtils.hasText(request) && scopes.contains("openid")) {
-            // this should be a JWT
-            // we support only plain for now
-            try {
-                JOSEObject jwt = JOSEObject.parse(request);
-                if (!(jwt instanceof PlainObject)) {
-                    throw new InvalidRequestObjectException("request param type unsupported");
-                }
-
-                Map<String, Object> json = jwt.getPayload().toJSONObject();
-
-                // values in jwt superseed params
-                if (StringUtils.hasText(JSONObjectUtils.getString(json, "state"))) {
-                    state = readParameter(JSONObjectUtils.getString(json, "state"), SPECIAL_PATTERN);
-                }
-                if (StringUtils.hasText(JSONObjectUtils.getString(json, "nonce"))) {
-                    nonce = readParameter(JSONObjectUtils.getString(json, "nonce"), SPECIAL_PATTERN);
-                }
-                if (StringUtils.hasText(JSONObjectUtils.getString(json, "redirect_uri"))) {
-                    redirectUri = readParameter(JSONObjectUtils.getString(json, "redirect_uri"), URI_PATTERN);
-                }
-                if (StringUtils.hasText(JSONObjectUtils.getString(json, "response_mode"))) {
-                    responseMode = readParameter(JSONObjectUtils.getString(json, "response_mode"), STRING_PATTERN);
-                }
-                if (StringUtils.hasText(JSONObjectUtils.getString(json, "resource"))) {
-                    resourceIds = delimitedStringToSet(JSONObjectUtils.getString(json, "resource"));
-                }
-                if (StringUtils.hasText(JSONObjectUtils.getString(json, "audience"))) {
-                    audience = delimitedStringToSet(JSONObjectUtils.getString(json, "audience"));
-                }
-                if (StringUtils.hasText(JSONObjectUtils.getString(json, "prompt"))) {
-                    prompt = delimitedStringToSet(JSONObjectUtils.getString(json, "prompt"));
-                }
-
-            } catch (ParseException e) {
-                throw new InvalidRequestObjectException("request param is malformed");
+            // check if we didn't receive clientId, use authentication info
+            if (clientId == null) {
+                clientId = clientDetails.getClientId();
             }
 
+            // check extensions and integrate modifications
+            if (flowExtensionsService != null) {
+                OAuthFlowExtensions ext = flowExtensionsService.getOAuthFlowExtensions(clientDetails);
+                if (ext != null) {
+
+                    Map<String, String> parameters = ext.onBeforeUserApproval(requestParameters, user, clientDetails);
+                    if (parameters != null) {
+                        // merge parameters into request params
+                        requestParameters.putAll(parameters);
+                        // enforce base params consistency
+                        // TODO rewrite with proper merge with exclusion list
+                        requestParameters.put("client_id", clientId);
+                        requestParameters.put("response_type", responseType);
+
+                        requestParameters.put("state", state);
+                        requestParameters.put("nonce", nonce);
+                    }
+                }
+            }
+
+            String redirectUri = readParameter(requestParameters, "redirect_uri", URI_PATTERN);
+            String responseMode = readParameter(requestParameters, "response_mode", STRING_PATTERN);
+            if (responseMode == null) {
+                responseMode = (responseTypes.contains("token") || responseTypes.contains("id_token")) ? "fragment"
+                        : "query";
+            }
+
+            // check if scopes are requested or fall back
+            Set<String> scopes = null;
+            if (requestParameters.get("scope") != null) {
+                scopes = delimitedStringToSet(decodeParameters(requestParameters.get("scope")));
+            }
+
+            Set<String> requestScopes = extractScopes(scopes, clientDetails.getScope(), false);
+
+            // we collect serviceIds as resourceIds to mark these as audience
+            // TODO fix this, services are AUDIENCE not resources!
+            // we need a field in tokenRequest
+            Set<String> resourceIds = delimitedStringToSet(decodeParameters(requestParameters.get("resource")));
+
+            // also load resources derived from requested scope
+            resourceIds.addAll(extractResourceIds(scopes));
+
+            Set<String> audience = delimitedStringToSet(decodeParameters(requestParameters.get("audience")));
+
+            Set<String> prompt = delimitedStringToSet(decodeParameters(requestParameters.get("prompt")));
+
+            // support request param only for openid
+            String request = requestParameters.get("request");
+            if (StringUtils.hasText(request) && scopes.contains("openid")) {
+                // this should be a JWT
+                // we support only plain for now
+                try {
+                    JOSEObject jwt = JOSEObject.parse(request);
+                    if (!(jwt instanceof PlainObject)) {
+                        throw new InvalidRequestObjectException("request param type unsupported");
+                    }
+
+                    Map<String, Object> json = jwt.getPayload().toJSONObject();
+
+                    // values in jwt superseed params
+                    if (StringUtils.hasText(JSONObjectUtils.getString(json, "state"))) {
+                        state = readParameter(JSONObjectUtils.getString(json, "state"), SPECIAL_PATTERN);
+                    }
+                    if (StringUtils.hasText(JSONObjectUtils.getString(json, "nonce"))) {
+                        nonce = readParameter(JSONObjectUtils.getString(json, "nonce"), SPECIAL_PATTERN);
+                    }
+                    if (StringUtils.hasText(JSONObjectUtils.getString(json, "redirect_uri"))) {
+                        redirectUri = readParameter(JSONObjectUtils.getString(json, "redirect_uri"), URI_PATTERN);
+                    }
+                    if (StringUtils.hasText(JSONObjectUtils.getString(json, "response_mode"))) {
+                        responseMode = readParameter(JSONObjectUtils.getString(json, "response_mode"), STRING_PATTERN);
+                    }
+                    if (StringUtils.hasText(JSONObjectUtils.getString(json, "resource"))) {
+                        resourceIds = delimitedStringToSet(JSONObjectUtils.getString(json, "resource"));
+                    }
+                    if (StringUtils.hasText(JSONObjectUtils.getString(json, "audience"))) {
+                        audience = delimitedStringToSet(JSONObjectUtils.getString(json, "audience"));
+                    }
+                    if (StringUtils.hasText(JSONObjectUtils.getString(json, "prompt"))) {
+                        prompt = delimitedStringToSet(JSONObjectUtils.getString(json, "prompt"));
+                    }
+
+                } catch (ParseException e) {
+                    throw new InvalidRequestObjectException("request param is malformed");
+                }
+
+            }
+
+            // we do not support request_uri
+            String requestUri = requestParameters.get("request_uri");
+            if (StringUtils.hasText(requestUri)) {
+                throw new UnsupportedRequestUriException("request_uri is not supported");
+            }
+
+            logger.trace("create authorization request for " + clientId
+                    + " response type " + responseTypes.toString()
+                    + " response mode " + String.valueOf(responseMode)
+                    + " redirect " + String.valueOf(redirectUri)
+                    + " scope " + requestScopes.toString()
+                    + " resource ids " + resourceIds.toString()
+                    + " audience ids " + audience.toString());
+
+            AuthorizationRequest authorizationRequest = new AuthorizationRequest(requestParameters,
+                    Collections.<String, String>emptyMap(),
+                    clientId, requestScopes,
+                    resourceIds, null, false,
+                    state, redirectUri,
+                    responseTypes);
+
+            // extensions
+            Map<String, Serializable> extensions = authorizationRequest.getExtensions();
+
+            // audience
+            extensions.put("audience", StringUtils.collectionToCommaDelimitedString(audience));
+
+            // response mode
+            extensions.put("response_mode", responseMode);
+
+            // support NONCE
+            if (StringUtils.hasText(nonce)) {
+                extensions.put("nonce", nonce);
+            }
+
+            // support prompt
+            if (!prompt.isEmpty()) {
+                extensions.put("prompt", StringUtils.collectionToCommaDelimitedString(prompt));
+            }
+
+            return authorizationRequest;
+        } catch (IllegalArgumentException e) {
+            throw new InvalidRequestException(e.getMessage());
         }
-
-        // we do not support request_uri
-        String requestUri = requestParameters.get("request_uri");
-        if (StringUtils.hasText(requestUri)) {
-            throw new UnsupportedRequestUriException("request_uri is not supported");
-        }
-
-        logger.trace("create authorization request for " + clientId
-                + " response type " + responseTypes.toString()
-                + " response mode " + String.valueOf(responseMode)
-                + " redirect " + String.valueOf(redirectUri)
-                + " scope " + requestScopes.toString()
-                + " resource ids " + resourceIds.toString()
-                + " audience ids " + audience.toString());
-
-        AuthorizationRequest authorizationRequest = new AuthorizationRequest(requestParameters,
-                Collections.<String, String>emptyMap(),
-                clientId, requestScopes,
-                resourceIds, null, false,
-                state, redirectUri,
-                responseTypes);
-
-        // extensions
-        Map<String, Serializable> extensions = authorizationRequest.getExtensions();
-
-        // audience
-        extensions.put("audience", StringUtils.collectionToCommaDelimitedString(audience));
-
-        // response mode
-        extensions.put("response_mode", responseMode);
-
-        // support NONCE
-        if (StringUtils.hasText(nonce)) {
-            extensions.put("nonce", nonce);
-        }
-
-        // support prompt
-        if (!prompt.isEmpty()) {
-            extensions.put("prompt", StringUtils.collectionToCommaDelimitedString(prompt));
-        }
-
-        return authorizationRequest;
     }
 
     @Override
@@ -434,12 +485,12 @@ public class OAuth2RequestFactory
     private Set<String> extractScopes(Set<String> scopes, Collection<String> clientScopes, boolean isClient) {
         ScopeType type = isClient ? ScopeType.CLIENT : ScopeType.USER;
 
-        if ((scopes == null || scopes.isEmpty())) {
-            // when request scopes are empty or null use all scopes registered by client
+        if (scopes == null) {
+            // when request scopes are null use all scopes registered by client
             scopes = new HashSet<>(clientScopes);
 
             if (scopeRegistry != null) {
-                // keep only those matching request type
+                // keep only scopes matching request type
                 scopes = clientScopes.stream().filter(
                         s -> {
                             Scope sc = scopeRegistry.findScope(s);
@@ -452,7 +503,6 @@ public class OAuth2RequestFactory
                         .collect(Collectors.toSet());
 
             }
-
         }
 
         return scopes;
@@ -492,7 +542,7 @@ public class OAuth2RequestFactory
     }
 
     private Set<String> extractResourceIds(Set<String> scopes) {
-        if (scopeRegistry != null) {
+        if (scopes != null && scopeRegistry != null) {
             return scopes.stream().map(s -> {
                 return scopeRegistry.findScope(s);
             })
@@ -552,7 +602,7 @@ public class OAuth2RequestFactory
     public final static String STRING_PATTERN = "^[a-zA-Z0-9_:-]+$";
     public final static String EMAIL_PATTERN = SystemKeys.EMAIL_PATTERN;
     public final static String URI_PATTERN = "^[a-zA-Z0-9._:/-]+$";
-    public final static String SPECIAL_PATTERN = "^[a-zA-Z0-9_!=@#$&%():/\\-`.+,/\"]*$";
+    public final static String SPECIAL_PATTERN = "^[a-zA-Z0-9_!=@$&%():/\\-`.+,/\"]*$";
     public final static String SPACE_STRING_PATTERN = "^[a-zA-Z0-9 _:-]+$";
 
     /*

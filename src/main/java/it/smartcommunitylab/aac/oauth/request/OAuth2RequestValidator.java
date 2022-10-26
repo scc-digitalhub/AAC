@@ -47,10 +47,11 @@ public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAut
         String grantType = tokenRequest.getGrantType();
         AuthorizationGrantType authorizationGrantType = AuthorizationGrantType.parse(grantType);
         if (authorizationGrantType == AUTHORIZATION_CODE) {
-            if (!tokenRequest.getScope().isEmpty()) {
-                throw new InvalidRequestException(
-                        "token request for " + grantType + " should not have scopes associated");
-            }
+            // DISABLED, check in granter if scopes are also in authorized request
+//            if (!tokenRequest.getScope().isEmpty()) {
+//                throw new InvalidRequestException(
+//                        "token request for " + grantType + " should not have scopes associated");
+//            }
 
             if (tokenRequest instanceof AuthorizationCodeTokenRequest) {
                 AuthorizationCodeTokenRequest request = (AuthorizationCodeTokenRequest) tokenRequest;
