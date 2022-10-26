@@ -48,6 +48,8 @@ realms:
           - "email"
           - "profile"
           - "client.roles.me"
+          - "user.roles.me"
+          - "aac.api.users"
         resourceIds: [
             ]
         providers:
