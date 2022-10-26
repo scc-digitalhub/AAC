@@ -3,10 +3,10 @@ package it.smartcommunitylab.aac.oauth.token;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
@@ -29,9 +29,7 @@ import org.springframework.util.MultiValueMap;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import antlr.collections.List;
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.api.scopes.AdminRealmsScope;
 import it.smartcommunitylab.aac.api.scopes.ApiUsersScope;
 import it.smartcommunitylab.aac.bootstrap.BootstrapConfig;
 import it.smartcommunitylab.aac.core.base.AbstractAccount;
@@ -43,10 +41,10 @@ import it.smartcommunitylab.aac.oauth.endpoint.TokenEndpoint;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
 
 /*
- * OAuth 2.0 Client Credentials
+ * OAuth 2.0 Resource Owner Password Credentials Grant
  * as per RFC6749
  * 
- * https://www.rfc-editor.org/rfc/rfc6749#section-4.4
+ * https://www.rfc-editor.org/rfc/rfc6749#section-4.3
  */
 
 @SpringBootTest
