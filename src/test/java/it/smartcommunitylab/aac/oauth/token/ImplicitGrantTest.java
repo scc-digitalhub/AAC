@@ -185,6 +185,7 @@ public class ImplicitGrantTest {
                 scope -> assertThat(scope).isNull(),
                 scope -> assertThat(scope).isEmpty(),
                 scope -> assertThat(scope.get(0)).isEqualTo(""));
+        
 
         // there is no refresh token
         assertThat(response.get(OAuth2ParameterNames.REFRESH_TOKEN)).isNull();
