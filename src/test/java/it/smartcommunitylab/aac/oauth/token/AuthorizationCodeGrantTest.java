@@ -15,6 +15,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.CacheControl;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
@@ -32,7 +34,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.oauth2.sdk.ResponseType;
 
-import antlr.collections.List;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.auth.WithMockUserAuthentication;
 import it.smartcommunitylab.aac.bootstrap.BootstrapConfig;
@@ -222,10 +223,108 @@ public class AuthorizationCodeGrantTest {
         assertThat(response.get(OAuth2ParameterNames.SCOPE)).satisfiesAnyOf(
                 scope -> assertThat(scope).isNull(),
                 scope -> assertThat(scope).isNotNull().isInstanceOf(String.class)
-                        .isEqualTo(""),
-                scope -> assertThat(scope).isNotNull().isInstanceOf(List.class)
-                        .asInstanceOf(InstanceOfAssertFactories.LIST).isEmpty());
+                        .asInstanceOf(InstanceOfAssertFactories.STRING).isBlank());
 
+    }
+
+    @Test
+    @WithMockUserAuthentication(username = "test", realm = "test")
+    public void userAuthWithHttpBasicHeadersTest() throws Exception {
+        // authorize request
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add(OAuth2ParameterNames.RESPONSE_TYPE, ResponseType.CODE.toString());
+        params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
+        // set empty scopes to avoid fall back to predefined
+        params.add(OAuth2ParameterNames.SCOPE, "");
+
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .params(params);
+
+        MvcResult res = this.mockMvc
+                .perform(req)
+                .andExpect(status().isOk())
+                .andReturn();
+
+        // expect a forward in response
+        assertThat(res.getResponse().getContentAsString()).isBlank();
+
+        String forwardedUrl = res.getResponse().getForwardedUrl();
+        assertThat(res.getResponse().getForwardedUrl()).isNotNull().startsWith(AUTHORIZED_URL);
+
+        // keep the same session for the whole request flow
+        MockHttpSession session = (MockHttpSession) res.getRequest().getSession();
+        assertThat(session).isNotNull();
+
+        // follow forward to fetch response
+        req = MockMvcRequestBuilders.get(forwardedUrl).session(session);
+
+        res = this.mockMvc
+                .perform(req)
+                .andExpect(status().is3xxRedirection())
+                .andReturn();
+
+        // expect a redirect in response with query
+        assertThat(res.getResponse().getContentAsString()).isBlank();
+
+        String redirectedUrl = res.getResponse().getRedirectedUrl();
+        assertThat(redirectedUrl).isNotNull();
+
+        // parse as queryString
+        assertDoesNotThrow(() -> {
+            UriComponentsBuilder.fromUriString(redirectedUrl);
+        });
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(redirectedUrl);
+        MultiValueMap<String, String> queryParams = builder.build(true).getQueryParams();
+        assertThat(queryParams).isNotNull();
+
+        // code
+        assertThat(queryParams.get(OAuth2ParameterNames.CODE)).isNotNull().isNotEmpty();
+        String code = queryParams.get(OAuth2ParameterNames.CODE).get(0);
+        assertThat(code).isNotBlank();
+
+        // assert headers
+        assertThat(res.getResponse().getHeader(HttpHeaders.CACHE_CONTROL))
+                .isNotBlank()
+                .contains(CacheControl.noStore().getHeaderValue());
+        assertThat(res.getResponse().getHeader(HttpHeaders.PRAGMA))
+                .isNotBlank()
+                .isEqualTo(CacheControl.noCache().getHeaderValue());
+
+        // make a token request
+        params = new LinkedMultiValueMap<>();
+        params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.AUTHORIZATION_CODE.getValue());
+        params.add(OAuth2ParameterNames.CODE, code);
+
+        req = MockMvcRequestBuilders.post(TOKEN_URL)
+                .with(httpBasic(clientId, clientSecret))
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .params(params);
+
+        res = this.mockMvc
+                .perform(req)
+                .andExpect(status().isOk())
+                .andReturn();
+
+        // expect a valid json in response
+        assertThat(res.getResponse().getContentAsString()).isNotBlank();
+
+        // assert headers
+        assertThat(res.getResponse().getHeader(HttpHeaders.CACHE_CONTROL))
+                .isNotBlank()
+                .isEqualTo(CacheControl.noStore().getHeaderValue());
+        assertThat(res.getResponse().getHeader(HttpHeaders.PRAGMA))
+                .isNotBlank()
+                .isEqualTo(CacheControl.noCache().getHeaderValue());
+
+        Map<String, Serializable> response = mapper.readValue(res.getResponse().getContentAsString(), typeRef);
+        assertThat(response).isNotEmpty();
+
+        // access token
+        assertThat(response.get(OAuth2ParameterNames.ACCESS_TOKEN)).isNotNull().isInstanceOf(String.class);
+        String accessToken = (String) response.get(OAuth2ParameterNames.ACCESS_TOKEN);
+        assertThat(accessToken).isNotBlank();
     }
 
     @Test
@@ -320,10 +419,7 @@ public class AuthorizationCodeGrantTest {
         assertThat(response.get(OAuth2ParameterNames.SCOPE)).satisfiesAnyOf(
                 scope -> assertThat(scope).isNull(),
                 scope -> assertThat(scope).isNotNull().isInstanceOf(String.class)
-                        .isEqualTo(""),
-                scope -> assertThat(scope).isNotNull().isInstanceOf(List.class)
-                        .asInstanceOf(InstanceOfAssertFactories.LIST).isEmpty());
-
+                        .asInstanceOf(InstanceOfAssertFactories.STRING).isBlank());
     }
 
     @Test

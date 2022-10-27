@@ -6,7 +6,6 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.Serializable;
-import java.util.List;
 import java.util.Map;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
@@ -161,9 +160,7 @@ public class ResourceOwnerPasswordGrantTest {
         assertThat(response.get(OAuth2ParameterNames.SCOPE)).satisfiesAnyOf(
                 scope -> assertThat(scope).isNull(),
                 scope -> assertThat(scope).isNotNull().isInstanceOf(String.class)
-                        .isEqualTo(""),
-                scope -> assertThat(scope).isNotNull().isInstanceOf(List.class)
-                        .asInstanceOf(InstanceOfAssertFactories.LIST).isEmpty());
+                        .asInstanceOf(InstanceOfAssertFactories.STRING).isBlank());
 
         // there is no refresh token
         assertThat(response.get(OAuth2ParameterNames.REFRESH_TOKEN)).isNull();
@@ -258,9 +255,7 @@ public class ResourceOwnerPasswordGrantTest {
         assertThat(response.get(OAuth2ParameterNames.SCOPE)).satisfiesAnyOf(
                 scope -> assertThat(scope).isNull(),
                 scope -> assertThat(scope).isNotNull().isInstanceOf(String.class)
-                        .isEqualTo(""),
-                scope -> assertThat(scope).isNotNull().isInstanceOf(List.class)
-                        .asInstanceOf(InstanceOfAssertFactories.LIST).isEmpty());
+                        .asInstanceOf(InstanceOfAssertFactories.STRING).isBlank());
 
         // there is no refresh token
         assertThat(response.get(OAuth2ParameterNames.REFRESH_TOKEN)).isNull();
@@ -568,8 +563,8 @@ public class ResourceOwnerPasswordGrantTest {
                 scope -> assertThat(scope).isNull(),
                 scope -> assertThat(scope).isNotNull().isInstanceOf(String.class)
                         .isNotEqualTo(Config.SCOPE_OFFLINE_ACCESS),
-                scope -> assertThat(scope).isNotNull().isInstanceOf(List.class)
-                        .asInstanceOf(InstanceOfAssertFactories.LIST).doesNotContain(Config.SCOPE_OFFLINE_ACCESS));
+                scope -> assertThat(scope).isNotNull().isInstanceOf(String.class)
+                        .asInstanceOf(InstanceOfAssertFactories.STRING).doesNotContain(Config.SCOPE_OFFLINE_ACCESS));
 
         // there is no refresh token
         assertThat(response.get(OAuth2ParameterNames.REFRESH_TOKEN)).isNull();
