@@ -148,7 +148,7 @@ public class OAuth2RequestFactory
                         + " code " + String.valueOf(code)
                         + " redirectUri " + String.valueOf(redirectUri)
                         + " scopes " + String.valueOf(requestScopes)
-                        + " resource ids " + resourceIds.toString());
+                        + " resource ids " + String.valueOf(resourceIds));
 
                 return new AuthorizationCodeTokenRequest(requestParameters, clientId,
                         code, redirectUri,
@@ -172,8 +172,8 @@ public class OAuth2RequestFactory
                 logger.trace("create token request for " + clientId
                         + " grantType " + grantType
                         + " user " + username
-                        + " scopes " + requestScopes.toString()
-                        + " resource ids " + resourceIds.toString());
+                        + " scopes " + String.valueOf(requestScopes)
+                        + " resource ids " + String.valueOf(resourceIds));
 
                 return new ResourceOwnerPasswordTokenRequest(requestParameters, clientId,
                         username, password,
@@ -193,8 +193,8 @@ public class OAuth2RequestFactory
                 logger.trace("create token request for " + clientId
                         + " grantType " + grantType
                         + " client " + clientId
-                        + " scopes " + requestScopes.toString()
-                        + " resource ids " + resourceIds.toString());
+                        + " scopes " + String.valueOf(requestScopes)
+                        + " resource ids " + String.valueOf(resourceIds));
 
                 return new TokenRequest(requestParameters, clientId, authorizationGrantType.getValue(), requestScopes,
                         resourceIds,
@@ -209,8 +209,8 @@ public class OAuth2RequestFactory
                 logger.trace("create token request for " + clientId
                         + " grantType " + grantType
                         + " client " + clientId
-                        + " scope " + requestScopes.toString()
-                        + " resource id " + resourceIds.toString());
+                        + " scope " + String.valueOf(requestScopes)
+                        + " resource id " + String.valueOf(resourceIds));
 
                 return new TokenRequest(requestParameters, clientId, authorizationGrantType.getValue(), requestScopes,
                         resourceIds,
@@ -391,12 +391,12 @@ public class OAuth2RequestFactory
             }
 
             logger.trace("create authorization request for " + clientId
-                    + " response type " + responseTypes.toString()
+                    + " response type " + String.valueOf(responseTypes)
                     + " response mode " + String.valueOf(responseMode)
                     + " redirect " + String.valueOf(redirectUri)
-                    + " scope " + requestScopes.toString()
-                    + " resource ids " + resourceIds.toString()
-                    + " audience ids " + audience.toString());
+                    + " scope " + String.valueOf(requestScopes)
+                    + " resource ids " + String.valueOf(resourceIds)
+                    + " audience ids " + String.valueOf(audience));
 
             AuthorizationRequest authorizationRequest = new AuthorizationRequest(requestParameters,
                     Collections.<String, String>emptyMap(),
