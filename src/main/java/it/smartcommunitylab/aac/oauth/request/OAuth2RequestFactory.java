@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.security.oauth2.common.exceptions.InvalidRequestException;
+import org.springframework.security.oauth2.common.exceptions.InvalidScopeException;
 import org.springframework.security.oauth2.common.exceptions.UnsupportedGrantTypeException;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.security.oauth2.provider.ClientDetails;
@@ -164,7 +165,9 @@ public class OAuth2RequestFactory
                 Set<String> requestScopes = extractScopes(scopes, clientDetails.getScope(), false);
 
                 // remove offline_access if requested and still present
-                // password flow does not support refresh tokens
+                // password flow SHOULD not support refresh tokens
+                // but we let request pass, since from spec it COULD be valid
+                // https://www.rfc-editor.org/rfc/rfc6749#section-4.3.3
                 if (requestScopes.contains(Config.SCOPE_OFFLINE_ACCESS)) {
                     requestScopes.remove(Config.SCOPE_OFFLINE_ACCESS);
                 }
@@ -184,10 +187,11 @@ public class OAuth2RequestFactory
             if (authorizationGrantType == CLIENT_CREDENTIALS) {
                 Set<String> requestScopes = extractScopes(scopes, clientDetails.getScope(), true);
 
-                // remove offline_access if requested and still present
-                // client flow does not support refresh tokens
+                // check offline_access if requested and still present
+                // client flow MUST not support refresh tokens
+                // https://www.rfc-editor.org/rfc/rfc6749#section-4.4.3
                 if (requestScopes.contains(Config.SCOPE_OFFLINE_ACCESS)) {
-                    requestScopes.remove(Config.SCOPE_OFFLINE_ACCESS);
+                    throw new InvalidScopeException(Config.SCOPE_OFFLINE_ACCESS);
                 }
 
                 logger.trace("create token request for " + clientId
@@ -231,11 +235,11 @@ public class OAuth2RequestFactory
             // get scope from authorization request
             Set<String> scope = authorizationRequest.getScope();
 
-            // remove offline_access if requested and still present
-            // implicit flow does not support refresh tokens
+            // check offline_access if requested and still present
+            // implicit flow MUST not support refresh tokens
+            // https://www.rfc-editor.org/rfc/rfc6749#section-4.2.2
             if (scope != null && scope.contains(Config.SCOPE_OFFLINE_ACCESS)) {
-                scope = authorizationRequest.getScope().stream().filter(s -> !Config.SCOPE_OFFLINE_ACCESS.equals(s))
-                        .collect(Collectors.toSet());
+                throw new InvalidScopeException(Config.SCOPE_OFFLINE_ACCESS);
             }
 
             ImplicitTokenRequest tokenRequest = new ImplicitTokenRequest(

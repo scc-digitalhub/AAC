@@ -141,11 +141,14 @@ public class TokenIntrospectionEndpoint {
         }
 
         // check hint
+        // TODO add proper support
         if (tokenTypeHint.isPresent()) {
             String typeHint = tokenTypeHint.get();
             if (!"access_token".equals(typeHint) && !"refresh_token".equals(typeHint)) {
-                // unsupported token type, drop
-                throw new InvalidRequestException("invalid token type hint");
+                // unsupported token type, reset to null to ignore
+                // spec doesn't exactly define how to handle invalid types, but
+                // says that when authentication is successful we should return a proper result
+                // regardless of the type hint
             }
         }
         // as per spec this is a suggestion, if we don't find the token we need to

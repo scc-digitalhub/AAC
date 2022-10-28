@@ -31,6 +31,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+import it.smartcommunitylab.aac.repository.StringArraySerializer;
 import it.smartcommunitylab.aac.repository.StringOrArraySerializer;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -73,7 +74,7 @@ public class TokenIntrospection {
     private String jti;
 
     @JsonProperty("scope")
-    @JsonSerialize(using = StringOrArraySerializer.class)
+    @JsonSerialize(using = StringArraySerializer.class)
     private Set<String> scope;
 
     @JsonProperty("client_id")
