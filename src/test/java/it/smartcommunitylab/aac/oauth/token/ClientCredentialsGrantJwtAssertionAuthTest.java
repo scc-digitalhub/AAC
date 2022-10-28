@@ -92,7 +92,7 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
             throw new IllegalArgumentException("missing config");
         }
 
-        if (clientId == null || clientSecret == null) {
+        if (clientId == null || clientSecret == null || clientJwks == null) {
             RealmConfig rc = config.getRealms().iterator().next();
             if (rc == null || rc.getClientApps() == null) {
                 throw new IllegalArgumentException("missing config");
@@ -104,7 +104,7 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
             clientJwks = (String) client.getConfiguration().get("jwks");
         }
 
-        if (clientId == null || clientSecret == null) {
+        if (clientId == null || clientSecret == null || clientJwks == null) {
             throw new IllegalArgumentException("missing config");
         }
     }
@@ -118,7 +118,8 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
         RSASSASigner signer = new RSASSASigner(jwk.toRSAKey());
 
         // build assertion
-        SignedJWT assertion = buildClientAssertion(clientId, signer, JWSAlgorithm.RS256, jwk.getKeyID());
+        SignedJWT assertion = buildClientAssertion(applicationURL, clientId, signer, JWSAlgorithm.RS256,
+                jwk.getKeyID());
 
         // token request
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -127,6 +128,7 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
         params.add(OAuth2ParameterNames.CLIENT_ASSERTION, assertion.serialize());
         // add client id because AAC requires it for security reasons
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
+        params.add(OAuth2ParameterNames.SCOPE, "");
 
         MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -164,7 +166,7 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
         MACSigner signer = new MACSigner(clientSecret);
 
         // build assertion
-        SignedJWT assertion = buildClientAssertion(clientId, signer, JWSAlgorithm.HS256, clientId);
+        SignedJWT assertion = buildClientAssertion(applicationURL, clientId, signer, JWSAlgorithm.HS256, clientId);
 
         // token request
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -173,6 +175,7 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
         params.add(OAuth2ParameterNames.CLIENT_ASSERTION, assertion.serialize());
         // add client id because AAC requires it for security reasons
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
+        params.add(OAuth2ParameterNames.SCOPE, "");
 
         MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -210,7 +213,7 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
         MACSigner signer = new MACSigner(clientSecret);
 
         // build valid assertion
-        SignedJWT assertion = buildClientAssertion(clientId, signer, JWSAlgorithm.HS256, clientId);
+        SignedJWT assertion = buildClientAssertion(applicationURL, clientId, signer, JWSAlgorithm.HS256, clientId);
 
         // token request
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -241,7 +244,7 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
         MACSigner signer = new MACSigner("32charssecret321sdfgtreacvgfdasx");
 
         // build valid assertion with wrong signature
-        SignedJWT assertion = buildClientAssertion(clientId, signer, JWSAlgorithm.HS256, clientId);
+        SignedJWT assertion = buildClientAssertion(applicationURL, clientId, signer, JWSAlgorithm.HS256, clientId);
 
         // token request
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -522,7 +525,8 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
         assertThat(response.get("error")).isEqualTo("unauthorized");
     }
 
-    private SignedJWT buildClientAssertion(String clientId, JWSSigner signer, JWSHeader header, JWTClaimsSet claims) {
+    public static SignedJWT buildClientAssertion(String clientId, JWSSigner signer, JWSHeader header,
+            JWTClaimsSet claims) {
         try {
             SignedJWT jwt = new SignedJWT(header, claims);
             jwt.sign(signer);
@@ -533,7 +537,8 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
         }
     }
 
-    private SignedJWT buildClientAssertion(String clientId, JWSSigner signer, JWSAlgorithm alg, String keyId) {
+    public static SignedJWT buildClientAssertion(String applicationURL, String clientId, JWSSigner signer,
+            JWSAlgorithm alg, String keyId) {
         JWSHeader header = new JWSHeader.Builder(alg)
                 .keyID(keyId)
                 .build();
@@ -554,7 +559,7 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
         return buildClientAssertion(clientId, signer, header, claims);
     }
 
-    private JWK loadKeys(String jwks) throws ParseException {
+    public static JWK loadKeys(String jwks) throws ParseException {
         JWKSet set = JWKSet.parse(jwks);
         if (set.getKeys().isEmpty()) {
             throw new IllegalArgumentException("missing keys");
@@ -568,7 +573,7 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
     }
 
     private static final int DEFAULT_DURATION = 180;
-    private static final String JWT_ASSERTION_TYPE = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
+    public static final String JWT_ASSERTION_TYPE = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
 
     private final static String TOKEN_URL = TokenEndpoint.TOKEN_URL;
     private final TypeReference<Map<String, Serializable>> typeRef = new TypeReference<Map<String, Serializable>>() {

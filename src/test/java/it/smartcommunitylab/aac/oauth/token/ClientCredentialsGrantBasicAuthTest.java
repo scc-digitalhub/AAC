@@ -84,6 +84,7 @@ public class ClientCredentialsGrantBasicAuthTest {
         // token request
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.CLIENT_CREDENTIALS.getValue());
+        params.add(OAuth2ParameterNames.SCOPE, "");
 
         MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
                 .with(httpBasic(clientId, clientSecret))
@@ -161,6 +162,7 @@ public class ClientCredentialsGrantBasicAuthTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.CLIENT_CREDENTIALS.getValue());
         // also set same clientId in form
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
+        params.add(OAuth2ParameterNames.SCOPE, "");
 
         MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
                 .with(httpBasic(clientId, clientSecret))
@@ -195,6 +197,7 @@ public class ClientCredentialsGrantBasicAuthTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.CLIENT_CREDENTIALS.getValue());
         // set a different clientId in form
         params.add(OAuth2ParameterNames.CLIENT_ID, "clientId");
+        params.add(OAuth2ParameterNames.SCOPE, "");
 
         MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
                 .with(httpBasic(clientId, clientSecret))
@@ -203,7 +206,7 @@ public class ClientCredentialsGrantBasicAuthTest {
 
         MvcResult res = this.mockMvc
                 .perform(req)
-                .andExpect(status().isUnauthorized())
+                .andExpect(status().isBadRequest())
                 .andReturn();
 
         // expect a 401 with an error
@@ -211,7 +214,7 @@ public class ClientCredentialsGrantBasicAuthTest {
 
         Map<String, Serializable> response = mapper.readValue(res.getResponse().getContentAsString(), typeRef);
         assertThat(response).isNotEmpty();
-        assertThat(response.get("error")).isEqualTo("invalid_client");
+        assertThat(response.get("error")).isEqualTo("invalid_request");
     }
 
     @Test

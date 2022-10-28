@@ -87,6 +87,7 @@ public class ClientCredentialsGrantFormPostTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.CLIENT_CREDENTIALS.getValue());
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
         params.add(OAuth2ParameterNames.CLIENT_SECRET, clientSecret);
+        params.add(OAuth2ParameterNames.SCOPE, "");
 
         MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -164,6 +165,7 @@ public class ClientCredentialsGrantFormPostTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.CLIENT_CREDENTIALS.getValue());
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
         params.add(OAuth2ParameterNames.CLIENT_SECRET, clientSecret);
+        params.add(OAuth2ParameterNames.SCOPE, "");
 
         MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -241,6 +243,9 @@ public class ClientCredentialsGrantFormPostTest {
         Map<String, Serializable> response = mapper.readValue(res.getResponse().getContentAsString(), typeRef);
         assertThat(response).isNotEmpty();
         assertThat(response.get("error")).isEqualTo(OAuth2Exception.INVALID_SCOPE);
+
+        // no access token
+        assertThat(response.get(OAuth2ParameterNames.ACCESS_TOKEN)).isNull();
     }
 
     @Test
@@ -274,6 +279,7 @@ public class ClientCredentialsGrantFormPostTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.CLIENT_CREDENTIALS.getValue());
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
         params.add(OAuth2ParameterNames.CLIENT_SECRET, "secret");
+        params.add(OAuth2ParameterNames.SCOPE, "");
 
         MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
