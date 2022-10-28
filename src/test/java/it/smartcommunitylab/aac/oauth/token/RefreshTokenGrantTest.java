@@ -11,7 +11,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +43,6 @@ import it.smartcommunitylab.aac.dto.RealmConfig;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.oauth.endpoint.AuthorizationEndpoint;
-import it.smartcommunitylab.aac.oauth.endpoint.ErrorEndpoint;
 import it.smartcommunitylab.aac.oauth.endpoint.TokenEndpoint;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
 
@@ -133,7 +131,7 @@ public class RefreshTokenGrantTest {
         }
     }
 
-//    @Test
+    @Test
     @WithMockUserAuthentication(username = "test", realm = "test")
     public void authCodeWithUserAuthAndHttpBasicRefreshTest() throws Exception {
         // authorize request
@@ -271,7 +269,7 @@ public class RefreshTokenGrantTest {
                 token -> assertThat(token).isNotNull().isInstanceOf(String.class));
     }
 
-//    @Test
+    @Test
     @WithMockUserAuthentication(username = "test", realm = "test")
     public void authCodeWithScopeAndUserAuthAndHttpBasicRefreshTest() throws Exception {
         // authorize request
@@ -413,7 +411,7 @@ public class RefreshTokenGrantTest {
                 token -> assertThat(token).isNotNull().isInstanceOf(String.class));
     }
 
-//    @Test
+    @Test
     @WithMockUserAuthentication(username = "test", realm = "test")
     public void authCodeWithScopeNarrowAndUserAuthAndHttpBasicRefreshTest() throws Exception {
         // authorize request
@@ -670,18 +668,11 @@ public class RefreshTokenGrantTest {
                 .andExpect(status().isForbidden())
                 .andReturn();
 
-        // expect a 403 with an error
-        assertThat(res.getResponse().getContentAsString()).isNotBlank();
-
-        response = mapper.readValue(res.getResponse().getContentAsString(), typeRef);
-        assertThat(response).isNotEmpty();
-        assertThat(response.get("error")).isEqualTo("unauthorized");
-
-        // no access token
-        assertThat(response.get(OAuth2ParameterNames.ACCESS_TOKEN)).isNull();
+        // expect a 403 with no error
+        assertThat(res.getResponse().getContentAsString()).isBlank();
     }
 
-//    @Test
+    @Test
     @WithMockUserAuthentication(username = "test", realm = "test")
     public void authCodeWithUserAuthAndWrongClientAuthRefreshTest() throws Exception {
         // authorize request
@@ -807,7 +798,6 @@ public class RefreshTokenGrantTest {
     private final static String AUTHORIZE_URL = AuthorizationEndpoint.AUTHORIZATION_URL;
     private final static String AUTHORIZED_URL = AuthorizationEndpoint.AUTHORIZED_URL;
     private final static String TOKEN_URL = TokenEndpoint.TOKEN_URL;
-    private final static String ERROR_URL = ErrorEndpoint.ERROR_URL;
 
     private final TypeReference<Map<String, Serializable>> typeRef = new TypeReference<Map<String, Serializable>>() {
     };
