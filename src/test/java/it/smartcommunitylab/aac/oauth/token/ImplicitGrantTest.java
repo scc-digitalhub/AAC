@@ -4,7 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.Serializable;
 import java.net.URL;
+import java.util.Map;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +15,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -185,7 +189,6 @@ public class ImplicitGrantTest {
                 scope -> assertThat(scope).isNull(),
                 scope -> assertThat(scope).isEmpty(),
                 scope -> assertThat(scope.get(0)).isEqualTo(""));
-        
 
         // there is no refresh token
         assertThat(response.get(OAuth2ParameterNames.REFRESH_TOKEN)).isNull();
@@ -410,22 +413,12 @@ public class ImplicitGrantTest {
         MultiValueMap<String, String> response = builder.build(true).getQueryParams();
         assertThat(response).isNotNull();
 
-        // type bearer
-        assertThat(response.get(OAuth2ParameterNames.TOKEN_TYPE)).isNotNull().isNotEmpty();
-        assertThat(response.get(OAuth2ParameterNames.TOKEN_TYPE).get(0)).isEqualTo("bearer");
+        // expect error
+        assertThat(response.get("error")).isNotNull().isNotEmpty();
+        assertThat(response.get("error").get(0)).isEqualTo(OAuth2Exception.INVALID_SCOPE);
 
-        // access token
-        assertThat(response.get(OAuth2ParameterNames.ACCESS_TOKEN)).isNotNull().isNotEmpty();
-        String accessToken = response.get(OAuth2ParameterNames.ACCESS_TOKEN).get(0);
-        assertThat(accessToken).isNotBlank();
-
-        // scopes could contain offline_access
-        assertThat(response.get(OAuth2ParameterNames.SCOPE)).satisfiesAnyOf(
-                scope -> assertThat(scope).isNull(),
-                scope -> assertThat(scope).isNotNull());
-
-        // but there is no refresh token
-        assertThat(response.get(OAuth2ParameterNames.REFRESH_TOKEN)).isNull();
+        // no access token
+        assertThat(response.get(OAuth2ParameterNames.ACCESS_TOKEN)).isNull();
     }
 
     @Test
