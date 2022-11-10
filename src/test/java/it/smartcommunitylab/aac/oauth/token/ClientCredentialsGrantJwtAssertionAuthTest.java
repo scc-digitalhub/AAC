@@ -47,9 +47,9 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 
 import it.smartcommunitylab.aac.bootstrap.BootstrapConfig;
-import it.smartcommunitylab.aac.dto.RealmConfig;
-import it.smartcommunitylab.aac.model.ClientApp;
+import it.smartcommunitylab.aac.oauth.OAuth2ConfigUtils;
 import it.smartcommunitylab.aac.oauth.endpoint.TokenEndpoint;
+import it.smartcommunitylab.aac.oauth.model.ClientRegistration;
 
 /*
  * OAuth 2.0 Client Credentials
@@ -88,20 +88,13 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
 
     @BeforeEach
     public void setUp() {
-        if (config == null) {
-            throw new IllegalArgumentException("missing config");
-        }
-
         if (clientId == null || clientSecret == null || clientJwks == null) {
-            RealmConfig rc = config.getRealms().iterator().next();
-            if (rc == null || rc.getClientApps() == null) {
-                throw new IllegalArgumentException("missing config");
-            }
+            ClientRegistration client = OAuth2ConfigUtils.with(config).client();
+            assertThat(client).isNotNull();
 
-            ClientApp client = rc.getClientApps().iterator().next();
             clientId = client.getClientId();
-            clientSecret = (String) client.getConfiguration().get("clientSecret");
-            clientJwks = (String) client.getConfiguration().get("jwks");
+            clientSecret = client.getClientSecret();
+            clientJwks = client.getJwks();
         }
 
         if (clientId == null || clientSecret == null || clientJwks == null) {
