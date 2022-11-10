@@ -10,7 +10,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
-import org.springframework.security.oauth2.core.OAuth2TokenIntrospectionClaimNames;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -33,18 +32,13 @@ import com.nimbusds.oauth2.sdk.ResponseType;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.auth.WithMockUserAuthentication;
 import it.smartcommunitylab.aac.bootstrap.BootstrapConfig;
-import it.smartcommunitylab.aac.core.base.AbstractAccount;
-import it.smartcommunitylab.aac.core.base.AbstractUserCredentials;
-import it.smartcommunitylab.aac.dto.RealmConfig;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.model.ClientApp;
+import it.smartcommunitylab.aac.oauth.OAuth2TestConfig.UserRegistration;
 import it.smartcommunitylab.aac.oauth.endpoint.AuthorizationEndpoint;
 import it.smartcommunitylab.aac.oauth.endpoint.TokenEndpoint;
 import it.smartcommunitylab.aac.oauth.endpoint.TokenRevocationEndpoint;
 import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
+import it.smartcommunitylab.aac.oauth.model.ClientRegistration;
 import it.smartcommunitylab.aac.oauth.token.ClientCredentialsGrantJwtAssertionAuthTest;
-import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -53,7 +47,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -96,27 +89,19 @@ public class OAuth2TokenRevocationTest {
 
     @BeforeEach
     public void setUp() {
-        if (config == null) {
-            throw new IllegalArgumentException("missing config");
-        }
+        if (clientId == null || clientSecret == null || clientJwks == null || client2Id == null
+                || client2Secret == null) {
+            List<ClientRegistration> clients = OAuth2ConfigUtils.with(config).clients();
+            assertThat(clients.size()).isGreaterThanOrEqualTo(2);
 
-        if (clientId == null || clientSecret == null || clientJwks == null) {
-            RealmConfig rc = config.getRealms().iterator().next();
-            if (rc == null || rc.getClientApps() == null) {
-                throw new IllegalArgumentException("missing config");
-            }
+            ClientRegistration client1 = clients.get(0);
+            clientId = client1.getClientId();
+            clientSecret = client1.getClientSecret();
+            clientJwks = client1.getJwks();
 
-            Iterator<ClientApp> iter = rc.getClientApps().iterator();
-            ClientApp client = iter.next();
-            clientId = client.getClientId();
-            clientSecret = (String) client.getConfiguration().get("clientSecret");
-            clientJwks = (String) client.getConfiguration().get("jwks");
-
-            ClientApp client2 = iter.next();
-            if (client2 != null) {
-                client2Id = client2.getClientId();
-                client2Secret = (String) client2.getConfiguration().get("clientSecret");
-            }
+            ClientRegistration client2 = clients.get(1);
+            client2Id = client2.getClientId();
+            client2Secret = client2.getClientSecret();
         }
 
         if (clientId == null || clientSecret == null || clientJwks == null) {
@@ -124,28 +109,12 @@ public class OAuth2TokenRevocationTest {
         }
 
         if (userId == null || username == null || password == null) {
-            RealmConfig rc = config.getRealms().iterator().next();
-            if (rc == null || rc.getUsers() == null || rc.getCredentials() == null) {
-                throw new IllegalArgumentException("missing config");
-            }
-            AbstractUserCredentials cred = rc.getCredentials().stream().filter(c -> (c instanceof InternalUserPassword))
-                    .findFirst().orElse(null);
+            UserRegistration user = OAuth2ConfigUtils.with(config).user();
+            assertThat(user).isNotNull();
 
-            if (cred == null) {
-                throw new IllegalArgumentException("missing config");
-            }
-
-            // pick matching user
-            AbstractAccount account = rc.getUsers().stream()
-                    .filter(u -> (u instanceof InternalUserAccount) && u.getAccountId().equals(cred.getAccountId()))
-                    .findFirst().orElse(null);
-            if (account == null) {
-                throw new IllegalArgumentException("missing config");
-            }
-
-            userId = ((InternalUserAccount) account).getUserId();
-            username = ((InternalUserAccount) account).getUsername();
-            password = ((InternalUserPassword) cred).getPassword();
+            userId = user.getUserId();
+            username = user.getUsername();
+            password = user.getPassword();
         }
 
         if (username == null || password == null) {

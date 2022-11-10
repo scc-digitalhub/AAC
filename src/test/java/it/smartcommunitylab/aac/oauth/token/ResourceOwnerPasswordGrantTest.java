@@ -31,13 +31,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.api.scopes.ApiUsersScope;
 import it.smartcommunitylab.aac.bootstrap.BootstrapConfig;
-import it.smartcommunitylab.aac.core.base.AbstractAccount;
-import it.smartcommunitylab.aac.core.base.AbstractUserCredentials;
-import it.smartcommunitylab.aac.dto.RealmConfig;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.model.ClientApp;
+import it.smartcommunitylab.aac.oauth.OAuth2ConfigUtils;
+import it.smartcommunitylab.aac.oauth.OAuth2TestConfig.UserRegistration;
 import it.smartcommunitylab.aac.oauth.endpoint.TokenEndpoint;
-import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
+import it.smartcommunitylab.aac.oauth.model.ClientRegistration;
 
 /*
  * OAuth 2.0 Resource Owner Password Credentials Grant
@@ -68,19 +65,12 @@ public class ResourceOwnerPasswordGrantTest {
 
     @BeforeEach
     public void setUp() {
-        if (config == null) {
-            throw new IllegalArgumentException("missing config");
-        }
-
         if (clientId == null || clientSecret == null) {
-            RealmConfig rc = config.getRealms().iterator().next();
-            if (rc == null || rc.getClientApps() == null) {
-                throw new IllegalArgumentException("missing config");
-            }
+            ClientRegistration client = OAuth2ConfigUtils.with(config).client();
+            assertThat(client).isNotNull();
 
-            ClientApp client = rc.getClientApps().iterator().next();
             clientId = client.getClientId();
-            clientSecret = (String) client.getConfiguration().get("clientSecret");
+            clientSecret = client.getClientSecret();
         }
 
         if (clientId == null || clientSecret == null) {
@@ -88,27 +78,11 @@ public class ResourceOwnerPasswordGrantTest {
         }
 
         if (username == null || password == null) {
-            RealmConfig rc = config.getRealms().iterator().next();
-            if (rc == null || rc.getUsers() == null || rc.getCredentials() == null) {
-                throw new IllegalArgumentException("missing config");
-            }
-            AbstractUserCredentials cred = rc.getCredentials().stream().filter(c -> (c instanceof InternalUserPassword))
-                    .findFirst().orElse(null);
+            UserRegistration user = OAuth2ConfigUtils.with(config).user();
+            assertThat(user).isNotNull();
 
-            if (cred == null) {
-                throw new IllegalArgumentException("missing config");
-            }
-
-            // pick matching user
-            AbstractAccount account = rc.getUsers().stream()
-                    .filter(u -> (u instanceof InternalUserAccount) && u.getAccountId().equals(cred.getAccountId()))
-                    .findFirst().orElse(null);
-            if (account == null) {
-                throw new IllegalArgumentException("missing config");
-            }
-
-            username = ((InternalUserAccount) account).getUsername();
-            password = ((InternalUserPassword) cred).getPassword();
+            username = user.getUsername();
+            password = user.getPassword();
         }
 
         if (username == null || password == null) {

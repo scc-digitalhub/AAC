@@ -26,14 +26,8 @@ import com.nimbusds.oauth2.sdk.ResponseType;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.auth.WithMockUserAuthentication;
 import it.smartcommunitylab.aac.bootstrap.BootstrapConfig;
-import it.smartcommunitylab.aac.core.base.AbstractAccount;
-import it.smartcommunitylab.aac.core.base.AbstractUserCredentials;
-import it.smartcommunitylab.aac.dto.RealmConfig;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.oauth.endpoint.AuthorizationEndpoint;
-import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
-
+import it.smartcommunitylab.aac.oauth.model.ClientRegistration;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -44,7 +38,6 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -69,58 +62,15 @@ public class OAuth2AuthorizationServerIssuerTest {
     @Autowired
     private BootstrapConfig config;
 
-    private String username;
-    private String password;
-    private String clientId;
-    private String clientSecret;
+    private ClientRegistration client;
 
     @BeforeEach
     public void setUp() {
-        if (config == null) {
-            throw new IllegalArgumentException("missing config");
+        if (client == null) {
+            client = OAuth2ConfigUtils.with(config).client();
         }
 
-        if (clientId == null || clientSecret == null) {
-            RealmConfig rc = config.getRealms().iterator().next();
-            if (rc == null || rc.getClientApps() == null) {
-                throw new IllegalArgumentException("missing config");
-            }
-
-            Iterator<ClientApp> iter = rc.getClientApps().iterator();
-            ClientApp client = iter.next();
-            clientId = client.getClientId();
-            clientSecret = (String) client.getConfiguration().get("clientSecret");
-        }
-
-        if (clientId == null || clientSecret == null) {
-            throw new IllegalArgumentException("missing config");
-        }
-
-        if (username == null || password == null) {
-            RealmConfig rc = config.getRealms().iterator().next();
-            if (rc == null || rc.getUsers() == null || rc.getCredentials() == null) {
-                throw new IllegalArgumentException("missing config");
-            }
-            AbstractUserCredentials cred = rc.getCredentials().stream().filter(c -> (c instanceof InternalUserPassword))
-                    .findFirst().orElse(null);
-
-            if (cred == null) {
-                throw new IllegalArgumentException("missing config");
-            }
-
-            // pick matching user
-            AbstractAccount account = rc.getUsers().stream()
-                    .filter(u -> (u instanceof InternalUserAccount) && u.getAccountId().equals(cred.getAccountId()))
-                    .findFirst().orElse(null);
-            if (account == null) {
-                throw new IllegalArgumentException("missing config");
-            }
-
-            username = ((InternalUserAccount) account).getUsername();
-            password = ((InternalUserPassword) cred).getPassword();
-        }
-
-        if (username == null || password == null) {
+        if (client == null) {
             throw new IllegalArgumentException("missing config");
         }
     }
@@ -176,7 +126,7 @@ public class OAuth2AuthorizationServerIssuerTest {
         // authorize request
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add(OAuth2ParameterNames.RESPONSE_TYPE, ResponseType.CODE.toString());
-        params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
+        params.add(OAuth2ParameterNames.CLIENT_ID, client.getClientId());
         // set empty scopes to avoid fall back to predefined
         params.add(OAuth2ParameterNames.SCOPE, "");
 
@@ -249,7 +199,7 @@ public class OAuth2AuthorizationServerIssuerTest {
         // authorize request
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add(OAuth2ParameterNames.RESPONSE_TYPE, ResponseType.CODE.toString());
-        params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
+        params.add(OAuth2ParameterNames.CLIENT_ID, client.getClientId());
         // set empty scopes to avoid fall back to predefined
         params.add(OAuth2ParameterNames.SCOPE, "");
 
@@ -325,7 +275,7 @@ public class OAuth2AuthorizationServerIssuerTest {
         // authorize request
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add(OAuth2ParameterNames.RESPONSE_TYPE, ResponseType.CODE_IDTOKEN.toString());
-        params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
+        params.add(OAuth2ParameterNames.CLIENT_ID, client.getClientId());
         // ask for id token also via scope
         params.add(OAuth2ParameterNames.SCOPE, Config.SCOPE_OPENID);
         // add nonce
