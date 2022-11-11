@@ -9,7 +9,7 @@ realms:
         type: identity        
      
     clientApps:
-      - clientId: "b8ae67a3-62ba-4741-ab16-2e40466e7b9a"
+      - clientId: "test-0000-12345-client"
         type: "oauth2"
         name: "test client basic"
         description: "test client"
@@ -53,7 +53,7 @@ realms:
             ]
         providers:
           - "password"
-      - clientId: "d8ae67a3-62ba-4741-ab16-2e40466e7b9a"
+      - clientId: "test-1111-12345-client"
         type: "oauth2"
         name: "test client basic2"
         description: "test client"
@@ -98,7 +98,8 @@ realms:
           - "password"          
         
     users:
-      - username: test
+      - userId: "test-0000-12345-user"
+        username: test
         email: test@local.it
         type: account
         authority: internal

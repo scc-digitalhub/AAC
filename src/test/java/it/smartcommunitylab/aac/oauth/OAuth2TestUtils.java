@@ -54,11 +54,17 @@ public class OAuth2TestUtils {
     public static String getUserAccessTokenViaAuthCodeWithBasicAuth(
             MockMvc mockMvc,
             String clientId, String clientSecret) throws Exception {
+        return getUserAccessTokenViaAuthCodeWithBasicAuth(mockMvc, "", clientId, clientSecret);
+    }
+
+    public static String getUserAccessTokenViaAuthCodeWithBasicAuth(
+            MockMvc mockMvc, String scope,
+            String clientId, String clientSecret) throws Exception {
         // authorize request
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add(OAuth2ParameterNames.RESPONSE_TYPE, ResponseType.CODE.toString());
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
-        params.add(OAuth2ParameterNames.SCOPE, "");
+        params.add(OAuth2ParameterNames.SCOPE, scope);
 
         MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
