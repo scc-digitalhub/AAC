@@ -24,10 +24,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.common.exceptions.ClientAuthenticationException;
+import org.springframework.security.oauth2.common.exceptions.InsufficientScopeException;
+import org.springframework.security.oauth2.common.exceptions.InvalidRequestException;
+import org.springframework.security.oauth2.common.exceptions.InvalidTokenException;
+import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
@@ -38,8 +42,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import it.smartcommunitylab.aac.Config;
@@ -61,7 +63,7 @@ import it.smartcommunitylab.aac.oauth.token.ClaimsTokenEnhancer;
  *
  */
 @Controller
-@Tag(name= "OpenID Connect Core" )
+@Tag(name = "OpenID Connect Core")
 public class UserInfoEndpoint {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -100,23 +102,23 @@ public class UserInfoEndpoint {
 
         if (auth == null) {
             logger.error("getInfo failed; no principal. Requester is not authorized.");
-            throw new IllegalArgumentException("invalid authentication");
+            throw new InvalidTokenException("invalid_token");
         }
 
         // fetch token from store
         OAuth2AccessToken token = tokenStore.readAccessToken(auth.getToken().getTokenValue());
         if (token == null) {
-            throw new IllegalArgumentException("invalid token");
+            throw new InvalidTokenException("invalid_token");
         }
 
         // check if openid scope is in request
         if (!token.getScope().contains(Config.SCOPE_OPENID)) {
-            throw new IllegalArgumentException("invalid token");
+            throw new InsufficientScopeException("insufficient_scope");
         }
 
         OAuth2Authentication oauthAuth = tokenStore.readAuthentication(token);
         if (oauthAuth == null) {
-            throw new IllegalArgumentException("invalid token");
+            throw new InvalidRequestException("invalid_request");
         }
 
         // TODO refresh authentication to update userDetails + authorities etc.
@@ -190,11 +192,32 @@ public class UserInfoEndpoint {
 
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException exception) {
+    @ExceptionHandler(ClientAuthenticationException.class)
+    public ResponseEntity<Object> handleClientAuthenticationException(ClientAuthenticationException exception) {
+        // build message with handling for WWW header
+        StringBuilder msg = new StringBuilder();
+
+        msg.append("error=" + exception.getOAuth2ErrorCode());
+        if (exception.getMessage() != null) {
+            msg.append(",error_description=" + exception.getMessage());
+        }
+
         return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(exception.getMessage());
+                .status(exception.getHttpErrorCode())
+                .header(HttpHeaders.WWW_AUTHENTICATE, msg.toString())
+                .build();
+
     }
+
+    @ExceptionHandler(OAuth2Exception.class)
+    public ResponseEntity<Object> handleOAuth2Exception(OAuth2Exception exception) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("error", exception.getOAuth2ErrorCode());
+        response.put("error_description", exception.getMessage());
+
+        return ResponseEntity
+                .status(exception.getHttpErrorCode())
+                .body(response);
+    }
+
 }
