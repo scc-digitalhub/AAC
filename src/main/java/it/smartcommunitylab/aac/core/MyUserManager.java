@@ -8,44 +8,38 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
-import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestParam;
-
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
-import it.smartcommunitylab.aac.audit.RealmAuditEvent;
 import it.smartcommunitylab.aac.audit.store.AuditEventStore;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
+import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserIdentity;
+import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.persistence.ClientEntity;
-import it.smartcommunitylab.aac.core.provider.IdentityProvider;
-import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.service.AttributeProviderService;
 import it.smartcommunitylab.aac.core.service.ClientEntityService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderService;
 import it.smartcommunitylab.aac.core.service.RealmService;
-import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.model.ConnectedApp;
 import it.smartcommunitylab.aac.model.ConnectedDevice;
@@ -74,9 +68,6 @@ public class MyUserManager {
 
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private UserEntityService userEntityService;
 
     @Autowired
     private RealmService realmService;
@@ -111,9 +102,6 @@ public class MyUserManager {
     @Autowired
     private ProfileManager profileManager;
 
-    @Autowired
-    private AuthorityManager authorityManager;
-
     /*
      * Current user, from context
      */
@@ -127,46 +115,35 @@ public class MyUserManager {
         return details;
     }
 
-    /*
-     * Returns a model describing the current user as accessible for the given
-     * realm.
-     * 
-     * For same-realm scenarios the model will be complete, while on cross-realm
-     * some fields should be removed or empty.
-     */
-    public User curUser(String realm) throws NoSuchRealmException {
+    public User getMyUser(String realm) throws NoSuchRealmException {
         Realm r = realmService.getRealm(realm);
         return userService.getUser(curUserDetails(), r.getSlug());
     }
 
-    public void deleteCurUser() {
-        UserDetails details = authHelper.getUserDetails();
-        if (details == null) {
-            throw new InsufficientAuthenticationException("invalid or missing user authentication");
-        }
+    public void deleteMyUser() {
+        UserDetails details = curUserDetails();
+        String userId = details.getSubjectId();
 
-        String subjectId = details.getSubjectId();
         try {
-            User user = userService.findUser(subjectId);
+            User user = userService.findUser(userId);
 
             // full delete, need to remove all associated content
             // kill sessions
-            sessionManager.destroyUserSessions(subjectId);
+            sessionManager.destroyUserSessions(userId);
 
             // approvals
             try {
-                Collection<Approval> userApprovals = approvalStore.findUserApprovals(subjectId);
+                Collection<Approval> userApprovals = approvalStore.findUserApprovals(userId);
                 approvalStore.revokeApprovals(userApprovals);
-                Collection<Approval> clientApprovals = approvalStore.findClientApprovals(subjectId);
+                Collection<Approval> clientApprovals = approvalStore.findClientApprovals(userId);
                 approvalStore.revokeApprovals(clientApprovals);
             } catch (Exception e) {
             }
 
             // TODO tokens
-            // TODO proxy for different realms?
 
             // let userService handle account, registrations etc
-            userService.deleteUser(subjectId);
+            userService.deleteUser(userId);
         } catch (NoSuchUserException e) {
             // nothing more to do
         }
@@ -175,95 +152,59 @@ public class MyUserManager {
     /*
      * Accounts
      */
-    public Collection<UserIdentity> getMyIdentities() {
+    public Collection<UserAccount> getMyAccounts() throws NoSuchUserException {
         UserDetails details = curUserDetails();
         String userId = details.getSubjectId();
-        String realm = details.getRealm();
 
-        Map<String, UserIdentity> identities = new HashMap<>();
-        details.getIdentities().forEach(i -> identities.put(i.getUuid(), i));
-
-        // get all active idp and fetch identities not in session
-        Collection<IdentityProvider<? extends UserIdentity>> providers = authorityManager.fetchIdentityProviders(realm);
-        List<UserIdentity> ids = providers.stream().flatMap(idp -> idp.listIdentities(userId).stream())
-                .collect(Collectors.toList());
-        ids.forEach(i -> identities.putIfAbsent(i.getUuid(), i));
-
-        // make sure credentials are erased
-        identities.forEach((key, identity) -> {
-            if (identity instanceof CredentialsContainer) {
-                ((CredentialsContainer) identity).eraseCredentials();
-            }
-        });
-
-        return identities.values();
+        return userService.listUserAccounts(userId);
     }
 
-    public UserIdentity getMyIdentity(String authority, String providerId, String id)
-            throws NoSuchProviderException, NoSuchUserException {
+    public UserAccount getMyAccount(String uuid)
+            throws NoSuchProviderException, NoSuchUserException, NoSuchAuthorityException {
         UserDetails details = curUserDetails();
-        IdentityProvider<? extends UserIdentity> idp = authorityManager.fetchIdentityProvider(authority, providerId);
-        if (idp == null) {
-            throw new NoSuchProviderException();
-        }
+        String userId = details.getSubjectId();
 
-        UserIdentity identity = idp.getIdentity(id, true);
-        if (!details.getSubjectId().equals(identity.getUserId())) {
-            // user mismatch
-            throw new NoSuchUserException();
-        }
+        // check user matches cur
+        details.getIdentities().stream()
+                .filter(i -> i.getAccount().getUuid().equals(uuid))
+                .findFirst()
+                .orElseThrow(NoSuchUserException::new);
 
-        // make sure credentials are erased
-        if (identity instanceof CredentialsContainer) {
-            ((CredentialsContainer) identity).eraseCredentials();
-        }
-
-        return identity;
+        return userService.getUserAccount(userId, uuid);
     }
 
-    public <U extends UserAccount> UserIdentity updateMyIdentity(String authority, String providerId, String id,
-            U account,
-            Collection<UserAttributes> attributes)
-            throws NoSuchProviderException, NoSuchUserException {
+    public <U extends UserAccount> UserAccount updateMyAccount(
+            String uuid,
+            U reg)
+            throws NoSuchProviderException, NoSuchUserException, RegistrationException, NoSuchAuthorityException {
         UserDetails details = curUserDetails();
-        IdentityService<? extends UserIdentity, ? extends UserAccount> idp = authorityManager
-                .fetchIdentityService(authority, providerId);
-        if (idp == null) {
-            throw new NoSuchProviderException();
-        }
+        String userId = details.getSubjectId();
 
-        UserIdentity identity = idp.getIdentity(id, true);
-        if (!details.getSubjectId().equals(identity.getUserId())) {
-            // user mismatch
-            throw new NoSuchUserException();
-        }
+        // check user matches cur
+        details.getIdentities().stream()
+                .filter(i -> i.getAccount().getUuid().equals(uuid))
+                .findFirst()
+                .orElseThrow(NoSuchUserException::new);
 
-        // update
-        identity = idp.updateIdentity(id, account, attributes);
-
-        // make sure credentials are erased
-        if (identity instanceof CredentialsContainer) {
-            ((CredentialsContainer) identity).eraseCredentials();
-        }
-
-        return identity;
+        // lookup account
+        UserAccount account = userService.getUserAccount(userId, uuid);
+        return userService.updateUserAccount(userId, account.getProvider(), account.getAccountId(), reg);
     }
 
-    public void deleteMyIdentity(String authority, String providerId, String id)
-            throws NoSuchProviderException, NoSuchUserException {
+    public void deleteMyAccount(String uuid)
+            throws NoSuchProviderException, NoSuchUserException, RegistrationException, NoSuchAuthorityException {
         UserDetails details = curUserDetails();
-        IdentityProvider<? extends UserIdentity> idp = authorityManager.fetchIdentityProvider(authority, providerId);
-        if (idp == null) {
-            throw new NoSuchProviderException();
-        }
+        String userId = details.getSubjectId();
 
-        UserIdentity identity = idp.getIdentity(id, true);
-        if (!details.getSubjectId().equals(identity.getUserId())) {
-            // user mismatch
-            throw new NoSuchUserException();
-        }
+        // check user matches cur
+        details.getIdentities().stream()
+                .filter(i -> i.getAccount().getUuid().equals(uuid))
+                .findFirst()
+                .orElseThrow(NoSuchUserException::new);
 
-        idp.deleteIdentity(id);
+        // lookup account
+        UserAccount account = userService.getUserAccount(userId, uuid);
+        userService.deleteUserAccount(userId, account.getProvider(), account.getAccountId());
     }
 
     /*
@@ -292,6 +233,22 @@ public class MyUserManager {
 //        // TODO should invoke attributeManager
 //        return null;
 //    }
+
+    /*
+     * Credentials
+     * 
+     * TODO
+     */
+    public Collection<UserCredentials> getMyCredentials() {
+        return getMyCredentials(false);
+    }
+
+    public Collection<UserCredentials> getMyCredentials(boolean includeAll) {
+        UserDetails details = curUserDetails();
+        String userId = details.getSubjectId();
+
+        return Collections.emptyList();
+    }
 
     /*
      * Connected apps: current user

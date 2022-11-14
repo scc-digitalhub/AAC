@@ -15,12 +15,6 @@ public interface Resource {
     // id is local to the provider
     public String getId();
 
-    // uuid is global
-    // TODO move to RegisteredResource
-    default public String getUuid() {
-        return null;
-    }
-
     // TODO replace with proper typing <T> on resource
     public String getType();
 

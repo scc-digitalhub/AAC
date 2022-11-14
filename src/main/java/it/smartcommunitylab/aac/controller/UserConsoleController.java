@@ -1,11 +1,7 @@
 package it.smartcommunitylab.aac.controller;
 
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
@@ -17,13 +13,9 @@ import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.session.SessionInformation;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,28 +27,24 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.swagger.v3.oas.annotations.Hidden;
-import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
+import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
-import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.MyUserManager;
 import it.smartcommunitylab.aac.core.ScopeManager;
 import it.smartcommunitylab.aac.core.UserDetails;
+import it.smartcommunitylab.aac.core.base.AbstractAccount;
 import it.smartcommunitylab.aac.core.model.UserAccount;
-import it.smartcommunitylab.aac.core.model.UserIdentity;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.ConnectedApp;
 import it.smartcommunitylab.aac.model.ScopeType;
-import it.smartcommunitylab.aac.profiles.ProfileManager;
 import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
-import it.smartcommunitylab.aac.roles.SpaceRoleManager;
 import it.smartcommunitylab.aac.scope.Scope;
 
 @RestController
@@ -66,8 +54,6 @@ import it.smartcommunitylab.aac.scope.Scope;
 //@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 public class UserConsoleController {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-
     @Autowired
     private AuthenticationHelper authHelper;
 
@@ -75,21 +61,7 @@ public class UserConsoleController {
     private MyUserManager userManager;
 
     @Autowired
-    private ProfileManager profileManager;
-
-    @Autowired
-    private AuthorityManager authorityManager;
-
-    @Autowired
-    private SpaceRoleManager roleManager;
-
-    @Autowired
     private ScopeManager scopeManager;
-
-    @GetMapping("/test")
-    public ResponseEntity<String> test() {
-        return ResponseEntity.ok("request ok");
-    }
 
     /*
      * User
@@ -107,7 +79,7 @@ public class UserConsoleController {
     public ResponseEntity<Void> deleteUser() {
         UserDetails user = currentUser();
 
-        userManager.deleteCurUser();
+        userManager.deleteMyUser();
         return ResponseEntity.ok().build();
     }
 
@@ -115,74 +87,38 @@ public class UserConsoleController {
      * Accounts
      */
     @GetMapping("/accounts")
-    public ResponseEntity<Page<UserIdentity>> listAccounts(Pageable pageable) {
-        List<UserIdentity> result = new ArrayList<>(userManager.getMyIdentities());
-        Page<UserIdentity> page = new PageImpl<>(result, pageable, result.size());
+    public ResponseEntity<Page<UserAccount>> listAccounts(Pageable pageable) throws NoSuchUserException {
+        List<UserAccount> result = new ArrayList<>(userManager.getMyAccounts());
+        Page<UserAccount> page = new PageImpl<>(result, pageable, result.size());
         return ResponseEntity.ok(page);
     }
 
-    @GetMapping("/accounts/{resourceId}")
-    public ResponseEntity<UserIdentity> getAccount(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String resourceId)
-            throws NoSuchUserException, NoSuchProviderException {
-        UserDetails user = currentUser();
+    @GetMapping("/accounts/{uuid}")
+    public ResponseEntity<UserAccount> getAccount(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String uuid)
+            throws NoSuchUserException, NoSuchProviderException, NoSuchAuthorityException {
 
-        // explode resourceId
-        String[] i = resourceId.split(SystemKeys.ID_SEPARATOR);
-        if (i.length != 3) {
-            throw new IllegalArgumentException("invalid id format");
-        }
-        String authority = i[0];
-        String provider = i[1];
-        String id = i[2];
-
-        UserIdentity identity = userManager.getMyIdentity(authority, provider, id);
-        return ResponseEntity.ok(identity);
+        UserAccount account = userManager.getMyAccount(uuid);
+        return ResponseEntity.ok(account);
     }
 
-    @PutMapping("/accounts/{resourceId}")
-    public ResponseEntity<UserIdentity> updateAccount(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String resourceId,
-            @RequestBody @Valid @NotNull Map<String, Serializable> map)
-            throws NoSuchUserException, NoSuchProviderException {
-        UserDetails user = currentUser();
+    @PutMapping("/accounts/{uuid}")
+    public ResponseEntity<UserAccount> updateAccount(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String uuid,
+            @RequestBody @Valid @NotNull AbstractAccount reg)
+            throws NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
 
-        // explode resourceId
-        String[] i = resourceId.split(SystemKeys.ID_SEPARATOR);
-        if (i.length != 3) {
-            throw new IllegalArgumentException("invalid id format");
-        }
-        String authority = i[0];
-        String provider = i[1];
-        String id = i[2];
+        UserAccount account = userManager.updateMyAccount(uuid, reg);
 
-        // convert map to account if internal
-        if (!"internal".equals(map.get("authority"))) {
-            throw new IllegalArgumentException("not editable");
-        }
-
-        InternalUserAccount account = objectMapper.convertValue(map, InternalUserAccount.class);
-        UserIdentity identity = userManager.updateMyIdentity(authority, provider, id, account, null);
-
-        return ResponseEntity.ok(identity);
+        return ResponseEntity.ok(account);
     }
 
-    @DeleteMapping("/accounts/{resourceId}")
+    @DeleteMapping("/accounts/{uuid}")
     public ResponseEntity<Void> deleteAccount(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String resourceId)
-            throws NoSuchUserException, NoSuchProviderException {
-        UserDetails user = currentUser();
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String uuid)
+            throws NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
 
-        // explode resourceId
-        String[] i = resourceId.split(SystemKeys.ID_SEPARATOR);
-        if (i.length != 3) {
-            throw new IllegalArgumentException("invalid id format");
-        }
-        String authority = i[0];
-        String provider = i[1];
-        String id = i[2];
-
-        userManager.deleteMyIdentity(authority, provider, id);
+        userManager.deleteMyAccount(uuid);
         return ResponseEntity.ok().build();
     }
 

@@ -40,6 +40,7 @@ import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
+import it.smartcommunitylab.aac.core.provider.AccountProvider;
 import it.smartcommunitylab.aac.core.provider.AccountService;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
@@ -301,20 +302,8 @@ public class UserService {
         u.setLoginIp(ue.getLoginIp());
         u.setLoginProvider(ue.getLoginProvider());
 
-        Set<UserIdentity> identities = new HashSet<>();
-
         // same realm, fetch all idps
-        // TODO we need an order criteria
-        Collection<IdentityProvider<? extends UserIdentity, ?, ?, ?, ?>> providers = identityProviderAuthorityService
-                .getAuthorities().stream()
-                .flatMap(a -> a.getProvidersByRealm(realm).stream()).collect(Collectors.toList());
-        for (IdentityProvider<? extends UserIdentity, ?, ?, ?, ?> idp : providers) {
-            identities.addAll(idp.listIdentities(subjectId));
-        }
-
-        for (UserIdentity identity : identities) {
-            u.addIdentity(identity);
-        }
+        u.setIdentities(fetchUserIdentities(subjectId, realm));
 
         // add authorities
         u.setAuthorities(fetchUserAuthorities(subjectId, realm));
@@ -365,34 +354,7 @@ public class UserService {
         u.setLoginIp(ue.getLoginIp());
         u.setLoginProvider(ue.getLoginProvider());
 
-        Set<UserIdentity> identities = new HashSet<>();
-
-        // fetch all identities from source realm
-        // TODO we need an order criteria
-        Collection<IdentityProvider<? extends UserIdentity, ?, ?, ?, ?>> providers = identityProviderAuthorityService
-                .getAuthorities().stream()
-                .flatMap(a -> a.getProvidersByRealm(realm).stream()).collect(Collectors.toList());
-        for (IdentityProvider<? extends UserIdentity, ?, ?, ?, ?> idp : providers) {
-            identities.addAll(idp.listIdentities(subjectId));
-        }
-
-//        if (!source.equals(realm)) {
-        // DISABLED, TODO evaluate cross realm
-//            // also fetch identities from destination realm
-//            // TODO we need an order criteria
-//            for (IdentityProviderAuthority<? extends UserIdentity> ia : authorityManager
-//                    .listIdentityAuthorities()) {
-//                List<? extends IdentityProvider<? extends UserIdentity>> idps = ia
-//                        .getProviders(realm);
-//                for (IdentityProvider<? extends UserIdentity> idp : idps) {
-//                    identities.addAll(idp.listIdentities(subjectId));
-//                }
-//            }
-//        }
-
-        for (UserIdentity identity : identities) {
-            u.addIdentity(identity);
-        }
+        u.setIdentities(fetchUserIdentities(subjectId, realm));
 
         // TODO evaluate loading source realm attributes to feed translator?
 
@@ -601,13 +563,14 @@ public class UserService {
 
     /*
      * User account
+     * TODO extract to UserAccountService
      * 
      * action via services
      */
     @Transactional(readOnly = false)
     public UserAccount createUserAccount(@Nullable String userId, String providerId, UserAccount reg)
             throws NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
-        logger.debug("create user {} identity via provider {}", StringUtils.trimAllWhitespace(String.valueOf(userId)),
+        logger.debug("create user {} account via provider {}", StringUtils.trimAllWhitespace(String.valueOf(userId)),
                 StringUtils.trimAllWhitespace(providerId));
 
         if (reg == null) {
@@ -626,7 +589,7 @@ public class UserService {
     @Transactional(readOnly = false)
     public UserAccount updateUserAccount(String userId, String providerId, String accountId, UserAccount reg)
             throws NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
-        logger.debug("update user {} identity {} via provider {}", StringUtils.trimAllWhitespace(userId),
+        logger.debug("update user {} account {} via provider {}", StringUtils.trimAllWhitespace(userId),
                 StringUtils.trimAllWhitespace(accountId), StringUtils.trimAllWhitespace(providerId));
 
         if (reg == null) {
@@ -651,7 +614,7 @@ public class UserService {
     @Transactional(readOnly = false)
     public UserAccount verifyUserAccount(String userId, String providerId, String accountId)
             throws NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
-        logger.debug("verify user {} identity {} via provider {}", StringUtils.trimAllWhitespace(userId),
+        logger.debug("verify user {} account {} via provider {}", StringUtils.trimAllWhitespace(userId),
                 StringUtils.trimAllWhitespace(accountId), StringUtils.trimAllWhitespace(providerId));
 
         // fetch service
@@ -673,7 +636,7 @@ public class UserService {
     public UserAccount confirmUserAccount(String userId, String providerId, String accountId)
             throws NoSuchUserException, NoSuchProviderException, RegistrationException,
             NoSuchAuthorityException {
-        logger.debug("confirm user {} identity {} via provider {}", StringUtils.trimAllWhitespace(userId),
+        logger.debug("confirm user {} account {} via provider {}", StringUtils.trimAllWhitespace(userId),
                 StringUtils.trimAllWhitespace(accountId), StringUtils.trimAllWhitespace(providerId));
 
         // fetch service
@@ -714,14 +677,63 @@ public class UserService {
     }
 
     /*
-     * User identities
+     * User accounts
      * 
      * actions via providers
      */
+
+    @Transactional(readOnly = false)
+    public Collection<UserAccount> listUserAccounts(String userId)
+            throws NoSuchUserException {
+        logger.debug("get user {} accounts", StringUtils.trimAllWhitespace(userId));
+
+        // fetch user
+        UserEntity ue = userService.getUser(userId);
+
+        // fetch all identities and collect accounts
+        // TODO evaluate handling via service
+        Set<UserAccount> accounts = fetchUserIdentities(userId, ue.getRealm()).stream()
+                .map(i -> i.getAccount()).collect(Collectors.toSet());
+        return accounts;
+
+    }
+
+    @Transactional(readOnly = false)
+    public UserAccount getUserAccount(String userId, String uuid)
+            throws NoSuchUserException, NoSuchProviderException, NoSuchAuthorityException {
+        logger.debug("get user {} account {}", StringUtils.trimAllWhitespace(userId),
+                StringUtils.trimAllWhitespace(uuid));
+
+        // fetch user
+        UserEntity ue = userService.getUser(userId);
+        String realm = ue.getRealm();
+
+        // TODO add account base registration (or resource registration)
+        // workaround: fetch all idp and ask all
+
+        Collection<AccountProvider<?>> providers = identityProviderAuthorityService
+                .getAuthorities().stream()
+                .flatMap(a -> a.getProvidersByRealm(realm).stream()).map(p -> p.getAccountProvider())
+                .collect(Collectors.toList());
+
+        // find account and check user
+        UserAccount ua = providers.stream().map(p -> p.findAccountByUuid(uuid)).filter(a -> a != null).findFirst()
+                .orElse(null);
+        if (ua == null) {
+            throw new NoSuchUserException();
+        }
+
+        if (!ua.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("user-mismatch");
+        }
+
+        return ua;
+    }
+
     @Transactional(readOnly = false)
     public UserAccount getUserAccount(String userId, String providerId, String accountId)
             throws NoSuchUserException, NoSuchProviderException, NoSuchAuthorityException {
-        logger.debug("get user {} identity {} via provider {}", StringUtils.trimAllWhitespace(userId),
+        logger.debug("get user {} account {} via provider {}", StringUtils.trimAllWhitespace(userId),
                 StringUtils.trimAllWhitespace(accountId), StringUtils.trimAllWhitespace(providerId));
 
         // fetch idp
@@ -741,7 +753,7 @@ public class UserService {
     @Transactional(readOnly = false)
     public void deleteUserAccount(String userId, String providerId, String accountId)
             throws NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
-        logger.debug("delete user {} identity {} via provider {}", StringUtils.trimAllWhitespace(userId),
+        logger.debug("delete user {} account {} via provider {}", StringUtils.trimAllWhitespace(userId),
                 StringUtils.trimAllWhitespace(accountId), StringUtils.trimAllWhitespace(providerId));
 
         // fetch idp
@@ -756,7 +768,7 @@ public class UserService {
     @Transactional(readOnly = false)
     public UserAccount lockUserAccount(String userId, String providerId, String accountId)
             throws NoSuchUserException, NoSuchProviderException, NoSuchAuthorityException {
-        logger.debug("lock user {} identity {} via provider {}", StringUtils.trimAllWhitespace(userId),
+        logger.debug("lock user {} account {} via provider {}", StringUtils.trimAllWhitespace(userId),
                 StringUtils.trimAllWhitespace(accountId), StringUtils.trimAllWhitespace(providerId));
 
         // fetch idp
@@ -777,7 +789,7 @@ public class UserService {
     @Transactional(readOnly = false)
     public UserAccount unlockUserAccount(String userId, String providerId, String accountId)
             throws NoSuchUserException, NoSuchProviderException, NoSuchAuthorityException {
-        logger.debug("lock user {} identity {} via provider {}", StringUtils.trimAllWhitespace(userId),
+        logger.debug("lock user {} account {} via provider {}", StringUtils.trimAllWhitespace(userId),
                 StringUtils.trimAllWhitespace(accountId), StringUtils.trimAllWhitespace(providerId));
 
         // fetch idp
@@ -916,6 +928,35 @@ public class UserService {
     /*
      * Related data
      */
+
+    public Collection<UserIdentity> fetchUserIdentities(String subjectId, String realm) throws NoSuchUserException {
+        List<UserIdentity> identities = new ArrayList<>();
+        // fetch all identities from source realm
+        // TODO we need an order criteria
+        Collection<IdentityProvider<? extends UserIdentity, ?, ?, ?, ?>> providers = identityProviderAuthorityService
+                .getAuthorities().stream()
+                .flatMap(a -> a.getProvidersByRealm(realm).stream()).collect(Collectors.toList());
+        for (IdentityProvider<? extends UserIdentity, ?, ?, ?, ?> idp : providers) {
+            identities.addAll(idp.listIdentities(subjectId));
+        }
+
+//        if (!source.equals(realm)) {
+        // DISABLED, TODO evaluate cross realm
+//            // also fetch identities from destination realm
+//            // TODO we need an order criteria
+//            for (IdentityProviderAuthority<? extends UserIdentity> ia : authorityManager
+//                    .listIdentityAuthorities()) {
+//                List<? extends IdentityProvider<? extends UserIdentity>> idps = ia
+//                        .getProviders(realm);
+//                for (IdentityProvider<? extends UserIdentity> idp : idps) {
+//                    identities.addAll(idp.listIdentities(subjectId));
+//                }
+//            }
+//        }
+
+        return identities;
+
+    }
 
     public Collection<UserAttributes> fetchUserAttributes(String subjectId, String realm) throws NoSuchUserException {
         List<UserAttributes> attributes = new ArrayList<>();

@@ -141,7 +141,7 @@ public class UserAccountController {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        userManager.deleteCurUser();
+        userManager.deleteMyUser();
         return ResponseEntity.ok().build();
     }
 
