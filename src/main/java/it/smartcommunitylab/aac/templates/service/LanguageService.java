@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 public class LanguageService {
 
     // TODO evaluate discovering available languages by inspecting resource bundles
-    public static final String[] LANGUAGES = { "en", "it", "es", "lv" };
+    public static final String[] LANGUAGES = { "en", "it", "es", "lv", "de" };
     private static final Set<String> languages;
 
     static {
