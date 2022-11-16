@@ -13,7 +13,7 @@
   "btn_cancel": "Abbrechen",
   "btn_confirm": "Best\u00E4tigen",
   "home": {
-    "welcome": "Willkommen, {{vollst\u00E4ndiger Name || Benutzername}}!",
+    "welcome": "Willkommen, {{fullName || username}}!",
     "account_card_title": "Kontoinformationen",
     "account_card_text": "Zugeh\u00F6rige Kontoinformationen anzeigen, soziale Konten zusammenf\u00FChren und verbinden usw.",
     "account_card_more": "Konten verwalten",
