@@ -13,12 +13,12 @@ import it.smartcommunitylab.aac.SystemKeys;
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @ConstructorBinding
-public class ConfigurableAccountService extends ConfigurableProvider {
+public class ConfigurableCredentialsProvider extends ConfigurableProvider {
 
     private String repositoryId;
 
-    public ConfigurableAccountService(String authority, String provider, String realm) {
-        super(authority, provider, realm, SystemKeys.RESOURCE_ACCOUNT);
+    public ConfigurableCredentialsProvider(String authority, String provider, String realm) {
+        super(authority, provider, realm, SystemKeys.RESOURCE_CREDENTIALS);
     }
 
     /**
@@ -28,7 +28,7 @@ public class ConfigurableAccountService extends ConfigurableProvider {
      * reflection
      */
     @SuppressWarnings("unused")
-    private ConfigurableAccountService() {
+    private ConfigurableCredentialsProvider() {
         this((String) null, (String) null, (String) null);
     }
 
@@ -44,5 +44,4 @@ public class ConfigurableAccountService extends ConfigurableProvider {
     public void setRepositoryId(String repositoryId) {
         this.repositoryId = repositoryId;
     }
-
 }

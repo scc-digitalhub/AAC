@@ -25,8 +25,10 @@ public interface UserAccount extends UserResource, Serializable {
     }
 
     // accountId is local id for provider
-    default String getAccountId() {
-        return getId();
+    public String getAccountId();
+
+    default String getResourceId() {
+        return getAccountId();
     }
 
 }

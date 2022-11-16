@@ -23,4 +23,11 @@ public interface UserCredentials extends Credentials, CredentialsContainer, User
     default boolean isEditable() {
         return true;
     }
+
+    // credentialsId is local id for provider
+    public String getCredentialsId();
+
+    default String getResourceId() {
+        return getCredentialsId();
+    }
 }

@@ -12,20 +12,12 @@ import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 /*
  * Expose provider configuration outside modules
  */
-public interface ConfigurationProvider<M extends ConfigMap, T extends ConfigurableProvider, C extends ProviderConfig<M, T>>
-        extends ResourceProvider<ProviderConfig<?, ?>> {
+public interface ConfigurationProvider<M extends ConfigMap, T extends ConfigurableProvider, C extends ProviderConfig<M, T>> {
+
+    public String getAuthority();
 
     default public String getType() {
         return SystemKeys.RESOURCE_CONFIG;
-    }
-
-    default public String getRealm() {
-        // by default provider config models are static across realms
-        return null;
-    }
-
-    default public String getProvider() {
-        return getAuthority();
     }
 
     /*

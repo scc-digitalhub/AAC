@@ -11,14 +11,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.core.authorities.CredentialsServiceAuthority;
-import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsService;
+import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsProvider;
 import it.smartcommunitylab.aac.core.persistence.CredentialsServiceEntity;
 
 @Service
 @Transactional
 public class CredentialsServiceService
         extends
-        ConfigurableProviderService<CredentialsServiceAuthority<?, ?, ?, ?>, ConfigurableCredentialsService, CredentialsServiceEntity> {
+        ConfigurableProviderService<CredentialsServiceAuthority<?, ?, ?, ?>, ConfigurableCredentialsProvider, CredentialsServiceEntity> {
 
     public CredentialsServiceService(CredentialsServiceAuthorityService authorityService,
             ConfigurableProviderEntityService<CredentialsServiceEntity> providerService) {
@@ -33,10 +33,10 @@ public class CredentialsServiceService
     }
 
     class CredentialsServiceConfigConverter
-            implements Converter<ConfigurableCredentialsService, CredentialsServiceEntity> {
+            implements Converter<ConfigurableCredentialsProvider, CredentialsServiceEntity> {
 
         @Override
-        public CredentialsServiceEntity convert(ConfigurableCredentialsService reg) {
+        public CredentialsServiceEntity convert(ConfigurableCredentialsProvider reg) {
             CredentialsServiceEntity pe = new CredentialsServiceEntity();
 
             pe.setAuthority(reg.getAuthority());
@@ -79,11 +79,11 @@ public class CredentialsServiceService
     }
 
     class CredentialsServiceEntityConverter
-            implements Converter<CredentialsServiceEntity, ConfigurableCredentialsService> {
+            implements Converter<CredentialsServiceEntity, ConfigurableCredentialsProvider> {
 
         @Override
-        public ConfigurableCredentialsService convert(CredentialsServiceEntity pe) {
-            ConfigurableCredentialsService cp = new ConfigurableCredentialsService(pe.getAuthority(),
+        public ConfigurableCredentialsProvider convert(CredentialsServiceEntity pe) {
+            ConfigurableCredentialsProvider cp = new ConfigurableCredentialsProvider(pe.getAuthority(),
                     pe.getProvider(),
                     pe.getRealm());
 

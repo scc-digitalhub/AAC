@@ -14,7 +14,7 @@ public class IdentityServiceAuthorityService extends AbstractAuthorityService<Id
         implements InitializingBean {
 
     public IdentityServiceAuthorityService(Collection<IdentityServiceAuthority<?, ?, ?, ?, ?>> authorities) {
-        super(SystemKeys.RESOURCE_ACCOUNT);
+        super(SystemKeys.RESOURCE_USER);
 
         this.setAuthorities(authorities);
     }

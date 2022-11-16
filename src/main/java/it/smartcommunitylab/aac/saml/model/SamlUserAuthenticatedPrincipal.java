@@ -41,7 +41,7 @@ public class SamlUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
     }
 
     @Override
-    public String getId() {
+    public String getPrincipalId() {
         return subjectId;
     }
 

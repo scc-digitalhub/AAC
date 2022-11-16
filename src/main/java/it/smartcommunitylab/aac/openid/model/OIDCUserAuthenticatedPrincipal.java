@@ -44,7 +44,7 @@ public class OIDCUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
     }
 
     @Override
-    public String getId() {
+    public String getPrincipalId() {
         return subject;
     }
 
@@ -113,10 +113,6 @@ public class OIDCUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
         }
 
         return result;
-    }
-
-    public void setUuid(String uuid) {
-        this.uuid = uuid;
     }
 
     public OAuth2User getPrincipal() {

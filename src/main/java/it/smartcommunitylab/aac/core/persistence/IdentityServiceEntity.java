@@ -138,9 +138,4 @@ public class IdentityServiceEntity implements ProviderEntity {
         this.configurationMap = configurationMap;
     }
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_IDENTITY_SERVICE;
-    }
-
 }

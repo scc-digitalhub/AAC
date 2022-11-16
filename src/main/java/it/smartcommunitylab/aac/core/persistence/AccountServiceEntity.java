@@ -138,9 +138,4 @@ public class AccountServiceEntity implements ProviderEntity {
         this.configurationMap = configurationMap;
     }
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_ACCOUNT_SERVICE;
-    }
-
 }

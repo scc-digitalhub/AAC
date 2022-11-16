@@ -25,6 +25,7 @@ import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProviderConfig;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 
 @Transactional
 public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends UserAccount, P extends UserAuthenticatedPrincipal, M extends ConfigMap, C extends IdentityProviderConfig<M>>
@@ -34,6 +35,7 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
 
     // services
     protected final UserAccountService<U> userAccountService;
+    private ResourceEntityService resourceService;
 
     public AbstractIdentityProvider(
             String authority, String providerId,
@@ -65,6 +67,10 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
         Assert.notNull(getSubjectResolver(), "subject provider is mandatory");
     }
 
+    public void setResourceService(ResourceEntityService resourceService) {
+        this.resourceService = resourceService;
+    }
+
     @Override
     public final String getType() {
         return SystemKeys.RESOURCE_IDENTITY;
@@ -82,13 +88,21 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
     @Override
     public abstract ExtendedAuthenticationProvider<P, U> getAuthenticationProvider();
 
-    @Override
-    public abstract AccountProvider<U> getAccountProvider();
-
     public abstract AccountPrincipalConverter<U> getAccountPrincipalConverter();
 
-    @Override
-    public abstract IdentityAttributeProvider<P, U> getAttributeProvider();
+    /*
+     * Account provider acts as the source for user accounts, when the details are
+     * persisted in the provider or available for requests. Do note that idps are
+     * not required to persist accounts.
+     */
+    protected abstract AccountProvider<U> getAccountProvider();
+    /*
+     * Attribute providers retrieve and format user properties available to the
+     * provider as UserAttributes bounded to the UserIdentity exposed to the outside
+     * world.
+     */
+
+    protected abstract IdentityAttributeProvider<P, U> getAttributeProvider();
 
     @Override
     public abstract SubjectResolver<U> getSubjectResolver();
@@ -172,10 +186,8 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
         // look in service for existing accounts
         U account = userAccountService.findAccountById(repositoryId, id);
         if (account == null) {
-            // create account
-            // TODO add config flag to disable creation
-            logger.debug("create as new account with id {}", String.valueOf(id));
-            account = userAccountService.addAccount(repositoryId, id, reg);
+            // create account if supported
+            account = createAccount(id, reg);
         } else {
             // check if userId matches
             if (!userId.equals(account.getUserId())) {
@@ -382,6 +394,12 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
 
             // remove account
             userAccountService.deleteAccount(repositoryId, accountId);
+
+            if (resourceService != null) {
+                // remove resource
+                resourceService.deleteResourceEntity(SystemKeys.RESOURCE_ACCOUNT, getAuthority(),
+                        getProvider(), accountId);
+            }
         }
 
         // cleanup attributes
@@ -400,6 +418,19 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
             } catch (NoSuchUserException e) {
             }
         }
+    }
+
+    protected U createAccount(String id, U reg) {
+        logger.debug("create as new account with id {}", String.valueOf(id));
+        U account = userAccountService.addAccount(getRepositoryId(), id, reg);
+
+        if (resourceService != null) {
+            // register as user resource
+            resourceService.addResourceEntity(account.getUuid(), SystemKeys.RESOURCE_ACCOUNT,
+                    getAuthority(), getProvider(), account.getAccountId());
+        }
+
+        return account;
     }
 
 }

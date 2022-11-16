@@ -42,6 +42,11 @@ public class SamlIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         super(cp);
     }
 
+    public String getRepositoryId() {
+        // not configurable, always isolate saml providers
+        return getProvider();
+    }
+
     public RelyingPartyRegistration getRelyingPartyRegistration() {
         if (relyingPartyRegistration == null) {
             try {

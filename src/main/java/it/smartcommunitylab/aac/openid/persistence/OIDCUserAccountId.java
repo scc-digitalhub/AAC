@@ -8,24 +8,24 @@ public class OIDCUserAccountId implements Serializable {
 
     private static final long serialVersionUID = SystemKeys.AAC_OIDC_SERIAL_VERSION;
 
-    private String provider;
+    private String repositoryId;
     private String subject;
 
     public OIDCUserAccountId() {
     }
 
-    public OIDCUserAccountId(String provider, String userId) {
+    public OIDCUserAccountId(String repositoryId, String userId) {
         super();
-        this.provider = provider;
+        this.repositoryId = repositoryId;
         this.subject = userId;
     }
 
-    public String getProvider() {
-        return provider;
+    public String getRepositoryId() {
+        return repositoryId;
     }
 
-    public void setProvider(String provider) {
-        this.provider = provider;
+    public void setRepositoryId(String repositoryId) {
+        this.repositoryId = repositoryId;
     }
 
     public String getSubject() {
@@ -40,7 +40,7 @@ public class OIDCUserAccountId implements Serializable {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((provider == null) ? 0 : provider.hashCode());
+        result = prime * result + ((repositoryId == null) ? 0 : repositoryId.hashCode());
         result = prime * result + ((subject == null) ? 0 : subject.hashCode());
         return result;
     }
@@ -54,10 +54,10 @@ public class OIDCUserAccountId implements Serializable {
         if (getClass() != obj.getClass())
             return false;
         OIDCUserAccountId other = (OIDCUserAccountId) obj;
-        if (provider == null) {
-            if (other.provider != null)
+        if (repositoryId == null) {
+            if (other.repositoryId != null)
                 return false;
-        } else if (!provider.equals(other.provider))
+        } else if (!repositoryId.equals(other.repositoryId))
             return false;
         if (subject == null) {
             if (other.subject != null)

@@ -12,20 +12,20 @@ public interface InternalUserAccountRepository
         extends CustomJpaRepository<InternalUserAccount, InternalUserAccountId>,
         DetachableJpaRepository<InternalUserAccount> {
 
-    InternalUserAccount findByProviderAndUuid(String provider, String uuid);
+    InternalUserAccount findByRepositoryIdAndUuid(String repositoryId, String uuid);
 
-    List<InternalUserAccount> findByProviderAndEmail(String provider, String email);
+    List<InternalUserAccount> findByRepositoryIdAndEmail(String repositoryId, String email);
 
-    InternalUserAccount findByProviderAndConfirmationKey(String provider, String key);
+    InternalUserAccount findByRepositoryIdAndConfirmationKey(String repositoryId, String key);
 
     List<InternalUserAccount> findByRealm(String realm);
 
-    List<InternalUserAccount> findByProvider(String provider);
+    List<InternalUserAccount> findByRepositoryId(String repositoryId);
 
     List<InternalUserAccount> findByUserId(String userId);
 
     List<InternalUserAccount> findByUserIdAndRealm(String userId, String realm);
 
-    List<InternalUserAccount> findByUserIdAndProvider(String userId, String provider);
+    List<InternalUserAccount> findByUserIdAndRepositoryId(String userId, String repositoryId);
 
 }

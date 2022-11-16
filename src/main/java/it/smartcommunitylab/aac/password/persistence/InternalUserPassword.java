@@ -28,8 +28,7 @@ import it.smartcommunitylab.aac.internal.model.CredentialsType;
         "reset_key" }))
 
 @EntityListeners(AuditingEntityListener.class)
-public class InternalUserPassword extends AbstractUserCredentials
-        implements CredentialsContainer, Serializable {
+public class InternalUserPassword extends AbstractUserCredentials {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
@@ -89,6 +88,11 @@ public class InternalUserPassword extends AbstractUserCredentials
 
     @Override
     public String getUuid() {
+        return id;
+    }
+
+    @Override
+    public String getCredentialsId() {
         return id;
     }
 

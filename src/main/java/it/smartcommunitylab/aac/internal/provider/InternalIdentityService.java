@@ -330,7 +330,7 @@ public class InternalIdentityService
         InternalUserIdentity reg = (InternalUserIdentity) registration;
 
         // create account via service
-        InternalUserAccount account = service.createAccount(userId, reg.getAccount());
+        InternalUserAccount account = service.createAccount(userId, null, reg.getAccount());
         String username = account.getUsername();
 
         // register credentials

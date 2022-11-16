@@ -1,6 +1,5 @@
 package it.smartcommunitylab.aac.openid;
 
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -18,6 +17,7 @@ import it.smartcommunitylab.aac.core.base.AbstractIdentityAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.openid.model.OIDCUserIdentity;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
@@ -29,11 +29,10 @@ import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
 
 @Service
 public class OIDCIdentityAuthority extends
-        AbstractIdentityAuthority<OIDCIdentityProvider, OIDCUserIdentity, OIDCIdentityProviderConfigMap, OIDCIdentityProviderConfig>
-        implements InitializingBean {
+        AbstractIdentityAuthority<OIDCIdentityProvider, OIDCUserIdentity, OIDCIdentityProviderConfigMap, OIDCIdentityProviderConfig> {
 
-    public static final String AUTHORITY_URL = "/auth/oidc/";
-
+    public static final String AUTHORITY_URL = "/auth/" + SystemKeys.AUTHORITY_OIDC + "/";
+    
     // oidc account service
     private final UserAccountService<OIDCUserAccount> accountService;
 
@@ -48,6 +47,7 @@ public class OIDCIdentityAuthority extends
 
     // execution service for custom attributes mapping
     private ScriptExecutionService executionService;
+    private ResourceEntityService resourceService;
 
     @Autowired
     public OIDCIdentityAuthority(
@@ -87,6 +87,11 @@ public class OIDCIdentityAuthority extends
         this.executionService = executionService;
     }
 
+    @Autowired
+    public void setResourceService(ResourceEntityService resourceService) {
+        this.resourceService = resourceService;
+    }
+
     @Override
     public void afterPropertiesSet() throws Exception {
         super.afterPropertiesSet();
@@ -108,6 +113,7 @@ public class OIDCIdentityAuthority extends
                 config, config.getRealm());
 
         idp.setExecutionService(executionService);
+        idp.setResourceService(resourceService);
         return idp;
     }
 

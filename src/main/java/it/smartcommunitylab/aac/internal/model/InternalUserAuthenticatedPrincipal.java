@@ -24,7 +24,7 @@ public class InternalUserAuthenticatedPrincipal extends AbstractAuthenticatedPri
     // internal attributes from account
     private Map<String, String> attributes;
 
-    public InternalUserAuthenticatedPrincipal(String authority, String provider, String realm, String userId,
+    protected InternalUserAuthenticatedPrincipal(String authority, String provider, String realm, String userId,
             String username) {
         super(authority, provider, realm, userId);
         Assert.hasText(username, "username can not be null or empty");
@@ -37,7 +37,7 @@ public class InternalUserAuthenticatedPrincipal extends AbstractAuthenticatedPri
     }
 
     @Override
-    public String getId() {
+    public String getPrincipalId() {
         return username;
     }
 

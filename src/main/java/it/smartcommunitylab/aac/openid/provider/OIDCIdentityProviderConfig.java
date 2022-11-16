@@ -34,6 +34,11 @@ public class OIDCIdentityProviderConfig extends AbstractIdentityProviderConfig<O
         super(cp);
     }
 
+    public String getRepositoryId() {
+        // not configurable, always isolate oidc providers
+        return getProvider();
+    }
+
     public ClientRegistration getClientRegistration() {
         if (clientRegistration == null) {
             clientRegistration = toClientRegistration();

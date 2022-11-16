@@ -16,7 +16,7 @@ import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.core.authorities.ProviderAuthority;
+import it.smartcommunitylab.aac.core.authorities.ConfigurableProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
@@ -24,7 +24,7 @@ import it.smartcommunitylab.aac.core.service.ConfigurableProviderService;
 import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.model.Realm;
 
-public abstract class ConfigurableProviderManager<C extends ConfigurableProvider, A extends ProviderAuthority<?, ?, C, ?, ?>>
+public abstract class ConfigurableProviderManager<C extends ConfigurableProvider, A extends ConfigurableProviderAuthority<?, ?, C, ?, ?>>
         implements InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 

@@ -28,7 +28,7 @@ import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
-import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsService;
+import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsProvider;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.provider.AccountCredentialsService;
@@ -44,7 +44,7 @@ import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserCredentialsService;
 @Transactional
 public class WebAuthnCredentialsService
         extends
-        AbstractConfigurableProvider<WebAuthnUserCredential, ConfigurableCredentialsService, WebAuthnIdentityProviderConfigMap, WebAuthnCredentialsServiceConfig>
+        AbstractConfigurableProvider<WebAuthnUserCredential, ConfigurableCredentialsProvider, WebAuthnIdentityProviderConfigMap, WebAuthnCredentialsServiceConfig>
         implements
         AccountCredentialsService<WebAuthnUserCredential, WebAuthnIdentityProviderConfigMap, WebAuthnCredentialsServiceConfig> {
     private final Logger logger = LoggerFactory.getLogger(getClass());

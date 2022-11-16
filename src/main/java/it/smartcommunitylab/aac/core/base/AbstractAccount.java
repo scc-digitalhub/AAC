@@ -15,7 +15,7 @@ import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
  * 
  * all implementations should derive from this
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "authority", visible=false)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "authority", visible = false)
 @JsonSubTypes({
         @Type(value = InternalUserAccount.class, name = "internal"),
         @Type(value = OIDCUserAccount.class, name = "oidc"),
@@ -37,6 +37,11 @@ public abstract class AbstractAccount extends AbstractBaseUserResource implement
     @Override
     public final String getType() {
         return SystemKeys.RESOURCE_ACCOUNT;
+    }
+
+    @Override
+    public String getId() {
+        return getUuid();
     }
 
     public abstract String getStatus();

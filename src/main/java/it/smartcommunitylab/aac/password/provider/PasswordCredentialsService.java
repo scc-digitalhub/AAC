@@ -19,7 +19,7 @@ import it.smartcommunitylab.aac.common.NoSuchCredentialException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
-import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsService;
+import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsProvider;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.provider.AccountCredentialsService;
@@ -31,7 +31,7 @@ import it.smartcommunitylab.aac.password.service.InternalUserPasswordService;
 import it.smartcommunitylab.aac.utils.MailService;
 
 public class PasswordCredentialsService extends
-        AbstractConfigurableProvider<InternalUserPassword, ConfigurableCredentialsService, PasswordIdentityProviderConfigMap, PasswordCredentialsServiceConfig>
+        AbstractConfigurableProvider<InternalUserPassword, ConfigurableCredentialsProvider, PasswordIdentityProviderConfigMap, PasswordCredentialsServiceConfig>
         implements
         AccountCredentialsService<InternalUserPassword, PasswordIdentityProviderConfigMap, PasswordCredentialsServiceConfig> {
 

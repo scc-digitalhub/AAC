@@ -12,19 +12,14 @@ public interface Resource {
 
     public String getProvider();
 
-    // id is local to the provider
+    // id is global across all resources (uuid)
     public String getId();
 
     // TODO replace with proper typing <T> on resource
     public String getType();
 
-    // resource is globally unique and addressable
-    // ie given to an external actor he should be able to find the authority and
-    // then the provider to request this resource
-    // TODO move to AddressableResource
-    default public String getResourceId() {
-        return null;
-    }
+    // resourceId is local to (type)/authority+provider
+    public String getResourceId();
 
     default public String getUrn() {
         return null;

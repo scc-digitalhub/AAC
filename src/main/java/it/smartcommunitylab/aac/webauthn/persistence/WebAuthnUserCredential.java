@@ -133,7 +133,12 @@ public class WebAuthnUserCredential extends AbstractUserCredentials
 
     @Override
     public String getUuid() {
-        return credentialId;
+        return id;
+    }
+
+    @Override
+    public String getCredentialsId() {
+        return id;
     }
 
     @Override

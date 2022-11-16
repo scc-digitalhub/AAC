@@ -33,8 +33,8 @@ public class SamlUserAccount extends AbstractAccount {
 
     @Id
     @NotBlank
-    @Column(name = "provider_id", length = 128)
-    private String provider;
+    @Column(name = "repository_id", length = 128)
+    private String repositoryId;
 
     // subject identifier from external provider
     @Id
@@ -55,6 +55,10 @@ public class SamlUserAccount extends AbstractAccount {
     @JsonInclude
     @Transient
     private String authority;
+
+    @JsonInclude
+    @Transient
+    private String provider;
 
     @NotBlank
     @Column(length = 128)
@@ -111,11 +115,11 @@ public class SamlUserAccount extends AbstractAccount {
 
     @Override
     public String getProvider() {
-        return provider;
+        return provider != null ? provider : super.getProvider();
     }
 
     @Override
-    public String getId() {
+    public String getAccountId() {
         return subjectId;
     }
 
@@ -165,6 +169,14 @@ public class SamlUserAccount extends AbstractAccount {
 
     public void setSubjectId(String subjectId) {
         this.subjectId = subjectId;
+    }
+
+    public String getRepositoryId() {
+        return repositoryId;
+    }
+
+    public void setRepositoryId(String repositoryId) {
+        this.repositoryId = repositoryId;
     }
 
     public void setUuid(String uuid) {
@@ -265,7 +277,7 @@ public class SamlUserAccount extends AbstractAccount {
 
     @Override
     public String toString() {
-        return "SamlUserAccount [provider=" + provider + ", subjectId=" + subjectId + ", uuid=" + uuid + ", userId="
+        return "SamlUserAccount [repositoryId=" + repositoryId + ", subjectId=" + subjectId + ", uuid=" + uuid + ", userId="
                 + userId + ", authority=" + authority + ", realm=" + realm + ", status=" + status + ", username="
                 + username + ", issuer=" + issuer + ", email=" + email + ", emailVerified=" + emailVerified + ", name="
                 + name + ", surname=" + surname + ", lang=" + lang + ", createDate=" + createDate + ", modifiedDate="

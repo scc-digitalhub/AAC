@@ -1,6 +1,5 @@
 package it.smartcommunitylab.aac.openid.apple;
 
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -22,16 +21,16 @@ import it.smartcommunitylab.aac.core.base.AbstractSingleProviderIdentityAuthorit
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.openid.model.OIDCUserIdentity;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 
 @Service
 public class AppleIdentityAuthority extends
-        AbstractSingleProviderIdentityAuthority<AppleIdentityProvider, OIDCUserIdentity, AppleIdentityProviderConfigMap, AppleIdentityProviderConfig>
-        implements InitializingBean {
+        AbstractSingleProviderIdentityAuthority<AppleIdentityProvider, OIDCUserIdentity, AppleIdentityProviderConfigMap, AppleIdentityProviderConfig> {
 
-    public static final String AUTHORITY_URL = "/auth/apple/";
+    public static final String AUTHORITY_URL = "/auth/" + SystemKeys.AUTHORITY_APPLE + "/";
 
     // oidc account service
     private final UserAccountService<OIDCUserAccount> accountService;
@@ -47,6 +46,7 @@ public class AppleIdentityAuthority extends
 
     // execution service for custom attributes mapping
     private ScriptExecutionService executionService;
+    private ResourceEntityService resourceService;
 
     public AppleIdentityAuthority(
             UserAccountService<OIDCUserAccount> userAccountService, AutoJdbcAttributeStore jdbcAttributeStore,
@@ -76,6 +76,11 @@ public class AppleIdentityAuthority extends
         this.executionService = executionService;
     }
 
+    @Autowired
+    public void setResourceService(ResourceEntityService resourceService) {
+        this.resourceService = resourceService;
+    }
+
     @Override
     public void afterPropertiesSet() throws Exception {
         super.afterPropertiesSet();
@@ -97,6 +102,8 @@ public class AppleIdentityAuthority extends
                 config, config.getRealm());
 
         idp.setExecutionService(executionService);
+        idp.setResourceService(resourceService);
+
         return idp;
     }
 

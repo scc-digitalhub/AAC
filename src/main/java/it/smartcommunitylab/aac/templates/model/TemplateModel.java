@@ -96,6 +96,11 @@ public class TemplateModel implements Template {
     }
 
     @Override
+    public String getResourceId() {
+        return template + "." + language;
+    }
+
+    @Override
     public String getTemplate() {
         return template;
     }

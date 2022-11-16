@@ -43,6 +43,7 @@ import it.smartcommunitylab.aac.core.service.AttributeProviderService;
 import it.smartcommunitylab.aac.core.service.ConfigurableProviderService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderService;
 import it.smartcommunitylab.aac.core.service.RealmService;
+import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.TemplateProviderService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
@@ -129,6 +130,9 @@ public class AACBootstrap {
 
     @Autowired
     private OAuth2ClientAppService clientAppService;
+
+    @Autowired
+    private ResourceEntityService resourceService;
 
 //    @EventListener
     public void onApplicationEvent(ApplicationStartedEvent event) {
@@ -825,9 +829,18 @@ public class AACBootstrap {
                                 }
                             }
 
-                            if (logger.isTraceEnabled()) {
-                                logger.trace("{} user account: {}", String.valueOf(account.getAuthority()),
-                                        String.valueOf(account));
+                            if (account != null) {
+                                if (logger.isTraceEnabled()) {
+                                    logger.trace("{} user account: {}", String.valueOf(account.getAuthority()),
+                                            String.valueOf(account));
+                                }
+
+                                // register as resource if missing
+                                if (resourceService.findResourceEntity(account.getUuid()) == null) {
+                                    resourceService.addResourceEntity(account.getUuid(), SystemKeys.RESOURCE_ACCOUNT,
+                                            account.getAuthority(), account.getProvider(), account.getAccountId());
+                                }
+
                             }
 
                         } catch (RegistrationException | NoSuchUserException e) {

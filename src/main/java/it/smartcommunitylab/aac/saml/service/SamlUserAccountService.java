@@ -71,7 +71,7 @@ public class SamlUserAccountService implements UserAccountService<SamlUserAccoun
         logger.debug("find account with username {} in repository {}", String.valueOf(username),
                 String.valueOf(repository));
 
-        List<SamlUserAccount> accounts = accountRepository.findByProviderAndUsername(repository, username);
+        List<SamlUserAccount> accounts = accountRepository.findByRepositoryIdAndUsername(repository, username);
         return accounts.stream().map(a -> {
             return accountRepository.detach(a);
         }).collect(Collectors.toList());
@@ -82,7 +82,7 @@ public class SamlUserAccountService implements UserAccountService<SamlUserAccoun
         logger.debug("find account with email {} in repository {}", String.valueOf(email),
                 String.valueOf(repository));
 
-        List<SamlUserAccount> accounts = accountRepository.findByProviderAndEmail(repository, email);
+        List<SamlUserAccount> accounts = accountRepository.findByRepositoryIdAndEmail(repository, email);
         return accounts.stream().map(a -> {
             return accountRepository.detach(a);
         }).collect(Collectors.toList());
@@ -93,7 +93,7 @@ public class SamlUserAccountService implements UserAccountService<SamlUserAccoun
         logger.debug("find account with uuid {} in repository {}", String.valueOf(uuid),
                 String.valueOf(repository));
 
-        SamlUserAccount account = accountRepository.findByProviderAndUuid(repository, uuid);
+        SamlUserAccount account = accountRepository.findByRepositoryIdAndUuid(repository, uuid);
         if (account == null) {
             return null;
         }
@@ -108,7 +108,7 @@ public class SamlUserAccountService implements UserAccountService<SamlUserAccoun
         logger.debug("find account for user {} in repository {}", String.valueOf(userId),
                 String.valueOf(repository));
 
-        List<SamlUserAccount> accounts = accountRepository.findByUserIdAndProvider(userId, repository);
+        List<SamlUserAccount> accounts = accountRepository.findByUserIdAndRepositoryId(userId, repository);
         return accounts.stream().map(a -> {
             return accountRepository.detach(a);
         }).collect(Collectors.toList());
@@ -155,7 +155,8 @@ public class SamlUserAccountService implements UserAccountService<SamlUserAccoun
 
             // extract attributes and build model
             account = new SamlUserAccount(reg.getAuthority());
-            account.setProvider(repository);
+            account.setRepositoryId(repository);
+            account.setProvider(reg.getProvider());
             account.setSubjectId(subjectId);
 
             account.setUuid(s.getSubjectId());
@@ -211,12 +212,14 @@ public class SamlUserAccountService implements UserAccountService<SamlUserAccoun
             // support subjectId update
             account.setSubjectId(reg.getSubjectId());
 
-            // support uuid change if provided
-            if (StringUtils.hasText(reg.getUuid())) {
-                account.setUuid(reg.getUuid());
-            }
+            // DISABLED support uuid change if provided
+//            if (StringUtils.hasText(reg.getUuid())) {
+//                account.setUuid(reg.getUuid());
+//            }
 
             // extract attributes and update model
+            account.setAuthority(reg.getAuthority());
+            account.setProvider(reg.getProvider());
             account.setUserId(reg.getUserId());
             account.setRealm(reg.getRealm());
 

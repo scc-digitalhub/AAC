@@ -3,11 +3,11 @@ package it.smartcommunitylab.aac.core.base;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.model.ConfigurableAccountService;
+import it.smartcommunitylab.aac.core.model.ConfigurableAccountProvider;
 import it.smartcommunitylab.aac.core.provider.AccountServiceConfig;
 
 public abstract class AbstractAccountServiceConfig<M extends AbstractConfigMap>
-        extends AbstractProviderConfig<M, ConfigurableAccountService>
+        extends AbstractProviderConfig<M, ConfigurableAccountProvider>
         implements AccountServiceConfig<M> {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
@@ -17,7 +17,7 @@ public abstract class AbstractAccountServiceConfig<M extends AbstractConfigMap>
         super(authority, provider, realm, configMap);
     }
 
-    protected AbstractAccountServiceConfig(ConfigurableAccountService cp) {
+    protected AbstractAccountServiceConfig(ConfigurableAccountProvider cp) {
         super(cp);
         this.repositoryId = cp.getRepositoryId();
     }
@@ -32,8 +32,8 @@ public abstract class AbstractAccountServiceConfig<M extends AbstractConfigMap>
     }
 
     @Override
-    public ConfigurableAccountService getConfigurable() {
-        ConfigurableAccountService cp = new ConfigurableAccountService(getAuthority(),
+    public ConfigurableAccountProvider getConfigurable() {
+        ConfigurableAccountProvider cp = new ConfigurableAccountProvider(getAuthority(),
                 getProvider(),
                 getRealm());
         cp.setType(SystemKeys.RESOURCE_ACCOUNT);

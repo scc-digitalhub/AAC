@@ -10,9 +10,9 @@ import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.core.authorities.AuthorityService;
-import it.smartcommunitylab.aac.core.authorities.ProviderAuthority;
+import it.smartcommunitylab.aac.core.authorities.ConfigurableProviderAuthority;
 
-public abstract class AbstractAuthorityService<A extends ProviderAuthority<?, ?, ?, ?, ?>>
+public abstract class AbstractAuthorityService<A extends ConfigurableProviderAuthority<?, ?, ?, ?, ?>>
         implements AuthorityService<A> {
 
     private final String type;

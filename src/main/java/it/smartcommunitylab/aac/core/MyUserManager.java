@@ -36,10 +36,12 @@ import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.persistence.ClientEntity;
+import it.smartcommunitylab.aac.core.service.AccountServiceAuthorityService;
 import it.smartcommunitylab.aac.core.service.AttributeProviderService;
 import it.smartcommunitylab.aac.core.service.ClientEntityService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderService;
 import it.smartcommunitylab.aac.core.service.RealmService;
+import it.smartcommunitylab.aac.core.service.UserAccountService;
 import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.model.ConnectedApp;
 import it.smartcommunitylab.aac.model.ConnectedDevice;
@@ -68,6 +70,9 @@ public class MyUserManager {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private UserAccountService userAccountService;
 
     @Autowired
     private RealmService realmService;
@@ -101,6 +106,9 @@ public class MyUserManager {
 
     @Autowired
     private ProfileManager profileManager;
+
+    @Autowired
+    private AccountServiceAuthorityService accountServiceAuthorityService;
 
     /*
      * Current user, from context
@@ -156,7 +164,7 @@ public class MyUserManager {
         UserDetails details = curUserDetails();
         String userId = details.getSubjectId();
 
-        return userService.listUserAccounts(userId);
+        return userAccountService.listUserAccounts(userId);
     }
 
     public UserAccount getMyAccount(String uuid)
@@ -164,13 +172,13 @@ public class MyUserManager {
         UserDetails details = curUserDetails();
         String userId = details.getSubjectId();
 
-        // check user matches cur
-        details.getIdentities().stream()
-                .filter(i -> i.getAccount().getUuid().equals(uuid))
-                .findFirst()
-                .orElseThrow(NoSuchUserException::new);
+        // fetch account and check user match
+        UserAccount account = userAccountService.getUserAccount(uuid);
+        if (!account.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("user-mismatch");
+        }
 
-        return userService.getUserAccount(userId, uuid);
+        return account;
     }
 
     public <U extends UserAccount> UserAccount updateMyAccount(
@@ -180,15 +188,14 @@ public class MyUserManager {
         UserDetails details = curUserDetails();
         String userId = details.getSubjectId();
 
-        // check user matches cur
-        details.getIdentities().stream()
-                .filter(i -> i.getAccount().getUuid().equals(uuid))
-                .findFirst()
-                .orElseThrow(NoSuchUserException::new);
+        // fetch account and check user match
+        UserAccount account = userAccountService.getUserAccount(uuid);
+        if (!account.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("user-mismatch");
+        }
 
-        // lookup account
-        UserAccount account = userService.getUserAccount(userId, uuid);
-        return userService.updateUserAccount(userId, account.getProvider(), account.getAccountId(), reg);
+        // execute
+        return userAccountService.updateUserAccount(uuid, reg);
     }
 
     public void deleteMyAccount(String uuid)
@@ -196,15 +203,14 @@ public class MyUserManager {
         UserDetails details = curUserDetails();
         String userId = details.getSubjectId();
 
-        // check user matches cur
-        details.getIdentities().stream()
-                .filter(i -> i.getAccount().getUuid().equals(uuid))
-                .findFirst()
-                .orElseThrow(NoSuchUserException::new);
+        // fetch account and check user match
+        UserAccount account = userAccountService.getUserAccount(uuid);
+        if (!account.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("user-mismatch");
+        }
 
-        // lookup account
-        UserAccount account = userService.getUserAccount(userId, uuid);
-        userService.deleteUserAccount(userId, account.getProvider(), account.getAccountId());
+        // execute
+        userAccountService.deleteUserAccount(uuid);
     }
 
     /*

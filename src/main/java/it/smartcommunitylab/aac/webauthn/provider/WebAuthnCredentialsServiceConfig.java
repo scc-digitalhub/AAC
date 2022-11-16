@@ -5,7 +5,7 @@ import com.yubico.webauthn.data.UserVerificationRequirement;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractCredentialsServiceConfig;
-import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsService;
+import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsProvider;
 
 public class WebAuthnCredentialsServiceConfig
         extends AbstractCredentialsServiceConfig<WebAuthnIdentityProviderConfigMap> {
@@ -17,7 +17,7 @@ public class WebAuthnCredentialsServiceConfig
         super(SystemKeys.AUTHORITY_WEBAUTHN, provider, realm, new WebAuthnIdentityProviderConfigMap());
     }
 
-    public WebAuthnCredentialsServiceConfig(ConfigurableCredentialsService cp) {
+    public WebAuthnCredentialsServiceConfig(ConfigurableCredentialsProvider cp) {
         super(cp);
     }
 

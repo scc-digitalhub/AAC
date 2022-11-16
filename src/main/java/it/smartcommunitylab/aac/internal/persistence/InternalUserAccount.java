@@ -37,8 +37,8 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
     // account id
     @Id
     @NotBlank
-    @Column(name = "provider_id", length = 128)
-    private String provider;
+    @Column(name = "repository_id", length = 128)
+    private String repositoryId;
 
     @Id
     @NotBlank
@@ -58,6 +58,10 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
     @JsonInclude
     @Transient
     private String authority;
+
+    @JsonInclude
+    @Transient
+    private String provider;
 
     @NotBlank
     @Column(length = 128)
@@ -108,11 +112,11 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
 
     @Override
     public String getProvider() {
-        return provider;
+        return provider != null ? provider : super.getProvider();
     }
 
     @Override
-    public String getId() {
+    public String getAccountId() {
         return username;
     }
 
@@ -183,13 +187,13 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
         this.username = username;
     }
 
-//    public String getPassword() {
-//        return password;
-//    }
-//
-//    public void setPassword(String password) {
-//        this.password = password;
-//    }
+    public String getRepositoryId() {
+        return repositoryId;
+    }
+
+    public void setRepositoryId(String repositoryId) {
+        this.repositoryId = repositoryId;
+    }
 
     public String getStatus() {
         return status;
@@ -278,10 +282,10 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
 
     @Override
     public String toString() {
-        return "InternalUserAccount [provider=" + provider + ", username=" + username + ", uuid=" + uuid + ", userId="
-                + userId + ", authority=" + authority + ", realm=" + realm + ", status=" + status + ", email=" + email
-                + ", name=" + name + ", surname=" + surname + ", lang=" + lang + ", confirmed=" + confirmed
-                + ", createDate=" + createDate + ", modifiedDate=" + modifiedDate + "]";
+        return "InternalUserAccount [repositoryId=" + repositoryId + ", username=" + username + ", uuid=" + uuid
+                + ", userId=" + userId + ", authority=" + authority + ", realm=" + realm + ", status=" + status
+                + ", email=" + email + ", name=" + name + ", surname=" + surname + ", lang=" + lang + ", confirmed="
+                + confirmed + ", createDate=" + createDate + ", modifiedDate=" + modifiedDate + "]";
     }
 
 }

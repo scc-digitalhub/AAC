@@ -6,11 +6,11 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
-import it.smartcommunitylab.aac.core.model.ConfigurableAccountService;
+import it.smartcommunitylab.aac.core.model.ConfigurableAccountProvider;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 
 public interface AccountService<U extends UserAccount, M extends ConfigMap, C extends AccountServiceConfig<M>>
-        extends ConfigurableResourceProvider<U, ConfigurableAccountService, M, C>, AccountProvider<U> {
+        extends ConfigurableResourceProvider<U, ConfigurableAccountProvider, M, C>, AccountProvider<U> {
 
     /*
      * Manage accounts from this provider
@@ -20,7 +20,7 @@ public interface AccountService<U extends UserAccount, M extends ConfigMap, C ex
     public U registerAccount(@Nullable String userId, UserAccount account)
             throws NoSuchUserException, RegistrationException;
 
-    public U createAccount(@Nullable String userId, UserAccount account)
+    public U createAccount(@Nullable String userId, @Nullable String accountId, UserAccount account)
             throws NoSuchUserException, RegistrationException;
 
     public U updateAccount(String userId, String accountId, UserAccount account)

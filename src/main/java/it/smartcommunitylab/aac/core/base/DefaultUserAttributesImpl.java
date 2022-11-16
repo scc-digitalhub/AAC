@@ -18,7 +18,7 @@ public class DefaultUserAttributesImpl extends BaseAttributes {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     private Set<Attribute> attributes;
-
+    
     private String uuid;
     private String name;
     private String description;
@@ -94,6 +94,11 @@ public class DefaultUserAttributesImpl extends BaseAttributes {
 
     public void setUuid(String uuid) {
         this.uuid = uuid;
+    }
+
+    @Override
+    public String getAttributesId() {
+        return identifier;
     }
 
 }

@@ -33,8 +33,8 @@ public class OIDCUserAccount extends AbstractAccount {
 
     @Id
     @NotBlank
-    @Column(name = "provider_id", length = 128)
-    private String provider;
+    @Column(name = "repository_id", length = 128)
+    private String repositoryId;
 
     // subject identifier from external provider
     @Id
@@ -55,6 +55,10 @@ public class OIDCUserAccount extends AbstractAccount {
     @JsonInclude
     @Transient
     private String authority;
+
+    @JsonInclude
+    @Transient
+    private String provider;
 
     @NotBlank
     @Column(length = 128)
@@ -113,11 +117,11 @@ public class OIDCUserAccount extends AbstractAccount {
 
     @Override
     public String getProvider() {
-        return provider;
+        return provider != null ? provider : super.getProvider();
     }
 
     @Override
-    public String getId() {
+    public String getAccountId() {
         return subject;
     }
 
@@ -174,6 +178,14 @@ public class OIDCUserAccount extends AbstractAccount {
 
     public void setSubject(String subject) {
         this.subject = subject;
+    }
+
+    public String getRepositoryId() {
+        return repositoryId;
+    }
+
+    public void setRepositoryId(String repositoryId) {
+        this.repositoryId = repositoryId;
     }
 
     public void setUuid(String uuid) {
@@ -286,7 +298,7 @@ public class OIDCUserAccount extends AbstractAccount {
 
     @Override
     public String toString() {
-        return "OIDCUserAccount [provider=" + provider + ", subject=" + subject + ", uuid=" + uuid + ", userId="
+        return "OIDCUserAccount [repositoryId=" + repositoryId + ", subject=" + subject + ", uuid=" + uuid + ", userId="
                 + userId + ", authority=" + authority + ", realm=" + realm + ", status=" + status + ", username="
                 + username + ", issuer=" + issuer + ", email=" + email + ", emailVerified=" + emailVerified + ", name="
                 + name + ", givenName=" + givenName + ", familyName=" + familyName + ", lang=" + lang + ", picture="

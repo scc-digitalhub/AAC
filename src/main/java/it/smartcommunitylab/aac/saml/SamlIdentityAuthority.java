@@ -1,6 +1,5 @@
 package it.smartcommunitylab.aac.saml;
 
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
@@ -18,6 +17,7 @@ import it.smartcommunitylab.aac.core.base.AbstractIdentityAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository;
 import it.smartcommunitylab.aac.saml.model.SamlUserIdentity;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
@@ -29,10 +29,9 @@ import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfigMap;
 
 @Service
 public class SamlIdentityAuthority extends
-        AbstractIdentityAuthority<SamlIdentityProvider, SamlUserIdentity, SamlIdentityProviderConfigMap, SamlIdentityProviderConfig>
-        implements InitializingBean {
+        AbstractIdentityAuthority<SamlIdentityProvider, SamlUserIdentity, SamlIdentityProviderConfigMap, SamlIdentityProviderConfig> {
 
-    public static final String AUTHORITY_URL = "/auth/saml/";
+    public static final String AUTHORITY_URL = "/auth/" + SystemKeys.AUTHORITY_SAML + "/";
 
     // saml account service
     private final UserAccountService<SamlUserAccount> accountService;
@@ -48,6 +47,7 @@ public class SamlIdentityAuthority extends
 
     // execution service for custom attributes mapping
     private ScriptExecutionService executionService;
+    private ResourceEntityService resourceService;
 
     @Autowired
     public SamlIdentityAuthority(
@@ -88,6 +88,11 @@ public class SamlIdentityAuthority extends
         this.executionService = executionService;
     }
 
+    @Autowired
+    public void setResourceService(ResourceEntityService resourceService) {
+        this.resourceService = resourceService;
+    }
+
     @Override
     public void afterPropertiesSet() throws Exception {
         super.afterPropertiesSet();
@@ -109,6 +114,7 @@ public class SamlIdentityAuthority extends
                 config, config.getRealm());
 
         idp.setExecutionService(executionService);
+        idp.setResourceService(resourceService);
         return idp;
     }
 

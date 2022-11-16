@@ -11,14 +11,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.core.authorities.AccountServiceAuthority;
-import it.smartcommunitylab.aac.core.model.ConfigurableAccountService;
+import it.smartcommunitylab.aac.core.model.ConfigurableAccountProvider;
 import it.smartcommunitylab.aac.core.persistence.AccountServiceEntity;
 
 @Service
 @Transactional
 public class AccountServiceService
         extends
-        ConfigurableProviderService<AccountServiceAuthority<?, ?, ?, ?>, ConfigurableAccountService, AccountServiceEntity> {
+        ConfigurableProviderService<AccountServiceAuthority<?, ?, ?, ?>, ConfigurableAccountProvider, AccountServiceEntity> {
 
     public AccountServiceService(AccountServiceAuthorityService authorityService,
             ConfigurableProviderEntityService<AccountServiceEntity> providerService) {
@@ -29,10 +29,10 @@ public class AccountServiceService
         setEntityConverter(new AccountServiceEntityConverter());
     }
 
-    class AccountServiceConfigConverter implements Converter<ConfigurableAccountService, AccountServiceEntity> {
+    class AccountServiceConfigConverter implements Converter<ConfigurableAccountProvider, AccountServiceEntity> {
 
         @Override
-        public AccountServiceEntity convert(ConfigurableAccountService reg) {
+        public AccountServiceEntity convert(ConfigurableAccountProvider reg) {
             AccountServiceEntity pe = new AccountServiceEntity();
 
             pe.setAuthority(reg.getAuthority());
@@ -75,11 +75,11 @@ public class AccountServiceService
 
     }
 
-    class AccountServiceEntityConverter implements Converter<AccountServiceEntity, ConfigurableAccountService> {
+    class AccountServiceEntityConverter implements Converter<AccountServiceEntity, ConfigurableAccountProvider> {
 
         @Override
-        public ConfigurableAccountService convert(AccountServiceEntity pe) {
-            ConfigurableAccountService cp = new ConfigurableAccountService(pe.getAuthority(), pe.getProvider(),
+        public ConfigurableAccountProvider convert(AccountServiceEntity pe) {
+            ConfigurableAccountProvider cp = new ConfigurableAccountProvider(pe.getAuthority(), pe.getProvider(),
                     pe.getRealm());
 
             cp.setName(pe.getName());

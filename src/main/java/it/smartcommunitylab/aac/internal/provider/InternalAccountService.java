@@ -25,11 +25,12 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
-import it.smartcommunitylab.aac.core.model.ConfigurableAccountService;
+import it.smartcommunitylab.aac.core.model.ConfigurableAccountProvider;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.provider.AccountService;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
@@ -39,13 +40,15 @@ import it.smartcommunitylab.aac.utils.MailService;
 @Transactional
 public class InternalAccountService
         extends
-        AbstractConfigurableProvider<InternalUserAccount, ConfigurableAccountService, InternalIdentityProviderConfigMap, InternalAccountServiceConfig>
+        AbstractConfigurableProvider<InternalUserAccount, ConfigurableAccountProvider, InternalIdentityProviderConfigMap, InternalAccountServiceConfig>
         implements
         AccountService<InternalUserAccount, InternalIdentityProviderConfigMap, InternalAccountServiceConfig> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // services
     private final UserEntityService userEntityService;
+    private final ResourceEntityService resourceService;
+
     private final UserAccountService<InternalUserAccount> userAccountService;
     private final InternalUserConfirmKeyService confirmKeyService;
 
@@ -55,17 +58,20 @@ public class InternalAccountService
     private RealmAwareUriBuilder uriBuilder;
 
     public InternalAccountService(String providerId,
-            UserEntityService userEntityService,
+            UserEntityService userEntityService, ResourceEntityService resourceService,
             UserAccountService<InternalUserAccount> userAccountService, InternalUserConfirmKeyService confirmKeyService,
             InternalAccountServiceConfig providerConfig, String realm) {
         super(SystemKeys.AUTHORITY_INTERNAL, providerId,
                 realm, providerConfig);
         Assert.notNull(userEntityService, "user entity service is mandatory");
+        Assert.notNull(resourceService, "resource service is mandatory");
         Assert.notNull(userAccountService, "user account service is mandatory");
         Assert.notNull(confirmKeyService, "user confirm service is mandatory");
 
         // internal data repositories
         this.userEntityService = userEntityService;
+        this.resourceService = resourceService;
+
         this.userAccountService = userAccountService;
         this.confirmKeyService = confirmKeyService;
 
@@ -217,6 +223,10 @@ public class InternalAccountService
         if (account != null) {
             // remove account
             userAccountService.deleteAccount(repositoryId, username);
+
+            // remove resource
+            resourceService.deleteResourceEntity(SystemKeys.RESOURCE_ACCOUNT, SystemKeys.AUTHORITY_INTERNAL,
+                    getProvider(), username);
         }
     }
 
@@ -228,6 +238,10 @@ public class InternalAccountService
         for (InternalUserAccount a : accounts) {
             // remove account
             userAccountService.deleteAccount(repositoryId, a.getUsername());
+
+            // remove resource
+            resourceService.deleteResourceEntity(SystemKeys.RESOURCE_ACCOUNT, SystemKeys.AUTHORITY_INTERNAL,
+                    getProvider(), a.getUsername());
         }
     }
 
@@ -264,7 +278,7 @@ public class InternalAccountService
         }
 
         // registration is create but user-initiated
-        InternalUserAccount account = createAccount(userId, registration);
+        InternalUserAccount account = createAccount(userId, null, registration);
         String username = account.getUsername();
 
         if (config.isConfirmationRequired() && !account.isConfirmed()) {
@@ -275,7 +289,8 @@ public class InternalAccountService
     }
 
     @Override
-    public InternalUserAccount createAccount(@Nullable String userId, UserAccount registration)
+    public InternalUserAccount createAccount(@Nullable String userId, @Nullable String accountId,
+            UserAccount registration)
             throws RegistrationException, NoSuchUserException {
         if (registration == null) {
             throw new RegistrationException();
@@ -296,7 +311,7 @@ public class InternalAccountService
             emailAddress = Jsoup.clean(emailAddress, Safelist.none());
         }
 
-        String username = reg.getUsername();
+        String username = StringUtils.hasText(accountId) ? accountId : reg.getUsername();
         if (!StringUtils.hasText(username) && StringUtils.hasText(emailAddress)) {
             username = emailAddress;
         }
@@ -363,7 +378,7 @@ public class InternalAccountService
 
         // create new account
         account = new InternalUserAccount();
-        account.setProvider(repositoryId);
+        account.setRepositoryId(repositoryId);
         account.setUsername(username);
         account.setUuid(uuid);
 
@@ -381,6 +396,10 @@ public class InternalAccountService
         account.setConfirmed(confirmed);
 
         account = userAccountService.addAccount(repositoryId, username, account);
+
+        // register as user resource
+        resourceService.addResourceEntity(account.getUuid(), SystemKeys.RESOURCE_ACCOUNT,
+                SystemKeys.AUTHORITY_INTERNAL, getProvider(), username);
 
         // map to our authority
         account.setAuthority(getAuthority());

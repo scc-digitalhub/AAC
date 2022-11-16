@@ -9,12 +9,10 @@ import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
 import it.smartcommunitylab.aac.core.base.AbstractAuthorityService;
 
 //@Service
-public class IdentityProviderAuthorityService extends
-        AbstractAuthorityService<IdentityProviderAuthority<?, ?, ?, ?>>
+public class IdentityProviderAuthorityService extends AbstractAuthorityService<IdentityProviderAuthority<?, ?, ?, ?>>
         implements InitializingBean {
 
-    public IdentityProviderAuthorityService(
-            Collection<IdentityProviderAuthority<?, ?, ?, ?>> authorities) {
+    public IdentityProviderAuthorityService(Collection<IdentityProviderAuthority<?, ?, ?, ?>> authorities) {
         super(SystemKeys.RESOURCE_IDENTITY);
         this.setAuthorities(authorities);
     }

@@ -8,11 +8,11 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.authorities.AccountServiceAuthority;
 import it.smartcommunitylab.aac.core.base.AbstractSingleProviderAuthority;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
-import it.smartcommunitylab.aac.core.model.ConfigurableAccountService;
+import it.smartcommunitylab.aac.core.model.ConfigurableAccountProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
-import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.core.service.TranslatorProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
@@ -27,7 +27,7 @@ import it.smartcommunitylab.aac.utils.MailService;
 @Service
 public class InternalAccountServiceAuthority
         extends
-        AbstractSingleProviderAuthority<InternalAccountService, InternalUserAccount, ConfigurableAccountService, InternalIdentityProviderConfigMap, InternalAccountServiceConfig>
+        AbstractSingleProviderAuthority<InternalAccountService, InternalUserAccount, ConfigurableAccountProvider, InternalIdentityProviderConfigMap, InternalAccountServiceConfig>
         implements
         AccountServiceAuthority<InternalAccountService, InternalUserAccount, InternalIdentityProviderConfigMap, InternalAccountServiceConfig> {
 
@@ -35,6 +35,7 @@ public class InternalAccountServiceAuthority
 
     // user service
     private final UserEntityService userEntityService;
+    private final ResourceEntityService resourceService;
 
     // internal account service
     private final UserAccountService<InternalUserAccount> accountService;
@@ -47,15 +48,17 @@ public class InternalAccountServiceAuthority
     private RealmAwareUriBuilder uriBuilder;
 
     public InternalAccountServiceAuthority(
-            UserEntityService userEntityService,
+            UserEntityService userEntityService, ResourceEntityService resourceService,
             UserAccountService<InternalUserAccount> userAccountService, InternalUserConfirmKeyService confirmKeyService,
             ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository) {
         super(SystemKeys.AUTHORITY_INTERNAL, new InternalConfigTranslatorRepository(registrationRepository));
         Assert.notNull(userEntityService, "user service is mandatory");
+        Assert.notNull(resourceService, "resource service is mandatory");
         Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(confirmKeyService, "confirm key service is mandatory");
 
         this.userEntityService = userEntityService;
+        this.resourceService = resourceService;
         this.accountService = userAccountService;
         this.confirmKeyService = confirmKeyService;
     }
@@ -89,7 +92,7 @@ public class InternalAccountServiceAuthority
     protected InternalAccountService buildProvider(InternalAccountServiceConfig config) {
         InternalAccountService idp = new InternalAccountService(
                 config.getProvider(),
-                userEntityService,
+                userEntityService, resourceService,
                 accountService, confirmKeyService,
                 config, config.getRealm());
 
@@ -97,12 +100,6 @@ public class InternalAccountServiceAuthority
         idp.setUriBuilder(uriBuilder);
 
         return idp;
-    }
-
-    @Override
-    public FilterProvider getFilterProvider() {
-        // TODO Auto-generated method stub
-        return null;
     }
 
     @Override

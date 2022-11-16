@@ -19,7 +19,7 @@ import com.google.common.util.concurrent.UncheckedExecutionException;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.core.authorities.ProviderAuthority;
+import it.smartcommunitylab.aac.core.authorities.ConfigurableProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.Resource;
@@ -28,8 +28,8 @@ import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfig;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 
-public abstract class AbstractAuthority<S extends ConfigurableResourceProvider<R, T, M, C>, R extends Resource, T extends ConfigurableProvider, M extends ConfigMap, C extends ProviderConfig<M, T>>
-        implements ProviderAuthority<S, R, T, M, C>, InitializingBean {
+public abstract class AbstractConfigurableProviderAuthority<S extends ConfigurableResourceProvider<R, T, M, C>, R extends Resource, T extends ConfigurableProvider, M extends ConfigMap, C extends ProviderConfig<M, T>>
+        implements ConfigurableProviderAuthority<S, R, T, M, C>, InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     protected final String authorityId;
@@ -58,7 +58,7 @@ public abstract class AbstractAuthority<S extends ConfigurableResourceProvider<R
                 }
             });
 
-    public AbstractAuthority(
+    public AbstractConfigurableProviderAuthority(
             String authorityId,
             ProviderConfigRepository<C> registrationRepository) {
         Assert.hasText(authorityId, "authority id  is mandatory");

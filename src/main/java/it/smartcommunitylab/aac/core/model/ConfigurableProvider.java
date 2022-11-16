@@ -22,9 +22,6 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
-import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 
 @Valid
 @JsonInclude(Include.NON_NULL)
@@ -32,9 +29,9 @@ import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 @ConstructorBinding
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
 @JsonSubTypes({
-        @Type(value = ConfigurableAccountService.class, name = SystemKeys.RESOURCE_ACCOUNT),
+        @Type(value = ConfigurableAccountProvider.class, name = SystemKeys.RESOURCE_ACCOUNT),
         @Type(value = ConfigurableAttributeProvider.class, name = SystemKeys.RESOURCE_ATTRIBUTES),
-        @Type(value = ConfigurableCredentialsService.class, name = SystemKeys.RESOURCE_CREDENTIALS),
+        @Type(value = ConfigurableCredentialsProvider.class, name = SystemKeys.RESOURCE_CREDENTIALS),
         @Type(value = ConfigurableIdentityProvider.class, name = SystemKeys.RESOURCE_IDENTITY),
         @Type(value = ConfigurableTemplateProvider.class, name = SystemKeys.RESOURCE_TEMPLATE)
 })

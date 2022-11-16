@@ -150,9 +150,4 @@ public class TemplateProviderEntity implements ProviderEntity {
         this.configurationMap = configurationMap;
     }
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_TEMPLATE;
-    }
-
 }

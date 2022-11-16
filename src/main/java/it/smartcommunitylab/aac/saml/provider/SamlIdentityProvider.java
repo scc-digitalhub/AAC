@@ -23,6 +23,7 @@ public class SamlIdentityProvider
 
     // internal providers
     private final SamlAccountProvider accountProvider;
+    private final SamlAccountPrincipalConverter principalConverter;
     private final SamlAttributeProvider attributeProvider;
     private final SamlAuthenticationProvider authenticationProvider;
     private final SamlSubjectResolver subjectResolver;
@@ -48,7 +49,10 @@ public class SamlIdentityProvider
         logger.debug("create saml provider with id {}", String.valueOf(providerId));
 
         // build resource providers, we use our providerId to ensure consistency
-        this.accountProvider = new SamlAccountProvider(authority, providerId, userAccountService, config, realm);
+        this.accountProvider = new SamlAccountProvider(authority, providerId, userAccountService,
+                config.getRepositoryId(), realm);
+        this.principalConverter = new SamlAccountPrincipalConverter(authority, providerId, userAccountService, config,
+                realm);
         this.attributeProvider = new SamlAttributeProvider(authority, providerId, attributeStore, config,
                 realm);
         this.authenticationProvider = new SamlAuthenticationProvider(authority, providerId, userAccountService, config,
@@ -83,8 +87,8 @@ public class SamlIdentityProvider
     }
 
     @Override
-    public SamlAccountProvider getAccountPrincipalConverter() {
-        return accountProvider;
+    public SamlAccountPrincipalConverter getAccountPrincipalConverter() {
+        return principalConverter;
     }
 
     @Override

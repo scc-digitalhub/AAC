@@ -2,7 +2,7 @@ package it.smartcommunitylab.aac.password.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractCredentialsServiceConfig;
-import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsService;
+import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsProvider;
 
 public class PasswordCredentialsServiceConfig
         extends AbstractCredentialsServiceConfig<PasswordIdentityProviderConfigMap> {
@@ -16,7 +16,7 @@ public class PasswordCredentialsServiceConfig
         super(SystemKeys.AUTHORITY_PASSWORD, provider, realm, new PasswordIdentityProviderConfigMap());
     }
 
-    public PasswordCredentialsServiceConfig(ConfigurableCredentialsService cp) {
+    public PasswordCredentialsServiceConfig(ConfigurableCredentialsProvider cp) {
         super(cp);
     }
 

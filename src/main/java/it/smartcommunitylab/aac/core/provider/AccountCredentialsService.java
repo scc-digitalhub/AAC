@@ -7,7 +7,7 @@ import it.smartcommunitylab.aac.common.NoSuchCredentialException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
-import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsService;
+import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsProvider;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
 
 /*
@@ -18,7 +18,7 @@ import it.smartcommunitylab.aac.core.model.UserCredentials;
  */
 
 public interface AccountCredentialsService<R extends UserCredentials, M extends ConfigMap, C extends CredentialsServiceConfig<M>>
-        extends ConfigurableResourceProvider<R, ConfigurableCredentialsService, M, C> {
+        extends ConfigurableResourceProvider<R, ConfigurableCredentialsProvider, M, C> {
 
     /*
      * Set current credential (if only one is allowed) or all credentials

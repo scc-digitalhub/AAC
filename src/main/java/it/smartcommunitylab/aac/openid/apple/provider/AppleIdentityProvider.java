@@ -16,6 +16,7 @@ import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.openid.model.OIDCUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.openid.model.OIDCUserIdentity;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
+import it.smartcommunitylab.aac.openid.provider.OIDCAccountPrincipalConverter;
 import it.smartcommunitylab.aac.openid.provider.OIDCAccountProvider;
 import it.smartcommunitylab.aac.openid.provider.OIDCAttributeProvider;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
@@ -30,6 +31,7 @@ public class AppleIdentityProvider
 
     // providers
     private final OIDCAccountProvider accountProvider;
+    private final OIDCAccountPrincipalConverter principalConverter;
     private final OIDCAttributeProvider attributeProvider;
     private final AppleAuthenticationProvider authenticationProvider;
     private final OIDCSubjectResolver subjectResolver;
@@ -49,7 +51,9 @@ public class AppleIdentityProvider
 
         // build resource providers, we use our providerId to ensure consistency
         this.accountProvider = new OIDCAccountProvider(SystemKeys.AUTHORITY_APPLE, providerId, userAccountService,
-                oidcConfig, realm);
+                oidcConfig.getRepositoryId(), realm);
+        this.principalConverter = new OIDCAccountPrincipalConverter(SystemKeys.AUTHORITY_APPLE, providerId,
+                userAccountService, oidcConfig, realm);
         this.attributeProvider = new OIDCAttributeProvider(SystemKeys.AUTHORITY_APPLE, providerId, attributeStore,
                 oidcConfig, realm);
         this.subjectResolver = new OIDCSubjectResolver(SystemKeys.AUTHORITY_APPLE, providerId, userAccountService,
@@ -87,8 +91,8 @@ public class AppleIdentityProvider
     }
 
     @Override
-    public OIDCAccountProvider getAccountPrincipalConverter() {
-        return accountProvider;
+    public OIDCAccountPrincipalConverter getAccountPrincipalConverter() {
+        return principalConverter;
     }
 
     @Override

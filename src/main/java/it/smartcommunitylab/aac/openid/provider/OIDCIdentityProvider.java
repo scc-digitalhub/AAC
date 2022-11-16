@@ -25,6 +25,7 @@ public class OIDCIdentityProvider
 
     // providers
     private final OIDCAccountProvider accountProvider;
+    private final OIDCAccountPrincipalConverter principalConverter;
     private final OIDCAttributeProvider attributeProvider;
     private final OIDCAuthenticationProvider authenticationProvider;
     private final OIDCSubjectResolver subjectResolver;
@@ -54,7 +55,10 @@ public class OIDCIdentityProvider
                 String.valueOf(providerId));
 
         // build resource providers, we use our providerId to ensure consistency
-        this.accountProvider = new OIDCAccountProvider(authority, providerId, userAccountService, config, realm);
+        this.accountProvider = new OIDCAccountProvider(authority, providerId, userAccountService,
+                config.getRepositoryId(), realm);
+        this.principalConverter = new OIDCAccountPrincipalConverter(authority, providerId, userAccountService, config,
+                realm);
         this.attributeProvider = new OIDCAttributeProvider(authority, providerId, attributeStore, config, realm);
         this.authenticationProvider = new OIDCAuthenticationProvider(authority, providerId, userAccountService, config,
                 realm);
@@ -86,8 +90,8 @@ public class OIDCIdentityProvider
     }
 
     @Override
-    public OIDCAccountProvider getAccountPrincipalConverter() {
-        return accountProvider;
+    public OIDCAccountPrincipalConverter getAccountPrincipalConverter() {
+        return principalConverter;
     }
 
     @Override
