@@ -10,6 +10,7 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityService;
+import it.smartcommunitylab.aac.core.model.EditableUserAccount;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 
@@ -19,14 +20,14 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
  * Accounts managed by services are eventually used by IdentityProviders
  */
 
-public interface IdentityService<I extends UserIdentity, U extends UserAccount, M extends ConfigMap, C extends IdentityServiceConfig<M>>
+public interface IdentityService<I extends UserIdentity, U extends UserAccount, E extends EditableUserAccount, M extends ConfigMap, C extends IdentityServiceConfig<M>>
         extends ConfigurableResourceProvider<I, ConfigurableIdentityService, M, C> {
 
     /*
      * Services
      */
 
-    public AccountService<U, ?, ?> getAccountService() throws NoSuchProviderException;
+    public AccountService<U, E, ?, ?> getAccountService() throws NoSuchProviderException;
 
     public AccountCredentialsService<?, ?, ?> getCredentialsService(String authority) throws NoSuchProviderException;
 

@@ -7,17 +7,24 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableAccountProvider;
+import it.smartcommunitylab.aac.core.model.EditableUserAccount;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 
-public interface AccountService<U extends UserAccount, M extends ConfigMap, C extends AccountServiceConfig<M>>
+public interface AccountService<U extends UserAccount, E extends EditableUserAccount, M extends ConfigMap, C extends AccountServiceConfig<M>>
         extends ConfigurableResourceProvider<U, ConfigurableAccountProvider, M, C>, AccountProvider<U> {
 
     /*
      * Manage accounts from this provider
      * 
-     * accountId is local to provider
+     * accountId is local to provider.
+     * Editable account are user-editable
      */
-    public U registerAccount(@Nullable String userId, UserAccount account)
+    public E getEditableAccount(String accountId) throws NoSuchUserException;
+
+    public U registerAccount(@Nullable String userId, EditableUserAccount account)
+            throws NoSuchUserException, RegistrationException;
+
+    public U editAccount(@Nullable String userId, String accountId, EditableUserAccount account)
             throws NoSuchUserException, RegistrationException;
 
     public U createAccount(@Nullable String userId, @Nullable String accountId, UserAccount account)

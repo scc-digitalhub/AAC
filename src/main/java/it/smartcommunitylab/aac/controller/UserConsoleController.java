@@ -24,8 +24,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
@@ -40,7 +38,8 @@ import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.MyUserManager;
 import it.smartcommunitylab.aac.core.ScopeManager;
 import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.base.AbstractAccount;
+import it.smartcommunitylab.aac.core.base.AbstractEditableAccount;
+import it.smartcommunitylab.aac.core.model.EditableUserAccount;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.model.ConnectedApp;
 import it.smartcommunitylab.aac.model.ScopeType;
@@ -102,14 +101,22 @@ public class UserConsoleController {
         return ResponseEntity.ok(account);
     }
 
-    @PutMapping("/accounts/{uuid}")
+    @GetMapping("/accounts/{uuid}/edit")
+    public ResponseEntity<EditableUserAccount> editAccount(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String uuid)
+            throws NoSuchUserException, NoSuchProviderException, NoSuchAuthorityException {
+
+        EditableUserAccount account = userManager.getMyEditableAccount(uuid);
+        return ResponseEntity.ok(account);
+    }
+
+    @PutMapping("/accounts/{uuid}/edit")
     public ResponseEntity<UserAccount> updateAccount(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String uuid,
-            @RequestBody @Valid @NotNull AbstractAccount reg)
+            @RequestBody @Valid @NotNull AbstractEditableAccount reg)
             throws NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
 
-        UserAccount account = userManager.updateMyAccount(uuid, reg);
-
+        UserAccount account = userManager.updateMyEditableAccount(uuid, reg);
         return ResponseEntity.ok(account);
     }
 

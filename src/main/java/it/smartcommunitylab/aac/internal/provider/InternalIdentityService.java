@@ -23,16 +23,12 @@ import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityService;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
-import it.smartcommunitylab.aac.core.base.AbstractProvider;
-import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
-import it.smartcommunitylab.aac.core.model.UserAccount;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.provider.AccountCredentialsService;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.internal.InternalAccountServiceAuthority;
+import it.smartcommunitylab.aac.internal.model.InternalEditableUserAccount;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 
@@ -40,7 +36,7 @@ public class InternalIdentityService
         extends
         AbstractConfigurableProvider<InternalUserIdentity, ConfigurableIdentityService, InternalIdentityProviderConfigMap, InternalIdentityServiceConfig>
         implements
-        IdentityService<InternalUserIdentity, InternalUserAccount, InternalIdentityProviderConfigMap, InternalIdentityServiceConfig>,
+        IdentityService<InternalUserIdentity, InternalUserAccount, InternalEditableUserAccount, InternalIdentityProviderConfigMap, InternalIdentityServiceConfig>,
         InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -261,7 +257,17 @@ public class InternalIdentityService
             }
 
             // register account via service
-            account = service.registerAccount(userId, reg.getAccount());
+            // build editable model
+            InternalEditableUserAccount ea = new InternalEditableUserAccount(
+                    getProvider(), getRealm(),
+                    reg.getAccount().getUserId(), null);
+            ea.setUsername(reg.getAccount().getUsername());
+            ea.setEmail(reg.getAccount().getEmail());
+            ea.setName(reg.getAccount().getName());
+            ea.setSurname(reg.getAccount().getSurname());
+            ea.setLang(reg.getAccount().getLang());
+            account = service.registerAccount(userId, ea);
+
             userId = account.getUserId();
             String username = account.getUsername();
 

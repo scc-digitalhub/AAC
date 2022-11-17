@@ -32,6 +32,7 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.model.EditableUserAccount;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
@@ -181,7 +182,21 @@ public class MyUserManager {
         return account;
     }
 
-    public <U extends UserAccount> UserAccount updateMyAccount(
+    public EditableUserAccount getMyEditableAccount(String uuid)
+            throws NoSuchProviderException, NoSuchUserException, NoSuchAuthorityException {
+        UserDetails details = curUserDetails();
+        String userId = details.getSubjectId();
+
+        // fetch account and check user match
+        EditableUserAccount account = userAccountService.getEditableUserAccount(uuid);
+        if (!account.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("user-mismatch");
+        }
+
+        return account;
+    }
+
+    public <U extends EditableUserAccount> UserAccount updateMyEditableAccount(
             String uuid,
             U reg)
             throws NoSuchProviderException, NoSuchUserException, RegistrationException, NoSuchAuthorityException {
@@ -189,13 +204,13 @@ public class MyUserManager {
         String userId = details.getSubjectId();
 
         // fetch account and check user match
-        UserAccount account = userAccountService.getUserAccount(uuid);
+        EditableUserAccount account = userAccountService.getEditableUserAccount(uuid);
         if (!account.getUserId().equals(userId)) {
             throw new IllegalArgumentException("user-mismatch");
         }
 
         // execute
-        return userAccountService.updateUserAccount(uuid, reg);
+        return userAccountService.editUserAccount(uuid, reg);
     }
 
     public void deleteMyAccount(String uuid)

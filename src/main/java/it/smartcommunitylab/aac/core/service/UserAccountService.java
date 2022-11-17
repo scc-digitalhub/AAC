@@ -18,6 +18,7 @@ import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.core.model.EditableUserAccount;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.persistence.ResourceEntity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
@@ -51,12 +52,11 @@ public class UserAccountService {
         }
 
         // fetch service
-        AccountService<?, ?, ?> service = accountServiceAuthorityService.getAuthority(res.getAuthority())
+        AccountService<?, ?, ?, ?> service = accountServiceAuthorityService.getAuthority(res.getAuthority())
                 .getProvider(res.getProvider());
 
         // find account
         return service.findAccount(res.getResourceId());
-
     }
 
     @Transactional(readOnly = false)
@@ -73,11 +73,32 @@ public class UserAccountService {
         logger.debug("get user account {} via provider {}:{}", accountId, authorityId, providerId);
 
         // fetch service
-        AccountService<?, ?, ?> service = accountServiceAuthorityService.getAuthority(authorityId)
+        AccountService<?, ?, ?, ?> service = accountServiceAuthorityService.getAuthority(authorityId)
                 .getProvider(res.getProvider());
 
         // fetch account
         return service.getAccount(accountId);
+    }
+
+    @Transactional(readOnly = false)
+    public EditableUserAccount getEditableUserAccount(String uuid)
+            throws NoSuchUserException, NoSuchProviderException, NoSuchAuthorityException {
+        logger.debug("get editable user account {}", StringUtils.trimAllWhitespace(uuid));
+
+        // resolve resource
+        ResourceEntity res = getResource(uuid);
+        String authorityId = res.getAuthority();
+        String providerId = res.getProvider();
+        String accountId = res.getResourceId();
+
+        logger.debug("get editable user account {} via provider {}:{}", accountId, authorityId, providerId);
+
+        // fetch service
+        AccountService<?, ?, ?, ?> service = accountServiceAuthorityService.getAuthority(authorityId)
+                .getProvider(res.getProvider());
+
+        // fetch account
+        return service.getEditableAccount(accountId);
     }
 
     @Transactional(readOnly = false)
@@ -90,7 +111,7 @@ public class UserAccountService {
         String realm = ue.getRealm();
 
         // collect from all providers for the same realm
-        List<AccountService<?, ?, ?>> services = accountServiceAuthorityService.getAuthorities().stream()
+        List<AccountService<?, ?, ?, ?>> services = accountServiceAuthorityService.getAuthorities().stream()
                 .flatMap(e -> e.getProvidersByRealm(realm).stream())
                 .collect(Collectors.toList());
         List<UserAccount> accounts = services.stream().flatMap(s -> s.listAccounts(userId).stream())
@@ -102,6 +123,54 @@ public class UserAccountService {
     /*
      * User account via providers
      */
+    @Transactional(readOnly = false)
+    public UserAccount registerUserAccount(String authority, String providerId, @Nullable String userId,
+            EditableUserAccount reg)
+            throws NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
+        logger.debug("register user {} account via provider {}", StringUtils.trimAllWhitespace(String.valueOf(userId)),
+                StringUtils.trimAllWhitespace(providerId));
+
+        if (reg == null) {
+            throw new MissingDataException("registration");
+        }
+
+        // fetch service
+        AccountService<?, ?, ?, ?> service = accountServiceAuthorityService.getAuthority(authority)
+                .getProvider(providerId);
+
+        // execute
+        return service.registerAccount(userId, reg);
+    }
+
+    @Transactional(readOnly = false)
+    public UserAccount editUserAccount(String uuid, EditableUserAccount reg)
+            throws NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
+        logger.debug("edit user account {}", StringUtils.trimAllWhitespace(uuid));
+
+        if (reg == null) {
+            throw new MissingDataException("registration");
+        }
+
+        // resolve resource
+        ResourceEntity res = getResource(uuid);
+        String authorityId = res.getAuthority();
+        String providerId = res.getProvider();
+        String accountId = res.getResourceId();
+
+        logger.debug("edit user account {} via provider {}:{}", accountId, authorityId, providerId);
+
+        // fetch service
+        AccountService<?, ?, ?, ?> service = accountServiceAuthorityService.getAuthority(authorityId)
+                .getProvider(providerId);
+
+        // find account
+        UserAccount ua = service.getAccount(accountId);
+        String userId = ua.getUserId();
+
+        // execute
+        return service.editAccount(userId, accountId, reg);
+    }
+
     @Transactional(readOnly = false)
     public UserAccount createUserAccount(String authority, String providerId, @Nullable String userId,
             @Nullable String accountId, UserAccount reg)
@@ -115,7 +184,7 @@ public class UserAccountService {
         }
 
         // fetch service
-        AccountService<?, ?, ?> service = accountServiceAuthorityService.getAuthority(authority)
+        AccountService<?, ?, ?, ?> service = accountServiceAuthorityService.getAuthority(authority)
                 .getProvider(providerId);
 
         // execute
@@ -140,7 +209,7 @@ public class UserAccountService {
         logger.debug("update user account {} via provider {}:{}", accountId, authorityId, providerId);
 
         // fetch service
-        AccountService<?, ?, ?> service = accountServiceAuthorityService.getAuthority(authorityId)
+        AccountService<?, ?, ?, ?> service = accountServiceAuthorityService.getAuthority(authorityId)
                 .getProvider(providerId);
 
         // find account
@@ -165,7 +234,7 @@ public class UserAccountService {
         logger.debug("verify user account {} via provider {}:{}", accountId, authorityId, providerId);
 
         // fetch service
-        AccountService<?, ?, ?> service = accountServiceAuthorityService.getAuthority(authorityId)
+        AccountService<?, ?, ?, ?> service = accountServiceAuthorityService.getAuthority(authorityId)
                 .getProvider(providerId);
 
         // execute
@@ -187,7 +256,7 @@ public class UserAccountService {
         logger.debug("confirm user account {} via provider {}:{}", accountId, authorityId, providerId);
 
         // fetch service
-        AccountService<?, ?, ?> service = accountServiceAuthorityService.getAuthority(authorityId)
+        AccountService<?, ?, ?, ?> service = accountServiceAuthorityService.getAuthority(authorityId)
                 .getProvider(providerId);
 
         // execute
@@ -209,7 +278,7 @@ public class UserAccountService {
         logger.debug("unconfirm user account {} via provider {}:{}", accountId, authorityId, providerId);
 
         // fetch service
-        AccountService<?, ?, ?> service = accountServiceAuthorityService.getAuthority(authorityId)
+        AccountService<?, ?, ?, ?> service = accountServiceAuthorityService.getAuthority(authorityId)
                 .getProvider(providerId);
 
         // execute
@@ -230,7 +299,7 @@ public class UserAccountService {
         logger.debug("delete user account {} via provider {}:{}", accountId, authorityId, providerId);
 
         // fetch service
-        AccountService<?, ?, ?> service = accountServiceAuthorityService.getAuthority(authorityId)
+        AccountService<?, ?, ?, ?> service = accountServiceAuthorityService.getAuthority(authorityId)
                 .getProvider(providerId);
 
         // TODO delete via idp provider to also clear attributes
@@ -250,7 +319,7 @@ public class UserAccountService {
         logger.debug("delete user account {} via provider {}:{}", accountId, authorityId, providerId);
 
         // fetch service
-        AccountService<?, ?, ?> service = accountServiceAuthorityService.getAuthority(authorityId)
+        AccountService<?, ?, ?, ?> service = accountServiceAuthorityService.getAuthority(authorityId)
                 .getProvider(providerId);
 
         // lock account to disable login
@@ -271,7 +340,7 @@ public class UserAccountService {
         logger.debug("delete user account {} via provider {}:{}", accountId, authorityId, providerId);
 
         // fetch service
-        AccountService<?, ?, ?> service = accountServiceAuthorityService.getAuthority(authorityId)
+        AccountService<?, ?, ?, ?> service = accountServiceAuthorityService.getAuthority(authorityId)
                 .getProvider(providerId);
 
         // unlock account to enable login

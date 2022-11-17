@@ -26,12 +26,14 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.model.ConfigurableAccountProvider;
+import it.smartcommunitylab.aac.core.model.EditableUserAccount;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.provider.AccountService;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
+import it.smartcommunitylab.aac.internal.model.InternalEditableUserAccount;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
 import it.smartcommunitylab.aac.model.SubjectStatus;
@@ -42,7 +44,7 @@ public class InternalAccountService
         extends
         AbstractConfigurableProvider<InternalUserAccount, ConfigurableAccountProvider, InternalIdentityProviderConfigMap, InternalAccountServiceConfig>
         implements
-        AccountService<InternalUserAccount, InternalIdentityProviderConfigMap, InternalAccountServiceConfig> {
+        AccountService<InternalUserAccount, InternalEditableUserAccount, InternalIdentityProviderConfigMap, InternalAccountServiceConfig> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // services
@@ -246,7 +248,7 @@ public class InternalAccountService
     }
 
     @Override
-    public InternalUserAccount registerAccount(@Nullable String userId, UserAccount registration)
+    public InternalUserAccount registerAccount(@Nullable String userId, EditableUserAccount registration)
             throws RegistrationException, NoSuchUserException {
         if (!config.isEnableRegistration()) {
             throw new IllegalArgumentException("registration is disabled for this provider");
@@ -256,9 +258,9 @@ public class InternalAccountService
             throw new RegistrationException();
         }
 
-        Assert.isInstanceOf(InternalUserAccount.class, registration,
-                "registration must be an instance of internal user account");
-        InternalUserAccount reg = (InternalUserAccount) registration;
+        Assert.isInstanceOf(InternalEditableUserAccount.class, registration,
+                "registration must be an instance of internal editable user account");
+        InternalEditableUserAccount reg = (InternalEditableUserAccount) registration;
 
         logger.debug("register a new account for user {}", String.valueOf(userId));
         if (logger.isTraceEnabled()) {
@@ -267,18 +269,27 @@ public class InternalAccountService
 
         // check email for confirmation when required
         if (config.isConfirmationRequired()) {
-            if (reg.getEmailAddress() == null) {
+            if (reg.getEmail() == null) {
                 throw new MissingDataException("email");
             }
 
-            String email = Jsoup.clean(reg.getEmailAddress(), Safelist.none());
+            String email = Jsoup.clean(reg.getEmail(), Safelist.none());
             if (!StringUtils.hasText(email)) {
                 throw new MissingDataException("email");
             }
         }
 
         // registration is create but user-initiated
-        InternalUserAccount account = createAccount(userId, null, registration);
+        // build model
+        InternalUserAccount ua = new InternalUserAccount();
+        ua.setRepositoryId(repositoryId);
+        ua.setUsername(reg.getUsername());
+        ua.setEmail(reg.getEmail());
+        ua.setName(reg.getName());
+        ua.setSurname(reg.getSurname());
+        ua.setLang(reg.getLang());
+
+        InternalUserAccount account = createAccount(userId, null, ua);
         String username = account.getUsername();
 
         if (config.isConfirmationRequired() && !account.isConfirmed()) {
@@ -406,6 +417,71 @@ public class InternalAccountService
         account.setProvider(getProvider());
 
         return account;
+    }
+
+    @Override
+    public InternalEditableUserAccount getEditableAccount(String username) throws NoSuchUserException {
+        InternalUserAccount account = findAccountByUsername(username);
+        if (account == null) {
+            throw new NoSuchUserException();
+        }
+
+        // build editable model
+        InternalEditableUserAccount ea = new InternalEditableUserAccount(
+                getProvider(), getRealm(),
+                account.getUserId(), account.getUuid());
+        ea.setUsername(account.getUsername());
+        ea.setEmail(account.getEmail());
+        ea.setName(account.getName());
+        ea.setSurname(account.getSurname());
+        ea.setLang(account.getLang());
+
+        return ea;
+    }
+
+    @Override
+    public InternalUserAccount editAccount(String userId, String accountId, EditableUserAccount registration)
+            throws RegistrationException, NoSuchUserException {
+        if (!config.isEnableRegistration()) {
+            throw new IllegalArgumentException("registration is disabled for this provider");
+        }
+
+        if (registration == null) {
+            throw new RegistrationException();
+        }
+
+        Assert.isInstanceOf(InternalEditableUserAccount.class, registration,
+                "registration must be an instance of internal editable user account");
+        InternalEditableUserAccount reg = (InternalEditableUserAccount) registration;
+
+        logger.debug("edit account for user {}", String.valueOf(userId));
+        if (logger.isTraceEnabled()) {
+            logger.trace("registration: {}", String.valueOf(reg));
+        }
+
+        // check email for confirmation when required
+        if (config.isConfirmationRequired()) {
+            if (reg.getEmail() == null) {
+                throw new MissingDataException("email");
+            }
+
+            String email = Jsoup.clean(reg.getEmail(), Safelist.none());
+            if (!StringUtils.hasText(email)) {
+                throw new MissingDataException("email");
+            }
+        }
+
+        // edit is update but user-initiated
+        // build model
+        InternalUserAccount ua = new InternalUserAccount();
+        ua.setRepositoryId(repositoryId);
+        ua.setUsername(reg.getUsername());
+        ua.setEmail(reg.getEmail());
+        ua.setName(reg.getName());
+        ua.setSurname(reg.getSurname());
+        ua.setLang(reg.getLang());
+
+        return updateAccount(userId, accountId, ua);
     }
 
     @Override
@@ -841,4 +917,5 @@ public class InternalAccountService
         return null;
 
     }
+
 }

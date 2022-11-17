@@ -5,6 +5,7 @@ import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.authorities.AccountServiceAuthority;
+import it.smartcommunitylab.aac.core.base.AbstractEditableAccount;
 import it.smartcommunitylab.aac.core.base.AbstractProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableAccountProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
@@ -23,7 +24,7 @@ public class AppleAccountServiceAuthority
         extends
         AbstractProviderAuthority<AppleAccountService, OIDCUserAccount, ConfigurableAccountProvider, AppleIdentityProviderConfigMap, AppleAccountServiceConfig>
         implements
-        AccountServiceAuthority<AppleAccountService, OIDCUserAccount, AppleIdentityProviderConfigMap, AppleAccountServiceConfig> {
+        AccountServiceAuthority<AppleAccountService, OIDCUserAccount, AbstractEditableAccount, AppleIdentityProviderConfigMap, AppleAccountServiceConfig> {
 
     public static final String AUTHORITY_URL = "/auth/apple/";
 

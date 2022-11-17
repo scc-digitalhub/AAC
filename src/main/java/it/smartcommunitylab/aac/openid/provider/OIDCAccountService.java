@@ -2,13 +2,16 @@ package it.smartcommunitylab.aac.openid.provider;
 
 import org.springframework.transaction.annotation.Transactional;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.base.AbstractAccountService;
+import it.smartcommunitylab.aac.core.base.AbstractEditableAccount;
+import it.smartcommunitylab.aac.core.model.EditableUserAccount;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 
 @Transactional
 public class OIDCAccountService extends
-        AbstractAccountService<OIDCUserAccount, OIDCIdentityProviderConfigMap, OIDCAccountServiceConfig> {
+        AbstractAccountService<OIDCUserAccount, AbstractEditableAccount, OIDCIdentityProviderConfigMap, OIDCAccountServiceConfig> {
 
     private final OIDCAccountProvider accountProvider;
 
@@ -33,5 +36,11 @@ public class OIDCAccountService extends
     @Override
     protected OIDCAccountProvider getAccountProvider() {
         return accountProvider;
+    }
+
+    @Override
+    public AbstractEditableAccount getEditableAccount(String accountId) throws NoSuchUserException {
+        // not supported
+        throw new UnsupportedOperationException();
     }
 }

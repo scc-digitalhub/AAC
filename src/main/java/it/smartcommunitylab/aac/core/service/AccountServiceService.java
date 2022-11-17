@@ -18,7 +18,7 @@ import it.smartcommunitylab.aac.core.persistence.AccountServiceEntity;
 @Transactional
 public class AccountServiceService
         extends
-        ConfigurableProviderService<AccountServiceAuthority<?, ?, ?, ?>, ConfigurableAccountProvider, AccountServiceEntity> {
+        ConfigurableProviderService<AccountServiceAuthority<?, ?, ?, ?, ?>, ConfigurableAccountProvider, AccountServiceEntity> {
 
     public AccountServiceService(AccountServiceAuthorityService authorityService,
             ConfigurableProviderEntityService<AccountServiceEntity> providerService) {

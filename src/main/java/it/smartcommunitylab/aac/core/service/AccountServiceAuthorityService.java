@@ -10,10 +10,10 @@ import it.smartcommunitylab.aac.core.authorities.AccountServiceAuthority;
 import it.smartcommunitylab.aac.core.base.AbstractAuthorityService;
 
 @Service
-public class AccountServiceAuthorityService extends AbstractAuthorityService<AccountServiceAuthority<?, ?, ?, ?>>
+public class AccountServiceAuthorityService extends AbstractAuthorityService<AccountServiceAuthority<?, ?, ?, ?, ?>>
         implements InitializingBean {
 
-    public AccountServiceAuthorityService(Collection<AccountServiceAuthority<?, ?, ?, ?>> authorities) {
+    public AccountServiceAuthorityService(Collection<AccountServiceAuthority<?, ?, ?, ?, ?>> authorities) {
         super(SystemKeys.RESOURCE_ACCOUNT);
         this.setAuthorities(authorities);
     }

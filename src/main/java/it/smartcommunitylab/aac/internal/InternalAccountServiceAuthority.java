@@ -15,6 +15,7 @@ import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.core.service.TranslatorProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
+import it.smartcommunitylab.aac.internal.model.InternalEditableUserAccount;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountServiceConfigurationProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
@@ -29,7 +30,7 @@ public class InternalAccountServiceAuthority
         extends
         AbstractSingleProviderAuthority<InternalAccountService, InternalUserAccount, ConfigurableAccountProvider, InternalIdentityProviderConfigMap, InternalAccountServiceConfig>
         implements
-        AccountServiceAuthority<InternalAccountService, InternalUserAccount, InternalIdentityProviderConfigMap, InternalAccountServiceConfig> {
+        AccountServiceAuthority<InternalAccountService, InternalUserAccount, InternalEditableUserAccount, InternalIdentityProviderConfigMap, InternalAccountServiceConfig> {
 
     public static final String AUTHORITY_URL = "/auth/internal/";
 

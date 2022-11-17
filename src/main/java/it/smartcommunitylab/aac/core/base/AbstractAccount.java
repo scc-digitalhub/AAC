@@ -54,4 +54,10 @@ public abstract class AbstractAccount extends AbstractBaseUserResource implement
 
     public abstract void setUserId(String userId);
 
+    // by default accounts are associated to repositories, not providers
+    // authorityId and provider are transient
+    public abstract void setAuthority(String authority);
+
+    public abstract void setProvider(String provider);
+
 }

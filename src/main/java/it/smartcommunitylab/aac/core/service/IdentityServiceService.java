@@ -18,7 +18,7 @@ import it.smartcommunitylab.aac.core.persistence.IdentityServiceEntity;
 @Transactional
 public class IdentityServiceService
         extends
-        ConfigurableProviderService<IdentityServiceAuthority<?, ?, ?, ?, ?>, ConfigurableIdentityService, IdentityServiceEntity> {
+        ConfigurableProviderService<IdentityServiceAuthority<?, ?, ?, ?, ?, ?>, ConfigurableIdentityService, IdentityServiceEntity> {
 
     public IdentityServiceService(IdentityServiceAuthorityService authorityService,
             ConfigurableProviderEntityService<IdentityServiceEntity> providerService) {

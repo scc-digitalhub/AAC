@@ -32,6 +32,8 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.UserManager;
 import it.smartcommunitylab.aac.core.base.AbstractAccount;
+import it.smartcommunitylab.aac.core.base.AbstractEditableAccount;
+import it.smartcommunitylab.aac.core.model.EditableUserAccount;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.dto.UserEmail;
 import it.smartcommunitylab.aac.dto.UserStatus;
@@ -241,6 +243,34 @@ public class BaseUserController implements InitializingBean {
                 StringUtils.trimAllWhitespace(uuid), StringUtils.trimAllWhitespace(realm));
 
         userManager.deleteUserAccount(realm, userId, uuid);
+    }
+
+    @GetMapping("/users/{realm}/{userId}/account/{uuid}/edit")
+    @Operation(summary = "get a specific editable account from a specific user in realm")
+    public EditableUserAccount getEditableUserAccount(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid)
+            throws NoSuchUserException, NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException {
+        logger.debug("get user {} edit account {} for realm {}", StringUtils.trimAllWhitespace(userId),
+                StringUtils.trimAllWhitespace(uuid), StringUtils.trimAllWhitespace(realm));
+
+        return userManager.getEditableUserAccount(realm, userId, uuid);
+    }
+
+    @PutMapping("/users/{realm}/{userId}/account/{uuid}/edit")
+    @Operation(summary = "update a specific editable account for a specific user in realm")
+    public UserAccount updateEditableUserAccount(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid,
+            @RequestBody @Valid @NotNull AbstractEditableAccount reg)
+            throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException,
+            NoSuchAuthorityException {
+        logger.debug("update user {} editable account {} for realm {}", StringUtils.trimAllWhitespace(userId),
+                StringUtils.trimAllWhitespace(uuid), StringUtils.trimAllWhitespace(realm));
+
+        return userManager.editUserAccount(realm, userId, uuid, reg);
     }
 
     @PutMapping("/users/{realm}/{userId}/account/{uuid}/confirm")

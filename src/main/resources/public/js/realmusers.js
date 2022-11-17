@@ -84,8 +84,13 @@ angular.module('aac.controllers.realmusers', [])
                 return data.data;
             });
         }
+        service.editUserAccount = function (slug, subject, uuid) {
+            return $http.get('console/dev/users/' + slug + '/' + subject + '/account/' + uuid + '/edit').then(function (data) {
+                return data.data;
+            });
+        }
         service.updateUserAccount = function (slug, subject, uuid, account) {
-            return $http.put('console/dev/users/' + slug + '/' + subject + '/account/' + uuid, account).then(function (data) {
+            return $http.put('console/dev/users/' + slug + '/' + subject + '/account/' + uuid + '/edit', account).then(function (data) {
                 return data.data;
             });
         }
@@ -879,13 +884,19 @@ angular.module('aac.controllers.realmusers', [])
 
         $scope.editUserAccountDlg = function (account) {
             if (account) {
-                $scope.modAccount = {
-                    ...account,
-                    realm: slug
-                };
+                //fetch editable
+                RealmUsers.editUserAccount(slug, subjectId, account.uuid)
+                    .then(function (data) {
+                        $scope.modAccount = {
+                            ...data,
+                            realm: slug
+                        };
 
-                $('#editAccountModal').modal({ keyboard: false });
-                Utils.refreshFormBS(300);
+                        $('#editAccountModal').modal({ keyboard: false });
+                        Utils.refreshFormBS(300);
+                    }).catch(function (err) {
+                        Utils.showError(err.data.message);
+                    });
             }
         }
 
@@ -895,26 +906,15 @@ angular.module('aac.controllers.realmusers', [])
             if ($scope.modAccount) {
                 var uuid = $scope.modAccount.uuid;
 
-                //extract only base editable props
-                //TODO handle per authority
-                var account = $scope.accounts.find(i => i.uuid === uuid);
-                if (account) {
-                    var data = {
-                        ...account,
-                        name: $scope.modAccount.name,
-                        surname: $scope.modAccount.surname,
-                        email: $scope.modAccount.email
-                    };
+                var data = $scope.modAccount;
 
-                    RealmUsers.updateUserAccount(slug, subjectId, uuid, data)
-                        .then(function (data) {
-                            $scope.reloadAccount(data);
-                            Utils.showSuccess();
-                        }).catch(function (err) {
-                            Utils.showError(err.data.message);
-                        });
-
-                }
+                RealmUsers.updateUserAccount(slug, subjectId, uuid, data)
+                    .then(function (data) {
+                        $scope.reloadAccount(data);
+                        Utils.showSuccess();
+                    }).catch(function (err) {
+                        Utils.showError(err.data.message);
+                    });
             }
         }
 

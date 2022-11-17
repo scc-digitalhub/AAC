@@ -42,6 +42,7 @@ import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
+import it.smartcommunitylab.aac.core.model.EditableUserAccount;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.persistence.ClientEntity;
@@ -404,6 +405,56 @@ public class UserManager {
         return account;
     }
 
+    @Transactional(readOnly = true)
+    public EditableUserAccount getEditableUserAccount(String realm, String userId, String uuid)
+            throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException, NoSuchAuthorityException {
+        logger.debug("get user {} editable account {} from realm {}", StringUtils.trimAllWhitespace(userId),
+                StringUtils.trimAllWhitespace(uuid), StringUtils.trimAllWhitespace(realm));
+
+        // check user source realm
+        Realm r = realmService.getRealm(realm);
+        String source = userService.getUserRealm(userId);
+        if (!source.equals(r.getSlug())) {
+            throw new IllegalArgumentException("realm-mismatch");
+        }
+
+        // fetch account and check user match
+        EditableUserAccount account = userAccountService.getEditableUserAccount(uuid);
+        if (!account.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("user-mismatch");
+        }
+
+        return account;
+    }
+
+    @Transactional(readOnly = false)
+    public UserAccount registerUserAccount(String realm, String providerId, String userId, EditableUserAccount reg)
+            throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException, RegistrationException,
+            NoSuchAuthorityException {
+        logger.debug("register user {} account from realm {}", StringUtils.trimAllWhitespace(userId),
+                StringUtils.trimAllWhitespace(realm));
+
+        // check user source realm
+        Realm r = realmService.getRealm(realm);
+        String source = userService.getUserRealm(userId);
+        if (!source.equals(r.getSlug())) {
+            throw new IllegalArgumentException("realm-mismatch");
+        }
+
+        // resolve provider and fetch authority
+        AccountService<?, ?, ?, ?> as = accountServiceAuthorityService.getAuthorities().stream()
+                .map(a -> a.findProvider(providerId))
+                .filter(p -> p != null).findFirst().orElseThrow(NoSuchProviderException::new);
+        String authority = as.getAuthority();
+
+        // check idp realm match
+        if (!as.getRealm().equals(r.getSlug())) {
+            throw new IllegalArgumentException("realm-mismatch");
+        }
+
+        return userAccountService.registerUserAccount(authority, providerId, userId, reg);
+    }
+
     @Transactional(readOnly = false)
     public UserAccount createUserAccount(String realm, String providerId, String userId, String accountId,
             UserAccount reg)
@@ -420,7 +471,7 @@ public class UserManager {
         }
 
         // resolve provider and fetch authority
-        AccountService<?, ?, ?> as = accountServiceAuthorityService.getAuthorities().stream()
+        AccountService<?, ?, ?, ?> as = accountServiceAuthorityService.getAuthorities().stream()
                 .map(a -> a.findProvider(providerId))
                 .filter(p -> p != null).findFirst().orElseThrow(NoSuchProviderException::new);
         String authority = as.getAuthority();
@@ -431,6 +482,29 @@ public class UserManager {
         }
 
         return userAccountService.createUserAccount(authority, providerId, userId, accountId, reg);
+    }
+
+    @Transactional(readOnly = false)
+    public UserAccount editUserAccount(String realm, String userId, String uuid, EditableUserAccount reg)
+            throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException, RegistrationException,
+            NoSuchAuthorityException {
+        logger.debug("edit user {} account {} from realm {}", StringUtils.trimAllWhitespace(userId),
+                StringUtils.trimAllWhitespace(uuid), StringUtils.trimAllWhitespace(realm));
+
+        // check user source realm
+        Realm r = realmService.getRealm(realm);
+        String source = userService.getUserRealm(userId);
+        if (!source.equals(r.getSlug())) {
+            throw new IllegalArgumentException("realm-mismatch");
+        }
+
+        // fetch account and check user match
+        UserAccount account = userAccountService.getUserAccount(uuid);
+        if (!account.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("user-mismatch");
+        }
+
+        return userAccountService.editUserAccount(uuid, reg);
     }
 
     @Transactional(readOnly = false)
