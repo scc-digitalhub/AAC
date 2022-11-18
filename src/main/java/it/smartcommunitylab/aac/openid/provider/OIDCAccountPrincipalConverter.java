@@ -145,6 +145,9 @@ public class OIDCAccountPrincipalConverter extends AbstractProvider<OIDCUserAcco
         account.setLang(lang);
         account.setPicture(picture);
 
+        // also add all principal attributes for persistence
+        account.setAttributes(attributes);
+
         return account;
     }
 

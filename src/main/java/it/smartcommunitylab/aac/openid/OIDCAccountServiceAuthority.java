@@ -12,10 +12,12 @@ import it.smartcommunitylab.aac.core.model.ConfigurableAccountProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.core.service.TranslatorProviderConfigRepository;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.openid.provider.OIDCAccountService;
 import it.smartcommunitylab.aac.openid.provider.OIDCAccountServiceConfig;
+import it.smartcommunitylab.aac.openid.provider.OIDCAccountServiceConfigConverter;
 import it.smartcommunitylab.aac.openid.provider.OIDCAccountServiceConfigurationProvider;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
@@ -27,10 +29,9 @@ public class OIDCAccountServiceAuthority
         implements
         AccountServiceAuthority<OIDCAccountService, OIDCUserAccount, AbstractEditableAccount, OIDCIdentityProviderConfigMap, OIDCAccountServiceConfig> {
 
-    public static final String AUTHORITY_URL = "/auth/oidc/";
-
     // account service
     private final UserAccountService<OIDCUserAccount> accountService;
+    private ResourceEntityService resourceService;
 
     // configuration provider
     protected OIDCAccountServiceConfigurationProvider configProvider;
@@ -63,13 +64,19 @@ public class OIDCAccountServiceAuthority
         return SystemKeys.RESOURCE_ACCOUNT;
     }
 
+    @Autowired
+    public void setResourceService(ResourceEntityService resourceService) {
+        this.resourceService = resourceService;
+    }
+
     protected OIDCAccountService buildProvider(OIDCAccountServiceConfig config) {
-        OIDCAccountService idp = new OIDCAccountService(
+        OIDCAccountService service = new OIDCAccountService(
                 config.getProvider(),
                 accountService,
                 config, config.getRealm());
+        service.setResourceService(resourceService);
 
-        return idp;
+        return service;
     }
 
     @Override
@@ -83,19 +90,7 @@ public class OIDCAccountServiceAuthority
         public OIDCConfigTranslatorRepository(
                 ProviderConfigRepository<OIDCIdentityProviderConfig> externalRepository) {
             super(externalRepository);
-            setConverter((source) -> {
-                OIDCAccountServiceConfig config = new OIDCAccountServiceConfig(source.getAuthority(),
-                        source.getProvider(),
-                        source.getRealm());
-                config.setName(source.getName());
-                config.setTitleMap(source.getTitleMap());
-                config.setDescriptionMap(source.getDescriptionMap());
-
-                // we share the same configMap
-                config.setConfigMap(source.getConfigMap());
-                return config;
-
-            });
+            setConverter(new OIDCAccountServiceConfigConverter());
         }
 
     }

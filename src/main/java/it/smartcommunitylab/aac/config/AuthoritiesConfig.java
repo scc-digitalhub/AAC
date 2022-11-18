@@ -35,9 +35,6 @@ public class AuthoritiesConfig {
     private UserAccountService<OIDCUserAccount> oidcUserAccountService;
 
     @Autowired
-    private AutoJdbcAttributeStore jdbcAttributeStore;
-
-    @Autowired
     private ScriptExecutionService executionService;
 
     @Autowired
@@ -80,7 +77,7 @@ public class AuthoritiesConfig {
                         // instantiate authority
                         OIDCIdentityAuthority auth = new OIDCIdentityAuthority(
                                 id,
-                                oidcUserAccountService, jdbcAttributeStore,
+                                oidcUserAccountService,
                                 registrationRepository,
                                 clientRegistrationRepository);
 
@@ -92,8 +89,10 @@ public class AuthoritiesConfig {
                         service.registerAuthority(auth);
 
                         // also register connected account service
-                        accountServiceAuthorityService.registerAuthority(
-                                new OIDCAccountServiceAuthority(id, oidcUserAccountService, registrationRepository));
+                        OIDCAccountServiceAuthority aauth = new OIDCAccountServiceAuthority(
+                                id, oidcUserAccountService, registrationRepository);
+                        aauth.setResourceService(resourceService);
+                        accountServiceAuthorityService.registerAuthority(aauth);
 
                     }
                 }

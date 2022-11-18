@@ -20,12 +20,11 @@ import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.AccountPrincipalConverter;
 import it.smartcommunitylab.aac.core.provider.AccountProvider;
+import it.smartcommunitylab.aac.core.provider.AccountService;
 import it.smartcommunitylab.aac.core.provider.IdentityAttributeProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProviderConfig;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
-import it.smartcommunitylab.aac.core.provider.UserAccountService;
-import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 
 @Transactional
 public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends UserAccount, P extends UserAuthenticatedPrincipal, M extends ConfigMap, C extends IdentityProviderConfig<M>>
@@ -33,17 +32,11 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
         implements IdentityProvider<I, U, P, M, C>, InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    // services
-    protected final UserAccountService<U> userAccountService;
-    private ResourceEntityService resourceService;
-
     public AbstractIdentityProvider(
             String authority, String providerId,
-            UserAccountService<U> userAccountService,
             C config,
             String realm) {
         super(authority, providerId, realm, config);
-        Assert.notNull(userAccountService, "user account service is mandatory");
         Assert.notNull(config, "provider config is mandatory");
 
         Assert.isTrue(authority.equals(config.getAuthority()),
@@ -55,20 +48,15 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
         logger.debug("create {} idp for realm {} with id {}", String.valueOf(authority), String.valueOf(realm),
                 String.valueOf(providerId));
 
-        // internal data repositories
-        this.userAccountService = userAccountService;
     }
 
     @Override
     public void afterPropertiesSet() throws Exception {
         Assert.notNull(getAuthenticationProvider(), "authentication provider is mandatory");
         Assert.notNull(getAccountProvider(), "account provider is mandatory");
+        Assert.notNull(getAccountService(), "account service is mandatory");
         Assert.notNull(getAttributeProvider(), "attribute provider is mandatory");
         Assert.notNull(getSubjectResolver(), "subject provider is mandatory");
-    }
-
-    public void setResourceService(ResourceEntityService resourceService) {
-        this.resourceService = resourceService;
     }
 
     @Override
@@ -96,6 +84,9 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
      * not required to persist accounts.
      */
     protected abstract AccountProvider<U> getAccountProvider();
+
+    protected abstract AccountService<U, ?, ?, ?> getAccountService();
+
     /*
      * Attribute providers retrieve and format user properties available to the
      * provider as UserAttributes bounded to the UserIdentity exposed to the outside
@@ -111,12 +102,6 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
 
     protected I buildIdentity(U account, Collection<UserAttributes> attributes) {
         return buildIdentity(account, null, attributes);
-    }
-
-    protected String getRepositoryId() {
-        // by default isolate every provider in repo via its own id
-        // subclasses may override to share accounts in the same service between idps
-        return getProvider();
     }
 
     /*
@@ -145,7 +130,6 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
         // extract local id from principal
         // we expect principalId to be == accountId == identityId
         String id = principal.getPrincipalId();
-        String repositoryId = getRepositoryId();
 
         if (id == null) {
             // this better exists
@@ -184,10 +168,15 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
         }
 
         // look in service for existing accounts
-        U account = userAccountService.findAccountById(repositoryId, id);
+        U account = getAccountProvider().findAccount(id);
         if (account == null) {
             // create account if supported
-            account = createAccount(id, reg);
+            if (getAccountService() == null) {
+                logger.error("no account service available, required for account creation");
+                throw new IllegalArgumentException();
+            }
+
+            account = getAccountService().createAccount(userId, id, reg);
         } else {
             // check if userId matches
             if (!userId.equals(account.getUserId())) {
@@ -198,9 +187,11 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
                 throw new IllegalArgumentException("user mismatch");
             }
 
-            // update
-            logger.debug("update existing account with id {}", String.valueOf(id));
-            account = userAccountService.updateAccount(repositoryId, id, reg);
+            // update if supported
+            if (getAccountService() != null) {
+                logger.debug("update existing account with id {}", String.valueOf(id));
+                account = getAccountService().updateAccount(userId, id, reg);
+            }
         }
 
         if (logger.isTraceEnabled()) {
@@ -384,8 +375,7 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
 
         // delete account
         // authoritative deletes the registration with shared accounts
-        String repositoryId = getRepositoryId();
-        U account = userAccountService.findAccountById(repositoryId, accountId);
+        U account = getAccountProvider().findAccount(accountId);
         if (account != null && isAuthoritative()) {
             // check userId matches
             if (!account.getUserId().equals(userId)) {
@@ -393,17 +383,10 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
             }
 
             // remove account
-            userAccountService.deleteAccount(repositoryId, accountId);
+            getAccountProvider().deleteAccount(accountId);
 
-            if (resourceService != null) {
-                // remove resource
-                resourceService.deleteResourceEntity(SystemKeys.RESOURCE_ACCOUNT, getAuthority(),
-                        getProvider(), accountId);
-            }
         }
 
-        // cleanup attributes
-        getAttributeProvider().deleteAccountAttributes(accountId);
     }
 
     @Override
@@ -418,19 +401,6 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
             } catch (NoSuchUserException e) {
             }
         }
-    }
-
-    protected U createAccount(String id, U reg) {
-        logger.debug("create as new account with id {}", String.valueOf(id));
-        U account = userAccountService.addAccount(getRepositoryId(), id, reg);
-
-        if (resourceService != null) {
-            // register as user resource
-            resourceService.addResourceEntity(account.getUuid(), SystemKeys.RESOURCE_ACCOUNT,
-                    getAuthority(), getProvider(), account.getAccountId());
-        }
-
-        return account;
     }
 
 }

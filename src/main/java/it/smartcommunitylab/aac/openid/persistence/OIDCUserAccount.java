@@ -1,12 +1,16 @@
 package it.smartcommunitylab.aac.openid.persistence;
 
+import java.io.Serializable;
 import java.util.Date;
+import java.util.Map;
 
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
+import javax.persistence.Lob;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.validation.constraints.NotBlank;
@@ -17,11 +21,13 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractAccount;
 import it.smartcommunitylab.aac.model.SubjectStatus;
+import it.smartcommunitylab.aac.repository.HashMapSerializableConverter;
 
 @Entity
 @IdClass(OIDCUserAccountId.class)
@@ -100,6 +106,12 @@ public class OIDCUserAccount extends AbstractAccount {
     @LastModifiedDate
     @Column(name = "last_modified_date")
     private Date modifiedDate;
+
+    @Lob
+    @Column(name = "attributes")
+    @JsonIgnore
+    @Convert(converter = HashMapSerializableConverter.class)
+    private Map<String, Serializable> attributes;
 
     public OIDCUserAccount() {
         super(SystemKeys.AUTHORITY_OIDC, null, null);
@@ -294,6 +306,14 @@ public class OIDCUserAccount extends AbstractAccount {
 
     public void setModifiedDate(Date modifiedDate) {
         this.modifiedDate = modifiedDate;
+    }
+
+    public Map<String, Serializable> getAttributes() {
+        return attributes;
+    }
+
+    public void setAttributes(Map<String, Serializable> attributes) {
+        this.attributes = attributes;
     }
 
     @Override

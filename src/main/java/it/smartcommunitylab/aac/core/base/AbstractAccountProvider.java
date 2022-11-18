@@ -58,8 +58,8 @@ public class AbstractAccountProvider<U extends AbstractAccount> extends Abstract
     }
 
     @Transactional(readOnly = true)
-    public U getAccount(String subject) throws NoSuchUserException {
-        U account = findAccountBySubject(subject);
+    public U getAccount(String accountId) throws NoSuchUserException {
+        U account = findAccount(accountId);
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -68,13 +68,8 @@ public class AbstractAccountProvider<U extends AbstractAccount> extends Abstract
     }
 
     @Transactional(readOnly = true)
-    public U findAccount(String subject) {
-        return findAccountBySubject(subject);
-    }
-
-    @Transactional(readOnly = true)
-    public U findAccountBySubject(String subject) {
-        U account = accountService.findAccountById(repositoryId, subject);
+    public U findAccount(String accountId) {
+        U account = accountService.findAccountById(repositoryId, accountId);
         if (account == null) {
             return null;
         }
@@ -102,17 +97,17 @@ public class AbstractAccountProvider<U extends AbstractAccount> extends Abstract
     }
 
     @Override
-    public U lockAccount(String subject) throws NoSuchUserException, RegistrationException {
-        return updateStatus(subject, SubjectStatus.LOCKED);
+    public U lockAccount(String accountId) throws NoSuchUserException, RegistrationException {
+        return updateStatus(accountId, SubjectStatus.LOCKED);
     }
 
     @Override
-    public U unlockAccount(String subject) throws NoSuchUserException, RegistrationException {
-        return updateStatus(subject, SubjectStatus.ACTIVE);
+    public U unlockAccount(String accountId) throws NoSuchUserException, RegistrationException {
+        return updateStatus(accountId, SubjectStatus.ACTIVE);
     }
 
     @Override
-    public U linkAccount(String subject, String userId)
+    public U linkAccount(String accountId, String userId)
             throws NoSuchUserException, RegistrationException {
 
         // we expect user to be valid
@@ -120,7 +115,7 @@ public class AbstractAccountProvider<U extends AbstractAccount> extends Abstract
             throw new MissingDataException("user");
         }
 
-        U account = findAccountBySubject(subject);
+        U account = findAccount(accountId);
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -133,7 +128,7 @@ public class AbstractAccountProvider<U extends AbstractAccount> extends Abstract
 
         // re-link to user
         account.setUserId(userId);
-        account = accountService.updateAccount(repositoryId, subject, account);
+        account = accountService.updateAccount(repositoryId, accountId, account);
 
         // map to our authority
         account.setAuthority(getAuthority());
@@ -143,12 +138,12 @@ public class AbstractAccountProvider<U extends AbstractAccount> extends Abstract
     }
 
     @Override
-    public void deleteAccount(String subject) throws NoSuchUserException {
-        U account = findAccountBySubject(subject);
+    public void deleteAccount(String accountId) throws NoSuchUserException {
+        U account = findAccount(accountId);
 
         if (account != null) {
             // remove account
-            accountService.deleteAccount(repositoryId, subject);
+            accountService.deleteAccount(repositoryId, accountId);
         }
     }
 
@@ -161,10 +156,10 @@ public class AbstractAccountProvider<U extends AbstractAccount> extends Abstract
         }
     }
 
-    protected U updateStatus(String subject, SubjectStatus newStatus)
+    protected U updateStatus(String accountId, SubjectStatus newStatus)
             throws NoSuchUserException, RegistrationException {
 
-        U account = findAccountBySubject(subject);
+        U account = findAccount(accountId);
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -177,7 +172,7 @@ public class AbstractAccountProvider<U extends AbstractAccount> extends Abstract
 
         // update status
         account.setStatus(newStatus.getValue());
-        account = accountService.updateAccount(repositoryId, subject, account);
+        account = accountService.updateAccount(repositoryId, accountId, account);
 
         // map to our authority
         account.setAuthority(getAuthority());

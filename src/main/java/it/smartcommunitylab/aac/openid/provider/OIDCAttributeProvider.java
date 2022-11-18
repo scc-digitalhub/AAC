@@ -16,7 +16,6 @@ import it.smartcommunitylab.aac.attributes.EmailAttributesSet;
 import it.smartcommunitylab.aac.attributes.OpenIdAttributesSet;
 import it.smartcommunitylab.aac.attributes.mapper.OpenIdAttributesMapper;
 import it.smartcommunitylab.aac.attributes.model.StringAttribute;
-import it.smartcommunitylab.aac.attributes.store.AttributeStore;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityAttributeProvider;
 import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
@@ -31,25 +30,19 @@ public class OIDCAttributeProvider
 
     public OIDCAttributeProvider(
             String providerId,
-            AttributeStore attributeStore,
             OIDCIdentityProviderConfig providerConfig,
             String realm) {
-        this(SystemKeys.AUTHORITY_OIDC, providerId, attributeStore, providerConfig, realm);
+        this(SystemKeys.AUTHORITY_OIDC, providerId, providerConfig, realm);
     }
 
     public OIDCAttributeProvider(
             String authority, String providerId,
-            AttributeStore attributeStore,
             OIDCIdentityProviderConfig providerConfig,
             String realm) {
         super(authority, providerId, realm);
         Assert.notNull(providerConfig, "provider config is mandatory");
-        Assert.notNull(attributeStore, "attribute store is mandatory");
 
-        // attributes
-        this.attributeStore = attributeStore;
-
-        // attributes
+        // attributes mapping
         openidMapper = new OpenIdAttributesMapper();
     }
 

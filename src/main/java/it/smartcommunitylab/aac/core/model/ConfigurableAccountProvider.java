@@ -16,6 +16,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 public class ConfigurableAccountProvider extends ConfigurableProvider {
 
     private String repositoryId;
+    private String persistence;
 
     public ConfigurableAccountProvider(String authority, String provider, String realm) {
         super(authority, provider, realm, SystemKeys.RESOURCE_ACCOUNT);
@@ -43,6 +44,14 @@ public class ConfigurableAccountProvider extends ConfigurableProvider {
 
     public void setRepositoryId(String repositoryId) {
         this.repositoryId = repositoryId;
+    }
+
+    public String getPersistence() {
+        return persistence;
+    }
+
+    public void setPersistence(String persistence) {
+        this.persistence = persistence;
     }
 
 }

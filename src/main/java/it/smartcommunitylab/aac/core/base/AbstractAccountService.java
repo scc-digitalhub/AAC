@@ -1,24 +1,30 @@
 package it.smartcommunitylab.aac.core.base;
 
-import java.util.Collection;
+import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.MissingDataException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableAccountProvider;
 import it.smartcommunitylab.aac.core.model.EditableUserAccount;
 import it.smartcommunitylab.aac.core.model.UserAccount;
-import it.smartcommunitylab.aac.core.provider.AccountProvider;
 import it.smartcommunitylab.aac.core.provider.AccountService;
 import it.smartcommunitylab.aac.core.provider.AccountServiceConfig;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.core.service.ResourceEntityService;
+import it.smartcommunitylab.aac.model.PersistenceMode;
+import it.smartcommunitylab.aac.model.SubjectStatus;
 
 @Transactional
 public abstract class AbstractAccountService<U extends AbstractAccount, E extends AbstractEditableAccount, M extends ConfigMap, C extends AccountServiceConfig<M>>
@@ -27,6 +33,7 @@ public abstract class AbstractAccountService<U extends AbstractAccount, E extend
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     protected final UserAccountService<U> userAccountService;
+    protected ResourceEntityService resourceService;
     protected final String repositoryId;
 
     public AbstractAccountService(
@@ -38,12 +45,6 @@ public abstract class AbstractAccountService<U extends AbstractAccount, E extend
         Assert.notNull(userAccountService, "user account service is mandatory");
         Assert.notNull(config, "provider config is mandatory");
 
-        Assert.isTrue(authority.equals(config.getAuthority()),
-                "configuration does not match this provider");
-        Assert.isTrue(providerId.equals(config.getProvider()),
-                "configuration does not match this provider");
-        Assert.isTrue(realm.equals(config.getRealm()), "configuration does not match this provider");
-
         logger.debug("create {} account service for realm {} with id {}", String.valueOf(authority),
                 String.valueOf(realm), String.valueOf(providerId));
 
@@ -51,9 +52,13 @@ public abstract class AbstractAccountService<U extends AbstractAccount, E extend
         this.repositoryId = config.getRepositoryId();
     }
 
+    public void setResourceService(ResourceEntityService resourceService) {
+        this.resourceService = resourceService;
+    }
+
     @Override
     public void afterPropertiesSet() throws Exception {
-        Assert.notNull(getAccountProvider(), "account provider is mandatory");
+        Assert.notNull(resourceService, "resource service is mandatory");
     }
 
     @Override
@@ -61,63 +66,128 @@ public abstract class AbstractAccountService<U extends AbstractAccount, E extend
         return SystemKeys.RESOURCE_ACCOUNT;
     }
 
-    protected abstract AccountProvider<U> getAccountProvider();
-
-    /*
-     * Account provider methods: delegated
-     */
+    @Override
+    @Transactional(readOnly = true)
     public U findAccountByUuid(String uuid) {
-        return getAccountProvider().findAccountByUuid(uuid);
+        U account = userAccountService.findAccountByUuid(repositoryId, uuid);
+        if (account == null) {
+            return null;
+        }
+
+        // map to our authority
+        account.setAuthority(getAuthority());
+        account.setProvider(getProvider());
+
+        return account;
     }
 
+    @Override
+    @Transactional(readOnly = true)
     public U findAccount(String accountId) {
-        return getAccountProvider().findAccount(accountId);
+        U account = userAccountService.findAccountById(repositoryId, accountId);
+        if (account == null) {
+            return null;
+        }
+
+        // map to our authority
+        account.setAuthority(getAuthority());
+        account.setProvider(getProvider());
+
+        return account;
     }
 
+    @Override
+    @Transactional(readOnly = true)
     public U getAccount(String accountId) throws NoSuchUserException {
-        return getAccountProvider().getAccount(accountId);
+        U account = findAccount(accountId);
+        if (account == null) {
+            throw new NoSuchUserException();
+        }
+
+        return account;
     }
 
+    @Override
     public void deleteAccount(String accountId) throws NoSuchUserException {
-        getAccountProvider().deleteAccount(accountId);
+        U account = findAccount(accountId);
+
+        if (account != null) {
+            // remove account
+            userAccountService.deleteAccount(repositoryId, accountId);
+        }
+
+        if (resourceService != null) {
+            // remove resource
+            resourceService.deleteResourceEntity(SystemKeys.RESOURCE_ACCOUNT, getAuthority(),
+                    getProvider(), accountId);
+        }
     }
 
+    @Override
     public void deleteAccounts(String userId) {
-        getAccountProvider().deleteAccounts(userId);
+        List<U> accounts = userAccountService.findAccountByUser(repositoryId, userId);
+        for (U a : accounts) {
+            // remove account
+            userAccountService.deleteAccount(repositoryId, a.getAccountId());
+
+            if (resourceService != null) {
+                // remove resource
+                resourceService.deleteResourceEntity(SystemKeys.RESOURCE_ACCOUNT, getAuthority(),
+                        getProvider(), a.getAccountId());
+            }
+        }
     }
 
-    public Collection<U> listAccounts(String userId) {
-        return getAccountProvider().listAccounts(userId);
+    @Override
+    @Transactional(readOnly = true)
+    public List<U> listAccounts(String userId) {
+        List<U> accounts = userAccountService.findAccountByUser(repositoryId, userId);
+
+        // map to our authority
+        accounts.forEach(a -> {
+            a.setAuthority(getAuthority());
+            a.setProvider(getProvider());
+        });
+        return accounts;
     }
 
+    @Override
     public U linkAccount(String accountId, String userId) throws NoSuchUserException, RegistrationException {
-        return getAccountProvider().linkAccount(accountId, userId);
+        // we expect user to be valid
+        if (!StringUtils.hasText(userId)) {
+            throw new MissingDataException("user");
+        }
+
+        U account = findAccount(accountId);
+        if (account == null) {
+            throw new NoSuchUserException();
+        }
+
+        // check if active, inactive accounts can not be changed except for activation
+        SubjectStatus curStatus = SubjectStatus.parse(account.getStatus());
+        if (SubjectStatus.INACTIVE == curStatus) {
+            throw new IllegalArgumentException("account is inactive, activate first to update status");
+        }
+
+        // re-link to user
+        account.setUserId(userId);
+        account = userAccountService.updateAccount(repositoryId, accountId, account);
+
+        // map to our authority
+        account.setAuthority(getAuthority());
+        account.setProvider(getProvider());
+
+        return account;
     }
 
+    @Override
     public U lockAccount(String accountId) throws NoSuchUserException, RegistrationException {
-        return getAccountProvider().lockAccount(accountId);
+        return updateStatus(accountId, SubjectStatus.LOCKED);
     }
 
+    @Override
     public U unlockAccount(String accountId) throws NoSuchUserException, RegistrationException {
-        return getAccountProvider().unlockAccount(accountId);
-    }
-
-    /*
-     * Account service: not implemented by default
-     */
-
-    @Override
-    public U registerAccount(String userId, EditableUserAccount reg)
-            throws NoSuchUserException, RegistrationException {
-        // register is user-initiated, by default is not available
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public U editAccount(String userId, String accountId, EditableUserAccount reg)
-            throws NoSuchUserException, RegistrationException {
-        // edit is user-initiated, by default is not available
-        throw new UnsupportedOperationException();
+        return updateStatus(accountId, SubjectStatus.ACTIVE);
     }
 
     @Override
@@ -145,7 +215,14 @@ public abstract class AbstractAccountService<U extends AbstractAccount, E extend
             throw new IllegalArgumentException("unsupported account");
         }
 
-        // TODO add validation
+        // check if attributes are persisted
+        Map<String, Serializable> attributes = reg.getAttributes();
+        if (PersistenceMode.REPOSITORY != config.getPersistence()) {
+            // clear, not managed in any repository
+            reg.setAttributes(null);
+        }
+
+        // TODO add validation?
 
         // create via service
         U account = userAccountService.addAccount(repositoryId, accountId, reg);
@@ -154,6 +231,18 @@ public abstract class AbstractAccountService<U extends AbstractAccount, E extend
         logger.debug("user {} account {} created", String.valueOf(userId), String.valueOf(accountId));
         if (logger.isTraceEnabled()) {
             logger.trace("persisted account: {}", String.valueOf(account));
+        }
+
+        if (resourceService != null) {
+            // register as user resource
+            resourceService.addResourceEntity(account.getUuid(), SystemKeys.RESOURCE_ACCOUNT,
+                    getAuthority(), getProvider(), account.getAccountId());
+        }
+
+        // check if attributes are persisted
+        if (PersistenceMode.NONE != config.getPersistence()) {
+            // set on result, only with NONE we leave these out
+            account.setAttributes(attributes);
         }
 
         return account;
@@ -195,7 +284,14 @@ public abstract class AbstractAccountService<U extends AbstractAccount, E extend
             throw new IllegalArgumentException("unsupported account");
         }
 
-        // TODO add validation
+        // check if attributes are persisted
+        Map<String, Serializable> attributes = reg.getAttributes();
+        if (PersistenceMode.REPOSITORY != config.getPersistence()) {
+            // clear, not managed in repository
+            reg.setAttributes(null);
+        }
+
+        // TODO add validation?
 
         // update via service
         account = userAccountService.updateAccount(repositoryId, accountId, reg);
@@ -205,7 +301,33 @@ public abstract class AbstractAccountService<U extends AbstractAccount, E extend
             logger.trace("persisted account: {}", String.valueOf(account));
         }
 
+        // check if attributes are persisted
+        if (PersistenceMode.NONE != config.getPersistence()) {
+            // set on result, only with NONE we leave these out
+            account.setAttributes(attributes);
+        }
+
         return account;
+    }
+
+    @Override
+    public E getEditableAccount(String accountId) throws NoSuchUserException {
+        // not supported by default
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public U registerAccount(String userId, EditableUserAccount reg)
+            throws NoSuchUserException, RegistrationException {
+        // register is user-initiated, by default is not available
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public U editAccount(String userId, String accountId, EditableUserAccount reg)
+            throws NoSuchUserException, RegistrationException {
+        // edit is user-initiated, by default is not available
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -231,4 +353,30 @@ public abstract class AbstractAccountService<U extends AbstractAccount, E extend
         // register is user-initiated, by default is not available
         return null;
     }
+
+    protected U updateStatus(String accountId, SubjectStatus newStatus)
+            throws NoSuchUserException, RegistrationException {
+
+        U account = findAccount(accountId);
+        if (account == null) {
+            throw new NoSuchUserException();
+        }
+
+        // check if active, inactive accounts can not be changed except for activation
+        SubjectStatus curStatus = SubjectStatus.parse(account.getStatus());
+        if (SubjectStatus.INACTIVE == curStatus && SubjectStatus.ACTIVE != newStatus) {
+            throw new IllegalArgumentException("account is inactive, activate first to update status");
+        }
+
+        // update status
+        account.setStatus(newStatus.getValue());
+        account = userAccountService.updateAccount(repositoryId, accountId, account);
+
+        // map to our authority
+        account.setAuthority(getAuthority());
+        account.setProvider(getProvider());
+
+        return account;
+    }
+
 }

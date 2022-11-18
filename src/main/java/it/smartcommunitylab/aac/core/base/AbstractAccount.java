@@ -1,5 +1,8 @@
 package it.smartcommunitylab.aac.core.base;
 
+import java.io.Serializable;
+import java.util.Map;
+
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -59,5 +62,10 @@ public abstract class AbstractAccount extends AbstractBaseUserResource implement
     public abstract void setAuthority(String authority);
 
     public abstract void setProvider(String provider);
+
+    // accounts store attributes as maps
+    public abstract Map<String, Serializable> getAttributes();
+
+    public abstract void setAttributes(Map<String, Serializable> attributes);
 
 }

@@ -20,6 +20,4 @@ public interface IdentityAttributeProvider<P extends UserAuthenticatedPrincipal,
 
     Collection<UserAttributes> getAccountAttributes(U account);
 
-    void deleteAccountAttributes(String id);
-
 }

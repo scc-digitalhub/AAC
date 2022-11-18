@@ -6,11 +6,6 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.attributes.store.AttributeStore;
-import it.smartcommunitylab.aac.attributes.store.AutoJdbcAttributeStore;
-import it.smartcommunitylab.aac.attributes.store.InMemoryAttributeStore;
-import it.smartcommunitylab.aac.attributes.store.NullAttributeStore;
-import it.smartcommunitylab.aac.attributes.store.PersistentAttributeStore;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityAuthority;
@@ -32,15 +27,12 @@ public class OIDCIdentityAuthority extends
         AbstractIdentityAuthority<OIDCIdentityProvider, OIDCUserIdentity, OIDCIdentityProviderConfigMap, OIDCIdentityProviderConfig> {
 
     public static final String AUTHORITY_URL = "/auth/" + SystemKeys.AUTHORITY_OIDC + "/";
-    
+
     // oidc account service
     private final UserAccountService<OIDCUserAccount> accountService;
 
     // filter provider
     private final OIDCFilterProvider filterProvider;
-
-    // system attributes store
-    private final AutoJdbcAttributeStore jdbcAttributeStore;
 
     // oauth shared services
     private final OIDCClientRegistrationRepository clientRegistrationRepository;
@@ -51,25 +43,23 @@ public class OIDCIdentityAuthority extends
 
     @Autowired
     public OIDCIdentityAuthority(
-            UserAccountService<OIDCUserAccount> userAccountService, AutoJdbcAttributeStore jdbcAttributeStore,
+            UserAccountService<OIDCUserAccount> userAccountService,
             ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository,
             @Qualifier("oidcClientRegistrationRepository") OIDCClientRegistrationRepository clientRegistrationRepository) {
-        this(SystemKeys.AUTHORITY_OIDC, userAccountService, jdbcAttributeStore, registrationRepository,
+        this(SystemKeys.AUTHORITY_OIDC, userAccountService, registrationRepository,
                 clientRegistrationRepository);
     }
 
     public OIDCIdentityAuthority(
             String authorityId,
-            UserAccountService<OIDCUserAccount> userAccountService, AutoJdbcAttributeStore jdbcAttributeStore,
+            UserAccountService<OIDCUserAccount> userAccountService,
             ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository,
             OIDCClientRegistrationRepository clientRegistrationRepository) {
         super(authorityId, registrationRepository);
         Assert.notNull(userAccountService, "account service is mandatory");
-        Assert.notNull(jdbcAttributeStore, "attribute store is mandatory");
         Assert.notNull(clientRegistrationRepository, "client registration repository is mandatory");
 
         this.accountService = userAccountService;
-        this.jdbcAttributeStore = jdbcAttributeStore;
         this.clientRegistrationRepository = clientRegistrationRepository;
 
         // build filter provider
@@ -105,11 +95,10 @@ public class OIDCIdentityAuthority extends
     @Override
     public OIDCIdentityProvider buildProvider(OIDCIdentityProviderConfig config) {
         String id = config.getProvider();
-        AttributeStore attributeStore = getAttributeStore(id, config.getPersistence());
 
         OIDCIdentityProvider idp = new OIDCIdentityProvider(
                 authorityId, id,
-                accountService, attributeStore,
+                accountService,
                 config, config.getRealm());
 
         idp.setExecutionService(executionService);
@@ -160,22 +149,6 @@ public class OIDCIdentityAuthority extends
 
         }
 
-    }
-
-    /*
-     * helpers
-     */
-
-    private AttributeStore getAttributeStore(String providerId, String persistence) {
-        // we generate a new store for each provider
-        AttributeStore store = new NullAttributeStore();
-        if (SystemKeys.PERSISTENCE_LEVEL_REPOSITORY.equals(persistence)) {
-            store = new PersistentAttributeStore(SystemKeys.AUTHORITY_OIDC, providerId, jdbcAttributeStore);
-        } else if (SystemKeys.PERSISTENCE_LEVEL_MEMORY.equals(persistence)) {
-            store = new InMemoryAttributeStore(SystemKeys.AUTHORITY_OIDC, providerId);
-        }
-
-        return store;
     }
 
 }
