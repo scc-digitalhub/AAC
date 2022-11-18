@@ -32,27 +32,24 @@ public class OIDCAccountPrincipalConverter extends AbstractProvider<OIDCUserAcco
     protected final UserAccountService<OIDCUserAccount> accountService;
     protected final String repositoryId;
 
-    protected final OIDCIdentityProviderConfig config;
+    private boolean trustEmailAddress;
+    private boolean alwaysTrustEmailAddress;
 
     // attributes
     private final OpenIdAttributesMapper openidMapper;
 
     public OIDCAccountPrincipalConverter(String providerId,
             UserAccountService<OIDCUserAccount> accountService,
-            OIDCIdentityProviderConfig config,
             String realm) {
-        this(SystemKeys.AUTHORITY_OIDC, providerId, accountService, config, realm);
+        this(SystemKeys.AUTHORITY_OIDC, providerId, accountService, realm);
     }
 
     public OIDCAccountPrincipalConverter(String authority, String providerId,
             UserAccountService<OIDCUserAccount> accountService,
-            OIDCIdentityProviderConfig config,
             String realm) {
         super(authority, providerId, realm);
         Assert.notNull(accountService, "account service is mandatory");
-        Assert.notNull(config, "provider config is mandatory");
 
-        this.config = config;
         this.accountService = accountService;
 
         // repositoryId is always providerId, oidc isolates data per provider
@@ -60,6 +57,18 @@ public class OIDCAccountPrincipalConverter extends AbstractProvider<OIDCUserAcco
 
         // build mapper with default config for parsing attributes
         this.openidMapper = new OpenIdAttributesMapper();
+
+        // config flags default
+        this.trustEmailAddress = false;
+        this.alwaysTrustEmailAddress = false;
+    }
+
+    public void setTrustEmailAddress(boolean trustEmailAddress) {
+        this.trustEmailAddress = trustEmailAddress;
+    }
+
+    public void setAlwaysTrustEmailAddress(boolean alwaysTrustEmailAddress) {
+        this.alwaysTrustEmailAddress = alwaysTrustEmailAddress;
     }
 
     @Override
@@ -111,14 +120,12 @@ public class OIDCAccountPrincipalConverter extends AbstractProvider<OIDCUserAcco
         String familyName = clean(oidcAttributes.get(OpenIdAttributesSet.FAMILY_NAME));
         String givenName = clean(oidcAttributes.get(OpenIdAttributesSet.GIVEN_NAME));
 
-        boolean defaultVerifiedStatus = config.getConfigMap().getTrustEmailAddress() != null
-                ? config.getConfigMap().getTrustEmailAddress()
-                : false;
+        boolean defaultVerifiedStatus = trustEmailAddress;
         boolean emailVerified = StringUtils.hasText(oidcAttributes.get(OpenIdAttributesSet.EMAIL_VERIFIED))
                 ? Boolean.parseBoolean(oidcAttributes.get(OpenIdAttributesSet.EMAIL_VERIFIED))
                 : defaultVerifiedStatus;
 
-        if (Boolean.TRUE.equals(config.getConfigMap().getAlwaysTrustEmailAddress())) {
+        if (alwaysTrustEmailAddress) {
             emailVerified = true;
         }
 

@@ -27,6 +27,8 @@ public class AppleIdentityProviderConfigMap extends AbstractConfigMap implements
     private Boolean askNameScope;
     private Boolean askEmailScope;
 
+    private Boolean trustEmailAddress;
+
     public AppleIdentityProviderConfigMap() {
     }
 
@@ -78,6 +80,14 @@ public class AppleIdentityProviderConfigMap extends AbstractConfigMap implements
         this.askEmailScope = askEmailScope;
     }
 
+    public Boolean getTrustEmailAddress() {
+        return trustEmailAddress;
+    }
+
+    public void setTrustEmailAddress(Boolean trustEmailAddress) {
+        this.trustEmailAddress = trustEmailAddress;
+    }
+
     @JsonIgnore
     public void setConfiguration(AppleIdentityProviderConfigMap map) {
         this.clientId = map.getClientId();
@@ -87,6 +97,7 @@ public class AppleIdentityProviderConfigMap extends AbstractConfigMap implements
 
         this.askEmailScope = map.getAskEmailScope();
         this.askNameScope = map.getAskNameScope();
+        this.trustEmailAddress = map.getTrustEmailAddress();
     }
 
     @Override

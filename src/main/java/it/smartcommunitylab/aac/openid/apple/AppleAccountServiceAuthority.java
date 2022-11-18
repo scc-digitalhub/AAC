@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.openid.apple;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -11,9 +12,11 @@ import it.smartcommunitylab.aac.core.model.ConfigurableAccountProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.core.service.TranslatorProviderConfigRepository;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleAccountService;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleAccountServiceConfig;
+import it.smartcommunitylab.aac.openid.apple.provider.AppleAccountServiceConfigConverter;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleAccountServiceConfigurationProvider;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfig;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfigMap;
@@ -26,10 +29,9 @@ public class AppleAccountServiceAuthority
         implements
         AccountServiceAuthority<AppleAccountService, OIDCUserAccount, AbstractEditableAccount, AppleIdentityProviderConfigMap, AppleAccountServiceConfig> {
 
-    public static final String AUTHORITY_URL = "/auth/apple/";
-
     // account service
     private final UserAccountService<OIDCUserAccount> accountService;
+    private ResourceEntityService resourceService;
 
     // configuration provider
     protected AppleAccountServiceConfigurationProvider configProvider;
@@ -44,6 +46,11 @@ public class AppleAccountServiceAuthority
         this.configProvider = new AppleAccountServiceConfigurationProvider();
     }
 
+    @Autowired
+    public void setResourceService(ResourceEntityService resourceService) {
+        this.resourceService = resourceService;
+    }
+
     @Override
     public AppleAccountServiceConfigurationProvider getConfigurationProvider() {
         return configProvider;
@@ -55,12 +62,13 @@ public class AppleAccountServiceAuthority
     }
 
     protected AppleAccountService buildProvider(AppleAccountServiceConfig config) {
-        AppleAccountService idp = new AppleAccountService(
+        AppleAccountService service = new AppleAccountService(
                 config.getProvider(),
                 accountService,
                 config, config.getRealm());
+        service.setResourceService(resourceService);
 
-        return idp;
+        return service;
     }
 
     @Override
@@ -74,19 +82,7 @@ public class AppleAccountServiceAuthority
         public AppleConfigTranslatorRepository(
                 ProviderConfigRepository<AppleIdentityProviderConfig> externalRepository) {
             super(externalRepository);
-            setConverter((source) -> {
-                AppleAccountServiceConfig config = new AppleAccountServiceConfig(
-                        source.getProvider(),
-                        source.getRealm());
-                config.setName(source.getName());
-                config.setTitleMap(source.getTitleMap());
-                config.setDescriptionMap(source.getDescriptionMap());
-
-                // we share the same configMap
-                config.setConfigMap(source.getConfigMap());
-                return config;
-
-            });
+            setConverter(new AppleAccountServiceConfigConverter());
         }
 
     }

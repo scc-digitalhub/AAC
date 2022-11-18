@@ -52,12 +52,18 @@ public class OIDCIdentityProvider
         OIDCAccountServiceConfigConverter configConverter = new OIDCAccountServiceConfigConverter();
         this.accountService = new OIDCAccountService(authority, providerId, userAccountService,
                 configConverter.convert(config), realm);
-        this.principalConverter = new OIDCAccountPrincipalConverter(authority, providerId, userAccountService, config,
-                realm);
-        this.attributeProvider = new OIDCAttributeProvider(authority, providerId, config, realm);
+
+        this.principalConverter = new OIDCAccountPrincipalConverter(authority, providerId, userAccountService, realm);
+        this.principalConverter.setTrustEmailAddress(config.trustEmailAddress());
+        this.principalConverter.setAlwaysTrustEmailAddress(config.alwaysTrustEmailAddress());
+
+        this.attributeProvider = new OIDCAttributeProvider(authority, providerId, realm);
         this.authenticationProvider = new OIDCAuthenticationProvider(authority, providerId, userAccountService, config,
                 realm);
-        this.subjectResolver = new OIDCSubjectResolver(authority, providerId, userAccountService, config, realm);
+
+        this.subjectResolver = new OIDCSubjectResolver(authority, providerId, userAccountService,
+                config.getRepositoryId(), realm);
+        this.subjectResolver.setLinkable(config.isLinkable());
 
         // function hooks from config
         if (config.getHookFunctions() != null

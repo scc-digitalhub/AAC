@@ -11,8 +11,7 @@ public class OIDCAccountProvider extends AbstractAccountProvider<OIDCUserAccount
 
     public OIDCAccountProvider(String providerId,
             UserAccountService<OIDCUserAccount> accountService,
-            String repositoryId,
-            String realm) {
+            String repositoryId, String realm) {
         this(SystemKeys.AUTHORITY_OIDC, providerId, accountService, repositoryId, realm);
     }
 

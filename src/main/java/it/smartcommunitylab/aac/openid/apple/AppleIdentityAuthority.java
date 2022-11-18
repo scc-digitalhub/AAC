@@ -12,9 +12,6 @@ import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityConfiguration
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProvider;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfig;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfigMap;
-import it.smartcommunitylab.aac.attributes.store.AttributeStore;
-import it.smartcommunitylab.aac.attributes.store.AutoJdbcAttributeStore;
-import it.smartcommunitylab.aac.attributes.store.PersistentAttributeStore;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractSingleProviderIdentityAuthority;
@@ -38,9 +35,6 @@ public class AppleIdentityAuthority extends
     // filter provider
     private final AppleFilterProvider filterProvider;
 
-    // system attributes store
-    private final AutoJdbcAttributeStore jdbcAttributeStore;
-
     // oauth shared services
     private final OIDCClientRegistrationRepository clientRegistrationRepository;
 
@@ -49,16 +43,14 @@ public class AppleIdentityAuthority extends
     private ResourceEntityService resourceService;
 
     public AppleIdentityAuthority(
-            UserAccountService<OIDCUserAccount> userAccountService, AutoJdbcAttributeStore jdbcAttributeStore,
+            UserAccountService<OIDCUserAccount> userAccountService,
             ProviderConfigRepository<AppleIdentityProviderConfig> registrationRepository,
             @Qualifier("appleClientRegistrationRepository") OIDCClientRegistrationRepository clientRegistrationRepository) {
         super(SystemKeys.AUTHORITY_APPLE, registrationRepository);
         Assert.notNull(userAccountService, "account service is mandatory");
-        Assert.notNull(jdbcAttributeStore, "attribute store is mandatory");
         Assert.notNull(clientRegistrationRepository, "client registration repository is mandatory");
 
         this.accountService = userAccountService;
-        this.jdbcAttributeStore = jdbcAttributeStore;
         this.clientRegistrationRepository = clientRegistrationRepository;
 
         // build filter provider
@@ -94,11 +86,10 @@ public class AppleIdentityAuthority extends
     @Override
     public AppleIdentityProvider buildProvider(AppleIdentityProviderConfig config) {
         String id = config.getProvider();
-        AttributeStore attributeStore = getAttributeStore(id, config.getPersistence());
 
         AppleIdentityProvider idp = new AppleIdentityProvider(
                 id,
-                accountService, attributeStore,
+                accountService,
                 config, config.getRealm());
 
         idp.setExecutionService(executionService);
@@ -151,17 +142,6 @@ public class AppleIdentityAuthority extends
 
         }
 
-    }
-
-    /*
-     * helpers
-     */
-
-    private AttributeStore getAttributeStore(String providerId, String persistence) {
-        // we generate a new store for each provider
-        // we need persistence because user info is returned only after first login or
-        // after change
-        return new PersistentAttributeStore(SystemKeys.AUTHORITY_APPLE, providerId, jdbcAttributeStore);
     }
 
 }

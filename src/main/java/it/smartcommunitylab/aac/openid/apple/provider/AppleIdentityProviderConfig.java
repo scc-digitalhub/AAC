@@ -47,6 +47,16 @@ public class AppleIdentityProviderConfig extends AbstractIdentityProviderConfig<
         super(cp);
     }
 
+    public String getRepositoryId() {
+        // not configurable, always isolate providers
+        return getProvider();
+    }
+
+    public boolean trustEmailAddress() {
+        // trust email by default
+        return configMap.getTrustEmailAddress() != null ? configMap.getTrustEmailAddress().booleanValue() : true;
+    }
+
     public ClientRegistration getClientRegistration() {
         if (clientRegistration == null) {
             clientRegistration = toClientRegistration();

@@ -13,15 +13,13 @@ public class OIDCAccountService extends
 
     public OIDCAccountService(String providerId,
             UserAccountService<OIDCUserAccount> accountService,
-            OIDCAccountServiceConfig config,
-            String realm) {
+            OIDCAccountServiceConfig config, String realm) {
         this(SystemKeys.AUTHORITY_OIDC, providerId, accountService, config, realm);
     }
 
     public OIDCAccountService(String authority, String providerId,
             UserAccountService<OIDCUserAccount> accountService,
-            OIDCAccountServiceConfig config,
-            String realm) {
+            OIDCAccountServiceConfig config, String realm) {
         super(authority, providerId, accountService, config, realm);
     }
 

@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -30,17 +29,14 @@ public class OIDCAttributeProvider
 
     public OIDCAttributeProvider(
             String providerId,
-            OIDCIdentityProviderConfig providerConfig,
             String realm) {
-        this(SystemKeys.AUTHORITY_OIDC, providerId, providerConfig, realm);
+        this(SystemKeys.AUTHORITY_OIDC, providerId, realm);
     }
 
     public OIDCAttributeProvider(
             String authority, String providerId,
-            OIDCIdentityProviderConfig providerConfig,
             String realm) {
         super(authority, providerId, realm);
-        Assert.notNull(providerConfig, "provider config is mandatory");
 
         // attributes mapping
         openidMapper = new OpenIdAttributesMapper();

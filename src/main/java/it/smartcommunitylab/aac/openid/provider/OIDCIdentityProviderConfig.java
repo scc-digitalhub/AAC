@@ -181,6 +181,17 @@ public class OIDCIdentityProviderConfig extends AbstractIdentityProviderConfig<O
 //        return defaultValue;
 //    }
 
+    public boolean trustEmailAddress() {
+        // do not trust email by default
+        return configMap.getTrustEmailAddress() != null ? configMap.getTrustEmailAddress().booleanValue() : false;
+    }
+
+    public boolean alwaysTrustEmailAddress() {
+        // do not trust email by default
+        return configMap.getAlwaysTrustEmailAddress() != null ? configMap.getAlwaysTrustEmailAddress().booleanValue()
+                : false;
+    }
+
     public boolean requireEmailAddress() {
         return configMap.getRequireEmailAddress() != null ? configMap.getRequireEmailAddress().booleanValue() : false;
     }
