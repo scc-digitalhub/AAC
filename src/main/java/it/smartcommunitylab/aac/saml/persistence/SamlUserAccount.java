@@ -1,12 +1,16 @@
 package it.smartcommunitylab.aac.saml.persistence;
 
+import java.io.Serializable;
 import java.util.Date;
+import java.util.Map;
 
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
+import javax.persistence.Lob;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.validation.constraints.NotBlank;
@@ -17,11 +21,13 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractAccount;
 import it.smartcommunitylab.aac.model.SubjectStatus;
+import it.smartcommunitylab.aac.repository.HashMapSerializableConverter;
 
 @Entity
 @IdClass(SamlUserAccountId.class)
@@ -93,6 +99,12 @@ public class SamlUserAccount extends AbstractAccount {
     @LastModifiedDate
     @Column(name = "last_modified_date")
     private Date modifiedDate;
+
+    @Lob
+    @Column(name = "attributes")
+    @JsonIgnore
+    @Convert(converter = HashMapSerializableConverter.class)
+    private Map<String, Serializable> attributes;
 
     public SamlUserAccount() {
         super(SystemKeys.AUTHORITY_SAML, null, null);
@@ -275,9 +287,18 @@ public class SamlUserAccount extends AbstractAccount {
         this.username = username;
     }
 
+    public Map<String, Serializable> getAttributes() {
+        return attributes;
+    }
+
+    public void setAttributes(Map<String, Serializable> attributes) {
+        this.attributes = attributes;
+    }
+
     @Override
     public String toString() {
-        return "SamlUserAccount [repositoryId=" + repositoryId + ", subjectId=" + subjectId + ", uuid=" + uuid + ", userId="
+        return "SamlUserAccount [repositoryId=" + repositoryId + ", subjectId=" + subjectId + ", uuid=" + uuid
+                + ", userId="
                 + userId + ", authority=" + authority + ", realm=" + realm + ", status=" + status + ", username="
                 + username + ", issuer=" + issuer + ", email=" + email + ", emailVerified=" + emailVerified + ", name="
                 + name + ", surname=" + surname + ", lang=" + lang + ", createDate=" + createDate + ", modifiedDate="

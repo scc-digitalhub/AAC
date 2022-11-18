@@ -28,10 +28,10 @@ public class SamlAccountPrincipalConverter extends AbstractProvider<SamlUserAcco
         implements AccountPrincipalConverter<SamlUserAccount> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final UserAccountService<SamlUserAccount> accountService;
-    private final String repositoryId;
+    protected final UserAccountService<SamlUserAccount> accountService;
+    protected final String repositoryId;
 
-    private final SamlIdentityProviderConfig config;
+    protected final SamlIdentityProviderConfig config;
 
     // attributes
     private final SamlAttributesMapper samlMapper;
@@ -132,6 +132,9 @@ public class SamlAccountPrincipalConverter extends AbstractProvider<SamlUserAcco
         account.setSurname(surname);
         account.setEmail(email);
         account.setEmailVerified(emailVerified);
+
+        // also add all principal attributes for persistence
+        account.setAttributes(attributes);
 
         return account;
     }

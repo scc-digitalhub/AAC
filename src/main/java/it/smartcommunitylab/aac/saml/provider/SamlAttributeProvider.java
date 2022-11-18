@@ -16,7 +16,6 @@ import it.smartcommunitylab.aac.attributes.EmailAttributesSet;
 import it.smartcommunitylab.aac.attributes.OpenIdAttributesSet;
 import it.smartcommunitylab.aac.attributes.mapper.OpenIdAttributesMapper;
 import it.smartcommunitylab.aac.attributes.model.StringAttribute;
-import it.smartcommunitylab.aac.attributes.store.AttributeStore;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityAttributeProvider;
 import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
@@ -31,23 +30,19 @@ public class SamlAttributeProvider
 
     public SamlAttributeProvider(
             String providerId,
-            AttributeStore attributeStore,
             SamlIdentityProviderConfig providerConfig,
             String realm) {
-        this(SystemKeys.AUTHORITY_SAML, providerId, attributeStore, providerConfig, realm);
+        this(SystemKeys.AUTHORITY_SAML, providerId, providerConfig, realm);
     }
 
     public SamlAttributeProvider(
             String authority, String providerId,
-            AttributeStore attributeStore,
             SamlIdentityProviderConfig providerConfig,
             String realm) {
         super(authority, providerId, realm);
         Assert.notNull(providerConfig, "provider config is mandatory");
-        Assert.notNull(attributeStore, "attribute store is mandatory");
 
-        // attributes
-        this.attributeStore = attributeStore;
+        // attributes mapping
         openidMapper = new OpenIdAttributesMapper();
     }
 

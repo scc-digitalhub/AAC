@@ -11,15 +11,13 @@ public class SamlAccountProvider extends AbstractAccountProvider<SamlUserAccount
 
     public SamlAccountProvider(String providerId,
             UserAccountService<SamlUserAccount> accountService,
-            String repositoryId,
-            String realm) {
+            String repositoryId, String realm) {
         this(SystemKeys.AUTHORITY_SAML, providerId, accountService, repositoryId, realm);
     }
 
     public SamlAccountProvider(String authority, String providerId,
             UserAccountService<SamlUserAccount> accountService,
-            String repositoryId,
-            String realm) {
+            String repositoryId, String realm) {
         super(authority, providerId, accountService, repositoryId, realm);
     }
 

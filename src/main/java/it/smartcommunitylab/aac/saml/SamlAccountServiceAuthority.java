@@ -12,10 +12,12 @@ import it.smartcommunitylab.aac.core.model.ConfigurableAccountProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.core.service.TranslatorProviderConfigRepository;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import it.smartcommunitylab.aac.saml.provider.SamlAccountService;
 import it.smartcommunitylab.aac.saml.provider.SamlAccountServiceConfig;
+import it.smartcommunitylab.aac.saml.provider.SamlAccountServiceConfigConverter;
 import it.smartcommunitylab.aac.saml.provider.SamlAccountServiceConfigurationProvider;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfigMap;
@@ -29,6 +31,7 @@ public class SamlAccountServiceAuthority
 
     // account service
     private final UserAccountService<SamlUserAccount> accountService;
+    private ResourceEntityService resourceService;
 
     // configuration provider
     protected SamlAccountServiceConfigurationProvider configProvider;
@@ -51,6 +54,11 @@ public class SamlAccountServiceAuthority
         this.configProvider = new SamlAccountServiceConfigurationProvider(authority);
     }
 
+    @Autowired
+    public void setResourceService(ResourceEntityService resourceService) {
+        this.resourceService = resourceService;
+    }
+
     @Override
     public SamlAccountServiceConfigurationProvider getConfigurationProvider() {
         return configProvider;
@@ -62,12 +70,13 @@ public class SamlAccountServiceAuthority
     }
 
     protected SamlAccountService buildProvider(SamlAccountServiceConfig config) {
-        SamlAccountService idp = new SamlAccountService(
+        SamlAccountService service = new SamlAccountService(
                 config.getProvider(),
                 accountService,
                 config, config.getRealm());
+        service.setResourceService(resourceService);
 
-        return idp;
+        return service;
     }
 
     @Override
@@ -81,19 +90,7 @@ public class SamlAccountServiceAuthority
         public SamlConfigTranslatorRepository(
                 ProviderConfigRepository<SamlIdentityProviderConfig> externalRepository) {
             super(externalRepository);
-            setConverter((source) -> {
-                SamlAccountServiceConfig config = new SamlAccountServiceConfig(source.getAuthority(),
-                        source.getProvider(),
-                        source.getRealm());
-                config.setName(source.getName());
-                config.setTitleMap(source.getTitleMap());
-                config.setDescriptionMap(source.getDescriptionMap());
-
-                // we share the same configMap
-                config.setConfigMap(source.getConfigMap());
-                return config;
-
-            });
+            setConverter(new SamlAccountServiceConfigConverter());
         }
 
     }

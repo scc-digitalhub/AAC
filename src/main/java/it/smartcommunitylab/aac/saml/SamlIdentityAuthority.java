@@ -6,11 +6,6 @@ import org.springframework.security.saml2.provider.service.registration.RelyingP
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.attributes.store.AttributeStore;
-import it.smartcommunitylab.aac.attributes.store.AutoJdbcAttributeStore;
-import it.smartcommunitylab.aac.attributes.store.InMemoryAttributeStore;
-import it.smartcommunitylab.aac.attributes.store.NullAttributeStore;
-import it.smartcommunitylab.aac.attributes.store.PersistentAttributeStore;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityAuthority;
@@ -39,9 +34,6 @@ public class SamlIdentityAuthority extends
     // filter provider
     private final SamlFilterProvider filterProvider;
 
-    // system attributes store
-    private final AutoJdbcAttributeStore jdbcAttributeStore;
-
     // saml sp services
     private final SamlRelyingPartyRegistrationRepository relyingPartyRegistrationRepository;
 
@@ -51,25 +43,23 @@ public class SamlIdentityAuthority extends
 
     @Autowired
     public SamlIdentityAuthority(
-            UserAccountService<SamlUserAccount> userAccountService, AutoJdbcAttributeStore jdbcAttributeStore,
+            UserAccountService<SamlUserAccount> userAccountService,
             ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository,
             @Qualifier("samlRelyingPartyRegistrationRepository") SamlRelyingPartyRegistrationRepository samlRelyingPartyRegistrationRepository) {
-        this(SystemKeys.AUTHORITY_SAML, userAccountService, jdbcAttributeStore, registrationRepository,
+        this(SystemKeys.AUTHORITY_SAML, userAccountService, registrationRepository,
                 samlRelyingPartyRegistrationRepository);
     }
 
     public SamlIdentityAuthority(
             String authorityId,
-            UserAccountService<SamlUserAccount> userAccountService, AutoJdbcAttributeStore jdbcAttributeStore,
+            UserAccountService<SamlUserAccount> userAccountService,
             ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository,
             @Qualifier("samlRelyingPartyRegistrationRepository") SamlRelyingPartyRegistrationRepository samlRelyingPartyRegistrationRepository) {
         super(authorityId, registrationRepository);
         Assert.notNull(userAccountService, "account service is mandatory");
-        Assert.notNull(jdbcAttributeStore, "attribute store is mandatory");
         Assert.notNull(samlRelyingPartyRegistrationRepository, "relayingParty registration repository is mandatory");
 
         this.accountService = userAccountService;
-        this.jdbcAttributeStore = jdbcAttributeStore;
 
         this.relyingPartyRegistrationRepository = samlRelyingPartyRegistrationRepository;
 
@@ -106,11 +96,10 @@ public class SamlIdentityAuthority extends
     @Override
     public SamlIdentityProvider buildProvider(SamlIdentityProviderConfig config) {
         String id = config.getProvider();
-        AttributeStore attributeStore = getAttributeStore(id, config.getPersistence());
 
         SamlIdentityProvider idp = new SamlIdentityProvider(
                 authorityId, id,
-                accountService, attributeStore,
+                accountService,
                 config, config.getRealm());
 
         idp.setExecutionService(executionService);
@@ -162,21 +151,6 @@ public class SamlIdentityAuthority extends
 
         }
 
-    }
-
-    /*
-     * helpers
-     */
-    private AttributeStore getAttributeStore(String providerId, String persistence) {
-        // we generate a new store for each provider
-        AttributeStore store = new NullAttributeStore();
-        if (SystemKeys.PERSISTENCE_LEVEL_REPOSITORY.equals(persistence)) {
-            store = new PersistentAttributeStore(SystemKeys.AUTHORITY_SAML, providerId, jdbcAttributeStore);
-        } else if (SystemKeys.PERSISTENCE_LEVEL_MEMORY.equals(persistence)) {
-            store = new InMemoryAttributeStore(SystemKeys.AUTHORITY_SAML, providerId);
-        }
-
-        return store;
     }
 
 }
