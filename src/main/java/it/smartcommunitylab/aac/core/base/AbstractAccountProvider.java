@@ -13,6 +13,7 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.provider.AccountProvider;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.model.SubjectStatus;
 
 @Transactional
@@ -23,6 +24,7 @@ public class AbstractAccountProvider<U extends AbstractAccount> extends Abstract
     // services
     protected final UserAccountService<U> accountService;
     protected final String repositoryId;
+    private ResourceEntityService resourceService;
 
     public AbstractAccountProvider(
             String authority, String providerId,
@@ -37,6 +39,10 @@ public class AbstractAccountProvider<U extends AbstractAccount> extends Abstract
 
         this.accountService = accountService;
         this.repositoryId = repositoryId;
+    }
+
+    public void setResourceService(ResourceEntityService resourceService) {
+        this.resourceService = resourceService;
     }
 
     @Override
@@ -144,6 +150,12 @@ public class AbstractAccountProvider<U extends AbstractAccount> extends Abstract
         if (account != null) {
             // remove account
             accountService.deleteAccount(repositoryId, accountId);
+
+            if (resourceService != null) {
+                // remove resource
+                resourceService.deleteResourceEntity(SystemKeys.RESOURCE_ACCOUNT, getAuthority(),
+                        getProvider(), accountId);
+            }
         }
     }
 
@@ -152,7 +164,13 @@ public class AbstractAccountProvider<U extends AbstractAccount> extends Abstract
         List<U> accounts = accountService.findAccountByUser(repositoryId, userId);
         for (U a : accounts) {
             // remove account
-            accountService.deleteAccount(repositoryId, a.getUsername());
+            accountService.deleteAccount(repositoryId, a.getAccountId());
+
+            if (resourceService != null) {
+                // remove resource
+                resourceService.deleteResourceEntity(SystemKeys.RESOURCE_ACCOUNT, getAuthority(),
+                        getProvider(), a.getAccountId());
+            }
         }
     }
 
@@ -169,6 +187,8 @@ public class AbstractAccountProvider<U extends AbstractAccount> extends Abstract
         if (SubjectStatus.INACTIVE == curStatus && SubjectStatus.ACTIVE != newStatus) {
             throw new IllegalArgumentException("account is inactive, activate first to update status");
         }
+
+        logger.debug("update account {} status from {} to {}", accountId, curStatus, newStatus);
 
         // update status
         account.setStatus(newStatus.getValue());

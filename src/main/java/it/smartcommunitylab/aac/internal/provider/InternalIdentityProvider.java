@@ -27,6 +27,7 @@ public class InternalIdentityProvider extends
 
     // providers
     private final InternalAuthenticationProvider authenticationProvider;
+    private final InternalAccountPrincipalConverter principalConverter;
     private final InternalAccountProvider accountProvider;
     private final InternalAttributeProvider<InternalUserAuthenticatedPrincipal> attributeProvider;
     private final InternalSubjectResolver subjectResolver;
@@ -37,16 +38,17 @@ public class InternalIdentityProvider extends
             InternalUserConfirmKeyService confirmKeyService,
             InternalIdentityProviderConfig config,
             String realm) {
-        super(SystemKeys.AUTHORITY_INTERNAL, providerId, userAccountService, config, realm);
+        super(SystemKeys.AUTHORITY_INTERNAL, providerId, config, realm);
         Assert.notNull(confirmKeyService, "account confirm service is mandatory");
 
         String repositoryId = config.getRepositoryId();
         logger.debug("create internal provider with id {} repository {}", String.valueOf(providerId), repositoryId);
 
         // build resource providers, we use our providerId to ensure consistency
+        this.accountProvider = new InternalAccountProvider(providerId, userAccountService, repositoryId, realm);
         this.attributeProvider = new InternalAttributeProvider<>(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
-        this.accountProvider = new InternalAccountProvider(SystemKeys.AUTHORITY_INTERNAL, providerId,
-                userAccountService, repositoryId, realm);
+        this.principalConverter = new InternalAccountPrincipalConverter(providerId, userAccountService, repositoryId,
+                realm);
 
         // build providers
         this.confirmService = new InternalIdentityConfirmService(providerId, userAccountService, confirmKeyService,
@@ -65,13 +67,18 @@ public class InternalIdentityProvider extends
     }
 
     @Override
-    public InternalAccountProvider getAccountProvider() {
+    protected InternalAccountProvider getAccountProvider() {
         return accountProvider;
     }
 
     @Override
-    public InternalAccountProvider getAccountPrincipalConverter() {
-        return accountProvider;
+    protected InternalAccountService getAccountService() {
+        return null;
+    }
+
+    @Override
+    protected InternalAccountPrincipalConverter getAccountPrincipalConverter() {
+        return principalConverter;
     }
 
     @Override

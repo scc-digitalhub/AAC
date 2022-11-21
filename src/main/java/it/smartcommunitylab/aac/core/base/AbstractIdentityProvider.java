@@ -76,7 +76,7 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
     @Override
     public abstract ExtendedAuthenticationProvider<P, U> getAuthenticationProvider();
 
-    public abstract AccountPrincipalConverter<U> getAccountPrincipalConverter();
+    protected abstract AccountPrincipalConverter<U> getAccountPrincipalConverter();
 
     /*
      * Account provider acts as the source for user accounts, when the details are

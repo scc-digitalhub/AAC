@@ -368,6 +368,8 @@ public abstract class AbstractAccountService<U extends AbstractAccount, E extend
             throw new IllegalArgumentException("account is inactive, activate first to update status");
         }
 
+        logger.debug("update account {} status from {} to {}", accountId, curStatus, newStatus);
+
         // update status
         account.setStatus(newStatus.getValue());
         account = userAccountService.updateAccount(repositoryId, accountId, account);

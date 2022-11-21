@@ -22,6 +22,7 @@ import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountService;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountServiceConfig;
+import it.smartcommunitylab.aac.internal.provider.InternalAccountServiceConfigConverter;
 import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
 import it.smartcommunitylab.aac.utils.MailService;
 
@@ -91,16 +92,17 @@ public class InternalAccountServiceAuthority
     }
 
     protected InternalAccountService buildProvider(InternalAccountServiceConfig config) {
-        InternalAccountService idp = new InternalAccountService(
+        InternalAccountService service = new InternalAccountService(
                 config.getProvider(),
-                userEntityService, resourceService,
+                userEntityService,
                 accountService, confirmKeyService,
                 config, config.getRealm());
 
-        idp.setMailService(mailService);
-        idp.setUriBuilder(uriBuilder);
+        service.setMailService(mailService);
+        service.setUriBuilder(uriBuilder);
+        service.setResourceService(resourceService);
 
-        return idp;
+        return service;
     }
 
     @Override
@@ -114,18 +116,7 @@ public class InternalAccountServiceAuthority
         public InternalConfigTranslatorRepository(
                 ProviderConfigRepository<InternalIdentityProviderConfig> externalRepository) {
             super(externalRepository);
-            setConverter((source) -> {
-                InternalAccountServiceConfig config = new InternalAccountServiceConfig(source.getProvider(),
-                        source.getRealm());
-                config.setName(source.getName());
-                config.setTitleMap(source.getTitleMap());
-                config.setDescriptionMap(source.getDescriptionMap());
-
-                // we share the same configMap
-                config.setConfigMap(source.getConfigMap());
-                return config;
-
-            });
+            setConverter(new InternalAccountServiceConfigConverter());
         }
 
     }

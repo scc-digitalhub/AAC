@@ -13,11 +13,13 @@ import it.smartcommunitylab.aac.core.base.AbstractIdentityProvider;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.core.provider.AccountService;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.model.CredentialsType;
 import it.smartcommunitylab.aac.internal.model.InternalLoginProvider;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.provider.InternalAccountPrincipalConverter;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalSubjectResolver;
@@ -36,6 +38,7 @@ public class PasswordIdentityProvider extends
 
     // providers
     private final PasswordAuthenticationProvider authenticationProvider;
+    private final InternalAccountPrincipalConverter principalConverter;
     private final InternalAccountProvider accountProvider;
     private final InternalAttributeProvider<InternalPasswordUserAuthenticatedPrincipal> attributeProvider;
     private final InternalSubjectResolver subjectResolver;
@@ -46,7 +49,7 @@ public class PasswordIdentityProvider extends
             InternalUserPasswordService userPasswordService,
             PasswordIdentityProviderConfig config,
             String realm) {
-        super(SystemKeys.AUTHORITY_PASSWORD, providerId, userAccountService, config, realm);
+        super(SystemKeys.AUTHORITY_PASSWORD, providerId, config, realm);
         Assert.notNull(userPasswordService, "password service is mandatory");
 
         String repositoryId = config.getRepositoryId();
@@ -56,6 +59,8 @@ public class PasswordIdentityProvider extends
         this.attributeProvider = new InternalAttributeProvider<>(SystemKeys.AUTHORITY_PASSWORD, providerId, realm);
         this.accountProvider = new InternalAccountProvider(SystemKeys.AUTHORITY_PASSWORD, providerId,
                 userAccountService, repositoryId, realm);
+        this.principalConverter = new InternalAccountPrincipalConverter(providerId, userAccountService, repositoryId,
+                realm);
 
         // build providers
         this.passwordService = new PasswordIdentityCredentialsService(providerId, userAccountService,
@@ -83,6 +88,12 @@ public class PasswordIdentityProvider extends
         return false;
     }
 
+    @Override
+    protected AccountService<InternalUserAccount, ?, ?, ?> getAccountService() {
+        // no account service available for password, accounts must already exist
+        return null;
+    }
+
     public CredentialsType getCredentialsType() {
         return CredentialsType.PASSWORD;
     }
@@ -102,8 +113,8 @@ public class PasswordIdentityProvider extends
     }
 
     @Override
-    public InternalAccountProvider getAccountPrincipalConverter() {
-        return accountProvider;
+    protected InternalAccountPrincipalConverter getAccountPrincipalConverter() {
+        return principalConverter;
     }
 
     @Override

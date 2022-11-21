@@ -12,10 +12,12 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityProvider;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.core.provider.AccountService;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.model.InternalLoginProvider;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.provider.InternalAccountPrincipalConverter;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalSubjectResolver;
@@ -33,6 +35,7 @@ public class WebAuthnIdentityProvider extends
 
     // providers
     private final WebAuthnIdentityAuthenticationProvider authenticationProvider;
+    private final InternalAccountPrincipalConverter principalConverter;
     private final InternalAccountProvider accountProvider;
     private final InternalAttributeProvider<WebAuthnUserAuthenticatedPrincipal> attributeProvider;
     private final InternalSubjectResolver subjectResolver;
@@ -43,7 +46,7 @@ public class WebAuthnIdentityProvider extends
             WebAuthnUserCredentialsService userCredentialsService,
             WebAuthnIdentityProviderConfig config,
             String realm) {
-        super(SystemKeys.AUTHORITY_WEBAUTHN, providerId, userAccountService, config, realm);
+        super(SystemKeys.AUTHORITY_WEBAUTHN, providerId, config, realm);
         Assert.notNull(userCredentialsService, "credentials service is mandatory");
 
         String repositoryId = config.getRepositoryId();
@@ -53,6 +56,8 @@ public class WebAuthnIdentityProvider extends
         this.attributeProvider = new InternalAttributeProvider<>(SystemKeys.AUTHORITY_WEBAUTHN, providerId, realm);
         this.accountProvider = new InternalAccountProvider(SystemKeys.AUTHORITY_WEBAUTHN, providerId,
                 userAccountService, repositoryId, realm);
+        this.principalConverter = new InternalAccountPrincipalConverter(providerId, userAccountService, repositoryId,
+                realm);
 
         // build providers
         this.credentialsService = new WebAuthnIdentityCredentialsService(providerId, userAccountService,
@@ -73,6 +78,12 @@ public class WebAuthnIdentityProvider extends
     }
 
     @Override
+    protected AccountService<InternalUserAccount, ?, ?, ?> getAccountService() {
+        // no account service available for webauthn, accounts must already exist
+        return null;
+    }
+
+    @Override
     public WebAuthnIdentityAuthenticationProvider getAuthenticationProvider() {
         return authenticationProvider;
     }
@@ -87,8 +98,8 @@ public class WebAuthnIdentityProvider extends
     }
 
     @Override
-    public InternalAccountProvider getAccountPrincipalConverter() {
-        return accountProvider;
+    protected InternalAccountPrincipalConverter getAccountPrincipalConverter() {
+        return principalConverter;
     }
 
     @Override

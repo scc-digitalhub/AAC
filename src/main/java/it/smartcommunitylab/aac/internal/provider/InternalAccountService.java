@@ -49,7 +49,7 @@ public class InternalAccountService
 
     // services
     private final UserEntityService userEntityService;
-    private final ResourceEntityService resourceService;
+    private ResourceEntityService resourceService;
 
     private final UserAccountService<InternalUserAccount> userAccountService;
     private final InternalUserConfirmKeyService confirmKeyService;
@@ -60,19 +60,17 @@ public class InternalAccountService
     private RealmAwareUriBuilder uriBuilder;
 
     public InternalAccountService(String providerId,
-            UserEntityService userEntityService, ResourceEntityService resourceService,
+            UserEntityService userEntityService,
             UserAccountService<InternalUserAccount> userAccountService, InternalUserConfirmKeyService confirmKeyService,
             InternalAccountServiceConfig providerConfig, String realm) {
         super(SystemKeys.AUTHORITY_INTERNAL, providerId,
                 realm, providerConfig);
         Assert.notNull(userEntityService, "user entity service is mandatory");
-        Assert.notNull(resourceService, "resource service is mandatory");
         Assert.notNull(userAccountService, "user account service is mandatory");
         Assert.notNull(confirmKeyService, "user confirm service is mandatory");
 
         // internal data repositories
         this.userEntityService = userEntityService;
-        this.resourceService = resourceService;
 
         this.userAccountService = userAccountService;
         this.confirmKeyService = confirmKeyService;
@@ -87,6 +85,10 @@ public class InternalAccountService
 
     public void setUriBuilder(RealmAwareUriBuilder uriBuilder) {
         this.uriBuilder = uriBuilder;
+    }
+
+    public void setResourceService(ResourceEntityService resourceService) {
+        this.resourceService = resourceService;
     }
 
     @Override
@@ -226,9 +228,11 @@ public class InternalAccountService
             // remove account
             userAccountService.deleteAccount(repositoryId, username);
 
-            // remove resource
-            resourceService.deleteResourceEntity(SystemKeys.RESOURCE_ACCOUNT, SystemKeys.AUTHORITY_INTERNAL,
-                    getProvider(), username);
+            if (resourceService != null) {
+                // remove resource
+                resourceService.deleteResourceEntity(SystemKeys.RESOURCE_ACCOUNT, SystemKeys.AUTHORITY_INTERNAL,
+                        getProvider(), username);
+            }
         }
     }
 
@@ -241,9 +245,11 @@ public class InternalAccountService
             // remove account
             userAccountService.deleteAccount(repositoryId, a.getUsername());
 
-            // remove resource
-            resourceService.deleteResourceEntity(SystemKeys.RESOURCE_ACCOUNT, SystemKeys.AUTHORITY_INTERNAL,
-                    getProvider(), a.getUsername());
+            if (resourceService != null) {
+                // remove resource
+                resourceService.deleteResourceEntity(SystemKeys.RESOURCE_ACCOUNT, SystemKeys.AUTHORITY_INTERNAL,
+                        getProvider(), a.getUsername());
+            }
         }
     }
 
@@ -408,9 +414,11 @@ public class InternalAccountService
 
         account = userAccountService.addAccount(repositoryId, username, account);
 
-        // register as user resource
-        resourceService.addResourceEntity(account.getUuid(), SystemKeys.RESOURCE_ACCOUNT,
-                SystemKeys.AUTHORITY_INTERNAL, getProvider(), username);
+        if (resourceService != null) {
+            // register as user resource
+            resourceService.addResourceEntity(account.getUuid(), SystemKeys.RESOURCE_ACCOUNT,
+                    SystemKeys.AUTHORITY_INTERNAL, getProvider(), username);
+        }
 
         // map to our authority
         account.setAuthority(getAuthority());

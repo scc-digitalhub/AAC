@@ -1,6 +1,9 @@
 package it.smartcommunitylab.aac.internal.persistence;
 
+import java.io.Serializable;
 import java.util.Date;
+import java.util.Map;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
@@ -278,6 +281,17 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
     @Override
     public void eraseCredentials() {
         this.confirmationKey = null;
+    }
+
+    @Override
+    public Map<String, Serializable> getAttributes() {
+        // internal account has no additional attributes
+        return null;
+    }
+
+    @Override
+    public void setAttributes(Map<String, Serializable> attributes) {
+        // internal account has no additional attributes
     }
 
     @Override
