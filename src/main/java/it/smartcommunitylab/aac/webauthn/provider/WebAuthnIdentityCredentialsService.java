@@ -45,6 +45,12 @@ public class WebAuthnIdentityCredentialsService extends AbstractProvider<WebAuth
         return SystemKeys.RESOURCE_CREDENTIALS;
     }
 
+    public String getUuidFromUserHandle(String userHandle) {
+        // TODO evaluate custom mapping
+        // userHandle IS uuid
+        return userHandle;
+    }
+
     @Transactional(readOnly = true)
     public List<WebAuthnUserCredential> findCredentials(String userHandle) throws NoSuchUserException {
         // userHandle is uuid

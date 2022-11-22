@@ -285,6 +285,11 @@ public class PasswordCredentialsController {
             if (!idp.getConfig().isEnablePasswordReset()) {
                 throw new IllegalArgumentException("error.unsupported_operation");
             }
+            // fetch provider
+            PasswordCredentialsService service = passwordAuthority.getProvider(providerId);
+            if (!service.canSet()) {
+                throw new IllegalArgumentException("error.unsupported_operation");
+            }
 
             // build model for result
             model.addAttribute("providerId", providerId);
@@ -321,7 +326,7 @@ public class PasswordCredentialsController {
 
             // direct call to reset
             // will also send mail
-            idp.getCredentialsService().resetPassword(username);
+            service.resetCredentials(username);
 
             model.addAttribute("reg", reg);
 

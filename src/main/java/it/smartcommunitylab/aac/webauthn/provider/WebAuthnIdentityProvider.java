@@ -5,13 +5,11 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityProvider;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.AccountService;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.model.InternalLoginProvider;
@@ -56,13 +54,14 @@ public class WebAuthnIdentityProvider extends
         this.attributeProvider = new InternalAttributeProvider<>(SystemKeys.AUTHORITY_WEBAUTHN, providerId, realm);
         this.accountProvider = new InternalAccountProvider(SystemKeys.AUTHORITY_WEBAUTHN, providerId,
                 userAccountService, repositoryId, realm);
-        this.principalConverter = new InternalAccountPrincipalConverter(providerId, userAccountService, repositoryId,
+        this.principalConverter = new InternalAccountPrincipalConverter(SystemKeys.AUTHORITY_WEBAUTHN, providerId,
+                userAccountService, repositoryId,
                 realm);
 
         // build providers
         this.credentialsService = new WebAuthnIdentityCredentialsService(providerId, userAccountService,
                 userCredentialsService, config, realm);
-        this.authenticationProvider = new WebAuthnIdentityAuthenticationProvider(providerId, accountProvider,
+        this.authenticationProvider = new WebAuthnIdentityAuthenticationProvider(providerId, userAccountService,
                 credentialsService, config, realm);
 
         // always expose a valid resolver to satisfy authenticationManager at post login
@@ -88,10 +87,6 @@ public class WebAuthnIdentityProvider extends
         return authenticationProvider;
     }
 
-    public WebAuthnIdentityCredentialsService getCredentialsService() {
-        return credentialsService;
-    }
-
     @Override
     public InternalAccountProvider getAccountProvider() {
         return accountProvider;
@@ -103,7 +98,7 @@ public class WebAuthnIdentityProvider extends
     }
 
     @Override
-    public InternalAttributeProvider<WebAuthnUserAuthenticatedPrincipal> getAttributeProvider() {
+    protected InternalAttributeProvider<WebAuthnUserAuthenticatedPrincipal> getAttributeProvider() {
         return attributeProvider;
     }
 
@@ -136,73 +131,12 @@ public class WebAuthnIdentityProvider extends
         return identity;
     }
 
-    // TODO remove and set accountProvider read-only (and let create fail in super)
-    @Override
-    @Transactional(readOnly = false)
-    public InternalUserIdentity convertIdentity(UserAuthenticatedPrincipal authPrincipal, String userId)
-            throws NoSuchUserException {
-        Assert.isInstanceOf(WebAuthnUserAuthenticatedPrincipal.class, authPrincipal, "Wrong principal class");
-        logger.debug("convert principal to identity for user {}", String.valueOf(userId));
-        if (logger.isTraceEnabled()) {
-            logger.trace("principal {}", String.valueOf(authPrincipal));
-        }
-
-        WebAuthnUserAuthenticatedPrincipal principal = (WebAuthnUserAuthenticatedPrincipal) authPrincipal;
-
-        // username binds all identity pieces together
-        String username = principal.getUsername();
-
-        if (userId == null) {
-            // this better exists
-            throw new NoSuchUserException();
-        }
-
-        // get the internal account entity
-        InternalUserAccount account = accountProvider.findAccount(username);
-
-        if (account == null) {
-            // error, user should already exists for authentication
-            throw new NoSuchUserException();
-        }
-
-        // uuid is available for persisted accounts
-        String uuid = account.getUuid();
-        principal.setUuid(uuid);
-
-        // userId is always present, is derived from the same account table
-        String curUserId = account.getUserId();
-
-        if (!curUserId.equals(userId)) {
-//            // force link
-//            // TODO re-evaluate
-//            account.setSubject(subjectId);
-//            account = accountRepository.save(account);
-            throw new IllegalArgumentException("user mismatch");
-        }
-
-        // store and update attributes
-        // we shouldn't have additional attributes for internal
-
-        // use builder to properly map attributes
-        InternalUserIdentity identity = new InternalUserIdentity(getAuthority(), getProvider(), getRealm(), account,
-                principal);
-
-        // convert attribute sets
-        Collection<UserAttributes> identityAttributes = attributeProvider.convertPrincipalAttributes(principal,
-                account);
-        identity.setAttributes(identityAttributes);
-
-        return identity;
-
-    }
-
     @Override
     public void deleteIdentity(String userId, String username) throws NoSuchUserException {
         // remove all credentials
         credentialsService.deleteCredentialsByUsername(username);
 
-        // call super to remove account
-        super.deleteIdentity(userId, username);
+        // do not remove account because we are NOT authoritative
     }
 
     @Override

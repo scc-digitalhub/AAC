@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityAuthority;
-import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 
@@ -17,7 +16,6 @@ import it.smartcommunitylab.aac.password.provider.PasswordIdentityProvider;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.password.service.InternalUserPasswordService;
-import it.smartcommunitylab.aac.utils.MailService;
 
 @Service
 public class PasswordIdentityAuthority extends
@@ -33,10 +31,6 @@ public class PasswordIdentityAuthority extends
 
     // filter provider
     private final PasswordFilterProvider filterProvider;
-
-    // services
-    protected MailService mailService;
-    protected RealmAwareUriBuilder uriBuilder;
 
     public PasswordIdentityAuthority(
             UserAccountService<InternalUserAccount> userAccountService,
@@ -60,16 +54,6 @@ public class PasswordIdentityAuthority extends
         this.configProvider = configProvider;
     }
 
-    @Autowired
-    public void setMailService(MailService mailService) {
-        this.mailService = mailService;
-    }
-
-    @Autowired
-    public void setUriBuilder(RealmAwareUriBuilder uriBuilder) {
-        this.uriBuilder = uriBuilder;
-    }
-
     @Override
     public PasswordIdentityProvider buildProvider(PasswordIdentityProviderConfig config) {
         PasswordIdentityProvider idp = new PasswordIdentityProvider(
@@ -77,9 +61,6 @@ public class PasswordIdentityAuthority extends
                 accountService, passwordService,
                 config, config.getRealm());
 
-        // set services
-        idp.setMailService(mailService);
-        idp.setUriBuilder(uriBuilder);
         return idp;
     }
 

@@ -53,7 +53,7 @@ public class InternalIdentityProvider extends
         // build providers
         this.confirmService = new InternalIdentityConfirmService(providerId, userAccountService, confirmKeyService,
                 config, realm);
-        this.authenticationProvider = new InternalAuthenticationProvider(providerId, accountProvider,
+        this.authenticationProvider = new InternalAuthenticationProvider(providerId, userAccountService,
                 confirmService, config, realm);
 
         // always expose a valid resolver to satisfy authenticationManager at post login
