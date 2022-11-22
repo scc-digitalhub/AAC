@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.openid.model.OIDCUserIdentity;
@@ -15,28 +14,51 @@ import it.smartcommunitylab.aac.saml.model.SamlUserIdentity;
  * 
  * all implementations should derive from this
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "authority")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
 @JsonSubTypes({
-        @Type(value = InternalUserIdentity.class, name = "internal"),
-        @Type(value = OIDCUserIdentity.class, name = "oidc"),
-        @Type(value = SamlUserIdentity.class, name = "saml")
-
+        @Type(value = InternalUserIdentity.class, name = InternalUserIdentity.RESOURCE_TYPE),
+        @Type(value = OIDCUserIdentity.class, name = OIDCUserIdentity.RESOURCE_TYPE),
+        @Type(value = SamlUserIdentity.class, name = SamlUserIdentity.RESOURCE_TYPE)
 })
 public abstract class AbstractIdentity extends AbstractBaseUserResource implements UserIdentity {
 
-    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
+    private String uuid;
+    private String userId;
+    private String realm;
 
-    protected AbstractIdentity(String authority, String provider, String realm) {
-        super(authority, provider, realm);
-    }
-
-    protected AbstractIdentity(String authority, String provider, String realm, String userId) {
-        super(authority, provider, realm, userId);
+    protected AbstractIdentity(String authority, String provider) {
+        super(authority, provider);
     }
 
     @Override
-    public final String getType() {
-        return SystemKeys.RESOURCE_IDENTITY;
+    public String getId() {
+        // use uuid from persisted model
+        return getUuid();
+    }
+
+    @Override
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public String getRealm() {
+        return realm;
+    }
+
+    public void setRealm(String realm) {
+        this.realm = realm;
     }
 
 }

@@ -17,6 +17,9 @@ import it.smartcommunitylab.aac.core.base.AbstractEditableAccount;
 @JsonInclude(Include.ALWAYS)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class InternalEditableUserAccount extends AbstractEditableAccount {
+    private static final long serialVersionUID = SystemKeys.AAC_INTERNAL_SERIAL_VERSION;
+    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_CREDENTIALS + SystemKeys.ID_SEPARATOR
+            + SystemKeys.AUTHORITY_INTERNAL;
 
     @NotBlank
     private String username;
@@ -35,11 +38,22 @@ public class InternalEditableUserAccount extends AbstractEditableAccount {
     private String lang;
 
     protected InternalEditableUserAccount() {
-        super(SystemKeys.AUTHORITY_INTERNAL, null, null, null);
+        super(SystemKeys.AUTHORITY_INTERNAL, null, null);
+    }
+
+    public InternalEditableUserAccount(String provider, String uuid) {
+        super(SystemKeys.AUTHORITY_INTERNAL, provider, uuid);
     }
 
     public InternalEditableUserAccount(String provider, String realm, String userId, String uuid) {
-        super(SystemKeys.AUTHORITY_INTERNAL, provider, realm, userId, uuid);
+        super(SystemKeys.AUTHORITY_INTERNAL, provider, uuid);
+        setRealm(realm);
+        setUserId(userId);
+    }
+
+    @Override
+    public String getType() {
+        return RESOURCE_TYPE;
     }
 
     @Override

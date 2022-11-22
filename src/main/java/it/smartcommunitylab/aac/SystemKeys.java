@@ -6,14 +6,14 @@ public class SystemKeys {
 
     // to be upgraded when serialized objects are updated, breaks db
     // TODO implement
-    public static final long AAC_COMMON_SERIAL_VERSION = 400L;
-    public static final long AAC_CORE_SERIAL_VERSION = 400L;
-    public static final long AAC_OAUTH2_SERIAL_VERSION = 400L;
-    public static final long AAC_OIDC_SERIAL_VERSION = 400L;
-    public static final long AAC_SAML_SERIAL_VERSION = 400L;
-//    public static final long AAC_SPID_SERIAL_VERSION = 400L;
-    public static final long AAC_APPLE_SERIAL_VERSION = 410L;
-    public static final long AAC_WEBAUTHN_SERIAL_VERSION = 410L;
+    public static final long AAC_COMMON_SERIAL_VERSION = 420L;
+    public static final long AAC_CORE_SERIAL_VERSION = 420L;
+    public static final long AAC_OAUTH2_SERIAL_VERSION = 420L;
+    public static final long AAC_OIDC_SERIAL_VERSION = 420L;
+    public static final long AAC_SAML_SERIAL_VERSION = 420L;
+    public static final long AAC_APPLE_SERIAL_VERSION = 420L;
+    public static final long AAC_WEBAUTHN_SERIAL_VERSION = 420L;
+    public static final long AAC_INTERNAL_SERIAL_VERSION = 420L;
 
     public static final String REALM_GLOBAL = "";
     public static final String REALM_INTERNAL = "internal";

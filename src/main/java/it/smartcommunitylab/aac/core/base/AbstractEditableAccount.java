@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.EditableUserAccount;
 import it.smartcommunitylab.aac.internal.model.InternalEditableUserAccount;
 
@@ -13,33 +12,24 @@ import it.smartcommunitylab.aac.internal.model.InternalEditableUserAccount;
  * 
  * all implementations should derive from this
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "authority", visible = false)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
 @JsonSubTypes({
         @Type(value = InternalEditableUserAccount.class, name = "internal")
 })
 public abstract class AbstractEditableAccount extends AbstractBaseUserResource implements EditableUserAccount {
 
-    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
-
     protected String uuid;
+    protected String userId;
+    protected String realm;
 
-    protected AbstractEditableAccount(String authority, String provider, String realm, String uuid) {
-        super(authority, provider, realm);
+    protected AbstractEditableAccount(String authority, String provider, String uuid) {
+        super(authority, provider);
         this.uuid = uuid;
-    }
-
-    protected AbstractEditableAccount(String authority, String provider, String realm, String userId, String uuid) {
-        super(authority, provider, realm, userId);
-        this.uuid = uuid;
-    }
-
-    @Override
-    public final String getType() {
-        return SystemKeys.RESOURCE_ACCOUNT;
     }
 
     @Override
     public String getId() {
+        // use uuid from editable model
         return getUuid();
     }
 
@@ -49,6 +39,22 @@ public abstract class AbstractEditableAccount extends AbstractBaseUserResource i
 
     public void setUuid(String uuid) {
         this.uuid = uuid;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public String getRealm() {
+        return realm;
+    }
+
+    public void setRealm(String realm) {
+        this.realm = realm;
     }
 
 }

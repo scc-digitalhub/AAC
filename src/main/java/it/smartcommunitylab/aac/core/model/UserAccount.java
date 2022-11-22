@@ -20,10 +20,6 @@ public interface UserAccount extends UserResource, Serializable {
 
     public boolean isLocked();
 
-    default String getType() {
-        return SystemKeys.RESOURCE_ACCOUNT;
-    }
-
     // accountId is local id for provider
     public String getAccountId();
 

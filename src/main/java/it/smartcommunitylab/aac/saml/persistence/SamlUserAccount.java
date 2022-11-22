@@ -12,7 +12,6 @@ import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.Lob;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
@@ -22,8 +21,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractAccount;
 import it.smartcommunitylab.aac.model.SubjectStatus;
@@ -34,8 +31,9 @@ import it.smartcommunitylab.aac.repository.HashMapSerializableConverter;
 @Table(name = "saml_users")
 @EntityListeners(AuditingEntityListener.class)
 public class SamlUserAccount extends AbstractAccount {
-
     private static final long serialVersionUID = SystemKeys.AAC_SAML_SERIAL_VERSION;
+    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_ACCOUNT + SystemKeys.ID_SEPARATOR
+            + SystemKeys.AUTHORITY_SAML;
 
     @Id
     @NotBlank
@@ -57,14 +55,6 @@ public class SamlUserAccount extends AbstractAccount {
     @NotNull
     @Column(name = "user_id", length = 128)
     private String userId;
-
-    @JsonInclude
-    @Transient
-    private String authority;
-
-    @JsonInclude
-    @Transient
-    private String provider;
 
     @NotBlank
     @Column(length = 128)
@@ -107,27 +97,21 @@ public class SamlUserAccount extends AbstractAccount {
     private Map<String, Serializable> attributes;
 
     public SamlUserAccount() {
-        super(SystemKeys.AUTHORITY_SAML, null, null);
+        super(SystemKeys.AUTHORITY_SAML, null);
     }
 
     public SamlUserAccount(String authority) {
-        super(authority, null, null);
-        this.authority = authority;
+        super(authority, null);
     }
 
     @Override
-    public String getAuthority() {
-        return authority != null ? authority : super.getAuthority();
+    public String getType() {
+        return RESOURCE_TYPE;
     }
 
     @Override
     public String getRealm() {
         return realm;
-    }
-
-    @Override
-    public String getProvider() {
-        return provider != null ? provider : super.getProvider();
     }
 
     @Override
@@ -267,14 +251,6 @@ public class SamlUserAccount extends AbstractAccount {
         this.modifiedDate = modifiedDate;
     }
 
-    public void setAuthority(String authority) {
-        this.authority = authority;
-    }
-
-    public void setProvider(String provider) {
-        this.provider = provider;
-    }
-
     public void setUserId(String userId) {
         this.userId = userId;
     }
@@ -299,7 +275,7 @@ public class SamlUserAccount extends AbstractAccount {
     public String toString() {
         return "SamlUserAccount [repositoryId=" + repositoryId + ", subjectId=" + subjectId + ", uuid=" + uuid
                 + ", userId="
-                + userId + ", authority=" + authority + ", realm=" + realm + ", status=" + status + ", username="
+                + userId + ", realm=" + realm + ", status=" + status + ", username="
                 + username + ", issuer=" + issuer + ", email=" + email + ", emailVerified=" + emailVerified + ", name="
                 + name + ", surname=" + surname + ", lang=" + lang + ", createDate=" + createDate + ", modifiedDate="
                 + modifiedDate + "]";

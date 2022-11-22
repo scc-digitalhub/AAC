@@ -1,6 +1,5 @@
 package it.smartcommunitylab.aac.core.base;
 
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -15,7 +14,7 @@ import it.smartcommunitylab.aac.core.provider.AccountCredentialsService;
 
 public abstract class AbstractCredentialsAuthority<S extends AccountCredentialsService<R, M, C>, R extends UserCredentials, M extends ConfigMap, C extends CredentialsServiceConfig<M>>
         extends AbstractSingleProviderAuthority<S, R, ConfigurableCredentialsProvider, M, C>
-        implements CredentialsServiceAuthority<S, R, M, C>, InitializingBean {
+        implements CredentialsServiceAuthority<S, R, M, C> {
 
     // configuration provider
     protected CredentialsServiceConfigurationProvider<M, C> configProvider;

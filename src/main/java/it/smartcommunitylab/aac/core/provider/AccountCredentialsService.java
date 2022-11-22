@@ -12,30 +12,25 @@ import it.smartcommunitylab.aac.core.model.UserCredentials;
 
 /*
  * Credentials service handles credentials associated to a single user account,
- * which is handled by a given identity service in the same realm
- * 
- * TODO split in singleCredential/multiCredential
+ * which is handled by a given account service in the same realm 
  */
 
 public interface AccountCredentialsService<R extends UserCredentials, M extends ConfigMap, C extends CredentialsServiceConfig<M>>
         extends ConfigurableResourceProvider<R, ConfigurableCredentialsProvider, M, C> {
 
-    /*
-     * Set current credential (if only one is allowed) or all credentials
-     */
-
-    public R getCredentials(String accountId) throws NoSuchUserException;
-
-    public R setCredentials(String accountId, UserCredentials credentials) throws NoSuchUserException;
-
-    public void resetCredentials(String accountId) throws NoSuchUserException;
-
-    public void revokeCredentials(String accountId) throws NoSuchUserException, NoSuchCredentialException;
-
-    public void deleteCredentials(String accountId);
+//    /*
+//     * Set current credential (if only one is allowed) or all credentials
+//     */
+//
+//    public R getCredentials(String accountId) throws NoSuchUserException;
+//
+//    public R setCredentials(String accountId, UserCredentials credentials) throws NoSuchUserException;
+//
+//    public void resetCredentials(String accountId) throws NoSuchUserException;
+//
 
     /*
-     * Set specific credentials when more than one is allowed
+     * Set specific credentials
      */
 
     public Collection<R> listCredentials(String accountId) throws NoSuchUserException;
@@ -56,6 +51,8 @@ public interface AccountCredentialsService<R extends UserCredentials, M extends 
 
     public void deleteCredentials(String accountId, String credentialsId)
             throws NoSuchUserException, NoSuchCredentialException;
+
+    public void deleteCredentials(String accountId);
 
     /*
      * Action urls

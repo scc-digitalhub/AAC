@@ -19,10 +19,11 @@ public abstract class AbstractCredentialsServiceConfig<M extends AbstractConfigM
 
     protected AbstractCredentialsServiceConfig(ConfigurableCredentialsProvider cp) {
         super(cp);
-
+        this.repositoryId = cp.getRepositoryId();
     }
 
     public String getRepositoryId() {
+        // if undefined always use realm as default repository id
         return StringUtils.hasText(repositoryId) ? repositoryId : getRealm();
     }
 

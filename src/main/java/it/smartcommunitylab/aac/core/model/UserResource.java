@@ -11,10 +11,7 @@ public interface UserResource extends Resource {
     public String getUserId();
 
     // uuid is global
-    // by default id is a uuid
-    default public String getUuid() {
-        return getId();
-    }
+    public String getUuid();
 
     @Override
     default public String getUrn() {

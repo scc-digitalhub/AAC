@@ -16,8 +16,9 @@ import it.smartcommunitylab.aac.core.base.AbstractAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.saml.SamlKeys;
 
 public class SamlUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincipal {
-
     private static final long serialVersionUID = SystemKeys.AAC_SAML_SERIAL_VERSION;
+    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_PRINCIPAL + SystemKeys.ID_SEPARATOR
+            + SystemKeys.AUTHORITY_SAML;
 
     // subject identifier from external provider is local id
     private final String subjectId;
@@ -25,19 +26,40 @@ public class SamlUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
     // link attributes
     private Boolean emailVerified;
 
+    // TODO handle serializable
     private Saml2AuthenticatedPrincipal principal;
+
+    private String username;
+    private String emailAddress;
 
     // locally set attributes, for example after custom mapping
     private Map<String, Serializable> attributes;
 
     public SamlUserAuthenticatedPrincipal(String provider, String realm, String userId, String subjectId) {
-        super(SystemKeys.AUTHORITY_SAML, provider, realm, userId);
+        super(SystemKeys.AUTHORITY_SAML, provider);
         Assert.notNull(subjectId, "subjectId cannot be null");
         this.subjectId = subjectId;
+        setRealm(realm);
+        setUserId(userId);
+    }
+
+    @Override
+    public String getType() {
+        return RESOURCE_TYPE;
     }
 
     public String getSubjectId() {
         return subjectId;
+    }
+
+    @Override
+    public String getUsername() {
+        return StringUtils.hasText(username) ? username : subjectId;
+    }
+
+    @Override
+    public String getEmailAddress() {
+        return emailAddress;
     }
 
     @Override
@@ -47,7 +69,7 @@ public class SamlUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
 
     @Override
     public String getName() {
-        return username;
+        return getUsername();
     }
 
     @Override
@@ -82,14 +104,9 @@ public class SamlUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
             attributes.entrySet().forEach(e -> result.put(e.getKey(), e.getValue()));
         }
 
-        // make sure these are never overridden
-        result.put("authority", getAuthority());
-        result.put("provider", getProvider());
-        result.put("subjectId", subjectId);
-        result.put("id", subjectId);
-
+        // override if set
         if (StringUtils.hasText(username)) {
-            result.put("username", username);
+            result.put("name", username);
         }
 
         if (StringUtils.hasText(emailAddress)) {
@@ -100,6 +117,12 @@ public class SamlUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
             result.put("emailVerified", emailVerified.booleanValue());
         }
 
+        // add base attributes
+        result.putAll(super.getAttributes());
+
+        // make sure these are never overridden
+        result.put("subjectId", subjectId);
+
         return result;
     }
 
@@ -109,10 +132,6 @@ public class SamlUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
 
     public void setPrincipal(Saml2AuthenticatedPrincipal principal) {
         this.principal = principal;
-    }
-
-    public void setUuid(String uuid) {
-        this.uuid = uuid;
     }
 
     public void setAttributes(Map<String, Serializable> attributes) {
