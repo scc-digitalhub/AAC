@@ -65,7 +65,7 @@ import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
 import it.smartcommunitylab.aac.openid.service.OIDCUserAccountService;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
-import it.smartcommunitylab.aac.password.service.InternalUserPasswordService;
+import it.smartcommunitylab.aac.password.service.InternalPasswordService;
 import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
@@ -76,7 +76,7 @@ import it.smartcommunitylab.aac.scope.ScopeProvider;
 import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfig;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredentialsRepository;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserCredentialsService;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnCredentialsService;
 
 @Configuration
 @Order(2)
@@ -194,15 +194,15 @@ public class PersistenceConfig {
     }
 
     @Bean
-    public InternalUserPasswordService internalUserPasswordService(
+    public InternalPasswordService internalUserPasswordService(
             InternalUserPasswordRepository passwordRepository) {
-        return new InternalUserPasswordService(passwordRepository);
+        return new InternalPasswordService(passwordRepository);
     }
 
     @Bean
-    public WebAuthnUserCredentialsService webAuthnCredentialsService(
+    public WebAuthnCredentialsService webAuthnCredentialsService(
             WebAuthnUserCredentialsRepository credentialsRepository) {
-        return new WebAuthnUserCredentialsService(credentialsRepository);
+        return new WebAuthnCredentialsService(credentialsRepository);
     }
 
     @Bean

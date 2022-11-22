@@ -60,13 +60,13 @@ import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
-import it.smartcommunitylab.aac.password.service.InternalUserPasswordService;
+import it.smartcommunitylab.aac.password.service.InternalPasswordService;
 import it.smartcommunitylab.aac.roles.RealmRoleManager;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import it.smartcommunitylab.aac.services.ServicesManager;
 import it.smartcommunitylab.aac.templates.model.TemplateModel;
 import it.smartcommunitylab.aac.templates.service.TemplateService;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserCredentialsService;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnCredentialsService;
 
 @Service
 public class RealmManager {
@@ -126,10 +126,10 @@ public class RealmManager {
     private UserAccountService<SamlUserAccount> samlUserAccountService;
 
     @Autowired
-    private WebAuthnUserCredentialsService webAuthnUserCredentialsService;
+    private WebAuthnCredentialsService webAuthnUserCredentialsService;
 
     @Autowired
-    private InternalUserPasswordService internalUserPasswordService;
+    private InternalPasswordService internalUserPasswordService;
 
 //    @Autowired
 //    private SessionManager sessionManager;

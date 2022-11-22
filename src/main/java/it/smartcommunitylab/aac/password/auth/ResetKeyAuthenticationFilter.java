@@ -33,7 +33,7 @@ import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
-import it.smartcommunitylab.aac.password.service.InternalUserPasswordService;
+import it.smartcommunitylab.aac.password.service.InternalPasswordService;
 
 /*
  * Handles login requests for internal authority, via extended auth manager
@@ -60,16 +60,16 @@ public class ResetKeyAuthenticationFilter extends AbstractAuthenticationProcessi
 
     // TODO remove services and build resetPassword action url after auth success
     private final UserAccountService<InternalUserAccount> userAccountService;
-    private final InternalUserPasswordService userPasswordService;
+    private final InternalPasswordService userPasswordService;
 
     public ResetKeyAuthenticationFilter(UserAccountService<InternalUserAccount> userAccountService,
-            InternalUserPasswordService userPasswordService,
+            InternalPasswordService userPasswordService,
             ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository) {
         this(userAccountService, userPasswordService, registrationRepository, DEFAULT_FILTER_URI, null);
     }
 
     public ResetKeyAuthenticationFilter(UserAccountService<InternalUserAccount> userAccountService,
-            InternalUserPasswordService userPasswordService,
+            InternalPasswordService userPasswordService,
             ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository,
             String filterProcessingUrl, AuthenticationEntryPoint authenticationEntryPoint) {
         super(filterProcessingUrl);

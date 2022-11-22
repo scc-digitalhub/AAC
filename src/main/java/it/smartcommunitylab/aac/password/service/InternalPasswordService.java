@@ -34,7 +34,7 @@ import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordReposit
  */
 
 @Transactional
-public class InternalUserPasswordService {
+public class InternalPasswordService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final InternalUserPasswordRepository passwordRepository;
@@ -43,7 +43,7 @@ public class InternalUserPasswordService {
     private PasswordHash hasher;
     private StringKeyGenerator keyGenerator;
 
-    public InternalUserPasswordService(InternalUserPasswordRepository passwordRepository) {
+    public InternalPasswordService(InternalUserPasswordRepository passwordRepository) {
         Assert.notNull(passwordRepository, "password repository is mandatory");
         this.passwordRepository = passwordRepository;
 
@@ -74,7 +74,7 @@ public class InternalUserPasswordService {
     @Transactional(readOnly = true)
     public InternalUserPassword findPassword(String repositoryId, String username) {
         // fetch active password
-        InternalUserPassword password = passwordRepository.findByProviderAndUsernameAndStatusOrderByCreateDateDesc(
+        InternalUserPassword password = passwordRepository.findByRepositoryIdAndUsernameAndStatusOrderByCreateDateDesc(
                 repositoryId, username,
                 CredentialsStatus.ACTIVE.getValue());
         if (password != null) {
@@ -87,7 +87,7 @@ public class InternalUserPasswordService {
 
     public InternalUserPassword findByResetKey(String repositoryId, String resetKey) {
         // find via key
-        InternalUserPassword password = passwordRepository.findByProviderAndResetKey(repositoryId, resetKey);
+        InternalUserPassword password = passwordRepository.findByRepositoryIdAndResetKey(repositoryId, resetKey);
         if (password != null) {
             // password are encrypted, return as is
             password = passwordRepository.detach(password);
@@ -99,7 +99,7 @@ public class InternalUserPasswordService {
     @Transactional(readOnly = true)
     public InternalUserPassword getPassword(String repositoryId, String username) throws NoSuchCredentialException {
         // fetch active password
-        InternalUserPassword password = passwordRepository.findByProviderAndUsernameAndStatusOrderByCreateDateDesc(
+        InternalUserPassword password = passwordRepository.findByRepositoryIdAndUsernameAndStatusOrderByCreateDateDesc(
                 repositoryId, username,
                 CredentialsStatus.ACTIVE.getValue());
         if (password == null) {
@@ -138,7 +138,7 @@ public class InternalUserPasswordService {
             // invalidate all old active/inactive passwords up to keep number, delete others
             // note: we keep revoked passwords in DB
             List<InternalUserPassword> oldPasswords = passwordRepository
-                    .findByProviderAndUsernameOrderByCreateDateDesc(repositoryId, username).stream()
+                    .findByRepositoryIdAndUsernameOrderByCreateDateDesc(repositoryId, username).stream()
                     .collect(Collectors.toList());
 
             // validate new password is NEW
@@ -197,7 +197,7 @@ public class InternalUserPasswordService {
 
     public boolean verifyPassword(String repositoryId, String username, String password) throws NoSuchUserException {
         // fetch active password
-        InternalUserPassword pass = passwordRepository.findByProviderAndUsernameAndStatusOrderByCreateDateDesc(
+        InternalUserPassword pass = passwordRepository.findByRepositoryIdAndUsernameAndStatusOrderByCreateDateDesc(
                 repositoryId,
                 username, STATUS_ACTIVE);
         if (pass == null) {
@@ -227,7 +227,7 @@ public class InternalUserPasswordService {
 
         // delete all passwords
         List<InternalUserPassword> toDelete = passwordRepository
-                .findByProviderAndUsernameOrderByCreateDateDesc(repositoryId, username);
+                .findByRepositoryIdAndUsernameOrderByCreateDateDesc(repositoryId, username);
         passwordRepository.deleteAllInBatch(toDelete);
     }
 
@@ -239,7 +239,8 @@ public class InternalUserPasswordService {
             // encode password
             String hash = hasher.createHash(password);
 
-            InternalUserPassword pass = passwordRepository.findByProviderAndUsernameAndPassword(repositoryId, username,
+            InternalUserPassword pass = passwordRepository.findByRepositoryIdAndUsernameAndPassword(repositoryId,
+                    username,
                     hash);
             if (pass == null) {
                 throw new NoSuchCredentialException();
@@ -263,7 +264,7 @@ public class InternalUserPasswordService {
             throws NoSuchUserException {
 
         // fetch last active password
-        InternalUserPassword password = passwordRepository.findByProviderAndUsernameAndStatusOrderByCreateDateDesc(
+        InternalUserPassword password = passwordRepository.findByRepositoryIdAndUsernameAndStatusOrderByCreateDateDesc(
                 repositoryId, username, STATUS_ACTIVE);
         if (password == null) {
             // generate and set active a temporary password
@@ -292,7 +293,7 @@ public class InternalUserPasswordService {
             throw new IllegalArgumentException("empty-key");
         }
 
-        InternalUserPassword password = passwordRepository.findByProviderAndResetKey(repositoryId, resetKey);
+        InternalUserPassword password = passwordRepository.findByRepositoryIdAndResetKey(repositoryId, resetKey);
         if (password == null) {
             throw new NoSuchCredentialException();
         }

@@ -90,11 +90,10 @@ public class OIDCUserAccountService implements UserAccountService<OIDCUserAccoun
     }
 
     @Transactional(readOnly = true)
-    public OIDCUserAccount findAccountByUuid(String repository, String uuid) {
-        logger.debug("find account with uuid {} in repository {}", String.valueOf(uuid),
-                String.valueOf(repository));
+    public OIDCUserAccount findAccountByUuid(String uuid) {
+        logger.debug("find account with uuid {}", String.valueOf(uuid));
 
-        OIDCUserAccount account = accountRepository.findByRepositoryIdAndUuid(repository, uuid);
+        OIDCUserAccount account = accountRepository.findByUuid(uuid);
         if (account == null) {
             return null;
         }
@@ -155,10 +154,9 @@ public class OIDCUserAccountService implements UserAccountService<OIDCUserAccoun
             }
 
             // extract attributes and build model
-            account = new OIDCUserAccount(reg.getAuthority());
+            account = new OIDCUserAccount();
             account.setRepositoryId(repository);
             account.setSubject(subject);
-            account.setProvider(reg.getProvider());
             account.setUuid(s.getSubjectId());
 
             account.setUserId(reg.getUserId());
@@ -184,6 +182,9 @@ public class OIDCUserAccountService implements UserAccountService<OIDCUserAccoun
             if (logger.isTraceEnabled()) {
                 logger.trace("account: {}", String.valueOf(account));
             }
+
+            account.setAuthority(reg.getAuthority());
+            account.setProvider(reg.getProvider());
 
             return account;
         } catch (Exception e) {
@@ -220,8 +221,6 @@ public class OIDCUserAccountService implements UserAccountService<OIDCUserAccoun
 //            }
 
             // extract attributes and update model
-            account.setAuthority(reg.getAuthority());
-            account.setProvider(reg.getProvider());
             account.setUserId(reg.getUserId());
             account.setRealm(reg.getRealm());
 
@@ -244,6 +243,9 @@ public class OIDCUserAccountService implements UserAccountService<OIDCUserAccoun
             if (logger.isTraceEnabled()) {
                 logger.trace("account: {}", String.valueOf(account));
             }
+
+            account.setAuthority(reg.getAuthority());
+            account.setProvider(reg.getProvider());
 
             return account;
         } catch (Exception e) {

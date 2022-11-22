@@ -15,7 +15,7 @@ import it.smartcommunitylab.aac.password.provider.PasswordIdentityConfigurationP
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProvider;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfigMap;
-import it.smartcommunitylab.aac.password.service.InternalUserPasswordService;
+import it.smartcommunitylab.aac.password.service.InternalPasswordService;
 
 @Service
 public class PasswordIdentityAuthority extends
@@ -27,14 +27,14 @@ public class PasswordIdentityAuthority extends
     private final UserAccountService<InternalUserAccount> accountService;
 
     // password service
-    private final InternalUserPasswordService passwordService;
+    private final InternalPasswordService passwordService;
 
     // filter provider
     private final PasswordFilterProvider filterProvider;
 
     public PasswordIdentityAuthority(
             UserAccountService<InternalUserAccount> userAccountService,
-            InternalUserPasswordService passwordService,
+            InternalPasswordService passwordService,
             ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository) {
         super(SystemKeys.AUTHORITY_PASSWORD, registrationRepository);
         Assert.notNull(userAccountService, "account service is mandatory");

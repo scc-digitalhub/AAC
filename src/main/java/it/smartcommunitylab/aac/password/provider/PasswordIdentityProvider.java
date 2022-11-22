@@ -22,7 +22,7 @@ import it.smartcommunitylab.aac.internal.provider.InternalSubjectResolver;
 import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.model.InternalPasswordUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
-import it.smartcommunitylab.aac.password.service.InternalUserPasswordService;
+import it.smartcommunitylab.aac.password.service.InternalPasswordService;
 
 public class PasswordIdentityProvider extends
         AbstractIdentityProvider<InternalUserIdentity, InternalUserAccount, InternalPasswordUserAuthenticatedPrincipal, PasswordIdentityProviderConfigMap, PasswordIdentityProviderConfig> {
@@ -41,7 +41,7 @@ public class PasswordIdentityProvider extends
     public PasswordIdentityProvider(
             String providerId,
             UserAccountService<InternalUserAccount> userAccountService,
-            InternalUserPasswordService userPasswordService,
+            InternalPasswordService userPasswordService,
             PasswordIdentityProviderConfig config,
             String realm) {
         super(SystemKeys.AUTHORITY_PASSWORD, providerId, config, realm);

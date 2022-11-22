@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchCredentialException;
@@ -15,18 +16,20 @@ import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredential;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserCredentialsService;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnCredentialsService;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserHandleService;
 
 @Transactional
 public class WebAuthnIdentityCredentialsService extends AbstractProvider<WebAuthnUserCredential> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final WebAuthnUserCredentialsService credentialsService;
     private final UserAccountService<InternalUserAccount> accountService;
+    private final WebAuthnCredentialsService credentialsService;
+    private final WebAuthnUserHandleService userHandleService;
     private final String repositoryId;
 
     public WebAuthnIdentityCredentialsService(String providerId,
-            UserAccountService<InternalUserAccount> accountService, WebAuthnUserCredentialsService credentialsService,
+            UserAccountService<InternalUserAccount> accountService, WebAuthnCredentialsService credentialsService,
             WebAuthnIdentityProviderConfig config, String realm) {
         super(SystemKeys.AUTHORITY_WEBAUTHN, providerId, realm);
         Assert.notNull(accountService, "account service is mandatory");
@@ -38,6 +41,9 @@ public class WebAuthnIdentityCredentialsService extends AbstractProvider<WebAuth
 
         // repositoryId from config
         this.repositoryId = config.getRepositoryId();
+
+        // build service
+        this.userHandleService = new WebAuthnUserHandleService(accountService);
     }
 
     @Override
@@ -46,20 +52,18 @@ public class WebAuthnIdentityCredentialsService extends AbstractProvider<WebAuth
     }
 
     public String getUuidFromUserHandle(String userHandle) {
-        // TODO evaluate custom mapping
-        // userHandle IS uuid
-        return userHandle;
-    }
-
-    @Transactional(readOnly = true)
-    public List<WebAuthnUserCredential> findCredentials(String userHandle) throws NoSuchUserException {
-        // userHandle is uuid
-        InternalUserAccount account = accountService.findAccountByUuid(repositoryId, userHandle);
+        String username = userHandleService.getUsernameForUserHandle(repositoryId, userHandle);
+        InternalUserAccount account = accountService.findAccountById(repositoryId, username);
         if (account == null) {
-            throw new NoSuchUserException();
+            return null;
         }
 
-        return credentialsService.findActiveCredentialsByUserHandle(repositoryId, userHandle);
+        if (!StringUtils.hasText(account.getUuid())) {
+            return null;
+        }
+
+        return account.getUuid();
+
     }
 
     @Transactional(readOnly = true)
@@ -75,8 +79,7 @@ public class WebAuthnIdentityCredentialsService extends AbstractProvider<WebAuth
     @Transactional(readOnly = true)
     public WebAuthnUserCredential findCredential(String userHandle, String credentialId)
             throws NoSuchUserException {
-        // userHandle is uuid
-        InternalUserAccount account = accountService.findAccountByUuid(repositoryId, userHandle);
+        InternalUserAccount account = accountService.findAccountByUuid(repositoryId, getUuidFromUserHandle(userHandle));
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -87,10 +90,6 @@ public class WebAuthnIdentityCredentialsService extends AbstractProvider<WebAuth
     public WebAuthnUserCredential updateCredentialCounter(String userHandle, String credentialId, long signatureCount)
             throws RegistrationException, NoSuchCredentialException {
         return credentialsService.updateCredentialCounter(repositoryId, userHandle, credentialId, signatureCount);
-    }
-
-    public void deleteCredentials(String userHandle) {
-        credentialsService.deleteCredentials(repositoryId, userHandle);
     }
 
     public void deleteCredentialsByUsername(String username) {

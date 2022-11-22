@@ -22,7 +22,7 @@ import it.smartcommunitylab.aac.internal.provider.InternalSubjectResolver;
 import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredential;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserCredentialsService;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnCredentialsService;
 
 public class WebAuthnIdentityProvider extends
         AbstractIdentityProvider<InternalUserIdentity, InternalUserAccount, WebAuthnUserAuthenticatedPrincipal, WebAuthnIdentityProviderConfigMap, WebAuthnIdentityProviderConfig> {
@@ -41,7 +41,7 @@ public class WebAuthnIdentityProvider extends
     public WebAuthnIdentityProvider(
             String providerId,
             UserAccountService<InternalUserAccount> userAccountService,
-            WebAuthnUserCredentialsService userCredentialsService,
+            WebAuthnCredentialsService userCredentialsService,
             WebAuthnIdentityProviderConfig config,
             String realm) {
         super(SystemKeys.AUTHORITY_WEBAUTHN, providerId, config, realm);

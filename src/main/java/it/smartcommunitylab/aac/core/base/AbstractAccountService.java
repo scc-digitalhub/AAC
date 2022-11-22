@@ -69,8 +69,13 @@ public abstract class AbstractAccountService<U extends AbstractAccount, E extend
     @Override
     @Transactional(readOnly = true)
     public U findAccountByUuid(String uuid) {
-        U account = userAccountService.findAccountByUuid(repositoryId, uuid);
+        U account = userAccountService.findAccountByUuid(uuid);
         if (account == null) {
+            return null;
+        }
+
+        // check repository matches
+        if (!repositoryId.equals(account.getRepositoryId())) {
             return null;
         }
 

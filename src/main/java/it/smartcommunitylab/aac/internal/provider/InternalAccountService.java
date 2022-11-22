@@ -143,8 +143,13 @@ public class InternalAccountService
     @Override
     @Transactional(readOnly = true)
     public InternalUserAccount findAccountByUuid(String uuid) {
-        InternalUserAccount account = userAccountService.findAccountByUuid(repositoryId, uuid);
+        InternalUserAccount account = userAccountService.findAccountByUuid(uuid);
         if (account == null) {
+            return null;
+        }
+
+        // check repository matches
+        if (!repositoryId.equals(account.getRepositoryId())) {
             return null;
         }
 

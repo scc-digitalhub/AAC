@@ -31,6 +31,7 @@ import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsProvider;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.core.provider.AccountCredentialsService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.webauthn.model.AttestationResponse;
@@ -39,7 +40,7 @@ import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationRequest;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationStartRequest;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredential;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnRegistrationRpService;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserCredentialsService;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnCredentialsService;
 
 @Transactional
 public class WebAuthnCredentialsService
@@ -51,15 +52,16 @@ public class WebAuthnCredentialsService
 
     // services
     private final UserAccountService<InternalUserAccount> accountService;
-    private final WebAuthnUserCredentialsService credentialsService;
+    private final WebAuthnCredentialsService credentialsService;
     private final WebAuthnRegistrationRpService rpService;
+    private ResourceEntityService resourceService;
 
     // provider configuration
     private final String repositoryId;
 
     public WebAuthnCredentialsService(String providerId,
             UserAccountService<InternalUserAccount> userAccountService,
-            WebAuthnUserCredentialsService credentialsService, WebAuthnRegistrationRpService rpService,
+            WebAuthnCredentialsService credentialsService, WebAuthnRegistrationRpService rpService,
             WebAuthnCredentialsServiceConfig providerConfig,
             String realm) {
         super(SystemKeys.AUTHORITY_WEBAUTHN, providerId, realm, providerConfig);
@@ -77,6 +79,10 @@ public class WebAuthnCredentialsService
         this.rpService = rpService;
     }
 
+    public void setResourceService(ResourceEntityService resourceService) {
+        this.resourceService = resourceService;
+    }
+
     private void validateCredential(WebAuthnUserCredential reg) {
         // validate credentials
         if (!StringUtils.hasText(reg.getUserHandle())) {
@@ -92,6 +98,7 @@ public class WebAuthnCredentialsService
 
     /*
      * WebAuthn operations
+     * TODO extract
      */
 
     public WebAuthnRegistrationRequest startRegistration(String username, WebAuthnRegistrationStartRequest reg)
@@ -223,31 +230,15 @@ public class WebAuthnCredentialsService
      */
 
     @Override
-    public WebAuthnUserCredential getCredentials(String username) throws NoSuchUserException {
-        // not available as single
-        return null;
-    }
-
-    @Override
     public WebAuthnUserCredential addCredentials(String username, UserCredentials cred) throws NoSuchUserException {
         if (!(cred instanceof WebAuthnUserCredential)) {
             throw new IllegalArgumentException("invalid credentials");
         }
 
-        // add is set since we support multiple active credentials
-        return setCredentials(username, cred);
-    }
+        WebAuthnUserCredential reg = (WebAuthnUserCredential) cred;
+        validateCredential(reg);
 
-    @Override
-    public WebAuthnUserCredential setCredentials(String username, UserCredentials cred) throws NoSuchUserException {
-        if (!(cred instanceof WebAuthnUserCredential)) {
-            throw new IllegalArgumentException("invalid credentials");
-        }
-
-        WebAuthnUserCredential credentials = (WebAuthnUserCredential) cred;
-        validateCredential(credentials);
-
-        if (!username.equals(credentials.getUsername())) {
+        if (!username.equals(reg.getUsername())) {
             throw new IllegalArgumentException("invalid credentials");
         }
 
@@ -259,24 +250,12 @@ public class WebAuthnCredentialsService
 
         // add as new credential, if id is available
         String userHandle = account.getUuid();
-        String credentialsId = credentials.getCredentialId();
-        return credentialsService.addCredential(repositoryId, userHandle, credentialsId, credentials);
-    }
+        String credentialsId = reg.getCredentialId();
+        WebAuthnUserCredential credentials = credentialsService.addCredential(repositoryId, userHandle, credentialsId,
+                reg);
 
-    @Override
-    public void resetCredentials(String username) throws NoSuchUserException {
-        throw new UnsupportedOperationException();
-    }
+        // register as resource
 
-    @Override
-    public void revokeCredentials(String username) throws NoSuchUserException {
-        // fetch all credentials and revoke
-        List<WebAuthnUserCredential> credentials = credentialsService.findCredentialsByUsername(repositoryId, username);
-        if (!credentials.isEmpty()) {
-            for (WebAuthnUserCredential c : credentials) {
-                credentialsService.revokeCredential(repositoryId, c.getUserHandle(), c.getCredentialId());
-            }
-        }
     }
 
     @Override

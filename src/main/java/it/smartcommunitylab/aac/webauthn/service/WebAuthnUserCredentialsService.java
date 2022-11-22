@@ -1,288 +1,226 @@
 package it.smartcommunitylab.aac.webauthn.service;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.jsoup.Jsoup;
-import org.jsoup.safety.Safelist;
+import javax.validation.constraints.NotNull;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
-import it.smartcommunitylab.aac.common.InvalidDataException;
-import it.smartcommunitylab.aac.common.MissingDataException;
+import it.smartcommunitylab.aac.common.DuplicatedDataException;
 import it.smartcommunitylab.aac.common.NoSuchCredentialException;
-import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.core.provider.UserCredentialsService;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredential;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredentialsRepository;
 
+/*
+ * An internal service which handles credential persistence for internal user accounts, via JPA.
+ * 
+ * We enforce detach on fetch to keep internal datasource isolated. 
+ */
 @Transactional
-public class WebAuthnUserCredentialsService {
+public class WebAuthnUserCredentialsService implements UserCredentialsService<WebAuthnUserCredential> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final WebAuthnUserCredentialsRepository credentialsRepository;
+    private final WebAuthnUserCredentialsRepository credentialRepository;
 
-    public WebAuthnUserCredentialsService(WebAuthnUserCredentialsRepository credentialsRepository) {
-        Assert.notNull(credentialsRepository, "credentials repository is mandatory");
-        this.credentialsRepository = credentialsRepository;
+    public WebAuthnUserCredentialsService(WebAuthnUserCredentialsRepository credentialRepository) {
+        Assert.notNull(credentialRepository, "credential repository is mandatory");
+        this.credentialRepository = credentialRepository;
     }
 
-    /*
-     * Credentials handling
-     */
+    @Override
+    public List<WebAuthnUserCredential> findCredentialsByRealm(@NotNull String realm) {
+        logger.debug("find credentials for realm {}", String.valueOf(realm));
 
-    @Transactional(readOnly = true)
-    public WebAuthnUserCredential findCredentialById(String id) {
-        WebAuthnUserCredential c = credentialsRepository.findOne(id);
-        if (c == null) {
+        List<WebAuthnUserCredential> credentials = credentialRepository.findByRealm(realm);
+        return credentials.stream().map(a -> {
+            return credentialRepository.detach(a);
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    public WebAuthnUserCredential findCredentialsById(@NotNull String repository, @NotNull String id) {
+        logger.debug("find credentials with id {} in repository {}", String.valueOf(id), String.valueOf(repository));
+
+        WebAuthnUserCredential credential = credentialRepository.findOne(id);
+        if (credential == null) {
             return null;
         }
 
-        return credentialsRepository.detach(c);
+        // detach the entity, we don't want modifications to be persisted via a
+        // read-only interface
+        return credentialRepository.detach(credential);
     }
 
-    @Transactional(readOnly = true)
-    public List<WebAuthnUserCredential> findCredentialsByUsername(String repositoryId, String username) {
-        List<WebAuthnUserCredential> credentials = credentialsRepository.findByProviderAndUsername(repositoryId,
-                username);
-        return credentials.stream()
-                .map(a -> {
-                    return credentialsRepository.detach(a);
-                })
-                .collect(Collectors.toList());
-    }
+    @Override
+    public WebAuthnUserCredential findCredentialsByUuid(@NotNull String uuid) {
+        logger.debug("find credentials with uuid {}", String.valueOf(uuid));
 
-    @Transactional(readOnly = true)
-    public List<WebAuthnUserCredential> findActiveCredentialsByUsername(String repositoryId, String username) {
-        List<WebAuthnUserCredential> credentials = credentialsRepository.findByProviderAndUsername(repositoryId,
-                username);
-        return credentials.stream()
-                .filter(c -> STATUS_ACTIVE.equals(c.getStatus()))
-                .map(a -> {
-                    return credentialsRepository.detach(a);
-                })
-                .collect(Collectors.toList());
-    }
-
-    @Transactional(readOnly = true)
-    public List<WebAuthnUserCredential> findActiveCredentialsByUserHandle(String repositoryId, String userHandle) {
-        List<WebAuthnUserCredential> credentials = credentialsRepository.findByProviderAndUserHandle(repositoryId,
-                userHandle);
-        return credentials.stream()
-                .filter(c -> STATUS_ACTIVE.equals(c.getStatus()))
-                .map(a -> {
-                    return credentialsRepository.detach(a);
-                })
-                .collect(Collectors.toList());
-    }
-
-    @Transactional(readOnly = true)
-    public List<WebAuthnUserCredential> findCredentialsByCredentialId(String repositoryId, String credentialId) {
-        List<WebAuthnUserCredential> credentials = credentialsRepository.findByProviderAndCredentialId(repositoryId,
-                credentialId);
-        return credentials.stream()
-                .map(a -> {
-                    return credentialsRepository.detach(a);
-                })
-                .collect(Collectors.toList());
-    }
-
-    @Transactional(readOnly = true)
-    public WebAuthnUserCredential findCredentialByUserHandleAndCredentialId(String repositoryId, String userHandle,
-            String credentialId) {
-        WebAuthnUserCredential c = credentialsRepository.findByProviderAndUserHandleAndCredentialId(repositoryId,
-                userHandle,
-                credentialId);
-        if (c == null) {
+        // uuid is id
+        WebAuthnUserCredential credential = credentialRepository.findOne(uuid);
+        if (credential == null) {
             return null;
         }
 
-        return credentialsRepository.detach(c);
+        // detach the entity, we don't want modifications to be persisted via a
+        // read-only interface
+        return credentialRepository.detach(credential);
     }
 
-    public WebAuthnUserCredential addCredential(String repositoryId, String userHandle, String credentialId,
-            WebAuthnUserCredential reg)
-            throws RegistrationException {
+    @Override
+    public List<WebAuthnUserCredential> findCredentialsByAccount(@NotNull String repository,
+            @NotNull String accountId) {
+        logger.debug("find credentials for account {} in repository {}", String.valueOf(accountId),
+                String.valueOf(repository));
 
-        // extract relevant data
-        String username = reg.getUsername();
-        if (!StringUtils.hasText(username)) {
-            throw new MissingDataException("username");
+        List<WebAuthnUserCredential> credentials = credentialRepository.findByRepositoryIdAndUsername(repository,
+                accountId);
+        return credentials.stream().map(a -> {
+            return credentialRepository.detach(a);
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<WebAuthnUserCredential> findCredentialsByUser(@NotNull String repository, @NotNull String userId) {
+        logger.debug("find credentials for user {} in repository {}", String.valueOf(userId),
+                String.valueOf(repository));
+
+        List<WebAuthnUserCredential> credentials = credentialRepository.findByRepositoryIdAndUserId(repository, userId);
+        return credentials.stream().map(a -> {
+            return credentialRepository.detach(a);
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    public WebAuthnUserCredential addCredentials(@NotNull String repository, @NotNull String id,
+            @NotNull WebAuthnUserCredential reg) throws RegistrationException {
+        logger.debug("add credentials with id {} in repository {}", String.valueOf(id), String.valueOf(repository));
+
+        if (reg == null) {
+            throw new RegistrationException();
         }
 
-        String publicKeyCose = reg.getPublicKeyCose();
-        if (!StringUtils.hasText(publicKeyCose)) {
-            throw new MissingDataException("public-key");
-        }
-
-        // check duplicate
-        WebAuthnUserCredential c = credentialsRepository.findByProviderAndUserHandleAndCredentialId(repositoryId,
-                userHandle,
-                credentialId);
-        if (c != null) {
-            throw new AlreadyRegisteredException();
-        }
-
-        // generate unique id
-        // TODO evaluate secure key generator in place of uuid
-        String id = UUID.randomUUID().toString();
-
-        String transports = reg.getTransports();
-        long signatureCount = reg.getSignatureCount();
-        if (signatureCount < 0) {
-            throw new InvalidDataException("signature-count");
-        }
-
-        String displayName = reg.getDisplayName();
-        if (StringUtils.hasText(displayName)) {
-            displayName = Jsoup.clean(displayName, Safelist.none());
-        }
-
-        // build model
-        c = new WebAuthnUserCredential();
-        c.setId(id);
-        c.setProvider(repositoryId);
-
-        c.setUsername(username);
-        c.setUserHandle(userHandle);
-
-        c.setCredentialId(credentialId);
-        c.setDisplayName(displayName);
-        c.setPublicKeyCose(publicKeyCose);
-        c.setTransports(transports);
-        c.setSignatureCount(signatureCount);
-        c.setDiscoverable(reg.getDiscoverable());
-
-        c.setAttestationObject(reg.getAttestationObject());
-        c.setClientData(reg.getClientData());
-
-        c.setStatus(CredentialsStatus.ACTIVE.getValue());
-
-        logger.debug("add credential {} for {}", c.getCredentialId(), String.valueOf(userHandle));
         if (logger.isTraceEnabled()) {
-            logger.trace("new credential: {}", String.valueOf(c));
+            logger.trace("registration: {}", String.valueOf(reg));
         }
 
-        c = credentialsRepository.saveAndFlush(c);
-        c = credentialsRepository.detach(c);
+        try {
+            // check if already registered
+            WebAuthnUserCredential credential = credentialRepository.findOne(id);
+            if (credential != null) {
+                throw new DuplicatedDataException("id");
+            }
 
-        return c;
+            // create credential already hashed
+            credential = new WebAuthnUserCredential();
+            credential.setId(id);
+            credential.setRepositoryId(repository);
+
+            credential.setUsername(reg.getUsername());
+            credential.setUserId(reg.getUserId());
+            credential.setRealm(reg.getRealm());
+
+            credential.setUserHandle(reg.getUserHandle());
+            credential.setDisplayName(reg.getDisplayName());
+            credential.setCredentialId(reg.getCredentialId());
+            credential.setPublicKeyCose(reg.getPublicKeyCose());
+            credential.setSignatureCount(0);
+            credential.setTransports(reg.getTransports());
+            credential.setDiscoverable(reg.getDiscoverable());
+            credential.setAttestationObject(reg.getAttestationObject());
+            credential.setClientData(reg.getClientData());
+            credential.setLastUsedDate(null);
+
+            // set status as active
+            credential.setStatus(CredentialsStatus.ACTIVE.getValue());
+
+            // note: use flush because we detach the entity!
+            credential = credentialRepository.saveAndFlush(credential);
+
+            // credential are encrypted, return as is
+            credential = credentialRepository.detach(credential);
+
+            credential.setAuthority(reg.getAuthority());
+            credential.setProvider(reg.getProvider());
+
+            if (logger.isTraceEnabled()) {
+                logger.trace("credential: {}", String.valueOf(credential));
+            }
+
+            return credential;
+        } catch (Exception e) {
+            throw new RegistrationException(e.getMessage());
+        }
     }
 
-    public WebAuthnUserCredential updateCredential(String repositoryId, String userHandle, String credentialId,
-            WebAuthnUserCredential reg) throws NoSuchCredentialException, RegistrationException {
-        // fetch credential from repo via provided id
-        WebAuthnUserCredential c = credentialsRepository.findByProviderAndUserHandleAndCredentialId(repositoryId,
-                userHandle,
-                credentialId);
-        if (c == null) {
+    @Override
+    public WebAuthnUserCredential updateCredentials(@NotNull String repository, @NotNull String id,
+            @NotNull WebAuthnUserCredential reg) throws NoSuchCredentialException, RegistrationException {
+        logger.debug("update credentials with id {} in repository {}", String.valueOf(id), String.valueOf(repository));
+
+        if (reg == null) {
+            throw new RegistrationException();
+        }
+
+        if (logger.isTraceEnabled()) {
+            logger.trace("registration: {}", String.valueOf(reg));
+        }
+        WebAuthnUserCredential credential = credentialRepository.findOne(id);
+        if (credential == null) {
             throw new NoSuchCredentialException();
         }
 
-        // extract data
-        String displayName = reg.getDisplayName();
-        if (StringUtils.hasText(displayName)) {
-            displayName = Jsoup.clean(displayName, Safelist.none());
-        }
+        try {
+            // set update fields
+            credential.setUsername(reg.getUsername());
+            credential.setUserId(reg.getUserId());
+            credential.setRealm(reg.getRealm());
 
-        long signatureCount = reg.getSignatureCount();
-        if (signatureCount < 0) {
-            throw new InvalidDataException("signature-count");
-        }
-        // update allowed fields
-        c.setDisplayName(displayName);
-        c.setSignatureCount(signatureCount);
+            credential.setUserHandle(reg.getUserHandle());
+            credential.setDisplayName(reg.getDisplayName());
+            credential.setCredentialId(reg.getCredentialId());
+            credential.setPublicKeyCose(reg.getPublicKeyCose());
+            credential.setSignatureCount(reg.getSignatureCount());
+            credential.setTransports(reg.getTransports());
+            credential.setDiscoverable(reg.getDiscoverable());
+            credential.setAttestationObject(reg.getAttestationObject());
+            credential.setClientData(reg.getClientData());
+            credential.setLastUsedDate(reg.getLastUsedDate());
 
-        logger.debug("update credential {} displayName {} signature count {}", c.getCredentialId(),
-                String.valueOf(displayName), String.valueOf(signatureCount));
-        if (logger.isTraceEnabled()) {
-            logger.trace("update credential: {}", String.valueOf(c));
-        }
+            credential.setStatus(reg.getStatus());
 
-        c = credentialsRepository.saveAndFlush(c);
-        c = credentialsRepository.detach(c);
+            // note: use flush because we detach the entity!
+            credential = credentialRepository.saveAndFlush(credential);
 
-        return c;
-    }
+            // credential are encrypted, return as is
+            credential = credentialRepository.detach(credential);
 
-    public WebAuthnUserCredential updateCredentialCounter(String repositoryId, String userHandle, String credentialId,
-            long count) throws NoSuchCredentialException, RegistrationException {
-        // fetch credential from repo via provided id
-        WebAuthnUserCredential c = credentialsRepository.findByProviderAndUserHandleAndCredentialId(repositoryId,
-                userHandle,
-                credentialId);
-        if (c == null) {
-            throw new NoSuchCredentialException();
-        }
+            if (logger.isTraceEnabled()) {
+                logger.trace("credential: {}", String.valueOf(credential));
+            }
 
-        // allow only increment
-        long signatureCount = c.getSignatureCount();
-        if (count < signatureCount) {
-            throw new InvalidDataException("signature-count");
-        }
+            credential.setAuthority(reg.getAuthority());
+            credential.setProvider(reg.getProvider());
 
-        // update field
-        c.setSignatureCount(count);
-        logger.debug("update credential {} signature count to {}", c.getCredentialId(), String.valueOf(count));
-
-        c = credentialsRepository.saveAndFlush(c);
-        c = credentialsRepository.detach(c);
-
-        return c;
-    }
-
-    public void deleteCredentials(String repositoryId, String userHandle) {
-        // fetch all credentials and delete
-        List<WebAuthnUserCredential> toDelete = credentialsRepository.findByProviderAndUserHandle(repositoryId,
-                userHandle);
-        credentialsRepository.deleteAllInBatch(toDelete);
-    }
-
-    public void deleteCredential(String repositoryId, String userHandle, String credentialId) {
-        // fetch credential from repo via provided id
-        WebAuthnUserCredential c = credentialsRepository.findByProviderAndUserHandleAndCredentialId(repositoryId,
-                userHandle,
-                credentialId);
-        if (c != null) {
-            logger.debug("delete credential {} with id {}", c.getCredentialId(), c.getId());
-            credentialsRepository.delete(c);
+            return credential;
+        } catch (Exception e) {
+            throw new RegistrationException(e.getMessage());
         }
     }
 
-    public WebAuthnUserCredential revokeCredential(String repositoryId, String userHandle, String credentialId)
-            throws NoSuchUserException {
-        // fetch credential from repo via provided id
-        WebAuthnUserCredential c = credentialsRepository.findByProviderAndUserHandleAndCredentialId(repositoryId,
-                userHandle,
-                credentialId);
-        if (c == null) {
-            throw new NoSuchUserException();
+    @Override
+    public void deleteCredentials(@NotNull String repository, @NotNull String id) {
+        WebAuthnUserCredential credential = credentialRepository.findOne(id);
+        if (credential != null) {
+            logger.debug("delete credential with id {} repository {}", String.valueOf(id), String.valueOf(repository));
+            credentialRepository.delete(credential);
         }
 
-        // we can transition from any status to revoked
-        if (!STATUS_REVOKED.equals(c.getStatus())) {
-            // update status
-            c.setStatus(STATUS_REVOKED);
-
-            logger.debug("revoke credential {}", c.getCredentialId());
-            c = credentialsRepository.saveAndFlush(c);
-        }
-
-        c = credentialsRepository.detach(c);
-        return c;
     }
-
-    /*
-     * Status codes
-     */
-    private static final String STATUS_ACTIVE = CredentialsStatus.ACTIVE.getValue();
-    private static final String STATUS_REVOKED = CredentialsStatus.REVOKED.getValue();
-//    private static final String STATUS_EXPIRED = CredentialsStatus.EXPIRED.getValue();
-
 }

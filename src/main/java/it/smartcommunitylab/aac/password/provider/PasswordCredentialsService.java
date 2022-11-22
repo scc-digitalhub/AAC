@@ -27,7 +27,7 @@ import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.model.PasswordPolicy;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
-import it.smartcommunitylab.aac.password.service.InternalUserPasswordService;
+import it.smartcommunitylab.aac.password.service.InternalPasswordService;
 import it.smartcommunitylab.aac.utils.MailService;
 
 public class PasswordCredentialsService extends
@@ -39,7 +39,7 @@ public class PasswordCredentialsService extends
 
     // services
     private final UserAccountService<InternalUserAccount> accountService;
-    private final InternalUserPasswordService passwordService;
+    private final InternalPasswordService passwordService;
 
     // provider configuration
     private final String repositoryId;
@@ -49,7 +49,7 @@ public class PasswordCredentialsService extends
 
     public PasswordCredentialsService(String providerId,
             UserAccountService<InternalUserAccount> userAccountService,
-            InternalUserPasswordService passwordService,
+            InternalPasswordService passwordService,
             PasswordCredentialsServiceConfig providerConfig,
             String realm) {
         super(SystemKeys.AUTHORITY_PASSWORD, providerId, realm, providerConfig);

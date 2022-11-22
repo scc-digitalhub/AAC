@@ -90,8 +90,13 @@ public class AbstractAccountProvider<U extends AbstractAccount> extends Abstract
     @Override
     @Transactional(readOnly = true)
     public U findAccountByUuid(String uuid) {
-        U account = accountService.findAccountByUuid(repositoryId, uuid);
+        U account = accountService.findAccountByUuid(uuid);
         if (account == null) {
+            return null;
+        }
+
+        // check repository matches
+        if (!repositoryId.equals(account.getRepositoryId())) {
             return null;
         }
 

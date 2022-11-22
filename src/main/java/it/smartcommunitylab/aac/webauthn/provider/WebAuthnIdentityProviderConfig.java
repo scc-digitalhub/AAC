@@ -21,7 +21,8 @@ public class WebAuthnIdentityProviderConfig extends AbstractIdentityProviderConf
     }
 
     public String getRepositoryId() {
-        return configMap.getRepositoryId() != null ? configMap.getRepositoryId() : getRealm();
+        // not configurable for now
+        return getRealm();
     }
 
     /*

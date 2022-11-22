@@ -107,11 +107,10 @@ public class InternalUserAccountService
     }
 
     @Transactional(readOnly = true)
-    public InternalUserAccount findAccountByUuid(String repository, String uuid) {
-        logger.debug("find account with uuid {} in repository {}", String.valueOf(uuid),
-                String.valueOf(repository));
+    public InternalUserAccount findAccountByUuid(String uuid) {
+        logger.debug("find account with uuid {}", String.valueOf(uuid));
 
-        InternalUserAccount account = accountRepository.findByRepositoryIdAndUuid(repository, uuid);
+        InternalUserAccount account = accountRepository.findByUuid(uuid);
         if (account == null) {
             return null;
         }
@@ -172,9 +171,8 @@ public class InternalUserAccountService
             }
 
             // we explode model
-            account = new InternalUserAccount(reg.getAuthority());
+            account = new InternalUserAccount();
             account.setRepositoryId(repository);
-            account.setProvider(reg.getProvider());
             account.setUsername(username);
 
             account.setUuid(s.getSubjectId());
@@ -196,6 +194,9 @@ public class InternalUserAccountService
             if (logger.isTraceEnabled()) {
                 logger.trace("account: {}", String.valueOf(account));
             }
+
+            account.setAuthority(reg.getAuthority());
+            account.setProvider(reg.getProvider());
 
             return account;
         } catch (Exception e) {
@@ -233,8 +234,6 @@ public class InternalUserAccountService
 //            }
 
             // we explode model and update every field
-            account.setAuthority(reg.getAuthority());
-            account.setProvider(reg.getProvider());
             account.setUserId(reg.getUserId());
             account.setRealm(reg.getRealm());
             account.setStatus(reg.getStatus());
@@ -252,6 +251,9 @@ public class InternalUserAccountService
             if (logger.isTraceEnabled()) {
                 logger.trace("account: {}", String.valueOf(account));
             }
+
+            account.setAuthority(reg.getAuthority());
+            account.setProvider(reg.getProvider());
 
             return account;
         } catch (Exception e) {

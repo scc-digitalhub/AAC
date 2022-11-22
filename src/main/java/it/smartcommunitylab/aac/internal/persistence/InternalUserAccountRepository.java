@@ -12,7 +12,7 @@ public interface InternalUserAccountRepository
         extends CustomJpaRepository<InternalUserAccount, InternalUserAccountId>,
         DetachableJpaRepository<InternalUserAccount> {
 
-    InternalUserAccount findByRepositoryIdAndUuid(String repositoryId, String uuid);
+    InternalUserAccount findByUuid(String uuid);
 
     List<InternalUserAccount> findByRepositoryIdAndEmail(String repositoryId, String email);
 

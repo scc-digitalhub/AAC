@@ -56,12 +56,12 @@ import it.smartcommunitylab.aac.oauth.service.OAuth2ClientAppService;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.password.auth.UsernamePasswordAuthenticationToken;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
-import it.smartcommunitylab.aac.password.service.InternalUserPasswordService;
+import it.smartcommunitylab.aac.password.service.InternalPasswordService;
 import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import it.smartcommunitylab.aac.services.Service;
 import it.smartcommunitylab.aac.services.ServicesService;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserCredentialsService;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnCredentialsService;
 
 @Component
 @Transactional
@@ -126,10 +126,10 @@ public class AACBootstrap {
     private UserAccountService<SamlUserAccount> samlUserAccountService;
 
     @Autowired
-    private WebAuthnUserCredentialsService webAuthnUserCredentialsService;
+    private WebAuthnCredentialsService webAuthnUserCredentialsService;
 
     @Autowired
-    private InternalUserPasswordService internalUserPasswordService;
+    private InternalPasswordService internalUserPasswordService;
 
     @Autowired
     private OAuth2ClientAppService clientAppService;

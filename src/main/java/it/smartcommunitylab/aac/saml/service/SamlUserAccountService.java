@@ -89,11 +89,10 @@ public class SamlUserAccountService implements UserAccountService<SamlUserAccoun
     }
 
     @Transactional(readOnly = true)
-    public SamlUserAccount findAccountByUuid(String repository, String uuid) {
-        logger.debug("find account with uuid {} in repository {}", String.valueOf(uuid),
-                String.valueOf(repository));
+    public SamlUserAccount findAccountByUuid(String uuid) {
+        logger.debug("find account with uuid {}", String.valueOf(uuid));
 
-        SamlUserAccount account = accountRepository.findByRepositoryIdAndUuid(repository, uuid);
+        SamlUserAccount account = accountRepository.findByUuid(uuid);
         if (account == null) {
             return null;
         }
@@ -179,6 +178,9 @@ public class SamlUserAccountService implements UserAccountService<SamlUserAccoun
             account = accountRepository.saveAndFlush(account);
             account = accountRepository.detach(account);
 
+            account.setAuthority(reg.getAuthority());
+            account.setProvider(reg.getProvider());
+
             if (logger.isTraceEnabled()) {
                 logger.trace("account: {}", String.valueOf(account));
             }
@@ -218,8 +220,6 @@ public class SamlUserAccountService implements UserAccountService<SamlUserAccoun
 //            }
 
             // extract attributes and update model
-            account.setAuthority(reg.getAuthority());
-            account.setProvider(reg.getProvider());
             account.setUserId(reg.getUserId());
             account.setRealm(reg.getRealm());
 
@@ -240,6 +240,9 @@ public class SamlUserAccountService implements UserAccountService<SamlUserAccoun
             if (logger.isTraceEnabled()) {
                 logger.trace("account: {}", String.valueOf(account));
             }
+
+            account.setAuthority(reg.getAuthority());
+            account.setProvider(reg.getProvider());
 
             return account;
         } catch (Exception e) {

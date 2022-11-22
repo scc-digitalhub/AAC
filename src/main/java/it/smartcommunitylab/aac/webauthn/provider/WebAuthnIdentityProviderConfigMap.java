@@ -27,9 +27,6 @@ public class WebAuthnIdentityProviderConfigMap extends AbstractConfigMap impleme
     @Max(3 * 24 * 60 * 60)
     protected Integer maxSessionDuration;
 
-    @Pattern(regexp = SystemKeys.SLUG_PATTERN)
-    private String repositoryId;
-
     private Boolean displayAsButton;
 
     private Boolean allowUntrustedAttestation;
@@ -52,14 +49,6 @@ public class WebAuthnIdentityProviderConfigMap extends AbstractConfigMap impleme
 
     public void setMaxSessionDuration(Integer maxSessionDuration) {
         this.maxSessionDuration = maxSessionDuration;
-    }
-
-    public String getRepositoryId() {
-        return repositoryId;
-    }
-
-    public void setRepositoryId(String repositoryId) {
-        this.repositoryId = repositoryId;
     }
 
     public Boolean getDisplayAsButton() {
@@ -121,7 +110,6 @@ public class WebAuthnIdentityProviderConfigMap extends AbstractConfigMap impleme
     @JsonIgnore
     public void setConfiguration(WebAuthnIdentityProviderConfigMap map) {
         this.maxSessionDuration = map.getMaxSessionDuration();
-        this.repositoryId = map.getRepositoryId();
 
         this.displayAsButton = map.getDisplayAsButton();
         this.allowUntrustedAttestation = map.getAllowUntrustedAttestation();

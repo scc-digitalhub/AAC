@@ -38,6 +38,9 @@ public abstract class AbstractAccount extends AbstractBaseUserResource implement
     // uuid is mandatory
     public abstract String getUuid();
 
+    // repositoryId is always available
+    public abstract String getRepositoryId();
+
     // account status is manageable
     public abstract String getStatus();
 
