@@ -1,7 +1,7 @@
 package it.smartcommunitylab.aac.password.provider;
 
 import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +22,7 @@ import it.smartcommunitylab.aac.internal.provider.InternalSubjectResolver;
 import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.model.InternalPasswordUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
-import it.smartcommunitylab.aac.password.service.InternalPasswordService;
+import it.smartcommunitylab.aac.password.service.InternalPasswordUserCredentialsService;
 
 public class PasswordIdentityProvider extends
         AbstractIdentityProvider<InternalUserIdentity, InternalUserAccount, InternalPasswordUserAuthenticatedPrincipal, PasswordIdentityProviderConfigMap, PasswordIdentityProviderConfig> {
@@ -41,7 +41,7 @@ public class PasswordIdentityProvider extends
     public PasswordIdentityProvider(
             String providerId,
             UserAccountService<InternalUserAccount> userAccountService,
-            InternalPasswordService userPasswordService,
+            InternalPasswordUserCredentialsService userPasswordService,
             PasswordIdentityProviderConfig config,
             String realm) {
         super(SystemKeys.AUTHORITY_PASSWORD, providerId, config, realm);
@@ -119,11 +119,9 @@ public class PasswordIdentityProvider extends
         // if attributes then load credentials
         if (attributes != null) {
             try {
-                InternalUserPassword password = passwordService.findPassword(account.getUsername());
-                if (password != null) {
-                    password.eraseCredentials();
-                    identity.setCredentials(Collections.singletonList(password));
-                }
+                List<InternalUserPassword> passwords = passwordService.findPassword(account.getUsername());
+                passwords.forEach(p -> p.eraseCredentials());
+                identity.setCredentials(passwords);
             } catch (NoSuchUserException e) {
                 // this should not happen
                 logger.error("no user for account {}", String.valueOf(account.getUsername()));

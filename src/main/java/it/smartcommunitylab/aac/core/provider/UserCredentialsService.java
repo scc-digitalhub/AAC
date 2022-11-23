@@ -27,4 +27,9 @@ public interface UserCredentialsService<C extends UserCredentials> {
             throws NoSuchCredentialException, RegistrationException;
 
     public void deleteCredentials(@NotNull String repository, @NotNull String id);
+
+    public void deleteCredentialsByUser(@NotNull String repository, @NotNull String userId);
+
+    public void deleteCredentialsByAccount(@NotNull String repository, @NotNull String account);
+
 }

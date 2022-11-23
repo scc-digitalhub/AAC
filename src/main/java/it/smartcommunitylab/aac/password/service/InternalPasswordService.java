@@ -5,6 +5,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -27,25 +28,19 @@ import it.smartcommunitylab.aac.oauth.common.SecureStringKeyGenerator;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
 
-/*
- * An internal service which handles password persistence for internal user accounts, via JPA.
- * 
- * We enforce detach on fetch to keep internal datasource isolated. 
- */
-
 @Transactional
 public class InternalPasswordService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final InternalUserPasswordRepository passwordRepository;
+    private final InternalPasswordUserCredentialsService credentialsService;
 
     // TODO interface + config for hasher
     private PasswordHash hasher;
     private StringKeyGenerator keyGenerator;
 
-    public InternalPasswordService(InternalUserPasswordRepository passwordRepository) {
-        Assert.notNull(passwordRepository, "password repository is mandatory");
-        this.passwordRepository = passwordRepository;
+    public InternalPasswordService(InternalPasswordUserCredentialsService credentialsService) {
+        Assert.notNull(credentialsService, "password credentials service is mandatory");
+        this.credentialsService = credentialsService;
 
         this.hasher = new PasswordHash();
 
@@ -61,53 +56,32 @@ public class InternalPasswordService {
      * Password handling
      */
     @Transactional(readOnly = true)
-    public InternalUserPassword findPasswordById(String id) {
-        InternalUserPassword c = passwordRepository.findOne(id);
-        if (c == null) {
-            return null;
-        }
-
-        // password are encrypted, return as is
-        return passwordRepository.detach(c);
+    public InternalUserPassword findPasswordById(String repositoryId, String id) {
+        return credentialsService.findCredentialsById(repositoryId, id);
     }
 
     @Transactional(readOnly = true)
     public InternalUserPassword findPassword(String repositoryId, String username) {
-        // fetch active password
-        InternalUserPassword password = passwordRepository.findByRepositoryIdAndUsernameAndStatusOrderByCreateDateDesc(
-                repositoryId, username,
-                CredentialsStatus.ACTIVE.getValue());
-        if (password != null) {
-            // password are encrypted, return as is
-            password = passwordRepository.detach(password);
-        }
-
-        return password;
+        // fetch first active password
+        return credentialsService
+                .findCredentialsByAccount(repositoryId, username).stream()
+                .filter(c -> STATUS_ACTIVE.equals(c.getStatus())).findFirst().orElse(null);
     }
 
     public InternalUserPassword findByResetKey(String repositoryId, String resetKey) {
         // find via key
-        InternalUserPassword password = passwordRepository.findByRepositoryIdAndResetKey(repositoryId, resetKey);
-        if (password != null) {
-            // password are encrypted, return as is
-            password = passwordRepository.detach(password);
-        }
-
-        return password;
+        return credentialsService.findCredentialsByResetKey(repositoryId, resetKey);
     }
 
     @Transactional(readOnly = true)
     public InternalUserPassword getPassword(String repositoryId, String username) throws NoSuchCredentialException {
         // fetch active password
-        InternalUserPassword password = passwordRepository.findByRepositoryIdAndUsernameAndStatusOrderByCreateDateDesc(
-                repositoryId, username,
-                CredentialsStatus.ACTIVE.getValue());
+        InternalUserPassword password = findPassword(repositoryId, username);
         if (password == null) {
             throw new NoSuchCredentialException();
         }
 
         // password are encrypted, return as is
-        password = passwordRepository.detach(password);
         return password;
     }
 
@@ -196,39 +170,39 @@ public class InternalPasswordService {
     }
 
     public boolean verifyPassword(String repositoryId, String username, String password) throws NoSuchUserException {
-        // fetch active password
-        InternalUserPassword pass = passwordRepository.findByRepositoryIdAndUsernameAndStatusOrderByCreateDateDesc(
-                repositoryId,
-                username, STATUS_ACTIVE);
-        if (pass == null) {
-            return false;
-        }
+        // fetch ALL active passwords
+        List<InternalUserPassword> credentials = credentialsService
+                .findCredentialsByAccount(repositoryId, username).stream()
+                .filter(c -> STATUS_ACTIVE.equals(c.getStatus()) && !c.isExpired())
+                .collect(Collectors.toList());
 
-        try {
-            // verify expiration
-            if (pass.isExpired()) {
-                // set expired
-                pass.setStatus(STATUS_EXPIRED);
-                passwordRepository.saveAndFlush(pass);
-
-                return false;
+        // update status on active + expired
+        credentials.stream().filter(c -> c.isExpired()).forEach(c -> {
+            c.setStatus(STATUS_EXPIRED);
+            try {
+                credentialsService.updateCredentials(repositoryId, c.getId(), c);
+            } catch (RegistrationException | NoSuchCredentialException e) {
+                // ignore
             }
+        });
 
-            // verify match
-            return hasher.validatePassword(password, pass.getPassword());
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-            throw new SystemException(e.getMessage());
-        }
+        // pick any match on hashed password for non expired credentials
+        return credentials.stream()
+                .anyMatch(c -> {
+                    try {
+                        return !c.isExpired() && hasher.validatePassword(password, c.getPassword());
+                    } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+                        throw new SystemException(e.getMessage());
+                    }
+                });
 
     }
 
     public void deletePassword(String repositoryId, String username) {
         // TODO add locking for atomic operation
 
-        // delete all passwords
-        List<InternalUserPassword> toDelete = passwordRepository
-                .findByRepositoryIdAndUsernameOrderByCreateDateDesc(repositoryId, username);
-        passwordRepository.deleteAllInBatch(toDelete);
+        // delete all passwords for the given account
+        credentialsService.deleteCredentialsByAccount(repositoryId, username);
     }
 
     public InternalUserPassword revokePassword(String repositoryId, String username, String password)

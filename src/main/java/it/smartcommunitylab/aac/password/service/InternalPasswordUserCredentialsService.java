@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.password.service;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.validation.constraints.NotNull;
@@ -49,6 +50,20 @@ public class InternalPasswordUserCredentialsService implements UserCredentialsSe
         logger.debug("find credentials with id {} in repository {}", String.valueOf(id), String.valueOf(repository));
 
         InternalUserPassword password = passwordRepository.findOne(id);
+        if (password == null) {
+            return null;
+        }
+
+        // detach the entity, we don't want modifications to be persisted via a
+        // read-only interface
+        return passwordRepository.detach(password);
+    }
+
+    public InternalUserPassword findCredentialsByResetKey(@NotNull String repository, @NotNull String key) {
+        logger.debug("find credentials with reset key {} in repository {}", String.valueOf(key),
+                String.valueOf(repository));
+
+        InternalUserPassword password = passwordRepository.findByRepositoryIdAndResetKey(repository, key);
         if (password == null) {
             return null;
         }
@@ -212,6 +227,30 @@ public class InternalPasswordUserCredentialsService implements UserCredentialsSe
             logger.debug("delete password with id {} repository {}", String.valueOf(id), String.valueOf(repository));
             passwordRepository.delete(password);
         }
+    }
+
+    public void deleteCredentials(@NotNull String repository, @NotNull Set<String> ids) {
+        logger.debug("delete passwords with id in {} repository {}", String.valueOf(ids), String.valueOf(repository));
+        passwordRepository.deleteAllByIdInBatch(ids);
+    }
+
+    @Override
+    public void deleteCredentialsByUser(@NotNull String repository, @NotNull String userId) {
+        logger.debug("delete credentials for user {} in repository {}", String.valueOf(userId),
+                String.valueOf(repository));
+
+        List<InternalUserPassword> passwords = passwordRepository.findByRepositoryIdAndUserId(repository, userId);
+        passwordRepository.deleteAllInBatch(passwords);
+    }
+
+    @Override
+    public void deleteCredentialsByAccount(@NotNull String repository, @NotNull String accountId) {
+        logger.debug("delete credentials for account {} in repository {}", String.valueOf(accountId),
+                String.valueOf(repository));
+
+        List<InternalUserPassword> passwords = passwordRepository
+                .findByRepositoryIdAndUsernameOrderByCreateDateDesc(repository, accountId);
+        passwordRepository.deleteAllInBatch(passwords);
 
     }
 }

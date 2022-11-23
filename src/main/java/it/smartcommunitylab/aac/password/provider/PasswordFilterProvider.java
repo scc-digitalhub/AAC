@@ -18,18 +18,19 @@ import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.password.auth.UsernamePasswordAuthenticationFilter;
 import it.smartcommunitylab.aac.password.auth.ResetKeyAuthenticationFilter;
 import it.smartcommunitylab.aac.password.service.InternalPasswordService;
+import it.smartcommunitylab.aac.password.service.InternalPasswordUserCredentialsService;
 
 public class PasswordFilterProvider implements FilterProvider {
 
     private final ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository;
     private final UserAccountService<InternalUserAccount> userAccountService;
-    private final InternalPasswordService userPasswordService;
+    private final InternalPasswordUserCredentialsService userPasswordService;
 
     private AuthenticationManager authManager;
 
     public PasswordFilterProvider(
             UserAccountService<InternalUserAccount> userAccountService,
-            InternalPasswordService userPasswordService,
+            InternalPasswordUserCredentialsService userPasswordService,
             ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository) {
         Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(userPasswordService, "password service is mandatory");

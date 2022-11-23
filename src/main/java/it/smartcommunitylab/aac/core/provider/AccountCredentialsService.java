@@ -43,8 +43,8 @@ public interface AccountCredentialsService<R extends UserCredentials, M extends 
     public R setCredentials(String accountId, String credentialsId, UserCredentials credentials)
             throws NoSuchUserException, RegistrationException, NoSuchCredentialException;
 
-    public void resetCredentials(String accountId, String credentialsId)
-            throws NoSuchUserException, NoSuchCredentialException;
+//    public void resetCredentials(String accountId, String credentialsId)
+//            throws NoSuchUserException, NoSuchCredentialException;
 
     public void revokeCredentials(String accountId, String credentialsId)
             throws NoSuchUserException, NoSuchCredentialException;
