@@ -17,7 +17,6 @@ import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.password.auth.UsernamePasswordAuthenticationFilter;
 import it.smartcommunitylab.aac.password.auth.ResetKeyAuthenticationFilter;
-import it.smartcommunitylab.aac.password.service.InternalPasswordService;
 import it.smartcommunitylab.aac.password.service.InternalPasswordUserCredentialsService;
 
 public class PasswordFilterProvider implements FilterProvider {

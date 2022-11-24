@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.password.service;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -229,13 +230,14 @@ public class InternalPasswordUserCredentialsService implements UserCredentialsSe
         }
     }
 
-    public void deleteCredentials(@NotNull String repository, @NotNull Set<String> ids) {
+    @Override
+    public void deleteAllCredentials(@NotNull String repository, @NotNull Collection<String> ids) {
         logger.debug("delete passwords with id in {} repository {}", String.valueOf(ids), String.valueOf(repository));
         passwordRepository.deleteAllByIdInBatch(ids);
     }
 
     @Override
-    public void deleteCredentialsByUser(@NotNull String repository, @NotNull String userId) {
+    public void deleteAllCredentialsByUser(@NotNull String repository, @NotNull String userId) {
         logger.debug("delete credentials for user {} in repository {}", String.valueOf(userId),
                 String.valueOf(repository));
 
@@ -244,7 +246,7 @@ public class InternalPasswordUserCredentialsService implements UserCredentialsSe
     }
 
     @Override
-    public void deleteCredentialsByAccount(@NotNull String repository, @NotNull String accountId) {
+    public void deleteAllCredentialsByAccount(@NotNull String repository, @NotNull String accountId) {
         logger.debug("delete credentials for account {} in repository {}", String.valueOf(accountId),
                 String.valueOf(repository));
 

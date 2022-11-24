@@ -65,7 +65,7 @@ import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
 import it.smartcommunitylab.aac.openid.service.OIDCUserAccountService;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
-import it.smartcommunitylab.aac.password.service.InternalPasswordService;
+import it.smartcommunitylab.aac.password.service.InternalPasswordUserCredentialsService;
 import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
@@ -194,9 +194,9 @@ public class PersistenceConfig {
     }
 
     @Bean
-    public InternalPasswordService internalUserPasswordService(
+    public InternalPasswordUserCredentialsService internalUserPasswordService(
             InternalUserPasswordRepository passwordRepository) {
-        return new InternalPasswordService(passwordRepository);
+        return new InternalPasswordUserCredentialsService(passwordRepository);
     }
 
     @Bean

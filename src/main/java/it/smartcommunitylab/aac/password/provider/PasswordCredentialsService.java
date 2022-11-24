@@ -1,15 +1,22 @@
 package it.smartcommunitylab.aac.password.provider;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.Calendar;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
 import javax.mail.MessagingException;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -17,39 +24,47 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.InvalidPasswordException;
 import it.smartcommunitylab.aac.common.NoSuchCredentialException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsProvider;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.crypto.PasswordHash;
 import it.smartcommunitylab.aac.core.provider.AccountCredentialsService;
+import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.model.PasswordPolicy;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
-import it.smartcommunitylab.aac.password.service.InternalPasswordService;
+import it.smartcommunitylab.aac.password.service.InternalPasswordUserCredentialsService;
 import it.smartcommunitylab.aac.utils.MailService;
 
 public class PasswordCredentialsService extends
         AbstractConfigurableProvider<InternalUserPassword, ConfigurableCredentialsProvider, PasswordIdentityProviderConfigMap, PasswordCredentialsServiceConfig>
         implements
         AccountCredentialsService<InternalUserPassword, PasswordIdentityProviderConfigMap, PasswordCredentialsServiceConfig> {
+    private static final String STATUS_ACTIVE = CredentialsStatus.ACTIVE.getValue();
+    private static final String STATUS_INACTIVE = CredentialsStatus.INACTIVE.getValue();
+    private static final String STATUS_REVOKED = CredentialsStatus.REVOKED.getValue();
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // services
     private final UserAccountService<InternalUserAccount> accountService;
-    private final InternalPasswordService passwordService;
+    private final InternalPasswordUserCredentialsService passwordService;
 
     // provider configuration
+    private final PasswordCredentialsServiceConfig config;
     private final String repositoryId;
 
+    private PasswordHash hasher;
     private MailService mailService;
     private RealmAwareUriBuilder uriBuilder;
 
     public PasswordCredentialsService(String providerId,
             UserAccountService<InternalUserAccount> userAccountService,
-            InternalPasswordService passwordService,
+            InternalPasswordUserCredentialsService passwordService,
             PasswordCredentialsServiceConfig providerConfig,
             String realm) {
         super(SystemKeys.AUTHORITY_PASSWORD, providerId, realm, providerConfig);
@@ -57,12 +72,15 @@ public class PasswordCredentialsService extends
         Assert.notNull(passwordService, "password service is mandatory");
         Assert.notNull(providerConfig, "provider config is mandatory");
 
-        this.repositoryId = providerConfig.getRepositoryId();
+        this.config = providerConfig;
+        this.repositoryId = config.getRepositoryId();
         logger.debug("create password credentials service with id {} repository {}", String.valueOf(providerId),
                 repositoryId);
 
         this.accountService = userAccountService;
         this.passwordService = passwordService;
+
+        this.hasher = new PasswordHash();
     }
 
     public void setMailService(MailService mailService) {
@@ -73,17 +91,160 @@ public class PasswordCredentialsService extends
         this.uriBuilder = uriBuilder;
     }
 
-    public boolean canSet() {
-        return config.isEnablePasswordSet();
+    public void setHasher(PasswordHash hasher) {
+        Assert.notNull(hasher, "password hasher can not be null");
+        this.hasher = hasher;
     }
 
-    public boolean canReset() {
-        return config.isEnablePasswordReset();
+    /*
+     * Password management
+     * for (internal) password API
+     */
+
+    public boolean verifyPassword(String username, String password) throws NoSuchUserException {
+        InternalUserAccount account = accountService.findAccountById(repositoryId, username);
+        if (account == null) {
+            throw new NoSuchUserException();
+        }
+
+        // fetch ALL active + non expired credentials
+        List<InternalUserPassword> credentials = passwordService
+                .findCredentialsByAccount(repositoryId, username).stream()
+                .filter(c -> STATUS_ACTIVE.equals(c.getStatus()) && !c.isExpired())
+                .collect(Collectors.toList());
+
+        // pick any match on hashed password
+        return credentials.stream()
+                .anyMatch(c -> {
+                    try {
+                        return hasher.validatePassword(password, c.getPassword());
+                    } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+                        throw new SystemException(e.getMessage());
+                    }
+                });
     }
 
-    public boolean canRevoke() {
-        return true;
+    public InternalUserPassword setPassword(String username, String password, boolean changeOnFirstAccess)
+            throws NoSuchUserException, RegistrationException {
+        // fetch user
+        InternalUserAccount account = accountService.findAccountById(repositoryId, username);
+        if (account == null) {
+            throw new NoSuchUserException();
+        }
+
+        // validate against policy
+        validatePassword(password);
+
+        logger.debug("set password for user {}", String.valueOf(username));
+
+        Date expirationDate = null;
+        // expiration date
+        if (config.getPasswordMaxDays() > 0) {
+            Calendar cal = Calendar.getInstance();
+            cal.add(Calendar.DAY_OF_YEAR, config.getPasswordMaxDays());
+            expirationDate = cal.getTime();
+        }
+
+        try {
+            // encode password
+            String hash = hasher.createHash(password);
+
+            // TODO add locking for atomic operation
+
+            // invalidate all old active/inactive passwords up to keep number, delete others
+            // note: we keep revoked passwords in DB
+            List<InternalUserPassword> oldPasswords = passwordService.findCredentialsByAccount(repositoryId, username);
+
+            // validate new password is NEW
+            // TODO move to proper policy service when implemented
+            boolean isReuse = oldPasswords.stream().anyMatch(p -> {
+                try {
+                    return hasher.validatePassword(password, p.getPassword());
+                } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+                    return false;
+                }
+            });
+
+            if (isReuse && config.getPasswordKeepNumber() > 0) {
+                throw new InvalidPasswordException("password-reuse");
+            }
+
+            List<InternalUserPassword> toUpdate = oldPasswords
+                    .stream()
+                    .filter(p -> !STATUS_REVOKED.equals(p.getStatus()))
+                    .limit(config.getPasswordKeepNumber())
+                    .collect(Collectors.toList());
+
+            Set<String> toDelete = oldPasswords.stream()
+                    .filter(p -> !STATUS_REVOKED.equals(p.getStatus()))
+                    .filter(p -> !toUpdate.contains(p))
+                    .map(p -> p.getId())
+                    .collect(Collectors.toSet());
+            if (!toDelete.isEmpty()) {
+                passwordService.deleteAllCredentials(repositoryId, toDelete);
+            }
+
+            if (!toUpdate.isEmpty()) {
+                toUpdate.forEach(p -> {
+                    p.setStatus(STATUS_INACTIVE);
+                    try {
+                        passwordService.updateCredentials(repositoryId, p.getId(), p);
+                    } catch (RegistrationException | NoSuchCredentialException e) {
+                        // ignore
+                    }
+                });
+            }
+
+            // create password already hashed
+            InternalUserPassword newPassword = new InternalUserPassword();
+            newPassword.setId(UUID.randomUUID().toString());
+            newPassword.setProvider(repositoryId);
+
+            newPassword.setUsername(username);
+            newPassword.setUserId(account.getUserId());
+            newPassword.setRealm(account.getRealm());
+
+            newPassword.setPassword(hash);
+            newPassword.setChangeOnFirstAccess(changeOnFirstAccess);
+            newPassword.setExpirationDate(expirationDate);
+
+            newPassword = passwordService.addCredentials(repositoryId, newPassword.getId(), newPassword);
+
+            // password are encrypted, but clear value for extra safety
+            newPassword.eraseCredentials();
+
+            return newPassword;
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            throw new SystemException(e.getMessage());
+        }
     }
+
+    public InternalUserPassword resetPassword(String username) throws NoSuchUserException, RegistrationException {
+        // fetch user
+        InternalUserAccount account = accountService.findAccountById(repositoryId, username);
+        if (account == null) {
+            throw new NoSuchUserException();
+        }
+
+        // generate new single-use password
+        String password = generatePassword();
+
+        // set as current, with change required
+        InternalUserPassword pass = setPassword(username, password, true);
+
+        // send via mail
+        try {
+            sendPasswordMail(account, password);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
+
+        return pass;
+    }
+
+    /*
+     * Password policy
+     */
 
     public PasswordPolicy getPasswordPolicy() {
         // return new every time to avoid corruption
@@ -98,219 +259,7 @@ public class PasswordCredentialsService extends
         return policy;
     }
 
-    public boolean verifyPassword(String username, String password) throws NoSuchUserException {
-        // fetch user
-        InternalUserAccount account = accountService.findAccountById(repositoryId, username);
-        if (account == null) {
-            throw new NoSuchUserException();
-        }
-
-        logger.debug("verify password for user {}", String.valueOf(username));
-        return passwordService.verifyPassword(repositoryId, username, password);
-    }
-
-    public String findUsernameByEmail(String email) {
-        InternalUserAccount account = accountService.findAccountByEmail(repositoryId, email).stream()
-                .findFirst().orElse(null);
-        if (account == null) {
-            return null;
-        }
-
-        return account.getUsername();
-    }
-
-    public InternalUserPassword setPassword(String username, String password, boolean changeOnFirstAccess)
-            throws NoSuchUserException {
-        validatePassword(password);
-
-        // fetch user
-        InternalUserAccount account = accountService.findAccountById(repositoryId, username);
-        if (account == null) {
-            throw new NoSuchUserException();
-        }
-
-        logger.debug("set password for user {}", String.valueOf(username));
-        // set new password as active
-        InternalUserPassword pass = passwordService.setPassword(repositoryId, username, password, changeOnFirstAccess,
-                config.getPasswordMaxDays(), config.getPasswordKeepNumber());
-
-        // password are encrypted, can't read
-        // we return a placeholder to describe status
-        pass.eraseCredentials();
-        return pass;
-    }
-
-    /*
-     * Credentials
-     */
-
-    @Override
-    @Transactional(readOnly = true)
-    public InternalUserPassword getCredentials(String username) throws NoSuchUserException {
-        // fetch user
-        InternalUserAccount account = accountService.findAccountById(repositoryId, username);
-        if (account == null) {
-            throw new NoSuchUserException();
-        }
-
-        InternalUserPassword pass = passwordService.findPassword(repositoryId, username);
-        if (pass != null) {
-            // password are encrypted, can't read
-            // we return a placeholder to describe status
-            pass.eraseCredentials();
-        }
-
-        return pass;
-    }
-
-    @Override
-    public InternalUserPassword addCredentials(String username, UserCredentials cred) throws NoSuchUserException {
-        // we support only password
-        if (!(cred instanceof InternalUserPassword)) {
-            throw new IllegalArgumentException("invalid credentials");
-        }
-
-        // with add we extract only password and rebuild the model
-        String password = ((InternalUserPassword) cred).getPassword();
-        InternalUserPassword pwd = new InternalUserPassword();
-        pwd.setUsername(username);
-        pwd.setPassword(password);
-
-        // replace active where preset via set
-        return setCredentials(username, pwd);
-    }
-
-    @Override
-    public InternalUserPassword setCredentials(String username, UserCredentials cred)
-            throws NoSuchUserException {
-        if (!config.isEnablePasswordSet()) {
-            throw new IllegalArgumentException("set is disabled for this provider");
-        }
-
-        // we support only password
-        if (!(cred instanceof InternalUserPassword)) {
-            throw new IllegalArgumentException("invalid credentials");
-        }
-        InternalUserPassword credentials = (InternalUserPassword) cred;
-
-        if (!username.equals(credentials.getUsername())) {
-            throw new IllegalArgumentException("invalid credentials");
-        }
-
-        InternalUserAccount account = accountService.findAccountById(repositoryId, username);
-        if (account == null) {
-            throw new NoSuchUserException();
-        }
-
-//        // check for confirmed
-//        if (config.isRequireAccountConfirmation() && !account.isConfirmed()) {
-//            throw new IllegalArgumentException("account-unconfirmed");
-//        }
-
-//        // check if userId matches account - disabled, belongs to manager
-//        if (!account.getUserId().equals(credentials.getUserId())) {
-//            throw new IllegalArgumentException("invalid credentials");
-//        }
-
-        String password = credentials.getPassword();
-        validatePassword(password);
-
-        boolean changeOnFirstAccess = credentials.getChangeOnFirstAccess() != null
-                ? credentials.getChangeOnFirstAccess().booleanValue()
-                : false;
-
-        // set new password as active
-        InternalUserPassword pass = passwordService.setPassword(repositoryId, username, password, changeOnFirstAccess,
-                config.getPasswordMaxDays(), config.getPasswordKeepNumber());
-
-        // password are encrypted, can't read
-        // we return a placeholder to describe status
-        pass.eraseCredentials();
-        return pass;
-    }
-
-    @Override
-    public void resetCredentials(String username) throws NoSuchUserException {
-        if (!config.isEnablePasswordReset()) {
-            throw new IllegalArgumentException("reset is disabled for this provider");
-        }
-
-        InternalUserAccount account = accountService.findAccountById(repositoryId, username);
-        if (account == null) {
-            throw new NoSuchUserException();
-        }
-
-        // check for confirmed
-        if (config.isRequireAccountConfirmation() && !account.isConfirmed()) {
-            throw new IllegalArgumentException("account-unconfirmed");
-        }
-
-        // reset credentials by generating the key
-        InternalUserPassword pass = passwordService.resetPassword(repositoryId, username,
-                config.getPasswordResetValidity());
-
-        // send mail
-        try {
-            sendResetMail(account, pass.getResetKey());
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-        }
-
-    }
-
-    @Override
-    public void revokeCredentials(String username) throws NoSuchUserException, NoSuchCredentialException {
-        InternalUserAccount account = accountService.findAccountById(repositoryId, username);
-        if (account == null) {
-            throw new NoSuchUserException();
-        }
-
-        // fetch current active
-        InternalUserPassword password = passwordService.getPassword(repositoryId, username);
-        if (password == null) {
-            throw new NoSuchUserException();
-        }
-
-        // check for confirmed
-        if (config.isRequireAccountConfirmation() && !account.isConfirmed()) {
-            throw new IllegalArgumentException("account-unconfirmed");
-        }
-
-        // revoke this
-        passwordService.revokePassword(repositoryId, username, password.getPassword());
-    }
-
-    @Override
-    public void deleteCredentials(String username) {
-        // delete all passwords
-        passwordService.deletePassword(repositoryId, username);
-    }
-
-    /*
-     * Action urls
-     */
-    @Override
-    public String getResetUrl() {
-        // return link for resetting credentials
-        return PasswordIdentityAuthority.AUTHORITY_URL + "reset/" + getProvider();
-    }
-
-    @Override
-    public String getSetUrl() throws NoSuchUserException {
-        // internal controller route
-        return "/changepwd";
-    }
-    /*
-     * Manage
-     */
-
-    public String generatePassword() {
-        return RandomStringUtils.random(config.getPasswordMaxLength(), true,
-                config.isPasswordRequireNumber());
-    }
-
     public void validatePassword(String password) throws InvalidPasswordException {
-
         if (!StringUtils.hasText(password)) {
             throw new InvalidPasswordException("empty");
         }
@@ -353,91 +302,157 @@ public class PasswordCredentialsService extends
                 throw new InvalidPasswordException("contains-whitespace");
             }
         }
+    }
 
+    /*
+     * Credentials
+     * for credentials API
+     */
+    @Override
+    public Collection<InternalUserPassword> listCredentials(String accountId) throws NoSuchUserException {
+        InternalUserAccount account = accountService.findAccountById(repositoryId, accountId);
+        if (account == null) {
+            throw new NoSuchUserException();
+        }
+
+        // fetch all passwords
+        return passwordService.findCredentialsByAccount(repositoryId, accountId).stream()
+                .map(p -> {
+                    // password are encrypted, but clear value for extra safety
+                    p.eraseCredentials();
+                    return p;
+                }).collect(Collectors.toList());
+    }
+
+    @Override
+    public InternalUserPassword addCredentials(String username, UserCredentials uc) throws NoSuchUserException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public InternalUserPassword getCredentials(String accountId, String credentialsId)
+            throws NoSuchUserException, NoSuchCredentialException {
+        InternalUserAccount account = accountService.findAccountById(repositoryId, accountId);
+        if (account == null) {
+            throw new NoSuchUserException();
+        }
+
+        InternalUserPassword pass = passwordService.findCredentialsById(repositoryId, credentialsId);
+        if (pass == null) {
+            throw new NoSuchCredentialException();
+        }
+
+        if (!accountId.equals(pass.getAccountId())) {
+            // credential is associated to a different account
+            throw new NoSuchCredentialException();
+        }
+
+        // password are encrypted, but clear value for extra safety
+        pass.eraseCredentials();
+
+        return pass;
+
+    }
+
+    @Override
+    public InternalUserPassword setCredentials(String accountId, String credentialsId, UserCredentials credentials)
+            throws NoSuchUserException, RegistrationException, NoSuchCredentialException {
+        // set on current password is not allowed
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public InternalUserPassword revokeCredentials(String accountId, String credentialsId)
+            throws NoSuchUserException, NoSuchCredentialException {
+        InternalUserAccount account = accountService.findAccountById(repositoryId, accountId);
+        if (account == null) {
+            throw new NoSuchUserException();
+        }
+
+        InternalUserPassword pass = passwordService.findCredentialsById(repositoryId, credentialsId);
+        if (pass == null) {
+            throw new NoSuchCredentialException();
+        }
+
+        if (!accountId.equals(pass.getAccountId())) {
+            // credential is associated to a different account
+            throw new NoSuchCredentialException();
+        }
+
+        // we can transition from any status to revoked
+        if (!STATUS_REVOKED.equals(pass.getStatus())) {
+            // update status
+            pass.setStatus(STATUS_REVOKED);
+            pass = passwordService.updateCredentials(repositoryId, credentialsId, pass);
+        }
+
+        // password are encrypted, but clear value for extra safety
+        pass.eraseCredentials();
+
+        return pass;
+    }
+
+    @Override
+    public void deleteCredentials(String accountId, String credentialsId)
+            throws NoSuchUserException, NoSuchCredentialException {
+        InternalUserAccount account = accountService.findAccountById(repositoryId, accountId);
+        if (account == null) {
+            throw new NoSuchUserException();
+        }
+
+        InternalUserPassword pass = passwordService.findCredentialsById(repositoryId, credentialsId);
+        if (pass == null) {
+            throw new NoSuchCredentialException();
+        }
+
+        if (!accountId.equals(pass.getAccountId())) {
+            // credential is associated to a different account
+            throw new NoSuchCredentialException();
+        }
+
+        // delete
+        passwordService.deleteCredentials(repositoryId, credentialsId);
+    }
+
+    @Override
+    public void deleteCredentials(String accountId) {
+        passwordService.deleteAllCredentialsByAccount(repositoryId, accountId);
     }
 
     /*
      * Mail
      */
-//    private void sendPasswordMail(InternalUserAccount account, String password)
-//            throws MessagingException {
-//        if (mailService != null) {
-//            String realm = getRealm();
-//            String loginUrl = "/login";
-//            if (uriBuilder != null) {
-//                loginUrl = uriBuilder.buildUrl(realm, loginUrl);
-//            }
-//
-//            Map<String, String> action = new HashMap<>();
-//            action.put("url", loginUrl);
-//            action.put("text", "action.login");
-//
-//            Map<String, Object> vars = new HashMap<>();
-//            vars.put("user", account);
-//            vars.put("password", password);
-//            vars.put("action", action);
-//            vars.put("realm", account.getRealm());
-//
-//            String template = "password";
-//            mailService.sendEmail(account.getEmail(), template, account.getLang(), vars);
-//        }
-//    }
-
-    private void sendResetMail(InternalUserAccount account, String key) throws MessagingException {
+    private void sendPasswordMail(InternalUserAccount account, String password) throws MessagingException {
         if (mailService != null) {
-            // action is handled by global filter
-            String provider = getProvider();
-            String resetUrl = PasswordIdentityAuthority.AUTHORITY_URL + "doreset/" + provider + "?code=" + key;
+            String realm = getRealm();
+            String loginUrl = "/login";
             if (uriBuilder != null) {
-                resetUrl = uriBuilder.buildUrl(null, resetUrl);
+                loginUrl = uriBuilder.buildUrl(realm, loginUrl);
             }
 
             Map<String, String> action = new HashMap<>();
-            action.put("url", resetUrl);
-            action.put("text", "action.reset");
+            action.put("url", loginUrl);
+            action.put("text", "action.login");
 
             Map<String, Object> vars = new HashMap<>();
             vars.put("user", account);
+            vars.put("password", password);
             vars.put("action", action);
             vars.put("realm", account.getRealm());
 
-            String template = "reset";
+            String template = "password";
             mailService.sendEmail(account.getEmail(), template, account.getLang(), vars);
         }
     }
 
     /*
-     * Multiple credentials are not supported
+     * Helpers
      */
 
-    @Override
-    public Collection<InternalUserPassword> listCredentials(String accountId) throws NoSuchUserException {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public InternalUserPassword getCredentials(String accountId, String credentialsId) throws NoSuchUserException {
-        return null;
-    }
-
-    @Override
-    public InternalUserPassword setCredentials(String accountId, String credentialsId, UserCredentials credentials)
-            throws NoSuchUserException {
-        return null;
-    }
-
-    @Override
-    public void resetCredentials(String accountId, String credentialsId) throws NoSuchUserException {
-    }
-
-    @Override
-    public void revokeCredentials(String accountId, String credentialsId)
-            throws NoSuchUserException {
-    }
-
-    @Override
-    public void deleteCredentials(String accountId, String credentialsId)
-            throws NoSuchUserException {
+    private String generatePassword() {
+        return RandomStringUtils.random(config.getPasswordMaxLength(), true,
+                config.isPasswordRequireNumber());
     }
 
 }

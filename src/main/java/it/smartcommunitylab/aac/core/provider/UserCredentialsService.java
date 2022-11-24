@@ -1,6 +1,8 @@
 package it.smartcommunitylab.aac.core.provider;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import javax.validation.constraints.NotNull;
 
@@ -28,8 +30,11 @@ public interface UserCredentialsService<C extends UserCredentials> {
 
     public void deleteCredentials(@NotNull String repository, @NotNull String id);
 
-    public void deleteCredentialsByUser(@NotNull String repository, @NotNull String userId);
+    public void deleteAllCredentials(@NotNull String repository, @NotNull Collection<String> id);
 
-    public void deleteCredentialsByAccount(@NotNull String repository, @NotNull String account);
+    public void deleteAllCredentialsByUser(@NotNull String repository, @NotNull String userId);
+
+    public void deleteAllCredentialsByAccount(@NotNull String repository, @NotNull String account);
+
 
 }

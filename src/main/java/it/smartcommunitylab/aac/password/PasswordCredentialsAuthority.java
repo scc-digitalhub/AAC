@@ -17,7 +17,7 @@ import it.smartcommunitylab.aac.password.provider.PasswordCredentialsService;
 import it.smartcommunitylab.aac.password.provider.PasswordCredentialsServiceConfig;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfigMap;
-import it.smartcommunitylab.aac.password.service.InternalPasswordService;
+import it.smartcommunitylab.aac.password.service.InternalPasswordUserCredentialsService;
 import it.smartcommunitylab.aac.utils.MailService;
 
 /*
@@ -34,15 +34,15 @@ public class PasswordCredentialsAuthority extends
     // internal account service
     private final UserAccountService<InternalUserAccount> accountService;
 
-    // key repository
-    private final InternalPasswordService passwordService;
+    // password service
+    private final InternalPasswordUserCredentialsService passwordService;
 
     private MailService mailService;
     private RealmAwareUriBuilder uriBuilder;
 
     public PasswordCredentialsAuthority(
             UserAccountService<InternalUserAccount> userAccountService,
-            InternalPasswordService passwordService,
+            InternalPasswordUserCredentialsService passwordService,
             ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository) {
         super(SystemKeys.AUTHORITY_PASSWORD, new PasswordConfigTranslatorRepository(registrationRepository));
         Assert.notNull(userAccountService, "account service is mandatory");

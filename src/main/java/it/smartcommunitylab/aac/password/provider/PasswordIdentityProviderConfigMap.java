@@ -37,8 +37,6 @@ public class PasswordIdentityProviderConfigMap extends AbstractConfigMap impleme
      */
 
     private Boolean enablePasswordReset;
-    private Boolean enablePasswordSet;
-
     @Max(3 * 24 * 60 * 60)
     private Integer passwordResetValidity;
 
@@ -109,14 +107,6 @@ public class PasswordIdentityProviderConfigMap extends AbstractConfigMap impleme
 
     public void setEnablePasswordReset(Boolean enablePasswordReset) {
         this.enablePasswordReset = enablePasswordReset;
-    }
-
-    public Boolean getEnablePasswordSet() {
-        return enablePasswordSet;
-    }
-
-    public void setEnablePasswordSet(Boolean enablePasswordSet) {
-        this.enablePasswordSet = enablePasswordSet;
     }
 
     public Integer getPasswordResetValidity() {
@@ -207,7 +197,6 @@ public class PasswordIdentityProviderConfigMap extends AbstractConfigMap impleme
         this.requireAccountConfirmation = map.getRequireAccountConfirmation();
 
         this.enablePasswordReset = map.getEnablePasswordReset();
-        this.enablePasswordSet = map.getEnablePasswordSet();
         this.passwordResetValidity = map.getPasswordResetValidity();
 
         // password policy, optional

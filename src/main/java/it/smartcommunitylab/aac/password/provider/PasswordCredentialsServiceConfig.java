@@ -37,10 +37,6 @@ public class PasswordCredentialsServiceConfig
         return configMap.getEnablePasswordReset() != null ? configMap.getEnablePasswordReset().booleanValue() : true;
     }
 
-    public boolean isEnablePasswordSet() {
-        return configMap.getEnablePasswordSet() != null ? configMap.getEnablePasswordSet().booleanValue() : true;
-    }
-
     public boolean isPasswordRequireAlpha() {
         return configMap.getPasswordRequireAlpha() != null ? configMap.getPasswordRequireAlpha().booleanValue() : false;
     }

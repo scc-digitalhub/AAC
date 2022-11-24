@@ -46,7 +46,7 @@ public interface AccountCredentialsService<R extends UserCredentials, M extends 
 //    public void resetCredentials(String accountId, String credentialsId)
 //            throws NoSuchUserException, NoSuchCredentialException;
 
-    public void revokeCredentials(String accountId, String credentialsId)
+    public R revokeCredentials(String accountId, String credentialsId)
             throws NoSuchUserException, NoSuchCredentialException;
 
     public void deleteCredentials(String accountId, String credentialsId)
@@ -54,17 +54,17 @@ public interface AccountCredentialsService<R extends UserCredentials, M extends 
 
     public void deleteCredentials(String accountId);
 
-    /*
-     * Action urls
-     */
-    public String getSetUrl() throws NoSuchUserException;
-
-    /*
-     * At least one between resetLink or resetCredentials is required to support
-     * reset. Credentials used for login should be resettable, while those used for
-     * MFA should be removed or revoked.
-     */
-    public String getResetUrl();
+//    /*
+//     * Action urls
+//     */
+//    public String getSetUrl() throws NoSuchUserException;
+//
+//    /*
+//     * At least one between resetLink or resetCredentials is required to support
+//     * reset. Credentials used for login should be resettable, while those used for
+//     * MFA should be removed or revoked.
+//     */
+//    public String getResetUrl();
 
     default public String getType() {
         return SystemKeys.RESOURCE_CREDENTIALS;

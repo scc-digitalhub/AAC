@@ -60,7 +60,7 @@ import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
-import it.smartcommunitylab.aac.password.service.InternalPasswordService;
+import it.smartcommunitylab.aac.password.service.InternalPasswordUserCredentialsService;
 import it.smartcommunitylab.aac.roles.RealmRoleManager;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import it.smartcommunitylab.aac.services.ServicesManager;
@@ -129,7 +129,7 @@ public class RealmManager {
     private WebAuthnCredentialsService webAuthnUserCredentialsService;
 
     @Autowired
-    private InternalPasswordService internalUserPasswordService;
+    private InternalPasswordUserCredentialsService internalUserPasswordService;
 
 //    @Autowired
 //    private SessionManager sessionManager;
@@ -333,6 +333,12 @@ public class RealmManager {
                     // skip
                 }
             }
+
+            // remove all orphan credentials
+            // TODO refactor using credentialsService
+            List<String> passwords = internalUserPasswordService.findCredentialsByRealm(slug).stream()
+                    .map(p -> p.getId()).collect(Collectors.toList());
+            internalUserPasswordService.deleteAllCredentials(slug, passwords);
 
             // remove services
             List<it.smartcommunitylab.aac.services.Service> services = servicesManager.listServices(slug);

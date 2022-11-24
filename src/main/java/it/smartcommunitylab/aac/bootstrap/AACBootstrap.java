@@ -6,6 +6,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +49,7 @@ import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.TemplateProviderService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
+import it.smartcommunitylab.aac.crypto.PasswordHash;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
@@ -56,7 +59,7 @@ import it.smartcommunitylab.aac.oauth.service.OAuth2ClientAppService;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.password.auth.UsernamePasswordAuthenticationToken;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
-import it.smartcommunitylab.aac.password.service.InternalPasswordService;
+import it.smartcommunitylab.aac.password.service.InternalPasswordUserCredentialsService;
 import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import it.smartcommunitylab.aac.services.Service;
@@ -129,13 +132,16 @@ public class AACBootstrap {
     private WebAuthnCredentialsService webAuthnUserCredentialsService;
 
     @Autowired
-    private InternalPasswordService internalUserPasswordService;
+    private InternalPasswordUserCredentialsService internalUserPasswordService;
 
     @Autowired
     private OAuth2ClientAppService clientAppService;
 
     @Autowired
     private ResourceEntityService resourceService;
+
+    @Autowired
+    private PasswordHash hasher;
 
 //    @EventListener
     public void onApplicationEvent(ApplicationStartedEvent event) {
@@ -249,11 +255,12 @@ public class AACBootstrap {
         logger.debug("create internal admin user for realm system", username);
 
         String realm = SystemKeys.REALM_SYSTEM;
+        String repositoryId = realm;
 
         String userId = null;
         UserEntity user = null;
 
-        InternalUserAccount account = internalUserAccountService.findAccountById(realm, username);
+        InternalUserAccount account = internalUserAccountService.findAccountById(repositoryId, username);
         if (account == null) {
             // register as new user
             userId = userEntityService.createUser(realm).getUuid();
@@ -268,7 +275,7 @@ public class AACBootstrap {
             account.setEmail(email);
             account.setStatus(SubjectStatus.ACTIVE.getValue());
             account.setConfirmed(true);
-            account = internalUserAccountService.addAccount(realm, username, account);
+            account = internalUserAccountService.addAccount(repositoryId, username, account);
         } else {
             userId = account.getUserId();
 
@@ -283,7 +290,7 @@ public class AACBootstrap {
             // set as active
             account.setStatus(SubjectStatus.ACTIVE.getValue());
 
-            account = internalUserAccountService.updateAccount(realm, username, account);
+            account = internalUserAccountService.updateAccount(repositoryId, username, account);
 
             // update user
             user = userEntityService.updateUser(userId, username, email);
@@ -294,8 +301,16 @@ public class AACBootstrap {
             user = userEntityService.activateUser(userId);
 
             // always reset password
-            internalUserPasswordService.deletePassword(realm, username);
-            internalUserPasswordService.setPassword(realm, username, password, false, -1, 0);
+            internalUserPasswordService.deleteAllCredentialsByAccount(repositoryId, username);
+            InternalUserPassword pass = new InternalUserPassword();
+            pass.setId(UUID.randomUUID().toString());
+            pass.setProvider(repositoryId);
+            pass.setUsername(username);
+            pass.setUserId(account.getUserId());
+            pass.setRealm(account.getRealm());
+            pass.setPassword(hasher.createHash(password));
+            pass.setChangeOnFirstAccess(false);
+            internalUserPasswordService.addCredentials(repositoryId, pass.getId(), pass);
 
             // assign authorities to subject
             String subjectId = user.getUuid();

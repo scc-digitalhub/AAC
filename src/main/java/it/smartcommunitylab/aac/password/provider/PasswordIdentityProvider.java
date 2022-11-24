@@ -9,6 +9,7 @@ import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityProvider;
+import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.provider.AccountService;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
@@ -23,6 +24,7 @@ import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.model.InternalPasswordUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.password.service.InternalPasswordUserCredentialsService;
+import it.smartcommunitylab.aac.utils.MailService;
 
 public class PasswordIdentityProvider extends
         AbstractIdentityProvider<InternalUserIdentity, InternalUserAccount, InternalPasswordUserAuthenticatedPrincipal, PasswordIdentityProviderConfigMap, PasswordIdentityProviderConfig> {
@@ -70,6 +72,14 @@ public class PasswordIdentityProvider extends
         this.subjectResolver = new InternalSubjectResolver(providerId, userAccountService, repositoryId, false, realm);
     }
 
+    public void setMailService(MailService mailService) {
+        this.passwordService.setMailService(mailService);
+    }
+
+    public void setUriBuilder(RealmAwareUriBuilder uriBuilder) {
+        this.passwordService.setUriBuilder(uriBuilder);
+    }
+
     @Override
     public boolean isAuthoritative() {
         // password handles only login
@@ -105,6 +115,10 @@ public class PasswordIdentityProvider extends
     @Override
     public InternalSubjectResolver getSubjectResolver() {
         return subjectResolver;
+    }
+
+    public PasswordIdentityCredentialsService getCredentialsService() {
+        return passwordService;
     }
 
     @Override
