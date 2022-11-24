@@ -180,7 +180,7 @@ public class InternalIdentityService
             List<UserCredentials> credentials = new ArrayList<>();
             getCredentialsServices().stream().forEach(s -> {
                 try {
-                    credentials.add(s.getCredentials(username));
+                    credentials.addAll(s.listCredentials(username));
                 } catch (NoSuchUserException e) {
                 }
             });
@@ -346,7 +346,7 @@ public class InternalIdentityService
                 AccountCredentialsService<?, ?, ?> cs = getCredentialsServices().stream()
                         .filter(a -> a.getAuthority().equals(uc.getAuthority())).findFirst().orElse(null);
                 if (cs != null) {
-                    credentials.add(cs.setCredentials(username, uc));
+                    credentials.add(cs.addCredentials(username, uc));
                 }
             }
         }
