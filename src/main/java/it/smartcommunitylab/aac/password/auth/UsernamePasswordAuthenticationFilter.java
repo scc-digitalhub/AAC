@@ -153,26 +153,27 @@ public class UsernamePasswordAuthenticationFilter extends AbstractAuthentication
                     e.getMessage());
         }
 
-        // fetch account to check
-        // if this does not exists we'll let authProvider handle the error to ensure
-        // proper audit
-        // TODO rework, this should be handled post login by adding another filter
-        String repositoryId = providerConfig.getRepositoryId();
-        InternalUserAccount account = userAccountService.findAccountById(repositoryId, username);
-        // fetch active password
-        InternalUserPassword credentials = userPasswordService.findPassword(repositoryId, username);
-
-        if (account != null && credentials != null) {
-            HttpSession session = request.getSession(true);
-            if (session != null) {
-                // check if user needs to reset password, and add redirect
-                if (credentials.isChangeOnFirstAccess()) {
-                    // TODO build url
-                    session.setAttribute(RequestAwareAuthenticationSuccessHandler.SAVED_REQUEST,
-                            "/changepwd/" + providerId + "/" + account.getUuid());
-                }
-            }
-        }
+        // DISABLED, TODO implement filter
+//        // fetch account to check
+//        // if this does not exists we'll let authProvider handle the error to ensure
+//        // proper audit
+//        // TODO rework, this should be handled post login by adding another filter
+//        String repositoryId = providerConfig.getRepositoryId();
+//        InternalUserAccount account = userAccountService.findAccountById(repositoryId, username);
+//        // fetch active password
+//        InternalUserPassword credentials = userPasswordService.findPassword(repositoryId, username);
+//
+//        if (account != null && credentials != null) {
+//            HttpSession session = request.getSession(true);
+//            if (session != null) {
+//                // check if user needs to reset password, and add redirect
+//                if (credentials.isChangeOnFirstAccess()) {
+//                    // TODO build url
+//                    session.setAttribute(RequestAwareAuthenticationSuccessHandler.SAVED_REQUEST,
+//                            "/changepwd/" + providerId + "/" + account.getUuid());
+//                }
+//            }
+//        }
 
         // build a request
         UsernamePasswordAuthenticationToken authenticationRequest = new UsernamePasswordAuthenticationToken(username,

@@ -83,8 +83,8 @@ public class WebAuthnIdentityAuthenticationProvider
 
             // check if account is present and locked
             String uuid = credentialsService.getUuidFromUserHandle(userHandle);
-            InternalUserAccount account = userAccountService.findAccountByUuid(repositoryId, uuid);
-            if (account == null || account.isLocked()) {
+            InternalUserAccount account = userAccountService.findAccountByUuid(uuid);
+            if (account == null || account.isLocked() || !repositoryId.equals(account.getRepositoryId())) {
                 throw new BadCredentialsException("invalid user");
             }
 
@@ -127,10 +127,13 @@ public class WebAuthnIdentityAuthenticationProvider
             auth.setDetails(authRequest.getDetails());
 
             return auth;
+        } catch (NoSuchUserException ex) {
+            throw new BadCredentialsException("invalid user");
         } catch (BadCredentialsException e) {
             logger.debug("invalid request: " + e.getMessage());
             throw new WebAuthnAuthenticationException(subject, userHandle, assertion, e,
                     e.getMessage());
+
         }
 
     }

@@ -2,7 +2,6 @@ package it.smartcommunitylab.aac.password.service;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.validation.constraints.NotNull;
@@ -37,6 +36,7 @@ public class InternalPasswordUserCredentialsService implements UserCredentialsSe
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<InternalUserPassword> findCredentialsByRealm(@NotNull String realm) {
         logger.debug("find credentials for realm {}", String.valueOf(realm));
 
@@ -47,6 +47,7 @@ public class InternalPasswordUserCredentialsService implements UserCredentialsSe
     }
 
     @Override
+    @Transactional(readOnly = true)
     public InternalUserPassword findCredentialsById(@NotNull String repository, @NotNull String id) {
         logger.debug("find credentials with id {} in repository {}", String.valueOf(id), String.valueOf(repository));
 
@@ -60,6 +61,7 @@ public class InternalPasswordUserCredentialsService implements UserCredentialsSe
         return passwordRepository.detach(password);
     }
 
+    @Transactional(readOnly = true)
     public InternalUserPassword findCredentialsByResetKey(@NotNull String repository, @NotNull String key) {
         logger.debug("find credentials with reset key {} in repository {}", String.valueOf(key),
                 String.valueOf(repository));
@@ -75,6 +77,7 @@ public class InternalPasswordUserCredentialsService implements UserCredentialsSe
     }
 
     @Override
+    @Transactional(readOnly = true)
     public InternalUserPassword findCredentialsByUuid(@NotNull String uuid) {
         logger.debug("find credentials with uuid {}", String.valueOf(uuid));
 
@@ -90,6 +93,7 @@ public class InternalPasswordUserCredentialsService implements UserCredentialsSe
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<InternalUserPassword> findCredentialsByAccount(@NotNull String repository, @NotNull String accountId) {
         logger.debug("find credentials for account {} in repository {}", String.valueOf(accountId),
                 String.valueOf(repository));
@@ -102,6 +106,7 @@ public class InternalPasswordUserCredentialsService implements UserCredentialsSe
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<InternalUserPassword> findCredentialsByUser(@NotNull String repository, @NotNull String userId) {
         logger.debug("find credentials for user {} in repository {}", String.valueOf(userId),
                 String.valueOf(repository));

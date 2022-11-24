@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.webauthn.service;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -35,6 +36,7 @@ public class WebAuthnUserCredentialsService implements UserCredentialsService<We
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<WebAuthnUserCredential> findCredentialsByRealm(@NotNull String realm) {
         logger.debug("find credentials for realm {}", String.valueOf(realm));
 
@@ -45,6 +47,7 @@ public class WebAuthnUserCredentialsService implements UserCredentialsService<We
     }
 
     @Override
+    @Transactional(readOnly = true)
     public WebAuthnUserCredential findCredentialsById(@NotNull String repository, @NotNull String id) {
         logger.debug("find credentials with id {} in repository {}", String.valueOf(id), String.valueOf(repository));
 
@@ -59,6 +62,7 @@ public class WebAuthnUserCredentialsService implements UserCredentialsService<We
     }
 
     @Override
+    @Transactional(readOnly = true)
     public WebAuthnUserCredential findCredentialsByUuid(@NotNull String uuid) {
         logger.debug("find credentials with uuid {}", String.valueOf(uuid));
 
@@ -74,6 +78,7 @@ public class WebAuthnUserCredentialsService implements UserCredentialsService<We
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<WebAuthnUserCredential> findCredentialsByAccount(@NotNull String repository,
             @NotNull String accountId) {
         logger.debug("find credentials for account {} in repository {}", String.valueOf(accountId),
@@ -87,6 +92,7 @@ public class WebAuthnUserCredentialsService implements UserCredentialsService<We
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<WebAuthnUserCredential> findCredentialsByUser(@NotNull String repository, @NotNull String userId) {
         logger.debug("find credentials for user {} in repository {}", String.valueOf(userId),
                 String.valueOf(repository));
@@ -95,6 +101,19 @@ public class WebAuthnUserCredentialsService implements UserCredentialsService<We
         return credentials.stream().map(a -> {
             return credentialRepository.detach(a);
         }).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public WebAuthnUserCredential findCredentialByUserHandleAndCredentialId(String repositoryId, String userHandle,
+            String credentialId) {
+        WebAuthnUserCredential c = credentialRepository.findByRepositoryIdAndUserHandleAndCredentialId(repositoryId,
+                userHandle,
+                credentialId);
+        if (c == null) {
+            return null;
+        }
+
+        return credentialRepository.detach(c);
     }
 
     @Override
@@ -223,4 +242,30 @@ public class WebAuthnUserCredentialsService implements UserCredentialsService<We
         }
 
     }
+
+    @Override
+    public void deleteAllCredentials(@NotNull String repository, @NotNull Collection<String> ids) {
+        logger.debug("delete credentials with id in {} repository {}", String.valueOf(ids), String.valueOf(repository));
+        credentialRepository.deleteAllByIdInBatch(ids);
+    }
+
+    @Override
+    public void deleteAllCredentialsByUser(@NotNull String repository, @NotNull String userId) {
+        logger.debug("delete credentials for user {} in repository {}", String.valueOf(userId),
+                String.valueOf(repository));
+
+        List<WebAuthnUserCredential> credentials = credentialRepository.findByRepositoryIdAndUserId(repository, userId);
+        credentialRepository.deleteAllInBatch(credentials);
+    }
+
+    @Override
+    public void deleteAllCredentialsByAccount(@NotNull String repository, @NotNull String username) {
+        logger.debug("delete credentials for account {} in repository {}", String.valueOf(username),
+                String.valueOf(repository));
+
+        List<WebAuthnUserCredential> credentials = credentialRepository.findByRepositoryIdAndUsername(repository,
+                username);
+        credentialRepository.deleteAllInBatch(credentials);
+    }
+
 }

@@ -42,10 +42,10 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
     private static final String STATUS_ACTIVE = CredentialsStatus.ACTIVE.getValue();
     private static final String STATUS_INACTIVE = CredentialsStatus.INACTIVE.getValue();
 
-    private final PasswordIdentityProviderConfig config;
-
     private final InternalPasswordUserCredentialsService passwordService;
     private final UserAccountService<InternalUserAccount> accountService;
+
+    private final PasswordIdentityProviderConfig config;
     private final String repositoryId;
 
     private PasswordHash hasher;

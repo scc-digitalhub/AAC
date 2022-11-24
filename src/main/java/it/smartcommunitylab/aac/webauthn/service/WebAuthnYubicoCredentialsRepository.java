@@ -49,7 +49,7 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
     public Set<PublicKeyCredentialDescriptor> getCredentialIdsForUsername(String username) {
         // fetch all active credentials for this user
         List<WebAuthnUserCredential> credentials = credentialsRepository
-                .findByProviderAndUsername(repositoryId, username)
+                .findByRepositoryIdAndUsername(repositoryId, username)
                 .stream()
                 .filter(c -> CredentialsStatus.ACTIVE.getValue().equals(c.getStatus()))
                 .collect(Collectors.toList());
@@ -106,7 +106,7 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
         // we use yubico ids as base64
         String id = credentialId.getBase64Url();
 
-        WebAuthnUserCredential credential = credentialsRepository.findByProviderAndUserHandleAndCredentialId(
+        WebAuthnUserCredential credential = credentialsRepository.findByRepositoryIdAndUserHandleAndCredentialId(
                 repositoryId, new String(userHandle.getBytes()), id);
         if (credential == null) {
             return Optional.empty();
@@ -128,7 +128,7 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
 
         // we use yubico ids as base64
         String id = credentialId.getBase64Url();
-        List<WebAuthnUserCredential> credentials = credentialsRepository.findByProviderAndCredentialId(repositoryId,
+        List<WebAuthnUserCredential> credentials = credentialsRepository.findByRepositoryIdAndCredentialId(repositoryId,
                 id);
         return credentials.stream()
                 .map(c -> {

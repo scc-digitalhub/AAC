@@ -18,9 +18,6 @@ public interface InternalUserPasswordRepository extends CustomJpaRepository<Inte
 
     InternalUserPassword findByRepositoryIdAndResetKey(String repositoryId, String key);
 
-    InternalUserPassword findByRepositoryIdAndUsernameAndPassword(String repositoryId, String username,
-            String password);
-
     List<InternalUserPassword> findByRepositoryIdAndUsernameOrderByCreateDateDesc(String repositoryId, String username);
 
 }

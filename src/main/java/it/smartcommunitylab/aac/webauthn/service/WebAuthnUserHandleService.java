@@ -32,8 +32,12 @@ public class WebAuthnUserHandleService {
 
     public String getUsernameForUserHandle(String repositoryId, String userHandle) {
         // userHandle is uuid
-        InternalUserAccount account = userAccountService.findAccountByUuid(repositoryId, userHandle);
+        InternalUserAccount account = userAccountService.findAccountByUuid(userHandle);
         if (account == null) {
+            return null;
+        }
+
+        if (!repositoryId.equals(account.getRepositoryId())) {
             return null;
         }
 

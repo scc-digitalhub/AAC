@@ -15,7 +15,7 @@ import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProvider;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnLoginRpService;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnCredentialsService;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserCredentialsService;
 import it.smartcommunitylab.aac.webauthn.store.WebAuthnAssertionRequestStore;
 
 @Service
@@ -28,14 +28,14 @@ public class WebAuthnIdentityAuthority extends
     private final UserAccountService<InternalUserAccount> accountService;
 
     // key repository
-    private final WebAuthnCredentialsService credentialsService;
+    private final WebAuthnUserCredentialsService credentialsService;
 
     // filter provider
     private final WebAuthnIdentityFilterProvider filterProvider;
 
     public WebAuthnIdentityAuthority(
             UserAccountService<InternalUserAccount> userAccountService,
-            WebAuthnCredentialsService credentialsService,
+            WebAuthnUserCredentialsService credentialsService,
             WebAuthnLoginRpService rpService, WebAuthnAssertionRequestStore requestStore,
             ProviderConfigRepository<WebAuthnIdentityProviderConfig> registrationRepository) {
         super(SystemKeys.AUTHORITY_WEBAUTHN, registrationRepository);
