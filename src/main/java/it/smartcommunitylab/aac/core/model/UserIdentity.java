@@ -54,8 +54,4 @@ public interface UserIdentity extends UserResource, Serializable {
         return getAccount() == null ? null : getAccount().getAccountId();
     }
 
-    default String getResourceId() {
-        return getIdentityId();
-    }
-
 }

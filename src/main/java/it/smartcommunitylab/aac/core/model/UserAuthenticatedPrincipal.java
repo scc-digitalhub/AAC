@@ -26,8 +26,4 @@ public interface UserAuthenticatedPrincipal extends AuthenticatedPrincipal, User
     // principalId is local to the provider
     String getPrincipalId();
 
-    default String getResourceId() {
-        return getPrincipalId();
-    }
-
 }

@@ -27,8 +27,4 @@ public interface UserAttributes extends AttributeSet, UserResource, Serializable
     // a local unique identifier for this set for this user
     public String getAttributesId();
 
-    default String getResourceId() {
-        return getAttributesId();
-    }
-
 }

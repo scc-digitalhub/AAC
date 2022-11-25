@@ -8,7 +8,7 @@ import it.smartcommunitylab.aac.core.base.AbstractIdentityAuthority;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
-
+import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.password.provider.PasswordFilterProvider;
@@ -35,8 +35,9 @@ public class PasswordIdentityAuthority extends
     private final PasswordFilterProvider filterProvider;
 
     // services
-    protected MailService mailService;
-    protected RealmAwareUriBuilder uriBuilder;
+    private MailService mailService;
+    private RealmAwareUriBuilder uriBuilder;
+    private ResourceEntityService resourceService;
 
     public PasswordIdentityAuthority(
             UserAccountService<InternalUserAccount> userAccountService,
@@ -70,6 +71,11 @@ public class PasswordIdentityAuthority extends
         this.uriBuilder = uriBuilder;
     }
 
+    @Autowired
+    public void setResourceService(ResourceEntityService resourceService) {
+        this.resourceService = resourceService;
+    }
+
     @Override
     public PasswordIdentityProvider buildProvider(PasswordIdentityProviderConfig config) {
         PasswordIdentityProvider idp = new PasswordIdentityProvider(
@@ -80,6 +86,7 @@ public class PasswordIdentityAuthority extends
         // set services
         idp.setMailService(mailService);
         idp.setUriBuilder(uriBuilder);
+        idp.setResourceService(resourceService);
 
         return idp;
     }

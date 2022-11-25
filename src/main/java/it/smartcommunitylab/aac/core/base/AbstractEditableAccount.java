@@ -33,6 +33,11 @@ public abstract class AbstractEditableAccount extends AbstractBaseUserResource i
         return getUuid();
     }
 
+    @Override
+    public String getResourceId() {
+        return getAccountId();
+    }
+
     public String getUuid() {
         return uuid;
     }

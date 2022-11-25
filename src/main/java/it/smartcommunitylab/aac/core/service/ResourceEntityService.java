@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.core.service;
 
+import java.util.Collection;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;
@@ -99,6 +100,10 @@ public class ResourceEntityService {
         if (e != null) {
             resourceRepository.delete(e);
         }
+    }
+    
+    public void deleteAllResourceEntities(Collection<String> ids) {
+        resourceRepository.deleteAllById(ids);
     }
 
     public void deleteResourceEntity(String type, String authority, String provider,

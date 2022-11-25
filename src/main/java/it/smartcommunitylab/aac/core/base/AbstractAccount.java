@@ -35,6 +35,11 @@ public abstract class AbstractAccount extends AbstractBaseUserResource implement
         return getUuid();
     }
 
+    @Override
+    public String getResourceId() {
+        return getAccountId();
+    }
+
     // uuid is mandatory
     public abstract String getUuid();
 

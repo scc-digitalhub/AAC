@@ -31,6 +31,7 @@ import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsProvider;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.crypto.PasswordHash;
 import it.smartcommunitylab.aac.core.provider.AccountCredentialsService;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
@@ -53,6 +54,7 @@ public class PasswordCredentialsService extends
     // services
     private final UserAccountService<InternalUserAccount> accountService;
     private final InternalPasswordUserCredentialsService passwordService;
+    private ResourceEntityService resourceService;
 
     // provider configuration
     private final PasswordCredentialsServiceConfig config;
@@ -96,6 +98,10 @@ public class PasswordCredentialsService extends
         this.hasher = hasher;
     }
 
+    public void setResourceService(ResourceEntityService resourceService) {
+        this.resourceService = resourceService;
+    }
+
     /*
      * Password management
      * for (internal) password API
@@ -105,6 +111,10 @@ public class PasswordCredentialsService extends
         InternalUserAccount account = accountService.findAccountById(repositoryId, username);
         if (account == null) {
             throw new NoSuchUserException();
+        }
+
+        if (logger.isTraceEnabled()) {
+            logger.trace("verify password for account {}", String.valueOf(username));
         }
 
         // fetch ALL active + non expired credentials
@@ -135,88 +145,74 @@ public class PasswordCredentialsService extends
         // validate against policy
         validatePassword(password);
 
-        logger.debug("set password for user {}", String.valueOf(username));
+        logger.debug("set password for account {}", String.valueOf(username));
 
-        Date expirationDate = null;
-        // expiration date
-        if (config.getPasswordMaxDays() > 0) {
-            Calendar cal = Calendar.getInstance();
-            cal.add(Calendar.DAY_OF_YEAR, config.getPasswordMaxDays());
-            expirationDate = cal.getTime();
+        // TODO add locking for atomic operation
+
+        // invalidate all old active/inactive passwords up to keep number, delete others
+        // note: we keep revoked passwords in DB
+        List<InternalUserPassword> oldPasswords = passwordService.findCredentialsByAccount(repositoryId, username);
+
+        // validate new password is NEW
+        // TODO move to proper policy service when implemented
+        boolean isReuse = oldPasswords.stream().anyMatch(p -> {
+            try {
+                return hasher.validatePassword(password, p.getPassword());
+            } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+                return false;
+            }
+        });
+
+        if (isReuse && config.getPasswordKeepNumber() > 0) {
+            throw new InvalidPasswordException("password-reuse");
         }
 
-        try {
-            // encode password
-            String hash = hasher.createHash(password);
+        List<InternalUserPassword> toUpdate = oldPasswords
+                .stream()
+                .filter(p -> !STATUS_REVOKED.equals(p.getStatus()))
+                .limit(config.getPasswordKeepNumber())
+                .collect(Collectors.toList());
 
-            // TODO add locking for atomic operation
+        List<InternalUserPassword> toDelete = oldPasswords.stream()
+                .filter(p -> !STATUS_REVOKED.equals(p.getStatus()))
+                .filter(p -> !toUpdate.contains(p))
+                .collect(Collectors.toList());
+        if (!toDelete.isEmpty()) {
+            // delete in batch
+            Set<String> ids = toDelete.stream().map(p -> p.getId()).collect(Collectors.toSet());
+            passwordService.deleteAllCredentials(repositoryId, ids);
 
-            // invalidate all old active/inactive passwords up to keep number, delete others
-            // note: we keep revoked passwords in DB
-            List<InternalUserPassword> oldPasswords = passwordService.findCredentialsByAccount(repositoryId, username);
-
-            // validate new password is NEW
-            // TODO move to proper policy service when implemented
-            boolean isReuse = oldPasswords.stream().anyMatch(p -> {
+            if (resourceService != null) {
+                // remove resources
                 try {
-                    return hasher.validatePassword(password, p.getPassword());
-                } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-                    return false;
+                    // delete in batch
+                    Set<String> uuids = toDelete.stream().map(p -> p.getUuid()).collect(Collectors.toSet());
+                    passwordService.deleteAllCredentials(repositoryId, uuids);
+                } catch (RuntimeException re) {
+                    logger.error("error removing resources: {}", re.getMessage());
+                }
+            }
+        }
+
+        if (!toUpdate.isEmpty()) {
+            toUpdate.forEach(p -> {
+                p.setStatus(STATUS_INACTIVE);
+                try {
+                    passwordService.updateCredentials(repositoryId, p.getId(), p);
+                } catch (RegistrationException | NoSuchCredentialException e) {
+                    // ignore
                 }
             });
-
-            if (isReuse && config.getPasswordKeepNumber() > 0) {
-                throw new InvalidPasswordException("password-reuse");
-            }
-
-            List<InternalUserPassword> toUpdate = oldPasswords
-                    .stream()
-                    .filter(p -> !STATUS_REVOKED.equals(p.getStatus()))
-                    .limit(config.getPasswordKeepNumber())
-                    .collect(Collectors.toList());
-
-            Set<String> toDelete = oldPasswords.stream()
-                    .filter(p -> !STATUS_REVOKED.equals(p.getStatus()))
-                    .filter(p -> !toUpdate.contains(p))
-                    .map(p -> p.getId())
-                    .collect(Collectors.toSet());
-            if (!toDelete.isEmpty()) {
-                passwordService.deleteAllCredentials(repositoryId, toDelete);
-            }
-
-            if (!toUpdate.isEmpty()) {
-                toUpdate.forEach(p -> {
-                    p.setStatus(STATUS_INACTIVE);
-                    try {
-                        passwordService.updateCredentials(repositoryId, p.getId(), p);
-                    } catch (RegistrationException | NoSuchCredentialException e) {
-                        // ignore
-                    }
-                });
-            }
-
-            // create password already hashed
-            InternalUserPassword newPassword = new InternalUserPassword();
-            newPassword.setId(UUID.randomUUID().toString());
-            newPassword.setProvider(repositoryId);
-
-            newPassword.setUsername(username);
-            newPassword.setUserId(account.getUserId());
-            newPassword.setRealm(account.getRealm());
-
-            newPassword.setPassword(hash);
-            newPassword.setChangeOnFirstAccess(changeOnFirstAccess);
-            newPassword.setExpirationDate(expirationDate);
-
-            newPassword = passwordService.addCredentials(repositoryId, newPassword.getId(), newPassword);
-
-            // password are encrypted, but clear value for extra safety
-            newPassword.eraseCredentials();
-
-            return newPassword;
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-            throw new SystemException(e.getMessage());
         }
+
+        // create password
+        InternalUserPassword newPassword = addPassword(account, password, changeOnFirstAccess);
+
+        // password are encrypted, but clear value for extra safety
+        newPassword.eraseCredentials();
+
+        return newPassword;
+
     }
 
     public InternalUserPassword resetPassword(String username) throws NoSuchUserException, RegistrationException {
@@ -225,6 +221,8 @@ public class PasswordCredentialsService extends
         if (account == null) {
             throw new NoSuchUserException();
         }
+
+        logger.debug("reset password for account {}", String.valueOf(username));
 
         // generate new single-use password
         String password = generatePassword();
@@ -315,6 +313,8 @@ public class PasswordCredentialsService extends
             throw new NoSuchUserException();
         }
 
+        logger.debug("list credentials for account {}", String.valueOf(accountId));
+
         // fetch all passwords
         return passwordService.findCredentialsByAccount(repositoryId, accountId).stream()
                 .map(p -> {
@@ -325,9 +325,40 @@ public class PasswordCredentialsService extends
     }
 
     @Override
-    public InternalUserPassword addCredentials(String username, UserCredentials uc) throws NoSuchUserException {
-        // TODO Auto-generated method stub
-        return null;
+    public InternalUserPassword addCredentials(String accountId, UserCredentials uc) throws NoSuchUserException {
+        if (uc == null) {
+            throw new RegistrationException();
+        }
+
+        Assert.isInstanceOf(InternalUserPassword.class, uc,
+                "registration must be an instance of internal user password");
+        InternalUserPassword reg = (InternalUserPassword) uc;
+
+        logger.debug("add credential for account {}", String.valueOf(accountId));
+        if (logger.isTraceEnabled()) {
+            logger.trace("credentials: {}", String.valueOf(reg));
+        }
+
+        // fetch user
+        InternalUserAccount account = accountService.findAccountById(repositoryId, accountId);
+        if (account == null) {
+            throw new NoSuchUserException();
+        }
+
+        // skip validation of password against policy
+        // we only make sure password is usable
+        String password = reg.getPassword();
+        if (!StringUtils.hasText(password) || password.length() < config.getPasswordMinLength()
+                || password.length() > config.getPasswordMaxLength()) {
+            throw new RegistrationException("invalid password");
+        }
+
+        InternalUserPassword pass = addPassword(account, password, reg.getChangeOnFirstAccess());
+
+        // password are encrypted, but clear value for extra safety
+        pass.eraseCredentials();
+
+        return pass;
     }
 
     @Override
@@ -337,6 +368,8 @@ public class PasswordCredentialsService extends
         if (account == null) {
             throw new NoSuchUserException();
         }
+
+        logger.debug("get credential {} for account {}", String.valueOf(credentialsId), String.valueOf(accountId));
 
         InternalUserPassword pass = passwordService.findCredentialsById(repositoryId, credentialsId);
         if (pass == null) {
@@ -352,7 +385,6 @@ public class PasswordCredentialsService extends
         pass.eraseCredentials();
 
         return pass;
-
     }
 
     @Override
@@ -369,6 +401,8 @@ public class PasswordCredentialsService extends
         if (account == null) {
             throw new NoSuchUserException();
         }
+
+        logger.debug("revoke credential {} for account {}", String.valueOf(credentialsId), String.valueOf(accountId));
 
         InternalUserPassword pass = passwordService.findCredentialsById(repositoryId, credentialsId);
         if (pass == null) {
@@ -401,6 +435,8 @@ public class PasswordCredentialsService extends
             throw new NoSuchUserException();
         }
 
+        logger.debug("delete credential {} for account {}", String.valueOf(credentialsId), String.valueOf(accountId));
+
         InternalUserPassword pass = passwordService.findCredentialsById(repositoryId, credentialsId);
         if (pass == null) {
             throw new NoSuchCredentialException();
@@ -413,11 +449,39 @@ public class PasswordCredentialsService extends
 
         // delete
         passwordService.deleteCredentials(repositoryId, credentialsId);
+
+        if (resourceService != null) {
+            // delete resource
+            resourceService.deleteResourceEntity(pass.getUuid());
+        }
     }
 
     @Override
     public void deleteCredentials(String accountId) {
-        passwordService.deleteAllCredentialsByAccount(repositoryId, accountId);
+        InternalUserAccount account = accountService.findAccountById(repositoryId, accountId);
+        if (account == null) {
+            return;
+        }
+
+        logger.debug("delete all credentials for account {}", String.valueOf(accountId));
+
+        // fetch all to collect ids
+        List<InternalUserPassword> passwords = passwordService.findCredentialsByAccount(repositoryId, accountId);
+
+        // delete in batch
+        Set<String> ids = passwords.stream().map(p -> p.getId()).collect(Collectors.toSet());
+        passwordService.deleteAllCredentials(repositoryId, ids);
+
+        if (resourceService != null) {
+            // remove resources
+            try {
+                // delete in batch
+                Set<String> uuids = passwords.stream().map(p -> p.getUuid()).collect(Collectors.toSet());
+                passwordService.deleteAllCredentials(repositoryId, uuids);
+            } catch (RuntimeException re) {
+                logger.error("error removing resources: {}", re.getMessage());
+            }
+        }
     }
 
     /*
@@ -449,6 +513,47 @@ public class PasswordCredentialsService extends
     /*
      * Helpers
      */
+
+    private InternalUserPassword addPassword(InternalUserAccount account, String password,
+            boolean changeOnFirstAccess) {
+        Date expirationDate = null;
+        // expiration date
+        if (config.getPasswordMaxDays() > 0) {
+            Calendar cal = Calendar.getInstance();
+            cal.add(Calendar.DAY_OF_YEAR, config.getPasswordMaxDays());
+            expirationDate = cal.getTime();
+        }
+
+        try {
+            // encode password
+            String hash = hasher.createHash(password);
+
+            // create password already hashed
+            InternalUserPassword newPassword = new InternalUserPassword();
+            newPassword.setId(UUID.randomUUID().toString());
+            newPassword.setProvider(repositoryId);
+
+            newPassword.setUsername(account.getUsername());
+            newPassword.setUserId(account.getUserId());
+            newPassword.setRealm(account.getRealm());
+
+            newPassword.setPassword(hash);
+            newPassword.setChangeOnFirstAccess(changeOnFirstAccess);
+            newPassword.setExpirationDate(expirationDate);
+
+            newPassword = passwordService.addCredentials(repositoryId, newPassword.getId(), newPassword);
+
+            if (resourceService != null) {
+                // register
+                resourceService.addResourceEntity(newPassword.getUuid(), SystemKeys.RESOURCE_CREDENTIALS,
+                        getAuthority(), getProvider(), newPassword.getResourceId());
+            }
+
+            return newPassword;
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            throw new SystemException(e.getMessage());
+        }
+    }
 
     private String generatePassword() {
         return RandomStringUtils.random(config.getPasswordMaxLength(), true,

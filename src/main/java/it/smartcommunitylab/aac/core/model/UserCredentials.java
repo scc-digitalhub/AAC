@@ -16,7 +16,4 @@ public interface UserCredentials extends UserResource, Credentials, CredentialsC
     // credentialsId is local id for provider
     public String getCredentialsId();
 
-    default String getResourceId() {
-        return getCredentialsId();
-    }
 }

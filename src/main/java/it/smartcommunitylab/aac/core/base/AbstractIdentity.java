@@ -37,6 +37,11 @@ public abstract class AbstractIdentity extends AbstractBaseUserResource implemen
     }
 
     @Override
+    public String getResourceId() {
+        return getIdentityId();
+    }
+
+    @Override
     public String getUuid() {
         return uuid;
     }

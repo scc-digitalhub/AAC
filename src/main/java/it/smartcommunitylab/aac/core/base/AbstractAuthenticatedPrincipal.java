@@ -52,6 +52,11 @@ public abstract class AbstractAuthenticatedPrincipal extends AbstractBaseUserRes
     }
 
     @Override
+    public String getResourceId() {
+        return getPrincipalId();
+    }
+
+    @Override
     public String getUuid() {
         return uuid;
     }

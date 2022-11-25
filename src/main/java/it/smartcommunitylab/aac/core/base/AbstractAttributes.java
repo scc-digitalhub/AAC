@@ -6,9 +6,6 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
-import it.smartcommunitylab.aac.openid.model.OIDCUserIdentity;
-import it.smartcommunitylab.aac.saml.model.SamlUserIdentity;
 
 /*
  * Abstract class for user attributes
@@ -40,6 +37,11 @@ public abstract class AbstractAttributes extends AbstractBaseUserResource implem
         sb.append(getIdentifier());
 
         return sb.toString();
+    }
+
+    @Override
+    public String getResourceId() {
+        return getAttributesId();
     }
 
     public String getUserId() {

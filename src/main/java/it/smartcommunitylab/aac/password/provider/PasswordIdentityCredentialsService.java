@@ -27,6 +27,7 @@ import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.crypto.PasswordHash;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
@@ -53,6 +54,7 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
 
     private MailService mailService;
     private RealmAwareUriBuilder uriBuilder;
+    private ResourceEntityService resourceService;
 
     public PasswordIdentityCredentialsService(String providerId,
             UserAccountService<InternalUserAccount> accountService,
@@ -92,6 +94,10 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
 
     public void setUriBuilder(RealmAwareUriBuilder uriBuilder) {
         this.uriBuilder = uriBuilder;
+    }
+
+    public void setResourceService(ResourceEntityService resourceService) {
+        this.resourceService = resourceService;
     }
 
     @Override
@@ -172,6 +178,12 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
                 newPassword.setExpirationDate(null);
 
                 password = passwordService.addCredentials(repositoryId, newPassword.getId(), newPassword);
+
+                if (resourceService != null) {
+                    // register
+                    resourceService.addResourceEntity(password.getUuid(), SystemKeys.RESOURCE_CREDENTIALS,
+                            getAuthority(), getProvider(), password.getResourceId());
+                }
             }
 
             // generate and set a reset key

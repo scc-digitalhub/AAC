@@ -13,6 +13,7 @@ import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.provider.AccountService;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.internal.model.InternalLoginProvider;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
@@ -78,6 +79,10 @@ public class PasswordIdentityProvider extends
 
     public void setUriBuilder(RealmAwareUriBuilder uriBuilder) {
         this.passwordService.setUriBuilder(uriBuilder);
+    }
+
+    public void setResourceService(ResourceEntityService resourceService) {
+        this.passwordService.setResourceService(resourceService);
     }
 
     @Override

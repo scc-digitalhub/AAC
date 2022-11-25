@@ -30,6 +30,11 @@ public abstract class AbstractUserCredentials extends AbstractBaseUserResource i
         return getUuid();
     }
 
+    @Override
+    public String getResourceId() {
+        return getCredentialsId();
+    }
+
     // uuid is mandatory
     public abstract String getUuid();
 
