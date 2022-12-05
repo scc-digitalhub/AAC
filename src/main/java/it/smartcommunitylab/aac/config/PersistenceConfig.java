@@ -75,8 +75,10 @@ import it.smartcommunitylab.aac.scope.InMemoryScopeRegistry;
 import it.smartcommunitylab.aac.scope.ScopeProvider;
 import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfig;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredentialsRepository;
+import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsServiceConfig;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnCredentialsService;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnConfigTranslatorRepository;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserCredentialsService;
 
 @Configuration
 @Order(2)
@@ -200,9 +202,9 @@ public class PersistenceConfig {
     }
 
     @Bean
-    public WebAuthnCredentialsService webAuthnCredentialsService(
+    public WebAuthnUserCredentialsService webAuthnCredentialsService(
             WebAuthnUserCredentialsRepository credentialsRepository) {
-        return new WebAuthnCredentialsService(credentialsRepository);
+        return new WebAuthnUserCredentialsService(credentialsRepository);
     }
 
     @Bean
@@ -355,14 +357,15 @@ public class PersistenceConfig {
 //    public ProviderConfigRepository<WebAuthnCredentialsServiceConfig> webauthnCredentialsServiceConfigRepository() {
 //        return new InMemoryProviderConfigRepository<WebAuthnCredentialsServiceConfig>();
 //    }
-//    @Bean
-//    public ProviderConfigRepository<WebAuthnCredentialsServiceConfig> webauthnCredentialsServiceConfigRepository(
-//            ProviderConfigRepository<WebAuthnIdentityProviderConfig> externalRepository) {
-//        return new WebAuthnConfigTranslatorRepository(externalRepository);
-//    }
+    @Bean
+    public ProviderConfigRepository<WebAuthnCredentialsServiceConfig> webauthnCredentialsServiceConfigRepository(
+            ProviderConfigRepository<WebAuthnIdentityProviderConfig> externalRepository) {
+        return new WebAuthnConfigTranslatorRepository(externalRepository);
+    }
 
     @Bean
     public ProviderConfigRepository<RealmTemplateProviderConfig> templateProviderConfigRepository() {
         return new InMemoryProviderConfigRepository<>();
     }
+
 }

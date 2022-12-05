@@ -33,7 +33,7 @@ import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.PasswordCredentialsAuthority;
-import it.smartcommunitylab.aac.password.dto.UserPasswordBean;
+import it.smartcommunitylab.aac.password.dto.InternalEditableUserPassword;
 import it.smartcommunitylab.aac.password.model.PasswordPolicy;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProvider;
 import it.smartcommunitylab.aac.password.provider.PasswordCredentialsService;
@@ -90,7 +90,7 @@ public class PasswordCredentialsController {
 
         // for internal username is accountId
         String username = account.getAccountId();
-        UserPasswordBean reg = new UserPasswordBean();
+        InternalEditableUserPassword reg = new InternalEditableUserPassword();
         reg.setUsername(username);
 //        reg.setPassword("");
 //        reg.setVerifyPassword(null);
@@ -125,7 +125,7 @@ public class PasswordCredentialsController {
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid,
             Model model, Locale locale,
-            @ModelAttribute("reg") @Valid UserPasswordBean reg,
+            @ModelAttribute("reg") @Valid InternalEditableUserPassword reg,
             HttpServletRequest request, BindingResult result)
             throws NoSuchProviderException, NoSuchUserException {
 

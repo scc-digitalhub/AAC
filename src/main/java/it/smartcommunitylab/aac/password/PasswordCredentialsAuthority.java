@@ -12,6 +12,7 @@ import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.core.service.TranslatorProviderConfigRepository;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.password.dto.InternalEditableUserPassword;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.password.provider.PasswordCredentialsConfigurationProvider;
 import it.smartcommunitylab.aac.password.provider.PasswordCredentialsService;
@@ -28,7 +29,7 @@ import it.smartcommunitylab.aac.utils.MailService;
  */
 @Service
 public class PasswordCredentialsAuthority extends
-        AbstractCredentialsAuthority<PasswordCredentialsService, InternalUserPassword, PasswordIdentityProviderConfigMap, PasswordCredentialsServiceConfig> {
+        AbstractCredentialsAuthority<PasswordCredentialsService, InternalUserPassword, InternalEditableUserPassword, PasswordIdentityProviderConfigMap, PasswordCredentialsServiceConfig> {
 
     public static final String AUTHORITY_URL = "/auth/password/";
 

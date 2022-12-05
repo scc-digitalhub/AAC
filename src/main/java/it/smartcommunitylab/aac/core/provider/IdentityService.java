@@ -29,9 +29,9 @@ public interface IdentityService<I extends UserIdentity, U extends UserAccount, 
 
     public AccountService<U, E, ?, ?> getAccountService() throws NoSuchProviderException;
 
-    public AccountCredentialsService<?, ?, ?> getCredentialsService(String authority) throws NoSuchProviderException;
+    public AccountCredentialsService<?, ?, ?, ?> getCredentialsService(String authority) throws NoSuchProviderException;
 
-    public Collection<AccountCredentialsService<?, ?, ?>> getCredentialsServices();
+    public Collection<AccountCredentialsService<?, ?, ?, ?>> getCredentialsServices();
 
 //    public AttributeService<?, ?> getAttributeService();
 

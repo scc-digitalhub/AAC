@@ -428,7 +428,7 @@ public class UserManager {
     }
 
     @Transactional(readOnly = false)
-    public UserAccount registerUserAccount(String realm, String providerId, String userId, EditableUserAccount reg)
+    public EditableUserAccount registerUserAccount(String realm, String providerId, String userId, EditableUserAccount reg)
             throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException, RegistrationException,
             NoSuchAuthorityException {
         logger.debug("register user {} account from realm {}", StringUtils.trimAllWhitespace(userId),
@@ -485,7 +485,7 @@ public class UserManager {
     }
 
     @Transactional(readOnly = false)
-    public UserAccount editUserAccount(String realm, String userId, String uuid, EditableUserAccount reg)
+    public EditableUserAccount editUserAccount(String realm, String userId, String uuid, EditableUserAccount reg)
             throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException, RegistrationException,
             NoSuchAuthorityException {
         logger.debug("edit user {} account {} from realm {}", StringUtils.trimAllWhitespace(userId),

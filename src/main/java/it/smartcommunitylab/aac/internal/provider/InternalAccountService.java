@@ -139,26 +139,26 @@ public class InternalAccountService
 
         return account;
     }
-
-    @Override
-    @Transactional(readOnly = true)
-    public InternalUserAccount findAccountByUuid(String uuid) {
-        InternalUserAccount account = userAccountService.findAccountByUuid(uuid);
-        if (account == null) {
-            return null;
-        }
-
-        // check repository matches
-        if (!repositoryId.equals(account.getRepositoryId())) {
-            return null;
-        }
-
-        // map to our authority
-        account.setAuthority(getAuthority());
-        account.setProvider(getProvider());
-
-        return account;
-    }
+//
+//    @Override
+//    @Transactional(readOnly = true)
+//    public InternalUserAccount findAccountByUuid(String uuid) {
+//        InternalUserAccount account = userAccountService.findAccountByUuid(uuid);
+//        if (account == null) {
+//            return null;
+//        }
+//
+//        // check repository matches
+//        if (!repositoryId.equals(account.getRepositoryId())) {
+//            return null;
+//        }
+//
+//        // map to our authority
+//        account.setAuthority(getAuthority());
+//        account.setProvider(getProvider());
+//
+//        return account;
+//    }
 
     @Transactional(readOnly = true)
     public InternalUserAccount findAccountByEmail(String email) {
@@ -259,7 +259,7 @@ public class InternalAccountService
     }
 
     @Override
-    public InternalUserAccount registerAccount(@Nullable String userId, EditableUserAccount registration)
+    public InternalEditableUserAccount registerAccount(@Nullable String userId, EditableUserAccount registration)
             throws RegistrationException, NoSuchUserException {
         if (!config.isEnableRegistration()) {
             throw new IllegalArgumentException("registration is disabled for this provider");
@@ -307,7 +307,7 @@ public class InternalAccountService
             account = verifyAccount(username);
         }
 
-        return account;
+        return toEditableAccount(account);
     }
 
     @Override
@@ -433,27 +433,21 @@ public class InternalAccountService
     }
 
     @Override
-    public InternalEditableUserAccount getEditableAccount(String username) throws NoSuchUserException {
+    public InternalEditableUserAccount getEditableAccount(String userId, String username) throws NoSuchUserException {
         InternalUserAccount account = findAccountByUsername(username);
         if (account == null) {
             throw new NoSuchUserException();
         }
 
-        // build editable model
-        InternalEditableUserAccount ea = new InternalEditableUserAccount(
-                getProvider(), getRealm(),
-                account.getUserId(), account.getUuid());
-        ea.setUsername(account.getUsername());
-        ea.setEmail(account.getEmail());
-        ea.setName(account.getName());
-        ea.setSurname(account.getSurname());
-        ea.setLang(account.getLang());
+        if (!account.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("user-mismatch");
+        }
 
-        return ea;
+        return toEditableAccount(account);
     }
 
     @Override
-    public InternalUserAccount editAccount(String userId, String accountId, EditableUserAccount registration)
+    public InternalEditableUserAccount editAccount(String userId, String accountId, EditableUserAccount registration)
             throws RegistrationException, NoSuchUserException {
         if (!config.isEnableRegistration()) {
             throw new IllegalArgumentException("registration is disabled for this provider");
@@ -494,7 +488,9 @@ public class InternalAccountService
         ua.setSurname(reg.getSurname());
         ua.setLang(reg.getLang());
 
-        return updateAccount(userId, accountId, ua);
+        InternalUserAccount account = updateAccount(userId, accountId, ua);
+
+        return toEditableAccount(account);
     }
 
     @Override
@@ -913,6 +909,20 @@ public class InternalAccountService
                     String.valueOf(account.getUsername()));
         }
 
+    }
+
+    private InternalEditableUserAccount toEditableAccount(InternalUserAccount account) {
+        // build editable model
+        InternalEditableUserAccount ea = new InternalEditableUserAccount(
+                getProvider(), getRealm(),
+                account.getUserId(), account.getUuid());
+        ea.setUsername(account.getUsername());
+        ea.setEmail(account.getEmail());
+        ea.setName(account.getName());
+        ea.setSurname(account.getSurname());
+        ea.setLang(account.getLang());
+
+        return ea;
     }
 
     /*

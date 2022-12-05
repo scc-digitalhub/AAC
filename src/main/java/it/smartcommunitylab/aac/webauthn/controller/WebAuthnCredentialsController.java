@@ -17,12 +17,14 @@ import org.springframework.security.authentication.InsufficientAuthenticationExc
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchCredentialException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
@@ -33,6 +35,7 @@ import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.webauthn.WebAuthnCredentialsAuthority;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredential;
@@ -95,22 +98,7 @@ public class WebAuthnCredentialsController {
 
         Realm re = realmManager.getRealm(realm);
         String displayName = re.getName();
-        Map<String, String> resources = new HashMap<>();
-//        if (!realm.equals(SystemKeys.REALM_COMMON)) {
-//            re = realmManager.getRealm(realm);
-//            displayName = re.getName();
-//            CustomizationBean gcb = re.getCustomization("global");
-//            if (gcb != null) {
-//                resources.putAll(gcb.getResources());
-//            }
-//            CustomizationBean rcb = re.getCustomization("registration");
-//            if (rcb != null) {
-//                resources.putAll(rcb.getResources());
-//            }
-//        }
-
         model.addAttribute("displayName", displayName);
-        model.addAttribute("customization", resources);
 
         // fetch credentials
         Collection<WebAuthnUserCredential> credentials = service.listCredentials(username);
@@ -128,55 +116,43 @@ public class WebAuthnCredentialsController {
     }
 
     @Hidden
-    @GetMapping(value = "/webauthn/credentials/{providerId}/{uuid}/{id}")
-    public String deleteCredential(
+    @DeleteMapping(value = "/webauthn/credentials/{providerId}/{id}")
+    public void deleteCredential(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String id)
             throws NoSuchProviderException, RegistrationException, NoSuchUserException {
 
-        // first check uuid vs user
+        // first check user
         UserDetails user = authHelper.getUserDetails();
         if (user == null) {
             throw new InsufficientAuthenticationException("error.unauthenticated_user");
         }
 
-        // fetch internal identities
-        Set<UserIdentity> identities = user.getIdentities().stream()
-                .filter(i -> (i instanceof InternalUserIdentity))
-                .collect(Collectors.toSet());
-
-        // pick matching by username and ignore provider
-        UserIdentity identity = identities.stream().filter(i -> i.getAccount().getUuid().equals(uuid))
-                .findFirst().orElse(null);
-        if (identity == null) {
-            throw new IllegalArgumentException("error.invalid_user");
-        }
-
-        String username = identity.getAccount().getUsername();
-
         // fetch provider
         WebAuthnCredentialsService service = webAuthnAuthority.getProvider(providerId);
 
-        // get
-        WebAuthnUserCredential cred = service.getCredentials(username, id);
-        if (cred == null) {
-            throw new RegistrationException();
+        try {
+            // get
+            WebAuthnUserCredential cred = service.getCredential(id);
+            if (cred == null) {
+                throw new RegistrationException();
+            }
+
+            // check user matches
+            boolean matches = user.getIdentities().stream().filter(i -> (i.getAccount() instanceof InternalUserAccount))
+                    .map(i -> i.getAccount().getAccountId()).anyMatch(u -> cred.getAccountId().equals(u));
+            if (!matches) {
+                throw new IllegalArgumentException("invalid credential");
+            }
+
+            logger.debug("delete credential {}  with provider {}", StringUtils.trimAllWhitespace(id),
+                    StringUtils.trimAllWhitespace(providerId));
+
+            // delete
+            service.deleteCredential(cred.getCredentialsId());
+        } catch (NoSuchCredentialException e) {
+            // ignore
         }
-
-        // check user match
-        if (!username.equals(cred.getUsername())) {
-            throw new IllegalArgumentException("error.invalid_user");
-        }
-
-        logger.debug("delete credential {} for {} with provider {}", StringUtils.trimAllWhitespace(id),
-                StringUtils.trimAllWhitespace(uuid),
-                StringUtils.trimAllWhitespace(providerId));
-
-        // delete
-        service.deleteCredentials(username, cred.getCredentialId());
-
-        return "redirect:/webauthn/credentials/" + providerId + "/" + uuid;
 
     }
 

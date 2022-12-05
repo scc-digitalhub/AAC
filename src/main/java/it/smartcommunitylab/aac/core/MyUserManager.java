@@ -196,7 +196,7 @@ public class MyUserManager {
         return account;
     }
 
-    public <U extends EditableUserAccount> UserAccount updateMyEditableAccount(
+    public <U extends EditableUserAccount> EditableUserAccount updateMyEditableAccount(
             String uuid,
             U reg)
             throws NoSuchProviderException, NoSuchUserException, RegistrationException, NoSuchAuthorityException {

@@ -58,7 +58,6 @@ public class InternalUserIdentity extends AbstractIdentity implements UserCreden
             InternalUserAccount account, InternalUserAuthenticatedPrincipal principal) {
         super(authority, provider);
         Assert.notNull(account, "account can not be null");
-        Assert.notNull(principal, "principal can not be null");
 
         this.account = account;
         this.principal = principal;

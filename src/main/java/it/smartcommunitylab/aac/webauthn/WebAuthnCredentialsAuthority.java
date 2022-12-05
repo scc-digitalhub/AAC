@@ -9,16 +9,15 @@ import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
-import it.smartcommunitylab.aac.core.service.TranslatorProviderConfigRepository;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.webauthn.model.WebAuthnEditableUserCredential;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredential;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsConfigurationProvider;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsService;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsServiceConfig;
-import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnRegistrationRpService;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnCredentialsService;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserCredentialsService;
 
 /*
  * WebAuthn service depends on webauthn identity provider
@@ -27,7 +26,7 @@ import it.smartcommunitylab.aac.webauthn.service.WebAuthnCredentialsService;
  */
 @Service
 public class WebAuthnCredentialsAuthority extends
-        AbstractCredentialsAuthority<WebAuthnCredentialsService, WebAuthnUserCredential, WebAuthnIdentityProviderConfigMap, WebAuthnCredentialsServiceConfig> {
+        AbstractCredentialsAuthority<WebAuthnCredentialsService, WebAuthnUserCredential, WebAuthnEditableUserCredential, WebAuthnIdentityProviderConfigMap, WebAuthnCredentialsServiceConfig> {
 
     public static final String AUTHORITY_URL = "/auth/webauthn/";
 
@@ -36,17 +35,17 @@ public class WebAuthnCredentialsAuthority extends
     private ResourceEntityService resourceService;
 
     // key repository
-    private final WebAuthnCredentialsService credentialsService;
+    private final WebAuthnUserCredentialsService credentialsService;
 
     // shared service
     private final WebAuthnRegistrationRpService rpService;
 
     public WebAuthnCredentialsAuthority(
             UserAccountService<InternalUserAccount> userAccountService,
-            WebAuthnCredentialsService credentialsService,
+            WebAuthnUserCredentialsService credentialsService,
             WebAuthnRegistrationRpService rpService,
-            ProviderConfigRepository<WebAuthnIdentityProviderConfig> registrationRepository) {
-        super(SystemKeys.AUTHORITY_WEBAUTHN, new WebAuthnConfigTranslatorRepository(registrationRepository));
+            ProviderConfigRepository<WebAuthnCredentialsServiceConfig> registrationRepository) {
+        super(SystemKeys.AUTHORITY_WEBAUTHN, registrationRepository);
         Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(credentialsService, "credentials service is mandatory");
         Assert.notNull(rpService, "webauthn rp service is mandatory");
@@ -84,26 +83,4 @@ public class WebAuthnCredentialsAuthority extends
         throw new IllegalArgumentException("direct registration not supported");
     }
 
-    static class WebAuthnConfigTranslatorRepository extends
-            TranslatorProviderConfigRepository<WebAuthnIdentityProviderConfig, WebAuthnCredentialsServiceConfig> {
-
-        public WebAuthnConfigTranslatorRepository(
-                ProviderConfigRepository<WebAuthnIdentityProviderConfig> externalRepository) {
-            super(externalRepository);
-            setConverter((source) -> {
-                WebAuthnCredentialsServiceConfig config = new WebAuthnCredentialsServiceConfig(source.getProvider(),
-                        source.getRealm());
-                config.setName(source.getName());
-                config.setTitleMap(source.getTitleMap());
-                config.setDescriptionMap(source.getDescriptionMap());
-
-                // we share the same configMap
-                config.setConfigMap(source.getConfigMap());
-                config.setRepositoryId(source.getRepositoryId());
-
-                return config;
-            });
-        }
-
-    }
 }

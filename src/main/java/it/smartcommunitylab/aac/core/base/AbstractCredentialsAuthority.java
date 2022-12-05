@@ -6,15 +6,16 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.authorities.CredentialsServiceAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsProvider;
+import it.smartcommunitylab.aac.core.model.EditableUserCredentials;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.provider.CredentialsServiceConfig;
 import it.smartcommunitylab.aac.core.provider.CredentialsServiceConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.AccountCredentialsService;
 
-public abstract class AbstractCredentialsAuthority<S extends AccountCredentialsService<R, M, C>, R extends UserCredentials, M extends ConfigMap, C extends CredentialsServiceConfig<M>>
+public abstract class AbstractCredentialsAuthority<S extends AccountCredentialsService<R, E, M, C>, R extends UserCredentials, E extends EditableUserCredentials, M extends ConfigMap, C extends CredentialsServiceConfig<M>>
         extends AbstractSingleProviderAuthority<S, R, ConfigurableCredentialsProvider, M, C>
-        implements CredentialsServiceAuthority<S, R, M, C> {
+        implements CredentialsServiceAuthority<S, R, E, M, C> {
 
     // configuration provider
     protected CredentialsServiceConfigurationProvider<M, C> configProvider;

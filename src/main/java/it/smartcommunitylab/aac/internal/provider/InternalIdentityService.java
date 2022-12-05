@@ -42,7 +42,7 @@ public class InternalIdentityService
 
     // provider authorities
     private InternalAccountServiceAuthority accountServiceAuthority;
-    private Map<String, CredentialsServiceAuthority<?, ?, ?, ?>> credentialsServiceAuthorities;
+    private Map<String, CredentialsServiceAuthority<?, ?, ?, ?, ?>> credentialsServiceAuthorities;
 
     // services
     private final UserEntityService userEntityService;
@@ -67,7 +67,7 @@ public class InternalIdentityService
     }
 
     public void setCredentialsServiceAuthorities(
-            Collection<CredentialsServiceAuthority<?, ?, ?, ?>> credentialsServiceAuthorities) {
+            Collection<CredentialsServiceAuthority<?, ?, ?, ?, ?>> credentialsServiceAuthorities) {
         if (credentialsServiceAuthorities != null) {
             this.credentialsServiceAuthorities = credentialsServiceAuthorities
                     .stream().collect(Collectors.toMap(a -> a.getAuthorityId(), a -> a));
@@ -90,7 +90,7 @@ public class InternalIdentityService
     }
 
     @Override
-    public Collection<AccountCredentialsService<?, ?, ?>> getCredentialsServices() {
+    public Collection<AccountCredentialsService<?, ?, ?, ?>> getCredentialsServices() {
         if (credentialsServiceAuthorities == null) {
             return Collections.emptyList();
         }
@@ -104,8 +104,9 @@ public class InternalIdentityService
     }
 
     @Override
-    public AccountCredentialsService<?, ?, ?> getCredentialsService(String authority) throws NoSuchProviderException {
-        AccountCredentialsService<?, ?, ?> cs = getCredentialsServices().stream()
+    public AccountCredentialsService<?, ?, ?, ?> getCredentialsService(String authority)
+            throws NoSuchProviderException {
+        AccountCredentialsService<?, ?, ?, ?> cs = getCredentialsServices().stream()
                 .filter(s -> s.getAuthority().equals(authority)).findFirst().orElse(null);
         if (cs == null) {
             throw new NoSuchProviderException();
@@ -179,10 +180,7 @@ public class InternalIdentityService
         if (loadCredentials) {
             List<UserCredentials> credentials = new ArrayList<>();
             getCredentialsServices().stream().forEach(s -> {
-                try {
-                    credentials.addAll(s.listCredentials(username));
-                } catch (NoSuchUserException e) {
-                }
+                credentials.addAll(s.listCredentials(username));
             });
 
             identity.setCredentials(credentials);
@@ -266,19 +264,20 @@ public class InternalIdentityService
             ea.setName(reg.getAccount().getName());
             ea.setSurname(reg.getAccount().getSurname());
             ea.setLang(reg.getAccount().getLang());
-            account = service.registerAccount(userId, ea);
+            ea = service.registerAccount(userId, ea);
 
+            account = service.getAccount(ea.getAccountId());
             userId = account.getUserId();
             String username = account.getUsername();
 
             // register credentials
             if (reg.getCredentials() != null) {
                 for (UserCredentials uc : reg.getCredentials()) {
-                    AccountCredentialsService<?, ?, ?> cs = getCredentialsServices().stream()
+                    AccountCredentialsService<?, ?, ?, ?> cs = getCredentialsServices().stream()
                             .filter(a -> a.getAuthority().equals(uc.getAuthority())).findFirst().orElse(null);
                     if (cs != null) {
                         // add as new
-                        credentials.add(cs.addCredentials(username, uc));
+                        credentials.add(cs.addCredential(username, null, uc));
                     }
                 }
             }
@@ -294,13 +293,13 @@ public class InternalIdentityService
             }
 
             for (UserCredentials uc : credentials) {
-                AccountCredentialsService<?, ?, ?> cs = getCredentialsServices().stream()
+                AccountCredentialsService<?, ?, ?, ?> cs = getCredentialsServices().stream()
                         .filter(a -> a.getAuthority().equals(uc.getAuthority())).findFirst().orElse(null);
                 if (cs != null) {
                     try {
                         // remove
-                        cs.deleteCredentials(uc.getAccountId(), uc.getId());
-                    } catch (NoSuchUserException | NoSuchCredentialException e1) {
+                        cs.deleteCredential(uc.getId());
+                    } catch (NoSuchCredentialException e1) {
                         // ignore
                     }
                 }
@@ -343,10 +342,10 @@ public class InternalIdentityService
         List<UserCredentials> credentials = new ArrayList<>();
         if (reg.getCredentials() != null) {
             for (UserCredentials uc : reg.getCredentials()) {
-                AccountCredentialsService<?, ?, ?> cs = getCredentialsServices().stream()
+                AccountCredentialsService<?, ?, ?, ?> cs = getCredentialsServices().stream()
                         .filter(a -> a.getAuthority().equals(uc.getAuthority())).findFirst().orElse(null);
                 if (cs != null) {
-                    credentials.add(cs.addCredentials(username, uc));
+                    credentials.add(cs.addCredential(username, uc.getCredentialsId(), uc));
                 }
             }
         }
@@ -424,9 +423,8 @@ public class InternalIdentityService
         }
 
         // remove credentials
-        usernames.forEach(u -> {
-            getCredentialsServices().forEach(c -> c.deleteCredentials(u));
-        });
+        getCredentialsServices().forEach(c -> c.deleteCredentials(userId));
+
     }
 
     @Override
@@ -439,8 +437,19 @@ public class InternalIdentityService
             logger.error("account provider unavailable");
         }
 
-        // remove credentials
-        getCredentialsServices().forEach(c -> c.deleteCredentials(username));
+        // remove credentials matching account
+
+        getCredentialsServices().forEach(c -> {
+            List<UserCredentials> creds = c.listCredentials(userId).stream()
+                    .filter(s -> s.getAccountId().equals(username)).collect(Collectors.toList());
+            creds.forEach(s -> {
+                try {
+                    c.deleteCredential(s.getCredentialsId());
+                } catch (NoSuchCredentialException e) {
+                }
+            });
+
+        });
     }
 
     @Override

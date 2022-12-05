@@ -268,7 +268,7 @@ public class InternalRegistrationController {
 //        }
 
         // fetch password service if available
-        AccountCredentialsService<?, ?, ?> cs = idp.getCredentialsService(SystemKeys.AUTHORITY_PASSWORD);
+        AccountCredentialsService<?, ?, ?, ?> cs = idp.getCredentialsService(SystemKeys.AUTHORITY_PASSWORD);
         if (cs != null) {
             PasswordCredentialsService service = (PasswordCredentialsService) cs;
             // expose password policy by passing idp config
@@ -311,7 +311,7 @@ public class InternalRegistrationController {
             model.addAttribute("displayName", realm);
 
             // fetch password service if available
-            AccountCredentialsService<?, ?, ?> cs = idp.getCredentialsService(SystemKeys.AUTHORITY_PASSWORD);
+            AccountCredentialsService<?, ?, ?, ?> cs = idp.getCredentialsService(SystemKeys.AUTHORITY_PASSWORD);
             PasswordCredentialsService service = null;
             if (cs != null) {
                 service = (PasswordCredentialsService) cs;

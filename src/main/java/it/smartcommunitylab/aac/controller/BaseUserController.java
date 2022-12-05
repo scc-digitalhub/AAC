@@ -260,7 +260,7 @@ public class BaseUserController implements InitializingBean {
 
     @PutMapping("/users/{realm}/{userId}/account/{uuid}/edit")
     @Operation(summary = "update a specific editable account for a specific user in realm")
-    public UserAccount updateEditableUserAccount(
+    public EditableUserAccount updateEditableUserAccount(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid,

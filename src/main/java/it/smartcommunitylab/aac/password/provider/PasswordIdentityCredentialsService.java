@@ -6,6 +6,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -117,6 +118,9 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
                 .findCredentialsByAccount(repositoryId, username).stream()
                 .filter(c -> STATUS_ACTIVE.equals(c.getStatus()))
                 .map(p -> {
+                    // map to ourselves
+                    p.setProvider(getProvider());
+
                     // password are encrypted, but clear value for extra safety
                     p.eraseCredentials();
                     return p;
@@ -154,11 +158,11 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
         }
         try {
             // fetch first active password
-            InternalUserPassword password = passwordService
+            InternalUserPassword pass = passwordService
                     .findCredentialsByAccount(repositoryId, username).stream()
                     .filter(c -> STATUS_ACTIVE.equals(c.getStatus())).findFirst().orElse(null);
 
-            if (password == null) {
+            if (pass == null) {
                 // generate and set active a temporary password
                 String value = keyGenerator.generateKey();
                 // encode password
@@ -177,12 +181,12 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
                 newPassword.setChangeOnFirstAccess(true);
                 newPassword.setExpirationDate(null);
 
-                password = passwordService.addCredentials(repositoryId, newPassword.getId(), newPassword);
+                pass = passwordService.addCredentials(repositoryId, newPassword.getId(), newPassword);
 
                 if (resourceService != null) {
                     // register
-                    resourceService.addResourceEntity(password.getUuid(), SystemKeys.RESOURCE_CREDENTIALS,
-                            getAuthority(), getProvider(), password.getResourceId());
+                    resourceService.addResourceEntity(pass.getUuid(), SystemKeys.RESOURCE_CREDENTIALS,
+                            getAuthority(), getProvider(), pass.getResourceId());
                 }
             }
 
@@ -193,22 +197,25 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
             Calendar calendar = Calendar.getInstance();
             calendar.add(Calendar.SECOND, config.getPasswordResetValidity());
 
-            password.setResetDeadline(calendar.getTime());
-            password.setResetKey(resetKey);
+            pass.setResetDeadline(calendar.getTime());
+            pass.setResetKey(resetKey);
 
-            password = passwordService.updateCredentials(repositoryId, password.getId(), password);
+            pass = passwordService.updateCredentials(repositoryId, pass.getId(), pass);
+
+            // map to ourselves
+            pass.setProvider(getProvider());
 
             // password are encrypted, but clear value for extra safety
-            password.eraseCredentials();
+            pass.eraseCredentials();
 
             // send mail
             try {
-                sendResetMail(account, password.getResetKey());
+                sendResetMail(account, pass.getResetKey());
             } catch (Exception e) {
                 logger.error(e.getMessage());
             }
 
-            return password;
+            return pass;
         } catch (RegistrationException | NoSuchCredentialException | NoSuchAlgorithmException
                 | InvalidKeySpecException e) {
             logger.error("error resetting password for {}: {}", String.valueOf(username), e.getMessage());
@@ -221,8 +228,8 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
         if (!StringUtils.hasText(resetKey)) {
             throw new IllegalArgumentException("empty-key");
         }
-        InternalUserPassword password = passwordService.findCredentialsByResetKey(repositoryId, resetKey);
-        if (password == null) {
+        InternalUserPassword pass = passwordService.findCredentialsByResetKey(repositoryId, resetKey);
+        if (pass == null) {
             throw new NoSuchCredentialException();
         }
 
@@ -230,7 +237,7 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
         boolean isValid = false;
 
         // password must be active, can't reset inactive
-        boolean isActive = STATUS_ACTIVE.equals(password.getStatus());
+        boolean isActive = STATUS_ACTIVE.equals(pass.getStatus());
         if (!isActive) {
             logger.error("invalid key, inactive");
             throw new InvalidDataException("key");
@@ -238,7 +245,7 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
 
         // validate key match
         // useless check since we fetch account with key as input..
-        boolean isMatch = resetKey.equals(password.getResetKey());
+        boolean isMatch = resetKey.equals(pass.getResetKey());
 
         if (!isMatch) {
             logger.error("invalid key, not matching");
@@ -247,16 +254,16 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
 
         // validate deadline
         Calendar calendar = Calendar.getInstance();
-        if (password.getResetDeadline() == null) {
+        if (pass.getResetDeadline() == null) {
             logger.error("corrupt or used key, missing deadline");
             // do not leak reason
             throw new InvalidDataException("key");
         }
 
-        boolean isExpired = calendar.after(password.getResetDeadline());
+        boolean isExpired = calendar.after(pass.getResetDeadline());
 
         if (isExpired) {
-            logger.error("expired key on " + String.valueOf(password.getResetDeadline()));
+            logger.error("expired key on " + String.valueOf(pass.getResetDeadline()));
             // do not leak reason
             throw new InvalidDataException("key");
         }
@@ -268,26 +275,45 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
         }
 
         // we clear keys and reset password to lock login
-        password.setResetDeadline(null);
-        password.setResetKey(null);
+        pass.setResetDeadline(null);
+        pass.setResetKey(null);
 
         // users need to change the password during this session or reset again
         // we want to lock login with old password from now on
-        password.setStatus(STATUS_INACTIVE);
+        pass.setStatus(STATUS_INACTIVE);
 
-        password = passwordService.updateCredentials(resetKey, password.getId(), password);
+        pass = passwordService.updateCredentials(resetKey, pass.getId(), pass);
+
+        // map to ourselves
+        pass.setProvider(getProvider());
 
         // password are encrypted, but clear value for extra safety
-        password.eraseCredentials();
+        pass.eraseCredentials();
 
-        return password;
+        return pass;
     }
 
     public void deletePassword(String username) throws NoSuchUserException {
         // TODO add locking for atomic operation
+        logger.debug("delete all passwords for account {}", String.valueOf(username));
 
-        // delete all passwords for the given account
-        passwordService.deleteAllCredentialsByAccount(repositoryId, username);
+        // fetch all to collect ids
+        List<InternalUserPassword> passwords = passwordService.findCredentialsByAccount(repositoryId, username);
+
+        // delete in batch
+        Set<String> ids = passwords.stream().map(p -> p.getId()).collect(Collectors.toSet());
+        passwordService.deleteAllCredentials(repositoryId, ids);
+
+        if (resourceService != null) {
+            // remove resources
+            try {
+                // delete in batch
+                Set<String> uuids = passwords.stream().map(p -> p.getUuid()).collect(Collectors.toSet());
+                resourceService.deleteAllResourceEntities(uuids);
+            } catch (RuntimeException re) {
+                logger.error("error removing resources: {}", re.getMessage());
+            }
+        }
     }
 
     /*

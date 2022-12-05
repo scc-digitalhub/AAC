@@ -111,12 +111,12 @@ public class UserConsoleController {
     }
 
     @PutMapping("/accounts/{uuid}/edit")
-    public ResponseEntity<UserAccount> updateAccount(
+    public ResponseEntity<EditableUserAccount> updateAccount(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String uuid,
             @RequestBody @Valid @NotNull AbstractEditableAccount reg)
             throws NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
 
-        UserAccount account = userManager.updateMyEditableAccount(uuid, reg);
+        EditableUserAccount account = userManager.updateMyEditableAccount(uuid, reg);
         return ResponseEntity.ok(account);
     }
 

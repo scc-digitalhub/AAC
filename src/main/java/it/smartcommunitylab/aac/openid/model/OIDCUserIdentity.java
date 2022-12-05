@@ -44,7 +44,6 @@ public class OIDCUserIdentity extends AbstractIdentity {
             OIDCUserAccount account, OIDCUserAuthenticatedPrincipal principal) {
         super(authority, provider);
         Assert.notNull(account, "account can not be null");
-        Assert.notNull(principal, "principal can not be null");
 
         this.account = account;
         this.principal = principal;

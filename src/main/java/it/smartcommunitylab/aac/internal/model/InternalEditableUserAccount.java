@@ -18,7 +18,7 @@ import it.smartcommunitylab.aac.core.base.AbstractEditableAccount;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class InternalEditableUserAccount extends AbstractEditableAccount {
     private static final long serialVersionUID = SystemKeys.AAC_INTERNAL_SERIAL_VERSION;
-    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_CREDENTIALS + SystemKeys.ID_SEPARATOR
+    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_ACCOUNT + SystemKeys.ID_SEPARATOR
             + SystemKeys.AUTHORITY_INTERNAL;
 
     @NotBlank

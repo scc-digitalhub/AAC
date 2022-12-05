@@ -45,6 +45,7 @@ import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableTemplateProvider;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.core.provider.UserCredentialsService;
 import it.smartcommunitylab.aac.core.service.AttributeProviderService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderService;
 import it.smartcommunitylab.aac.core.service.RealmService;
@@ -60,13 +61,13 @@ import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
-import it.smartcommunitylab.aac.password.service.InternalPasswordUserCredentialsService;
+import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.roles.RealmRoleManager;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import it.smartcommunitylab.aac.services.ServicesManager;
 import it.smartcommunitylab.aac.templates.model.TemplateModel;
 import it.smartcommunitylab.aac.templates.service.TemplateService;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnCredentialsService;
+import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredential;
 
 @Service
 public class RealmManager {
@@ -126,10 +127,10 @@ public class RealmManager {
     private UserAccountService<SamlUserAccount> samlUserAccountService;
 
     @Autowired
-    private WebAuthnCredentialsService webAuthnUserCredentialsService;
+    private UserCredentialsService<WebAuthnUserCredential> webAuthnUserCredentialsService;
 
     @Autowired
-    private InternalPasswordUserCredentialsService internalUserPasswordService;
+    private UserCredentialsService<InternalUserPassword> internalUserPasswordService;
 
 //    @Autowired
 //    private SessionManager sessionManager;
@@ -339,6 +340,10 @@ public class RealmManager {
             List<String> passwords = internalUserPasswordService.findCredentialsByRealm(slug).stream()
                     .map(p -> p.getId()).collect(Collectors.toList());
             internalUserPasswordService.deleteAllCredentials(slug, passwords);
+
+            List<String> credentials = webAuthnUserCredentialsService.findCredentialsByRealm(slug).stream()
+                    .map(p -> p.getId()).collect(Collectors.toList());
+            webAuthnUserCredentialsService.deleteAllCredentials(slug, credentials);
 
             // remove services
             List<it.smartcommunitylab.aac.services.Service> services = servicesManager.listServices(slug);

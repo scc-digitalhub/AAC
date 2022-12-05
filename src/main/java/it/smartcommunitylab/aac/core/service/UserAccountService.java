@@ -25,6 +25,7 @@ import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.provider.AccountService;
 
 @Service
+@Transactional
 public class UserAccountService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -98,12 +99,14 @@ public class UserAccountService {
                 .getProvider(res.getProvider());
 
         // fetch account
-        return service.getEditableAccount(accountId);
+        UserAccount account = service.getAccount(accountId);
+
+        // fetch editable
+        return service.getEditableAccount(account.getUserId(), accountId);
     }
 
     @Transactional(readOnly = false)
-    public Collection<UserAccount> listUserAccounts(String userId)
-            throws NoSuchUserException {
+    public Collection<UserAccount> listUserAccounts(String userId) throws NoSuchUserException {
         logger.debug("get user {} accounts", StringUtils.trimAllWhitespace(userId));
 
         // fetch user
@@ -124,7 +127,7 @@ public class UserAccountService {
      * User account via providers
      */
     @Transactional(readOnly = false)
-    public UserAccount registerUserAccount(String authority, String providerId, @Nullable String userId,
+    public EditableUserAccount registerUserAccount(String authority, String providerId, @Nullable String userId,
             EditableUserAccount reg)
             throws NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
         logger.debug("register user {} account via provider {}", StringUtils.trimAllWhitespace(String.valueOf(userId)),
@@ -143,7 +146,7 @@ public class UserAccountService {
     }
 
     @Transactional(readOnly = false)
-    public UserAccount editUserAccount(String uuid, EditableUserAccount reg)
+    public EditableUserAccount editUserAccount(String uuid, EditableUserAccount reg)
             throws NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
         logger.debug("edit user account {}", StringUtils.trimAllWhitespace(uuid));
 
@@ -164,15 +167,14 @@ public class UserAccountService {
                 .getProvider(providerId);
 
         // find account
-        UserAccount ua = service.getAccount(accountId);
-        String userId = ua.getUserId();
+        UserAccount account = service.getAccount(accountId);
 
         // execute
-        return service.editAccount(userId, accountId, reg);
+        return service.editAccount(account.getUserId(), accountId, reg);
     }
 
     @Transactional(readOnly = false)
-    public UserAccount createUserAccount(String authority, String providerId, @Nullable String userId,
+    public UserAccount createUserAccount(String authority, String providerId, String userId,
             @Nullable String accountId, UserAccount reg)
             throws NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
         logger.debug("create user {} account {} via provider {}", StringUtils.trimAllWhitespace(String.valueOf(userId)),
@@ -304,6 +306,24 @@ public class UserAccountService {
 
         // TODO delete via idp provider to also clear attributes
         service.deleteAccount(accountId);
+    }
+
+    @Transactional(readOnly = false)
+    public void deleteAllUserAccouts(String userId)
+            throws NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
+        logger.debug("delete all user {} accounts", StringUtils.trimAllWhitespace(userId));
+
+        // fetch user
+        UserEntity ue = userService.getUser(userId);
+        String realm = ue.getRealm();
+
+        // collect from all providers for the same realm
+        List<AccountService<?, ?, ?, ?>> services = accountServiceAuthorityService.getAuthorities()
+                .stream()
+                .flatMap(e -> e.getProvidersByRealm(realm).stream())
+                .collect(Collectors.toList());
+
+        services.forEach(s -> s.deleteAccounts(userId));
     }
 
     @Transactional(readOnly = false)

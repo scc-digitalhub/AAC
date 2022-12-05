@@ -18,7 +18,7 @@ import it.smartcommunitylab.aac.core.persistence.CredentialsServiceEntity;
 @Transactional
 public class CredentialsServiceService
         extends
-        ConfigurableProviderService<CredentialsServiceAuthority<?, ?, ?, ?>, ConfigurableCredentialsProvider, CredentialsServiceEntity> {
+        ConfigurableProviderService<CredentialsServiceAuthority<?, ?, ?, ?, ?>, ConfigurableCredentialsProvider, CredentialsServiceEntity> {
 
     public CredentialsServiceService(CredentialsServiceAuthorityService authorityService,
             ConfigurableProviderEntityService<CredentialsServiceEntity> providerService) {

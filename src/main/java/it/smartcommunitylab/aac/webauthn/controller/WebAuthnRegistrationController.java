@@ -279,9 +279,8 @@ public class WebAuthnRegistrationController {
         WebAuthnUserCredential credential = service.saveRegistration(username, request);
 
         // register as new
-        logger.debug("register credential {} for user {} via userHandle {}", credential.getCredentialId(),
+        logger.debug("registered credential {} for user {} via userHandle {}", credential.getCredentialId(),
                 StringUtils.trimAllWhitespace(username), userHandle);
-        credential = service.setCredentials(username, credential);
 
         if (logger.isTraceEnabled()) {
             logger.trace("credential {}: {}", credential.getCredentialId(), String.valueOf(credential));

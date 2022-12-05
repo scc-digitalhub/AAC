@@ -2,12 +2,15 @@ package it.smartcommunitylab.aac.core.provider;
 
 import java.util.Collection;
 
+import org.springframework.lang.Nullable;
+
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchCredentialException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsProvider;
+import it.smartcommunitylab.aac.core.model.EditableUserCredentials;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
 
 /*
@@ -15,49 +18,53 @@ import it.smartcommunitylab.aac.core.model.UserCredentials;
  * which is handled by a given account service in the same realm 
  */
 
-public interface AccountCredentialsService<R extends UserCredentials, M extends ConfigMap, C extends CredentialsServiceConfig<M>>
+public interface AccountCredentialsService<R extends UserCredentials, E extends EditableUserCredentials, M extends ConfigMap, C extends CredentialsServiceConfig<M>>
         extends ConfigurableResourceProvider<R, ConfigurableCredentialsProvider, M, C> {
 
-//    /*
-//     * Set current credential (if only one is allowed) or all credentials
-//     */
-//
-//    public R getCredentials(String accountId) throws NoSuchUserException;
-//
-//    public R setCredentials(String accountId, UserCredentials credentials) throws NoSuchUserException;
-//
-//    public void resetCredentials(String accountId) throws NoSuchUserException;
-//
+    /*
+     * (user) editable credentials
+     */
+    public E getEditableCredential(String accountId, String credentialId) throws NoSuchCredentialException;
+
+    public E registerCredential(String accountId, EditableUserCredentials credentials)
+            throws RegistrationException, NoSuchUserException;
+
+    public E editCredential(String accountId, String credentialId, EditableUserCredentials credentials)
+            throws RegistrationException, NoSuchCredentialException;
 
     /*
-     * Set specific credentials
+     * Manage account credentials
      */
 
-    public Collection<R> listCredentials(String accountId) throws NoSuchUserException;
+    public Collection<R> listCredentials(String userId);
 
-    public R addCredentials(String username, UserCredentials uc) throws NoSuchUserException;
+    public R findCredential(String credentialId);
 
-    public R getCredentials(String accountId, String credentialsId)
-            throws NoSuchUserException, NoSuchCredentialException;
+    public R getCredential(String credentialId) throws NoSuchCredentialException;
 
-    public R setCredentials(String accountId, String credentialsId, UserCredentials credentials)
-            throws NoSuchUserException, RegistrationException, NoSuchCredentialException;
+    public R addCredential(String accountId, @Nullable String credentialId, UserCredentials uc)
+            throws NoSuchUserException;
+
+    public R setCredential(String accountId, String credentialId, UserCredentials credentials)
+            throws RegistrationException, NoSuchCredentialException;
 
 //    public void resetCredentials(String accountId, String credentialsId)
 //            throws NoSuchUserException, NoSuchCredentialException;
 
-    public R revokeCredentials(String accountId, String credentialsId)
-            throws NoSuchUserException, NoSuchCredentialException;
+    public R revokeCredential(String credentialId) throws NoSuchCredentialException;
 
-    public void deleteCredentials(String accountId, String credentialsId)
-            throws NoSuchUserException, NoSuchCredentialException;
+    public void deleteCredential(String credentialId) throws NoSuchCredentialException;
 
-    public void deleteCredentials(String accountId);
+    public void deleteCredentials(String userId);
 
 //    /*
 //     * Action urls
 //     */
 //    public String getSetUrl() throws NoSuchUserException;
+    public String getRegisterUrl();
+
+    public String getEditUrl(String credentialsId) throws NoSuchCredentialException;
+
 //
 //    /*
 //     * At least one between resetLink or resetCredentials is required to support

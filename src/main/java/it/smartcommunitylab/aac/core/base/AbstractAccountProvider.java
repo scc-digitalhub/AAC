@@ -87,25 +87,25 @@ public class AbstractAccountProvider<U extends AbstractAccount> extends Abstract
         return account;
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public U findAccountByUuid(String uuid) {
-        U account = accountService.findAccountByUuid(uuid);
-        if (account == null) {
-            return null;
-        }
-
-        // check repository matches
-        if (!repositoryId.equals(account.getRepositoryId())) {
-            return null;
-        }
-
-        // map to our authority
-        account.setAuthority(getAuthority());
-        account.setProvider(getProvider());
-
-        return account;
-    }
+//    @Override
+//    @Transactional(readOnly = true)
+//    public U findAccountByUuid(String uuid) {
+//        U account = accountService.findAccountByUuid(uuid);
+//        if (account == null) {
+//            return null;
+//        }
+//
+//        // check repository matches
+//        if (!repositoryId.equals(account.getRepositoryId())) {
+//            return null;
+//        }
+//
+//        // map to our authority
+//        account.setAuthority(getAuthority());
+//        account.setProvider(getProvider());
+//
+//        return account;
+//    }
 
     @Override
     public U lockAccount(String accountId) throws NoSuchUserException, RegistrationException {

@@ -1,9 +1,7 @@
 package it.smartcommunitylab.aac.webauthn.provider;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -22,83 +20,57 @@ import com.yubico.webauthn.data.ClientRegistrationExtensionOutputs;
 import com.yubico.webauthn.data.PublicKeyCredential;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
+import it.smartcommunitylab.aac.common.InvalidDataException;
 import it.smartcommunitylab.aac.common.MissingDataException;
 import it.smartcommunitylab.aac.common.NoSuchCredentialException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
-import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsProvider;
+import it.smartcommunitylab.aac.core.base.AbstractCredentialsService;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
-import it.smartcommunitylab.aac.core.service.ResourceEntityService;
-import it.smartcommunitylab.aac.core.provider.AccountCredentialsService;
+import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.webauthn.WebAuthnCredentialsAuthority;
 import it.smartcommunitylab.aac.webauthn.model.AttestationResponse;
 import it.smartcommunitylab.aac.webauthn.model.CredentialCreationInfo;
+import it.smartcommunitylab.aac.webauthn.model.WebAuthnEditableUserCredential;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationRequest;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationStartRequest;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredential;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnRegistrationRpService;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnCredentialsService;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserCredentialsService;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserHandleService;
 
 @Transactional
-public class WebAuthnCredentialsService
-        extends
-        AbstractConfigurableProvider<WebAuthnUserCredential, ConfigurableCredentialsProvider, WebAuthnIdentityProviderConfigMap, WebAuthnCredentialsServiceConfig>
-        implements
-        AccountCredentialsService<WebAuthnUserCredential, WebAuthnIdentityProviderConfigMap, WebAuthnCredentialsServiceConfig> {
+public class WebAuthnCredentialsService extends
+        AbstractCredentialsService<WebAuthnUserCredential, WebAuthnEditableUserCredential, InternalUserAccount, WebAuthnIdentityProviderConfigMap, WebAuthnCredentialsServiceConfig> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // services
-    private final UserAccountService<InternalUserAccount> accountService;
-    private final WebAuthnCredentialsService credentialsService;
+    private final WebAuthnUserCredentialsService credentialService;
+    private final WebAuthnUserHandleService userHandleService;
     private final WebAuthnRegistrationRpService rpService;
-    private ResourceEntityService resourceService;
-
-    // provider configuration
-    private final String repositoryId;
 
     public WebAuthnCredentialsService(String providerId,
             UserAccountService<InternalUserAccount> userAccountService,
-            WebAuthnCredentialsService credentialsService, WebAuthnRegistrationRpService rpService,
+            WebAuthnUserCredentialsService credentialsService, WebAuthnRegistrationRpService rpService,
             WebAuthnCredentialsServiceConfig providerConfig,
             String realm) {
-        super(SystemKeys.AUTHORITY_WEBAUTHN, providerId, realm, providerConfig);
-        Assert.notNull(userAccountService, "user account service is mandatory");
+        super(SystemKeys.AUTHORITY_WEBAUTHN, providerId, userAccountService, credentialsService, providerConfig, realm);
         Assert.notNull(credentialsService, "credentials service is mandatory");
         Assert.notNull(rpService, "webauthn rp service is mandatory");
-        Assert.notNull(providerConfig, "provider config is mandatory");
 
-        this.repositoryId = providerConfig.getRepositoryId();
-        logger.debug("create webauthn credentials service with id {} repository {}", String.valueOf(providerId),
-                repositoryId);
-
-        this.accountService = userAccountService;
-        this.credentialsService = credentialsService;
+        this.credentialService = credentialsService;
         this.rpService = rpService;
-    }
 
-    public void setResourceService(ResourceEntityService resourceService) {
-        this.resourceService = resourceService;
-    }
-
-    private void validateCredential(WebAuthnUserCredential reg) {
-        // validate credentials
-        if (!StringUtils.hasText(reg.getUserHandle())) {
-            throw new MissingDataException("user-handle");
-        }
-        if (!StringUtils.hasText(reg.getCredentialId())) {
-            throw new MissingDataException("credentials-id");
-        }
-        if (!StringUtils.hasText(reg.getPublicKeyCose())) {
-            throw new MissingDataException("public-key");
-        }
+        // build service
+        this.userHandleService = new WebAuthnUserHandleService(userAccountService);
     }
 
     /*
      * WebAuthn operations
-     * TODO extract
      */
 
     public WebAuthnRegistrationRequest startRegistration(String username, WebAuthnRegistrationStartRequest reg)
@@ -216,7 +188,7 @@ public class WebAuthnCredentialsService
         logger.debug("register credential {} for user {} via userHandle {}", credential.getCredentialId(),
                 StringUtils.trimAllWhitespace(username), userHandle);
 
-        credential = addCredentials(username, credential);
+        credential = addCredential(username, null, credential);
 
         if (logger.isTraceEnabled()) {
             logger.trace("credential {}: {}", credential.getCredentialId(), String.valueOf(credential));
@@ -230,151 +202,175 @@ public class WebAuthnCredentialsService
      */
 
     @Override
-    public WebAuthnUserCredential addCredentials(String username, UserCredentials cred) throws NoSuchUserException {
-        if (!(cred instanceof WebAuthnUserCredential)) {
-            throw new IllegalArgumentException("invalid credentials");
+    public WebAuthnUserCredential addCredential(String accountId, String credentialsId, UserCredentials cred)
+            throws NoSuchUserException {
+        if (cred == null) {
+            throw new RegistrationException();
         }
 
+        Assert.isInstanceOf(WebAuthnUserCredential.class, cred,
+                "registration must be an instance of webauthn user credential");
         WebAuthnUserCredential reg = (WebAuthnUserCredential) cred;
+
+        logger.debug("add credential for account {}", String.valueOf(accountId));
+        if (logger.isTraceEnabled()) {
+            logger.trace("credentials: {}", String.valueOf(reg));
+        }
+
         validateCredential(reg);
 
-        if (!username.equals(reg.getUsername())) {
+        if (!accountId.equals(reg.getUsername())) {
             throw new IllegalArgumentException("invalid credentials");
         }
 
         // fetch user
-        InternalUserAccount account = accountService.findAccountById(repositoryId, username);
+        InternalUserAccount account = accountService.findAccountById(repositoryId, accountId);
         if (account == null) {
+            throw new NoSuchUserException();
+        }
+
+        // fetch user handle
+        String userHandle = userHandleService.getUserHandleForUsername(repositoryId, accountId);
+        if (userHandle == null) {
             throw new NoSuchUserException();
         }
 
         // add as new credential, if id is available
-        String userHandle = account.getUuid();
-        String credentialsId = reg.getCredentialId();
-        WebAuthnUserCredential credentials = credentialsService.addCredential(repositoryId, userHandle, credentialsId,
-                reg);
+        String credentialId = reg.getCredentialId();
+        if (!StringUtils.hasText(credentialId)) {
+            throw new MissingDataException("credential-id");
+        }
 
-        // register as resource
+        // check duplicate
+        WebAuthnUserCredential c = credentialService.findCredentialByUserHandleAndCredentialId(repositoryId, userHandle,
+                credentialId);
+        if (c != null) {
+            throw new AlreadyRegisteredException();
+        }
 
+        // extract relevant data
+        String username = reg.getUsername();
+        if (!StringUtils.hasText(username)) {
+            throw new MissingDataException("username");
+        }
+
+        String publicKeyCose = reg.getPublicKeyCose();
+        if (!StringUtils.hasText(publicKeyCose)) {
+            throw new MissingDataException("public-key");
+        }
+
+        String transports = reg.getTransports();
+        long signatureCount = reg.getSignatureCount();
+        if (signatureCount < 0) {
+            throw new InvalidDataException("signature-count");
+        }
+
+        String displayName = reg.getDisplayName();
+        if (StringUtils.hasText(displayName)) {
+            displayName = Jsoup.clean(displayName, Safelist.none());
+        }
+
+        // build model
+        c = new WebAuthnUserCredential();
+        c.setRepositoryId(repositoryId);
+
+        c.setUsername(account.getUsername());
+        c.setUserId(account.getUserId());
+        c.setRealm(account.getRealm());
+
+        c.setUserHandle(userHandle);
+
+        c.setCredentialId(credentialId);
+        c.setDisplayName(displayName);
+        c.setPublicKeyCose(publicKeyCose);
+        c.setTransports(transports);
+        c.setSignatureCount(signatureCount);
+        c.setDiscoverable(reg.getDiscoverable());
+
+        c.setAttestationObject(reg.getAttestationObject());
+        c.setClientData(reg.getClientData());
+
+        c.setStatus(CredentialsStatus.ACTIVE.getValue());
+
+        // save
+        WebAuthnUserCredential newCred = super.addCredential(accountId, credentialsId, c);
+
+        // map to ourselves
+        newCred.setProvider(getProvider());
+
+        // clear value for extra safety
+        newCred.eraseCredentials();
+
+        return newCred;
     }
 
     @Override
-    public void deleteCredentials(String username) {
-        // fetch all credentials and delete
-        List<WebAuthnUserCredential> credentials = credentialsService.findCredentialsByUsername(repositoryId, username);
-        if (!credentials.isEmpty()) {
-            for (WebAuthnUserCredential c : credentials) {
-                credentialsService.deleteCredential(repositoryId, c.getUserHandle(), c.getCredentialId());
-            }
+    public WebAuthnUserCredential setCredential(String accountId, String credentialsId, UserCredentials uc)
+            throws RegistrationException, NoSuchCredentialException {
+        Assert.isInstanceOf(WebAuthnUserCredential.class, uc,
+                "registration must be an instance of webauthn user credential");
+        WebAuthnUserCredential reg = (WebAuthnUserCredential) uc;
+
+        logger.debug("add credential with id {}", String.valueOf(credentialsId));
+        if (logger.isTraceEnabled()) {
+            logger.trace("credentials: {}", String.valueOf(reg));
+        }
+
+        validateCredential(reg);
+
+        WebAuthnUserCredential cred = credentialService.findCredentialsById(repositoryId, credentialsId);
+        if (cred == null) {
+            throw new NoSuchCredentialException();
+        }
+
+        if (!cred.getAccountId().equals(accountId)) {
+            throw new IllegalArgumentException("account-mismatch");
+        }
+
+        // update only allowed fields
+        cred.setDisplayName(reg.getDisplayName());
+
+        cred = credentialService.updateCredentials(repositoryId, cred.getId(), cred);
+
+        // map to ourselves
+        cred.setProvider(getProvider());
+
+        // clear value for extra safety
+        cred.eraseCredentials();
+
+        return cred;
+    }
+
+    /*
+     * helpers
+     */
+    private void validateCredential(WebAuthnUserCredential reg) {
+        // validate credentials
+        if (!StringUtils.hasText(reg.getUserHandle())) {
+            throw new MissingDataException("user-handle");
+        }
+        if (!StringUtils.hasText(reg.getCredentialId())) {
+            throw new MissingDataException("credentials-id");
+        }
+        if (!StringUtils.hasText(reg.getPublicKeyCose())) {
+            throw new MissingDataException("public-key");
         }
     }
 
     @Override
-    public Collection<WebAuthnUserCredential> listCredentials(String username) throws NoSuchUserException {
-        List<WebAuthnUserCredential> credentials = credentialsService.findCredentialsByUsername(repositoryId, username);
-
-        // erase key data from registrations
-        credentials.forEach(c -> c.eraseCredentials());
-
-        return credentials;
+    public String getRegisterUrl() {
+        return "/webauthn/credentials/register/" + getProvider();
     }
 
     @Override
-    public WebAuthnUserCredential getCredentials(String username, String credentialsId) throws NoSuchUserException {
-        Optional<WebAuthnUserCredential> cred = credentialsService.findCredentialsByUsername(repositoryId, username)
-                .stream()
-                .filter(c -> credentialsId.equals(c.getCredentialId()))
-                .findFirst();
-        if (cred.isEmpty()) {
-            throw new NoSuchUserException();
-        }
-        WebAuthnUserCredential credential = cred.get();
-
-        // erase key data from registration
-        credential.eraseCredentials();
-
-        return credential;
-    }
-
-    @Override
-    public WebAuthnUserCredential setCredentials(String username, String credentialsId, UserCredentials cred)
-            throws NoSuchUserException, RegistrationException, NoSuchCredentialException {
-        if (!(cred instanceof WebAuthnUserCredential)) {
-            throw new IllegalArgumentException("invalid credentials");
+    public String getEditUrl(String credentialsId) throws NoSuchCredentialException {
+        WebAuthnUserCredential cred = credentialService.findCredentialsById(repositoryId, credentialsId);
+        if (cred == null) {
+            throw new NoSuchCredentialException();
         }
 
-        WebAuthnUserCredential credentials = (WebAuthnUserCredential) cred;
-        validateCredential(credentials);
+        return "/webauthn/credentials/edit/" + getProvider() + "/" + credentialsId;
 
-        if (!credentialsId.equals(credentials.getCredentialId())) {
-            throw new IllegalArgumentException("invalid credentials");
-        }
-
-        if (!username.equals(credentials.getUsername())) {
-            throw new IllegalArgumentException("invalid credentials");
-        }
-
-        // fetch user
-        InternalUserAccount account = accountService.findAccountById(repositoryId, username);
-        if (account == null) {
-            throw new NoSuchUserException();
-        }
-
-        String userHandle = account.getUuid();
-
-        // update existing credential or add as new
-        WebAuthnUserCredential c = credentialsService.findCredentialByUserHandleAndCredentialId(repositoryId,
-                userHandle, credentialsId);
-        if (c == null) {
-            return credentialsService.addCredential(repositoryId, userHandle, credentialsId, credentials);
-        } else {
-            return credentialsService.updateCredential(repositoryId, userHandle, credentialsId, credentials);
-        }
-    }
-
-    @Override
-    public void resetCredentials(String username, String credentialsId) throws NoSuchUserException {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void revokeCredentials(String username, String credentialsId) throws NoSuchUserException {
-        Optional<WebAuthnUserCredential> cred = credentialsService.findCredentialsByUsername(repositoryId, username)
-                .stream()
-                .filter(c -> credentialsId.equals(c.getCredentialId()))
-                .findFirst();
-        if (cred.isEmpty()) {
-            throw new NoSuchUserException();
-        }
-        WebAuthnUserCredential credential = cred.get();
-
-        // revoke
-        credentialsService.revokeCredential(repositoryId, credential.getUserHandle(), credential.getCredentialId());
-    }
-
-    @Override
-    public void deleteCredentials(String username, String credentialsId) throws NoSuchUserException {
-        Optional<WebAuthnUserCredential> cred = credentialsService.findCredentialsByUsername(repositoryId, username)
-                .stream()
-                .filter(c -> credentialsId.equals(c.getCredentialId()))
-                .findFirst();
-        if (cred.isEmpty()) {
-            throw new NoSuchUserException();
-        }
-        WebAuthnUserCredential credential = cred.get();
-
-        // delete
-        credentialsService.deleteCredential(repositoryId, credential.getUserHandle(), credential.getCredentialId());
-    }
-
-    @Override
-    public String getSetUrl() throws NoSuchUserException {
-        return null;
-    }
-
-    @Override
-    public String getResetUrl() {
-        return null;
     }
 
 }

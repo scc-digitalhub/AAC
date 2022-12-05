@@ -224,29 +224,29 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
     }
 
 //    @Override
-    @Transactional(readOnly = true)
-    public I findIdentityByUuid(String userId, String uuid) {
-        logger.debug("find identity for uuid {}", String.valueOf(uuid));
-
-        // lookup a matching account
-        U account = getAccountProvider().findAccountByUuid(uuid);
-        if (account == null) {
-            return null;
-        }
-
-        // check userId matches
-        if (!account.getUserId().equals(userId)) {
-            return null;
-        }
-
-        // build identity without attributes or principal
-        I identity = buildIdentity(account, null);
-        if (logger.isTraceEnabled()) {
-            logger.trace("identity: {}", String.valueOf(identity));
-        }
-
-        return identity;
-    }
+//    @Transactional(readOnly = true)
+//    public I findIdentityByUuid(String userId, String uuid) {
+//        logger.debug("find identity for uuid {}", String.valueOf(uuid));
+//
+//        // lookup a matching account
+//        U account = getAccountProvider().findAccountByUuid(uuid);
+//        if (account == null) {
+//            return null;
+//        }
+//
+//        // check userId matches
+//        if (!account.getUserId().equals(userId)) {
+//            return null;
+//        }
+//
+//        // build identity without attributes or principal
+//        I identity = buildIdentity(account, null);
+//        if (logger.isTraceEnabled()) {
+//            logger.trace("identity: {}", String.valueOf(identity));
+//        }
+//
+//        return identity;
+//    }
 
     @Override
     @Transactional(readOnly = true)

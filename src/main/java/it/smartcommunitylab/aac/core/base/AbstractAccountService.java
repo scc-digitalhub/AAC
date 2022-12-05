@@ -7,6 +7,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.lang.Nullable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -34,6 +35,9 @@ public abstract class AbstractAccountService<U extends AbstractAccount, E extend
 
     protected final UserAccountService<U> userAccountService;
     protected ResourceEntityService resourceService;
+
+    // provider configuration
+    protected final C config;
     protected final String repositoryId;
 
     public AbstractAccountService(
@@ -45,11 +49,12 @@ public abstract class AbstractAccountService<U extends AbstractAccount, E extend
         Assert.notNull(userAccountService, "user account service is mandatory");
         Assert.notNull(config, "provider config is mandatory");
 
-        logger.debug("create {} account service for realm {} with id {}", String.valueOf(authority),
+        this.config = config;
+        this.repositoryId = config.getRepositoryId();
+        logger.debug("create {} account service for realm {} with id {} repository {}", String.valueOf(authority),
                 String.valueOf(realm), String.valueOf(providerId));
 
         this.userAccountService = userAccountService;
-        this.repositoryId = config.getRepositoryId();
     }
 
     public void setResourceService(ResourceEntityService resourceService) {
@@ -66,25 +71,25 @@ public abstract class AbstractAccountService<U extends AbstractAccount, E extend
         return SystemKeys.RESOURCE_ACCOUNT;
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public U findAccountByUuid(String uuid) {
-        U account = userAccountService.findAccountByUuid(uuid);
-        if (account == null) {
-            return null;
-        }
-
-        // check repository matches
-        if (!repositoryId.equals(account.getRepositoryId())) {
-            return null;
-        }
-
-        // map to our authority
-        account.setAuthority(getAuthority());
-        account.setProvider(getProvider());
-
-        return account;
-    }
+//    @Override
+//    @Transactional(readOnly = true)
+//    public U findAccountByUuid(String uuid) {
+//        U account = userAccountService.findAccountByUuid(uuid);
+//        if (account == null) {
+//            return null;
+//        }
+//
+//        // check repository matches
+//        if (!repositoryId.equals(account.getRepositoryId())) {
+//            return null;
+//        }
+//
+//        // map to our authority
+//        account.setAuthority(getAuthority());
+//        account.setProvider(getProvider());
+//
+//        return account;
+//    }
 
     @Override
     @Transactional(readOnly = true)
@@ -316,20 +321,20 @@ public abstract class AbstractAccountService<U extends AbstractAccount, E extend
     }
 
     @Override
-    public E getEditableAccount(String accountId) throws NoSuchUserException {
+    public E getEditableAccount(String userId, String accountId) throws NoSuchUserException {
         // not supported by default
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public U registerAccount(String userId, EditableUserAccount reg)
+    public E registerAccount(@Nullable String userId, EditableUserAccount reg)
             throws NoSuchUserException, RegistrationException {
         // register is user-initiated, by default is not available
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public U editAccount(String userId, String accountId, EditableUserAccount reg)
+    public E editAccount(String userId, String accountId, EditableUserAccount reg)
             throws NoSuchUserException, RegistrationException {
         // edit is user-initiated, by default is not available
         throw new UnsupportedOperationException();

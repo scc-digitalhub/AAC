@@ -12,6 +12,7 @@ import it.smartcommunitylab.aac.core.base.AbstractIdentityProvider;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.provider.AccountService;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.internal.model.InternalLoginProvider;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
@@ -68,6 +69,10 @@ public class WebAuthnIdentityProvider extends
         // TODO refactor to avoid fetching via resolver at this stage
         this.subjectResolver = new InternalSubjectResolver(providerId, userAccountService, repositoryId, false, realm);
 
+    }
+
+    public void setResourceService(ResourceEntityService resourceService) {
+        this.credentialsService.setResourceService(resourceService);
     }
 
     @Override
