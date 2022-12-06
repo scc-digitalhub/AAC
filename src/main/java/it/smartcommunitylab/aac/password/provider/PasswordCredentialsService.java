@@ -308,7 +308,7 @@ public class PasswordCredentialsService extends
         }
 
         // build password
-        InternalUserPassword newPassword = buildPassword(account, password, reg.getChangeOnFirstAccess());
+        InternalUserPassword newPassword = buildPassword(account, password, reg.isChangeOnFirstAccess());
 
         // save
         InternalUserPassword pass = super.addCredential(accountId, credentialId, newPassword);

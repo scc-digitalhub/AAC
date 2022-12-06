@@ -125,8 +125,8 @@ public class PasswordCredentialsController {
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid,
             Model model, Locale locale,
-            @ModelAttribute("reg") @Valid InternalEditableUserPassword reg,
-            HttpServletRequest request, BindingResult result)
+            @ModelAttribute("reg") @Valid InternalEditableUserPassword reg, BindingResult result,
+            HttpServletRequest request)
             throws NoSuchProviderException, NoSuchUserException {
 
         try {

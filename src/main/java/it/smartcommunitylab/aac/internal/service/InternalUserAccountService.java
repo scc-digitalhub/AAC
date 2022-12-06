@@ -199,7 +199,7 @@ public class InternalUserAccountService
             account.setProvider(reg.getProvider());
 
             return account;
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             throw new RegistrationException(e.getMessage());
         }
     }

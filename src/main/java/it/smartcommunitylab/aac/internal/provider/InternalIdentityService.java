@@ -147,7 +147,7 @@ public class InternalIdentityService
         }
 
         // build identity without attributes or principal
-        InternalUserIdentity identity = buildIdentity(account, null);
+        InternalUserIdentity identity = buildIdentity(account, Collections.emptyList());
         if (logger.isTraceEnabled()) {
             logger.trace("identity: {}", String.valueOf(identity));
         }
@@ -281,6 +281,9 @@ public class InternalIdentityService
                     }
                 }
             }
+
+            InternalUserIdentity identity = buildIdentity(account, credentials);
+            return identity;
         } catch (RegistrationException e) {
             // cleanup all new entities on error
             if (account != null) {
@@ -304,10 +307,10 @@ public class InternalIdentityService
                     }
                 }
             }
+
+            throw e;
         }
 
-        InternalUserIdentity identity = buildIdentity(account, credentials);
-        return identity;
     }
 
     @Override

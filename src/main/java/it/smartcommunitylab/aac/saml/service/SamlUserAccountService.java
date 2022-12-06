@@ -186,7 +186,7 @@ public class SamlUserAccountService implements UserAccountService<SamlUserAccoun
             }
 
             return account;
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             throw new RegistrationException(e.getMessage());
         }
     }

@@ -187,7 +187,7 @@ public class OIDCUserAccountService implements UserAccountService<OIDCUserAccoun
             account.setProvider(reg.getProvider());
 
             return account;
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             throw new RegistrationException(e.getMessage());
         }
     }

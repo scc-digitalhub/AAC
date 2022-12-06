@@ -153,9 +153,8 @@ public class InternalRegistrationController {
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid,
             Model model, Locale locale,
-            @ModelAttribute("reg") @Valid UserRegistrationBean reg,
-            HttpServletRequest request,
-            BindingResult result)
+            @ModelAttribute("reg") @Valid UserRegistrationBean reg, BindingResult result,
+            HttpServletRequest request)
             throws NoSuchProviderException, NoSuchUserException {
 
         try {
@@ -292,8 +291,7 @@ public class InternalRegistrationController {
     @RequestMapping(value = "/auth/internal/register/{providerId}", method = RequestMethod.POST)
     public String register(Model model, Locale locale,
             @PathVariable("providerId") String providerId,
-            @ModelAttribute("reg") @Valid UserRegistrationBean reg,
-            BindingResult result,
+            @ModelAttribute("reg") @Valid UserRegistrationBean reg, BindingResult result,
             HttpServletRequest req) {
         try {
             // resolve provider
