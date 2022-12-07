@@ -29,6 +29,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
+import it.smartcommunitylab.aac.common.NoSuchCredentialException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
@@ -39,7 +40,9 @@ import it.smartcommunitylab.aac.core.MyUserManager;
 import it.smartcommunitylab.aac.core.ScopeManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.base.AbstractEditableAccount;
+import it.smartcommunitylab.aac.core.base.AbstractEditableUserCredentials;
 import it.smartcommunitylab.aac.core.model.EditableUserAccount;
+import it.smartcommunitylab.aac.core.model.EditableUserCredentials;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.model.ConnectedApp;
 import it.smartcommunitylab.aac.model.ScopeType;
@@ -86,37 +89,28 @@ public class UserConsoleController {
      * Accounts
      */
     @GetMapping("/accounts")
-    public ResponseEntity<Page<UserAccount>> listAccounts(Pageable pageable) throws NoSuchUserException {
-        List<UserAccount> result = new ArrayList<>(userManager.getMyAccounts());
-        Page<UserAccount> page = new PageImpl<>(result, pageable, result.size());
+    public ResponseEntity<Page<EditableUserAccount>> listAccounts(Pageable pageable) throws NoSuchUserException {
+        List<EditableUserAccount> result = new ArrayList<>(userManager.getMyAccounts());
+        Page<EditableUserAccount> page = new PageImpl<>(result, pageable, result.size());
         return ResponseEntity.ok(page);
     }
 
     @GetMapping("/accounts/{uuid}")
-    public ResponseEntity<UserAccount> getAccount(
+    public ResponseEntity<EditableUserAccount> getAccount(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String uuid)
             throws NoSuchUserException, NoSuchProviderException, NoSuchAuthorityException {
 
-        UserAccount account = userManager.getMyAccount(uuid);
+        EditableUserAccount account = userManager.getMyAccount(uuid);
         return ResponseEntity.ok(account);
     }
 
-    @GetMapping("/accounts/{uuid}/edit")
-    public ResponseEntity<EditableUserAccount> editAccount(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String uuid)
-            throws NoSuchUserException, NoSuchProviderException, NoSuchAuthorityException {
-
-        EditableUserAccount account = userManager.getMyEditableAccount(uuid);
-        return ResponseEntity.ok(account);
-    }
-
-    @PutMapping("/accounts/{uuid}/edit")
+    @PutMapping("/accounts/{uuid}")
     public ResponseEntity<EditableUserAccount> updateAccount(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String uuid,
             @RequestBody @Valid @NotNull AbstractEditableAccount reg)
             throws NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
 
-        EditableUserAccount account = userManager.updateMyEditableAccount(uuid, reg);
+        EditableUserAccount account = userManager.updateMyAccount(uuid, reg);
         return ResponseEntity.ok(account);
     }
 
@@ -126,6 +120,46 @@ public class UserConsoleController {
             throws NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
 
         userManager.deleteMyAccount(uuid);
+        return ResponseEntity.ok().build();
+    }
+
+    /*
+     * Credentials
+     */
+    @GetMapping("/credentials")
+    public ResponseEntity<Page<EditableUserCredentials>> listCredentials(Pageable pageable) throws NoSuchUserException {
+        List<EditableUserCredentials> result = new ArrayList<>(userManager.getMyCredentials());
+        Page<EditableUserCredentials> page = new PageImpl<>(result, pageable, result.size());
+        return ResponseEntity.ok(page);
+    }
+
+    @GetMapping("/credentials/{uuid}")
+    public ResponseEntity<EditableUserCredentials> getCredentials(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String uuid)
+            throws NoSuchCredentialException, NoSuchUserException, NoSuchProviderException, NoSuchAuthorityException {
+
+        EditableUserCredentials cred = userManager.getMyCredentials(uuid);
+        return ResponseEntity.ok(cred);
+    }
+
+    @PutMapping("/credentials/{uuid}")
+    public ResponseEntity<EditableUserCredentials> updateCredentials(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String uuid,
+            @RequestBody @Valid @NotNull AbstractEditableUserCredentials reg)
+            throws NoSuchCredentialException, NoSuchUserException, NoSuchProviderException, RegistrationException,
+            NoSuchAuthorityException {
+
+        EditableUserCredentials cred = userManager.updateMyCredentials(uuid, reg);
+        return ResponseEntity.ok(cred);
+    }
+
+    @DeleteMapping("/credentials/{uuid}")
+    public ResponseEntity<Void> deleteCredentials(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String uuid)
+            throws NoSuchCredentialException, NoSuchUserException, NoSuchProviderException, RegistrationException,
+            NoSuchAuthorityException {
+
+        userManager.deleteMyCredentials(uuid);
         return ResponseEntity.ok().build();
     }
 

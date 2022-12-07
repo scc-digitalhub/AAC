@@ -726,7 +726,8 @@ public class InternalAccountService
 //        return account;
 //    }
 
-    public InternalUserAccount confirmAccountViaKey(String confirmationKey) throws NoSuchUserException {
+    public InternalUserAccount confirmAccountViaKey(String confirmationKey)
+            throws NoSuchUserException, RegistrationException {
         logger.debug("confirm account via key {}", String.valueOf(confirmationKey));
 
         if (!StringUtils.hasText(confirmationKey)) {

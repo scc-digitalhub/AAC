@@ -284,7 +284,7 @@ public class PasswordCredentialsService extends
      */
     @Override
     public InternalUserPassword addCredential(String accountId, String credentialId, UserCredentials uc)
-            throws NoSuchUserException {
+            throws NoSuchUserException, RegistrationException {
         if (uc == null) {
             throw new RegistrationException();
         }
@@ -323,10 +323,50 @@ public class PasswordCredentialsService extends
     }
 
     @Override
-    public InternalUserPassword setCredential(String accountId, String credentialsId, UserCredentials credentials)
+    public InternalUserPassword setCredential(String accountId, String credentialId, UserCredentials uc)
             throws RegistrationException, NoSuchCredentialException {
-        // set on current password is not allowed
-        throw new UnsupportedOperationException();
+        if (uc == null) {
+            throw new RegistrationException();
+        }
+
+        Assert.isInstanceOf(InternalUserPassword.class, uc,
+                "registration must be an instance of internal user password");
+        InternalUserPassword reg = (InternalUserPassword) uc;
+
+        // skip validation of password against policy
+        // we only make sure password is usable
+        String password = reg.getPassword();
+        if (!StringUtils.hasText(password) || password.length() < config.getPasswordMinLength()
+                || password.length() > config.getPasswordMaxLength()) {
+            throw new RegistrationException("invalid password");
+        }
+
+        // fetch user
+        InternalUserAccount account = accountService.findAccountById(repositoryId, accountId);
+        if (account == null) {
+            throw new NoSuchCredentialException();
+        }
+
+        // fetch password
+        InternalUserPassword cred = credentialsService.findCredentialsById(repositoryId, credentialId);
+        if (cred == null) {
+            throw new NoSuchCredentialException();
+        }
+
+        // update password
+        InternalUserPassword newPassword = buildPassword(account, password, reg.isChangeOnFirstAccess());
+        cred.setPassword(newPassword.getPassword());
+
+        // save
+        InternalUserPassword pass = super.setCredential(accountId, credentialId, cred);
+
+        // map to ourselves
+        pass.setProvider(getProvider());
+
+        // password are encrypted, but clear value for extra safety
+        pass.eraseCredentials();
+
+        return pass;
     }
 
     /*

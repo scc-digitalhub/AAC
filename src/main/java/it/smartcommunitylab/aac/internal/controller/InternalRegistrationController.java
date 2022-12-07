@@ -235,12 +235,13 @@ public class InternalRegistrationController {
 
     /**
      * Redirect to registration page
+     * @throws RegistrationException 
      */
     @Hidden
     @RequestMapping(value = "/auth/internal/register/{providerId}", method = RequestMethod.GET)
     public String registrationPage(
             @PathVariable("providerId") String providerId,
-            Model model, Locale locale) throws NoSuchProviderException, NoSuchRealmException {
+            Model model, Locale locale) throws NoSuchProviderException, NoSuchRealmException, RegistrationException {
 
         // resolve provider
         InternalIdentityService idp = internalAuthority.getProvider(providerId);

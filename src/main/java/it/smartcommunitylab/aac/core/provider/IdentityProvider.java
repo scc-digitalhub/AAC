@@ -4,6 +4,7 @@ import java.util.Collection;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
@@ -57,7 +58,7 @@ public interface IdentityProvider<I extends UserIdentity, U extends UserAccount,
      */
 
     public I convertIdentity(UserAuthenticatedPrincipal principal, String userId)
-            throws NoSuchUserException;
+            throws NoSuchUserException, RegistrationException;
 
     /*
      * Fetch identities from this provider
@@ -95,7 +96,7 @@ public interface IdentityProvider<I extends UserIdentity, U extends UserAccount,
      * 
      * Providers must expose the ability to link/relink identities to a given user
      */
-    public I linkIdentity(String userId, String identityId) throws NoSuchUserException;
+    public I linkIdentity(String userId, String identityId) throws NoSuchUserException, RegistrationException;
 
     /*
      * Delete accounts.

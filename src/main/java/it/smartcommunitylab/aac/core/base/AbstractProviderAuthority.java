@@ -90,7 +90,7 @@ public abstract class AbstractProviderAuthority<S extends ConfigurableResourcePr
     }
 
     @Override
-    public C registerProvider(ConfigurableProvider cp) {
+    public C registerProvider(ConfigurableProvider cp) throws RegistrationException {
         // cast config and handle errors
         T tcp = null;
         try {
@@ -101,7 +101,6 @@ public abstract class AbstractProviderAuthority<S extends ConfigurableResourcePr
             logger.error("Wrong config class: " + e.getMessage());
             throw new IllegalArgumentException("unsupported configurable class");
         }
-
         // we support only matching provider as resource providers
         if (cp != null && getAuthorityId().equals(cp.getAuthority())) {
             String providerId = cp.getProvider();

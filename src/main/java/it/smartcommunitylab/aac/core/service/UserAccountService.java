@@ -106,6 +106,31 @@ public class UserAccountService {
     }
 
     @Transactional(readOnly = false)
+    public Collection<EditableUserAccount> listEditableUserAccounts(String userId) throws NoSuchUserException {
+        logger.debug("get editable user {} accounts", StringUtils.trimAllWhitespace(userId));
+
+        // fetch user
+        UserEntity ue = userService.getUser(userId);
+        String realm = ue.getRealm();
+
+        // collect from all providers for the same realm
+        List<AccountService<?, ?, ?, ?>> services = accountServiceAuthorityService.getAuthorities().stream()
+                .flatMap(e -> e.getProvidersByRealm(realm).stream())
+                .collect(Collectors.toList());
+        List<EditableUserAccount> accounts = services.stream().flatMap(
+                s -> s.listAccounts(userId).stream().map(a -> {
+                    try {
+                        return s.getEditableAccount(a.getUserId(), a.getAccountId());
+                    } catch (NoSuchUserException e1) {
+                        return null;
+                    }
+                }).filter(a -> a != null))
+                .collect(Collectors.toList());
+
+        return accounts;
+    }
+
+    @Transactional(readOnly = false)
     public Collection<UserAccount> listUserAccounts(String userId) throws NoSuchUserException {
         logger.debug("get user {} accounts", StringUtils.trimAllWhitespace(userId));
 
@@ -328,7 +353,7 @@ public class UserAccountService {
 
     @Transactional(readOnly = false)
     public UserAccount lockUserAccount(String uuid)
-            throws NoSuchUserException, NoSuchProviderException, NoSuchAuthorityException {
+            throws NoSuchUserException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
         logger.debug("lock user account {}", StringUtils.trimAllWhitespace(uuid));
         // resolve resource
         ResourceEntity res = getResource(uuid);
@@ -348,7 +373,7 @@ public class UserAccountService {
 
     @Transactional(readOnly = false)
     public UserAccount unlockUserAccount(String uuid)
-            throws NoSuchUserException, NoSuchProviderException, NoSuchAuthorityException {
+            throws NoSuchUserException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
         logger.debug("unlock user account {}", StringUtils.trimAllWhitespace(uuid));
 
         // resolve resource

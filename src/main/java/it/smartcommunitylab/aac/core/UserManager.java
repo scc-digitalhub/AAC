@@ -624,7 +624,7 @@ public class UserManager {
 
     @Transactional(readOnly = false)
     public UserAccount lockUserAccount(String realm, String userId, String uuid)
-            throws NoSuchUserException, NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException {
+            throws NoSuchUserException, NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
         logger.debug("lock user {} account {} from realm {}", StringUtils.trimAllWhitespace(userId),
                 StringUtils.trimAllWhitespace(uuid), StringUtils.trimAllWhitespace(realm));
 
@@ -646,7 +646,7 @@ public class UserManager {
 
     @Transactional(readOnly = false)
     public UserAccount unlockUserAccount(String realm, String userId, String uuid)
-            throws NoSuchUserException, NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException {
+            throws NoSuchUserException, NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
         logger.debug("unlock user {} account {} from realm {}", StringUtils.trimAllWhitespace(userId),
                 StringUtils.trimAllWhitespace(uuid), StringUtils.trimAllWhitespace(realm));
 

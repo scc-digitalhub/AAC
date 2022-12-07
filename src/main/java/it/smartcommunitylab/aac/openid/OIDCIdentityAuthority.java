@@ -107,7 +107,7 @@ public class OIDCIdentityAuthority extends
     }
 
     @Override
-    public OIDCIdentityProviderConfig registerProvider(ConfigurableProvider cp) {
+    public OIDCIdentityProviderConfig registerProvider(ConfigurableProvider cp) throws RegistrationException {
         // register and build via super
         OIDCIdentityProviderConfig config = super.registerProvider(cp);
 

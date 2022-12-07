@@ -144,7 +144,7 @@ public class RealmManager {
      */
 
     @Transactional(readOnly = false)
-    public Realm addRealm(@Valid @NotBlank Realm r) throws AlreadyRegisteredException {
+    public Realm addRealm(@Valid @NotBlank Realm r) throws RegistrationException {
         logger.debug("add realm {}", StringUtils.trimAllWhitespace(r.getSlug()));
         r.setSlug(r.getSlug().toLowerCase());
 
@@ -182,7 +182,7 @@ public class RealmManager {
     }
 
     @Transactional(readOnly = false)
-    public Realm updateRealm(String slug, Realm r) throws NoSuchRealmException {
+    public Realm updateRealm(String slug, Realm r) throws NoSuchRealmException, RegistrationException {
         logger.debug("update realm {}", StringUtils.trimAllWhitespace(slug));
         r.setSlug(slug);
 
@@ -467,7 +467,7 @@ public class RealmManager {
     }
 
     public Developer inviteDeveloper(String realm, String subjectId,
-            String email) throws NoSuchRealmException, NoSuchUserException {
+            String email) throws NoSuchRealmException, NoSuchUserException, RegistrationException {
         User user = null;
         if (StringUtils.hasText(subjectId)) {
             // lookup by subject global

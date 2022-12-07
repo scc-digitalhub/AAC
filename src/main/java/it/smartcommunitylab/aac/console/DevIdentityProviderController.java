@@ -109,7 +109,7 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             @RequestBody @Valid @NotNull ConfigurableIdentityProvider registration,
             @RequestParam(required = false, defaultValue = "false") Optional<Boolean> force)
-            throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException {
+            throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
         ConfigurableIdentityProvider provider = super.updateIdp(realm, providerId, registration, Optional.of(false));
 
         // fetch also configuration schema

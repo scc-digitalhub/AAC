@@ -224,7 +224,7 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
 
     }
 
-    public InternalUserPassword confirmReset(String resetKey) throws NoSuchCredentialException {
+    public InternalUserPassword confirmReset(String resetKey) throws NoSuchCredentialException, RegistrationException {
         if (!StringUtils.hasText(resetKey)) {
             throw new IllegalArgumentException("empty-key");
         }

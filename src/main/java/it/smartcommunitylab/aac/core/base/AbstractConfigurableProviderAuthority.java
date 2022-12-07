@@ -90,7 +90,7 @@ public abstract class AbstractConfigurableProviderAuthority<S extends Configurab
     }
 
     @Override
-    public C registerProvider(ConfigurableProvider cp) {
+    public C registerProvider(ConfigurableProvider cp) throws RegistrationException {
         // cast config and handle errors
         T tcp = null;
         try {

@@ -132,7 +132,7 @@ public class DevRealmController {
     public Realm updateRealm(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestBody @Valid @NotNull Realm r)
-            throws NoSuchRealmException {
+            throws NoSuchRealmException, RegistrationException {
         return realmManager.updateRealm(realm, r);
     }
 
@@ -206,7 +206,7 @@ public class DevRealmController {
     @PostMapping("/realms/{realm}/developers")
     public Developer inviteDeveloper(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestBody @Valid @NotNull UserSubject bean) throws NoSuchRealmException, NoSuchUserException {
+            @RequestBody @Valid @NotNull UserSubject bean) throws NoSuchRealmException, NoSuchUserException, RegistrationException {
         return realmManager.inviteDeveloper(realm, bean.getSubjectId(), bean.getEmail());
     }
 
@@ -260,7 +260,7 @@ public class DevRealmController {
     @GetMapping("/realms/{realm}/templates/conf")
     public ConfigurableTemplateProvider getTemplateProviderConfig(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
-            throws NoSuchProviderException, NoSuchRealmException {
+            throws NoSuchProviderException, NoSuchRealmException, RegistrationException {
         // single config per realm
         return templatesManager.getProviderByRealm(realm);
     }

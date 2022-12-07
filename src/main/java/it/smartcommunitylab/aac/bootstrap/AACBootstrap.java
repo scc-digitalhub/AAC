@@ -174,14 +174,6 @@ public class AACBootstrap {
             // validate and remediate realm provider configs
             bootstrapRealmProviders();
 
-            // custom bootstrap
-            if (apply) {
-                logger.debug("application bootstrap");
-                bootstrapConfig();
-            } else {
-                logger.debug("bootstrap disabled by config");
-            }
-
         } catch (Exception e) {
             logger.error("error bootstrapping: " + e.getMessage());
             e.printStackTrace();
@@ -345,10 +337,19 @@ public class AACBootstrap {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void bootstrapConfig() throws Exception {
+    public void bootstrapConfig() {
+        // custom bootstrap
+        if (!apply) {
+            logger.debug("bootstrap disabled by config");
+            return;
+        }
+
+        logger.debug("application bootstrap");
+
         // read configuration
         if (config == null) {
-            throw new IllegalArgumentException("error loading config");
+            logger.error("error loading config");
+            return;
         }
 
         /*
@@ -739,11 +740,12 @@ public class AACBootstrap {
                             UserEntity user = null;
                             if (StringUtils.hasText(userId)) {
                                 user = userEntityService.findUser(userId);
+                            } else {
+                                userId = userEntityService.createUser(slug).getUuid();
                             }
 
                             if (user == null) {
                                 // register as new user
-                                userId = userEntityService.createUser(slug).getUuid();
                                 user = userEntityService.addUser(userId, slug, u.getUsername(), u.getEmailAddress());
                             }
 
@@ -1001,7 +1003,7 @@ public class AACBootstrap {
                                         accountId);
 
                                 // update
-                                credentials = userCredentialsService.updateUserCredentials(uuid, credentials);
+                                credentials = userCredentialsService.updateUserCredentials(uuid, c);
                             }
 
                             if (credentials != null) {
@@ -1066,13 +1068,17 @@ public class AACBootstrap {
                     });
                 }
 
+                logger.debug("bootstrap realm {} created", String.valueOf(slug));
             } catch (Exception e) {
                 logger.error("error creating realm " + String.valueOf(slug) + ": " + e.getMessage());
                 if (logger.isTraceEnabled()) {
                     e.printStackTrace();
                 }
             }
+
         });
+
+        logger.debug("bootstrap config done");
 
         /*
          * Migrations?

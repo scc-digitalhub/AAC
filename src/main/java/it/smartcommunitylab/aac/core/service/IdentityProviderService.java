@@ -201,28 +201,7 @@ public class IdentityProviderService
 
             // TODO add enum
             String persistence = reg.getPersistence();
-            if (!StringUtils.hasText(persistence)) {
-                persistence = SystemKeys.PERSISTENCE_LEVEL_REPOSITORY;
-            }
-
-            if (!SystemKeys.PERSISTENCE_LEVEL_REPOSITORY.equals(persistence)
-                    && !SystemKeys.PERSISTENCE_LEVEL_MEMORY.equals(persistence)
-                    && !SystemKeys.PERSISTENCE_LEVEL_SESSION.equals(persistence)
-                    && !SystemKeys.PERSISTENCE_LEVEL_NONE.equals(persistence)) {
-                throw new RegistrationException("invalid persistence level");
-            }
-
             String events = reg.getEvents();
-            if (!StringUtils.hasText(events)) {
-                events = SystemKeys.EVENTS_LEVEL_DETAILS;
-            }
-
-            if (!SystemKeys.EVENTS_LEVEL_DETAILS.equals(events)
-                    && !SystemKeys.EVENTS_LEVEL_FULL.equals(events)
-                    && !SystemKeys.EVENTS_LEVEL_MINIMAL.equals(events)
-                    && !SystemKeys.EVENTS_LEVEL_NONE.equals(events)) {
-                throw new RegistrationException("invalid events level");
-            }
 
             Integer position = (reg.getPosition() != null && reg.getPosition().intValue() > 0) ? reg.getPosition()
                     : null;

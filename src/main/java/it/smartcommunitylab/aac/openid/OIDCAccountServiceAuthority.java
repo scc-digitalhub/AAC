@@ -71,7 +71,7 @@ public class OIDCAccountServiceAuthority
 
     protected OIDCAccountService buildProvider(OIDCAccountServiceConfig config) {
         OIDCAccountService service = new OIDCAccountService(
-                config.getProvider(),
+                config.getAuthority(), config.getProvider(),
                 accountService,
                 config, config.getRealm());
         service.setResourceService(resourceService);

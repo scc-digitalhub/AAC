@@ -19,6 +19,7 @@ import it.smartcommunitylab.aac.common.NoSuchCredentialException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.core.model.EditableUserAccount;
 import it.smartcommunitylab.aac.core.model.EditableUserCredentials;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.persistence.ResourceEntity;
@@ -107,6 +108,33 @@ public class UserCredentialsService {
 
         // fetch editable
         return service.getEditableCredential(cred.getAccountId(), credentialId);
+    }
+
+    @Transactional(readOnly = false)
+    public Collection<EditableUserCredentials> listEditableUserCredentials(String userId) throws NoSuchUserException {
+        logger.debug("get editable user {} credentials", StringUtils.trimAllWhitespace(userId));
+
+        // fetch user
+        UserEntity ue = userService.getUser(userId);
+        String realm = ue.getRealm();
+
+        // collect from all providers for the same realm
+        List<AccountCredentialsService<?, ?, ?, ?>> services = credentialsServiceAuthorityService.getAuthorities()
+                .stream()
+                .flatMap(e -> e.getProvidersByRealm(realm).stream())
+                .collect(Collectors.toList());
+
+        List<EditableUserCredentials> creds = services.stream().flatMap(
+                s -> s.listCredentials(userId).stream().map(a -> {
+                    try {
+                        return s.getEditableCredential(a.getUserId(), a.getAccountId());
+                    } catch (NoSuchCredentialException e1) {
+                        return null;
+                    }
+                }).filter(a -> a != null))
+                .collect(Collectors.toList());
+
+        return creds;
     }
 
     @Transactional(readOnly = false)

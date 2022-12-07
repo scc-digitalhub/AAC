@@ -238,7 +238,7 @@ public class TemplatesManager
     }
 
     public TemplateModel addTemplateModel(String realm, TemplateModel reg)
-            throws NoSuchTemplateException, NoSuchProviderException, NoSuchAuthorityException {
+            throws NoSuchTemplateException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
         // check model
         String template = reg.getTemplate();
         String authority = reg.getAuthority();
@@ -275,7 +275,7 @@ public class TemplatesManager
     }
 
     public TemplateModel updateTemplateModel(String realm, String id, TemplateModel reg)
-            throws NoSuchTemplateException, NoSuchProviderException, NoSuchAuthorityException {
+            throws NoSuchTemplateException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
         TemplateModel m = templateService.getTemplate(id);
         if (!realm.equals(m.getRealm())) {
             throw new IllegalArgumentException("realm-mismatch");
@@ -330,7 +330,7 @@ public class TemplatesManager
     }
 
     public TemplateModel sanitizeTemplateModel(String realm, String id, TemplateModel reg)
-            throws NoSuchTemplateException, NoSuchProviderException, NoSuchAuthorityException {
+            throws NoSuchTemplateException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
         TemplateModel m = templateService.getTemplate(id);
         if (!realm.equals(m.getRealm())) {
             throw new IllegalArgumentException("realm-mismatch");

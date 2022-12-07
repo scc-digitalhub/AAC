@@ -108,7 +108,7 @@ public class SamlIdentityAuthority extends
     }
 
     @Override
-    public SamlIdentityProviderConfig registerProvider(ConfigurableProvider cp) {
+    public SamlIdentityProviderConfig registerProvider(ConfigurableProvider cp) throws RegistrationException {
         // register and build via super
         SamlIdentityProviderConfig config = super.registerProvider(cp);
 

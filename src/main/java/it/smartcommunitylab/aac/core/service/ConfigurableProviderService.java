@@ -195,7 +195,7 @@ public abstract class ConfigurableProviderService<A extends ConfigurableProvider
 
     public C updateProvider(
             String providerId, C provider)
-            throws NoSuchProviderException, NoSuchAuthorityException {
+            throws NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
         logger.debug("update provider {}", StringUtils.trimAllWhitespace(providerId));
         if (logger.isTraceEnabled()) {
             logger.trace("provider bean: {}", StringUtils.trimAllWhitespace(provider.toString()));

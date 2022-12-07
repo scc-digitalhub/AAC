@@ -99,7 +99,7 @@ public class AppleIdentityAuthority extends
     }
 
     @Override
-    public AppleIdentityProviderConfig registerProvider(ConfigurableProvider cp) {
+    public AppleIdentityProviderConfig registerProvider(ConfigurableProvider cp) throws RegistrationException {
         // register and build via super
         AppleIdentityProviderConfig config = super.registerProvider(cp);
 

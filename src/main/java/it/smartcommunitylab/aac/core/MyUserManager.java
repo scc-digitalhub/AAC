@@ -24,6 +24,7 @@ import it.smartcommunitylab.aac.audit.store.AuditEventStore;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
+import it.smartcommunitylab.aac.common.NoSuchCredentialException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
@@ -33,6 +34,7 @@ import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.EditableUserAccount;
+import it.smartcommunitylab.aac.core.model.EditableUserCredentials;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
@@ -43,6 +45,7 @@ import it.smartcommunitylab.aac.core.service.ClientEntityService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderService;
 import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.core.service.UserAccountService;
+import it.smartcommunitylab.aac.core.service.UserCredentialsService;
 import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.model.ConnectedApp;
 import it.smartcommunitylab.aac.model.ConnectedDevice;
@@ -74,6 +77,9 @@ public class MyUserManager {
 
     @Autowired
     private UserAccountService userAccountService;
+
+    @Autowired
+    private UserCredentialsService userCredentialsService;
 
     @Autowired
     private RealmService realmService;
@@ -161,28 +167,14 @@ public class MyUserManager {
     /*
      * Accounts
      */
-    public Collection<UserAccount> getMyAccounts() throws NoSuchUserException {
+    public Collection<EditableUserAccount> getMyAccounts() throws NoSuchUserException {
         UserDetails details = curUserDetails();
         String userId = details.getSubjectId();
 
-        return userAccountService.listUserAccounts(userId);
+        return userAccountService.listEditableUserAccounts(userId);
     }
 
-    public UserAccount getMyAccount(String uuid)
-            throws NoSuchProviderException, NoSuchUserException, NoSuchAuthorityException {
-        UserDetails details = curUserDetails();
-        String userId = details.getSubjectId();
-
-        // fetch account and check user match
-        UserAccount account = userAccountService.getUserAccount(uuid);
-        if (!account.getUserId().equals(userId)) {
-            throw new IllegalArgumentException("user-mismatch");
-        }
-
-        return account;
-    }
-
-    public EditableUserAccount getMyEditableAccount(String uuid)
+    public EditableUserAccount getMyAccount(String uuid)
             throws NoSuchProviderException, NoSuchUserException, NoSuchAuthorityException {
         UserDetails details = curUserDetails();
         String userId = details.getSubjectId();
@@ -196,9 +188,7 @@ public class MyUserManager {
         return account;
     }
 
-    public <U extends EditableUserAccount> EditableUserAccount updateMyEditableAccount(
-            String uuid,
-            U reg)
+    public <U extends EditableUserAccount> EditableUserAccount updateMyAccount(String uuid, U reg)
             throws NoSuchProviderException, NoSuchUserException, RegistrationException, NoSuchAuthorityException {
         UserDetails details = curUserDetails();
         String userId = details.getSubjectId();
@@ -229,6 +219,62 @@ public class MyUserManager {
     }
 
     /*
+     * Credentials
+     */
+    public Collection<EditableUserCredentials> getMyCredentials() throws NoSuchUserException {
+        UserDetails details = curUserDetails();
+        String userId = details.getSubjectId();
+
+        return userCredentialsService.listEditableUserCredentials(userId);
+    }
+
+    public EditableUserCredentials getMyCredentials(String uuid)
+            throws NoSuchCredentialException, NoSuchProviderException, NoSuchUserException, NoSuchAuthorityException {
+        UserDetails details = curUserDetails();
+        String userId = details.getSubjectId();
+
+        // fetch credentials and check user match
+        EditableUserCredentials cred = userCredentialsService.getEditableUserCredentials(uuid);
+        if (!cred.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("user-mismatch");
+        }
+
+        return cred;
+    }
+
+    public <U extends EditableUserCredentials> EditableUserCredentials updateMyCredentials(String uuid, U reg)
+            throws NoSuchCredentialException, NoSuchProviderException, NoSuchUserException, RegistrationException,
+            NoSuchAuthorityException {
+        UserDetails details = curUserDetails();
+        String userId = details.getSubjectId();
+
+        // fetch credentials and check user match
+        EditableUserCredentials cred = userCredentialsService.getEditableUserCredentials(uuid);
+        if (!cred.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("user-mismatch");
+        }
+
+        // execute
+        return userCredentialsService.editUserCredentials(uuid, reg);
+    }
+
+    public void deleteMyCredentials(String uuid)
+            throws NoSuchCredentialException, NoSuchProviderException, NoSuchUserException, RegistrationException,
+            NoSuchAuthorityException {
+        UserDetails details = curUserDetails();
+        String userId = details.getSubjectId();
+
+        // fetch credentials and check user match
+        EditableUserCredentials cred = userCredentialsService.getEditableUserCredentials(uuid);
+        if (!cred.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("user-mismatch");
+        }
+
+        // execute
+        userCredentialsService.deleteUserCredentials(uuid);
+    }
+
+    /*
      * Attributes (inside + outside accounts)
      * 
      * TODO
@@ -254,22 +300,6 @@ public class MyUserManager {
 //        // TODO should invoke attributeManager
 //        return null;
 //    }
-
-    /*
-     * Credentials
-     * 
-     * TODO
-     */
-    public Collection<UserCredentials> getMyCredentials() {
-        return getMyCredentials(false);
-    }
-
-    public Collection<UserCredentials> getMyCredentials(boolean includeAll) {
-        UserDetails details = curUserDetails();
-        String userId = details.getSubjectId();
-
-        return Collections.emptyList();
-    }
 
     /*
      * Connected apps: current user

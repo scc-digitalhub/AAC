@@ -33,9 +33,11 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.auth.DefaultUserAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationToken;
@@ -376,7 +378,13 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
             // generate a new subject, always persisted
             UserEntity u = userService.createUser(realm);
             subjectId = u.getUuid();
-            u = userService.addUser(subjectId, realm, null, null);
+            try {
+                u = userService.addUser(subjectId, realm, null, null);
+            } catch (AlreadyRegisteredException e) {
+                // something wrong, stop
+                logger.error("error creating new userfor subject {}", String.valueOf(subjectId));
+                throw new AuthenticationServiceException("error processing request");
+            }
 
             logger.debug("created subject for identity to " + subjectId);
         }
@@ -595,7 +603,7 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
 
             return result;
 
-        } catch (NoSuchUserException | NoSuchSubjectException e) {
+        } catch (NoSuchUserException | NoSuchSubjectException | RegistrationException e) {
             logger.error("idp could not resolve identity for user " + subjectId);
             throw new UsernameNotFoundException("no identity for user from provider");
         }

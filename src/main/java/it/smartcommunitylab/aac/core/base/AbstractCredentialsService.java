@@ -134,7 +134,7 @@ public abstract class AbstractCredentialsService<UC extends AbstractUserCredenti
     }
 
     @Override
-    public UC addCredential(String accountId, String credentialId, UserCredentials uc) throws NoSuchUserException {
+    public UC addCredential(String accountId, String credentialId, UserCredentials uc) throws NoSuchUserException, RegistrationException {
         logger.debug("add credential for account {} with id {}", String.valueOf(accountId),
                 String.valueOf(credentialId));
         if (logger.isTraceEnabled()) {
@@ -234,7 +234,7 @@ public abstract class AbstractCredentialsService<UC extends AbstractUserCredenti
     }
 
     @Override
-    public UC revokeCredential(String credentialsId) throws NoSuchCredentialException {
+    public UC revokeCredential(String credentialsId) throws NoSuchCredentialException, RegistrationException {
         logger.debug("revoke credential {}", String.valueOf(credentialsId));
 
         UC cred = credentialsService.findCredentialsById(repositoryId, credentialsId);

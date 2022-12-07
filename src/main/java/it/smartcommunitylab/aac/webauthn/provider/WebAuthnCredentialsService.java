@@ -125,7 +125,7 @@ public class WebAuthnCredentialsService extends
     }
 
     public WebAuthnUserCredential saveRegistration(String username, WebAuthnRegistrationRequest request)
-            throws NoSuchUserException {
+            throws NoSuchUserException, RegistrationException {
         logger.debug("save registration for user {}", StringUtils.trimAllWhitespace(username));
 
         // fetch user
@@ -203,7 +203,7 @@ public class WebAuthnCredentialsService extends
 
     @Override
     public WebAuthnUserCredential addCredential(String accountId, String credentialsId, UserCredentials cred)
-            throws NoSuchUserException {
+            throws NoSuchUserException, RegistrationException {
         if (cred == null) {
             throw new RegistrationException();
         }
@@ -344,7 +344,7 @@ public class WebAuthnCredentialsService extends
     /*
      * helpers
      */
-    private void validateCredential(WebAuthnUserCredential reg) {
+    private void validateCredential(WebAuthnUserCredential reg) throws RegistrationException {
         // validate credentials
         if (!StringUtils.hasText(reg.getUserHandle())) {
             throw new MissingDataException("user-handle");

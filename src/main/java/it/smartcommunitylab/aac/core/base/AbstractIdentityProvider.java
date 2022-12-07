@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
@@ -109,7 +110,7 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
      */
 
     public I convertIdentity(UserAuthenticatedPrincipal authPrincipal, String userId)
-            throws NoSuchUserException {
+            throws NoSuchUserException, RegistrationException {
 
         logger.debug("convert principal to identity for user {}", String.valueOf(userId));
         if (logger.isTraceEnabled()) {
@@ -348,7 +349,7 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
 
     @Override
     @Transactional(readOnly = false)
-    public I linkIdentity(String userId, String accountId) throws NoSuchUserException {
+    public I linkIdentity(String userId, String accountId) throws NoSuchUserException, RegistrationException {
         logger.debug("link identity with id {} to user {}", String.valueOf(accountId), String.valueOf(userId));
 
         // get the internal account entity
