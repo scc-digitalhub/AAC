@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 import it.smartcommunitylab.aac.SystemKeys;
 
-public interface EditableUserCredentials extends UserResource, Serializable {
+public interface EditableUserCredentials extends EditableResource, UserResource, Serializable {
     default String getType() {
         return SystemKeys.RESOURCE_CREDENTIALS;
     }

@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.core.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.repository.JsonSchemaIgnore;
 
 /*
  * A realm scoped user resource, provided by an authority via a specific provider
@@ -14,6 +15,7 @@ public interface UserResource extends Resource {
     public String getUuid();
 
     @Override
+    @JsonSchemaIgnore
     default public String getUrn() {
         StringBuilder sb = new StringBuilder();
         sb.append(SystemKeys.URN_PROTOCOL);

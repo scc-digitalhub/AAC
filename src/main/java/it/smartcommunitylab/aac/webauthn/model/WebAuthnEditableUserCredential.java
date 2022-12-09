@@ -6,9 +6,10 @@ import javax.validation.constraints.NotBlank;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
+import com.fasterxml.jackson.databind.JsonNode;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractEditableUserCredentials;
+import it.smartcommunitylab.aac.repository.JsonSchemaIgnore;
 
 @Valid
 @JsonInclude(Include.ALWAYS)
@@ -18,11 +19,18 @@ public class WebAuthnEditableUserCredential extends AbstractEditableUserCredenti
     public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_CREDENTIALS + SystemKeys.ID_SEPARATOR
             + SystemKeys.AUTHORITY_WEBAUTHN;
 
+    private static final JsonNode schema;
+    static {
+        schema = generator.generateSchema(WebAuthnEditableUserCredential.class);
+    }
+
     private String credentialsId;
 
     @NotBlank
+    @JsonSchemaIgnore
     private String username;
 
+    @JsonSchemaIgnore
     private String userHandle;
 
     @NotBlank
@@ -40,6 +48,11 @@ public class WebAuthnEditableUserCredential extends AbstractEditableUserCredenti
         super(SystemKeys.AUTHORITY_WEBAUTHN, provider, uuid);
         setRealm(realm);
         setUserId(userId);
+    }
+
+    @Override
+    public String getType() {
+        return RESOURCE_TYPE;
     }
 
     public String getCredentialsId() {
@@ -74,4 +87,8 @@ public class WebAuthnEditableUserCredential extends AbstractEditableUserCredenti
         this.displayName = displayName;
     }
 
+    @Override
+    public JsonNode getSchema() {
+        return schema;
+    }
 }

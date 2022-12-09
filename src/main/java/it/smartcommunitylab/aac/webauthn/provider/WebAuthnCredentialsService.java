@@ -342,19 +342,25 @@ public class WebAuthnCredentialsService extends
     }
 
     /*
-     * helpers
+     * Editable
      */
-    private void validateCredential(WebAuthnUserCredential reg) throws RegistrationException {
-        // validate credentials
-        if (!StringUtils.hasText(reg.getUserHandle())) {
-            throw new MissingDataException("user-handle");
+    public WebAuthnEditableUserCredential getEditableCredential(String accountId, String credentialId)
+            throws NoSuchCredentialException {
+        // get as editable
+        WebAuthnUserCredential cred = getCredential(credentialId);
+
+        if (!cred.getAccountId().equals(accountId)) {
+            throw new IllegalArgumentException("account-mismatch");
         }
-        if (!StringUtils.hasText(reg.getCredentialId())) {
-            throw new MissingDataException("credentials-id");
-        }
-        if (!StringUtils.hasText(reg.getPublicKeyCose())) {
-            throw new MissingDataException("public-key");
-        }
+
+        WebAuthnEditableUserCredential ed = new WebAuthnEditableUserCredential(getProvider(), cred.getUuid());
+        ed.setCredentialsId(cred.getCredentialsId());
+        ed.setUserId(cred.getUserId());
+        ed.setUsername(cred.getUsername());
+        ed.setUserHandle(cred.getUserHandle());
+        ed.setDisplayName(cred.getDisplayName());
+
+        return ed;
     }
 
     @Override
@@ -371,6 +377,22 @@ public class WebAuthnCredentialsService extends
 
         return "/webauthn/credentials/edit/" + getProvider() + "/" + credentialsId;
 
+    }
+
+    /*
+     * helpers
+     */
+    private void validateCredential(WebAuthnUserCredential reg) throws RegistrationException {
+        // validate credentials
+        if (!StringUtils.hasText(reg.getUserHandle())) {
+            throw new MissingDataException("user-handle");
+        }
+        if (!StringUtils.hasText(reg.getCredentialId())) {
+            throw new MissingDataException("credentials-id");
+        }
+        if (!StringUtils.hasText(reg.getPublicKeyCose())) {
+            throw new MissingDataException("public-key");
+        }
     }
 
 }

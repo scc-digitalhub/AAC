@@ -6,9 +6,12 @@ import javax.validation.constraints.NotBlank;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.JsonNode;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractEditableUserCredentials;
+import it.smartcommunitylab.aac.repository.JsonSchemaIgnore;
 
 @Valid
 @JsonInclude(Include.ALWAYS)
@@ -18,11 +21,18 @@ public class InternalEditableUserPassword extends AbstractEditableUserCredential
     public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_CREDENTIALS + SystemKeys.ID_SEPARATOR
             + SystemKeys.AUTHORITY_PASSWORD;
 
+    private static final JsonNode schema;
+    static {
+        schema = generator.generateSchema(InternalEditableUserPassword.class);
+    }
+
     private String credentialsId;
 
     @NotBlank
+    @JsonSchemaIgnore
     private String username;
 
+    @Schema(name = "password", title = "field.password", description = "description.password", format = "password")
     @NotBlank
     private String password;
 
@@ -43,6 +53,11 @@ public class InternalEditableUserPassword extends AbstractEditableUserCredential
         super(SystemKeys.AUTHORITY_PASSWORD, provider, uuid);
         setRealm(realm);
         setUserId(userId);
+    }
+
+    @Override
+    public String getType() {
+        return RESOURCE_TYPE;
     }
 
     public String getCredentialsId() {
@@ -85,4 +100,8 @@ public class InternalEditableUserPassword extends AbstractEditableUserCredential
         this.curPassword = curPassword;
     }
 
+    @Override
+    public JsonNode getSchema() {
+        return schema;
+    }
 }

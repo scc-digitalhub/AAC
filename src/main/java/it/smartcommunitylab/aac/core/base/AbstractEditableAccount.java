@@ -2,10 +2,15 @@ package it.smartcommunitylab.aac.core.base;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.victools.jsonschema.generator.SchemaGenerator;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import it.smartcommunitylab.aac.core.model.EditableUserAccount;
 import it.smartcommunitylab.aac.internal.model.InternalEditableUserAccount;
+import it.smartcommunitylab.aac.repository.JsonSchemaIgnore;
+import it.smartcommunitylab.aac.repository.SchemaAnnotationIntrospector;
+import it.smartcommunitylab.aac.repository.SchemaGeneratorFactory;
 
 /*
  * Abstract class for editable user accounts
@@ -17,6 +22,14 @@ import it.smartcommunitylab.aac.internal.model.InternalEditableUserAccount;
         @Type(value = InternalEditableUserAccount.class, name = InternalEditableUserAccount.RESOURCE_TYPE)
 })
 public abstract class AbstractEditableAccount extends AbstractBaseUserResource implements EditableUserAccount {
+    protected final static SchemaGenerator generator;
+
+    static {
+        ObjectMapper schemaMapper = new ObjectMapper()
+                .setAnnotationIntrospector(new SchemaAnnotationIntrospector(
+                        AbstractEditableAccount.class, AbstractBaseUserResource.class));
+        generator = SchemaGeneratorFactory.build(schemaMapper);
+    }
 
     protected String uuid;
     protected String userId;
@@ -61,5 +74,13 @@ public abstract class AbstractEditableAccount extends AbstractBaseUserResource i
     public void setRealm(String realm) {
         this.realm = realm;
     }
+
+    @Override
+    @JsonSchemaIgnore
+    public abstract String getType();
+
+    @Override
+    @JsonSchemaIgnore
+    public abstract String getAccountId();
 
 }

@@ -127,8 +127,8 @@ public class UserCredentialsService {
         List<EditableUserCredentials> creds = services.stream().flatMap(
                 s -> s.listCredentials(userId).stream().map(a -> {
                     try {
-                        return s.getEditableCredential(a.getUserId(), a.getAccountId());
-                    } catch (NoSuchCredentialException e1) {
+                        return s.getEditableCredential(a.getAccountId(), a.getCredentialsId());
+                    } catch (NoSuchCredentialException | UnsupportedOperationException e1) {
                         return null;
                     }
                 }).filter(a -> a != null))

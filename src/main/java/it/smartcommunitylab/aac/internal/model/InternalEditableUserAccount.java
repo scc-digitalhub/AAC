@@ -6,35 +6,50 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.databind.JsonNode;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractEditableAccount;
 
 @Valid
 @JsonInclude(Include.ALWAYS)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@JsonPropertyOrder({ "username", "email", "name", "surname", "lang" })
 public class InternalEditableUserAccount extends AbstractEditableAccount {
     private static final long serialVersionUID = SystemKeys.AAC_INTERNAL_SERIAL_VERSION;
     public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_ACCOUNT + SystemKeys.ID_SEPARATOR
             + SystemKeys.AUTHORITY_INTERNAL;
 
+    private static final JsonNode schema;
+    static {
+        schema = generator.generateSchema(InternalEditableUserAccount.class);
+    }
+
+    @Schema(name = "username", title = "field.username", description = "description.username")
     @NotBlank
     private String username;
 
     // attributes
+    @Schema(name = "email", title = "field.email", description = "description.email")
     @NotEmpty
     @Email(message = "{validation.email}")
     private String email;
 
+    @Schema(name = "name", title = "field.name", description = "description.name")
     @Size(min = 2, max = 70)
     private String name;
 
+    @Schema(name = "surname", title = "field.surname", description = "description.surname")
     @Size(min = 2, max = 70)
     private String surname;
 
+    @Schema(name = "language", title = "field.language", description = "description.language")
     private String lang;
 
     protected InternalEditableUserAccount() {
@@ -99,6 +114,11 @@ public class InternalEditableUserAccount extends AbstractEditableAccount {
 
     public void setLang(String lang) {
         this.lang = lang;
+    }
+
+    @Override
+    public JsonNode getSchema() {
+        return schema;
     }
 
 }

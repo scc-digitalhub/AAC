@@ -44,6 +44,7 @@ import it.smartcommunitylab.aac.core.base.AbstractEditableUserCredentials;
 import it.smartcommunitylab.aac.core.model.EditableUserAccount;
 import it.smartcommunitylab.aac.core.model.EditableUserCredentials;
 import it.smartcommunitylab.aac.core.model.UserAccount;
+import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.model.ConnectedApp;
 import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
@@ -89,8 +90,10 @@ public class UserConsoleController {
      * Accounts
      */
     @GetMapping("/accounts")
-    public ResponseEntity<Page<EditableUserAccount>> listAccounts(Pageable pageable) throws NoSuchUserException {
-        List<EditableUserAccount> result = new ArrayList<>(userManager.getMyAccounts());
+    public ResponseEntity<Page<EditableUserAccount>> listAccounts(Pageable pageable)
+            throws NoSuchUserException {
+        List<EditableUserAccount> result = userManager.getMyAccounts().stream()
+                .collect(Collectors.toList());
         Page<EditableUserAccount> page = new PageImpl<>(result, pageable, result.size());
         return ResponseEntity.ok(page);
     }
@@ -127,8 +130,10 @@ public class UserConsoleController {
      * Credentials
      */
     @GetMapping("/credentials")
-    public ResponseEntity<Page<EditableUserCredentials>> listCredentials(Pageable pageable) throws NoSuchUserException {
-        List<EditableUserCredentials> result = new ArrayList<>(userManager.getMyCredentials());
+    public ResponseEntity<Page<EditableUserCredentials>> listCredentials(Pageable pageable)
+            throws NoSuchUserException {
+        List<EditableUserCredentials> result = userManager.getMyCredentials().stream()
+                .collect(Collectors.toList());
         Page<EditableUserCredentials> page = new PageImpl<>(result, pageable, result.size());
         return ResponseEntity.ok(page);
     }
@@ -219,6 +224,13 @@ public class UserConsoleController {
     public ResponseEntity<Page<AbstractProfile>> myProfiles(Pageable pageable) throws InvalidDefinitionException {
         List<AbstractProfile> result = new ArrayList<>(userManager.getMyProfiles());
         Page<AbstractProfile> page = new PageImpl<>(result, pageable, result.size());
+        return ResponseEntity.ok(page);
+    }
+
+    @GetMapping("/attributes")
+    public ResponseEntity<Page<UserAttributes>> myAttributes(Pageable pageable) throws InvalidDefinitionException {
+        List<UserAttributes> result = new ArrayList<>(userManager.getMyAttributes());
+        Page<UserAttributes> page = new PageImpl<>(result, pageable, result.size());
         return ResponseEntity.ok(page);
     }
 
