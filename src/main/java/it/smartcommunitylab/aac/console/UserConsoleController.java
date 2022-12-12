@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.controller;
+package it.smartcommunitylab.aac.console;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Hidden;
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
@@ -43,7 +45,6 @@ import it.smartcommunitylab.aac.core.base.AbstractEditableAccount;
 import it.smartcommunitylab.aac.core.base.AbstractEditableUserCredentials;
 import it.smartcommunitylab.aac.core.model.EditableUserAccount;
 import it.smartcommunitylab.aac.core.model.EditableUserCredentials;
-import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.model.ConnectedApp;
 import it.smartcommunitylab.aac.model.ScopeType;
@@ -51,10 +52,9 @@ import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
 import it.smartcommunitylab.aac.scope.Scope;
 
 @RestController
-//@PreAuthorize("hasAuthority('" + Config.R_USER + "')")
+@PreAuthorize("hasAuthority('" + Config.R_USER + "')")
 @Hidden
 @RequestMapping("/console/user")
-//@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 public class UserConsoleController {
 
     @Autowired

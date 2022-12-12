@@ -1,7 +1,6 @@
 package it.smartcommunitylab.aac.core.base;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -281,7 +280,7 @@ public abstract class AbstractCredentialsService<UC extends AbstractUserCredenti
         logger.debug("delete all credentials for user {}", String.valueOf(userId));
 
         // fetch all to collect ids
-        List<UC> credentials = credentialsService.findCredentialsByUser(repositoryId, userId);
+        Collection<UC> credentials = credentialsService.findCredentialsByUser(repositoryId, userId);
 
         // delete in batch
         Set<String> ids = credentials.stream().map(p -> p.getId()).collect(Collectors.toSet());

@@ -32,7 +32,6 @@ import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.webauthn.WebAuthnCredentialsAuthority;
 import it.smartcommunitylab.aac.webauthn.model.AttestationResponse;
 import it.smartcommunitylab.aac.webauthn.model.CredentialCreationInfo;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnEditableUserCredential;

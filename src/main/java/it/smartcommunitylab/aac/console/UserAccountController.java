@@ -37,8 +37,6 @@ import it.smartcommunitylab.aac.core.MyUserManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserIdentity;
-import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.model.ConnectedApp;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.profiles.ProfileManager;

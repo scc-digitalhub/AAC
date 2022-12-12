@@ -15,7 +15,6 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractConfigMap;
-import it.smartcommunitylab.aac.internal.model.CredentialsType;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -63,10 +62,6 @@ public class PasswordIdentityProviderConfigMap extends AbstractConfigMap impleme
     private Boolean passwordSupportWhitespace;
 
     public PasswordIdentityProviderConfigMap() {
-    }
-
-    public CredentialsType getCredentialsType() {
-        return CredentialsType.PASSWORD;
     }
 
     public String getRepositoryId() {

@@ -46,13 +46,13 @@ public class WebAuthnIdentityCredentialsService extends AbstractProvider<WebAuth
         Assert.notNull(credentialsService, "webauthn credentials service is mandatory");
         Assert.notNull(config, "config is mandatory");
 
-        this.config = config;
-
         this.accountService = accountService;
         this.credentialsService = credentialsService;
 
+        this.config = config;
+
         // repositoryId from config
-        this.repositoryId = config.getRepositoryId();
+        this.repositoryId = this.config.getRepositoryId();
 
         // build service
         this.userHandleService = new WebAuthnUserHandleService(accountService);

@@ -11,7 +11,6 @@ import javax.persistence.Lob;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.repository.HashMapConverter;
 
 @Entity

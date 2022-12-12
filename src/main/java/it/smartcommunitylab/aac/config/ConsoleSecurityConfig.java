@@ -1,6 +1,9 @@
 package it.smartcommunitylab.aac.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.springframework.context.annotation.Configuration;
@@ -10,6 +13,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -26,6 +30,9 @@ import it.smartcommunitylab.aac.core.auth.Http401UnauthorizedEntryPoint;
 @Order(25)
 public class ConsoleSecurityConfig {
 
+    @Value("${security.console.cors.origins}")
+    private String corsOrigins;
+
     /*
      * Configure a separated security context for API
      */
@@ -41,10 +48,7 @@ public class ConsoleSecurityConfig {
                 .exceptionHandling()
                 // use 401
                 .authenticationEntryPoint(new Http401UnauthorizedEntryPoint())
-                .accessDeniedPage("/accesserror")
-                .and()
-                // allow cors
-                .cors().configurationSource(corsConfigurationSource())
+//                .accessDeniedPage("/accesserror")
                 .and()
                 // disable crsf for spa console
                 .csrf()
@@ -52,6 +56,11 @@ public class ConsoleSecurityConfig {
                 // we want a session for console
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
+
+        if (StringUtils.hasText(corsOrigins)) {
+            // allow cors
+            http.cors().configurationSource(corsConfigurationSource(corsOrigins));
+        }
 
         return http.build();
     }
@@ -61,9 +70,9 @@ public class ConsoleSecurityConfig {
 
     }
 
-    private CorsConfigurationSource corsConfigurationSource() {
+    private CorsConfigurationSource corsConfigurationSource(String origins) {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(Arrays.asList("http://localhost:*"));
+        config.setAllowedOriginPatterns(new ArrayList<>(StringUtils.commaDelimitedListToSet(origins)));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH"));
         config.setAllowedHeaders(Arrays.asList("*"));
         config.setExposedHeaders(Arrays.asList("authorization", "range"));

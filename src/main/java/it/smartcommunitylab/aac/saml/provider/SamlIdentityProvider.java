@@ -3,11 +3,9 @@ package it.smartcommunitylab.aac.saml.provider;
 import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.attributes.store.AttributeStore;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityProvider;
 import it.smartcommunitylab.aac.core.model.UserAttributes;

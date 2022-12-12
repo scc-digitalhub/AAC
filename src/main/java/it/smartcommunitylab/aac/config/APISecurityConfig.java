@@ -1,8 +1,10 @@
 package it.smartcommunitylab.aac.config;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -13,6 +15,7 @@ import org.springframework.security.web.authentication.Http403ForbiddenEntryPoin
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -30,6 +33,8 @@ import it.smartcommunitylab.aac.oauth.auth.InternalOpaqueTokenIntrospector;
 @Configuration
 @Order(24)
 public class APISecurityConfig {
+    @Value("${security.api.cors.origins}")
+    private String corsOrigins;
 
     @Autowired
     private InternalOpaqueTokenIntrospector tokenIntrospector;
@@ -52,9 +57,7 @@ public class APISecurityConfig {
                 .exceptionHandling()
                 // use 403
                 .authenticationEntryPoint(new Http403ForbiddenEntryPoint())
-                .accessDeniedPage("/accesserror")
-                .and()
-                .cors().configurationSource(corsConfigurationSource())
+//                .accessDeniedPage("/accesserror")
                 .and()
                 .csrf()
                 .disable()
@@ -62,13 +65,18 @@ public class APISecurityConfig {
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
+        if (StringUtils.hasText(corsOrigins)) {
+            // allow cors
+            http.cors().configurationSource(corsConfigurationSource(corsOrigins));
+        }
+
         return http.build();
     }
 
-    private CorsConfigurationSource corsConfigurationSource() {
+    private CorsConfigurationSource corsConfigurationSource(String origins) {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(Arrays.asList("*"));
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
+        config.setAllowedOriginPatterns(new ArrayList<>(StringUtils.commaDelimitedListToSet(origins)));
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;

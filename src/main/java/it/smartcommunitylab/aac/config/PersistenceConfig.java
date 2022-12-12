@@ -35,16 +35,10 @@ import it.smartcommunitylab.aac.claims.ExtractorsRegistry;
 import it.smartcommunitylab.aac.claims.InMemoryExtractorsRegistry;
 import it.smartcommunitylab.aac.claims.ResourceClaimsExtractorProvider;
 import it.smartcommunitylab.aac.claims.ScopeClaimsExtractorProvider;
-import it.smartcommunitylab.aac.core.persistence.AccountServiceEntity;
-import it.smartcommunitylab.aac.core.persistence.AccountServiceEntityRepository;
 import it.smartcommunitylab.aac.core.persistence.AttributeProviderEntity;
 import it.smartcommunitylab.aac.core.persistence.AttributeProviderEntityRepository;
-import it.smartcommunitylab.aac.core.persistence.CredentialsServiceEntity;
-import it.smartcommunitylab.aac.core.persistence.CredentialsServiceEntityRepository;
 import it.smartcommunitylab.aac.core.persistence.IdentityProviderEntity;
 import it.smartcommunitylab.aac.core.persistence.IdentityProviderEntityRepository;
-import it.smartcommunitylab.aac.core.persistence.IdentityServiceEntity;
-import it.smartcommunitylab.aac.core.persistence.IdentityServiceEntityRepository;
 import it.smartcommunitylab.aac.core.persistence.TemplateProviderEntity;
 import it.smartcommunitylab.aac.core.persistence.TemplateProviderEntityRepository;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
@@ -208,33 +202,15 @@ public class PersistenceConfig {
     }
 
     @Bean
-    public ConfigurableProviderEntityService<AccountServiceEntity> accountServiceEntityService(
-            AccountServiceEntityRepository accountServiceRepository) {
-        return new ConfigurableProviderEntityService<>(accountServiceRepository);
-    }
-
-    @Bean
     public ConfigurableProviderEntityService<AttributeProviderEntity> attributeProviderEntityService(
             AttributeProviderEntityRepository attributeProviderRepository) {
         return new ConfigurableProviderEntityService<>(attributeProviderRepository);
     }
 
     @Bean
-    public ConfigurableProviderEntityService<CredentialsServiceEntity> credentialsServiceEntityService(
-            CredentialsServiceEntityRepository credentialsServiceRepository) {
-        return new ConfigurableProviderEntityService<>(credentialsServiceRepository);
-    }
-
-    @Bean
     public ConfigurableProviderEntityService<IdentityProviderEntity> identityProviderEntityService(
             IdentityProviderEntityRepository identityProviderRepository) {
         return new ConfigurableProviderEntityService<>(identityProviderRepository);
-    }
-
-    @Bean
-    public ConfigurableProviderEntityService<IdentityServiceEntity> identityServiceEntityService(
-            IdentityServiceEntityRepository identityServiceRepository) {
-        return new ConfigurableProviderEntityService<>(identityServiceRepository);
     }
 
     @Bean

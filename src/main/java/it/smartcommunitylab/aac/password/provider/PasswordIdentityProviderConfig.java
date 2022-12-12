@@ -3,7 +3,6 @@ package it.smartcommunitylab.aac.password.provider;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.internal.model.CredentialsType;
 
 public class PasswordIdentityProviderConfig
         extends AbstractIdentityProviderConfig<PasswordIdentityProviderConfigMap> {
@@ -22,10 +21,6 @@ public class PasswordIdentityProviderConfig
 
     public String getRepositoryId() {
         return configMap.getRepositoryId() != null ? configMap.getRepositoryId() : getRealm();
-    }
-
-    public CredentialsType getCredentialsType() {
-        return CredentialsType.PASSWORD;
     }
 
     /*
