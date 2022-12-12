@@ -33,9 +33,8 @@ import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.PasswordCredentialsAuthority;
-import it.smartcommunitylab.aac.password.dto.UserPasswordBean;
+import it.smartcommunitylab.aac.password.dto.InternalEditableUserPassword;
 import it.smartcommunitylab.aac.password.model.PasswordPolicy;
-import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProvider;
 import it.smartcommunitylab.aac.password.provider.PasswordCredentialsService;
 
@@ -88,14 +87,10 @@ public class PasswordCredentialsController {
 
         // fetch provider
         PasswordCredentialsService service = passwordAuthority.getProvider(providerId);
-        if (!service.canSet()) {
-            throw new IllegalArgumentException("error.unsupported_operation");
-        }
 
         // for internal username is accountId
         String username = account.getAccountId();
-        InternalUserPassword cred = service.getCredentials(username);
-        UserPasswordBean reg = new UserPasswordBean();
+        InternalEditableUserPassword reg = new InternalEditableUserPassword();
         reg.setUsername(username);
 //        reg.setPassword("");
 //        reg.setVerifyPassword(null);
@@ -107,7 +102,6 @@ public class PasswordCredentialsController {
         model.addAttribute("userId", userId);
         model.addAttribute("username", account.getUsername());
         model.addAttribute("uuid", account.getUuid());
-        model.addAttribute("credentials", cred);
         model.addAttribute("reg", reg);
         model.addAttribute("policy", policy);
         model.addAttribute("accountUrl", "/account");
@@ -131,8 +125,8 @@ public class PasswordCredentialsController {
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid,
             Model model, Locale locale,
-            @ModelAttribute("reg") @Valid UserPasswordBean reg,
-            HttpServletRequest request, BindingResult result)
+            @ModelAttribute("reg") @Valid InternalEditableUserPassword reg, BindingResult result,
+            HttpServletRequest request)
             throws NoSuchProviderException, NoSuchUserException {
 
         try {
@@ -159,19 +153,14 @@ public class PasswordCredentialsController {
 
             // fetch provider
             PasswordCredentialsService service = passwordAuthority.getProvider(providerId);
-            if (!service.canSet()) {
-                throw new IllegalArgumentException("error.unsupported_operation");
-            }
 
             // for internal username is accountId
             String username = account.getAccountId();
 
             // get current password
-            InternalUserPassword cur = service.getCredentials(username);
             model.addAttribute("userId", userId);
             model.addAttribute("username", username);
             model.addAttribute("uuid", account.getUuid());
-            model.addAttribute("credentials", cur);
 
             // expose password policy by passing idp config
             PasswordPolicy policy = service.getPasswordPolicy();
@@ -195,7 +184,7 @@ public class PasswordCredentialsController {
             }
 
             if (request.getSession().getAttribute("resetCode") == null) {
-                // check curPassword match
+                // check curPassword is valid
                 String curPassword = reg.getCurPassword();
                 if (!service.verifyPassword(username, curPassword)) {
                     throw new RegistrationException("wrong_password");
@@ -219,12 +208,9 @@ public class PasswordCredentialsController {
 //            }
 
             // update
-            InternalUserPassword pwd = new InternalUserPassword();
-            pwd.setUserId(userId);
-            pwd.setUsername(username);
-            pwd.setPassword(password);
-            pwd = service.setCredentials(username, pwd);
+            service.setPassword(username, password, false);
 
+            // cleanup on success
             request.getSession().removeAttribute("resetCode");
 
             return "password/changepwd_success";
@@ -304,6 +290,8 @@ public class PasswordCredentialsController {
                 result.rejectValue("email", "error.invalid_email");
             }
 
+            model.addAttribute("reg", reg);
+
             if (result.hasErrors()) {
                 return "password/resetpwd";
             }
@@ -322,8 +310,6 @@ public class PasswordCredentialsController {
             // direct call to reset
             // will also send mail
             idp.getCredentialsService().resetPassword(username);
-
-            model.addAttribute("reg", reg);
 
             // set idp form as login url on success
             model.addAttribute("loginUrl", "/auth/password/form/" + providerId);

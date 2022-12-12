@@ -6,14 +6,14 @@ public class SystemKeys {
 
     // to be upgraded when serialized objects are updated, breaks db
     // TODO implement
-    public static final long AAC_COMMON_SERIAL_VERSION = 400L;
-    public static final long AAC_CORE_SERIAL_VERSION = 400L;
-    public static final long AAC_OAUTH2_SERIAL_VERSION = 400L;
-    public static final long AAC_OIDC_SERIAL_VERSION = 400L;
-    public static final long AAC_SAML_SERIAL_VERSION = 400L;
-//    public static final long AAC_SPID_SERIAL_VERSION = 400L;
-    public static final long AAC_APPLE_SERIAL_VERSION = 410L;
-    public static final long AAC_WEBAUTHN_SERIAL_VERSION = 410L;
+    public static final long AAC_COMMON_SERIAL_VERSION = 420L;
+    public static final long AAC_CORE_SERIAL_VERSION = 420L;
+    public static final long AAC_OAUTH2_SERIAL_VERSION = 420L;
+    public static final long AAC_OIDC_SERIAL_VERSION = 420L;
+    public static final long AAC_SAML_SERIAL_VERSION = 420L;
+    public static final long AAC_APPLE_SERIAL_VERSION = 420L;
+    public static final long AAC_WEBAUTHN_SERIAL_VERSION = 420L;
+    public static final long AAC_INTERNAL_SERIAL_VERSION = 420L;
 
     public static final String REALM_GLOBAL = "";
     public static final String REALM_INTERNAL = "internal";
@@ -70,9 +70,9 @@ public class SystemKeys {
     public static final String RESOURCE_TEMPLATE = "template";
 
     public static final String PATH_SEPARATOR = "/-/";
-    public static final String ID_SEPARATOR = "|";
-    public static final String URN_PROTOCOL = "urn";
-    public static final String URN_SEPARATOR = ":";
+    public static final String ID_SEPARATOR = ":";
+    public static final String URN_PROTOCOL = "urn://";
+    public static final String URN_SEPARATOR = "/";
     public static final String SLUG_SEPARATOR = "_";
 
     public static final String PATH_USER = "/user";
@@ -101,6 +101,7 @@ public class SystemKeys {
     public static final String ID_PATTERN = "^[a-zA-Z0-9_-|]+$";
     public static final String EMAIL_PATTERN = "^[a-zA-Z0-9._@-]+$";
     public static final String SCOPE_PATTERN = "^[a-zA-Z.:]{3,}$";
+    public static final String RESOURCE_PATTERN = "^[a-zA-Z0-9._:/-]+$";
     public static final String NAMESPACE_PATTERN = "^[a-zA-Z0-9._:/-]+$";
     public static final String KEY_PATTERN = "^[a-zA-Z0-9._]+$";
     public static final String URI_PATTERN = "^[a-zA-Z0-9._:/-]+$";

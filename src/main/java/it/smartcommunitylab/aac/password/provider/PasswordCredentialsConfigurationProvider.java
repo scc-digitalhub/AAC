@@ -4,7 +4,7 @@ import org.springframework.stereotype.Service;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.config.CredentialsAuthoritiesProperties;
 import it.smartcommunitylab.aac.core.base.AbstractCredentialsConfigurationProvider;
-import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsService;
+import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsProvider;
 
 @Service
 public class PasswordCredentialsConfigurationProvider extends
@@ -21,7 +21,7 @@ public class PasswordCredentialsConfigurationProvider extends
     }
 
     @Override
-    protected PasswordCredentialsServiceConfig buildConfig(ConfigurableCredentialsService cp) {
+    protected PasswordCredentialsServiceConfig buildConfig(ConfigurableCredentialsProvider cp) {
         return new PasswordCredentialsServiceConfig(cp);
     }
 

@@ -16,6 +16,7 @@ import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.TranslatorProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
+import it.smartcommunitylab.aac.internal.model.InternalEditableUserAccount;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
@@ -29,13 +30,13 @@ public class InternalIdentityServiceAuthority
         extends
         AbstractSingleProviderAuthority<InternalIdentityService, InternalUserIdentity, ConfigurableIdentityService, InternalIdentityProviderConfigMap, InternalIdentityServiceConfig>
         implements
-        IdentityServiceAuthority<InternalIdentityService, InternalUserIdentity, InternalUserAccount, InternalIdentityProviderConfigMap, InternalIdentityServiceConfig> {
+        IdentityServiceAuthority<InternalIdentityService, InternalUserIdentity, InternalUserAccount, InternalEditableUserAccount, InternalIdentityProviderConfigMap, InternalIdentityServiceConfig> {
 
     public static final String AUTHORITY_URL = "/auth/internal/";
 
     // internal authorities
     private final InternalAccountServiceAuthority accountServiceAuthority;
-    private final Collection<CredentialsServiceAuthority<?, ?, ?, ?>> credentialsServiceAuthorities;
+    private final Collection<CredentialsServiceAuthority<?, ?,?, ?, ?>> credentialsServiceAuthorities;
 
     // configuration provider
     protected InternalIdentityServiceConfigurationProvider configProvider;
@@ -46,7 +47,7 @@ public class InternalIdentityServiceAuthority
     public InternalIdentityServiceAuthority(
             UserEntityService userEntityService,
             InternalAccountServiceAuthority accountServiceAuthority,
-            Collection<CredentialsServiceAuthority<?, ?, ?, ?>> credentialsServiceAuthorities,
+            Collection<CredentialsServiceAuthority<?,?, ?, ?, ?>> credentialsServiceAuthorities,
             ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository) {
         super(SystemKeys.AUTHORITY_INTERNAL, new InternalConfigTranslatorRepository(registrationRepository));
         Assert.notNull(userEntityService, "user service is mandatory");

@@ -74,52 +74,57 @@ angular.module('aac.controllers.realmusers', [])
                 return data.data;
             });
         }
-        service.listUserAccount = function (slug, subject) {
+        service.listUserAccounts = function (slug, subject) {
             return $http.get('console/dev/users/' + slug + '/' + subject + '/account').then(function (data) {
                 return data.data;
             });
         }
-        service.getUserAccount = function (slug, subject, identityUuid) {
-            return $http.get('console/dev/users/' + slug + '/' + subject + '/account/' + identityUuid).then(function (data) {
+        service.getUserAccount = function (slug, subject, uuid) {
+            return $http.get('console/dev/users/' + slug + '/' + subject + '/account/' + uuid).then(function (data) {
                 return data.data;
             });
         }
-        service.updateUserAccount = function (slug, subject, identityUuid, provider, account) {
-            return $http.put('console/dev/users/' + slug + '/' + subject + '/account/' + identityUuid + "/" + provider, account).then(function (data) {
+        service.editUserAccount = function (slug, subject, uuid) {
+            return $http.get('console/dev/users/' + slug + '/' + subject + '/account/' + uuid + '/edit').then(function (data) {
                 return data.data;
             });
         }
-
-        service.removeUserAccount = function (slug, subject, identityUuid, provider) {
-            return $http.delete('console/dev/users/' + slug + '/' + subject + '/account/' + identityUuid + "/" + provider).then(function (data) {
-                return data.data;
-            });
-        }
-
-        service.lockUserAccount = function (slug, subject, identityUuid, provider) {
-            return $http.put('console/dev/users/' + slug + '/' + subject + '/account/' + identityUuid + "/" + provider + '/status', { status: 'locked' }).then(function (data) {
+        service.updateUserAccount = function (slug, subject, uuid, account) {
+            return $http.put('console/dev/users/' + slug + '/' + subject + '/account/' + uuid + '/edit', account).then(function (data) {
                 return data.data;
             });
         }
 
-        service.unlockUserAccount = function (slug, subject, identityUuid, provider) {
-            return $http.put('console/dev/users/' + slug + '/' + subject + '/account/' + identityUuid + "/" + provider + '/status', { status: 'active' }).then(function (data) {
+        service.removeUserAccount = function (slug, subject, uuid) {
+            return $http.delete('console/dev/users/' + slug + '/' + subject + '/account/' + uuid).then(function (data) {
                 return data.data;
             });
         }
 
-        service.verifyUserAccount = function (slug, subject, identityUuid, provider) {
-            return $http.post('console/dev/users/' + slug + '/' + subject + '/account/' + identityUuid + "/" + provider + '/confirm', {}).then(function (data) {
+        service.lockUserAccount = function (slug, subject, uuid) {
+            return $http.put('console/dev/users/' + slug + '/' + subject + '/account/' + uuid + '/lock', {}).then(function (data) {
                 return data.data;
             });
         }
-        service.confirmUserAccount = function (slug, subject, identityUuid, provider) {
-            return $http.put('console/dev/users/' + slug + '/' + subject + '/account/' + identityUuid + "/" + provider + '/confirm', {}).then(function (data) {
+
+        service.unlockUserAccount = function (slug, subject, uuid) {
+            return $http.delete('console/dev/users/' + slug + '/' + subject + '/account/' + uuid + '/lock').then(function (data) {
                 return data.data;
             });
         }
-        service.unconfirmUserAccount = function (slug, subject, identityUuid, provider) {
-            return $http.delete('console/dev/users/' + slug + '/' + subject + '/account/' + identityUuid + "/" + provider + '/confirm').then(function (data) {
+
+        service.verifyUserAccount = function (slug, subject, uuid) {
+            return $http.post('console/dev/users/' + slug + '/' + subject + '/account/' + uuid + '/confirm', {}).then(function (data) {
+                return data.data;
+            });
+        }
+        service.confirmUserAccount = function (slug, subject, uuid) {
+            return $http.put('console/dev/users/' + slug + '/' + subject + '/account/' + uuid + '/confirm', {}).then(function (data) {
+                return data.data;
+            });
+        }
+        service.unconfirmUserAccount = function (slug, subject, uuid) {
+            return $http.delete('console/dev/users/' + slug + '/' + subject + '/account/' + uuid + '/confirm').then(function (data) {
                 return data.data;
             });
         }
@@ -508,7 +513,7 @@ angular.module('aac.controllers.realmusers', [])
                 })
                 .then(function (data) {
                     //identities
-                    $scope.reloadAccounts(data.identities.filter(i => i.account).map(i => i.account));
+                    // $scope.reloadIdentities(data.identities);
                     return data;
                 })
                 .then(function (data) {
@@ -532,6 +537,13 @@ angular.module('aac.controllers.realmusers', [])
                 })
                 .then(function (data) {
                     $scope.reloadRoles(data.roles);
+                    return;
+                })
+                .then(function () {
+                    return RealmUsers.listUserAccounts(slug, subjectId)
+                })
+                .then(function (data) {
+                    $scope.reloadAccounts(data);
                     return;
                 })
                 .then(function () {
@@ -785,7 +797,7 @@ angular.module('aac.controllers.realmusers', [])
             if (account) {
                 $scope.lockUserAccount = function () {
                     $('#lockConfirm').modal('hide');
-                    RealmUsers.lockUserAccount(slug, subjectId, account.uuid, account.provider)
+                    RealmUsers.lockUserAccount(slug, subjectId, account.uuid)
                         .then(function (data) {
                             $scope.reloadAccount(data);
                             Utils.showSuccess();
@@ -799,7 +811,7 @@ angular.module('aac.controllers.realmusers', [])
 
         $scope.unlockUserAccount = function (account) {
             if (account) {
-                RealmUsers.unlockUserAccount(slug, subjectId, account.uuid, account.provider)
+                RealmUsers.unlockUserAccount(slug, subjectId, account.uuid)
                     .then(function (data) {
                         $scope.reloadAccount(data);
                         Utils.showSuccess();
@@ -813,7 +825,7 @@ angular.module('aac.controllers.realmusers', [])
             if (account) {
                 $scope.verifyUserAccount = function () {
                     $('#verifyConfirm').modal('hide');
-                    RealmUsers.verifyUserAccount(slug, subjectId, account.uuid, account.provider)
+                    RealmUsers.verifyUserAccount(slug, subjectId, account.uuid)
                         .then(function (data) {
                             $scope.reloadAccount(data);
                             Utils.showSuccess();
@@ -829,7 +841,7 @@ angular.module('aac.controllers.realmusers', [])
             if (account) {
                 $scope.confirmUserAccount = function () {
                     $('#confirmConfirm').modal('hide');
-                    RealmUsers.confirmUserAccount(slug, subjectId, account.uuid, account.provider)
+                    RealmUsers.confirmUserAccount(slug, subjectId, account.uuid)
                         .then(function (data) {
                             $scope.reloadAccount(data);
                             Utils.showSuccess();
@@ -843,7 +855,7 @@ angular.module('aac.controllers.realmusers', [])
 
         $scope.unconfirmUserAccount = function (account) {
             if (account) {
-                RealmUsers.unconfirmUserAccount(slug, subjectId, account.uuid, account.provider)
+                RealmUsers.unconfirmUserAccount(slug, subjectId, account.uuid)
                     .then(function (data) {
                         $scope.reloadAccount(data);
                         Utils.showSuccess();
@@ -857,7 +869,7 @@ angular.module('aac.controllers.realmusers', [])
             if (account) {
                 $scope.deleteUserAccount = function () {
                     $('#deleteAccountConfirm').modal('hide');
-                    RealmUsers.removeUserAccount(slug, subjectId, account.uuid, account.provider)
+                    RealmUsers.removeUserAccount(slug, subjectId, account.uuid)
                         .then(function () {
                             $scope.loadAccounts();
                             Utils.showSuccess();
@@ -872,13 +884,19 @@ angular.module('aac.controllers.realmusers', [])
 
         $scope.editUserAccountDlg = function (account) {
             if (account) {
-                $scope.modAccount = {
-                    ...account,
-                    realm: slug
-                };
+                //fetch editable
+                RealmUsers.editUserAccount(slug, subjectId, account.uuid)
+                    .then(function (data) {
+                        $scope.modAccount = {
+                            ...data,
+                            realm: slug
+                        };
 
-                $('#editAccountModal').modal({ keyboard: false });
-                Utils.refreshFormBS(300);
+                        $('#editAccountModal').modal({ keyboard: false });
+                        Utils.refreshFormBS(300);
+                    }).catch(function (err) {
+                        Utils.showError(err.data.message);
+                    });
             }
         }
 
@@ -887,28 +905,16 @@ angular.module('aac.controllers.realmusers', [])
             $('#editAccountModal').modal('hide');
             if ($scope.modAccount) {
                 var uuid = $scope.modAccount.uuid;
-                var provider = $scope.modAccount.provider;
 
-                //extract only base editable props
-                //TODO handle per authority
-                var account = $scope.accounts.find(i => i.uuid === uuid);
-                if (account) {
-                    var data = {
-                        ...account,
-                        name: $scope.modAccount.name,
-                        surname: $scope.modAccount.surname,
-                        email: $scope.modAccount.email
-                    };
+                var data = $scope.modAccount;
 
-                    RealmUsers.updateUserAccount(slug, subjectId, uuid, provider, data)
-                        .then(function (data) {
-                            $scope.reloadAccount(data);
-                            Utils.showSuccess();
-                        }).catch(function (err) {
-                            Utils.showError(err.data.message);
-                        });
-
-                }
+                RealmUsers.updateUserAccount(slug, subjectId, uuid, data)
+                    .then(function (data) {
+                        $scope.reloadAccount(data);
+                        Utils.showSuccess();
+                    }).catch(function (err) {
+                        Utils.showError(err.data.message);
+                    });
             }
         }
 

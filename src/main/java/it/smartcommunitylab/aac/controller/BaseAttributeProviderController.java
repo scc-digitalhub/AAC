@@ -125,7 +125,7 @@ public class BaseAttributeProviderController implements InitializingBean {
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             @RequestBody @Valid @NotNull ConfigurableAttributeProvider reg,
             @RequestParam(required = false, defaultValue = "false") Optional<Boolean> force)
-            throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException {
+            throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
         logger.debug("update ap {} for realm {}",
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
@@ -168,7 +168,7 @@ public class BaseAttributeProviderController implements InitializingBean {
     public void deleteAp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
-            throws NoSuchProviderException, NoSuchRealmException, SystemException, NoSuchAuthorityException {
+            throws NoSuchProviderException, NoSuchRealmException, SystemException, NoSuchAuthorityException, RegistrationException {
         logger.debug("delete ap {} for realm {}",
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
@@ -185,7 +185,7 @@ public class BaseAttributeProviderController implements InitializingBean {
     public ConfigurableAttributeProvider registerAp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
-            throws NoSuchProviderException, NoSuchRealmException, SystemException, NoSuchAuthorityException {
+            throws NoSuchProviderException, NoSuchRealmException, SystemException, NoSuchAuthorityException, RegistrationException {
         logger.debug("register ap {} for realm {}",
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
@@ -205,7 +205,7 @@ public class BaseAttributeProviderController implements InitializingBean {
     public ConfigurableAttributeProvider unregisterAp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
-            throws NoSuchProviderException, NoSuchRealmException, SystemException, NoSuchAuthorityException {
+            throws NoSuchProviderException, NoSuchRealmException, SystemException, NoSuchAuthorityException, RegistrationException {
         logger.debug("unregister ap {} for realm {}",
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 

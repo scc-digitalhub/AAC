@@ -1,6 +1,5 @@
 package it.smartcommunitylab.aac.webauthn.persistence;
 
-import java.io.Serializable;
 import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -12,63 +11,66 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-import org.springframework.security.core.CredentialsContainer;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractUserCredentials;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
-import it.smartcommunitylab.aac.internal.model.CredentialsType;
 
 @Entity
-@Table(name = "internal_users_webauthn_credentials", uniqueConstraints = @UniqueConstraint(columnNames = {
-        "provider_id", "user_handle", "credential_id" }))
+@Table(name = "internal_users_webauthn_credentials", uniqueConstraints = {
+        @UniqueConstraint(columnNames = { "repository_id", "user_handle", "credential_id" }),
+        @UniqueConstraint(columnNames = { "repository_id", "username", "user_handle" }),
+})
 @EntityListeners(AuditingEntityListener.class)
-public class WebAuthnUserCredential extends AbstractUserCredentials
-        implements CredentialsContainer, Serializable {
-
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class WebAuthnUserCredential extends AbstractUserCredentials {
     private static final long serialVersionUID = SystemKeys.AAC_WEBAUTHN_SERIAL_VERSION;
+    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_CREDENTIALS + SystemKeys.ID_SEPARATOR
+            + SystemKeys.AUTHORITY_WEBAUTHN;
 
     // id is internal
+    // unique uuid
     @Id
     @NotBlank
     @Column(name = "id", length = 128)
     private String id;
 
     @NotBlank
-    @Column(name = "provider_id", length = 128)
-    private String provider;
+    @Column(name = "repository_id", length = 128)
+    private String repositoryId;
 
     // account id (with the same provider)
     @NotBlank
     @Column(name = "username", length = 128)
     private String username;
 
+    // user id
+    @NotNull
+    @Column(name = "user_id", length = 128)
+    private String userId;
+
+    @NotBlank
+    @Column(length = 128)
+    private String realm;
+
     @NotBlank
     @Column(name = "user_handle")
     private String userHandle;
 
-    /**
-     * A custom name the user can associate to this credential It can be used, for
-     * example, to help distinguishing authenticators.
-     * 
-     * E.g., a credential may be called 'Yubico 5c' to make it obvious in the web
-     * interface that it is relative to that authenticator
-     */
     @Column(name = "display_name")
     private String displayName;
 
-    /**
-     * Public key of this credential
-     */
     @NotBlank
     @Column(name = "credential_id", length = 128)
     private String credentialId;
 
+    // public key as COSE
     @NotBlank
     @Lob
     @Column(name = "public_key_cose")
@@ -83,7 +85,8 @@ public class WebAuthnUserCredential extends AbstractUserCredentials
     @Column(name = "discoverable")
     private Boolean discoverable;
 
-    @Column(name = "status", length = 32)
+    // credentials status
+    @Column(length = 32)
     private String status;
 
     /*
@@ -97,10 +100,7 @@ public class WebAuthnUserCredential extends AbstractUserCredentials
     @Column(name = "client_data")
     private String clientData;
 
-    /*
-     * Audit
-     */
-
+    // audit
     @CreatedDate
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_date")
@@ -110,15 +110,17 @@ public class WebAuthnUserCredential extends AbstractUserCredentials
     @Column(name = "last_used_date")
     private Date lastUsedDate;
 
-    private transient String realm;
-
     public WebAuthnUserCredential() {
-        super(SystemKeys.AUTHORITY_WEBAUTHN, null, null, null);
+        super(SystemKeys.AUTHORITY_WEBAUTHN, null);
     }
 
     @Override
-    public String getProvider() {
-        return provider;
+    public String getType() {
+        return RESOURCE_TYPE;
+    }
+
+    public String getRepositoryId() {
+        return repositoryId;
     }
 
     @Override
@@ -127,18 +129,23 @@ public class WebAuthnUserCredential extends AbstractUserCredentials
     }
 
     @Override
-    public CredentialsType getCredentialsType() {
-        return CredentialsType.WEBAUTHN;
+    public String getUuid() {
+        return id;
     }
 
     @Override
-    public String getUuid() {
-        return credentialId;
+    public String getCredentialsId() {
+        return id;
     }
 
     @Override
     public String getAccountId() {
         return username;
+    }
+
+    @Override
+    public String getUserId() {
+        return userId;
     }
 
     @Override
@@ -167,12 +174,16 @@ public class WebAuthnUserCredential extends AbstractUserCredentials
         return false;
     }
 
+    public String getUsername() {
+        return username;
+    }
+
     public void setId(String id) {
         this.id = id;
     }
 
-    public void setProvider(String provider) {
-        this.provider = provider;
+    public void setRepositoryId(String repositoryId) {
+        this.repositoryId = repositoryId;
     }
 
     public String getCredentialId() {
@@ -181,10 +192,6 @@ public class WebAuthnUserCredential extends AbstractUserCredentials
 
     public void setCredentialId(String credentialId) {
         this.credentialId = credentialId;
-    }
-
-    public String getUsername() {
-        return username;
     }
 
     public void setUsername(String username) {
@@ -279,6 +286,10 @@ public class WebAuthnUserCredential extends AbstractUserCredentials
         this.realm = realm;
     }
 
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
     public String getAttestationObject() {
         return attestationObject;
     }
@@ -302,7 +313,7 @@ public class WebAuthnUserCredential extends AbstractUserCredentials
 
     @Override
     public String toString() {
-        return "WebAuthnUserCredential [id=" + id + ", provider=" + provider + ", username=" + username
+        return "WebAuthnUserCredential [id=" + id + ", repositoryId=" + repositoryId + ", username=" + username
                 + ", userHandle=" + userHandle + ", displayName=" + displayName + ", credentialId=" + credentialId
                 + ", status=" + status + ", createDate=" + createDate + ", lastUsedDate=" + lastUsedDate + "]";
     }

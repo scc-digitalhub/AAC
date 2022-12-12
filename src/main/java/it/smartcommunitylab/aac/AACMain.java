@@ -34,6 +34,7 @@ public class AACMain {
     public CommandLineRunner bootstrapRunner(ApplicationContext ctx) {
         return args -> {
             bootstrap.bootstrap();
+            bootstrap.bootstrapConfig();
         };
     }
 

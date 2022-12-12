@@ -3,11 +3,11 @@ package it.smartcommunitylab.aac.core.base;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsService;
+import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsProvider;
 import it.smartcommunitylab.aac.core.provider.CredentialsServiceConfig;
 
 public abstract class AbstractCredentialsServiceConfig<M extends AbstractConfigMap>
-        extends AbstractProviderConfig<M, ConfigurableCredentialsService>
+        extends AbstractProviderConfig<M, ConfigurableCredentialsProvider>
         implements CredentialsServiceConfig<M> {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
@@ -17,12 +17,13 @@ public abstract class AbstractCredentialsServiceConfig<M extends AbstractConfigM
         super(authority, provider, realm, configMap);
     }
 
-    protected AbstractCredentialsServiceConfig(ConfigurableCredentialsService cp) {
+    protected AbstractCredentialsServiceConfig(ConfigurableCredentialsProvider cp) {
         super(cp);
-
+        this.repositoryId = cp.getRepositoryId();
     }
 
     public String getRepositoryId() {
+        // if undefined always use realm as default repository id
         return StringUtils.hasText(repositoryId) ? repositoryId : getRealm();
     }
 
@@ -31,8 +32,8 @@ public abstract class AbstractCredentialsServiceConfig<M extends AbstractConfigM
     }
 
     @Override
-    public ConfigurableCredentialsService getConfigurable() {
-        ConfigurableCredentialsService cs = new ConfigurableCredentialsService(getAuthority(),
+    public ConfigurableCredentialsProvider getConfigurable() {
+        ConfigurableCredentialsProvider cs = new ConfigurableCredentialsProvider(getAuthority(),
                 getProvider(),
                 getRealm());
         cs.setType(SystemKeys.RESOURCE_CREDENTIALS);

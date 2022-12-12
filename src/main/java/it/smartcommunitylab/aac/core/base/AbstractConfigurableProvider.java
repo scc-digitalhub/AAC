@@ -21,6 +21,7 @@ public abstract class AbstractConfigurableProvider<R extends Resource, T extends
         Assert.notNull(providerConfig, "provider config can not be null");
 
         // check configuration
+        Assert.isTrue(authority.equals(providerConfig.getAuthority()), "configuration does not match this provider");
         Assert.isTrue(provider.equals(providerConfig.getProvider()), "configuration does not match this provider");
         Assert.isTrue(realm.equals(providerConfig.getRealm()), "configuration does not match this provider");
 

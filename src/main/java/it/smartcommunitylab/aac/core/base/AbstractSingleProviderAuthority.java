@@ -15,7 +15,7 @@ import it.smartcommunitylab.aac.core.provider.ProviderConfig;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 
 public abstract class AbstractSingleProviderAuthority<S extends ConfigurableResourceProvider<R, T, M, C>, R extends Resource, T extends ConfigurableProvider, M extends ConfigMap, C extends ProviderConfig<M, T>>
-        extends AbstractAuthority<S, R, T, M, C> implements SingleProviderAuthority<S, R, T, M, C> {
+        extends AbstractConfigurableProviderAuthority<S, R, T, M, C> implements SingleProviderAuthority<S, R, T, M, C> {
     public AbstractSingleProviderAuthority(
             String authorityId,
             ProviderConfigRepository<C> registrationRepository) {
@@ -23,7 +23,7 @@ public abstract class AbstractSingleProviderAuthority<S extends ConfigurableReso
     }
 
     @Override
-    public C registerProvider(ConfigurableProvider cp) {
+    public C registerProvider(ConfigurableProvider cp) throws RegistrationException {
         if (cp != null
                 && getAuthorityId().equals(cp.getAuthority())) {
             // enforce single per realm

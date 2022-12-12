@@ -7,6 +7,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityAuthority;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityFilterProvider;
@@ -33,6 +34,9 @@ public class WebAuthnIdentityAuthority extends
     // filter provider
     private final WebAuthnIdentityFilterProvider filterProvider;
 
+    // services
+    private ResourceEntityService resourceService;
+
     public WebAuthnIdentityAuthority(
             UserAccountService<InternalUserAccount> userAccountService,
             WebAuthnUserCredentialsService credentialsService,
@@ -57,12 +61,19 @@ public class WebAuthnIdentityAuthority extends
         this.configProvider = configProvider;
     }
 
+    @Autowired
+    public void setResourceService(ResourceEntityService resourceService) {
+        this.resourceService = resourceService;
+    }
+
     @Override
     public WebAuthnIdentityProvider buildProvider(WebAuthnIdentityProviderConfig config) {
         WebAuthnIdentityProvider idp = new WebAuthnIdentityProvider(
                 config.getProvider(),
                 accountService, credentialsService,
                 config, config.getRealm());
+
+        idp.setResourceService(resourceService);
 
         return idp;
     }

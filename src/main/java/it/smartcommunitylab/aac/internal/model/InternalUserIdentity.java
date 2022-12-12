@@ -9,6 +9,8 @@ import java.util.Map;
 
 import javax.validation.Valid;
 
+import org.springframework.util.Assert;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -21,9 +23,9 @@ import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class InternalUserIdentity extends AbstractIdentity implements UserCredentialsIdentity {
-
-    // use a global version as serial uid
-    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
+    private static final long serialVersionUID = SystemKeys.AAC_INTERNAL_SERIAL_VERSION;
+    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_IDENTITY + SystemKeys.ID_SEPARATOR
+            + SystemKeys.AUTHORITY_INTERNAL;
 
     // authentication principal (if available)
     private final InternalUserAuthenticatedPrincipal principal;
@@ -32,46 +34,43 @@ public class InternalUserIdentity extends AbstractIdentity implements UserCreden
     private final InternalUserAccount account;
 
     // credentials (when available)
-    // TODO evaluate exposing on identity model for all providers
+    // TODO evaluate exposing on abstract identity model for all providers
     private List<UserCredentials> credentials;
 
     // attributes map for sets associated with this identity
     private Map<String, UserAttributes> attributes;
 
-    protected InternalUserIdentity() {
-        this(SystemKeys.AUTHORITY_INTERNAL);
-    }
-
-    protected InternalUserIdentity(String authority) {
-        super(authority, null, null);
-        this.principal = null;
-        this.account = null;
-    }
-
-    public InternalUserIdentity(String provider, String realm, InternalUserAccount account) {
-        this(SystemKeys.AUTHORITY_INTERNAL, provider, realm, account);
-    }
-
     public InternalUserIdentity(String authority, String provider, String realm, InternalUserAccount account) {
-        super(authority, provider, realm);
+        super(authority, provider);
+        Assert.notNull(account, "account can not be null");
+
         this.account = account;
         this.principal = null;
         this.attributes = Collections.emptyMap();
-        super.setUserId(account.getUserId());
+
+        setUserId(account.getUserId());
+        setUuid(account.getUuid());
+        setRealm(realm);
     }
 
-    public InternalUserIdentity(String provider, String realm, InternalUserAccount account,
-            InternalUserAuthenticatedPrincipal principal) {
-        this(SystemKeys.AUTHORITY_INTERNAL, provider, realm, account, principal);
-    }
+    public InternalUserIdentity(
+            String authority, String provider, String realm,
+            InternalUserAccount account, InternalUserAuthenticatedPrincipal principal) {
+        super(authority, provider);
+        Assert.notNull(account, "account can not be null");
 
-    public InternalUserIdentity(String authority, String provider, String realm, InternalUserAccount account,
-            InternalUserAuthenticatedPrincipal principal) {
-        super(authority, provider, realm);
         this.account = account;
         this.principal = principal;
         this.attributes = Collections.emptyMap();
-        super.setUserId(account.getUserId());
+
+        setUserId(account.getUserId());
+        setUuid(account.getUuid());
+        setRealm(realm);
+    }
+
+    @Override
+    public String getType() {
+        return RESOURCE_TYPE;
     }
 
     @Override
@@ -119,19 +118,5 @@ public class InternalUserIdentity extends AbstractIdentity implements UserCreden
         }
 
     }
-
-//    @Override
-//    public void eraseCredentials() {
-//        if (this.account != null) {
-//            this.account.eraseCredentials();
-//        }
-//        if (this.principal != null) {
-//            this.principal.eraseCredentials();
-//        }
-//    }
-//
-//    public Object getCredentials() {
-//        return this.account != null ? this.account.getPassword() : null;
-//    }
 
 }

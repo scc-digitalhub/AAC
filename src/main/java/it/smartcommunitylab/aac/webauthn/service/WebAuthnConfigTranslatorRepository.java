@@ -20,8 +20,9 @@ public class WebAuthnConfigTranslatorRepository extends
 
             // we share the same configMap
             config.setConfigMap(source.getConfigMap());
-            return config;
+            config.setRepositoryId(source.getRepositoryId());
 
+            return config;
         });
     }
 

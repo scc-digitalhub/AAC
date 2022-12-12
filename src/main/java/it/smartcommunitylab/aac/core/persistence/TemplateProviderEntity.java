@@ -11,7 +11,6 @@ import javax.persistence.Lob;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.repository.HashMapConverter;
 
 @Entity
@@ -148,11 +147,6 @@ public class TemplateProviderEntity implements ProviderEntity {
 
     public void setConfigurationMap(Map<String, Serializable> configurationMap) {
         this.configurationMap = configurationMap;
-    }
-
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_TEMPLATE;
     }
 
 }

@@ -120,7 +120,7 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration,
             @RequestParam(required = false, defaultValue = "false") Optional<Boolean> force)
-            throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException {
+            throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
         ConfigurableAttributeProvider provider = super.updateAp(realm, providerId, registration, Optional.of(false));
 
         // fetch also configuration schema

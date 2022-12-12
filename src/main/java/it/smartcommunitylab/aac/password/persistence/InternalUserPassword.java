@@ -1,6 +1,5 @@
 package it.smartcommunitylab.aac.password.persistence;
 
-import java.io.Serializable;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -10,49 +9,59 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-import org.springframework.security.core.CredentialsContainer;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractUserCredentials;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
-import it.smartcommunitylab.aac.internal.model.CredentialsType;
 
 @Entity
 @Table(name = "internal_users_passwords", uniqueConstraints = @UniqueConstraint(columnNames = {
-        "provider_id",
-        "reset_key" }))
-
+        "repository_id", "reset_key" }))
 @EntityListeners(AuditingEntityListener.class)
-public class InternalUserPassword extends AbstractUserCredentials
-        implements CredentialsContainer, Serializable {
-
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class InternalUserPassword extends AbstractUserCredentials {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
+    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_CREDENTIALS + SystemKeys.ID_SEPARATOR
+            + SystemKeys.AUTHORITY_PASSWORD;
 
+    // unique uuid
     @Id
+    @NotBlank
+    @Column(name = "id", length = 128)
     private String id;
 
     @NotBlank
-    @Column(name = "provider_id", length = 128)
-    private String provider;
+    @Column(name = "repository_id", length = 128)
+    private String repositoryId;
 
     // account id
     @NotBlank
     @Column(name = "username", length = 128)
     private String username;
 
+    // user id
+    @NotNull
+    @Column(name = "user_id", length = 128)
+    private String userId;
+
     @NotBlank
+    @Column(length = 128)
+    private String realm;
+
+    // password hash
+    @NotBlank
+    @Column(length = 512)
     private String password;
 
+    // credentials status
+    @Column(length = 32)
     private String status;
-
-    @CreatedDate
-    @Column(name = "created_date")
-    private Date createDate;
 
     @Column(name = "expiration_date")
     private Date expirationDate;
@@ -66,15 +75,22 @@ public class InternalUserPassword extends AbstractUserCredentials
     @Column(name = "change_first_access")
     private Boolean changeOnFirstAccess;
 
-    private transient String realm;
+    // audit
+    @CreatedDate
+    @Column(name = "created_date")
+    private Date createDate;
 
     public InternalUserPassword() {
-        super(SystemKeys.AUTHORITY_PASSWORD, null, null, null);
+        super(SystemKeys.AUTHORITY_PASSWORD, null);
     }
 
     @Override
-    public String getProvider() {
-        return provider;
+    public String getType() {
+        return RESOURCE_TYPE;
+    }
+
+    public String getRepositoryId() {
+        return repositoryId;
     }
 
     @Override
@@ -83,12 +99,12 @@ public class InternalUserPassword extends AbstractUserCredentials
     }
 
     @Override
-    public CredentialsType getCredentialsType() {
-        return CredentialsType.PASSWORD;
+    public String getUuid() {
+        return id;
     }
 
     @Override
-    public String getUuid() {
+    public String getCredentialsId() {
         return id;
     }
 
@@ -97,8 +113,9 @@ public class InternalUserPassword extends AbstractUserCredentials
         return username;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    @Override
+    public String getUserId() {
+        return userId;
     }
 
     @Override
@@ -126,12 +143,26 @@ public class InternalUserPassword extends AbstractUserCredentials
         return changeOnFirstAccess != null ? changeOnFirstAccess.booleanValue() : false;
     }
 
-    public void setProvider(String provider) {
-        this.provider = provider;
+    @Override
+    public String getStatus() {
+        return status;
+    }
+
+    @Override
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public String getUsername() {
         return username;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public void setRepositoryId(String repositoryId) {
+        this.repositoryId = repositoryId;
     }
 
     public void setUsername(String username) {
@@ -148,14 +179,6 @@ public class InternalUserPassword extends AbstractUserCredentials
 
     public void setPassword(String password) {
         this.password = password;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
     }
 
     public Date getCreateDate() {
@@ -206,6 +229,10 @@ public class InternalUserPassword extends AbstractUserCredentials
         this.realm = realm;
     }
 
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
     @Override
     public void eraseCredentials() {
         this.password = null;
@@ -214,9 +241,9 @@ public class InternalUserPassword extends AbstractUserCredentials
 
     @Override
     public String toString() {
-        return "InternalUserPassword [id=" + id + ", provider=" + provider + ", username=" + username + ", status="
-                + status + ", createDate=" + createDate + ", expirationDate=" + expirationDate + ", resetDeadline="
-                + resetDeadline + ", changeOnFirstAccess=" + changeOnFirstAccess + "]";
+        return "InternalUserPassword [id=" + id + ", repositoryId=" + repositoryId + ", username=" + username
+                + ", status=" + status + ", createDate=" + createDate + ", expirationDate=" + expirationDate
+                + ", resetDeadline=" + resetDeadline + ", changeOnFirstAccess=" + changeOnFirstAccess + "]";
     }
 
 }

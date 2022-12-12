@@ -236,7 +236,7 @@ public class LoginController {
         model.addAttribute("authorities", loginAuthorities);
 
         // fetch account services for user registration
-        Collection<IdentityService<? extends UserIdentity, ?, ?, ?>> services = identityServiceAuthorityService
+        Collection<IdentityService<? extends UserIdentity, ?, ?, ?, ?>> services = identityServiceAuthorityService
                 .getAuthorities().stream()
                 .flatMap(a -> a.getProvidersByRealm(realm).stream()).collect(Collectors.toList());
 

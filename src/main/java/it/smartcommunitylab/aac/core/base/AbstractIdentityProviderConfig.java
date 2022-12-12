@@ -3,9 +3,12 @@ package it.smartcommunitylab.aac.core.base;
 import java.util.Collections;
 import java.util.Map;
 
+import org.springframework.util.StringUtils;
+
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProviderConfig;
+import it.smartcommunitylab.aac.model.PersistenceMode;
 
 public abstract class AbstractIdentityProviderConfig<M extends AbstractConfigMap>
         extends AbstractProviderConfig<M, ConfigurableIdentityProvider>
@@ -13,7 +16,7 @@ public abstract class AbstractIdentityProviderConfig<M extends AbstractConfigMap
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     protected Boolean linkable;
-    protected String persistence;
+    protected PersistenceMode persistence;
     protected String events;
     protected Integer position;
 
@@ -28,7 +31,7 @@ public abstract class AbstractIdentityProviderConfig<M extends AbstractConfigMap
         super(cp);
 
         this.linkable = cp.isLinkable();
-        this.persistence = cp.getPersistence();
+        this.persistence = StringUtils.hasText(cp.getPersistence()) ? PersistenceMode.parse(cp.getPersistence()) : null;
         this.events = cp.getEvents();
         this.position = cp.getPosition();
 
@@ -47,11 +50,12 @@ public abstract class AbstractIdentityProviderConfig<M extends AbstractConfigMap
         return linkable != null ? linkable.booleanValue() : true;
     }
 
-    public String getPersistence() {
-        return persistence;
+    public PersistenceMode getPersistence() {
+        // by default persist to repository
+        return persistence != null ? persistence : PersistenceMode.REPOSITORY;
     }
 
-    public void setPersistence(String persistence) {
+    public void setPersistence(PersistenceMode persistence) {
         this.persistence = persistence;
     }
 
@@ -91,7 +95,8 @@ public abstract class AbstractIdentityProviderConfig<M extends AbstractConfigMap
         cp.setDescriptionMap(getDescriptionMap());
 
         cp.setLinkable(isLinkable());
-        cp.setPersistence(getPersistence());
+        String persistenceValue = persistence != null ? persistence.getValue() : null;
+        cp.setPersistence(persistenceValue);
         cp.setEvents(getEvents());
         cp.setPosition(getPosition());
 

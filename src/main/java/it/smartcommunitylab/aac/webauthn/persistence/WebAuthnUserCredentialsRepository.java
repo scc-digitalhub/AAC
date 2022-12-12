@@ -8,17 +8,20 @@ import it.smartcommunitylab.aac.repository.CustomJpaRepository;
 import it.smartcommunitylab.aac.repository.DetachableJpaRepository;
 
 @Repository
-public interface WebAuthnUserCredentialsRepository
-        extends CustomJpaRepository<WebAuthnUserCredential, String>,
+public interface WebAuthnUserCredentialsRepository extends CustomJpaRepository<WebAuthnUserCredential, String>,
         DetachableJpaRepository<WebAuthnUserCredential> {
 
-    WebAuthnUserCredential findByProviderAndUserHandleAndCredentialId(String provider, String userHandle,
+    List<WebAuthnUserCredential> findByRealm(String realm);
+
+    List<WebAuthnUserCredential> findByRepositoryIdAndUserId(String repositoryId, String userId);
+
+    WebAuthnUserCredential findByRepositoryIdAndUserHandleAndCredentialId(String repositoryId, String userHandle,
             String credentialId);
 
-    List<WebAuthnUserCredential> findByProviderAndCredentialId(String provider, String credentialId);
+    List<WebAuthnUserCredential> findByRepositoryIdAndCredentialId(String repositoryId, String credentialId);
 
-    List<WebAuthnUserCredential> findByProviderAndUsername(String provider, String username);
+    List<WebAuthnUserCredential> findByRepositoryIdAndUsername(String repositoryId, String username);
 
-    List<WebAuthnUserCredential> findByProviderAndUserHandle(String provider, String userHandle);
+    List<WebAuthnUserCredential> findByRepositoryIdAndUserHandle(String repositoryId, String userHandle);
 
 }

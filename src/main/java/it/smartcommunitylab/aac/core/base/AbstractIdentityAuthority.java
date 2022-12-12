@@ -1,6 +1,5 @@
 package it.smartcommunitylab.aac.core.base;
 
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -15,8 +14,8 @@ import it.smartcommunitylab.aac.core.provider.IdentityProviderConfig;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 
 public abstract class AbstractIdentityAuthority<S extends IdentityProvider<I, ?, ?, M, C>, I extends UserIdentity, M extends ConfigMap, C extends IdentityProviderConfig<M>>
-        extends AbstractAuthority<S, I, ConfigurableIdentityProvider, M, C>
-        implements IdentityProviderAuthority<S, I, M, C>, InitializingBean {
+        extends AbstractConfigurableProviderAuthority<S, I, ConfigurableIdentityProvider, M, C>
+        implements IdentityProviderAuthority<S, I, M, C> {
 
     // configuration provider
     protected IdentityProviderConfigurationProvider<M, C> configProvider;

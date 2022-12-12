@@ -27,6 +27,7 @@ import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchTemplateException;
+import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.model.Template;
 import it.smartcommunitylab.aac.templates.model.TemplateModel;
 
@@ -73,7 +74,7 @@ public class BaseTemplatesController implements InitializingBean {
     public TemplateModel createTemplateModel(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestBody @Valid @NotNull TemplateModel reg)
-            throws NoSuchRealmException, NoSuchTemplateException, NoSuchProviderException, NoSuchAuthorityException {
+            throws NoSuchRealmException, NoSuchTemplateException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
         logger.debug("add template to realm {}", StringUtils.trimAllWhitespace(realm));
 
         // use model as is
@@ -105,7 +106,7 @@ public class BaseTemplatesController implements InitializingBean {
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String templateId,
             @RequestBody @Valid @NotNull TemplateModel reg)
-            throws NoSuchRealmException, NoSuchTemplateException, NoSuchProviderException, NoSuchAuthorityException {
+            throws NoSuchRealmException, NoSuchTemplateException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
         logger.debug("update template {} for realm {}", StringUtils.trimAllWhitespace(templateId),
                 StringUtils.trimAllWhitespace(realm));
 

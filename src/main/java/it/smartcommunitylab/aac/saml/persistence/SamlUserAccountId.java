@@ -8,24 +8,24 @@ public class SamlUserAccountId implements Serializable {
 
     private static final long serialVersionUID = SystemKeys.AAC_SAML_SERIAL_VERSION;
 
-    private String provider;
+    private String repositoryId;
     private String subjectId;
 
     public SamlUserAccountId() {
     }
 
-    public SamlUserAccountId(String provider, String subjectId) {
+    public SamlUserAccountId(String repositoryId, String subjectId) {
         super();
-        this.provider = provider;
+        this.repositoryId = repositoryId;
         this.subjectId = subjectId;
     }
 
-    public String getProvider() {
-        return provider;
+    public String getRepositoryId() {
+        return repositoryId;
     }
 
-    public void setProvider(String provider) {
-        this.provider = provider;
+    public void setRepositoryId(String repositoryId) {
+        this.repositoryId = repositoryId;
     }
 
     public String getSubjectId() {
@@ -40,7 +40,7 @@ public class SamlUserAccountId implements Serializable {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((provider == null) ? 0 : provider.hashCode());
+        result = prime * result + ((repositoryId == null) ? 0 : repositoryId.hashCode());
         result = prime * result + ((subjectId == null) ? 0 : subjectId.hashCode());
         return result;
     }
@@ -54,10 +54,10 @@ public class SamlUserAccountId implements Serializable {
         if (getClass() != obj.getClass())
             return false;
         SamlUserAccountId other = (SamlUserAccountId) obj;
-        if (provider == null) {
-            if (other.provider != null)
+        if (repositoryId == null) {
+            if (other.repositoryId != null)
                 return false;
-        } else if (!provider.equals(other.provider))
+        } else if (!repositoryId.equals(other.repositoryId))
             return false;
         if (subjectId == null) {
             if (other.subjectId != null)

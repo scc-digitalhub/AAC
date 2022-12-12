@@ -7,7 +7,7 @@ import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.AttributeProviderConfig;
 
 public interface AttributeProviderAuthority<S extends AttributeProvider<M, C>, M extends ConfigMap, C extends AttributeProviderConfig<M>>
-        extends ProviderAuthority<S, UserAttributes, ConfigurableAttributeProvider, M, C> {
+        extends ConfigurableProviderAuthority<S, UserAttributes, ConfigurableAttributeProvider, M, C> {
 
 //    
 //    /*

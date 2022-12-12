@@ -8,13 +8,16 @@ import it.smartcommunitylab.aac.repository.DetachableJpaRepository;
 public interface InternalUserPasswordRepository extends CustomJpaRepository<InternalUserPassword, String>,
         DetachableJpaRepository<InternalUserPassword> {
 
-    InternalUserPassword findByProviderAndUsernameAndStatusOrderByCreateDateDesc(String provider, String username,
+    List<InternalUserPassword> findByRealm(String realm);
+
+    List<InternalUserPassword> findByRepositoryIdAndUserId(String repositoryId, String userId);
+
+    InternalUserPassword findByRepositoryIdAndUsernameAndStatusOrderByCreateDateDesc(String repositoryId,
+            String username,
             String status);
 
-    InternalUserPassword findByProviderAndResetKey(String provider, String key);
+    InternalUserPassword findByRepositoryIdAndResetKey(String repositoryId, String key);
 
-    InternalUserPassword findByProviderAndUsernameAndPassword(String provider, String username, String password);
-
-    List<InternalUserPassword> findByProviderAndUsernameOrderByCreateDateDesc(String provider, String username);
+    List<InternalUserPassword> findByRepositoryIdAndUsernameOrderByCreateDateDesc(String repositoryId, String username);
 
 }

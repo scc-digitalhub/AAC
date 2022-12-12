@@ -31,11 +31,6 @@ public abstract class AbstractAttributeProviderConfig<M extends AbstractConfigMa
         this.attributeSets = (cp.getAttributeSets() != null ? cp.getAttributeSets() : Collections.emptySet());
     }
 
-    @Override
-    public final String getType() {
-        return SystemKeys.RESOURCE_ATTRIBUTES;
-    }
-
     public String getPersistence() {
         return persistence;
     }

@@ -15,26 +15,31 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.provider.InternalAccountProvider;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityCredentialsService;
 
 public class UsernamePasswordAuthenticationProvider implements AuthenticationProvider {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final InternalAccountProvider accountProvider;
+    private final UserAccountService<InternalUserAccount> userAccountService;
     private final PasswordIdentityCredentialsService passwordService;
 
-    public UsernamePasswordAuthenticationProvider(String providerId,
-            InternalAccountProvider accountProvider,
-            PasswordIdentityCredentialsService passwordService,
-            String realm) {
-        Assert.hasText(providerId, "provider can not be null or empty");
-        Assert.notNull(accountProvider, "account provider is mandatory");
-        Assert.notNull(passwordService, "password service is mandatory");
+    private final String repositoryId;
 
-        this.accountProvider = accountProvider;
+    public UsernamePasswordAuthenticationProvider(String providerId,
+            UserAccountService<InternalUserAccount> userAccountService,
+            PasswordIdentityCredentialsService passwordService,
+            String repositoryId, String realm) {
+        Assert.hasText(providerId, "provider can not be null or empty");
+        Assert.notNull(userAccountService, "account service is mandatory");
+        Assert.notNull(passwordService, "password service is mandatory");
+        Assert.hasText(repositoryId, "repository id can not be null or empty");
+
+        this.userAccountService = userAccountService;
         this.passwordService = passwordService;
+
+        this.repositoryId = repositoryId;
     }
 
     @Override
@@ -52,7 +57,7 @@ public class UsernamePasswordAuthenticationProvider implements AuthenticationPro
         }
 
         try {
-            InternalUserAccount account = accountProvider.findAccountByUsername(username);
+            InternalUserAccount account = userAccountService.findAccountById(repositoryId, username);
             if (account == null) {
                 throw new BadCredentialsException("invalid request");
             }

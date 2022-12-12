@@ -15,20 +15,26 @@ import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class InternalUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincipal {
+    private static final long serialVersionUID = SystemKeys.AAC_INTERNAL_SERIAL_VERSION;
+    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_PRINCIPAL + SystemKeys.ID_SEPARATOR
+            + SystemKeys.AUTHORITY_INTERNAL;
 
-    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
+    private final String username;
 
+    private String emailAddress;
     private String name;
     private Boolean confirmed;
 
     // internal attributes from account
     private Map<String, String> attributes;
 
-    public InternalUserAuthenticatedPrincipal(String authority, String provider, String realm, String userId,
+    protected InternalUserAuthenticatedPrincipal(String authority, String provider, String realm, String userId,
             String username) {
-        super(authority, provider, realm, userId);
+        super(authority, provider);
         Assert.hasText(username, "username can not be null or empty");
         this.username = username;
+        setRealm(realm);
+        setUserId(userId);
 
     }
 
@@ -37,8 +43,23 @@ public class InternalUserAuthenticatedPrincipal extends AbstractAuthenticatedPri
     }
 
     @Override
-    public String getId() {
+    public String getType() {
+        return RESOURCE_TYPE;
+    }
+
+    @Override
+    public String getPrincipalId() {
         return username;
+    }
+
+    @Override
+    public String getUsername() {
+        return username;
+    }
+
+    @Override
+    public String getEmailAddress() {
+        return emailAddress;
     }
 
     @Override
@@ -54,19 +75,6 @@ public class InternalUserAuthenticatedPrincipal extends AbstractAuthenticatedPri
     @Override
     public Map<String, Serializable> getAttributes() {
         Map<String, Serializable> map = new HashMap<>();
-        map.put("authority", getAuthority());
-        map.put("provider", getProvider());
-        map.put("username", username);
-        map.put("id", username);
-
-        if (StringUtils.hasText(name)) {
-            map.put("name", name);
-        }
-
-        String userId = getUserId();
-        if (StringUtils.hasText(userId)) {
-            map.put("userId", userId);
-        }
 
         // add all account attributes if set
         if (attributes != null) {
@@ -74,6 +82,10 @@ public class InternalUserAuthenticatedPrincipal extends AbstractAuthenticatedPri
         }
 
         // override if set
+        if (StringUtils.hasText(name)) {
+            map.put("name", name);
+        }
+
         if (StringUtils.hasText(emailAddress)) {
             map.put("email", emailAddress);
         }
@@ -81,11 +93,13 @@ public class InternalUserAuthenticatedPrincipal extends AbstractAuthenticatedPri
             map.put("confirmed", Boolean.toString(confirmed.booleanValue()));
         }
 
-        return map;
-    }
+        // add base attributes
+        map.putAll(super.getAttributes());
 
-    public void setUuid(String uuid) {
-        this.uuid = uuid;
+        // make sure these are never overridden
+        map.put("username", username);
+
+        return map;
     }
 
     public String getEmail() {

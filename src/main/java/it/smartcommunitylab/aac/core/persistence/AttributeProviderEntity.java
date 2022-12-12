@@ -168,9 +168,4 @@ public class AttributeProviderEntity implements ProviderEntity {
         this.configurationMap = configurationMap;
     }
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_ATTRIBUTE_PROVIDER;
-    }
-
 }

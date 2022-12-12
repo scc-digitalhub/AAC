@@ -30,6 +30,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.api.scopes.AdminRealmsScope;
 import it.smartcommunitylab.aac.api.scopes.ApiRealmScope;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.model.Realm;
 
@@ -66,7 +67,7 @@ public class ApiRealmController {
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')  and hasAuthority('SCOPE_" + AdminRealmsScope.SCOPE + "')")
     @Operation(summary = "add a new realm")
     public Realm addRealm(
-            @RequestBody @NotNull @Valid Realm r) {
+            @RequestBody @NotNull @Valid Realm r) throws RegistrationException {
         logger.debug("add realm");
 
         if (logger.isTraceEnabled()) {
@@ -96,7 +97,7 @@ public class ApiRealmController {
     @Operation(summary = "update a given realm")
     public Realm updateRealm(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String slug,
-            @RequestBody @Valid @NotNull Realm r) throws NoSuchRealmException {
+            @RequestBody @Valid @NotNull Realm r) throws NoSuchRealmException, RegistrationException {
         logger.debug("update realm {}",
                 StringUtils.trimAllWhitespace(slug));
 

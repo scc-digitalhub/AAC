@@ -11,20 +11,20 @@ import it.smartcommunitylab.aac.repository.DetachableJpaRepository;
 public interface SamlUserAccountRepository extends CustomJpaRepository<SamlUserAccount, SamlUserAccountId>,
         DetachableJpaRepository<SamlUserAccount> {
 
-    SamlUserAccount findByProviderAndUuid(String provider, String uuid);
+    SamlUserAccount findByUuid(String uuid);
 
-    List<SamlUserAccount> findByProviderAndEmail(String provider, String email);
+    List<SamlUserAccount> findByRepositoryIdAndEmail(String repositoryId, String email);
 
-    List<SamlUserAccount> findByProviderAndUsername(String provider, String username);
+    List<SamlUserAccount> findByRepositoryIdAndUsername(String repositoryId, String username);
 
     List<SamlUserAccount> findByRealm(String realm);
 
-    List<SamlUserAccount> findByProvider(String provider);
+    List<SamlUserAccount> findByRepositoryId(String repositoryId);
 
     List<SamlUserAccount> findByUserId(String userId);
 
     List<SamlUserAccount> findByUserIdAndRealm(String userId, String realm);
 
-    List<SamlUserAccount> findByUserIdAndProvider(String userId, String provider);
+    List<SamlUserAccount> findByUserIdAndRepositoryId(String userId, String repositoryId);
 
 }

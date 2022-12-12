@@ -8,8 +8,10 @@ import java.security.spec.InvalidKeySpecException;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
+import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
+@Component
 public class PasswordHash {
 
     public static final String PBKDF2_ALGORITHM = "PBKDF2WithHmacSHA1";

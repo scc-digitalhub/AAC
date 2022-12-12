@@ -72,7 +72,7 @@ public class OIDCUserAccountService implements UserAccountService<OIDCUserAccoun
         logger.debug("find account with username {} in repository {}", String.valueOf(username),
                 String.valueOf(repository));
 
-        List<OIDCUserAccount> accounts = accountRepository.findByProviderAndUsername(repository, username);
+        List<OIDCUserAccount> accounts = accountRepository.findByRepositoryIdAndUsername(repository, username);
         return accounts.stream().map(a -> {
             return accountRepository.detach(a);
         }).collect(Collectors.toList());
@@ -83,18 +83,17 @@ public class OIDCUserAccountService implements UserAccountService<OIDCUserAccoun
         logger.debug("find account with email {} in repository {}", String.valueOf(email),
                 String.valueOf(repository));
 
-        List<OIDCUserAccount> accounts = accountRepository.findByProviderAndEmail(repository, email);
+        List<OIDCUserAccount> accounts = accountRepository.findByRepositoryIdAndEmail(repository, email);
         return accounts.stream().map(a -> {
             return accountRepository.detach(a);
         }).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public OIDCUserAccount findAccountByUuid(String repository, String uuid) {
-        logger.debug("find account with uuid {} in repository {}", String.valueOf(uuid),
-                String.valueOf(repository));
+    public OIDCUserAccount findAccountByUuid(String uuid) {
+        logger.debug("find account with uuid {}", String.valueOf(uuid));
 
-        OIDCUserAccount account = accountRepository.findByProviderAndUuid(repository, uuid);
+        OIDCUserAccount account = accountRepository.findByUuid(uuid);
         if (account == null) {
             return null;
         }
@@ -109,7 +108,7 @@ public class OIDCUserAccountService implements UserAccountService<OIDCUserAccoun
         logger.debug("find account for user {} in repository {}", String.valueOf(userId),
                 String.valueOf(repository));
 
-        List<OIDCUserAccount> accounts = accountRepository.findByUserIdAndProvider(userId, repository);
+        List<OIDCUserAccount> accounts = accountRepository.findByUserIdAndRepositoryId(userId, repository);
         return accounts.stream().map(a -> {
             return accountRepository.detach(a);
         }).collect(Collectors.toList());
@@ -155,10 +154,9 @@ public class OIDCUserAccountService implements UserAccountService<OIDCUserAccoun
             }
 
             // extract attributes and build model
-            account = new OIDCUserAccount(reg.getAuthority());
-            account.setProvider(repository);
+            account = new OIDCUserAccount();
+            account.setRepositoryId(repository);
             account.setSubject(subject);
-
             account.setUuid(s.getSubjectId());
 
             account.setUserId(reg.getUserId());
@@ -185,8 +183,11 @@ public class OIDCUserAccountService implements UserAccountService<OIDCUserAccoun
                 logger.trace("account: {}", String.valueOf(account));
             }
 
+            account.setAuthority(reg.getAuthority());
+            account.setProvider(reg.getProvider());
+
             return account;
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             throw new RegistrationException(e.getMessage());
         }
     }
@@ -214,13 +215,12 @@ public class OIDCUserAccountService implements UserAccountService<OIDCUserAccoun
             // support subject update
             account.setSubject(reg.getSubject());
 
-            // support uuid change if provided
-            if (StringUtils.hasText(reg.getUuid())) {
-                account.setUuid(reg.getUuid());
-            }
+            // DISABLED support uuid change if provided
+//            if (StringUtils.hasText(reg.getUuid())) {
+//                account.setUuid(reg.getUuid());
+//            }
 
             // extract attributes and update model
-            account.setAuthority(reg.getAuthority());
             account.setUserId(reg.getUserId());
             account.setRealm(reg.getRealm());
 
@@ -243,6 +243,9 @@ public class OIDCUserAccountService implements UserAccountService<OIDCUserAccoun
             if (logger.isTraceEnabled()) {
                 logger.trace("account: {}", String.valueOf(account));
             }
+
+            account.setAuthority(reg.getAuthority());
+            account.setProvider(reg.getProvider());
 
             return account;
         } catch (Exception e) {

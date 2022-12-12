@@ -4,23 +4,16 @@ import java.io.Serializable;
 
 import org.springframework.security.core.CredentialsContainer;
 
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.internal.model.CredentialsType;
 import it.smartcommunitylab.aac.model.Credentials;
 
-public interface UserCredentials extends Credentials, CredentialsContainer, UserResource, Serializable {
+public interface UserCredentials extends UserResource, Credentials, CredentialsContainer, Serializable {
 
+    // credentials are associated to accounts
     public String getAccountId();
 
     public boolean isChangeOnFirstAccess();
 
-    public CredentialsType getCredentialsType();
+    // credentialsId is local id for provider
+    public String getCredentialsId();
 
-    default String getType() {
-        return SystemKeys.RESOURCE_CREDENTIALS + "_" + getCredentialsType().getValue();
-    }
-
-    default boolean isEditable() {
-        return true;
-    }
 }

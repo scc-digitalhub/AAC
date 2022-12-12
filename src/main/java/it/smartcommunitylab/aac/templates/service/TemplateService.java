@@ -118,7 +118,8 @@ public class TemplateService {
                 .collect(Collectors.toList());
     }
 
-    public TemplateModel addTemplate(String id, String authority, String realm, TemplateModel reg) {
+    public TemplateModel addTemplate(String id, String authority, String realm, TemplateModel reg)
+            throws RegistrationException {
         if (!StringUtils.hasText(authority) || !StringUtils.hasText(realm)) {
             throw new RegistrationException();
         }
@@ -162,7 +163,8 @@ public class TemplateService {
         return toModel(e);
     }
 
-    public TemplateModel updateTemplate(String id, TemplateModel reg) throws NoSuchTemplateException {
+    public TemplateModel updateTemplate(String id, TemplateModel reg)
+            throws NoSuchTemplateException, RegistrationException {
         String template = reg.getTemplate();
         String language = reg.getLanguage();
 

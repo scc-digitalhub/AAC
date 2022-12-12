@@ -16,29 +16,33 @@ public class OIDCSubjectResolver extends AbstractProvider<OIDCUserAccount> imple
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final UserAccountService<OIDCUserAccount> accountService;
-    private final OIDCIdentityProviderConfig config;
+    private boolean isLinkable;
 
     private final String repositoryId;
 
     public OIDCSubjectResolver(String providerId, UserAccountService<OIDCUserAccount> userAccountService,
-            OIDCIdentityProviderConfig config,
+            String repositoryId,
             String realm) {
-        this(SystemKeys.AUTHORITY_OIDC, providerId, userAccountService, config, realm);
+        this(SystemKeys.AUTHORITY_OIDC, providerId, userAccountService, repositoryId, realm);
     }
 
     public OIDCSubjectResolver(String authority, String providerId,
             UserAccountService<OIDCUserAccount> userAccountService,
-            OIDCIdentityProviderConfig config,
+            String repositoryId,
             String realm) {
         super(authority, providerId, realm);
         Assert.notNull(userAccountService, "account service is mandatory");
-        Assert.notNull(config, "provider config is mandatory");
+        Assert.hasText(repositoryId, "repository id is mandatory");
 
         this.accountService = userAccountService;
-        this.config = config;
+        this.repositoryId = repositoryId;
 
-        // repositoryId is always providerId, oidc isolates data per provider
-        this.repositoryId = providerId;
+        // by default oidc is not linkable via attributes
+        this.isLinkable = false;
+    }
+
+    public void setLinkable(boolean isLinkable) {
+        this.isLinkable = isLinkable;
     }
 
     @Override
@@ -94,7 +98,7 @@ public class OIDCSubjectResolver extends AbstractProvider<OIDCUserAccount> imple
     @Override
     @Transactional(readOnly = true)
     public Subject resolveByEmailAddress(String email) {
-        if (!config.isLinkable()) {
+        if (!isLinkable) {
             return null;
         }
 

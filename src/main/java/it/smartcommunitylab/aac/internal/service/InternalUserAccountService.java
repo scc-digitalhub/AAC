@@ -87,7 +87,7 @@ public class InternalUserAccountService
         logger.debug("find account with email {} in repository {}", String.valueOf(email),
                 String.valueOf(repository));
 
-        List<InternalUserAccount> accounts = accountRepository.findByProviderAndEmail(repository, email);
+        List<InternalUserAccount> accounts = accountRepository.findByRepositoryIdAndEmail(repository, email);
         return accounts.stream().map(a -> {
             return accountRepository.detach(a);
         }).collect(Collectors.toList());
@@ -98,7 +98,7 @@ public class InternalUserAccountService
         logger.debug("find account with confirmation key {} in repository {}", String.valueOf(key),
                 String.valueOf(repository));
 
-        InternalUserAccount account = accountRepository.findByProviderAndConfirmationKey(repository, key);
+        InternalUserAccount account = accountRepository.findByRepositoryIdAndConfirmationKey(repository, key);
         if (account == null) {
             return null;
         }
@@ -107,11 +107,10 @@ public class InternalUserAccountService
     }
 
     @Transactional(readOnly = true)
-    public InternalUserAccount findAccountByUuid(String repository, String uuid) {
-        logger.debug("find account with uuid {} in repository {}", String.valueOf(uuid),
-                String.valueOf(repository));
+    public InternalUserAccount findAccountByUuid(String uuid) {
+        logger.debug("find account with uuid {}", String.valueOf(uuid));
 
-        InternalUserAccount account = accountRepository.findByProviderAndUuid(repository, uuid);
+        InternalUserAccount account = accountRepository.findByUuid(uuid);
         if (account == null) {
             return null;
         }
@@ -124,7 +123,7 @@ public class InternalUserAccountService
         logger.debug("find account for user {} in repository {}", String.valueOf(userId),
                 String.valueOf(repository));
 
-        List<InternalUserAccount> accounts = accountRepository.findByUserIdAndProvider(userId, repository);
+        List<InternalUserAccount> accounts = accountRepository.findByUserIdAndRepositoryId(userId, repository);
         return accounts.stream().map(a -> {
             return accountRepository.detach(a);
         }).collect(Collectors.toList());
@@ -172,8 +171,8 @@ public class InternalUserAccountService
             }
 
             // we explode model
-            account = new InternalUserAccount(reg.getAuthority());
-            account.setProvider(repository);
+            account = new InternalUserAccount();
+            account.setRepositoryId(repository);
             account.setUsername(username);
 
             account.setUuid(s.getSubjectId());
@@ -196,8 +195,11 @@ public class InternalUserAccountService
                 logger.trace("account: {}", String.valueOf(account));
             }
 
+            account.setAuthority(reg.getAuthority());
+            account.setProvider(reg.getProvider());
+
             return account;
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             throw new RegistrationException(e.getMessage());
         }
     }
@@ -232,7 +234,6 @@ public class InternalUserAccountService
 //            }
 
             // we explode model and update every field
-            account.setAuthority(reg.getAuthority());
             account.setUserId(reg.getUserId());
             account.setRealm(reg.getRealm());
             account.setStatus(reg.getStatus());
@@ -250,6 +251,9 @@ public class InternalUserAccountService
             if (logger.isTraceEnabled()) {
                 logger.trace("account: {}", String.valueOf(account));
             }
+
+            account.setAuthority(reg.getAuthority());
+            account.setProvider(reg.getProvider());
 
             return account;
         } catch (Exception e) {

@@ -1,30 +1,30 @@
 package it.smartcommunitylab.aac.password.provider;
 
 import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityProvider;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.core.provider.AccountService;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
-import it.smartcommunitylab.aac.internal.model.CredentialsType;
+import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.internal.model.InternalLoginProvider;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.provider.InternalAccountPrincipalConverter;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalSubjectResolver;
 import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.model.InternalPasswordUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
-import it.smartcommunitylab.aac.password.service.InternalUserPasswordService;
+import it.smartcommunitylab.aac.password.service.InternalPasswordUserCredentialsService;
 import it.smartcommunitylab.aac.utils.MailService;
 
 public class PasswordIdentityProvider extends
@@ -36,6 +36,7 @@ public class PasswordIdentityProvider extends
 
     // providers
     private final PasswordAuthenticationProvider authenticationProvider;
+    private final InternalAccountPrincipalConverter principalConverter;
     private final InternalAccountProvider accountProvider;
     private final InternalAttributeProvider<InternalPasswordUserAuthenticatedPrincipal> attributeProvider;
     private final InternalSubjectResolver subjectResolver;
@@ -43,10 +44,10 @@ public class PasswordIdentityProvider extends
     public PasswordIdentityProvider(
             String providerId,
             UserAccountService<InternalUserAccount> userAccountService,
-            InternalUserPasswordService userPasswordService,
+            InternalPasswordUserCredentialsService userPasswordService,
             PasswordIdentityProviderConfig config,
             String realm) {
-        super(SystemKeys.AUTHORITY_PASSWORD, providerId, userAccountService, config, realm);
+        super(SystemKeys.AUTHORITY_PASSWORD, providerId, config, realm);
         Assert.notNull(userPasswordService, "password service is mandatory");
 
         String repositoryId = config.getRepositoryId();
@@ -56,12 +57,15 @@ public class PasswordIdentityProvider extends
         this.attributeProvider = new InternalAttributeProvider<>(SystemKeys.AUTHORITY_PASSWORD, providerId, realm);
         this.accountProvider = new InternalAccountProvider(SystemKeys.AUTHORITY_PASSWORD, providerId,
                 userAccountService, repositoryId, realm);
+        this.principalConverter = new InternalAccountPrincipalConverter(SystemKeys.AUTHORITY_PASSWORD, providerId,
+                userAccountService, repositoryId,
+                realm);
 
         // build providers
         this.passwordService = new PasswordIdentityCredentialsService(providerId, userAccountService,
                 userPasswordService,
                 config, realm);
-        this.authenticationProvider = new PasswordAuthenticationProvider(providerId, accountProvider,
+        this.authenticationProvider = new PasswordAuthenticationProvider(providerId, userAccountService,
                 passwordService, config, realm);
 
         // always expose a valid resolver to satisfy authenticationManager at post login
@@ -77,23 +81,25 @@ public class PasswordIdentityProvider extends
         this.passwordService.setUriBuilder(uriBuilder);
     }
 
+    public void setResourceService(ResourceEntityService resourceService) {
+        this.passwordService.setResourceService(resourceService);
+    }
+
     @Override
     public boolean isAuthoritative() {
         // password handles only login
         return false;
     }
 
-    public CredentialsType getCredentialsType() {
-        return CredentialsType.PASSWORD;
+    @Override
+    protected AccountService<InternalUserAccount, ?, ?, ?> getAccountService() {
+        // no account service available for password, accounts must already exist
+        return null;
     }
 
     @Override
     public PasswordAuthenticationProvider getAuthenticationProvider() {
         return authenticationProvider;
-    }
-
-    public PasswordIdentityCredentialsService getCredentialsService() {
-        return passwordService;
     }
 
     @Override
@@ -102,18 +108,22 @@ public class PasswordIdentityProvider extends
     }
 
     @Override
-    public InternalAccountProvider getAccountPrincipalConverter() {
-        return accountProvider;
+    protected InternalAccountPrincipalConverter getAccountPrincipalConverter() {
+        return principalConverter;
     }
 
     @Override
-    public InternalAttributeProvider<InternalPasswordUserAuthenticatedPrincipal> getAttributeProvider() {
+    protected InternalAttributeProvider<InternalPasswordUserAuthenticatedPrincipal> getAttributeProvider() {
         return attributeProvider;
     }
 
     @Override
     public InternalSubjectResolver getSubjectResolver() {
         return subjectResolver;
+    }
+
+    public PasswordIdentityCredentialsService getCredentialsService() {
+        return passwordService;
     }
 
     @Override
@@ -128,11 +138,9 @@ public class PasswordIdentityProvider extends
         // if attributes then load credentials
         if (attributes != null) {
             try {
-                InternalUserPassword password = passwordService.findPassword(account.getUsername());
-                if (password != null) {
-                    password.eraseCredentials();
-                    identity.setCredentials(Collections.singletonList(password));
-                }
+                List<InternalUserPassword> passwords = passwordService.findPassword(account.getUsername());
+                passwords.forEach(p -> p.eraseCredentials());
+                identity.setCredentials(passwords);
             } catch (NoSuchUserException e) {
                 // this should not happen
                 logger.error("no user for account {}", String.valueOf(account.getUsername()));
@@ -142,72 +150,12 @@ public class PasswordIdentityProvider extends
         return identity;
     }
 
-    // TODO remove and set accountProvider read-only (and let create fail in super)
-    @Override
-    @Transactional(readOnly = false)
-    public InternalUserIdentity convertIdentity(UserAuthenticatedPrincipal authPrincipal, String userId)
-            throws NoSuchUserException {
-        Assert.isInstanceOf(InternalPasswordUserAuthenticatedPrincipal.class, authPrincipal, "Wrong principal class");
-        logger.debug("convert principal to identity for user {}", String.valueOf(userId));
-        if (logger.isTraceEnabled()) {
-            logger.trace("principal {}", String.valueOf(authPrincipal));
-        }
-
-        InternalPasswordUserAuthenticatedPrincipal principal = (InternalPasswordUserAuthenticatedPrincipal) authPrincipal;
-
-        // username binds all identity pieces together
-        String username = principal.getUsername();
-
-        if (userId == null) {
-            // this better exists
-            throw new NoSuchUserException();
-        }
-
-        // get the internal account entity
-        InternalUserAccount account = accountProvider.findAccount(username);
-
-        if (account == null) {
-            // error, user should already exists for authentication
-            throw new NoSuchUserException();
-        }
-
-        // uuid is available for persisted accounts
-        String uuid = account.getUuid();
-        principal.setUuid(uuid);
-
-        // userId is always present, is derived from the same account table
-        String curUserId = account.getUserId();
-
-        if (!curUserId.equals(userId)) {
-//            // force link
-//            // TODO re-evaluate
-//            account.setSubject(subjectId);
-//            account = accountRepository.save(account);
-            throw new IllegalArgumentException("user mismatch");
-        }
-
-        // store and update attributes
-        // we shouldn't have additional attributes for internal
-
-        // use builder to properly map attributes
-        InternalUserIdentity identity = new InternalUserIdentity(getAuthority(), getProvider(), getRealm(), account,
-                principal);
-
-        // convert attribute sets
-        Collection<UserAttributes> identityAttributes = attributeProvider.convertPrincipalAttributes(principal,
-                account);
-        identity.setAttributes(identityAttributes);
-
-        return identity;
-    }
-
     @Override
     public void deleteIdentity(String userId, String username) throws NoSuchUserException {
         // remove all credentials
         passwordService.deletePassword(username);
 
-        // call super to remove account
-        super.deleteIdentity(userId, username);
+        // do not remove account because we are NOT authoritative
     }
 
     @Override
@@ -216,6 +164,9 @@ public class PasswordIdentityProvider extends
         return getFormUrl();
     }
 
+    /*
+     * Action urls
+     */
     public String getLoginUrl() {
         // we use an address bound to provider, no reason to expose realm
         return PasswordIdentityAuthority.AUTHORITY_URL + "login/" + getProvider();

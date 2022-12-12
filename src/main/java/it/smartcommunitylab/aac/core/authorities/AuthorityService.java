@@ -7,7 +7,7 @@ import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfig;
 import it.smartcommunitylab.aac.core.provider.ResourceProvider;
 
-public interface AuthorityService<A extends ProviderAuthority<? extends ResourceProvider<?>, ?, ? extends ConfigurableProvider, ? extends ConfigMap, ? extends ProviderConfig<? extends ConfigMap, ? extends ConfigurableProvider>>> {
+public interface AuthorityService<A extends ConfigurableProviderAuthority<? extends ResourceProvider<?>, ?, ? extends ConfigurableProvider, ? extends ConfigMap, ? extends ProviderConfig<? extends ConfigMap, ? extends ConfigurableProvider>>> {
 
     /*
      * Details

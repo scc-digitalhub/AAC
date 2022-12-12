@@ -141,7 +141,7 @@ public class ServicesService {
     public it.smartcommunitylab.aac.services.Service addService(
             String realm,
             String serviceId, String namespace,
-            String name, String description) {
+            String name, String description) throws RegistrationException {
 
         if (!StringUtils.hasText(realm)) {
             throw new MissingDataException("realm");

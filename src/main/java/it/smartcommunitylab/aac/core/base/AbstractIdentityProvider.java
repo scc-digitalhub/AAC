@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
@@ -20,11 +21,11 @@ import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.AccountPrincipalConverter;
 import it.smartcommunitylab.aac.core.provider.AccountProvider;
+import it.smartcommunitylab.aac.core.provider.AccountService;
 import it.smartcommunitylab.aac.core.provider.IdentityAttributeProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProviderConfig;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
-import it.smartcommunitylab.aac.core.provider.UserAccountService;
 
 @Transactional
 public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends UserAccount, P extends UserAuthenticatedPrincipal, M extends ConfigMap, C extends IdentityProviderConfig<M>>
@@ -32,16 +33,11 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
         implements IdentityProvider<I, U, P, M, C>, InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    // services
-    protected final UserAccountService<U> userAccountService;
-
     public AbstractIdentityProvider(
             String authority, String providerId,
-            UserAccountService<U> userAccountService,
             C config,
             String realm) {
         super(authority, providerId, realm, config);
-        Assert.notNull(userAccountService, "user account service is mandatory");
         Assert.notNull(config, "provider config is mandatory");
 
         Assert.isTrue(authority.equals(config.getAuthority()),
@@ -53,14 +49,13 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
         logger.debug("create {} idp for realm {} with id {}", String.valueOf(authority), String.valueOf(realm),
                 String.valueOf(providerId));
 
-        // internal data repositories
-        this.userAccountService = userAccountService;
     }
 
     @Override
     public void afterPropertiesSet() throws Exception {
         Assert.notNull(getAuthenticationProvider(), "authentication provider is mandatory");
         Assert.notNull(getAccountProvider(), "account provider is mandatory");
+        Assert.notNull(getAccountService(), "account service is mandatory");
         Assert.notNull(getAttributeProvider(), "attribute provider is mandatory");
         Assert.notNull(getSubjectResolver(), "subject provider is mandatory");
     }
@@ -82,13 +77,24 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
     @Override
     public abstract ExtendedAuthenticationProvider<P, U> getAuthenticationProvider();
 
-    @Override
-    public abstract AccountProvider<U> getAccountProvider();
+    protected abstract AccountPrincipalConverter<U> getAccountPrincipalConverter();
 
-    public abstract AccountPrincipalConverter<U> getAccountPrincipalConverter();
+    /*
+     * Account provider acts as the source for user accounts, when the details are
+     * persisted in the provider or available for requests. Do note that idps are
+     * not required to persist accounts.
+     */
+    protected abstract AccountProvider<U> getAccountProvider();
 
-    @Override
-    public abstract IdentityAttributeProvider<P, U> getAttributeProvider();
+    protected abstract AccountService<U, ?, ?, ?> getAccountService();
+
+    /*
+     * Attribute providers retrieve and format user properties available to the
+     * provider as UserAttributes bounded to the UserIdentity exposed to the outside
+     * world.
+     */
+
+    protected abstract IdentityAttributeProvider<P, U> getAttributeProvider();
 
     @Override
     public abstract SubjectResolver<U> getSubjectResolver();
@@ -99,18 +105,12 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
         return buildIdentity(account, null, attributes);
     }
 
-    protected String getRepositoryId() {
-        // by default isolate every provider in repo via its own id
-        // subclasses may override to share accounts in the same service between idps
-        return getProvider();
-    }
-
     /*
      * Idp
      */
 
     public I convertIdentity(UserAuthenticatedPrincipal authPrincipal, String userId)
-            throws NoSuchUserException {
+            throws NoSuchUserException, RegistrationException {
 
         logger.debug("convert principal to identity for user {}", String.valueOf(userId));
         if (logger.isTraceEnabled()) {
@@ -131,7 +131,6 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
         // extract local id from principal
         // we expect principalId to be == accountId == identityId
         String id = principal.getPrincipalId();
-        String repositoryId = getRepositoryId();
 
         if (id == null) {
             // this better exists
@@ -170,12 +169,15 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
         }
 
         // look in service for existing accounts
-        U account = userAccountService.findAccountById(repositoryId, id);
+        U account = getAccountProvider().findAccount(id);
         if (account == null) {
-            // create account
-            // TODO add config flag to disable creation
-            logger.debug("create as new account with id {}", String.valueOf(id));
-            account = userAccountService.addAccount(repositoryId, id, reg);
+            // create account if supported
+            if (getAccountService() == null) {
+                logger.error("no account service available, required for account creation");
+                throw new IllegalArgumentException();
+            }
+
+            account = getAccountService().createAccount(userId, id, reg);
         } else {
             // check if userId matches
             if (!userId.equals(account.getUserId())) {
@@ -186,9 +188,11 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
                 throw new IllegalArgumentException("user mismatch");
             }
 
-            // update
-            logger.debug("update existing account with id {}", String.valueOf(id));
-            account = userAccountService.updateAccount(repositoryId, id, reg);
+            // update if supported
+            if (getAccountService() != null) {
+                logger.debug("update existing account with id {}", String.valueOf(id));
+                account = getAccountService().updateAccount(userId, id, reg);
+            }
         }
 
         if (logger.isTraceEnabled()) {
@@ -221,29 +225,29 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
     }
 
 //    @Override
-    @Transactional(readOnly = true)
-    public I findIdentityByUuid(String userId, String uuid) {
-        logger.debug("find identity for uuid {}", String.valueOf(uuid));
-
-        // lookup a matching account
-        U account = getAccountProvider().findAccountByUuid(uuid);
-        if (account == null) {
-            return null;
-        }
-
-        // check userId matches
-        if (!account.getUserId().equals(userId)) {
-            return null;
-        }
-
-        // build identity without attributes or principal
-        I identity = buildIdentity(account, null);
-        if (logger.isTraceEnabled()) {
-            logger.trace("identity: {}", String.valueOf(identity));
-        }
-
-        return identity;
-    }
+//    @Transactional(readOnly = true)
+//    public I findIdentityByUuid(String userId, String uuid) {
+//        logger.debug("find identity for uuid {}", String.valueOf(uuid));
+//
+//        // lookup a matching account
+//        U account = getAccountProvider().findAccountByUuid(uuid);
+//        if (account == null) {
+//            return null;
+//        }
+//
+//        // check userId matches
+//        if (!account.getUserId().equals(userId)) {
+//            return null;
+//        }
+//
+//        // build identity without attributes or principal
+//        I identity = buildIdentity(account, null);
+//        if (logger.isTraceEnabled()) {
+//            logger.trace("identity: {}", String.valueOf(identity));
+//        }
+//
+//        return identity;
+//    }
 
     @Override
     @Transactional(readOnly = true)
@@ -345,7 +349,7 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
 
     @Override
     @Transactional(readOnly = false)
-    public I linkIdentity(String userId, String accountId) throws NoSuchUserException {
+    public I linkIdentity(String userId, String accountId) throws NoSuchUserException, RegistrationException {
         logger.debug("link identity with id {} to user {}", String.valueOf(accountId), String.valueOf(userId));
 
         // get the internal account entity
@@ -372,8 +376,7 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
 
         // delete account
         // authoritative deletes the registration with shared accounts
-        String repositoryId = getRepositoryId();
-        U account = userAccountService.findAccountById(repositoryId, accountId);
+        U account = getAccountProvider().findAccount(accountId);
         if (account != null && isAuthoritative()) {
             // check userId matches
             if (!account.getUserId().equals(userId)) {
@@ -381,11 +384,10 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
             }
 
             // remove account
-            userAccountService.deleteAccount(repositoryId, accountId);
+            getAccountProvider().deleteAccount(accountId);
+
         }
 
-        // cleanup attributes
-        getAttributeProvider().deleteAccountAttributes(accountId);
     }
 
     @Override

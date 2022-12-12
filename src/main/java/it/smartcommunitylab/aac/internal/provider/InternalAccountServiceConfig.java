@@ -2,7 +2,7 @@ package it.smartcommunitylab.aac.internal.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractAccountServiceConfig;
-import it.smartcommunitylab.aac.core.model.ConfigurableAccountService;
+import it.smartcommunitylab.aac.core.model.ConfigurableAccountProvider;
 
 public class InternalAccountServiceConfig extends AbstractAccountServiceConfig<InternalIdentityProviderConfigMap> {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
@@ -13,7 +13,7 @@ public class InternalAccountServiceConfig extends AbstractAccountServiceConfig<I
         super(SystemKeys.AUTHORITY_INTERNAL, provider, realm, new InternalIdentityProviderConfigMap());
     }
 
-    public InternalAccountServiceConfig(ConfigurableAccountService cp) {
+    public InternalAccountServiceConfig(ConfigurableAccountProvider cp) {
         super(cp);
     }
 

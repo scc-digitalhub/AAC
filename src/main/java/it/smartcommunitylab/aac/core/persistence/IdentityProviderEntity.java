@@ -186,9 +186,4 @@ public class IdentityProviderEntity implements ProviderEntity {
         this.hookFunctions = hookFunctions;
     }
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_IDENTITY_PROVIDER;
-    }
-
 }

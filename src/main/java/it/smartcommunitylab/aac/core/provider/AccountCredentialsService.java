@@ -2,72 +2,76 @@ package it.smartcommunitylab.aac.core.provider;
 
 import java.util.Collection;
 
+import org.springframework.lang.Nullable;
+
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchCredentialException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
-import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsService;
+import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsProvider;
+import it.smartcommunitylab.aac.core.model.EditableUserCredentials;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
 
 /*
  * Credentials service handles credentials associated to a single user account,
- * which is handled by a given identity service in the same realm
- * 
- * TODO split in singleCredential/multiCredential
+ * which is handled by a given account service in the same realm 
  */
 
-public interface AccountCredentialsService<R extends UserCredentials, M extends ConfigMap, C extends CredentialsServiceConfig<M>>
-        extends ConfigurableResourceProvider<R, ConfigurableCredentialsService, M, C> {
+public interface AccountCredentialsService<R extends UserCredentials, E extends EditableUserCredentials, M extends ConfigMap, C extends CredentialsServiceConfig<M>>
+        extends ConfigurableResourceProvider<R, ConfigurableCredentialsProvider, M, C> {
 
     /*
-     * Set current credential (if only one is allowed) or all credentials
+     * (user) editable credentials
      */
+    public E getEditableCredential(String accountId, String credentialId) throws NoSuchCredentialException;
 
-    public R getCredentials(String accountId) throws NoSuchUserException;
+    public E registerCredential(String accountId, EditableUserCredentials credentials)
+            throws RegistrationException, NoSuchUserException;
 
-    public R setCredentials(String accountId, UserCredentials credentials) throws NoSuchUserException;
-
-    public void resetCredentials(String accountId) throws NoSuchUserException;
-
-    public void revokeCredentials(String accountId) throws NoSuchUserException, NoSuchCredentialException;
-
-    public void deleteCredentials(String accountId);
+    public E editCredential(String accountId, String credentialId, EditableUserCredentials credentials)
+            throws RegistrationException, NoSuchCredentialException;
 
     /*
-     * Set specific credentials when more than one is allowed
+     * Manage account credentials
      */
 
-    public Collection<R> listCredentials(String accountId) throws NoSuchUserException;
+    public Collection<R> listCredentials(String userId);
 
-    public R addCredentials(String username, UserCredentials uc) throws NoSuchUserException;
+    public R findCredential(String credentialId);
 
-    public R getCredentials(String accountId, String credentialsId)
-            throws NoSuchUserException, NoSuchCredentialException;
+    public R getCredential(String credentialId) throws NoSuchCredentialException;
 
-    public R setCredentials(String accountId, String credentialsId, UserCredentials credentials)
-            throws NoSuchUserException, RegistrationException, NoSuchCredentialException;
+    public R addCredential(String accountId, @Nullable String credentialId, UserCredentials uc)
+            throws NoSuchUserException, RegistrationException;
 
-    public void resetCredentials(String accountId, String credentialsId)
-            throws NoSuchUserException, NoSuchCredentialException;
+    public R setCredential(String accountId, String credentialId, UserCredentials credentials)
+            throws RegistrationException, NoSuchCredentialException;
 
-    public void revokeCredentials(String accountId, String credentialsId)
-            throws NoSuchUserException, NoSuchCredentialException;
+//    public void resetCredentials(String accountId, String credentialsId)
+//            throws NoSuchUserException, NoSuchCredentialException;
 
-    public void deleteCredentials(String accountId, String credentialsId)
-            throws NoSuchUserException, NoSuchCredentialException;
+    public R revokeCredential(String credentialId) throws NoSuchCredentialException, RegistrationException;
 
-    /*
-     * Action urls
-     */
-    public String getSetUrl() throws NoSuchUserException;
+    public void deleteCredential(String credentialId) throws NoSuchCredentialException;
 
-    /*
-     * At least one between resetLink or resetCredentials is required to support
-     * reset. Credentials used for login should be resettable, while those used for
-     * MFA should be removed or revoked.
-     */
-    public String getResetUrl();
+    public void deleteCredentials(String userId);
+
+//    /*
+//     * Action urls
+//     */
+//    public String getSetUrl() throws NoSuchUserException;
+    public String getRegisterUrl();
+
+    public String getEditUrl(String credentialsId) throws NoSuchCredentialException;
+
+//
+//    /*
+//     * At least one between resetLink or resetCredentials is required to support
+//     * reset. Credentials used for login should be resettable, while those used for
+//     * MFA should be removed or revoked.
+//     */
+//    public String getResetUrl();
 
     default public String getType() {
         return SystemKeys.RESOURCE_CREDENTIALS;

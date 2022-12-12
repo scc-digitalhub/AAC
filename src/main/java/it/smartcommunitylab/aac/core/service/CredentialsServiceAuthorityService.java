@@ -11,11 +11,11 @@ import it.smartcommunitylab.aac.core.base.AbstractAuthorityService;
 
 @Service
 public class CredentialsServiceAuthorityService
-        extends AbstractAuthorityService<CredentialsServiceAuthority<?, ?, ?, ?>>
+        extends AbstractAuthorityService<CredentialsServiceAuthority<?, ?, ?, ?, ?>>
         implements InitializingBean {
 
     public CredentialsServiceAuthorityService(
-            Collection<CredentialsServiceAuthority<?, ?, ?, ?>> authorities) {
+            Collection<CredentialsServiceAuthority<?, ?, ?, ?, ?>> authorities) {
         super(SystemKeys.RESOURCE_CREDENTIALS);
         this.setAuthorities(authorities);
     }

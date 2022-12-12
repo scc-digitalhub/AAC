@@ -3,9 +3,12 @@ package it.smartcommunitylab.aac.core.persistence;
 import java.io.Serializable;
 import java.util.Map;
 
-import it.smartcommunitylab.aac.core.model.Resource;
+public interface ProviderEntity {
+    public String getRealm();
 
-public interface ProviderEntity extends Resource {
+    public String getAuthority();
+
+    public String getProvider();
 
     public String getName();
 
@@ -14,10 +17,6 @@ public interface ProviderEntity extends Resource {
     public Map<String, String> getDescriptionMap();
 
     public boolean isEnabled();
-
-    default public String getId() {
-        return getProvider();
-    }
 
     public void setAuthority(String authority);
 

@@ -37,7 +37,7 @@ import it.smartcommunitylab.aac.core.MyUserManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.dto.ConnectedAppProfile;
+import it.smartcommunitylab.aac.model.ConnectedApp;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.profiles.ProfileManager;
 import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
@@ -139,7 +139,7 @@ public class UserAccountController {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        userManager.deleteCurUser();
+        userManager.deleteMyUser();
         return ResponseEntity.ok().build();
     }
 
@@ -168,15 +168,15 @@ public class UserAccountController {
     }
 
     @GetMapping("/account/connections")
-    public ResponseEntity<Collection<ConnectedAppProfile>> readConnectedApps() {
-        Collection<ConnectedAppProfile> result = userManager.getMyConnectedApps();
+    public ResponseEntity<Collection<ConnectedApp>> readConnectedApps() {
+        Collection<ConnectedApp> result = userManager.getMyConnectedApps();
         return ResponseEntity.ok(result);
     }
 
     @DeleteMapping("/account/connections/{clientId}")
-    public ResponseEntity<Collection<ConnectedAppProfile>> deleteConnectedApp(@PathVariable String clientId) {
+    public ResponseEntity<Collection<ConnectedApp>> deleteConnectedApp(@PathVariable String clientId) {
         userManager.deleteMyConnectedApp(clientId);
-        Collection<ConnectedAppProfile> result = userManager.getMyConnectedApps();
+        Collection<ConnectedApp> result = userManager.getMyConnectedApps();
         return ResponseEntity.ok(result);
     }
 

@@ -22,8 +22,8 @@ import it.smartcommunitylab.aac.common.NoSuchCredentialException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.provider.InternalAccountProvider;
 import it.smartcommunitylab.aac.webauthn.auth.WebAuthnAuthenticationException;
 import it.smartcommunitylab.aac.webauthn.auth.WebAuthnAuthenticationToken;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserAuthenticatedPrincipal;
@@ -35,21 +35,24 @@ public class WebAuthnIdentityAuthenticationProvider
 
     // provider configuration
     private final WebAuthnIdentityProviderConfig config;
+    private final String repositoryId;
 
-    private final InternalAccountProvider accountProvider;
+    private final UserAccountService<InternalUserAccount> userAccountService;
     private final WebAuthnIdentityCredentialsService credentialsService;
 
     public WebAuthnIdentityAuthenticationProvider(String providerId,
-            InternalAccountProvider accountProvider,
+            UserAccountService<InternalUserAccount> userAccountService,
             WebAuthnIdentityCredentialsService credentialsService,
             WebAuthnIdentityProviderConfig providerConfig, String realm) {
         super(SystemKeys.AUTHORITY_WEBAUTHN, providerId, realm);
-        Assert.notNull(accountProvider, "account provider is mandatory");
+        Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(credentialsService, "credentials service is mandatory");
         Assert.notNull(providerConfig, "provider config is mandatory");
 
         this.config = providerConfig;
-        this.accountProvider = accountProvider;
+        this.repositoryId = config.getRepositoryId();
+        this.userAccountService = userAccountService;
+
         this.credentialsService = credentialsService;
     }
 
@@ -79,9 +82,9 @@ public class WebAuthnIdentityAuthenticationProvider
             }
 
             // check if account is present and locked
-            // userHandle is account uuid
-            InternalUserAccount account = accountProvider.findAccountByUuid(userHandle);
-            if (account == null || account.isLocked()) {
+            String uuid = credentialsService.getUuidFromUserHandle(userHandle);
+            InternalUserAccount account = userAccountService.findAccountByUuid(uuid);
+            if (account == null || account.isLocked() || !repositoryId.equals(account.getRepositoryId())) {
                 throw new BadCredentialsException("invalid user");
             }
 
@@ -101,7 +104,6 @@ public class WebAuthnIdentityAuthenticationProvider
                 }
 
                 // update usage counter
-
                 credential = credentialsService.updateCredentialCounter(userHandle, credentialId,
                         assertionResult.getSignatureCount());
             } catch (RegistrationException | NoSuchCredentialException | NoSuchUserException e) {
@@ -125,10 +127,13 @@ public class WebAuthnIdentityAuthenticationProvider
             auth.setDetails(authRequest.getDetails());
 
             return auth;
+        } catch (NoSuchUserException ex) {
+            throw new BadCredentialsException("invalid user");
         } catch (BadCredentialsException e) {
             logger.debug("invalid request: " + e.getMessage());
             throw new WebAuthnAuthenticationException(subject, userHandle, assertion, e,
                     e.getMessage());
+
         }
 
     }

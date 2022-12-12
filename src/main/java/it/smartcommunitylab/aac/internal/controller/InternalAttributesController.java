@@ -173,9 +173,10 @@ public class InternalAttributesController {
             }
 
             // save to provider
-
+            // TODO
+            throw new RegistrationException("not implemented");
             // WRONG, should send redirect to success page to avoid double POST
-            return "attributes/form";
+//            return "attributes/form";
         } catch (InvalidDataException e) {
             StringBuilder msg = new StringBuilder();
             msg.append(messageSource.getMessage(e.getMessage(), null, req.getLocale()));

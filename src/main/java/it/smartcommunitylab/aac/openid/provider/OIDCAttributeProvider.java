@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -16,7 +15,6 @@ import it.smartcommunitylab.aac.attributes.EmailAttributesSet;
 import it.smartcommunitylab.aac.attributes.OpenIdAttributesSet;
 import it.smartcommunitylab.aac.attributes.mapper.OpenIdAttributesMapper;
 import it.smartcommunitylab.aac.attributes.model.StringAttribute;
-import it.smartcommunitylab.aac.attributes.store.AttributeStore;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityAttributeProvider;
 import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
@@ -31,25 +29,16 @@ public class OIDCAttributeProvider
 
     public OIDCAttributeProvider(
             String providerId,
-            AttributeStore attributeStore,
-            OIDCIdentityProviderConfig providerConfig,
             String realm) {
-        this(SystemKeys.AUTHORITY_OIDC, providerId, attributeStore, providerConfig, realm);
+        this(SystemKeys.AUTHORITY_OIDC, providerId, realm);
     }
 
     public OIDCAttributeProvider(
             String authority, String providerId,
-            AttributeStore attributeStore,
-            OIDCIdentityProviderConfig providerConfig,
             String realm) {
         super(authority, providerId, realm);
-        Assert.notNull(providerConfig, "provider config is mandatory");
-        Assert.notNull(attributeStore, "attribute store is mandatory");
 
-        // attributes
-        this.attributeStore = attributeStore;
-
-        // attributes
+        // attributes mapping
         openidMapper = new OpenIdAttributesMapper();
     }
 

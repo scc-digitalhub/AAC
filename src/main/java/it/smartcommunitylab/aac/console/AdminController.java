@@ -21,6 +21,7 @@ import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.model.Realm;
 
@@ -44,7 +45,7 @@ public class AdminController {
     }
 
     @PostMapping("/console/admin/realms")
-    public Realm addRealm(@RequestBody @Valid @NotNull Realm realm) {
+    public Realm addRealm(@RequestBody @Valid @NotNull Realm realm) throws RegistrationException {
         return realmManager.addRealm(realm);
     }
 
@@ -52,7 +53,7 @@ public class AdminController {
     public Realm updateRealm(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String slug,
             @RequestBody @Valid @NotNull Realm realm)
-            throws NoSuchRealmException {
+            throws NoSuchRealmException, RegistrationException {
         return realmManager.updateRealm(slug, realm);
     }
 

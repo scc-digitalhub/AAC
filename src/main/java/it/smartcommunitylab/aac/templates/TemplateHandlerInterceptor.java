@@ -1,8 +1,6 @@
 package it.smartcommunitylab.aac.templates;
 
 import java.util.Locale;
-import java.util.Set;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 

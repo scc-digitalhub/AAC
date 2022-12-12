@@ -29,7 +29,7 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.authorities.AuthorityService;
-import it.smartcommunitylab.aac.core.authorities.ProviderAuthority;
+import it.smartcommunitylab.aac.core.authorities.ConfigurableProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
@@ -37,7 +37,7 @@ import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
 import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 
 @Transactional
-public abstract class ConfigurableProviderService<A extends ProviderAuthority<?, ?, C, ?, ?>, C extends ConfigurableProvider, E extends ProviderEntity>
+public abstract class ConfigurableProviderService<A extends ConfigurableProviderAuthority<?, ?, C, ?, ?>, C extends ConfigurableProvider, E extends ProviderEntity>
         implements InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -195,7 +195,7 @@ public abstract class ConfigurableProviderService<A extends ProviderAuthority<?,
 
     public C updateProvider(
             String providerId, C provider)
-            throws NoSuchProviderException, NoSuchAuthorityException {
+            throws NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
         logger.debug("update provider {}", StringUtils.trimAllWhitespace(providerId));
         if (logger.isTraceEnabled()) {
             logger.trace("provider bean: {}", StringUtils.trimAllWhitespace(provider.toString()));
