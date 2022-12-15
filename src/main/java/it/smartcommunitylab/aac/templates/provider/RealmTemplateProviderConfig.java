@@ -33,6 +33,18 @@ public class RealmTemplateProviderConfig
         this.customStyle = cp.getCustomStyle();
     }
 
+    /**
+     * Private constructor for JPA and other serialization tools.
+     * 
+     * We need to implement this to enable deserialization of resources via
+     * reflection
+     */
+    @SuppressWarnings("unused")
+    public RealmTemplateProviderConfig() {
+        super((String) null, (String) null, (String) null, new TemplateProviderConfigMap());
+        this.languages = Collections.emptySet();
+    }
+
     public Set<String> getLanguages() {
         return (languages != null && !languages.isEmpty()) ? languages
                 : new TreeSet<>(Arrays.asList(LanguageService.LANGUAGES));
