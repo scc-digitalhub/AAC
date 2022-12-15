@@ -2,16 +2,14 @@ package it.smartcommunitylab.aac.internal;
 
 import java.util.Collection;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.authorities.CredentialsServiceAuthority;
 import it.smartcommunitylab.aac.core.authorities.IdentityServiceAuthority;
-import it.smartcommunitylab.aac.core.base.AbstractSingleProviderAuthority;
+import it.smartcommunitylab.aac.core.base.AbstractProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityService;
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.TranslatorProviderConfigRepository;
@@ -23,12 +21,11 @@ import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityServiceConfig;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
-import it.smartcommunitylab.aac.internal.provider.InternalIdentityServiceConfigurationProvider;
 
 @Service
 public class InternalIdentityServiceAuthority
         extends
-        AbstractSingleProviderAuthority<InternalIdentityService, InternalUserIdentity, ConfigurableIdentityService, InternalIdentityProviderConfigMap, InternalIdentityServiceConfig>
+        AbstractProviderAuthority<InternalIdentityService, InternalUserIdentity, ConfigurableIdentityService, InternalIdentityProviderConfigMap, InternalIdentityServiceConfig>
         implements
         IdentityServiceAuthority<InternalIdentityService, InternalUserIdentity, InternalUserAccount, InternalEditableUserAccount, InternalIdentityProviderConfigMap, InternalIdentityServiceConfig> {
 
@@ -36,10 +33,7 @@ public class InternalIdentityServiceAuthority
 
     // internal authorities
     private final InternalAccountServiceAuthority accountServiceAuthority;
-    private final Collection<CredentialsServiceAuthority<?, ?,?, ?, ?>> credentialsServiceAuthorities;
-
-    // configuration provider
-    protected InternalIdentityServiceConfigurationProvider configProvider;
+    private final Collection<CredentialsServiceAuthority<?, ?, ?, ?, ?>> credentialsServiceAuthorities;
 
     // services
     private final UserEntityService userEntityService;
@@ -47,7 +41,7 @@ public class InternalIdentityServiceAuthority
     public InternalIdentityServiceAuthority(
             UserEntityService userEntityService,
             InternalAccountServiceAuthority accountServiceAuthority,
-            Collection<CredentialsServiceAuthority<?,?, ?, ?, ?>> credentialsServiceAuthorities,
+            Collection<CredentialsServiceAuthority<?, ?, ?, ?, ?>> credentialsServiceAuthorities,
             ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository) {
         super(SystemKeys.AUTHORITY_INTERNAL, new InternalConfigTranslatorRepository(registrationRepository));
         Assert.notNull(userEntityService, "user service is mandatory");
@@ -57,17 +51,6 @@ public class InternalIdentityServiceAuthority
         this.credentialsServiceAuthorities = credentialsServiceAuthorities;
 
         this.userEntityService = userEntityService;
-    }
-
-    @Autowired
-    public void setConfigProvider(InternalIdentityServiceConfigurationProvider configProvider) {
-        Assert.notNull(configProvider, "config provider is mandatory");
-        this.configProvider = configProvider;
-    }
-
-    @Override
-    public InternalIdentityServiceConfigurationProvider getConfigurationProvider() {
-        return configProvider;
     }
 
     @Override
@@ -89,11 +72,6 @@ public class InternalIdentityServiceAuthority
     public FilterProvider getFilterProvider() {
         // TODO add filters for registration and for credentials management
         return null;
-    }
-
-    @Override
-    public InternalIdentityServiceConfig registerProvider(ConfigurableProvider cp) {
-        throw new IllegalArgumentException("direct registration not supported");
     }
 
     static class InternalConfigTranslatorRepository extends

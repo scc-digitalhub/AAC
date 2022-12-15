@@ -28,7 +28,7 @@ public class SamlIdentityConfigurationProvider
 
     @Override
     protected SamlIdentityProviderConfig buildConfig(ConfigurableIdentityProvider cp) {
-        return new SamlIdentityProviderConfig(cp);
+        return new SamlIdentityProviderConfig(cp, getConfigMap(cp.getConfiguration()));
     }
 
 }

@@ -7,11 +7,11 @@ import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.authorities.AttributeProviderAuthority;
-import it.smartcommunitylab.aac.core.base.AbstractAuthorityService;
+import it.smartcommunitylab.aac.core.base.AbstractConfigurableAuthorityService;
 
 @Service
-public class AttributeProviderAuthorityService extends
-        AbstractAuthorityService<AttributeProviderAuthority<?, ?, ?>>
+public class AttributeProviderAuthorityService
+        extends AbstractConfigurableAuthorityService<AttributeProviderAuthority<?, ?, ?>>
         implements InitializingBean {
 
     public AttributeProviderAuthorityService(

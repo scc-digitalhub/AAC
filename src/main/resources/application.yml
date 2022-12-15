@@ -29,7 +29,12 @@ jdbc:
    user: ${JDBC_USER:ac}
    password: ${JDBC_PASS:ac}
    show-sql: false
-
+   
+persistence:
+   repository:
+      providerConfig: memory
+   
+   
 # AAC ADMIN USER PASSWORD
 admin:
    username: ${ADMIN_USERNAME:admin}

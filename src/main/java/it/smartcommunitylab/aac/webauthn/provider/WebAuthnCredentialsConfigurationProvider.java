@@ -22,7 +22,7 @@ public class WebAuthnCredentialsConfigurationProvider extends
 
     @Override
     protected WebAuthnCredentialsServiceConfig buildConfig(ConfigurableCredentialsProvider cp) {
-        return new WebAuthnCredentialsServiceConfig(cp);
+        return new WebAuthnCredentialsServiceConfig(cp, getConfigMap(cp.getConfiguration()));
     }
 
 }

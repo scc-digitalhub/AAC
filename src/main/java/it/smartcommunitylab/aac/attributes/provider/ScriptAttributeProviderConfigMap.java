@@ -18,8 +18,11 @@ import it.smartcommunitylab.aac.core.base.AbstractConfigMap;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ScriptAttributeProviderConfigMap extends AbstractConfigMap implements Serializable {
+public class ScriptAttributeProviderConfigMap extends AbstractConfigMap {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
+    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_CONFIG + SystemKeys.ID_SEPARATOR
+            + SystemKeys.RESOURCE_ATTRIBUTE_PROVIDER + SystemKeys.ID_SEPARATOR
+            + SystemKeys.AUTHORITY_SCRIPT;
 
     private static final String DEFAULT_FUNCTION_CODE = "function attributeMapping(principal) {\n return {}; \n}";
 

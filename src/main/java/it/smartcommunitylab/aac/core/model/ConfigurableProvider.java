@@ -8,7 +8,6 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
-import org.springframework.boot.context.properties.ConstructorBinding;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -26,7 +25,6 @@ import it.smartcommunitylab.aac.SystemKeys;
 @Valid
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@ConstructorBinding
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
 @JsonSubTypes({
         @Type(value = ConfigurableAccountProvider.class, name = SystemKeys.RESOURCE_ACCOUNT),
@@ -58,7 +56,12 @@ public class ConfigurableProvider implements ConfigurableProperties {
     private Map<String, String> titleMap;
     private Map<String, String> descriptionMap;
 
+    // configMap as raw map - should match schema
+    // TODO evaluate adding configMap type as field
     protected Map<String, Serializable> configuration;
+
+    @JsonProperty(access = Access.READ_ONLY)
+    private Integer version;
 
     @JsonProperty(access = Access.READ_ONLY)
     protected JsonSchema schema;
@@ -111,10 +114,6 @@ public class ConfigurableProvider implements ConfigurableProperties {
 
     public String getType() {
         return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     public boolean isEnabled() {
@@ -186,6 +185,14 @@ public class ConfigurableProvider implements ConfigurableProperties {
 
     public void setRegistered(Boolean registered) {
         this.registered = registered;
+    }
+
+    public Integer getVersion() {
+        return version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
     }
 
     @Override

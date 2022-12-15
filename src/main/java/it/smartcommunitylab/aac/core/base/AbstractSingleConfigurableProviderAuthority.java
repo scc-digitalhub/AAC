@@ -7,16 +7,14 @@ import java.util.List;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.authorities.SingleProviderAuthority;
-import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.Resource;
 import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
-import it.smartcommunitylab.aac.core.provider.ProviderConfig;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 
-public abstract class AbstractSingleProviderAuthority<S extends ConfigurableResourceProvider<R, T, M, C>, R extends Resource, T extends ConfigurableProvider, M extends ConfigMap, C extends ProviderConfig<M, T>>
+public abstract class AbstractSingleConfigurableProviderAuthority<S extends ConfigurableResourceProvider<R, T, M, C>, R extends Resource, T extends ConfigurableProvider, M extends AbstractConfigMap, C extends AbstractProviderConfig<M, T>>
         extends AbstractConfigurableProviderAuthority<S, R, T, M, C> implements SingleProviderAuthority<S, R, T, M, C> {
-    public AbstractSingleProviderAuthority(
+    public AbstractSingleConfigurableProviderAuthority(
             String authorityId,
             ProviderConfigRepository<C> registrationRepository) {
         super(authorityId, registrationRepository);
@@ -28,7 +26,12 @@ public abstract class AbstractSingleProviderAuthority<S extends ConfigurableReso
                 && getAuthorityId().equals(cp.getAuthority())) {
             // enforce single per realm
             String realm = cp.getRealm();
-            if (!registrationRepository.findByRealm(realm).isEmpty()) {
+
+            // check if there is already a provider for realm (except the current)
+            Collection<C> list = registrationRepository.findByRealm(realm);
+            if (list.size() > 1) {
+                throw new RegistrationException("a provider already exists in the same realm");
+            } else if (list.size() == 1 && !list.iterator().next().getProvider().equals(cp.getProvider())) {
                 throw new RegistrationException("a provider already exists in the same realm");
             }
 

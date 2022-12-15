@@ -18,6 +18,8 @@ public interface ProviderEntity {
 
     public boolean isEnabled();
 
+    public int getVersion();
+
     public void setAuthority(String authority);
 
     public void setProvider(String provider);

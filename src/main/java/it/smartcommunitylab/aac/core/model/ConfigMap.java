@@ -11,6 +11,6 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
  */
 public interface ConfigMap extends ConfigurableProperties {
 
-    public abstract JsonSchema getSchema() throws JsonMappingException;
+    public JsonSchema getSchema() throws JsonMappingException;
 
 }

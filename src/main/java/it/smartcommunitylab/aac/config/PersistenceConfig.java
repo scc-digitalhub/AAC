@@ -7,6 +7,7 @@ import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -35,14 +36,17 @@ import it.smartcommunitylab.aac.claims.ExtractorsRegistry;
 import it.smartcommunitylab.aac.claims.InMemoryExtractorsRegistry;
 import it.smartcommunitylab.aac.claims.ResourceClaimsExtractorProvider;
 import it.smartcommunitylab.aac.claims.ScopeClaimsExtractorProvider;
+import it.smartcommunitylab.aac.core.base.AbstractProviderConfig;
 import it.smartcommunitylab.aac.core.persistence.AttributeProviderEntity;
 import it.smartcommunitylab.aac.core.persistence.AttributeProviderEntityRepository;
 import it.smartcommunitylab.aac.core.persistence.IdentityProviderEntity;
 import it.smartcommunitylab.aac.core.persistence.IdentityProviderEntityRepository;
 import it.smartcommunitylab.aac.core.persistence.TemplateProviderEntity;
 import it.smartcommunitylab.aac.core.persistence.TemplateProviderEntityRepository;
+import it.smartcommunitylab.aac.core.provider.ProviderConfig;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.core.service.AutoJDBCProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.ConfigurableProviderEntityService;
 import it.smartcommunitylab.aac.core.service.InMemoryProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.SubjectService;
@@ -77,6 +81,9 @@ import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserCredentialsService;
 @Configuration
 @Order(2)
 public class PersistenceConfig {
+
+    @Value("${persistence.repository.providerConfig}")
+    private String providerConfigRepository;
 
     @Autowired
     private DataSource dataSource;
@@ -271,17 +278,17 @@ public class PersistenceConfig {
 
     @Bean
     public ProviderConfigRepository<InternalIdentityProviderConfig> internalProviderConfigRepository() {
-        return new InMemoryProviderConfigRepository<>();
+        return buildProviderConfigRepository(InternalIdentityProviderConfig.class);
     }
 
     @Bean
     public ProviderConfigRepository<PasswordIdentityProviderConfig> internalPasswordProviderConfigRepository() {
-        return new InMemoryProviderConfigRepository<>();
+        return buildProviderConfigRepository(PasswordIdentityProviderConfig.class);
     }
 
     @Bean
     public ProviderConfigRepository<OIDCIdentityProviderConfig> oidcProviderConfigRepository() {
-        return new InMemoryProviderConfigRepository<>();
+        return buildProviderConfigRepository(OIDCIdentityProviderConfig.class);
     }
 
     @Bean
@@ -296,7 +303,7 @@ public class PersistenceConfig {
 
     @Bean
     public ProviderConfigRepository<WebAuthnIdentityProviderConfig> webAuthnProviderConfigRepository() {
-        return new InMemoryProviderConfigRepository<>();
+        return buildProviderConfigRepository(WebAuthnIdentityProviderConfig.class);
     }
 
     @Bean
@@ -342,6 +349,15 @@ public class PersistenceConfig {
     @Bean
     public ProviderConfigRepository<RealmTemplateProviderConfig> templateProviderConfigRepository() {
         return new InMemoryProviderConfigRepository<>();
+    }
+
+    private <U extends AbstractProviderConfig<?, ?>> ProviderConfigRepository<U> buildProviderConfigRepository(
+            Class<U> clazz) {
+        if ("jdbc".equals(providerConfigRepository)) {
+            return new AutoJDBCProviderConfigRepository<U>(dataSource, clazz);
+        }
+
+        return new InMemoryProviderConfigRepository<U>();
     }
 
 }

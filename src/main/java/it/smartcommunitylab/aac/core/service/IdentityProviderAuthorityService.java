@@ -6,10 +6,11 @@ import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
-import it.smartcommunitylab.aac.core.base.AbstractAuthorityService;
+import it.smartcommunitylab.aac.core.base.AbstractConfigurableAuthorityService;
 
 //@Service
-public class IdentityProviderAuthorityService extends AbstractAuthorityService<IdentityProviderAuthority<?, ?, ?, ?>>
+public class IdentityProviderAuthorityService
+        extends AbstractConfigurableAuthorityService<IdentityProviderAuthority<?, ?, ?, ?>>
         implements InitializingBean {
 
     public IdentityProviderAuthorityService(Collection<IdentityProviderAuthority<?, ?, ?, ?>> authorities) {

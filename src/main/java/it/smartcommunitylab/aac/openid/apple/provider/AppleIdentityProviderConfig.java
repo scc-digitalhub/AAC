@@ -15,6 +15,8 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.openid.apple.AppleIdentityAuthority;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityProviderConfig;
@@ -25,6 +27,8 @@ import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
 
 public class AppleIdentityProviderConfig extends AbstractIdentityProviderConfig<AppleIdentityProviderConfigMap> {
     private static final long serialVersionUID = SystemKeys.AAC_OIDC_SERIAL_VERSION;
+    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_PROVIDER + SystemKeys.ID_SEPARATOR
+            + AppleIdentityProviderConfigMap.RESOURCE_TYPE;
 
     public static final String ISSUER_URI = "https://appleid.apple.com";
     public static final String AUTHORIZATION_URL = "https://appleid.apple.com/auth/authorize?response_mode=form_post";
@@ -38,13 +42,13 @@ public class AppleIdentityProviderConfig extends AbstractIdentityProviderConfig<
     // thread-safe
     private static final JcaPEMKeyConverter pemConverter = new JcaPEMKeyConverter();
 
-    public AppleIdentityProviderConfig(String provider, String realm) {
+    public AppleIdentityProviderConfig(@JsonProperty("provider") String provider, @JsonProperty("realm") String realm) {
         super(SystemKeys.AUTHORITY_APPLE, provider, realm, new AppleIdentityProviderConfigMap());
         this.clientRegistration = null;
     }
 
-    public AppleIdentityProviderConfig(ConfigurableIdentityProvider cp) {
-        super(cp);
+    public AppleIdentityProviderConfig(ConfigurableIdentityProvider cp, AppleIdentityProviderConfigMap configMap) {
+        super(cp, configMap);
     }
 
     public String getRepositoryId() {

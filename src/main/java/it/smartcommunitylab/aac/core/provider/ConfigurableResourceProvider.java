@@ -11,7 +11,7 @@ import it.smartcommunitylab.aac.core.model.Resource;
  * in form of a ConfigurableProvider carrying a specific ConfigMap.
  * At runtime their config is expressed via a ProviderConfig with the same ConfigMap.
  */
-public interface ConfigurableResourceProvider<R extends Resource, T extends ConfigurableProvider, M extends ConfigMap, C extends ProviderConfig<M, T>>
+public interface ConfigurableResourceProvider<R extends Resource, T extends ConfigurableProvider, M extends ConfigMap, C extends ProviderConfig<M>>
         extends ResourceProvider<R> {
 
     public String getName();
@@ -25,7 +25,5 @@ public interface ConfigurableResourceProvider<R extends Resource, T extends Conf
      */
 
     public C getConfig();
-
-    public T getConfigurable();
 
 }

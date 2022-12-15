@@ -15,8 +15,11 @@ import it.smartcommunitylab.aac.core.base.AbstractConfigMap;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class InternalIdentityProviderConfigMap extends AbstractConfigMap implements Serializable {
+public class InternalIdentityProviderConfigMap extends AbstractConfigMap {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
+    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_CONFIG + SystemKeys.ID_SEPARATOR
+            + SystemKeys.RESOURCE_IDENTITY_PROVIDER + SystemKeys.ID_SEPARATOR
+            + SystemKeys.AUTHORITY_INTERNAL;
 
     @Max(3 * 24 * 60 * 60)
     protected Integer maxSessionDuration;
@@ -107,4 +110,5 @@ public class InternalIdentityProviderConfigMap extends AbstractConfigMap impleme
     public JsonSchema getSchema() throws JsonMappingException {
         return schemaGen.generateSchema(InternalIdentityProviderConfigMap.class);
     }
+
 }

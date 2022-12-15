@@ -12,7 +12,7 @@ import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 /*
  * Expose provider configuration outside modules
  */
-public interface ConfigurationProvider<M extends ConfigMap, T extends ConfigurableProvider, C extends ProviderConfig<M, T>> {
+public interface ConfigurationProvider<M extends ConfigMap, T extends ConfigurableProvider, C extends ProviderConfig<M>> {
 
     public String getAuthority();
 
@@ -35,6 +35,11 @@ public interface ConfigurationProvider<M extends ConfigMap, T extends Configurab
     public M getDefaultConfigMap();
 
     public M getConfigMap(Map<String, Serializable> map);
+
+    /*
+     * Translate a provider config to a configurable
+     */
+    public T getConfigurable(C providerConfig);
 
     /*
      * Validate configuration against schema and also policies (TODO)

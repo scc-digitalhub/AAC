@@ -21,6 +21,10 @@ import it.smartcommunitylab.aac.core.base.AbstractConfigMap;
 public class PasswordIdentityProviderConfigMap extends AbstractConfigMap implements Serializable {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
+    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_CONFIG + SystemKeys.ID_SEPARATOR
+            + SystemKeys.RESOURCE_IDENTITY_PROVIDER + SystemKeys.ID_SEPARATOR
+            + SystemKeys.AUTHORITY_PASSWORD;
+
     @Max(30 * 24 * 60 * 60)
     private Integer maxSessionDuration;
 

@@ -7,22 +7,22 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
-import it.smartcommunitylab.aac.core.authorities.AuthorityService;
+import it.smartcommunitylab.aac.core.authorities.ConfigurableAuthorityService;
 
 @Service
 public class ProviderAuthorityService {
-    private final Map<String, AuthorityService<?>> services;
+    private final Map<String, ConfigurableAuthorityService<?>> services;
 
-    public ProviderAuthorityService(Collection<AuthorityService<?>> services) {
+    public ProviderAuthorityService(Collection<ConfigurableAuthorityService<?>> services) {
         this.services = services.stream().collect(Collectors.toMap(s -> s.getType(), s -> s));
     }
 
-    public AuthorityService<?> findAuthorityService(String type) {
+    public ConfigurableAuthorityService<?> findAuthorityService(String type) {
         return services.get(type);
     }
 
-    public AuthorityService<?> getAuthorityService(String type) throws NoSuchProviderException {
-        AuthorityService<?> as = findAuthorityService(type);
+    public ConfigurableAuthorityService<?> getAuthorityService(String type) throws NoSuchProviderException {
+        ConfigurableAuthorityService<?> as = findAuthorityService(type);
         if (as == null) {
             throw new NoSuchProviderException();
         }

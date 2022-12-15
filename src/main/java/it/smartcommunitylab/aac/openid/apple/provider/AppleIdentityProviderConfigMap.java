@@ -18,6 +18,10 @@ import it.smartcommunitylab.aac.core.base.AbstractConfigMap;
 public class AppleIdentityProviderConfigMap extends AbstractConfigMap implements Serializable {
     private static final long serialVersionUID = SystemKeys.AAC_APPLE_SERIAL_VERSION;
 
+    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_CONFIG + SystemKeys.ID_SEPARATOR
+            + SystemKeys.RESOURCE_IDENTITY_PROVIDER + SystemKeys.ID_SEPARATOR
+            + SystemKeys.AUTHORITY_APPLE;
+
     private String clientId;
     private String teamId;
 

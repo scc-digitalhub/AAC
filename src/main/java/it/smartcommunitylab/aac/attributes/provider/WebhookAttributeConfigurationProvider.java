@@ -16,7 +16,7 @@ public class WebhookAttributeConfigurationProvider extends
 
     @Override
     protected WebhookAttributeProviderConfig buildConfig(ConfigurableAttributeProvider cp) {
-        return new WebhookAttributeProviderConfig(cp);
+        return new WebhookAttributeProviderConfig(cp, getConfigMap(cp.getConfiguration()));
     }
 
 }
