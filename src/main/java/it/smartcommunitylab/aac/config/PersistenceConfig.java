@@ -348,7 +348,7 @@ public class PersistenceConfig {
 
     @Bean
     public ProviderConfigRepository<RealmTemplateProviderConfig> templateProviderConfigRepository() {
-        return new InMemoryProviderConfigRepository<>();
+        return buildProviderConfigRepository(RealmTemplateProviderConfig.class);
     }
 
     private <U extends AbstractProviderConfig<?, ?>> ProviderConfigRepository<U> buildProviderConfigRepository(
