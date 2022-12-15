@@ -21,15 +21,13 @@ import it.smartcommunitylab.aac.SystemKeys;
 @Valid
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@ConstructorBinding
 public class ConfigurableIdentityProvider extends ConfigurableProvider {
 
-    private boolean linkable;
+    private Boolean linkable;
     private String persistence;
     private String events;
     private Integer position;
 
-    private Map<String, String> actionUrls;
     @JsonIgnore
     private Map<String, String> hookFunctions = new HashMap<>();
 
@@ -38,7 +36,6 @@ public class ConfigurableIdentityProvider extends ConfigurableProvider {
         this.persistence = SystemKeys.PERSISTENCE_LEVEL_NONE;
         this.events = SystemKeys.EVENTS_LEVEL_DETAILS;
         this.linkable = true;
-
     }
 
     /**
@@ -52,16 +49,11 @@ public class ConfigurableIdentityProvider extends ConfigurableProvider {
         this((String) null, (String) null, (String) null);
     }
 
-    @Override
-    public void setType(String type) {
-        // not supported
-    }
-
-    public boolean isLinkable() {
+    public Boolean getLinkable() {
         return linkable;
     }
 
-    public void setLinkable(boolean linkable) {
+    public void setLinkable(Boolean linkable) {
         this.linkable = linkable;
     }
 
@@ -87,14 +79,6 @@ public class ConfigurableIdentityProvider extends ConfigurableProvider {
 
     public void setPosition(Integer position) {
         this.position = position;
-    }
-
-    public Map<String, String> getActionUrls() {
-        return actionUrls;
-    }
-
-    public void setActionUrls(Map<String, String> actionUrls) {
-        this.actionUrls = actionUrls;
     }
 
     public Map<String, String> getHookFunctions() {

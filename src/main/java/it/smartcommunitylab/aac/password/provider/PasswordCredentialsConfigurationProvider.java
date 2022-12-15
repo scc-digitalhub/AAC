@@ -22,7 +22,7 @@ public class PasswordCredentialsConfigurationProvider extends
 
     @Override
     protected PasswordCredentialsServiceConfig buildConfig(ConfigurableCredentialsProvider cp) {
-        return new PasswordCredentialsServiceConfig(cp);
+        return new PasswordCredentialsServiceConfig(cp, getConfigMap(cp.getConfiguration()));
     }
 
 }

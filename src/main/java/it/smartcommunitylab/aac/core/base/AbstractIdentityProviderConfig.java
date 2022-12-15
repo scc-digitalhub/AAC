@@ -5,11 +5,35 @@ import java.util.Map;
 
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProviderConfig;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.model.PersistenceMode;
+import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfig;
+import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
+import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
+import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
+import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonSubTypes({
+        @Type(value = InternalIdentityProviderConfig.class, name = InternalIdentityProviderConfig.RESOURCE_TYPE),
+        @Type(value = AppleIdentityProviderConfig.class, name = AppleIdentityProviderConfig.RESOURCE_TYPE),
+        @Type(value = OIDCIdentityProviderConfig.class, name = OIDCIdentityProviderConfig.RESOURCE_TYPE),
+        @Type(value = PasswordIdentityProviderConfig.class, name = PasswordIdentityProviderConfig.RESOURCE_TYPE),
+        @Type(value = SamlIdentityProviderConfig.class, name = SamlIdentityProviderConfig.RESOURCE_TYPE),
+        @Type(value = WebAuthnIdentityProviderConfig.class, name = WebAuthnIdentityProviderConfig.RESOURCE_TYPE),
+})
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(Include.ALWAYS)
 public abstract class AbstractIdentityProviderConfig<M extends AbstractConfigMap>
         extends AbstractProviderConfig<M, ConfigurableIdentityProvider>
         implements IdentityProviderConfig<M> {
@@ -27,15 +51,26 @@ public abstract class AbstractIdentityProviderConfig<M extends AbstractConfigMap
         this.hookFunctions = Collections.emptyMap();
     }
 
-    protected AbstractIdentityProviderConfig(ConfigurableIdentityProvider cp) {
-        super(cp);
+    protected AbstractIdentityProviderConfig(ConfigurableIdentityProvider cp, M configMap) {
+        super(cp, configMap);
 
-        this.linkable = cp.isLinkable();
+        this.linkable = cp.getLinkable();
         this.persistence = StringUtils.hasText(cp.getPersistence()) ? PersistenceMode.parse(cp.getPersistence()) : null;
         this.events = cp.getEvents();
         this.position = cp.getPosition();
 
         this.hookFunctions = (cp.getHookFunctions() != null ? cp.getHookFunctions() : Collections.emptyMap());
+    }
+
+    /**
+     * Private constructor for JPA and other serialization tools.
+     * 
+     * We need to implement this to enable deserialization of resources via
+     * reflection
+     */
+    @SuppressWarnings("unused")
+    private AbstractIdentityProviderConfig() {
+        this((String) null, (String) null, (String) null, null);
     }
 
     public Boolean getLinkable() {
@@ -81,30 +116,6 @@ public abstract class AbstractIdentityProviderConfig<M extends AbstractConfigMap
 
     public void setHookFunctions(Map<String, String> hookFunctions) {
         this.hookFunctions = hookFunctions;
-    }
-
-    @Override
-    public ConfigurableIdentityProvider getConfigurable() {
-        ConfigurableIdentityProvider cp = new ConfigurableIdentityProvider(getAuthority(),
-                getProvider(),
-                getRealm());
-        cp.setType(SystemKeys.RESOURCE_IDENTITY);
-
-        cp.setName(getName());
-        cp.setTitleMap(getTitleMap());
-        cp.setDescriptionMap(getDescriptionMap());
-
-        cp.setLinkable(isLinkable());
-        String persistenceValue = persistence != null ? persistence.getValue() : null;
-        cp.setPersistence(persistenceValue);
-        cp.setEvents(getEvents());
-        cp.setPosition(getPosition());
-
-        cp.setEnabled(true);
-        cp.setConfiguration(getConfiguration());
-        cp.setHookFunctions(getHookFunctions());
-
-        return cp;
     }
 
 }

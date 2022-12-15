@@ -17,7 +17,7 @@ public class InternalAttributeConfigurationProvider extends
 
     @Override
     protected InternalAttributeProviderConfig buildConfig(ConfigurableAttributeProvider cp) {
-        return new InternalAttributeProviderConfig(cp);
+        return new InternalAttributeProviderConfig(cp, getConfigMap(cp.getConfiguration()));
     }
 
 }

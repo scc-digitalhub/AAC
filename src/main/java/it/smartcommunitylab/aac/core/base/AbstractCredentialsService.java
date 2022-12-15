@@ -27,7 +27,7 @@ import it.smartcommunitylab.aac.core.provider.UserCredentialsService;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
 
-public abstract class AbstractCredentialsService<UC extends AbstractUserCredentials, EC extends AbstractEditableUserCredentials, U extends UserAccount, M extends ConfigMap, C extends CredentialsServiceConfig<M>>
+public abstract class AbstractCredentialsService<UC extends AbstractUserCredentials, EC extends AbstractEditableUserCredentials, U extends AbstractAccount, M extends AbstractConfigMap, C extends AbstractCredentialsServiceConfig<M>>
         extends
         AbstractConfigurableProvider<UC, ConfigurableCredentialsProvider, M, C>
         implements

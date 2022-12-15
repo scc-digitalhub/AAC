@@ -28,7 +28,7 @@ import it.smartcommunitylab.aac.model.PersistenceMode;
 import it.smartcommunitylab.aac.model.SubjectStatus;
 
 @Transactional
-public abstract class AbstractAccountService<U extends AbstractAccount, E extends AbstractEditableAccount, M extends ConfigMap, C extends AccountServiceConfig<M>>
+public abstract class AbstractAccountService<U extends AbstractAccount, E extends AbstractEditableAccount, M extends AbstractConfigMap, C extends AbstractAccountServiceConfig<M>>
         extends AbstractConfigurableProvider<U, ConfigurableAccountProvider, M, C>
         implements AccountService<U, E, M, C>, InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());

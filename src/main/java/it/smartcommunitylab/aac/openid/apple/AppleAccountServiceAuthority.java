@@ -9,7 +9,6 @@ import it.smartcommunitylab.aac.core.authorities.AccountServiceAuthority;
 import it.smartcommunitylab.aac.core.base.AbstractEditableAccount;
 import it.smartcommunitylab.aac.core.base.AbstractProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableAccountProvider;
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
@@ -17,7 +16,6 @@ import it.smartcommunitylab.aac.core.service.TranslatorProviderConfigRepository;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleAccountService;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleAccountServiceConfig;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleAccountServiceConfigConverter;
-import it.smartcommunitylab.aac.openid.apple.provider.AppleAccountServiceConfigurationProvider;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfig;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
@@ -33,9 +31,6 @@ public class AppleAccountServiceAuthority
     private final UserAccountService<OIDCUserAccount> accountService;
     private ResourceEntityService resourceService;
 
-    // configuration provider
-    protected AppleAccountServiceConfigurationProvider configProvider;
-
     public AppleAccountServiceAuthority(
             UserAccountService<OIDCUserAccount> userAccountService,
             ProviderConfigRepository<AppleIdentityProviderConfig> registrationRepository) {
@@ -43,17 +38,11 @@ public class AppleAccountServiceAuthority
         Assert.notNull(userAccountService, "account service is mandatory");
 
         this.accountService = userAccountService;
-        this.configProvider = new AppleAccountServiceConfigurationProvider();
     }
 
     @Autowired
     public void setResourceService(ResourceEntityService resourceService) {
         this.resourceService = resourceService;
-    }
-
-    @Override
-    public AppleAccountServiceConfigurationProvider getConfigurationProvider() {
-        return configProvider;
     }
 
     @Override
@@ -69,11 +58,6 @@ public class AppleAccountServiceAuthority
         service.setResourceService(resourceService);
 
         return service;
-    }
-
-    @Override
-    public AppleAccountServiceConfig registerProvider(ConfigurableProvider cp) {
-        throw new IllegalArgumentException("direct registration not supported");
     }
 
     static class AppleConfigTranslatorRepository extends

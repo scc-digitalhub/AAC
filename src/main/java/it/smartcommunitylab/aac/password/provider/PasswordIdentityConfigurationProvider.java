@@ -22,7 +22,7 @@ public class PasswordIdentityConfigurationProvider extends
 
     @Override
     protected PasswordIdentityProviderConfig buildConfig(ConfigurableIdentityProvider cp) {
-        return new PasswordIdentityProviderConfig(cp);
+        return new PasswordIdentityProviderConfig(cp, getConfigMap(cp.getConfiguration()));
     }
 
 }

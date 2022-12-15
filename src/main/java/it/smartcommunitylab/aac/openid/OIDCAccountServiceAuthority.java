@@ -9,7 +9,6 @@ import it.smartcommunitylab.aac.core.authorities.AccountServiceAuthority;
 import it.smartcommunitylab.aac.core.base.AbstractEditableAccount;
 import it.smartcommunitylab.aac.core.base.AbstractProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableAccountProvider;
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
@@ -18,7 +17,6 @@ import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.openid.provider.OIDCAccountService;
 import it.smartcommunitylab.aac.openid.provider.OIDCAccountServiceConfig;
 import it.smartcommunitylab.aac.openid.provider.OIDCAccountServiceConfigConverter;
-import it.smartcommunitylab.aac.openid.provider.OIDCAccountServiceConfigurationProvider;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
 
@@ -32,9 +30,6 @@ public class OIDCAccountServiceAuthority
     // account service
     private final UserAccountService<OIDCUserAccount> accountService;
     private ResourceEntityService resourceService;
-
-    // configuration provider
-    protected OIDCAccountServiceConfigurationProvider configProvider;
 
     @Autowired
     public OIDCAccountServiceAuthority(
@@ -51,12 +46,6 @@ public class OIDCAccountServiceAuthority
         Assert.notNull(userAccountService, "account service is mandatory");
 
         this.accountService = userAccountService;
-        this.configProvider = new OIDCAccountServiceConfigurationProvider(authority);
-    }
-
-    @Override
-    public OIDCAccountServiceConfigurationProvider getConfigurationProvider() {
-        return configProvider;
     }
 
     @Override
@@ -77,11 +66,6 @@ public class OIDCAccountServiceAuthority
         service.setResourceService(resourceService);
 
         return service;
-    }
-
-    @Override
-    public OIDCAccountServiceConfig registerProvider(ConfigurableProvider cp) {
-        throw new IllegalArgumentException("direct registration not supported");
     }
 
     static class OIDCConfigTranslatorRepository extends

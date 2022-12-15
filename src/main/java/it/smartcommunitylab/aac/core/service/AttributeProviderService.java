@@ -39,6 +39,8 @@ public class AttributeProviderService
             ConfigurableAttributeProvider cp = new ConfigurableAttributeProvider(pe.getAuthority(), pe.getProvider(),
                     pe.getRealm());
             cp.setConfiguration(pe.getConfigurationMap());
+            cp.setVersion(pe.getVersion());
+
             cp.setEnabled(pe.isEnabled());
             cp.setPersistence(pe.getPersistence());
             cp.setEvents(pe.getEvents());
@@ -103,6 +105,7 @@ public class AttributeProviderService
             pe.setEvents(events);
 
             pe.setConfigurationMap(reg.getConfiguration());
+            pe.setVersion(reg.getVersion());
 
             pe.setAttributeSets(StringUtils.collectionToCommaDelimitedString(reg.getAttributeSets()));
 

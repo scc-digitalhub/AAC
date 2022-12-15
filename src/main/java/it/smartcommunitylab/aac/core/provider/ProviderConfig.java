@@ -3,9 +3,8 @@ package it.smartcommunitylab.aac.core.provider;
 import java.util.Map;
 
 import it.smartcommunitylab.aac.core.model.ConfigMap;
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 
-public interface ProviderConfig<M extends ConfigMap, T extends ConfigurableProvider> {
+public interface ProviderConfig<M extends ConfigMap> {
 
     public String getRealm();
 
@@ -21,6 +20,6 @@ public interface ProviderConfig<M extends ConfigMap, T extends ConfigurableProvi
 
     public M getConfigMap();
 
-    public T getConfigurable();
+    public int getVersion();
 
 }

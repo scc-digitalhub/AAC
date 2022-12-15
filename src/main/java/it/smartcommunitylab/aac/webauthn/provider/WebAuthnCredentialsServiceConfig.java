@@ -10,6 +10,10 @@ import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsProvider;
 public class WebAuthnCredentialsServiceConfig
         extends AbstractCredentialsServiceConfig<WebAuthnIdentityProviderConfigMap> {
     private static final long serialVersionUID = SystemKeys.AAC_WEBAUTHN_SERIAL_VERSION;
+    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_PROVIDER + SystemKeys.ID_SEPARATOR
+            + SystemKeys.RESOURCE_CONFIG + SystemKeys.ID_SEPARATOR
+            + SystemKeys.RESOURCE_CREDENTIALS_SERVICE + SystemKeys.ID_SEPARATOR
+            + SystemKeys.AUTHORITY_WEBAUTHN;
 
     private static final int DEFAULT_TIMEOUT = 30;
 
@@ -17,8 +21,9 @@ public class WebAuthnCredentialsServiceConfig
         super(SystemKeys.AUTHORITY_WEBAUTHN, provider, realm, new WebAuthnIdentityProviderConfigMap());
     }
 
-    public WebAuthnCredentialsServiceConfig(ConfigurableCredentialsProvider cp) {
-        super(cp);
+    public WebAuthnCredentialsServiceConfig(ConfigurableCredentialsProvider cp,
+            WebAuthnIdentityProviderConfigMap configMap) {
+        super(cp, configMap);
     }
 
     public String getRepositoryId() {

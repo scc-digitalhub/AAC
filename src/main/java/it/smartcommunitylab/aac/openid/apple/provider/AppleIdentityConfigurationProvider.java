@@ -21,7 +21,7 @@ public class AppleIdentityConfigurationProvider
 
     @Override
     protected AppleIdentityProviderConfig buildConfig(ConfigurableIdentityProvider cp) {
-        return new AppleIdentityProviderConfig(cp);
+        return new AppleIdentityProviderConfig(cp, getConfigMap(cp.getConfiguration()));
     }
 
 }

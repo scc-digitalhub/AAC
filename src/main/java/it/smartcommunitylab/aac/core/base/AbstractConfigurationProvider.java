@@ -3,12 +3,15 @@ package it.smartcommunitylab.aac.core.base;
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,10 +21,12 @@ import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfig;
 
-public abstract class AbstractConfigurationProvider<M extends AbstractConfigMap, T extends ConfigurableProvider, C extends ProviderConfig<M, T>>
+public abstract class AbstractConfigurationProvider<M extends AbstractConfigMap, T extends ConfigurableProvider, C extends AbstractProviderConfig<M, T>>
         implements ConfigurationProvider<M, T, C> {
-    protected final static ObjectMapper mapper = new ObjectMapper();
+    protected final static ObjectMapper mapper = new ObjectMapper().addMixIn(AbstractConfigMap.class, NoTypes.class);
     private final JavaType type;
+    private final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
+    };
 
     protected final String authority;
     protected M defaultConfigMap;
@@ -89,6 +94,16 @@ public abstract class AbstractConfigurationProvider<M extends AbstractConfigMap,
         return m;
     }
 
+    protected Map<String, Serializable> getConfiguration(M configMap) {
+        if (configMap == null) {
+            return Collections.emptyMap();
+        }
+
+        // use mapper
+        mapper.setSerializationInclusion(Include.NON_EMPTY);
+        return mapper.convertValue(configMap, typeRef);
+    }
+
     @Override
     public JsonSchema getSchema() {
         try {
@@ -96,6 +111,10 @@ public abstract class AbstractConfigurationProvider<M extends AbstractConfigMap,
         } catch (JsonMappingException e) {
             return null;
         }
+    }
+
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
+    static class NoTypes {
     }
 
 }

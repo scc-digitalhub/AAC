@@ -16,7 +16,7 @@ public class MapperAttributeConfigurationProvider extends
 
     @Override
     protected MapperAttributeProviderConfig buildConfig(ConfigurableAttributeProvider cp) {
-        return new MapperAttributeProviderConfig(cp);
+        return new MapperAttributeProviderConfig(cp, getConfigMap(cp.getConfiguration()));
     }
 
 }

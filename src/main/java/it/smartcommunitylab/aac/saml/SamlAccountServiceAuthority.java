@@ -9,7 +9,6 @@ import it.smartcommunitylab.aac.core.authorities.AccountServiceAuthority;
 import it.smartcommunitylab.aac.core.base.AbstractEditableAccount;
 import it.smartcommunitylab.aac.core.base.AbstractProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableAccountProvider;
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
@@ -18,7 +17,6 @@ import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import it.smartcommunitylab.aac.saml.provider.SamlAccountService;
 import it.smartcommunitylab.aac.saml.provider.SamlAccountServiceConfig;
 import it.smartcommunitylab.aac.saml.provider.SamlAccountServiceConfigConverter;
-import it.smartcommunitylab.aac.saml.provider.SamlAccountServiceConfigurationProvider;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfigMap;
 
@@ -32,9 +30,6 @@ public class SamlAccountServiceAuthority
     // account service
     private final UserAccountService<SamlUserAccount> accountService;
     private ResourceEntityService resourceService;
-
-    // configuration provider
-    protected SamlAccountServiceConfigurationProvider configProvider;
 
     @Autowired
     public SamlAccountServiceAuthority(
@@ -51,17 +46,11 @@ public class SamlAccountServiceAuthority
         Assert.notNull(userAccountService, "account service is mandatory");
 
         this.accountService = userAccountService;
-        this.configProvider = new SamlAccountServiceConfigurationProvider(authority);
     }
 
     @Autowired
     public void setResourceService(ResourceEntityService resourceService) {
         this.resourceService = resourceService;
-    }
-
-    @Override
-    public SamlAccountServiceConfigurationProvider getConfigurationProvider() {
-        return configProvider;
     }
 
     @Override
@@ -77,11 +66,6 @@ public class SamlAccountServiceAuthority
         service.setResourceService(resourceService);
 
         return service;
-    }
-
-    @Override
-    public SamlAccountServiceConfig registerProvider(ConfigurableProvider cp) {
-        throw new IllegalArgumentException("direct registration not supported");
     }
 
     static class SamlConfigTranslatorRepository extends

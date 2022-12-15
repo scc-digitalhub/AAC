@@ -15,8 +15,10 @@ import it.smartcommunitylab.aac.core.base.AbstractConfigMap;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class TemplateProviderConfigMap extends AbstractConfigMap implements Serializable {
+public class TemplateProviderConfigMap extends AbstractConfigMap {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
+    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_CONFIG + SystemKeys.ID_SEPARATOR
+            + SystemKeys.RESOURCE_TEMPLATE_PROVIDER;
 
     @Override
     @JsonIgnore

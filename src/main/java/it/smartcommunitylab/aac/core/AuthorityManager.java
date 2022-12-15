@@ -11,7 +11,7 @@ import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
-import it.smartcommunitylab.aac.core.authorities.AuthorityService;
+import it.smartcommunitylab.aac.core.authorities.ConfigurableAuthorityService;
 import it.smartcommunitylab.aac.core.authorities.ConfigurableProviderAuthority;
 
 @Service

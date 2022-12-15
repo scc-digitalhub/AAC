@@ -2,11 +2,31 @@ package it.smartcommunitylab.aac.core.base;
 
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ConfigurableAccountProvider;
 import it.smartcommunitylab.aac.core.provider.AccountServiceConfig;
+import it.smartcommunitylab.aac.internal.provider.InternalAccountServiceConfig;
 import it.smartcommunitylab.aac.model.PersistenceMode;
+import it.smartcommunitylab.aac.openid.apple.provider.AppleAccountServiceConfig;
+import it.smartcommunitylab.aac.openid.provider.OIDCAccountServiceConfig;
+import it.smartcommunitylab.aac.saml.provider.SamlAccountServiceConfig;
 
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonSubTypes({
+        @Type(value = InternalAccountServiceConfig.class, name = InternalAccountServiceConfig.RESOURCE_TYPE),
+        @Type(value = AppleAccountServiceConfig.class, name = AppleAccountServiceConfig.RESOURCE_TYPE),
+        @Type(value = OIDCAccountServiceConfig.class, name = OIDCAccountServiceConfig.RESOURCE_TYPE),
+        @Type(value = SamlAccountServiceConfig.class, name = SamlAccountServiceConfig.RESOURCE_TYPE),
+})
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(Include.ALWAYS)
 public abstract class AbstractAccountServiceConfig<M extends AbstractConfigMap>
         extends AbstractProviderConfig<M, ConfigurableAccountProvider>
         implements AccountServiceConfig<M> {
@@ -19,8 +39,8 @@ public abstract class AbstractAccountServiceConfig<M extends AbstractConfigMap>
         super(authority, provider, realm, configMap);
     }
 
-    protected AbstractAccountServiceConfig(ConfigurableAccountProvider cp) {
-        super(cp);
+    protected AbstractAccountServiceConfig(ConfigurableAccountProvider cp, M configMap) {
+        super(cp, configMap);
         this.repositoryId = cp.getRepositoryId();
         this.persistence = StringUtils.hasText(cp.getPersistence()) ? PersistenceMode.parse(cp.getPersistence()) : null;
     }
@@ -41,27 +61,6 @@ public abstract class AbstractAccountServiceConfig<M extends AbstractConfigMap>
 
     public void setPersistence(PersistenceMode persistence) {
         this.persistence = persistence;
-    }
-
-    @Override
-    public ConfigurableAccountProvider getConfigurable() {
-        ConfigurableAccountProvider cp = new ConfigurableAccountProvider(getAuthority(),
-                getProvider(),
-                getRealm());
-        cp.setType(SystemKeys.RESOURCE_ACCOUNT);
-
-        cp.setName(getName());
-        cp.setTitleMap(getTitleMap());
-        cp.setDescriptionMap(getDescriptionMap());
-
-        cp.setRepositoryId(repositoryId);
-        String persistenceValue = persistence != null ? persistence.getValue() : null;
-        cp.setPersistence(persistenceValue);
-
-        cp.setEnabled(true);
-        cp.setConfiguration(getConfiguration());
-
-        return cp;
     }
 
 }

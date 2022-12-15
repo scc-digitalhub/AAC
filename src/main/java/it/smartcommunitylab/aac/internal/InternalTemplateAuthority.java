@@ -6,7 +6,7 @@ import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.authorities.TemplateProviderAuthority;
-import it.smartcommunitylab.aac.core.base.AbstractSingleProviderAuthority;
+import it.smartcommunitylab.aac.core.base.AbstractSingleConfigurableProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableTemplateProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.internal.provider.InternalTemplateProvider;
@@ -18,7 +18,7 @@ import it.smartcommunitylab.aac.templates.service.TemplateService;
 
 @Service
 public class InternalTemplateAuthority extends
-        AbstractSingleProviderAuthority<InternalTemplateProvider, TemplateModel, ConfigurableTemplateProvider, TemplateProviderConfigMap, RealmTemplateProviderConfig>
+        AbstractSingleConfigurableProviderAuthority<InternalTemplateProvider, TemplateModel, ConfigurableTemplateProvider, TemplateProviderConfigMap, RealmTemplateProviderConfig>
         implements
         TemplateProviderAuthority<InternalTemplateProvider, TemplateModel, TemplateProviderConfigMap, RealmTemplateProviderConfig> {
 

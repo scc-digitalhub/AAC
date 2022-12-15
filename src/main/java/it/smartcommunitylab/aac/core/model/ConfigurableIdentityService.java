@@ -12,7 +12,6 @@ import it.smartcommunitylab.aac.SystemKeys;
 @Valid
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@ConstructorBinding
 public class ConfigurableIdentityService extends ConfigurableProvider {
 
     private String repositoryId;
@@ -30,11 +29,6 @@ public class ConfigurableIdentityService extends ConfigurableProvider {
     @SuppressWarnings("unused")
     private ConfigurableIdentityService() {
         this((String) null, (String) null, (String) null);
-    }
-
-    @Override
-    public void setType(String type) {
-        // not supported
     }
 
     public String getRepositoryId() {
