@@ -293,12 +293,12 @@ public class PersistenceConfig {
 
     @Bean
     public ProviderConfigRepository<AppleIdentityProviderConfig> appleProviderConfigRepository() {
-        return new InMemoryProviderConfigRepository<>();
+        return buildProviderConfigRepository(AppleIdentityProviderConfig.class);
     }
 
     @Bean
     public ProviderConfigRepository<SamlIdentityProviderConfig> samlProviderConfigRepository() {
-        return new InMemoryProviderConfigRepository<>();
+        return buildProviderConfigRepository(SamlIdentityProviderConfig.class);
     }
 
     @Bean
@@ -308,22 +308,22 @@ public class PersistenceConfig {
 
     @Bean
     public ProviderConfigRepository<MapperAttributeProviderConfig> mapperProviderConfigRepository() {
-        return new InMemoryProviderConfigRepository<>();
+        return buildProviderConfigRepository(MapperAttributeProviderConfig.class);
     }
 
     @Bean
     public ProviderConfigRepository<ScriptAttributeProviderConfig> scriptProviderConfigRepository() {
-        return new InMemoryProviderConfigRepository<>();
+        return buildProviderConfigRepository(ScriptAttributeProviderConfig.class);
     }
 
     @Bean
     public ProviderConfigRepository<InternalAttributeProviderConfig> internalAttributeProviderConfigRepository() {
-        return new InMemoryProviderConfigRepository<>();
+        return buildProviderConfigRepository(InternalAttributeProviderConfig.class);
     }
 
     @Bean
     public ProviderConfigRepository<WebhookAttributeProviderConfig> webhookAttributeProviderConfigRepository() {
-        return new InMemoryProviderConfigRepository<>();
+        return buildProviderConfigRepository(WebhookAttributeProviderConfig.class);
     }
 
 //    @Bean

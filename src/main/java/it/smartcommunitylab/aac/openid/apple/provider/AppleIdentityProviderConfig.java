@@ -15,6 +15,7 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -36,7 +37,7 @@ public class AppleIdentityProviderConfig extends AbstractIdentityProviderConfig<
     public static final String DEFAULT_REDIRECT_URL = "{baseUrl}" + AppleIdentityAuthority.AUTHORITY_URL
             + "{action}/{registrationId}";
 
-    private ClientRegistration clientRegistration;
+    private transient ClientRegistration clientRegistration;
     private ECPrivateKey privateKey;
 
     // thread-safe
@@ -61,6 +62,7 @@ public class AppleIdentityProviderConfig extends AbstractIdentityProviderConfig<
         return configMap.getTrustEmailAddress() != null ? configMap.getTrustEmailAddress().booleanValue() : true;
     }
 
+    @JsonIgnore
     public ClientRegistration getClientRegistration() {
         if (clientRegistration == null) {
             clientRegistration = toClientRegistration();
@@ -177,6 +179,7 @@ public class AppleIdentityProviderConfig extends AbstractIdentityProviderConfig<
         }
     }
 
+    @JsonIgnore
     public OIDCIdentityProviderConfig toOidcProviderConfig() {
         OIDCIdentityProviderConfig op = new OIDCIdentityProviderConfig(SystemKeys.AUTHORITY_APPLE, getProvider(),
                 getRealm());

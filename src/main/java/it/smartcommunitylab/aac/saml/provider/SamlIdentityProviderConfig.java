@@ -20,6 +20,7 @@ import org.springframework.security.saml2.provider.service.registration.RelyingP
 import org.springframework.security.saml2.provider.service.registration.Saml2MessageBinding;
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -52,6 +53,7 @@ public class SamlIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         return getProvider();
     }
 
+    @JsonIgnore
     public RelyingPartyRegistration getRelyingPartyRegistration() {
         if (relyingPartyRegistration == null) {
             try {
