@@ -43,7 +43,6 @@ import it.smartcommunitylab.aac.core.persistence.IdentityProviderEntity;
 import it.smartcommunitylab.aac.core.persistence.IdentityProviderEntityRepository;
 import it.smartcommunitylab.aac.core.persistence.TemplateProviderEntity;
 import it.smartcommunitylab.aac.core.persistence.TemplateProviderEntityRepository;
-import it.smartcommunitylab.aac.core.provider.ProviderConfig;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.AutoJDBCProviderConfigRepository;
@@ -56,7 +55,6 @@ import it.smartcommunitylab.aac.internal.provider.InternalAttributeProviderConfi
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfig;
-import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
@@ -64,7 +62,6 @@ import it.smartcommunitylab.aac.openid.service.OIDCUserAccountService;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
 import it.smartcommunitylab.aac.password.service.InternalPasswordUserCredentialsService;
-import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
@@ -243,33 +240,7 @@ public class PersistenceConfig {
     }
 
     /*
-     * we need all beans covering authorities here, otherwise we won't be able to
-     * build the authmanager (it depends on providerManager -> authorityManager)
-     * 
-     * TODO fix configuration, expose setter on authManager
-     */
-    @Bean
-    @Qualifier("oidcClientRegistrationRepository")
-    @Primary
-    public OIDCClientRegistrationRepository oidcClientRegistrationRepository() {
-        return new OIDCClientRegistrationRepository();
-    }
-
-    @Bean
-    @Qualifier("appleClientRegistrationRepository")
-    public OIDCClientRegistrationRepository appleClientRegistrationRepository() {
-        return new OIDCClientRegistrationRepository();
-    }
-
-    @Bean
-    @Qualifier("samlRelyingPartyRegistrationRepository")
-    public SamlRelyingPartyRegistrationRepository samlRelyingPartyRegistrationRepository() {
-        return new SamlRelyingPartyRegistrationRepository();
-    }
-
-    /*
-     * TODO make configurable via properties and use builder to obtain
-     * implementation
+     * TODO use a proper builder to obtain implementation
      */
 //    @Bean
 //    public ProviderConfigRepository<InternalAccountServiceConfig> internalServiceConfigRepository() {

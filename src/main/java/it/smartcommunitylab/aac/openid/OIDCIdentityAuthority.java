@@ -1,15 +1,11 @@
 package it.smartcommunitylab.aac.openid;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
-import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityAuthority;
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
@@ -44,23 +40,19 @@ public class OIDCIdentityAuthority extends
     @Autowired
     public OIDCIdentityAuthority(
             UserAccountService<OIDCUserAccount> userAccountService,
-            ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository,
-            @Qualifier("oidcClientRegistrationRepository") OIDCClientRegistrationRepository clientRegistrationRepository) {
-        this(SystemKeys.AUTHORITY_OIDC, userAccountService, registrationRepository,
-                clientRegistrationRepository);
+            ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository) {
+        this(SystemKeys.AUTHORITY_OIDC, userAccountService, registrationRepository);
     }
 
     public OIDCIdentityAuthority(
             String authorityId,
             UserAccountService<OIDCUserAccount> userAccountService,
-            ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository,
-            OIDCClientRegistrationRepository clientRegistrationRepository) {
+            ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository) {
         super(authorityId, registrationRepository);
         Assert.notNull(userAccountService, "account service is mandatory");
-        Assert.notNull(clientRegistrationRepository, "client registration repository is mandatory");
 
         this.accountService = userAccountService;
-        this.clientRegistrationRepository = clientRegistrationRepository;
+        this.clientRegistrationRepository = new OIDCClientRegistrationRepository(registrationRepository);
 
         // build filter provider
         this.filterProvider = new OIDCFilterProvider(authorityId, clientRegistrationRepository,
@@ -83,11 +75,6 @@ public class OIDCIdentityAuthority extends
     }
 
     @Override
-    public void afterPropertiesSet() throws Exception {
-        super.afterPropertiesSet();
-    }
-
-    @Override
     public OIDCFilterProvider getFilterProvider() {
         return this.filterProvider;
     }
@@ -104,51 +91,6 @@ public class OIDCIdentityAuthority extends
         idp.setExecutionService(executionService);
         idp.setResourceService(resourceService);
         return idp;
-    }
-
-    @Override
-    public OIDCIdentityProviderConfig registerProvider(ConfigurableProvider cp) throws RegistrationException {
-        // register and build via super
-        OIDCIdentityProviderConfig config = super.registerProvider(cp);
-
-        // fetch id from config
-        String providerId = cp.getProvider();
-        try {
-            // extract clientRegistration from config
-            ClientRegistration registration = config.getClientRegistration();
-
-            // add client registration to registry
-            clientRegistrationRepository.addRegistration(registration);
-
-            return config;
-        } catch (Exception ex) {
-            // cleanup
-            clientRegistrationRepository.removeRegistration(providerId);
-
-            throw new RegistrationException("invalid provider configuration: " + ex.getMessage(), ex);
-        }
-    }
-
-    @Override
-    public void unregisterProvider(String providerId) {
-        OIDCIdentityProviderConfig registration = registrationRepository.findByProviderId(providerId);
-
-        if (registration != null) {
-            // can't unregister system providers, check
-            if (SystemKeys.REALM_SYSTEM.equals(registration.getRealm())) {
-                return;
-            }
-
-            // remove from repository to disable filters
-            clientRegistrationRepository.removeRegistration(providerId);
-
-            // someone else should have already destroyed sessions
-
-            // remove from config
-            super.unregisterProvider(providerId);
-
-        }
-
     }
 
 }

@@ -87,6 +87,8 @@ public abstract class AbstractConfigurableProviderAuthority<S extends Configurab
                     logger.trace("provider active config v{}: {}", providerConfig.getVersion(),
                             String.valueOf(providerConfig.getConfigMap().getConfiguration()));
                 }
+                
+                //TODO add validation
 
                 // register, we defer loading
                 // should update if existing
