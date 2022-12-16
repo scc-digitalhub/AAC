@@ -2,7 +2,6 @@ package it.smartcommunitylab.aac.openid.provider;
 
 import java.text.ParseException;
 
-import org.springframework.data.annotation.Transient;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrations;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;

@@ -38,7 +38,7 @@ public class AppleIdentityProviderConfig extends AbstractIdentityProviderConfig<
             + "{action}/{registrationId}";
 
     private transient ClientRegistration clientRegistration;
-    private ECPrivateKey privateKey;
+    private transient ECPrivateKey privateKey;
 
     // thread-safe
     private static final JcaPEMKeyConverter pemConverter = new JcaPEMKeyConverter();
