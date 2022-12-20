@@ -25,9 +25,9 @@ import it.smartcommunitylab.aac.core.service.ClientDetailsService;
 import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeApprover;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
+import it.smartcommunitylab.aac.scope.model.Scope;
 
 public class ScopeApprovalHandler implements UserApprovalHandler {
     private final Logger logger = LoggerFactory.getLogger(getClass());

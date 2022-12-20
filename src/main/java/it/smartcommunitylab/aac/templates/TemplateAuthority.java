@@ -10,7 +10,7 @@ import it.smartcommunitylab.aac.core.base.AbstractSingleConfigurableProviderAuth
 import it.smartcommunitylab.aac.core.model.ConfigurableTemplateProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.profiles.scope.OpenIdProfileScopeProvider;
-import it.smartcommunitylab.aac.scope.Resource;
+import it.smartcommunitylab.aac.scope.model.ApiResource;
 import it.smartcommunitylab.aac.templates.model.TemplateModel;
 import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfig;
 import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfigurationProvider;
@@ -26,7 +26,7 @@ public class TemplateAuthority extends
 
     // services
     private final TemplateService templateService;
-    private Resource openIdResource;
+    private ApiResource openIdResource;
 
     // configuration provider
     protected RealmTemplateProviderConfigurationProvider configProvider;

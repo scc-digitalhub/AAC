@@ -6,63 +6,76 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Component;
-import it.smartcommunitylab.aac.scope.Resource;
-import it.smartcommunitylab.aac.scope.Scope;
+import org.springframework.util.Assert;
+
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.api.scopes.AbstractInternalApiScope;
+import it.smartcommunitylab.aac.common.NoSuchScopeException;
+import it.smartcommunitylab.aac.roles.scopes.RolesResource;
 import it.smartcommunitylab.aac.scope.ScopeApprover;
 import it.smartcommunitylab.aac.scope.ScopeProvider;
-import it.smartcommunitylab.aac.scope.WhitelistScopeApprover;
+import it.smartcommunitylab.aac.scope.approver.SubjectTypeScopeApprover;
+import it.smartcommunitylab.aac.scope.approver.WhitelistScopeApprover;
+import it.smartcommunitylab.aac.scope.base.AbstractScopeProvider;
+import it.smartcommunitylab.aac.scope.model.ApiResource;
+import it.smartcommunitylab.aac.scope.model.Scope;
 
 /*
  * A simple scope provider which return profile scopes
  */
-@Component
-public class OpenIdProfileScopeProvider implements ScopeProvider {
 
-    private static final OpenIdResource resource = new OpenIdResource();
-    public static final Set<Scope> scopes;
-    private static final Map<String, WhitelistScopeApprover> approvers;
+public class OpenIdProfileScopeProvider extends AbstractScopeProvider<AbstractInternalApiScope> {
 
-    static {
-        Set<Scope> s = new HashSet<>();
-        s.add(new OpenIdDefaultScope());
-        s.add(new OpenIdEmailScope());
-        s.add(new OpenIdAddressScope());
-        s.add(new OpenIdPhoneScope());
+    private final Map<String, AbstractInternalApiScope> scopes;
+    private final Map<String, SubjectTypeScopeApprover<AbstractInternalApiScope>> approvers;
 
-        scopes = Collections.unmodifiableSet(s);
-        resource.setScopes(scopes);
+    public OpenIdProfileScopeProvider(OpenIdUserInfoResource resource) {
+        super(SystemKeys.AUTHORITY_OIDC, resource.getProvider());
+        Assert.notNull(resource, "resource can not be null");
 
-        Map<String, WhitelistScopeApprover> a = new HashMap<>();
-        for (Scope sc : scopes) {
-            a.put(sc.getScope(), new WhitelistScopeApprover(null, sc.getResourceId(), sc.getScope()));
+        // extract scopes
+        this.scopes = resource.getScopes().stream()
+                .collect(Collectors.toMap(s -> s.getScope(), s -> s));
+
+        // init approvers map
+        approvers = new HashMap<>();
+    }
+
+    @Override
+    public AbstractInternalApiScope findScope(String scope) {
+        return scopes.get(scope);
+    }
+
+    @Override
+    public AbstractInternalApiScope getScope(String scope) throws NoSuchScopeException {
+        AbstractInternalApiScope s = findScope(scope);
+        if (s == null) {
+            throw new NoSuchScopeException();
         }
 
-        approvers = a;
+        return s;
     }
 
     @Override
-    public String getResourceId() {
-        return resource.getResourceId();
+    public Collection<AbstractInternalApiScope> listScopes() {
+        return Collections.unmodifiableCollection(scopes.values());
     }
 
     @Override
-    public Resource getResource() {
-        return resource;
-    }
-
-    @Override
-    public Collection<Scope> getScopes() {
-        return resource.getScopes();
-    }
-
-    @Override
-    public ScopeApprover getApprover(String scope) {
-        if (approvers.containsKey(scope)) {
-            return approvers.get(scope);
+    public SubjectTypeScopeApprover<AbstractInternalApiScope> getScopeApprover(String scope)
+            throws NoSuchScopeException {
+        AbstractInternalApiScope s = getScope(scope);
+        if (!approvers.containsKey(scope)) {
+            // build approver based on type
+            SubjectTypeScopeApprover<AbstractInternalApiScope> sa = new SubjectTypeScopeApprover<>(s);
+            sa.setSubjectType(s.getSubjectType());
+            approvers.put(scope, sa);
         }
 
-        return null;
+        return approvers.get(scope);
     }
 
 }

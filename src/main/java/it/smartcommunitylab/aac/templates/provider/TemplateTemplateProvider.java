@@ -7,8 +7,8 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractTemplateProvider;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
-import it.smartcommunitylab.aac.profiles.scope.OpenIdResource;
-import it.smartcommunitylab.aac.scope.Resource;
+import it.smartcommunitylab.aac.profiles.scope.OpenIdUserInfoResource;
+import it.smartcommunitylab.aac.scope.model.ApiResource;
 import it.smartcommunitylab.aac.templates.model.EndSessionTemplate;
 import it.smartcommunitylab.aac.templates.model.FooterTemplate;
 import it.smartcommunitylab.aac.templates.model.LoginTemplate;
@@ -20,16 +20,16 @@ public class TemplateTemplateProvider
         extends
         AbstractTemplateProvider<TemplateModel, TemplateProviderConfigMap, RealmTemplateProviderConfig> {
 
-    private final Resource resource;
+    private final ApiResource resource;
     private final InternalUserAccount account;
     private final OAuth2ClientDetails clientDetails;
 
     public TemplateTemplateProvider(String providerId,
-            TemplateService templateService, Resource oauthResource,
+            TemplateService templateService, ApiResource oauthResource,
             RealmTemplateProviderConfig providerConfig, String realm) {
         super(SystemKeys.AUTHORITY_TEMPLATE, providerId, templateService, providerConfig, realm);
         // TODO mock user from props
-        this.resource = oauthResource != null ? oauthResource : new OpenIdResource();
+        this.resource = oauthResource != null ? oauthResource : new OpenIdUserInfoResource();
 
         // TODO add mocking user props via config to build templates
         account = new InternalUserAccount();

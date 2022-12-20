@@ -11,15 +11,15 @@ import java.util.stream.Collectors;
 
 import org.springframework.util.Assert;
 
-import it.smartcommunitylab.aac.scope.Resource;
-import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeApprover;
 import it.smartcommunitylab.aac.scope.ScopeProvider;
+import it.smartcommunitylab.aac.scope.model.ApiResource;
+import it.smartcommunitylab.aac.scope.model.Scope;
 
 public class ServiceScopeProvider implements ScopeProvider {
 
     private final Service service;
-    private Resource resource;
+    private ApiResource resource;
     private Map<String, ScopeApprover> approvers = new HashMap<>();
 
     public ServiceScopeProvider(Service service) {
@@ -29,7 +29,7 @@ public class ServiceScopeProvider implements ScopeProvider {
     }
 
     private void build() {
-        resource = new Resource(service.getNamespace());
+        resource = new ApiResource(service.getNamespace());
         resource.setName(service.getName());
         resource.setDescription(service.getDescription());
 
@@ -83,7 +83,7 @@ public class ServiceScopeProvider implements ScopeProvider {
     }
 
     @Override
-    public Resource getResource() {
+    public ApiResource getResource() {
         return resource;
     }
 

@@ -33,8 +33,8 @@ import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.oauth.store.SearchableApprovalStore;
 import it.smartcommunitylab.aac.roles.service.RealmRoleService;
 import it.smartcommunitylab.aac.roles.service.SubjectRoleService;
-import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
+import it.smartcommunitylab.aac.scope.model.Scope;
 import it.smartcommunitylab.aac.services.ServiceScope;
 
 /*

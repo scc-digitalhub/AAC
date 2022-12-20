@@ -1,14 +1,14 @@
 package it.smartcommunitylab.aac.api.scopes;
 
-import it.smartcommunitylab.aac.scope.Resource;
-
-public class ApiResource extends Resource {
+public class AACApiResource extends AbstractInternalApiResource {
 
     public static final String RESOURCE_ID = "aac.api";
 
-    @Override
-    public String getResourceId() {
-        return RESOURCE_ID;
+    public AACApiResource(String realm) {
+        super(realm, RESOURCE_ID);
+
+        // we don't register scopes statically
+        // let provider decide which are available
     }
 
     // TODO replace with keys for i18n

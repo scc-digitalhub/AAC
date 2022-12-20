@@ -40,17 +40,17 @@ import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.oauth.store.SearchableApprovalStore;
-import it.smartcommunitylab.aac.scope.AuthorityScopeApprover;
-import it.smartcommunitylab.aac.scope.CombinedScopeApprover;
-import it.smartcommunitylab.aac.scope.DelegateScopeApprover;
-import it.smartcommunitylab.aac.scope.RoleScopeApprover;
-import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeApprover;
 import it.smartcommunitylab.aac.scope.ScopeProvider;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
-import it.smartcommunitylab.aac.scope.ScriptScopeApprover;
-import it.smartcommunitylab.aac.scope.StoreScopeApprover;
-import it.smartcommunitylab.aac.scope.WhitelistScopeApprover;
+import it.smartcommunitylab.aac.scope.approver.AuthorityScopeApprover;
+import it.smartcommunitylab.aac.scope.approver.CombinedScopeApprover;
+import it.smartcommunitylab.aac.scope.approver.DelegateScopeApprover;
+import it.smartcommunitylab.aac.scope.approver.RoleScopeApprover;
+import it.smartcommunitylab.aac.scope.approver.ScriptScopeApprover;
+import it.smartcommunitylab.aac.scope.approver.StoreScopeApprover;
+import it.smartcommunitylab.aac.scope.approver.WhitelistScopeApprover;
+import it.smartcommunitylab.aac.scope.model.Scope;
 
 /*
  * Manage services and their integration.

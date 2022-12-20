@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -41,6 +42,7 @@ import com.nimbusds.jose.JWSAlgorithm;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.jwt.JWTEncryptionAndDecryptionService;
 import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
 import it.smartcommunitylab.aac.oauth.endpoint.AuthorizationEndpoint;
@@ -50,9 +52,10 @@ import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
 import it.smartcommunitylab.aac.oauth.model.ResponseMode;
 import it.smartcommunitylab.aac.oauth.model.ResponseType;
 import it.smartcommunitylab.aac.oauth.model.SubjectType;
-import it.smartcommunitylab.aac.openid.scope.OpenIdScopeProvider;
-import it.smartcommunitylab.aac.profiles.scope.OpenIdProfileScopeProvider;
-import it.smartcommunitylab.aac.profiles.scope.ProfileScopeProvider;
+import it.smartcommunitylab.aac.oauth.scope.OAuth2DCRResource;
+import it.smartcommunitylab.aac.openid.scope.OpenIdResource;
+import it.smartcommunitylab.aac.profiles.scope.OpenIdUserInfoResource;
+import it.smartcommunitylab.aac.scope.model.ApiResource;
 
 /**
  *
@@ -62,7 +65,7 @@ import it.smartcommunitylab.aac.profiles.scope.ProfileScopeProvider;
  *
  */
 @Controller
-@Tag(name = "OpenID Connect Discovery" )
+@Tag(name = "OpenID Connect Discovery")
 public class OpenIDMetadataEndpoint {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -82,6 +85,23 @@ public class OpenIDMetadataEndpoint {
 
     @Autowired
     private JWTEncryptionAndDecryptionService encService;
+
+    // keep a list of always available scopes
+    // TODO refactor per realm when possible
+    private Set<String> scopes;
+
+    public OpenIDMetadataEndpoint() {
+        // define as system resources
+        List<ApiResource> resources = new ArrayList<>();
+        resources.add(new OpenIdResource(SystemKeys.REALM_SYSTEM));
+        resources.add(new OpenIdUserInfoResource(SystemKeys.REALM_SYSTEM));
+        resources.add(new OAuth2DCRResource(SystemKeys.REALM_SYSTEM));
+
+        // build scopes list
+        this.scopes = resources.stream()
+                .flatMap(r -> r.getScopes().stream()).map(s -> s.getScope())
+                .collect(Collectors.toSet());
+    }
 
     @Operation(summary = "Get OpenID provider configuration information")
     @RequestMapping(method = RequestMethod.GET, value = OPENID_CONFIGURATION_URL, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -236,10 +256,6 @@ public class OpenIDMetadataEndpoint {
         m.put("userinfo_endpoint", baseUrl + UserInfoEndpoint.USERINFO_URL);
         m.put("jwks_uri", baseUrl + JWKSetPublishingEndpoint.JWKS_URL);
 
-        List<String> scopes = new ArrayList<>();
-        scopes.addAll(OpenIdScopeProvider.scopes.stream().map(s -> s.getScope()).collect(Collectors.toList()));
-        scopes.addAll(OpenIdProfileScopeProvider.scopes.stream().map(s -> s.getScope()).collect(Collectors.toList()));
-        scopes.addAll(ProfileScopeProvider.scopes.stream().map(s -> s.getScope()).collect(Collectors.toList()));
         m.put("scopes_supported", scopes);
 
         List<String> responseTypes = Stream.of(ResponseType.CODE, ResponseType.TOKEN, ResponseType.ID_TOKEN)

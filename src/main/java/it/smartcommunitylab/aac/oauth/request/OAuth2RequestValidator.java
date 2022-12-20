@@ -20,8 +20,8 @@ import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
 import it.smartcommunitylab.aac.oauth.model.ClientRegistration;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.model.ResponseType;
-import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
+import it.smartcommunitylab.aac.scope.model.Scope;
 
 public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAuth2AuthorizationRequestValidator,
         OAuth2RegistrationRequestValidator {

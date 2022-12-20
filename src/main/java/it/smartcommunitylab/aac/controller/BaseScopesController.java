@@ -23,8 +23,8 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.core.ScopeManager;
-import it.smartcommunitylab.aac.scope.Resource;
-import it.smartcommunitylab.aac.scope.Scope;
+import it.smartcommunitylab.aac.scope.model.ApiResource;
+import it.smartcommunitylab.aac.scope.model.Scope;
 
 /*
  * Base controller for scopes
@@ -73,7 +73,7 @@ public class BaseScopesController implements InitializingBean {
 
     @GetMapping("/resources/{realm}")
     @Operation(summary = "List resources for the given realm")
-    public Collection<Resource> listResources(
+    public Collection<ApiResource> listResources(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
             throws NoSuchRealmException {
         logger.debug("list resources");
@@ -83,7 +83,7 @@ public class BaseScopesController implements InitializingBean {
 
     @GetMapping("/resources/{realm}/{resourceId}")
     @Operation(summary = "Get a resource with all its scopes for the given realm")
-    public Resource listResources(
+    public ApiResource listResources(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String resourceId)
             throws NoSuchRealmException, NoSuchResourceException {

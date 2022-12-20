@@ -6,8 +6,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum ScopeType {
     CLIENT("client"),
-    USER("user"),
-    GENERIC("generic");
+    USER("user");
+//    GENERIC("generic");
 
     private final String value;
 

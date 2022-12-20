@@ -40,8 +40,8 @@ import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.password.auth.UsernamePasswordAuthenticationToken;
-import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeApprover;
+import it.smartcommunitylab.aac.scope.model.Scope;
 
 public class ResourceOwnerPasswordTokenGranter extends AbstractTokenGranter {
 

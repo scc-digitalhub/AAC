@@ -1,6 +1,4 @@
-package it.smartcommunitylab.aac.scope;
-
-import java.util.Set;
+package it.smartcommunitylab.aac.scope.model;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
@@ -9,23 +7,24 @@ import javax.validation.constraints.Pattern;
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.model.ScopeType;
 
 @Valid
 public class Scope {
 
+    // the scope identifier
     @Pattern(regexp = SystemKeys.SCOPE_PATTERN)
     @NotBlank
     protected String scope;
 
-    protected String name;
-    protected String description;
+    // a scope is associated to a resource
     protected String resourceId;
 
-    protected ScopeType type;
+    // a scope is registered in a realm
+    protected String realm;
 
-    // additional audience connected to this scope
-    protected Set<String> audience;
+    // TODO i18n
+    protected String name;
+    protected String description;
 
     public Scope() {
 
@@ -77,28 +76,12 @@ public class Scope {
         this.resourceId = resourceId;
     }
 
-    public ScopeType getType() {
-        return type;
+    public String getRealm() {
+        return realm;
     }
 
-    public void setType(ScopeType type) {
-        this.type = type;
-    }
-
-    public Set<String> getAudience() {
-        return audience;
-    }
-
-    public void setAudience(Set<String> audience) {
-        this.audience = audience;
-    }
-
-    public boolean isUserScope() {
-        return getType() != null && (getType() == ScopeType.USER || getType() == ScopeType.GENERIC);
-    }
-
-    public boolean isClientScope() {
-        return getType() != null && (getType() == ScopeType.CLIENT || getType() == ScopeType.GENERIC);
+    public void setRealm(String realm) {
+        this.realm = realm;
     }
 
     @Override

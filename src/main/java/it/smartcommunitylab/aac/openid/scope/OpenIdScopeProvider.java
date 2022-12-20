@@ -3,59 +3,65 @@ package it.smartcommunitylab.aac.openid.scope;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
+import java.util.stream.Collectors;
 
-import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
-import it.smartcommunitylab.aac.scope.Resource;
-import it.smartcommunitylab.aac.scope.Scope;
-import it.smartcommunitylab.aac.scope.ScopeApprover;
-import it.smartcommunitylab.aac.scope.ScopeProvider;
-import it.smartcommunitylab.aac.scope.WhitelistScopeApprover;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.api.scopes.AbstractInternalApiScope;
+import it.smartcommunitylab.aac.common.NoSuchScopeException;
+import it.smartcommunitylab.aac.scope.approver.SubjectTypeScopeApprover;
+import it.smartcommunitylab.aac.scope.base.AbstractScopeProvider;
 
-@Component
-public class OpenIdScopeProvider implements ScopeProvider {
+public class OpenIdScopeProvider extends AbstractScopeProvider<AbstractInternalApiScope> {
 
-    private static final OpenIdResource resource = new OpenIdResource();
-    public static final Set<Scope> scopes;
-    private static final Map<String, WhitelistScopeApprover> approvers;
+    private final Map<String, AbstractInternalApiScope> scopes;
+    private final Map<String, SubjectTypeScopeApprover<AbstractInternalApiScope>> approvers;
 
-    static {
-        Set<Scope> s = new HashSet<>();
-        s.add(new OpenIdScope());
-        s.add(new OfflineAccessScope());
+    public OpenIdScopeProvider(OpenIdResource resource) {
+        super(SystemKeys.AUTHORITY_OIDC, resource.getProvider());
+        Assert.notNull(resource, "resource can not be null");
 
-        scopes = Collections.unmodifiableSet(s);
-        resource.setScopes(scopes);
+        // extract scopes
+        this.scopes = resource.getScopes().stream()
+                .collect(Collectors.toMap(s -> s.getScope(), s -> s));
 
-        Map<String, WhitelistScopeApprover> a = new HashMap<>();
-        for (Scope sc : scopes) {
-            a.put(sc.getScope(), new WhitelistScopeApprover(null, sc.getResourceId(), sc.getScope()));
+        // init approvers map
+        approvers = new HashMap<>();
+    }
+
+    @Override
+    public AbstractInternalApiScope findScope(String scope) {
+        return scopes.get(scope);
+    }
+
+    @Override
+    public AbstractInternalApiScope getScope(String scope) throws NoSuchScopeException {
+        AbstractInternalApiScope s = findScope(scope);
+        if (s == null) {
+            throw new NoSuchScopeException();
         }
 
-        approvers = a;
+        return s;
     }
 
     @Override
-    public String getResourceId() {
-        return OpenIdResource.RESOURCE_ID;
+    public Collection<AbstractInternalApiScope> listScopes() {
+        return Collections.unmodifiableCollection(scopes.values());
     }
 
     @Override
-    public Resource getResource() {
-        return resource;
-    }
+    public SubjectTypeScopeApprover<AbstractInternalApiScope> getScopeApprover(String scope)
+            throws NoSuchScopeException {
+        AbstractInternalApiScope s = getScope(scope);
+        if (!approvers.containsKey(scope)) {
+            // build approver based on type
+            SubjectTypeScopeApprover<AbstractInternalApiScope> sa = new SubjectTypeScopeApprover<>(s);
+            sa.setSubjectType(s.getSubjectType());
+            approvers.put(scope, sa);
+        }
 
-    @Override
-    public Collection<Scope> getScopes() {
-        return scopes;
-    }
-
-    @Override
-    public ScopeApprover getApprover(String scope) {
         return approvers.get(scope);
     }
-
 }

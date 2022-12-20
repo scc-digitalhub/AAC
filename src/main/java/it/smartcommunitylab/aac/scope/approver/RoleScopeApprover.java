@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.scope;
+package it.smartcommunitylab.aac.scope.approver;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -7,34 +7,28 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.springframework.security.oauth2.provider.approval.Approval;
-import org.springframework.security.oauth2.provider.approval.Approval.ApprovalStatus;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.common.InvalidDefinitionException;
-import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.scope.base.AbstractScopeApprover;
+import it.smartcommunitylab.aac.scope.model.ApiScope;
+import it.smartcommunitylab.aac.scope.model.ApprovalStatus;
+import it.smartcommunitylab.aac.scope.model.LimitedScopeApproval;
 
-public class RoleScopeApprover implements ScopeApprover {
+public class RoleScopeApprover<S extends ApiScope> extends AbstractScopeApprover<S, LimitedScopeApproval> {
 
-    public static final int DEFAULT_DURATION_MS = 3600000; // 1h
+    public static final int DEFAULT_DURATION_S = 3600; // 1h
 
-    private final String realm;
-    private final String resourceId;
-    private final String scope;
     private int duration;
+
     private Set<String> roles;
     private boolean requireAll = false;
 
-    public RoleScopeApprover(String realm, String resourceId, String scope) {
-        Assert.hasText(resourceId, "resourceId can not be blank or null");
-        Assert.hasText(scope, "scope can not be blank or null");
-        this.realm = realm;
-        this.resourceId = resourceId;
-        this.scope = scope;
-        this.duration = DEFAULT_DURATION_MS;
+    public RoleScopeApprover(S scope) {
+        super(scope);
+
+        this.duration = DEFAULT_DURATION_S;
         this.roles = Collections.emptySet();
     }
 
@@ -51,9 +45,8 @@ public class RoleScopeApprover implements ScopeApprover {
     }
 
     @Override
-    public Approval approveUserScope(String scope, User user, ClientDetails client, Collection<String> scopes)
-            throws InvalidDefinitionException, SystemException {
-        if (!this.scope.equals(scope)) {
+    public LimitedScopeApproval approve(User user, ClientDetails client, Collection<String> scopes) {
+        if (scopes == null || scopes.isEmpty() || !scopes.contains(scope.getScope())) {
             return null;
         }
 
@@ -74,13 +67,15 @@ public class RoleScopeApprover implements ScopeApprover {
         }
 
         ApprovalStatus approvalStatus = approved ? ApprovalStatus.APPROVED : ApprovalStatus.DENIED;
-        return new Approval(resourceId, client.getClientId(), scope, duration, approvalStatus);
+
+        return new LimitedScopeApproval(scope.getApiResourceId(), scope.getScope(),
+                user.getSubjectId(), client.getClientId(),
+                duration, approvalStatus);
     }
 
     @Override
-    public Approval approveClientScope(String scope, ClientDetails client, Collection<String> scopes)
-            throws InvalidDefinitionException, SystemException {
-        if (!this.scope.equals(scope)) {
+    public LimitedScopeApproval approve(ClientDetails client, Collection<String> scopes) {
+        if (scopes == null || scopes.isEmpty() || !scopes.contains(scope.getScope())) {
             return null;
         }
 
@@ -98,7 +93,9 @@ public class RoleScopeApprover implements ScopeApprover {
 //        }
 
         ApprovalStatus approvalStatus = approved ? ApprovalStatus.APPROVED : ApprovalStatus.DENIED;
-        return new Approval(resourceId, client.getClientId(), scope, duration, approvalStatus);
+        return new LimitedScopeApproval(scope.getApiResourceId(), scope.getScope(),
+                client.getClientId(), client.getClientId(),
+                duration, approvalStatus);
     }
 
     @Override

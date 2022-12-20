@@ -7,7 +7,7 @@ import java.util.List;
 
 import javax.validation.constraints.NotBlank;
 
-import it.smartcommunitylab.aac.scope.Scope;
+import it.smartcommunitylab.aac.scope.model.Scope;
 
 public class ConnectedDevice {
 

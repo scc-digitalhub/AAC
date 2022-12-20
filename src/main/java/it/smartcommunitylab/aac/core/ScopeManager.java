@@ -10,9 +10,9 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
-import it.smartcommunitylab.aac.scope.Resource;
-import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
+import it.smartcommunitylab.aac.scope.model.ApiResource;
+import it.smartcommunitylab.aac.scope.model.Scope;
 
 //TODO evaluate split scopes *per realm*
 //TODO permissions
@@ -48,7 +48,7 @@ public class ScopeManager {
         return scopeRegistry.getScope(scope);
     }
 
-    public Collection<Resource> listResources() {
+    public Collection<ApiResource> listResources() {
         logger.debug("list resources");
 
         // fetch from registry
@@ -56,14 +56,14 @@ public class ScopeManager {
     }
 
     @Deprecated
-    public Resource findResource(String resourceId) {
+    public ApiResource findResource(String resourceId) {
         logger.debug("find resource {}", String.valueOf(resourceId));
 
         // from registry
         return scopeRegistry.findResource(resourceId);
     }
 
-    public Resource getResource(String resourceId) throws NoSuchResourceException {
+    public ApiResource getResource(String resourceId) throws NoSuchResourceException {
         logger.debug("get resource {}", StringUtils.trimAllWhitespace(resourceId));
 
         // from registry

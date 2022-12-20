@@ -1,25 +1,14 @@
 package it.smartcommunitylab.aac.api.scopes;
 
-import it.smartcommunitylab.aac.model.ScopeType;
-import it.smartcommunitylab.aac.scope.Scope;
+import it.smartcommunitylab.aac.Config;
 
-public class AdminRealmsScope extends Scope {
+public class AdminRealmsScope extends AbstractInternalApiScope {
 
-    public static final String SCOPE = AdminResource.RESOURCE_ID + ".realms";
+    public static final String SCOPE = AdminApiResource.RESOURCE_ID + ".realms";
 
-    @Override
-    public String getResourceId() {
-        return AdminResource.RESOURCE_ID;
-    }
-
-    @Override
-    public String getScope() {
-        return SCOPE;
-    }
-
-    @Override
-    public ScopeType getType() {
-        return ScopeType.USER;
+    public AdminRealmsScope(String realm) {
+        super(realm, AdminApiResource.RESOURCE_ID, SCOPE);
+        setAuthorities(Config.R_ADMIN);
     }
 
     // TODO replace with keys for i18n

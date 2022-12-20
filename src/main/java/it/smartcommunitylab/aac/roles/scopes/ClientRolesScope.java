@@ -1,24 +1,18 @@
 package it.smartcommunitylab.aac.roles.scopes;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.model.ScopeType;
-import it.smartcommunitylab.aac.scope.Scope;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.api.scopes.AbstractInternalApiScope;
 
-public class ClientRolesScope extends Scope {
+public class ClientRolesScope extends AbstractInternalApiScope {
 
-    @Override
-    public String getResourceId() {
-        return RolesResource.RESOURCE_ID;
-    }
+    public static final String SCOPE = Config.SCOPE_CLIENT_ROLE;
 
-    @Override
-    public ScopeType getType() {
-        return ScopeType.CLIENT;
-    }
+    public ClientRolesScope(String realm) {
+        super(realm, RolesResource.RESOURCE_ID, SCOPE);
 
-    @Override
-    public String getScope() {
-        return Config.SCOPE_CLIENT_ROLE;
+        // require client
+        this.subjectType = SystemKeys.RESOURCE_CLIENT;
     }
 
     // TODO replace with keys for i18n

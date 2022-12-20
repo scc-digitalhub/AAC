@@ -1,14 +1,14 @@
 package it.smartcommunitylab.aac.api.scopes;
 
-import it.smartcommunitylab.aac.scope.Resource;
-
-public class AdminResource extends Resource {
+public class AdminApiResource extends AbstractInternalApiResource {
 
     public static final String RESOURCE_ID = "aac.admin";
 
-    @Override
-    public String getResourceId() {
-        return RESOURCE_ID;
+    public AdminApiResource(String realm) {
+        super(realm, RESOURCE_ID);
+
+        // statically register admin scopes
+        setScopes(new AdminRealmsScope(realm));
     }
 
     // TODO replace with keys for i18n

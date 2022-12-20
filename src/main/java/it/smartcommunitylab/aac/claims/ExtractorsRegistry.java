@@ -12,11 +12,11 @@ public interface ExtractorsRegistry {
     /*
      * Providers
      */
-    public void registerExtractorProvider(ScopeClaimsExtractorProvider provider);
+//    public void registerExtractorProvider(ScopeClaimsExtractorProvider provider);
 
     public void registerExtractorProvider(ResourceClaimsExtractorProvider provider);
 
-    public void unregisterExtractorProvider(ScopeClaimsExtractorProvider provider);
+//    public void unregisterExtractorProvider(ScopeClaimsExtractorProvider provider);
 
     public void unregisterExtractorProvider(ResourceClaimsExtractorProvider provider);
 

@@ -35,17 +35,17 @@ public class InMemoryExtractorsRegistry implements ExtractorsRegistry {
     /*
      * Providers
      */
-    @Override
-    public void registerExtractorProvider(ScopeClaimsExtractorProvider provider) {
-        if (provider != null) {
-
-            if (provider.getResourceId() == null || provider.getResourceId().startsWith("aac.")) {
-                throw new IllegalArgumentException("core resources can not be registered");
-            }
-
-            _registerProvider(provider);
-        }
-    }
+//    @Override
+//    public void registerExtractorProvider(ScopeClaimsExtractorProvider provider) {
+//        if (provider != null) {
+//
+//            if (provider.getResourceId() == null || provider.getResourceId().startsWith("aac.")) {
+//                throw new IllegalArgumentException("core resources can not be registered");
+//            }
+//
+//            _registerProvider(provider);
+//        }
+//    }
 
     @Override
     public void registerExtractorProvider(ResourceClaimsExtractorProvider provider) {
@@ -65,10 +65,10 @@ public class InMemoryExtractorsRegistry implements ExtractorsRegistry {
         resourceExtractorsProviders.remove(extractor);
     }
 
-    @Override
-    public void unregisterExtractorProvider(ScopeClaimsExtractorProvider extractor) {
-        scopeExtractorsProviders.remove(extractor);
-    }
+//    @Override
+//    public void unregisterExtractorProvider(ScopeClaimsExtractorProvider extractor) {
+//        scopeExtractorsProviders.remove(extractor);
+//    }
 
     /*
      * Extractors

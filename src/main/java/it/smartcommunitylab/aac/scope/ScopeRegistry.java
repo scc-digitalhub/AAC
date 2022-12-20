@@ -4,6 +4,8 @@ import java.util.Collection;
 
 import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
+import it.smartcommunitylab.aac.scope.model.ApiResource;
+import it.smartcommunitylab.aac.scope.model.Scope;
 
 /*
  * A registry for scopes
@@ -48,10 +50,10 @@ public interface ScopeRegistry {
     /*
      * Resources as exposed by providers
      */
-    public Resource findResource(String resourceId);
+    public ApiResource findResource(String resourceId);
 
-    public Resource getResource(String resourceId) throws NoSuchResourceException;
+    public ApiResource getResource(String resourceId) throws NoSuchResourceException;
 
-    public Collection<Resource> listResources();
+    public Collection<ApiResource> listResources();
 
 }

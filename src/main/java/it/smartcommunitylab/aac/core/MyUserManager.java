@@ -57,8 +57,8 @@ import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
 import it.smartcommunitylab.aac.profiles.model.BasicProfile;
 import it.smartcommunitylab.aac.profiles.model.EmailProfile;
 import it.smartcommunitylab.aac.profiles.model.OpenIdProfile;
-import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
+import it.smartcommunitylab.aac.scope.model.Scope;
 
 /*
  * Manager for current user

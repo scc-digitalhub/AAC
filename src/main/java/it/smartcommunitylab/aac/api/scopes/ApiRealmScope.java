@@ -1,23 +1,14 @@
 package it.smartcommunitylab.aac.api.scopes;
 
-import java.util.Collections;
-import java.util.Set;
-
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.model.ScopeType;
 
-public class ApiRealmScope extends ApiScope {
+public class ApiRealmScope extends AbstractInternalApiScope {
 
-    public static final String SCOPE = "aac.api.realm";
+    public static final String SCOPE = AACApiResource.RESOURCE_ID + ".realm";
 
-    @Override
-    public String getScope() {
-        return SCOPE;
-    }
-
-    @Override
-    public ScopeType getType() {
-        return ScopeType.GENERIC;
+    public ApiRealmScope(String realm, String resourceId) {
+        super(realm, resourceId, SCOPE);
+        setAuthorities(Config.R_ADMIN);
     }
 
     // TODO replace with keys for i18n
@@ -29,11 +20,6 @@ public class ApiRealmScope extends ApiScope {
     @Override
     public String getDescription() {
         return "Manage realm settings and customization.";
-    }
-
-    @Override
-    public Set<String> getAuthorities() {
-        return Collections.singleton(Config.R_ADMIN);
     }
 
 }

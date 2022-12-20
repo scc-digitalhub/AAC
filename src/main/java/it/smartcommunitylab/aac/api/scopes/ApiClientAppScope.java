@@ -1,25 +1,14 @@
 package it.smartcommunitylab.aac.api.scopes;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.model.ScopeType;
 
-public class ApiClientAppScope extends ApiScope {
+public class ApiClientAppScope extends AbstractInternalApiScope {
 
-    public static final String SCOPE = "aac.api.clientapp";
+    public static final String SCOPE = AACApiResource.RESOURCE_ID + ".clientapp";
 
-    @Override
-    public String getScope() {
-        return SCOPE;
-    }
-
-    @Override
-    public ScopeType getType() {
-        return ScopeType.GENERIC;
+    public ApiClientAppScope(String realm, String resourceId) {
+        super(realm, resourceId, SCOPE);
+        setAuthorities(Config.R_ADMIN, Config.R_DEVELOPER);
     }
 
     // TODO replace with keys for i18n
@@ -31,12 +20,6 @@ public class ApiClientAppScope extends ApiScope {
     @Override
     public String getDescription() {
         return "Manage client applications.";
-    }
-
-    @Override
-    public Set<String> getAuthorities() {
-        return Stream.of(Config.R_ADMIN, Config.R_DEVELOPER)
-                .collect(Collectors.toCollection(HashSet::new));
     }
 
 }

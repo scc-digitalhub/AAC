@@ -21,8 +21,8 @@ import it.smartcommunitylab.aac.core.service.ClientDetailsService;
 import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
-import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeApprover;
+import it.smartcommunitylab.aac.scope.model.Scope;
 
 public class ClientCredentialsTokenGranter extends AbstractTokenGranter {
 

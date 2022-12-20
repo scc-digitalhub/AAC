@@ -2,12 +2,10 @@ package it.smartcommunitylab.aac.scope;
 
 import java.util.Collection;
 
-import org.springframework.security.oauth2.provider.approval.Approval;
-
-import it.smartcommunitylab.aac.common.InvalidDefinitionException;
-import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
+import it.smartcommunitylab.aac.core.provider.ResourceProvider;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.scope.model.ScopeApproval;
 
 /*
  * A scope approver can decide if the requested scope can be obtained by applying any reasoning.
@@ -22,13 +20,12 @@ import it.smartcommunitylab.aac.model.User;
  * but ask the providers for every request.
  */
 
-public interface ScopeApprover {
+public interface ScopeApprover<A extends ScopeApproval> extends ResourceProvider<A> {
 
-    public String getRealm();
+    public String getScope();
 
-    public Approval approveUserScope(String scope, User user, ClientDetails client, Collection<String> scopes)
-            throws InvalidDefinitionException, SystemException;
+    // TODO replace user and client with UserContext, ClientContext
+    public A approve(User user, ClientDetails client, Collection<String> scopes);
 
-    public Approval approveClientScope(String scope, ClientDetails client, Collection<String> scopes)
-            throws InvalidDefinitionException, SystemException;
+    public A approve(ClientDetails client, Collection<String> scopes);
 }

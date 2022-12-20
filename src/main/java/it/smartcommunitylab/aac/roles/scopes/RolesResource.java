@@ -1,14 +1,19 @@
 package it.smartcommunitylab.aac.roles.scopes;
 
-import it.smartcommunitylab.aac.scope.Resource;
+import it.smartcommunitylab.aac.api.scopes.AbstractInternalApiResource;
 
-public class RolesResource extends Resource {
+public class RolesResource extends AbstractInternalApiResource {
 
     public static final String RESOURCE_ID = "aac.roles";
 
-    @Override
-    public String getResourceId() {
-        return RESOURCE_ID;
+    public RolesResource(String realm) {
+        super(realm, RESOURCE_ID);
+
+        // statically register scopes
+        setScopes(
+                new ClientRolesScope(realm),
+                new UserRolesScope(realm),
+                new UserSpacesScope(realm));
     }
 
     // TODO replace with keys for i18n

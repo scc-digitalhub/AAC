@@ -1,13 +1,17 @@
 package it.smartcommunitylab.aac.oauth.scope;
 
-import it.smartcommunitylab.aac.scope.Resource;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.api.scopes.AbstractInternalApiResource;
 
-public class OAuth2DCRResource extends Resource {
-    public static final String RESOURCE_ID = "aac.oauth2";
+public class OAuth2DCRResource extends AbstractInternalApiResource {
 
-    @Override
-    public String getResourceId() {
-        return RESOURCE_ID;
+    public static final String RESOURCE_ID = "oauth2.dcr";
+
+    public OAuth2DCRResource(String realm) {
+        super(SystemKeys.AUTHORITY_OAUTH2, realm, RESOURCE_ID);
+
+        // statically register scopes
+        setScopes(new OAuth2DCRScope(realm));
     }
 
     // TODO replace with keys for i18n

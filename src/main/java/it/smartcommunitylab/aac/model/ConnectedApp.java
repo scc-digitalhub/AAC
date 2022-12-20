@@ -24,7 +24,7 @@ import javax.validation.constraints.NotBlank;
 
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.scope.Scope;
+import it.smartcommunitylab.aac.scope.model.Scope;
 
 /**
  * @author raman

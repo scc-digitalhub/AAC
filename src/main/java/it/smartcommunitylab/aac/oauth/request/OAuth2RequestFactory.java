@@ -46,8 +46,8 @@ import it.smartcommunitylab.aac.oauth.model.ResponseType;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.openid.common.exceptions.InvalidRequestObjectException;
 import it.smartcommunitylab.aac.openid.common.exceptions.UnsupportedRequestUriException;
-import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
+import it.smartcommunitylab.aac.scope.model.Scope;
 
 public class OAuth2RequestFactory
         implements OAuth2TokenRequestFactory, OAuth2AuthorizationRequestFactory,

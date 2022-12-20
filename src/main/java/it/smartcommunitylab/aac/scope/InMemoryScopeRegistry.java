@@ -15,6 +15,8 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
+import it.smartcommunitylab.aac.scope.model.ApiResource;
+import it.smartcommunitylab.aac.scope.model.Scope;
 
 /*
  * In-memory scope registry
@@ -193,7 +195,7 @@ public class InMemoryScopeRegistry implements ScopeRegistry {
     }
 
     @Override
-    public Resource findResource(String resourceId) {
+    public ApiResource findResource(String resourceId) {
         if (providers.containsKey(resourceId)) {
             return providers.get(resourceId).getResource();
         }
@@ -202,8 +204,8 @@ public class InMemoryScopeRegistry implements ScopeRegistry {
     }
 
     @Override
-    public Resource getResource(String resourceId) throws NoSuchResourceException {
-        Resource res = findResource(resourceId);
+    public ApiResource getResource(String resourceId) throws NoSuchResourceException {
+        ApiResource res = findResource(resourceId);
         if (res == null) {
             throw new NoSuchResourceException();
         }
@@ -212,7 +214,7 @@ public class InMemoryScopeRegistry implements ScopeRegistry {
     }
 
     @Override
-    public Collection<Resource> listResources() {
+    public Collection<ApiResource> listResources() {
         return providers.values().stream()
                 .map(p -> p.getResource())
                 .collect(Collectors.toList());

@@ -49,7 +49,7 @@ import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.model.ConnectedApp;
 import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
-import it.smartcommunitylab.aac.scope.Scope;
+import it.smartcommunitylab.aac.scope.model.Scope;
 
 @RestController
 @PreAuthorize("hasAuthority('" + Config.R_USER + "')")

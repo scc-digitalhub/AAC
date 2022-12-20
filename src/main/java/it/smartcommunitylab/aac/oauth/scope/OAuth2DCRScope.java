@@ -1,26 +1,18 @@
 package it.smartcommunitylab.aac.oauth.scope;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.model.ScopeType;
-import it.smartcommunitylab.aac.scope.Scope;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.api.scopes.AbstractInternalApiScope;
 
-public class OAuth2DCRScope extends Scope {
+public class OAuth2DCRScope extends AbstractInternalApiScope {
 
     public static final String SCOPE = Config.SCOPE_DYNAMIC_CLIENT_REGISTRATION;
 
-    @Override
-    public String getResourceId() {
-        return OAuth2DCRResource.RESOURCE_ID;
-    }
+    public OAuth2DCRScope(String realm) {
+        super(SystemKeys.AUTHORITY_OAUTH2, realm, OAuth2DCRResource.RESOURCE_ID, SCOPE);
 
-    @Override
-    public ScopeType getType() {
-        return ScopeType.GENERIC;
-    }
-
-    @Override
-    public String getScope() {
-        return SCOPE;
+        // require developer or admin role
+        setAuthorities(Config.R_ADMIN, Config.R_DEVELOPER);
     }
 
     // TODO replace with keys for i18n

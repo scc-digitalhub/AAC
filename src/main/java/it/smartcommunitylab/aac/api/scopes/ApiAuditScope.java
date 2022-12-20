@@ -1,23 +1,14 @@
 package it.smartcommunitylab.aac.api.scopes;
 
-import java.util.Collections;
-import java.util.Set;
-
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.model.ScopeType;
 
-public class ApiAuditScope extends ApiScope {
+public class ApiAuditScope extends AbstractInternalApiScope {
 
-    public static final String SCOPE = "aac.api.audit";
+    public static final String SCOPE = AACApiResource.RESOURCE_ID + ".audit";
 
-    @Override
-    public String getScope() {
-        return SCOPE;
-    }
-
-    @Override
-    public ScopeType getType() {
-        return ScopeType.GENERIC;
+    public ApiAuditScope(String realm, String resourceId) {
+        super(realm, resourceId, SCOPE);
+        setAuthorities(Config.R_ADMIN);
     }
 
     // TODO replace with keys for i18n
@@ -29,11 +20,6 @@ public class ApiAuditScope extends ApiScope {
     @Override
     public String getDescription() {
         return "Audit log for events. Read access only.";
-    }
-
-    @Override
-    public Set<String> getAuthorities() {
-        return Collections.singleton(Config.R_ADMIN);
     }
 
 }

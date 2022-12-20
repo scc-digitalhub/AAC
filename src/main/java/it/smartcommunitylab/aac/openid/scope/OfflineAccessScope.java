@@ -1,26 +1,18 @@
 package it.smartcommunitylab.aac.openid.scope;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.model.ScopeType;
-import it.smartcommunitylab.aac.scope.Scope;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.api.scopes.AbstractInternalApiScope;
 
-public class OfflineAccessScope extends Scope {
+public class OfflineAccessScope extends AbstractInternalApiScope {
 
     public static final String SCOPE = Config.SCOPE_OFFLINE_ACCESS;
 
-    @Override
-    public String getResourceId() {
-        return OpenIdResource.RESOURCE_ID;
-    }
+    public OfflineAccessScope(String realm) {
+        super(SystemKeys.AUTHORITY_OIDC, realm, OpenIdResource.RESOURCE_ID, SCOPE);
 
-    @Override
-    public ScopeType getType() {
-        return ScopeType.USER;
-    }
-
-    @Override
-    public String getScope() {
-        return SCOPE;
+        // require user
+        this.subjectType = SystemKeys.RESOURCE_USER;
     }
 
     // TODO replace with keys for i18n

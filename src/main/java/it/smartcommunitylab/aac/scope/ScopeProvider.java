@@ -2,6 +2,9 @@ package it.smartcommunitylab.aac.scope;
 
 import java.util.Collection;
 
+import it.smartcommunitylab.aac.scope.model.ApiResource;
+import it.smartcommunitylab.aac.scope.model.Scope;
+
 /*
  * Scope provider defines a set of scopes related to a service/implementation etc.
  * 
@@ -13,7 +16,7 @@ public interface ScopeProvider {
 
     public String getResourceId();
     
-    public Resource getResource();
+    public ApiResource getResource();
 
     public Collection<Scope> getScopes();
 
