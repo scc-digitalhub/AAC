@@ -2,7 +2,7 @@ package it.smartcommunitylab.aac.oauth.scope;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.api.scopes.AbstractInternalApiScope;
+import it.smartcommunitylab.aac.scope.base.AbstractInternalApiScope;
 
 public class OAuth2DCRScope extends AbstractInternalApiScope {
 

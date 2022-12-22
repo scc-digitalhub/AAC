@@ -2,7 +2,7 @@ package it.smartcommunitylab.aac.profiles.scope;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.api.scopes.AbstractInternalApiScope;
+import it.smartcommunitylab.aac.scope.base.AbstractInternalApiScope;
 
 public class OpenIdPhoneScope extends AbstractInternalApiScope {
 

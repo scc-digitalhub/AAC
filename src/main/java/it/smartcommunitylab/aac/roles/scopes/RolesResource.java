@@ -1,13 +1,13 @@
 package it.smartcommunitylab.aac.roles.scopes;
 
-import it.smartcommunitylab.aac.api.scopes.AbstractInternalApiResource;
+import it.smartcommunitylab.aac.scope.base.AbstractInternalApiResource;
 
 public class RolesResource extends AbstractInternalApiResource {
 
     public static final String RESOURCE_ID = "aac.roles";
 
-    public RolesResource(String realm) {
-        super(realm, RESOURCE_ID);
+    public RolesResource(String realm, String baseUrl) {
+        super(realm, baseUrl, RESOURCE_ID);
 
         // statically register scopes
         setScopes(

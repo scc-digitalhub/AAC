@@ -115,10 +115,10 @@ public class ServiceScope extends Scope {
         scope.scope = entity.getScope();
         scope.serviceId = entity.getServiceId();
         scope.resourceId = namespace;
-        scope.audience = Set.of(entity.getServiceId(), namespace);
+//        scope.audience = Set.of(entity.getServiceId(), namespace);
         scope.name = entity.getName();
         scope.description = entity.getDescription();
-        scope.type = entity.getType() != null ? ScopeType.parse(entity.getType()) : ScopeType.GENERIC;
+//        scope.type = entity.getType() != null ? ScopeType.parse(entity.getType()) : ScopeType.GENERIC;
         scope.claims = StringUtils.commaDelimitedListToSet(entity.getClaims());
         scope.approvalRoles = StringUtils.commaDelimitedListToSet(entity.getApprovalRoles());
         scope.approvalSpaceRoles = StringUtils.commaDelimitedListToSet(entity.getApprovalSpaceRoles());

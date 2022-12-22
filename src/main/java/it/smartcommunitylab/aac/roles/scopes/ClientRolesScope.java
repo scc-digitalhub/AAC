@@ -2,7 +2,7 @@ package it.smartcommunitylab.aac.roles.scopes;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.api.scopes.AbstractInternalApiScope;
+import it.smartcommunitylab.aac.scope.base.AbstractInternalApiScope;
 
 public class ClientRolesScope extends AbstractInternalApiScope {
 

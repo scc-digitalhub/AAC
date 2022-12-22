@@ -7,7 +7,6 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractTemplateProvider;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
-import it.smartcommunitylab.aac.profiles.scope.OpenIdUserInfoResource;
 import it.smartcommunitylab.aac.scope.model.ApiResource;
 import it.smartcommunitylab.aac.templates.model.EndSessionTemplate;
 import it.smartcommunitylab.aac.templates.model.FooterTemplate;
@@ -20,17 +19,15 @@ public class TemplateTemplateProvider
         extends
         AbstractTemplateProvider<TemplateModel, TemplateProviderConfigMap, RealmTemplateProviderConfig> {
 
-    private final ApiResource resource;
     private final InternalUserAccount account;
     private final OAuth2ClientDetails clientDetails;
 
     public TemplateTemplateProvider(String providerId,
-            TemplateService templateService, ApiResource oauthResource,
+            TemplateService templateService, ApiResource apiResource,
             RealmTemplateProviderConfig providerConfig, String realm) {
         super(SystemKeys.AUTHORITY_TEMPLATE, providerId, templateService, providerConfig, realm);
-        // TODO mock user from props
-        this.resource = oauthResource != null ? oauthResource : new OpenIdUserInfoResource();
 
+        // TODO mock user from props
         // TODO add mocking user props via config to build templates
         account = new InternalUserAccount();
         account.setRealm(realm);
@@ -56,7 +53,9 @@ public class TemplateTemplateProvider
             TemplateModel m = new UserApprovalTemplate(realm);
             m.setModelAttribute("account", account);
             m.setModelAttribute("client", clientDetails);
-            m.setModelAttribute("resources", resource.getScopes());
+            if (apiResource != null) {
+                m.setModelAttribute("resources", apiResource.getScopes());
+            }
             return m;
         });
         factories.put(FooterTemplate.TEMPLATE, () -> new FooterTemplate(realm));

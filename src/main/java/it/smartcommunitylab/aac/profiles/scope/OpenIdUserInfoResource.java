@@ -1,14 +1,14 @@
 package it.smartcommunitylab.aac.profiles.scope;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.api.scopes.AbstractInternalApiResource;
+import it.smartcommunitylab.aac.scope.base.AbstractInternalApiResource;
 
 public class OpenIdUserInfoResource extends AbstractInternalApiResource {
 
     public static final String RESOURCE_ID = "openid.userinfo";
 
-    public OpenIdUserInfoResource(String realm) {
-        super(SystemKeys.AUTHORITY_OIDC, realm, RESOURCE_ID);
+    public OpenIdUserInfoResource(String realm, String baseUrl) {
+        super(SystemKeys.AUTHORITY_OIDC, realm, baseUrl, RESOURCE_ID);
 
         // statically register scopes
         // TODO evaluate making configurable

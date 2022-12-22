@@ -494,7 +494,8 @@ public class ServicesManager implements InitializingBean {
             throw new DuplicatedDataException("scope");
         }
 
-        ScopeType type = sc.getType() != null ? sc.getType() : ScopeType.GENERIC;
+//        ScopeType type = sc.getType() != null ? sc.getType() : ScopeType.GENERIC;
+        ScopeType type = null;
         Set<String> claims = sc.getClaims();
         Set<String> roles = sc.getApprovalRoles();
         Set<String> spaceRoles = sc.getApprovalSpaceRoles();
@@ -573,7 +574,8 @@ public class ServicesManager implements InitializingBean {
         if (!StringUtils.hasText(name)) {
             name = scope;
         }
-        ScopeType type = sc.getType() != null ? sc.getType() : ScopeType.GENERIC;
+//      ScopeType type = sc.getType() != null ? sc.getType() : ScopeType.GENERIC;
+        ScopeType type = null;
         Set<String> claims = sc.getClaims();
         Set<String> roles = sc.getApprovalRoles();
         Set<String> spaceRoles = sc.getApprovalSpaceRoles();
@@ -918,50 +920,50 @@ public class ServicesManager implements InitializingBean {
     }
 
     private ScopeApprover buildScopeApprover(String realm, String namespace, ServiceScope sc) {
-        String scope = sc.getScope();
-        List<ScopeApprover> approvers = new ArrayList<>();
-        if (StringUtils.hasText(sc.getApprovalFunction())) {
-            ScriptScopeApprover sa = new ScriptScopeApprover(realm, namespace, scope);
-            sa.setExecutionService(executionService);
-            sa.setFunctionCode(sc.getApprovalFunction());
-            approvers.add(sa);
-        }
-
-        if (sc.getApprovalRoles() != null && !sc.getApprovalRoles().isEmpty()) {
-            AuthorityScopeApprover sa = new AuthorityScopeApprover(realm, namespace, scope);
-            sa.setAuthorities(sc.getApprovalRoles());
-            approvers.add(sa);
-        }
-
-        if (sc.getApprovalSpaceRoles() != null && !sc.getApprovalSpaceRoles().isEmpty()) {
-            RoleScopeApprover sa = new RoleScopeApprover(realm, namespace, scope);
-            sa.setRoles(sc.getApprovalSpaceRoles());
-            approvers.add(sa);
-        }
-
-        if (sc.isApprovalRequired()) {
-            StoreScopeApprover sa = new StoreScopeApprover(realm, namespace, scope);
-            sa.setApprovalStore(approvalStore);
-            // we use serviceId as the authorizer authority
-            sa.setUserId(sc.getServiceId());
-            approvers.add(sa);
-        }
-
-        if (approvers.isEmpty()) {
-            // use whitelist, scope is autoapproved
-            return new WhitelistScopeApprover(realm, namespace, scope);
-        }
-
-        if (approvers.size() == 1) {
-            return approvers.get(0);
-        }
-
-        if (sc.isApprovalAny()) {
-            return new DelegateScopeApprover(realm, namespace, scope, approvers);
-        } else {
-            return new CombinedScopeApprover(realm, namespace, scope, approvers);
-        }
-
+//        String scope = sc.getScope();
+//        List<ScopeApprover> approvers = new ArrayList<>();
+//        if (StringUtils.hasText(sc.getApprovalFunction())) {
+//            ScriptScopeApprover sa = new ScriptScopeApprover(realm, namespace, scope);
+//            sa.setExecutionService(executionService);
+//            sa.setFunctionCode(sc.getApprovalFunction());
+//            approvers.add(sa);
+//        }
+//
+//        if (sc.getApprovalRoles() != null && !sc.getApprovalRoles().isEmpty()) {
+//            AuthorityScopeApprover sa = new AuthorityScopeApprover(realm, namespace, scope);
+//            sa.setAuthorities(sc.getApprovalRoles());
+//            approvers.add(sa);
+//        }
+//
+//        if (sc.getApprovalSpaceRoles() != null && !sc.getApprovalSpaceRoles().isEmpty()) {
+//            RoleScopeApprover sa = new RoleScopeApprover(realm, namespace, scope);
+//            sa.setRoles(sc.getApprovalSpaceRoles());
+//            approvers.add(sa);
+//        }
+//
+//        if (sc.isApprovalRequired()) {
+//            StoreScopeApprover sa = new StoreScopeApprover(realm, namespace, scope);
+//            sa.setApprovalStore(approvalStore);
+//            // we use serviceId as the authorizer authority
+//            sa.setUserId(sc.getServiceId());
+//            approvers.add(sa);
+//        }
+//
+//        if (approvers.isEmpty()) {
+//            // use whitelist, scope is autoapproved
+//            return new WhitelistScopeApprover(realm, namespace, scope);
+//        }
+//
+//        if (approvers.size() == 1) {
+//            return approvers.get(0);
+//        }
+//
+//        if (sc.isApprovalAny()) {
+//            return new DelegateScopeApprover(realm, namespace, scope, approvers);
+//        } else {
+//            return new CombinedScopeApprover(realm, namespace, scope, approvers);
+//        }
+        return null;
     }
 
     /**

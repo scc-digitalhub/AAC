@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.api.scopes;
+package it.smartcommunitylab.aac.scope.base;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,7 +12,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.scope.base.AbstractApiScope;
 
 public abstract class AbstractInternalApiScope extends AbstractApiScope {
 
@@ -47,6 +46,16 @@ public abstract class AbstractInternalApiScope extends AbstractApiScope {
         // build id according to schema
         this.id = resourceId + SystemKeys.ID_SEPARATOR + scope;
 
+    }
+
+    @Override
+    public String getId() {
+        return id;
+    }
+
+    @Override
+    public String getScopeId() {
+        return id;
     }
 
     @Override
@@ -88,11 +97,6 @@ public abstract class AbstractInternalApiScope extends AbstractApiScope {
         }
 
         return policy;
-    }
-
-    @Override
-    public String getId() {
-        return id;
     }
 
     protected String buildPolicy() {

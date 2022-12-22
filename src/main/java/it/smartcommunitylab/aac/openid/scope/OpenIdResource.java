@@ -1,14 +1,14 @@
 package it.smartcommunitylab.aac.openid.scope;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.api.scopes.AbstractInternalApiResource;
+import it.smartcommunitylab.aac.scope.base.AbstractInternalApiResource;
 
 public class OpenIdResource extends AbstractInternalApiResource {
 
     public static final String RESOURCE_ID = "openid.oidc";
 
-    public OpenIdResource(String realm) {
-        super(SystemKeys.AUTHORITY_OIDC, realm, RESOURCE_ID);
+    public OpenIdResource(String realm, String baseUrl) {
+        super(SystemKeys.AUTHORITY_OIDC, realm, baseUrl, RESOURCE_ID);
 
         // statically register scopes
         setScopes(

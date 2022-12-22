@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.api.scopes;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.scope.base.AbstractInternalApiScope;
 
 public class ApiUsersScope extends AbstractInternalApiScope {
 

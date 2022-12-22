@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.api.scopes;
+package it.smartcommunitylab.aac.scope.base;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -9,26 +9,28 @@ import java.util.TreeSet;
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.scope.base.AbstractApiResource;
 
 public abstract class AbstractInternalApiResource extends AbstractApiResource {
 
+    private final String uri;
     private final String resourceId;
     private final String id;
 
     private Set<AbstractInternalApiScope> scopes;
 
-    public AbstractInternalApiResource(String realm, String resourceId) {
-        this(SystemKeys.AUTHORITY_INTERNAL, realm, resourceId);
+    public AbstractInternalApiResource(String realm, String uri, String resourceId) {
+        this(SystemKeys.AUTHORITY_INTERNAL, realm, uri, resourceId);
     }
 
-    public AbstractInternalApiResource(String authority, String realm, String resourceId) {
+    public AbstractInternalApiResource(String authority, String realm, String uri, String resourceId) {
         // realm is used to build a unique providerId
         super(authority, resourceId + SystemKeys.URN_SEPARATOR + realm);
         Assert.hasText(realm, "realm can not be null or empty");
+        Assert.hasText(uri, "uri can not be null or empty");
         Assert.hasText(resourceId, "resourceId can not be null or empty");
 
         this.realm = realm;
+        this.uri = uri;
         this.resourceId = resourceId;
 
         // same schema for unique id
@@ -46,6 +48,12 @@ public abstract class AbstractInternalApiResource extends AbstractApiResource {
     public String getApiResourceId() {
         return resourceId;
 
+    }
+
+    @Override
+    public String getResource() {
+        // use URI + id as static schema
+        return uri + SystemKeys.URN_SEPARATOR + id;
     }
 
     @Override

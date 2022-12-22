@@ -29,24 +29,24 @@ public class ServiceScopeProvider implements ScopeProvider {
     }
 
     private void build() {
-        resource = new ApiResource(service.getNamespace());
-        resource.setName(service.getName());
-        resource.setDescription(service.getDescription());
-
-        // add realm to resource
-        resource.setRealm(service.getRealm());
-
-        // build scopes
-        Set<String> audience = new HashSet<>();
-        audience.add(service.getNamespace());
-
-        List<Scope> scopes = service.getScopes().stream()
-                .map(s -> {
-                    s.setAudience(audience);
-                    return s;
-                })
-                .collect(Collectors.toList());
-        resource.setScopes(scopes);
+//        resource = new ApiResource(service.getNamespace());
+//        resource.setName(service.getName());
+//        resource.setDescription(service.getDescription());
+//
+//        // add realm to resource
+//        resource.setRealm(service.getRealm());
+//
+//        // build scopes
+//        Set<String> audience = new HashSet<>();
+//        audience.add(service.getNamespace());
+//
+//        List<Scope> scopes = service.getScopes().stream()
+//                .map(s -> {
+//                    s.setAudience(audience);
+//                    return s;
+//                })
+//                .collect(Collectors.toList());
+//        resource.setScopes(scopes);
     }
 
     @Override

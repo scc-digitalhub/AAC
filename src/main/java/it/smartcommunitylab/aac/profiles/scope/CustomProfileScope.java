@@ -4,7 +4,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.api.scopes.AbstractInternalApiScope;
+import it.smartcommunitylab.aac.scope.base.AbstractInternalApiScope;
 
 public class CustomProfileScope extends AbstractInternalApiScope {
 

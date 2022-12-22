@@ -1,13 +1,13 @@
 package it.smartcommunitylab.aac.groups.scopes;
 
-import it.smartcommunitylab.aac.api.scopes.AbstractInternalApiResource;
+import it.smartcommunitylab.aac.scope.base.AbstractInternalApiResource;
 
 public class GroupsResource extends AbstractInternalApiResource {
 
     public static final String RESOURCE_ID = "aac.groups";
 
-    public GroupsResource(String realm) {
-        super(realm, RESOURCE_ID);
+    public GroupsResource(String realm, String baseUrl) {
+        super(realm, baseUrl, RESOURCE_ID);
 
         // statically register scopes
         setScopes(

@@ -313,9 +313,9 @@ public class ServicesService {
             throw new IllegalArgumentException("invalid scope");
         }
 
-        if (type == null) {
-            type = ScopeType.GENERIC;
-        }
+//        if (type == null) {
+//            type = ScopeType.GENERIC;
+//        }
 
         ServiceEntity service = serviceRepository.findOne(serviceId);
         if (service == null) {
@@ -359,9 +359,9 @@ public class ServicesService {
             String approvalFunction,
             boolean approvalRequired, boolean approvalAny) throws NoSuchServiceException, NoSuchScopeException {
 
-        if (type == null) {
-            type = ScopeType.GENERIC;
-        }
+//        if (type == null) {
+//            type = ScopeType.GENERIC;
+//        }
 
         ServiceScopeEntity se = scopeRepository.findByServiceIdAndScope(serviceId, scope);
         if (se == null) {
