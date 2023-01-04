@@ -45,7 +45,7 @@ import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.crypto.InternalPasswordEncoder;
-import it.smartcommunitylab.aac.password.auth.InternalPasswordChangeOnAccessFilter;
+import it.smartcommunitylab.aac.password.auth.InternalPasswordResetOnAccessFilter;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
 import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProviderConfig;
 
@@ -245,7 +245,7 @@ public class SecurityConfig {
     }
 
     private Filter buildSessionFilters() {
-        InternalPasswordChangeOnAccessFilter passwordChangeFilter = new InternalPasswordChangeOnAccessFilter(
+        InternalPasswordResetOnAccessFilter passwordChangeFilter = new InternalPasswordResetOnAccessFilter(
                 passwordRepository, internalPasswordIdentityProviderConfigRepository);
 
         // build a virtual filter chain as composite filter

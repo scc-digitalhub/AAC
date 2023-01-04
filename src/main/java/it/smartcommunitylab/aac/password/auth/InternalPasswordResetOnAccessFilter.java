@@ -27,6 +27,7 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.Assert;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
@@ -34,7 +35,7 @@ import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
 import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProviderConfig;
 
-public class InternalPasswordChangeOnAccessFilter extends OncePerRequestFilter {
+public class InternalPasswordResetOnAccessFilter extends OncePerRequestFilter {
     static final String SAVED_REQUEST = "INTERNAL_PASSWORD_SAVED_REQUEST";
     static final String[] SKIP_URLS = {
             "/api/**", "/html/**", "/js/**", "/lib/**", "/fonts/**", "/italia/**", "/i18n/**"
@@ -45,13 +46,13 @@ public class InternalPasswordChangeOnAccessFilter extends OncePerRequestFilter {
     private final RequestMatcher changeRequestMatcher = new AntPathRequestMatcher("/changepwd/**");
 
     private RedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
-
     private RequestMatcher requestMatcher;
+    private boolean logoutAfterReset = true;
 
     private final ProviderConfigRepository<InternalPasswordIdentityProviderConfig> registrationRepository;
     private final InternalUserPasswordRepository passwordRepository;
 
-    public InternalPasswordChangeOnAccessFilter(InternalUserPasswordRepository passwordRepository,
+    public InternalPasswordResetOnAccessFilter(InternalUserPasswordRepository passwordRepository,
             ProviderConfigRepository<InternalPasswordIdentityProviderConfig> registrationRepository) {
         Assert.notNull(passwordRepository, "password repository is mandatory");
         Assert.notNull(registrationRepository, "provider registration repository cannot be null");
@@ -86,12 +87,17 @@ public class InternalPasswordChangeOnAccessFilter extends OncePerRequestFilter {
         this.requestMatcher = requestMatcher;
     }
 
+    public void setLogoutAfterReset(boolean logoutAfterReset) {
+        this.logoutAfterReset = logoutAfterReset;
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
         if (requestMatcher.matches(request) && requiresProcessing(request) && !changeRequestMatcher.matches(request)) {
             boolean requireChange = false;
             String targetUrl = null;
+            String realm = null;
 
             logger.trace("process request for {}", request.getRequestURI());
 
@@ -104,70 +110,30 @@ public class InternalPasswordChangeOnAccessFilter extends OncePerRequestFilter {
 
             // check if any token still requires change
             // TODO handle more than one
-            if (!resetTokens.isEmpty()) {
-                ResetKeyAuthenticationToken token = resetTokens.iterator().next();
-                InternalUserAccount account = token.getAccount();
-                String providerId = account.getProvider();
-                String username = account.getUsername();
+            ResetKeyAuthenticationToken token = resetTokens.iterator().next();
+            InternalUserAccount account = token.getAccount();
+            String providerId = account.getProvider();
+            String username = account.getUsername();
+            realm = account.getRealm();
 
-                // pick provider config to resolve repositoryId
-                // TODO remove and include repositoryId in credentials embedded in auth token
-                InternalPasswordIdentityProviderConfig providerConfig = registrationRepository
-                        .findByProviderId(providerId);
-                if (providerConfig == null) {
-                    this.logger.error("Error fetching configuration for active provider");
-                    return;
-                }
-
-                String repositoryId = providerConfig.getRepositoryId();
-
-                // check if account has an active password
-                InternalUserPassword pass = passwordRepository
-                        .findByProviderAndUsernameAndStatusOrderByCreateDateDesc(repositoryId, username, "active");
-                if (pass == null) {
-                    // require change because we still lack a valid password for post-reset login
-                    targetUrl = "/changepwd/" + providerId + "/" + account.getUuid();
-                    requireChange = true;
-                }
+            // pick provider config to resolve repositoryId
+            // TODO remove and include repositoryId in credentials embedded in auth token
+            InternalPasswordIdentityProviderConfig providerConfig = registrationRepository
+                    .findByProviderId(providerId);
+            if (providerConfig == null) {
+                this.logger.error("Error fetching configuration for active provider");
+                return;
             }
 
-            // extract password tokens
-            Set<UsernamePasswordAuthenticationToken> passwordTokens = userAuth.getAuthentications().stream()
-                    .filter(e -> UsernamePasswordAuthenticationToken.class.isInstance(e.getToken()))
-                    .map(e -> (UsernamePasswordAuthenticationToken) e.getToken())
-                    .collect(Collectors.toSet());
+            String repositoryId = providerConfig.getRepositoryId();
 
-            // check if any still requires change
-            // TODO handle more than one
-            if (!passwordTokens.isEmpty()) {
-                UsernamePasswordAuthenticationToken token = passwordTokens.iterator().next();
-                InternalUserAccount account = token.getAccount();
-                String providerId = account.getProvider();
-                String username = account.getUsername();
-
-                // pick provider config to resolve repositoryId
-                // TODO remove and include repositoryId in credentials embedded in auth token
-                InternalPasswordIdentityProviderConfig providerConfig = registrationRepository
-                        .findByProviderId(providerId);
-                if (providerConfig == null) {
-                    this.logger.error("Error fetching configuration for active provider");
-                    return;
-                }
-
-                String repositoryId = providerConfig.getRepositoryId();
-
-                // check if account has an active password
-                InternalUserPassword pass = passwordRepository
-                        .findByProviderAndUsernameAndStatusOrderByCreateDateDesc(repositoryId, username, "active");
-                if (pass == null) {
-                    // error, ignore here
-                } else {
-                    if (pass.isChangeOnFirstAccess()) {
-                        // require change because is set on password
-                        targetUrl = "/changepwd/" + providerId + "/" + account.getUuid();
-                        requireChange = true;
-                    }
-                }
+            // check if account has an active password
+            InternalUserPassword pass = passwordRepository
+                    .findByProviderAndUsernameAndStatusOrderByCreateDateDesc(repositoryId, username, "active");
+            if (pass == null) {
+                // require change because we still lack a valid password for post-reset login
+                targetUrl = "/changepwd/" + providerId + "/" + account.getUuid();
+                requireChange = true;
             }
 
             if (requireChange && targetUrl != null) {
@@ -184,6 +150,17 @@ public class InternalPasswordChangeOnAccessFilter extends OncePerRequestFilter {
                 this.redirectStrategy.sendRedirect(request, response, targetUrl);
                 return;
             } else {
+                // check if logout is set
+                if (logoutAfterReset) {
+                    // clear context - will force login
+                    this.logger.debug("logout user after reset");
+                    SecurityContextHolder.clearContext();
+
+                    // add user realm as attribute for login handler
+                    // TODO set and read from session because 302 will break the request
+                    request.setAttribute(RealmAwareAuthenticationEntryPoint.REALM_URI_VARIABLE_NAME, realm);
+                }
+
                 // check if we need to restore a request
                 SavedRequest savedRequest = this.requestCache.getRequest(request, response);
 
@@ -208,10 +185,14 @@ public class InternalPasswordChangeOnAccessFilter extends OncePerRequestFilter {
             return false;
         }
 
-        // process only if there is a reset key or password token in context
+        // process only if there is a reset key
         return ((UserAuthentication) auth).getAuthentications().stream()
-                .anyMatch(e -> ResetKeyAuthenticationToken.class.isInstance(e.getToken())
-                        || UsernamePasswordAuthenticationToken.class.isInstance(e.getToken()));
+                .anyMatch(e -> ResetKeyAuthenticationToken.class.isInstance(e.getToken()));
+
+//        // process only if there is a reset key or password token in context
+//        return ((UserAuthentication) auth).getAuthentications().stream()
+//                .anyMatch(e -> ResetKeyAuthenticationToken.class.isInstance(e.getToken())
+//                        || UsernamePasswordAuthenticationToken.class.isInstance(e.getToken()));
     }
 
 }
