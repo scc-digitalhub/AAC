@@ -32,6 +32,7 @@ import it.smartcommunitylab.aac.dto.UserEmail;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
+import it.smartcommunitylab.aac.password.auth.ResetKeyAuthenticationToken;
 import it.smartcommunitylab.aac.password.PasswordCredentialsAuthority;
 import it.smartcommunitylab.aac.password.model.InternalEditableUserPassword;
 import it.smartcommunitylab.aac.password.model.PasswordPolicy;
@@ -107,10 +108,10 @@ public class PasswordCredentialsController {
         model.addAttribute("accountUrl", "/account");
         model.addAttribute("changeUrl", "/changepwd/" + providerId + "/" + uuid);
 
-        String code = (String) request.getSession().getAttribute("resetCode");
-        if (code != null) {
-            model.addAttribute("resetCode", code);
-        }
+        // check if session is reset code originated
+        boolean resetCode = authHelper.getUserAuthentication().getAuthentications().stream()
+                .anyMatch(e -> ResetKeyAuthenticationToken.class.isInstance(e.getToken()));
+        model.addAttribute("resetCode", resetCode);
 
         // load realm props
         String realm = user.getRealm();
@@ -118,6 +119,7 @@ public class PasswordCredentialsController {
         model.addAttribute("displayName", realm);
 
         return "password/changepwd";
+
     }
 
     @PostMapping("/changepwd/{providerId}/{uuid}")
@@ -135,6 +137,11 @@ public class PasswordCredentialsController {
             if (user == null) {
                 throw new InsufficientAuthenticationException("error.unauthenticated_user");
             }
+
+            // check if session is reset code originated
+            boolean resetCode = authHelper.getUserAuthentication().getAuthentications().stream()
+                    .anyMatch(e -> ResetKeyAuthenticationToken.class.isInstance(e.getToken()));
+            model.addAttribute("resetCode", resetCode);
 
             // fetch internal identities
             Set<UserIdentity> identities = user.getIdentities().stream()
@@ -183,8 +190,8 @@ public class PasswordCredentialsController {
                 return "password/changepwd";
             }
 
-            if (request.getSession().getAttribute("resetCode") == null) {
-                // check curPassword is valid
+            if (!resetCode) {
+                // check curPassword match
                 String curPassword = reg.getCurPassword();
                 if (!service.verifyPassword(username, curPassword)) {
                     throw new RegistrationException("wrong_password");
@@ -209,9 +216,6 @@ public class PasswordCredentialsController {
 
             // update
             service.setPassword(username, password, false);
-
-            // cleanup on success
-            request.getSession().removeAttribute("resetCode");
 
             return "password/changepwd_success";
         } catch (RegistrationException e) {
