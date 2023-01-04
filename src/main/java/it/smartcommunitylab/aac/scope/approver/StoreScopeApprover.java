@@ -12,9 +12,9 @@ import it.smartcommunitylab.aac.oauth.store.SearchableApprovalStore;
 import it.smartcommunitylab.aac.scope.base.AbstractScopeApprover;
 import it.smartcommunitylab.aac.scope.model.ApiScope;
 import it.smartcommunitylab.aac.scope.model.ApprovalStatus;
-import it.smartcommunitylab.aac.scope.model.LimitedScopeApproval;
+import it.smartcommunitylab.aac.scope.model.LimitedApiScopeApproval;
 
-public class StoreScopeApprover<S extends ApiScope> extends AbstractScopeApprover<S, LimitedScopeApproval> {
+public class StoreScopeApprover<S extends ApiScope> extends AbstractScopeApprover<S, LimitedApiScopeApproval> {
 
     public static final int DEFAULT_DURATION_S = 3600; // 1h
 
@@ -38,7 +38,7 @@ public class StoreScopeApprover<S extends ApiScope> extends AbstractScopeApprove
     }
 
     @Override
-    public LimitedScopeApproval approve(User user, ClientDetails client, Collection<String> scopes) {
+    public LimitedApiScopeApproval approve(User user, ClientDetails client, Collection<String> scopes) {
         if (scopes == null || scopes.isEmpty() || !scopes.contains(scope.getScope())) {
             return null;
         }
@@ -68,13 +68,13 @@ public class StoreScopeApprover<S extends ApiScope> extends AbstractScopeApprove
 
         ApprovalStatus approvalStatus = approval.isApproved() ? ApprovalStatus.APPROVED : ApprovalStatus.DENIED;
 
-        return new LimitedScopeApproval(scope.getApiResourceId(), scope.getScope(),
+        return new LimitedApiScopeApproval(scope.getApiResourceId(), scope.getScope(),
                 user.getSubjectId(), client.getClientId(),
                 expiresIn, approvalStatus);
     }
 
     @Override
-    public LimitedScopeApproval approve(ClientDetails client, Collection<String> scopes) {
+    public LimitedApiScopeApproval approve(ClientDetails client, Collection<String> scopes) {
         if (scopes == null || scopes.isEmpty() || !scopes.contains(scope.getScope())) {
             return null;
         }
@@ -104,7 +104,7 @@ public class StoreScopeApprover<S extends ApiScope> extends AbstractScopeApprove
 
         ApprovalStatus approvalStatus = approval.isApproved() ? ApprovalStatus.APPROVED : ApprovalStatus.DENIED;
 
-        return new LimitedScopeApproval(scope.getApiResourceId(), scope.getScope(),
+        return new LimitedApiScopeApproval(scope.getApiResourceId(), scope.getScope(),
                 client.getClientId(), client.getClientId(),
                 expiresIn, approvalStatus);
     }

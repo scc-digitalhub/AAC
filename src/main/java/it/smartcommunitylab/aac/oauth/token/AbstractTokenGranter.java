@@ -66,7 +66,8 @@ public abstract class AbstractTokenGranter implements TokenGranter {
         OAuth2Authentication authentication = getOAuth2Authentication(client, tokenRequest);
 
         // validate scopes, checks approval if required
-        validateScope(tokenRequest.getScope(), authentication);
+        // DISABLED, we expect the request to be already valid here
+//        validateScope(tokenRequest.getScope(), authentication);
 
         // get token via granter
         OAuth2AccessToken accessToken = getAccessToken(client, tokenRequest, authentication);
@@ -108,9 +109,9 @@ public abstract class AbstractTokenGranter implements TokenGranter {
         }
     }
 
-    protected void validateScope(Set<String> scope, OAuth2Authentication authentication) {
-
-    }
+//    protected void validateScope(Set<String> scope, OAuth2Authentication authentication) {
+//
+//    }
 
     protected AuthorizationServerTokenServices getTokenServices() {
         return tokenServices;

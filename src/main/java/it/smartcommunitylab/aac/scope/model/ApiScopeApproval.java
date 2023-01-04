@@ -4,7 +4,7 @@ import org.springframework.security.oauth2.provider.approval.Approval;
 
 import it.smartcommunitylab.aac.core.model.Resource;
 
-public interface ScopeApproval extends Resource {
+public interface ApiScopeApproval extends Resource {
 
     public String getScope();
 

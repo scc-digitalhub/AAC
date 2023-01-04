@@ -7,12 +7,12 @@ import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.scope.base.AbstractScopeApprover;
 import it.smartcommunitylab.aac.scope.model.ApiScope;
 import it.smartcommunitylab.aac.scope.model.ApprovalStatus;
-import it.smartcommunitylab.aac.scope.model.LimitedScopeApproval;
+import it.smartcommunitylab.aac.scope.model.LimitedApiScopeApproval;
 
 /*
  * An approver which will always return a positive result (no approval required)
  */
-public class WhitelistScopeApprover<S extends ApiScope> extends AbstractScopeApprover<S, LimitedScopeApproval> {
+public class WhitelistScopeApprover<S extends ApiScope> extends AbstractScopeApprover<S, LimitedApiScopeApproval> {
 
     public static final int DEFAULT_DURATION_S = 21600; // 6h
 
@@ -28,23 +28,23 @@ public class WhitelistScopeApprover<S extends ApiScope> extends AbstractScopeApp
     }
 
     @Override
-    public LimitedScopeApproval approve(User user, ClientDetails client, Collection<String> scopes) {
+    public LimitedApiScopeApproval approve(User user, ClientDetails client, Collection<String> scopes) {
         if (scopes == null || scopes.isEmpty() || !scopes.contains(scope.getScope())) {
             return null;
         }
 
-        return new LimitedScopeApproval(scope.getApiResourceId(), scope.getScope(),
+        return new LimitedApiScopeApproval(scope.getApiResourceId(), scope.getScope(),
                 user.getSubjectId(), client.getClientId(),
                 duration, ApprovalStatus.APPROVED);
     }
 
     @Override
-    public LimitedScopeApproval approve(ClientDetails client, Collection<String> scopes) {
+    public LimitedApiScopeApproval approve(ClientDetails client, Collection<String> scopes) {
         if (scopes == null || scopes.isEmpty() || !scopes.contains(scope.getScope())) {
             return null;
         }
 
-        return new LimitedScopeApproval(scope.getApiResourceId(), scope.getScope(),
+        return new LimitedApiScopeApproval(scope.getApiResourceId(), scope.getScope(),
                 client.getClientId(), client.getClientId(),
                 duration, ApprovalStatus.APPROVED);
     }

@@ -7,8 +7,8 @@ public class ApiAuditScope extends AbstractInternalApiScope {
 
     public static final String SCOPE = AACApiResource.RESOURCE_ID + ".audit";
 
-    public ApiAuditScope(String realm, String resourceId) {
-        super(realm, resourceId, SCOPE);
+    public ApiAuditScope(String realm) {
+        super(realm, AACApiResource.RESOURCE_ID, SCOPE);
         setAuthorities(Config.R_ADMIN);
     }
 

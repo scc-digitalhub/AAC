@@ -10,11 +10,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
 import org.springframework.security.oauth2.common.exceptions.OAuth2AccessDeniedException;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
-import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.security.oauth2.provider.approval.UserApprovalHandler;
 import org.springframework.util.Assert;
 
-import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.SystemException;
@@ -23,11 +21,12 @@ import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.service.ClientDetailsService;
 import it.smartcommunitylab.aac.core.service.UserService;
-import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.scope.ScopeApprover;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
-import it.smartcommunitylab.aac.scope.model.Scope;
+import it.smartcommunitylab.aac.scope.model.ApiScope;
+import it.smartcommunitylab.aac.scope.model.ApiScopeApproval;
+import it.smartcommunitylab.aac.scope.model.ApiScopeProvider;
 
 public class ScopeApprovalHandler implements UserApprovalHandler {
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -61,6 +60,9 @@ public class ScopeApprovalHandler implements UserApprovalHandler {
             Set<String> scopes = authorizationRequest.getScope();
             ClientDetails clientDetails = clientService.loadClient(authorizationRequest.getClientId());
             UserDetails userDetails = null;
+            // get realm from client
+            // TODO look in request when possible
+            String realm = clientDetails.getRealm();
 
             // check if userAuth is present
             if (userAuth != null && userAuth instanceof UserAuthentication) {
@@ -73,30 +75,21 @@ public class ScopeApprovalHandler implements UserApprovalHandler {
 
             for (String s : scopes) {
                 try {
-                    Scope scope = scopeRegistry.getScope(s);
-                    ScopeApprover sa = scopeRegistry.getScopeApprover(s);
+                    // TODO refactor with OAuth2 Scope representation
+                    ApiScope scope = scopeRegistry.resolveScope(realm, s);
+                    ApiScopeProvider<?> sp = scopeRegistry.getScopeProvider(realm, scope.getScopeId());
+                    ScopeApprover<? extends ApiScopeApproval> sa = sp.getScopeApprover(s);
                     if (sa == null) {
                         // this scope is undecided so skip
                         continue;
                     }
 
-                    Approval approval = null;
-                    if (ScopeType.CLIENT == scope.getType()) {
-                        approval = sa.approveClientScope(s, clientDetails, scopes);
-                    }
-                    if (ScopeType.USER == scope.getType() && userDetails != null) {
-                        approval = sa.approveUserScope(s,
-                                translateUser(userDetails, sa.getRealm()), clientDetails,
-                                scopes);
-                    }
-                    if (ScopeType.GENERIC == scope.getType()) {
-                        if (userDetails != null) {
-                            approval = sa.approveUserScope(s,
-                                    translateUser(userDetails, sa.getRealm()),
-                                    clientDetails, scopes);
-                        } else {
-                            approval = sa.approveClientScope(s, clientDetails, scopes);
-                        }
+                    ApiScopeApproval approval = null;
+                    if (userDetails != null) {
+                        approval = sa.approve(translateUser(userDetails, sa.getRealm()), clientDetails, scopes);
+
+                    } else {
+                        approval = sa.approve(clientDetails, scopes);
                     }
 
                     if (approval != null) {
@@ -108,7 +101,7 @@ public class ScopeApprovalHandler implements UserApprovalHandler {
                         }
                     }
 
-                } catch (NoSuchScopeException | SystemException | InvalidDefinitionException e) {
+                } catch (NoSuchScopeException | SystemException e) {
                     // ignore
                 }
 

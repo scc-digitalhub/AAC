@@ -66,8 +66,6 @@ import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
 import it.smartcommunitylab.aac.saml.service.SamlUserAccountService;
-import it.smartcommunitylab.aac.scope.InMemoryScopeRegistry;
-import it.smartcommunitylab.aac.scope.ScopeProvider;
 import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfig;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredentialsRepository;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsServiceConfig;
@@ -226,11 +224,6 @@ public class PersistenceConfig {
     @Bean
     public AutoJdbcAttributeStore attributeStore() {
         return new AutoJdbcAttributeStore(dataSource);
-    }
-
-    @Bean(name = "scopeRegistry")
-    public InMemoryScopeRegistry scopeRegistry(Collection<ScopeProvider> scopeProviders) {
-        return new InMemoryScopeRegistry(scopeProviders);
     }
 
     @Bean(name = "extractorsRegistry")

@@ -11,8 +11,8 @@ import it.smartcommunitylab.aac.scope.ScopeApprover;
 import it.smartcommunitylab.aac.scope.base.AbstractScopeApprover;
 import it.smartcommunitylab.aac.scope.model.ApiScope;
 import it.smartcommunitylab.aac.scope.model.ApprovalStatus;
-import it.smartcommunitylab.aac.scope.model.LimitedScopeApproval;
-import it.smartcommunitylab.aac.scope.model.ScopeApproval;
+import it.smartcommunitylab.aac.scope.model.LimitedApiScopeApproval;
+import it.smartcommunitylab.aac.scope.model.ApiScopeApproval;
 
 /*
  * A scope approver which requires consensus between all approvers.
@@ -20,29 +20,29 @@ import it.smartcommunitylab.aac.scope.model.ScopeApproval;
  * Do note that a single MISS or DENY will suffice for negative responses.
  */
 
-public class CombinedScopeApprover<S extends ApiScope> extends AbstractScopeApprover<S, ScopeApproval> {
+public class CombinedScopeApprover<S extends ApiScope> extends AbstractScopeApprover<S, ApiScopeApproval> {
     public static final int DEFAULT_DURATION_S = 3600; // 1h
     public static final int MIN_DURATION_S = 30; // 30s
 
-    private List<ScopeApprover<? extends ScopeApproval>> approvers;
+    private List<ScopeApprover<? extends ApiScopeApproval>> approvers;
 
-    public CombinedScopeApprover(S scope, List<ScopeApprover<? extends ScopeApproval>> approvers) {
+    public CombinedScopeApprover(S scope, List<ScopeApprover<? extends ApiScopeApproval>> approvers) {
         super(scope);
 
         setApprovers(approvers);
     }
 
     @SafeVarargs
-    public CombinedScopeApprover(S scope, ScopeApprover<? extends ScopeApproval>... approvers) {
+    public CombinedScopeApprover(S scope, ScopeApprover<? extends ApiScopeApproval>... approvers) {
         this(scope, Arrays.asList(approvers));
     }
 
-    public void setApprovers(List<ScopeApprover<? extends ScopeApproval>> approvers) {
+    public void setApprovers(List<ScopeApprover<? extends ApiScopeApproval>> approvers) {
         this.approvers = Collections.unmodifiableList(approvers);
     }
 
     @Override
-    public ScopeApproval approve(User user, ClientDetails client, Collection<String> scopes) {
+    public ApiScopeApproval approve(User user, ClientDetails client, Collection<String> scopes) {
         if (scopes == null || scopes.isEmpty() || !scopes.contains(scope.getScope())) {
             return null;
         }
@@ -50,12 +50,12 @@ public class CombinedScopeApprover<S extends ApiScope> extends AbstractScopeAppr
         int duration = DEFAULT_DURATION_S;
 
         // get consensus for approve, or a single miss/deny
-        for (ScopeApprover<? extends ScopeApproval> approver : approvers) {
-            ScopeApproval appr = approver.approve(user, client, scopes);
+        for (ScopeApprover<? extends ApiScopeApproval> approver : approvers) {
+            ApiScopeApproval appr = approver.approve(user, client, scopes);
 
             if (appr == null) {
                 // lack of an approval is final
-                return new LimitedScopeApproval(scope.getApiResourceId(), scope.getScope(),
+                return new LimitedApiScopeApproval(scope.getApiResourceId(), scope.getScope(),
                         user.getSubjectId(), client.getClientId(),
                         MIN_DURATION_S, ApprovalStatus.DENIED);
             }
@@ -73,13 +73,13 @@ public class CombinedScopeApprover<S extends ApiScope> extends AbstractScopeAppr
         }
 
         // consensus from all approvers, build approval
-        return new LimitedScopeApproval(scope.getApiResourceId(), scope.getScope(),
+        return new LimitedApiScopeApproval(scope.getApiResourceId(), scope.getScope(),
                 user.getSubjectId(), client.getClientId(),
                 duration, ApprovalStatus.APPROVED);
     }
 
     @Override
-    public ScopeApproval approve(ClientDetails client, Collection<String> scopes) {
+    public ApiScopeApproval approve(ClientDetails client, Collection<String> scopes) {
         if (scopes == null || scopes.isEmpty() || !scopes.contains(scope.getScope())) {
             return null;
         }
@@ -87,12 +87,12 @@ public class CombinedScopeApprover<S extends ApiScope> extends AbstractScopeAppr
         int duration = DEFAULT_DURATION_S;
 
         // get consensus for approve, or a single miss/deny
-        for (ScopeApprover<? extends ScopeApproval> approver : approvers) {
-            ScopeApproval appr = approver.approve(client, scopes);
+        for (ScopeApprover<? extends ApiScopeApproval> approver : approvers) {
+            ApiScopeApproval appr = approver.approve(client, scopes);
 
             if (appr == null) {
                 // lack of an approval is final
-                return new LimitedScopeApproval(scope.getApiResourceId(), scope.getScope(),
+                return new LimitedApiScopeApproval(scope.getApiResourceId(), scope.getScope(),
                         client.getClientId(), client.getClientId(),
                         MIN_DURATION_S, ApprovalStatus.DENIED);
             }
@@ -110,7 +110,7 @@ public class CombinedScopeApprover<S extends ApiScope> extends AbstractScopeAppr
         }
 
         // consensus from all approvers, build approval
-        return new LimitedScopeApproval(scope.getApiResourceId(), scope.getScope(),
+        return new LimitedApiScopeApproval(scope.getApiResourceId(), scope.getScope(),
                 client.getClientId(), client.getClientId(),
                 duration, ApprovalStatus.APPROVED);
     }

@@ -7,7 +7,7 @@ import java.util.List;
 
 import javax.validation.constraints.NotBlank;
 
-import it.smartcommunitylab.aac.scope.model.Scope;
+import it.smartcommunitylab.aac.scope.model.ApiScope;
 
 public class ConnectedDevice {
 
@@ -25,14 +25,14 @@ public class ConnectedDevice {
     private String appName;
     private String appDescription;
 
-    private List<Scope> scopes;
+    private List<ApiScope> scopes;
 
     private Date expiration;
 
     public ConnectedDevice() {
     }
 
-    public ConnectedDevice(String subjectId, String clientId, String realm, Collection<Scope> scopes) {
+    public ConnectedDevice(String subjectId, String clientId, String realm, Collection<ApiScope> scopes) {
         this.subjectId = subjectId;
         this.clientId = clientId;
         this.realm = realm;
@@ -89,11 +89,11 @@ public class ConnectedDevice {
         this.appDescription = appDescription;
     }
 
-    public List<Scope> getScopes() {
+    public List<ApiScope> getScopes() {
         return scopes;
     }
 
-    public void setScopes(List<Scope> scopes) {
+    public void setScopes(List<ApiScope> scopes) {
         this.scopes = scopes;
     }
 

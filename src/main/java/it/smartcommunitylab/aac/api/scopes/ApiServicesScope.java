@@ -7,8 +7,8 @@ public class ApiServicesScope extends AbstractInternalApiScope {
 
     public static final String SCOPE = AACApiResource.RESOURCE_ID + ".services";
 
-    public ApiServicesScope(String realm, String resourceId) {
-        super(realm, resourceId, SCOPE);
+    public ApiServicesScope(String realm) {
+        super(realm, AACApiResource.RESOURCE_ID, SCOPE);
         setAuthorities(Config.R_ADMIN, Config.R_DEVELOPER);
     }
 

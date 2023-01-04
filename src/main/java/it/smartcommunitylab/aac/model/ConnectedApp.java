@@ -24,7 +24,7 @@ import javax.validation.constraints.NotBlank;
 
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.scope.model.Scope;
+import it.smartcommunitylab.aac.scope.model.ApiScope;
 
 /**
  * @author raman
@@ -46,13 +46,13 @@ public class ConnectedApp {
     private String appName;
     private String appDescription;
 
-    private List<Scope> scopes;
+    private List<ApiScope> scopes;
 
     public ConnectedApp() {
 
     }
 
-    public ConnectedApp(String subjectId, String clientId, String realm, Collection<Scope> scopes) {
+    public ConnectedApp(String subjectId, String clientId, String realm, Collection<ApiScope> scopes) {
         this.subjectId = subjectId;
         this.clientId = clientId;
         this.realm = realm;
@@ -113,11 +113,11 @@ public class ConnectedApp {
         this.appDescription = appDescription;
     }
 
-    public List<Scope> getScopes() {
+    public List<ApiScope> getScopes() {
         return scopes;
     }
 
-    public void setScopes(List<Scope> scopes) {
+    public void setScopes(List<ApiScope> scopes) {
         this.scopes = scopes;
     }
 

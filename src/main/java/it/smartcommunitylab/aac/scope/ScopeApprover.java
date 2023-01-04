@@ -5,7 +5,7 @@ import java.util.Collection;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.provider.ResourceProvider;
 import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.scope.model.ScopeApproval;
+import it.smartcommunitylab.aac.scope.model.ApiScopeApproval;
 
 /*
  * A scope approver can decide if the requested scope can be obtained by applying any reasoning.
@@ -20,7 +20,7 @@ import it.smartcommunitylab.aac.scope.model.ScopeApproval;
  * but ask the providers for every request.
  */
 
-public interface ScopeApprover<A extends ScopeApproval> extends ResourceProvider<A> {
+public interface ScopeApprover<A extends ApiScopeApproval> extends ResourceProvider<A> {
 
     public String getScope();
 

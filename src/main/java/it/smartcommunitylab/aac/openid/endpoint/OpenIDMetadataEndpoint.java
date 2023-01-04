@@ -93,9 +93,9 @@ public class OpenIDMetadataEndpoint {
     public OpenIDMetadataEndpoint() {
         // define as system resources
         List<ApiResource> resources = new ArrayList<>();
-        resources.add(new OpenIdResource(SystemKeys.REALM_SYSTEM));
-        resources.add(new OpenIdUserInfoResource(SystemKeys.REALM_SYSTEM));
-        resources.add(new OAuth2DCRResource(SystemKeys.REALM_SYSTEM));
+        resources.add(new OpenIdResource(SystemKeys.REALM_SYSTEM, applicationURL));
+        resources.add(new OpenIdUserInfoResource(SystemKeys.REALM_SYSTEM, applicationURL));
+        resources.add(new OAuth2DCRResource(SystemKeys.REALM_SYSTEM, applicationURL));
 
         // build scopes list
         this.scopes = resources.stream()

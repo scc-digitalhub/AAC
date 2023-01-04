@@ -11,14 +11,14 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import it.smartcommunitylab.aac.scope.base.AbstractScopeApproval;
 
-public class LimitedScopeApproval extends AbstractScopeApproval {
+public class LimitedApiScopeApproval extends AbstractScopeApproval {
 
     private ApprovalStatus status;
     private String id;
     private Date expiresAt;
     private Date createdAt;
 
-    public LimitedScopeApproval(String resourceId, String scope, String subject, String client, int expiresIn) {
+    public LimitedApiScopeApproval(String resourceId, String scope, String subject, String client, int expiresIn) {
         super(resourceId, scope, subject, client);
 
         // generate a random unique id, this is not persisted but transient
@@ -33,7 +33,7 @@ public class LimitedScopeApproval extends AbstractScopeApproval {
         }
     }
 
-    public LimitedScopeApproval(String resourceId, String scope, String subject, String client, int expiresIn,
+    public LimitedApiScopeApproval(String resourceId, String scope, String subject, String client, int expiresIn,
             ApprovalStatus status) {
         this(resourceId, scope, subject, client, expiresIn);
         Assert.notNull(status, "status can not be null");

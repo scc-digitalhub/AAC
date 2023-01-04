@@ -17,7 +17,6 @@ package it.smartcommunitylab.aac.config;
 
 import java.util.HashMap;
 import org.springdoc.core.GroupedOpenApi;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -34,9 +33,11 @@ import io.swagger.v3.oas.models.security.OAuthFlows;
 import io.swagger.v3.oas.models.security.Scopes;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.api.ApiOperationCustomizer;
-import it.smartcommunitylab.aac.api.scopes.AdminScopeProvider;
-import it.smartcommunitylab.aac.api.scopes.ApiScopeProvider;
+import it.smartcommunitylab.aac.api.scopes.AACApiResource;
+import it.smartcommunitylab.aac.api.scopes.AdminApiResource;
+import it.smartcommunitylab.aac.oauth.scope.OAuth2DCRResource;
 
 /*
  * OpenAPI config is last
@@ -50,13 +51,7 @@ public class OpenAPIConfig {
 //    private OpenAPIConf conf;
 
     @Value("${application.url}")
-    private String AUTH_SERVER;
-
-    @Autowired
-    private ApiScopeProvider apiScopeProvider;
-
-    @Autowired
-    private AdminScopeProvider adminScopeProvider;
+    private String applicationUrl;
 
 //
 //    @Autowired
@@ -92,11 +87,11 @@ public class OpenAPIConfig {
                                         .type(SecurityScheme.Type.OAUTH2)
                                         .flows(new OAuthFlows()
                                                 .authorizationCode(
-                                                        new OAuthFlow().tokenUrl(AUTH_SERVER + "/oauth/token")
-                                                                .authorizationUrl(AUTH_SERVER + "/oauth/authorize")
+                                                        new OAuthFlow().tokenUrl(applicationUrl + "/oauth/token")
+                                                                .authorizationUrl(applicationUrl + "/oauth/authorize")
                                                                 .scopes(apiScopes()))
                                                 .clientCredentials(
-                                                        new OAuthFlow().tokenUrl(AUTH_SERVER + "/oauth/token")
+                                                        new OAuthFlow().tokenUrl(applicationUrl + "/oauth/token")
                                                                 .scopes(apiScopes()))
 
                                         ))
@@ -104,17 +99,25 @@ public class OpenAPIConfig {
                                 new SecurityScheme().type(SecurityScheme.Type.OPENIDCONNECT)
                                         .scheme("bearer")
                                         .openIdConnectUrl(
-                                                AUTH_SERVER + "/.well-known/openid-configuration")));
+                                                applicationUrl + "/.well-known/openid-configuration")));
     }
 
     private Scopes apiScopes() {
         Scopes scopes = new Scopes();
 
+        // TODO scan tag to define scopes
+        AdminApiResource adminResource = new AdminApiResource(SystemKeys.REALM_SYSTEM, applicationUrl);
+        AACApiResource aacResource = new AACApiResource(SystemKeys.REALM_SYSTEM, applicationUrl);
+        OAuth2DCRResource oauth2DCRResource = new OAuth2DCRResource(SystemKeys.REALM_SYSTEM, applicationUrl);
+
         // add admin scopes
-        adminScopeProvider.getScopes().forEach(s -> scopes.addString(s.getScope(), s.getDescription()));
+        adminResource.getScopes().forEach(s -> scopes.addString(s.getScope(), s.getDescription()));
 
         // add user scopes
-        apiScopeProvider.getScopes().forEach(s -> scopes.addString(s.getScope(), s.getDescription()));
+        aacResource.getScopes().forEach(s -> scopes.addString(s.getScope(), s.getDescription()));
+
+        // add oauth2 scopes
+        oauth2DCRResource.getScopes().forEach(s -> scopes.addString(s.getScope(), s.getDescription()));
 
         return scopes;
     }

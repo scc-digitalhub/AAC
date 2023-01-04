@@ -19,5 +19,5 @@ public interface ApiScopeProvider<S extends ApiScope> extends ResourceProvider<S
     // a scope approver evaluates a policy before authorizing the release
     // for example based on subject type (user/client) or authorities, roles,
     // attributes...
-    public ScopeApprover<? extends ScopeApproval> getScopeApprover(String scopeId) throws NoSuchScopeException;
+    public ScopeApprover<? extends ApiScopeApproval> getScopeApprover(String scopeId) throws NoSuchScopeException;
 }

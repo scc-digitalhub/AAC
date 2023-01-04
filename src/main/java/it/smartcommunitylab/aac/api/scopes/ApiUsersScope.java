@@ -7,8 +7,8 @@ public class ApiUsersScope extends AbstractInternalApiScope {
 
     public static final String SCOPE = AACApiResource.RESOURCE_ID + ".users";
 
-    public ApiUsersScope(String realm, String resourceId) {
-        super(realm, resourceId, SCOPE);
+    public ApiUsersScope(String realm) {
+        super(realm, AACApiResource.RESOURCE_ID, SCOPE);
         setAuthorities(Config.R_ADMIN);
     }
 

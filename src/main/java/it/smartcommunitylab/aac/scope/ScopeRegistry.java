@@ -37,12 +37,24 @@ public class ScopeRegistry {
     /*
      * Scopes according to OAuth2
      */
-    public ApiScope resolveScope(String realm, String scope) {
+    public ApiScope resolveScope(String realm, String scope) throws NoSuchScopeException {
         // ask every provider
         // TODO improve
         return scopeAuthorityService.getAuthorities().stream()
                 .flatMap(a -> a.getProvidersByRealm(realm).stream())
-                .map(p -> p.findScopeByScope(scope)).findAny().orElse(null);
+                .map(p -> p.findScopeByScope(scope))
+                .filter(p -> p != null)
+                .findAny().orElseThrow(NoSuchScopeException::new);
+    }
+
+    public ApiScope resolveScopeById(String realm, String scopeId) {
+        // ask every provider
+        // TODO improve
+        return scopeAuthorityService.getAuthorities().stream()
+                .flatMap(a -> a.getProvidersByRealm(realm).stream())
+                .map(p -> p.findScope(scopeId))
+                .filter(p -> p != null)
+                .findAny().orElse(null);
     }
 
     /*
@@ -69,16 +81,18 @@ public class ScopeRegistry {
     }
 
     public ApiScopeProvider<? extends ApiScope> findScopeProvider(String realm, String scopeId) {
-        // build provider id according to fixed schema
-        String id = scopeId + "/" + realm;
-
-        ApiScopeProvider<?> sp = scopeAuthorityService.getAuthorities().stream().map(a -> a.findProvider(id)).findAny()
-                .orElse(null);
-        if (sp == null) {
+        // resolve scope to fetch provider
+        ApiScope s = resolveScopeById(realm, scopeId);
+        if (s == null) {
             return null;
         }
 
-        return sp;
+        String provider = s.getProvider();
+
+        // pick first provider
+        // TODO improve logic
+        return scopeAuthorityService.getAuthorities().stream()
+                .map(a -> a.findProvider(provider)).filter(p -> p != null).findAny().orElse(null);
     }
 
     public ApiScopeProvider<? extends ApiScope> getScopeProvider(String realm, String scopeId)
@@ -94,12 +108,24 @@ public class ScopeRegistry {
     /*
      * Resources according to OAuth2
      */
-    public ApiResource resolveResource(String realm, String resource) {
+    public ApiResource resolveResource(String realm, String resource) throws NoSuchResourceException {
         // ask every provider
         // TODO improve
         return resourceAuthorityService.getAuthorities().stream()
                 .flatMap(a -> a.getProvidersByRealm(realm).stream())
-                .map(p -> p.findResourceByIdentifier(resource)).findAny().orElse(null);
+                .map(p -> p.findResourceByIdentifier(resource))
+                .filter(p -> p != null)
+                .findAny().orElseThrow(NoSuchResourceException::new);
+    }
+
+    public ApiResource resolveResourceById(String realm, String resourceId) {
+        // ask every provider
+        // TODO improve
+        return resourceAuthorityService.getAuthorities().stream()
+                .flatMap(a -> a.getProvidersByRealm(realm).stream())
+                .map(p -> p.findResource(resourceId))
+                .filter(p -> p != null)
+                .findAny().orElse(null);
     }
 
     /*
@@ -125,17 +151,18 @@ public class ScopeRegistry {
     }
 
     public ApiResourceProvider<? extends ApiResource> findResourceProvider(String realm, String resourceId) {
-        // build provider id according to fixed schema
-        String id = resourceId + "/" + realm;
-
-        ApiResourceProvider<?> rp = resourceAuthorityService.getAuthorities().stream().map(a -> a.findProvider(id))
-                .findAny()
-                .orElse(null);
-        if (rp == null) {
+        // resolve resource to fetch provider
+        ApiResource r = resolveResourceById(realm, resourceId);
+        if (r == null) {
             return null;
         }
 
-        return rp;
+        String provider = r.getProvider();
+
+        // pick first provider
+        // TODO improve logic
+        return resourceAuthorityService.getAuthorities().stream()
+                .map(a -> a.findProvider(provider)).filter(p -> p != null).findAny().orElse(null);
     }
 
     public ApiResourceProvider<? extends ApiResource> getResourceProvider(String realm, String resourceId)
