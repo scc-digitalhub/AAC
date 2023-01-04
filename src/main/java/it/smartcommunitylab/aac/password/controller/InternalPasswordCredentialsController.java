@@ -36,6 +36,7 @@ import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.password.InternalPasswordIdentityAuthority;
+import it.smartcommunitylab.aac.password.auth.ResetKeyAuthenticationToken;
 import it.smartcommunitylab.aac.password.dto.UserPasswordBean;
 import it.smartcommunitylab.aac.password.model.PasswordPolicy;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
@@ -125,10 +126,11 @@ public class InternalPasswordCredentialsController {
         model.addAttribute("accountUrl", "/account");
         model.addAttribute("changeUrl", "/changepwd/" + providerId + "/" + uuid);
 
-        String code = (String) request.getSession().getAttribute("resetCode");
-        if (code != null) {
-            model.addAttribute("resetCode", code);
-        }
+        // check if session is reset code originated
+        boolean resetCode = authHelper.getUserAuthentication().getAuthentications().stream()
+                .anyMatch(e -> ResetKeyAuthenticationToken.class.isInstance(e.getToken()));
+        model.addAttribute("resetCode", resetCode);
+
         return "registration/changepwd";
     }
 
@@ -137,9 +139,8 @@ public class InternalPasswordCredentialsController {
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid,
             Model model,
-            @ModelAttribute("reg") @Valid UserPasswordBean reg,
-            HttpServletRequest request,
-            BindingResult result)
+            @ModelAttribute("reg") @Valid UserPasswordBean reg, BindingResult result,
+            HttpServletRequest request)
             throws NoSuchProviderException, NoSuchUserException {
 
         try {
@@ -148,6 +149,11 @@ public class InternalPasswordCredentialsController {
             if (user == null) {
                 throw new InsufficientAuthenticationException("error.unauthenticated_user");
             }
+
+            // check if session is reset code originated
+            boolean resetCode = authHelper.getUserAuthentication().getAuthentications().stream()
+                    .anyMatch(e -> ResetKeyAuthenticationToken.class.isInstance(e.getToken()));
+            model.addAttribute("resetCode", resetCode);
 
             // fetch internal identities
             Set<UserIdentity> identities = user.getIdentities().stream()
@@ -204,7 +210,7 @@ public class InternalPasswordCredentialsController {
                 return "registration/changepwd";
             }
 
-            if (request.getSession().getAttribute("resetCode") == null) {
+            if (!resetCode) {
                 // check curPassword match
                 String curPassword = reg.getCurPassword();
                 if (!service.verifyPassword(username, curPassword)) {
@@ -234,8 +240,6 @@ public class InternalPasswordCredentialsController {
             pwd.setUsername(username);
             pwd.setPassword(password);
             pwd = service.setCredentials(username, pwd);
-
-            request.getSession().removeAttribute("resetCode");
 
             return "registration/changesuccess";
         } catch (RegistrationException e) {
@@ -304,8 +308,7 @@ public class InternalPasswordCredentialsController {
     public String reset(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             Model model,
-            @ModelAttribute("reg") @Valid UserEmailBean reg,
-            BindingResult result) {
+            @ModelAttribute("reg") @Valid UserEmailBean reg, BindingResult result) {
 
         try {
 

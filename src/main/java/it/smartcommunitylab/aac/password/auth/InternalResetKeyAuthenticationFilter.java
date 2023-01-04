@@ -166,12 +166,12 @@ public class InternalResetKeyAuthenticationFilter extends AbstractAuthentication
 
         String username = account.getUsername();
 
-        HttpSession session = request.getSession(true);
-        // user always needs to update password from here, if successful
-        session.setAttribute("resetCode", code);
-        // TODO build url
-        session.setAttribute(RequestAwareAuthenticationSuccessHandler.SAVED_REQUEST,
-                "/changepwd/" + providerId + "/" + account.getUuid());
+//        HttpSession session = request.getSession(true);
+//        // user always needs to update password from here, if successful
+//        session.setAttribute("resetCode", code);
+//        // TODO build url
+//        session.setAttribute(RequestAwareAuthenticationSuccessHandler.SAVED_REQUEST,
+//                "/changepwd/" + providerId + "/" + account.getUuid());
 
         // build a request
         ResetKeyAuthenticationToken authenticationRequest = new ResetKeyAuthenticationToken(username,
