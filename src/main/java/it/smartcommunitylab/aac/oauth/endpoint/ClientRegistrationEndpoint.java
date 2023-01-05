@@ -177,7 +177,7 @@ public class ClientRegistrationEndpoint {
                     .createClientRegistrationRequest(parameters);
 
             // validate
-            oauth2RegistrationRequestValidator.validate(registrationRequest);
+            oauth2RegistrationRequestValidator.validate(realm, registrationRequest);
 
             // register as new
             ClientRegistration registration = registrationServices.addRegistration(realm, registrationRequest);
@@ -404,7 +404,7 @@ public class ClientRegistrationEndpoint {
                     .createClientRegistrationRequest(parameters);
 
             // validate
-            oauth2RegistrationRequestValidator.validate(registrationRequest);
+            oauth2RegistrationRequestValidator.validate(realm, registrationRequest);
 
             // update registration
             ClientRegistration registration = registrationServices.updateRegistration(clientId, registrationRequest);

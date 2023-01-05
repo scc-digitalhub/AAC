@@ -26,7 +26,6 @@ import org.springframework.security.oauth2.common.exceptions.UnsupportedGrantTyp
 import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.TokenGranter;
-import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.Assert;
@@ -47,6 +46,7 @@ import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.model.TokenResponse;
 import it.smartcommunitylab.aac.oauth.request.OAuth2TokenRequestFactory;
 import it.smartcommunitylab.aac.oauth.request.OAuth2TokenRequestValidator;
+import it.smartcommunitylab.aac.oauth.request.TokenRequest;
 import it.smartcommunitylab.aac.openid.common.IdToken;
 import it.smartcommunitylab.aac.openid.token.IdTokenServices;
 
@@ -96,6 +96,9 @@ public class TokenEndpoint implements InitializingBean {
         String clientId = clientAuth.getClientId();
         OAuth2ClientDetails clientDetails = clientAuth.getOAuth2ClientDetails();
 
+        // hard-coded: always use client realm for request
+        String realm = clientDetails.getRealm();
+
         // fetch tokenRequest via factory
         TokenRequest tokenRequest = oauth2RequestFactory.createTokenRequest(parameters, clientDetails);
         if (tokenRequest == null) {
@@ -130,12 +133,12 @@ public class TokenEndpoint implements InitializingBean {
         if (!clientDetails.getAuthorizedGrantTypes().contains(grantType)) {
             throw new UnauthorizedClientException("client is not authorized for flow " + grantType);
         }
-
-        // validate scopes
-        oauth2RequestValidator.validateScope(tokenRequest, clientDetails);
+//
+//        // validate scopes
+//        oauth2RequestValidator.validateScope(tokenRequest, clientDetails);
 
         // validate request via validator
-        oauth2RequestValidator.validate(tokenRequest, clientDetails);
+        oauth2RequestValidator.validate(realm, tokenRequest, clientDetails);
 
         // get token from granter, if flow is unsupported result will be null
         OAuth2AccessToken token = tokenGranter.grant(grantType, tokenRequest);

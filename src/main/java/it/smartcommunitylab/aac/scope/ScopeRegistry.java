@@ -1,5 +1,8 @@
 package it.smartcommunitylab.aac.scope;
 
+import java.util.Collection;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -37,14 +40,23 @@ public class ScopeRegistry {
     /*
      * Scopes according to OAuth2
      */
-    public ApiScope resolveScope(String realm, String scope) throws NoSuchScopeException {
+    public ApiScope tryResolveScope(String realm, String scope) {
         // ask every provider
         // TODO improve
         return scopeAuthorityService.getAuthorities().stream()
                 .flatMap(a -> a.getProvidersByRealm(realm).stream())
                 .map(p -> p.findScopeByScope(scope))
                 .filter(p -> p != null)
-                .findAny().orElseThrow(NoSuchScopeException::new);
+                .findAny().orElse(null);
+    }
+
+    public ApiScope resolveScope(String realm, String scope) throws NoSuchScopeException {
+        ApiScope s = tryResolveScope(realm, scope);
+        if (s == null) {
+            throw new NoSuchScopeException();
+        }
+
+        return s;
     }
 
     public ApiScope resolveScopeById(String realm, String scopeId) {
@@ -80,6 +92,15 @@ public class ScopeRegistry {
         return s;
     }
 
+    public Collection<ApiScope> listScopes(String realm) {
+        // ask every provider
+        // TODO improve
+        return scopeAuthorityService.getAuthorities().stream()
+                .flatMap(a -> a.getProvidersByRealm(realm).stream())
+                .flatMap(p -> p.listScopes().stream())
+                .collect(Collectors.toList());
+    }
+
     public ApiScopeProvider<? extends ApiScope> findScopeProvider(String realm, String scopeId) {
         // resolve scope to fetch provider
         ApiScope s = resolveScopeById(realm, scopeId);
@@ -108,14 +129,23 @@ public class ScopeRegistry {
     /*
      * Resources according to OAuth2
      */
-    public ApiResource resolveResource(String realm, String resource) throws NoSuchResourceException {
+    public ApiResource tryResolveResource(String realm, String resource) {
         // ask every provider
         // TODO improve
         return resourceAuthorityService.getAuthorities().stream()
                 .flatMap(a -> a.getProvidersByRealm(realm).stream())
                 .map(p -> p.findResourceByIdentifier(resource))
                 .filter(p -> p != null)
-                .findAny().orElseThrow(NoSuchResourceException::new);
+                .findAny().orElse(null);
+    }
+
+    public ApiResource resolveResource(String realm, String resource) throws NoSuchResourceException {
+        ApiResource r = tryResolveResource(realm, resource);
+        if (r == null) {
+            throw new NoSuchResourceException();
+        }
+
+        return r;
     }
 
     public ApiResource resolveResourceById(String realm, String resourceId) {
@@ -148,6 +178,15 @@ public class ScopeRegistry {
         }
 
         return s;
+    }
+
+    public Collection<ApiResource> listResources(String realm) {
+        // ask every provider
+        // TODO improve
+        return resourceAuthorityService.getAuthorities().stream()
+                .flatMap(a -> a.getProvidersByRealm(realm).stream())
+                .flatMap(p -> p.listResources().stream())
+                .collect(Collectors.toList());
     }
 
     public ApiResourceProvider<? extends ApiResource> findResourceProvider(String realm, String resourceId) {

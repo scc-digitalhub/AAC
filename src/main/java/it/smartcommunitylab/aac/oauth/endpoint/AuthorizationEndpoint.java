@@ -157,13 +157,8 @@ public class AuthorizationEndpoint implements InitializingBean {
 //            @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = AuthorizationRequest.class)) }) }, responses = {
 //                    @io.swagger.v3.oas.annotations.responses.ApiResponse(content = {
 //                            @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = AuthorizationResponse.class)) }) })
-    @RequestMapping(value = {
-            AUTHORIZATION_URL,
-            "/-/{realm}" + AUTHORIZATION_URL }, method = {
-                    RequestMethod.GET, RequestMethod.POST
-            })
+    @RequestMapping(value = AUTHORIZATION_URL, method = { RequestMethod.GET, RequestMethod.POST })
     public ModelAndView authorize(@RequestParam Map<String, String> parameters,
-            @PathVariable("realm") Optional<String> realmKey,
             Authentication authentication, HttpServletRequest request) {
 
         // TODO move everything to catch block and *always* parse request via factory
@@ -180,11 +175,6 @@ public class AuthorizationEndpoint implements InitializingBean {
         UserAuthentication userAuth = (UserAuthentication) authentication;
         UserDetails userDetails = userAuth.getUser();
 
-        String realm = SystemKeys.REALM_COMMON;
-        if (realmKey.isPresent()) {
-            realm = realmKey.get();
-        }
-
         // fetch client here, if invalid no reason to process request..
         String clientId = parameters.get("client_id");
         if (!StringUtils.hasText(clientId)) {
@@ -192,6 +182,9 @@ public class AuthorizationEndpoint implements InitializingBean {
         }
 
         OAuth2ClientDetails clientDetails = oauth2ClientDetailsService.loadClientByClientId(clientId);
+
+        // hard-coded: always use client realm for request
+        String realm = clientDetails.getRealm();
 
         try {
             // validate realm accessibility for client
@@ -240,11 +233,11 @@ public class AuthorizationEndpoint implements InitializingBean {
                 // always use resolved redirect for request
                 authorizationRequest.setRedirectUri(resolvedRedirectUri);
 
-                // validate scopes
-                oauth2AuthorizationRequestValidator.validateScope(authorizationRequest, clientDetails);
+//                // validate scopes
+//                oauth2AuthorizationRequestValidator.validateScope(authorizationRequest, clientDetails);
 
                 // validate request via validator
-                oauth2AuthorizationRequestValidator.validate(authorizationRequest, clientDetails, user);
+                oauth2AuthorizationRequestValidator.validate(realm, authorizationRequest, clientDetails, user);
 
                 // evaluate approvals and let handlers modify request
                 authorizationRequest = userApprovalHandler.checkForPreApproval(authorizationRequest, authentication);
@@ -534,6 +527,9 @@ public class AuthorizationEndpoint implements InitializingBean {
         OAuth2AccessToken accessToken = null;
         IdToken idToken = null;
 
+        // hard-coded: use client realm for request
+        String realm = clientDetails.getRealm();
+
         // fetch all response types
         Set<String> responseTypes = authorizationRequest.getResponseTypes();
 
@@ -561,7 +557,7 @@ public class AuthorizationEndpoint implements InitializingBean {
                     "implicit");
 
             // validate
-            oauth2TokenRequestValidator.validate(tokenRequest, clientDetails);
+            oauth2TokenRequestValidator.validate(realm, tokenRequest, clientDetails);
 
             OAuth2Request oauth2Request = oauth2AuthorizationRequestFactory
                     .createOAuth2Request(authorizationRequest, clientDetails);

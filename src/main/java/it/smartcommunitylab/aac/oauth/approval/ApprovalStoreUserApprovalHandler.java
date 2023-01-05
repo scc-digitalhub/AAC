@@ -115,13 +115,16 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
             throw new InvalidRequestException("invalid client");
         }
 
+        // hard-coded: always use client realm for request
+        String realm = clientDetails.getRealm();
+
         logger.debug("requested scopes for client " + clientId + ": " + String.valueOf(requestedScopes));
 
         // we have 2 sets of approved scopes
         // firstParty handling: autoApprove for same realm user with autoApprove scopes
         // TODO handle mixed user scopes + client scopes
-        Set<String> autoApprovedScopes = getAutoApproved(requestedScopes, userDetails, clientDetails);
-        Set<String> userApprovedScopes = getUserApproved(userDetails, clientDetails);
+        Set<String> autoApprovedScopes = getAutoApproved(realm, requestedScopes, userDetails, clientDetails);
+        Set<String> userApprovedScopes = getUserApproved(realm, userDetails, clientDetails);
 
         // persist autoApproved so we'll be able to check for refreshToken
         // we would do this in updateAfterApproval but if all scopes are autoapproved
@@ -321,10 +324,13 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
             throw new InvalidRequestException("invalid client");
         }
 
+        // hard-coded: always use client realm for request
+        String realm = clientDetails.getRealm();
+
         // build the list of scopes requiring user approval
         // we have 2 sets of pre-approved scopes
-        Set<String> autoApprovedScopes = getAutoApproved(requestedScopes, userDetails, clientDetails);
-        Set<String> userApprovedScopes = getUserApproved(userDetails, clientDetails);
+        Set<String> autoApprovedScopes = getAutoApproved(realm, requestedScopes, userDetails, clientDetails);
+        Set<String> userApprovedScopes = getUserApproved(realm, userDetails, clientDetails);
 
         // check if all requested scopes are already approved
         Set<String> allApprovedScopes = new HashSet<>();
@@ -450,23 +456,26 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
         return authorizationRequest;
     }
 
-    private Set<String> getAutoApproved(Set<String> requestedScopes, UserDetails userDetails,
-            OAuth2ClientDetails clientDetails) {
+    private Set<String> getAutoApproved(
+            String realm, Set<String> requestedScopes,
+            UserDetails userDetails, OAuth2ClientDetails clientDetails) {
         Set<String> autoApprovedScopes = new HashSet<>();
+
         if (scopeRegistry != null) {
             // build autoapproved only if client is firstParty same realm
-            // TODO evaluate checking request realm
             if (clientDetails.isFirstParty()
+                    && clientDetails.getRealm().equals(realm)
                     && userDetails.getRealm().equals(clientDetails.getRealm())) {
+
                 // get from registry core resources
-                List<String> coreScopes = scopeRegistry.listResources().stream()
+                List<String> coreScopes = scopeRegistry.listResources(realm).stream()
                         .filter(r -> r.getResourceId().startsWith("aac."))
                         .flatMap(r -> r.getScopes().stream())
                         .map(s -> s.getScope())
                         .collect(Collectors.toList());
 
                 // get same realm resources
-                List<String> resourceScopes = scopeRegistry.listResources().stream()
+                List<String> resourceScopes = scopeRegistry.listResources(realm).stream()
                         .filter(r -> clientDetails.getRealm().equals(r.getRealm()))
                         .flatMap(r -> r.getScopes().stream())
                         .map(s -> s.getScope())
@@ -480,13 +489,19 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
                 // TODO, scopes are not per realm for now
             }
         }
+
         return autoApprovedScopes;
     }
 
-    private Set<String> getUserApproved(UserDetails userDetails, OAuth2ClientDetails clientDetails) {
+    private Set<String> getUserApproved(
+            String realm,
+            UserDetails userDetails, OAuth2ClientDetails clientDetails) {
         Set<String> userApprovedScopes = new HashSet<>();
 
         // fetch previously approved from store
+        // TODO add realm check for consistency
+        // userId and clientId are globally unique so approvals are shared between
+        // realms but for now we don't allow cross-realm requests
         Collection<Approval> userApprovals = approvalStore.getApprovals(userDetails.getSubjectId(),
                 clientDetails.getClientId());
         Set<Approval> expiredApprovals = new HashSet<>();

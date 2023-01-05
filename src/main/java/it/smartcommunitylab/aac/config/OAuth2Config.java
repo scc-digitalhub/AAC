@@ -334,7 +334,6 @@ public class OAuth2Config {
         clientCredentialsTokenGranter.setFlowExtensionsService(flowExtensionsService);
         clientCredentialsTokenGranter.setEventPublisher(oauth2EventPublisher);
         clientCredentialsTokenGranter.setScopeRegistry(scopeRegistry);
-        clientCredentialsTokenGranter.setClientService(clientService);
         granters.add(clientCredentialsTokenGranter);
 
         // resource owner password
@@ -348,7 +347,6 @@ public class OAuth2Config {
             passwordTokenGranter.setFlowExtensionsService(flowExtensionsService);
             passwordTokenGranter.setEventPublisher(oauth2EventPublisher);
             passwordTokenGranter.setScopeRegistry(scopeRegistry);
-            passwordTokenGranter.setClientService(clientService);
             passwordTokenGranter.setUserService(userService);
             granters.add(passwordTokenGranter);
         }

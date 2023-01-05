@@ -23,6 +23,6 @@ public interface ApiResource extends Resource {
     public Collection<? extends ApiScope> getScopes();
 
     default String getResourceId() {
-        return getApiResourceId();
+        return getResource();
     }
 }

@@ -17,7 +17,6 @@ import org.springframework.security.oauth2.server.resource.introspection.OpaqueT
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.api.scopes.ApiScopeProvider;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.model.Subject;
@@ -34,16 +33,10 @@ public class InternalOpaqueTokenIntrospector implements OpaqueTokenIntrospector 
 
     private SubjectService subjectService;
 
-    private ApiScopeProvider apiProvider = new ApiScopeProvider();
-
     public InternalOpaqueTokenIntrospector(
             TokenStore tokenStore) {
         Assert.notNull(tokenStore, "token store can not be null");
         this.tokenStore = tokenStore;
-    }
-
-    public void setApiProvider(ApiScopeProvider apiProvider) {
-        this.apiProvider = apiProvider;
     }
 
     public void setSubjectService(SubjectService subjectService) {

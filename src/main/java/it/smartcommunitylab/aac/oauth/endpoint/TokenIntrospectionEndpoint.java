@@ -17,6 +17,7 @@
 package it.smartcommunitylab.aac.oauth.endpoint;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -24,8 +25,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +53,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientAuthenticationToken;
@@ -62,9 +62,9 @@ import it.smartcommunitylab.aac.oauth.model.ApplicationType;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.model.TokenIntrospection;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
-import it.smartcommunitylab.aac.openid.scope.OpenIdScopeProvider;
-import it.smartcommunitylab.aac.profiles.scope.OpenIdProfileScopeProvider;
-import it.smartcommunitylab.aac.scope.ScopeProvider;
+import it.smartcommunitylab.aac.openid.scope.OpenIdResource;
+import it.smartcommunitylab.aac.profiles.scope.OpenIdUserInfoResource;
+import it.smartcommunitylab.aac.scope.model.ApiResource;
 
 /**
  * OAuth2.0 Token introspection controller as of RFC7662:
@@ -76,22 +76,12 @@ import it.smartcommunitylab.aac.scope.ScopeProvider;
 @Controller
 @Tag(name = "OAuth 2.0 Token Introspection")
 public class TokenIntrospectionEndpoint {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     public final static String TOKEN_INTROSPECTION_URL = "/oauth/introspect";
-    public final static Set<String> WHITELISTED_SCOPES;
-    public final static ScopeProvider[] WHITELISTED_SCOPE_PROVIDERS = {
-            new OpenIdScopeProvider(),
-            new OpenIdProfileScopeProvider()
-    };
 
-    static {
-        Set<String> scopes = Stream.of(WHITELISTED_SCOPE_PROVIDERS)
-                .flatMap(sp -> sp.getScopes().stream()).map(s -> s.getScope())
-                .collect(Collectors.toSet());
-        WHITELISTED_SCOPES = Collections.unmodifiableSet(scopes);
-    }
-
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    @Value("${application.url}")
+    private String applicationURL;
 
     @Value("${jwt.issuer}")
     private String issuer;
@@ -101,6 +91,20 @@ public class TokenIntrospectionEndpoint {
 
     @Autowired
     private OAuth2ClientDetailsService clientDetailsService;
+
+    public final Set<String> whitelistedScopes;
+
+    public TokenIntrospectionEndpoint() {
+        // define as system resources
+        List<ApiResource> resources = new ArrayList<>();
+        resources.add(new OpenIdResource(SystemKeys.REALM_SYSTEM, applicationURL));
+        resources.add(new OpenIdUserInfoResource(SystemKeys.REALM_SYSTEM, applicationURL));
+
+        // build scopes list
+        this.whitelistedScopes = resources.stream()
+                .flatMap(r -> r.getScopes().stream()).map(s -> s.getScope())
+                .collect(Collectors.toSet());
+    }
 
     /*
      * client_id should match audience, as per security considerations
@@ -324,7 +328,7 @@ public class TokenIntrospectionEndpoint {
 
             // skip all white-listed, every other scope should be enabled
             Set<String> scopes = request.getScope().stream()
-                    .filter(s -> !WHITELISTED_SCOPES.contains(s))
+                    .filter(s -> !whitelistedScopes.contains(s))
                     .collect(Collectors.toSet());
 
             return scopes.stream().allMatch(s -> validScopes.contains(s));

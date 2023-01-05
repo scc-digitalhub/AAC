@@ -3,11 +3,11 @@ package it.smartcommunitylab.aac.oauth.request;
 import java.io.Serializable;
 import java.text.ParseException;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -59,10 +59,11 @@ public class OAuth2RequestFactory
     };
 
     private FlowExtensionsService flowExtensionsService;
-    private ScopeRegistry scopeRegistry;
 
     // TODO remove, needed only for legacy
     private OAuth2ClientDetailsService clientDetailsService;
+
+    private ScopeRegistry scopeRegistry;
 
     public OAuth2RequestFactory() {
 
@@ -73,16 +74,16 @@ public class OAuth2RequestFactory
 
     }
 
-    public void setScopeRegistry(ScopeRegistry scopeRegistry) {
-        this.scopeRegistry = scopeRegistry;
-    }
-
     public void setFlowExtensionsService(FlowExtensionsService flowExtensionsService) {
         this.flowExtensionsService = flowExtensionsService;
     }
 
     public void setClientDetailsService(OAuth2ClientDetailsService clientDetailsService) {
         this.clientDetailsService = clientDetailsService;
+    }
+
+    public void setScopeRegistry(ScopeRegistry scopeRegistry) {
+        this.scopeRegistry = scopeRegistry;
     }
 
     @Override
@@ -130,17 +131,17 @@ public class OAuth2RequestFactory
             // we need a field in tokenRequest
             Set<String> resourceIds = delimitedStringToSet(decodeParameters(requestParameters.get("resource")));
 
-            // also load resources derived from requested scope
-            resourceIds.addAll(extractResourceIds(scopes));
-
             // depend on flow
             // use per flow token request subtype
             AuthorizationGrantType authorizationGrantType = AuthorizationGrantType.parse(grantType);
             if (authorizationGrantType == AUTHORIZATION_CODE) {
                 String code = readParameter(requestParameters, "code", STRING_PATTERN);
                 String redirectUri = readParameter(requestParameters, "redirect_uri", URI_PATTERN);
-                // use scopes as requested
+
+                // use scopes as requested via authorization
                 Set<String> requestScopes = scopes;
+                // also load resources derived from requested scope
+                resourceIds.addAll(extractResourceIds(clientDetails.getRealm(), requestScopes));
 
                 logger.trace("create token request for " + clientId
                         + " grantType " + grantType
@@ -160,7 +161,10 @@ public class OAuth2RequestFactory
             if (authorizationGrantType == PASSWORD) {
                 String username = readParameter(requestParameters, "username", EMAIL_PATTERN);
                 String password = requestParameters.get("password");
-                Set<String> requestScopes = extractScopes(scopes, clientDetails.getScope(), false);
+                // read or load scopes
+                // when request scopes are null (ie not specified as param) use all scopes
+                // registered by client
+                Set<String> requestScopes = scopes != null ? scopes : new HashSet<>(clientDetails.getScope());
 
                 // remove offline_access if requested and still present
                 // password flow SHOULD not support refresh tokens
@@ -169,6 +173,9 @@ public class OAuth2RequestFactory
                 if (requestScopes.contains(Config.SCOPE_OFFLINE_ACCESS)) {
                     requestScopes.remove(Config.SCOPE_OFFLINE_ACCESS);
                 }
+
+                // also load resources derived from requested scope
+                resourceIds.addAll(extractResourceIds(clientDetails.getRealm(), requestScopes));
 
                 logger.trace("create token request for " + clientId
                         + " grantType " + grantType
@@ -183,7 +190,10 @@ public class OAuth2RequestFactory
             }
 
             if (authorizationGrantType == CLIENT_CREDENTIALS) {
-                Set<String> requestScopes = extractScopes(scopes, clientDetails.getScope(), true);
+                // read or load scopes
+                // when request scopes are null (ie not specified as param) use all scopes
+                // registered by client
+                Set<String> requestScopes = scopes != null ? scopes : new HashSet<>(clientDetails.getScope());
 
                 // check offline_access if requested and still present
                 // client flow MUST not support refresh tokens
@@ -191,6 +201,9 @@ public class OAuth2RequestFactory
                 if (requestScopes.contains(Config.SCOPE_OFFLINE_ACCESS)) {
                     throw new InvalidScopeException(Config.SCOPE_OFFLINE_ACCESS);
                 }
+
+                // also load resources derived from requested scope
+                resourceIds.addAll(extractResourceIds(clientDetails.getRealm(), requestScopes));
 
                 logger.trace("create token request for " + clientId
                         + " grantType " + grantType
@@ -207,6 +220,9 @@ public class OAuth2RequestFactory
                 // refresh tokens can ask scopes, but by default will get those in original
                 // request and not the client default
                 Set<String> requestScopes = scopes;
+
+                // also load resources derived from requested scope
+                resourceIds.addAll(extractResourceIds(clientDetails.getRealm(), requestScopes));
 
                 logger.trace("create token request for " + clientId
                         + " grantType " + grantType
@@ -330,7 +346,13 @@ public class OAuth2RequestFactory
                 scopes = delimitedStringToSet(decodeParameters(requestParameters.get("scope")));
             }
 
-            Set<String> requestScopes = extractScopes(scopes, clientDetails.getScope(), false);
+            // read or load scopes
+            Set<String> requestScopes = scopes;
+            if (scopes == null) {
+                // when request scopes are null (ie not specified as param) use all scopes
+                // registered by client
+                scopes = new HashSet<>(clientDetails.getScope());
+            }
 
             // we collect serviceIds as resourceIds to mark these as audience
             // TODO fix this, services are AUDIENCE not resources!
@@ -338,9 +360,9 @@ public class OAuth2RequestFactory
             Set<String> resourceIds = delimitedStringToSet(decodeParameters(requestParameters.get("resource")));
 
             // also load resources derived from requested scope
-            resourceIds.addAll(extractResourceIds(scopes));
+            resourceIds.addAll(extractResourceIds(clientDetails.getRealm(), scopes));
 
-            Set<String> audience = delimitedStringToSet(decodeParameters(requestParameters.get("audience")));
+//            Set<String> audience = delimitedStringToSet(decodeParameters(requestParameters.get("audience")));
 
             Set<String> prompt = delimitedStringToSet(decodeParameters(requestParameters.get("prompt")));
 
@@ -373,9 +395,9 @@ public class OAuth2RequestFactory
                     if (StringUtils.hasText(JSONObjectUtils.getString(json, "resource"))) {
                         resourceIds = delimitedStringToSet(JSONObjectUtils.getString(json, "resource"));
                     }
-                    if (StringUtils.hasText(JSONObjectUtils.getString(json, "audience"))) {
-                        audience = delimitedStringToSet(JSONObjectUtils.getString(json, "audience"));
-                    }
+//                    if (StringUtils.hasText(JSONObjectUtils.getString(json, "audience"))) {
+//                        audience = delimitedStringToSet(JSONObjectUtils.getString(json, "audience"));
+//                    }
                     if (StringUtils.hasText(JSONObjectUtils.getString(json, "prompt"))) {
                         prompt = delimitedStringToSet(JSONObjectUtils.getString(json, "prompt"));
                     }
@@ -397,8 +419,7 @@ public class OAuth2RequestFactory
                     + " response mode " + String.valueOf(responseMode)
                     + " redirect " + String.valueOf(redirectUri)
                     + " scope " + String.valueOf(requestScopes)
-                    + " resource ids " + String.valueOf(resourceIds)
-                    + " audience ids " + String.valueOf(audience));
+                    + " resource ids " + String.valueOf(resourceIds));
 
             AuthorizationRequest authorizationRequest = new AuthorizationRequest(requestParameters,
                     Collections.<String, String>emptyMap(),
@@ -410,8 +431,8 @@ public class OAuth2RequestFactory
             // extensions
             Map<String, Serializable> extensions = authorizationRequest.getExtensions();
 
-            // audience
-            extensions.put("audience", StringUtils.collectionToCommaDelimitedString(audience));
+//            // audience
+//            extensions.put("audience", StringUtils.collectionToCommaDelimitedString(audience));
 
             // response mode
             extensions.put("response_mode", responseMode);
@@ -484,32 +505,16 @@ public class OAuth2RequestFactory
         return registrationRequest;
     }
 
-    private Set<String> extractScopes(Set<String> scopes, Collection<String> clientScopes, boolean isClient) {
-        ScopeType type = isClient ? ScopeType.CLIENT : ScopeType.USER;
+//    private Set<String> extractScopes(Set<String> scopes, Collection<String> clientScopes) {
+//
+//        if (scopes == null) {
+//            // when request scopes are null use all scopes registered by client
+//            scopes = new HashSet<>(clientScopes);
+//        }
+//
+//        return scopes;
 
-        if (scopes == null) {
-            // when request scopes are null use all scopes registered by client
-            scopes = new HashSet<>(clientScopes);
-
-            if (scopeRegistry != null) {
-                // keep only scopes matching request type
-                scopes = clientScopes.stream().filter(
-                        s -> {
-                            Scope sc = scopeRegistry.findScope(s);
-                            if (sc == null) {
-                                return false;
-                            }
-
-                            return (sc.getType() == type || sc.getType() == ScopeType.GENERIC);
-                        })
-                        .collect(Collectors.toSet());
-
-            }
-        }
-
-        return scopes;
-
-        // TODO rework 2FA
+    // TODO rework 2FA
 //        boolean addStrongOperationScope = false;
 //        if (scopes.contains(Config.SCOPE_OPERATION_CONFIRMED)) {
 //            Object authDetails = SecurityContextHolder.getContext().getAuthentication().getDetails();
@@ -541,28 +546,21 @@ public class OAuth2RequestFactory
 //        }
 //
 //        return allowedScopes;
-    }
+//    }
 
-    private Set<String> extractResourceIds(Set<String> scopes) {
+    private List<String> extractResourceIds(String realm, Set<String> scopes) {
         if (scopes != null && scopeRegistry != null) {
-            return scopes.stream().map(s -> {
-                return scopeRegistry.findScope(s);
-            })
+            return scopes.stream()
+                    .map(s -> scopeRegistry.tryResolveScope(realm, s))
                     .filter(s -> s != null)
-                    .map(s -> {
-                        Set<String> a = new HashSet<>();
-                        a.add(s.getResourceId());
-                        if (s.getAudience() != null) {
-                            a.addAll(s.getAudience());
-                        }
-                        return a;
-                    })
-                    .flatMap(a -> a.stream())
-                    .collect(Collectors.toSet());
+                    .map(s -> scopeRegistry.resolveResourceById(realm, s.getApiResourceId()))
+                    .filter(r -> r != null)
+                    .map(r -> r.getResource())
+                    .filter(i -> i != null)
+                    .collect(Collectors.toList());
         }
 
-        return Collections.emptySet();
-
+        return Collections.emptyList();
     }
 
     private Set<String> delimitedStringToSet(String str) {

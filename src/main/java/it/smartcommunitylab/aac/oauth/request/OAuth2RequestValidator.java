@@ -9,19 +9,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.oauth2.common.exceptions.InvalidRequestException;
 import org.springframework.security.oauth2.common.exceptions.InvalidScopeException;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
-import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.endpoint.RedirectResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
 import it.smartcommunitylab.aac.oauth.model.ClientRegistration;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.model.ResponseType;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
-import it.smartcommunitylab.aac.scope.model.Scope;
 
 public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAuth2AuthorizationRequestValidator,
         OAuth2RegistrationRequestValidator {
@@ -41,7 +38,25 @@ public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAut
     }
 
     @Override
-    public void validate(TokenRequest tokenRequest, OAuth2ClientDetails clientDetails) throws InvalidRequestException {
+    public void validate(String realm, TokenRequest tokenRequest, OAuth2ClientDetails clientDetails)
+            throws InvalidRequestException {
+
+        // check client matches realm
+        if (realm != null && !clientDetails.getRealm().equals(realm)) {
+            throw new InvalidRequestException("realm mismatch");
+        }
+
+        // validate scopes
+        Set<String> requestScopes = tokenRequest.getScope();
+        if (requestScopes != null && !requestScopes.isEmpty()) {
+            validateScopes(realm, clientDetails, requestScopes);
+        }
+
+        // validate resources
+        Set<String> requestResources = tokenRequest.getResourceIds();
+        if (requestResources != null && !requestResources.isEmpty()) {
+            validateResources(realm, clientDetails, requestResources);
+        }
 
         // check grant type and act accordingly
         String grantType = tokenRequest.getGrantType();
@@ -111,21 +126,37 @@ public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAut
 
     }
 
+//    public void validateScope(TokenRequest tokenRequest, OAuth2ClientDetails client) throws InvalidScopeException {
+//
+//        Set<String> requestScopes = tokenRequest.getScope();
+//        Set<String> clientScopes = client.getScope();
+//        boolean isClient = CLIENT_CREDENTIALS.getValue().equals(tokenRequest.getGrantType());
+//
+//        if (requestScopes != null && !requestScopes.isEmpty()) {
+//            validateScope(requestScopes, clientScopes, isClient);
+//        }
+//    }
+
     @Override
-    public void validateScope(TokenRequest tokenRequest, OAuth2ClientDetails client) throws InvalidScopeException {
+    public void validate(String realm, AuthorizationRequest authorizationRequest, OAuth2ClientDetails clientDetails,
+            User user) throws InvalidRequestException {
 
-        Set<String> requestScopes = tokenRequest.getScope();
-        Set<String> clientScopes = client.getScope();
-        boolean isClient = CLIENT_CREDENTIALS.getValue().equals(tokenRequest.getGrantType());
-
-        if (requestScopes != null && !requestScopes.isEmpty()) {
-            validateScope(requestScopes, clientScopes, isClient);
+        // check client matches realm
+        if (realm != null && !clientDetails.getRealm().equals(realm)) {
+            throw new InvalidRequestException("realm mismatch");
         }
-    }
 
-    @Override
-    public void validate(AuthorizationRequest authorizationRequest, OAuth2ClientDetails clientDetails, User user)
-            throws InvalidRequestException {
+        // validate scopes
+        Set<String> requestScopes = authorizationRequest.getScope();
+        if (requestScopes != null && !requestScopes.isEmpty()) {
+            validateScopes(realm, clientDetails, requestScopes);
+        }
+
+        // validate resources
+        Set<String> requestResources = authorizationRequest.getResourceIds();
+        if (requestResources != null && !requestResources.isEmpty()) {
+            validateResources(realm, clientDetails, requestResources);
+        }
 
         Set<String> responseType = authorizationRequest.getResponseTypes();
         if (responseType.stream().anyMatch(r -> ResponseType.parse(r) == null)) {
@@ -181,30 +212,26 @@ public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAut
 
     }
 
-    @Override
-    public void validateScope(AuthorizationRequest authorizationRequest, OAuth2ClientDetails client)
-            throws InvalidScopeException {
+//    public void validateScope(AuthorizationRequest authorizationRequest, OAuth2ClientDetails client)
+//            throws InvalidScopeException {
+//
+//        Set<String> requestScopes = authorizationRequest.getScope();
+//        Set<String> clientScopes = client.getScope();
+//
+//        if (requestScopes != null && !requestScopes.isEmpty()) {
+//            validateScope(requestScopes, clientScopes, false);
+//        }
+//
+//    }
 
-        Set<String> requestScopes = authorizationRequest.getScope();
-        Set<String> clientScopes = client.getScope();
-
-        if (requestScopes != null && !requestScopes.isEmpty()) {
-            validateScope(requestScopes, clientScopes, false);
-        }
-
-    }
-
-    @Override
-    public void validate(ClientRegistrationRequest registrationRequest) throws InvalidRequestException {
+    public void validate(String realm, ClientRegistrationRequest registrationRequest) throws InvalidRequestException {
         // no required fields from spec, check consistency of config
         ClientRegistration registration = registrationRequest.getRegistration();
 
         // check scopes
         if (registration.getScope() != null && scopeRegistry != null) {
-            Set<String> invalidScopes = registration.getScope().stream().filter(s -> {
-                Scope sc = scopeRegistry.findScope(s);
-                return sc == null;
-            }).collect(Collectors.toSet());
+            Set<String> invalidScopes = registration.getScope().stream()
+                    .filter(s -> scopeRegistry.tryResolveScope(realm, s) == null).collect(Collectors.toSet());
 
             if (!invalidScopes.isEmpty()) {
                 throw new InvalidScopeException("Invalid scope: " + invalidScopes, Collections.emptySet());
@@ -256,53 +283,61 @@ public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAut
         }
     }
 
-    private void validateScope(Set<String> requestScopes, Set<String> clientScopes, boolean isClient) {
+    private void validateScopes(String realm, OAuth2ClientDetails clientDetails, Set<String> requestScopes) {
+        logger.debug("validate scopes {} for client {} in realm {}",
+                String.valueOf(requestScopes.toString()), clientDetails.getClientId(), realm);
 
-        logger.trace("validate scopes requested " + String.valueOf(requestScopes.toString())
-                + " against client " + String.valueOf(clientScopes));
+        Set<String> clientScopes = clientDetails.getScope();
 
         // check if scopes are valid via registry
         Set<String> existingScopes = (scopeRegistry == null) ? requestScopes
                 : requestScopes.stream()
-                        .filter(s -> (scopeRegistry.findScope(s) != null))
+                        .filter(s -> (scopeRegistry.tryResolveScope(realm, s) != null))
                         .collect(Collectors.toSet());
 
         Set<String> validScopes = (clientScopes != null ? clientScopes : Collections.emptySet());
 
         // each scope has to be pre-authorized
-        Set<String> unauthorizedScopes = requestScopes.stream().filter(
-                s -> (!validScopes.contains(s) || !existingScopes.contains(s)))
+        Set<String> unauthorizedScopes = requestScopes.stream()
+                .filter(s -> (!validScopes.contains(s) || !existingScopes.contains(s)))
                 .collect(Collectors.toSet());
+
+        logger.trace("validate scopes requested {} against {}: unauthorized {}",
+                String.valueOf(requestScopes.toString()), String.valueOf(clientScopes),
+                String.valueOf(unauthorizedScopes));
 
         if (!unauthorizedScopes.isEmpty()) {
             String invalidScopes = String.join(" ", unauthorizedScopes);
             throw new InvalidScopeException("Invalid scope: " + invalidScopes, validScopes);
         }
+    }
 
-        if (scopeRegistry != null) {
-            // also check that type matches grant
-            ScopeType type = isClient ? ScopeType.CLIENT : ScopeType.USER;
-            Set<String> matchingScopes = clientScopes.stream().filter(
-                    s -> {
-                        Scope sc = scopeRegistry.findScope(s);
-                        if (sc == null) {
-                            return false;
-                        }
+    private void validateResources(String realm, OAuth2ClientDetails clientDetails, Set<String> resources) {
+        logger.debug("validate resources {} for client {} in realm {}",
+                String.valueOf(resources.toString()), clientDetails.getClientId(), realm);
 
-                        return (sc.getType() == type || sc.getType() == ScopeType.GENERIC);
-                    })
-                    .collect(Collectors.toSet());
+        // check if resources are valid via registry
+        Set<String> existing = (scopeRegistry == null) ? resources
+                : resources.stream()
+                        .filter(r -> (scopeRegistry.tryResolveResource(realm, r) != null))
+                        .collect(Collectors.toSet());
 
-            Set<String> wrongScopes = requestScopes.stream().filter(
-                    s -> (!matchingScopes.contains(s)))
-                    .collect(Collectors.toSet());
+        // we don't check for explicit pre-auth for resources, only for scopes
 
-            if (!wrongScopes.isEmpty()) {
-                String invalidScopes = String.join(" ", wrongScopes);
-                throw new InvalidScopeException("Invalid scope: " + invalidScopes, matchingScopes);
-            }
+        Set<String> inexistent = resources.stream()
+                .filter(s -> !existing.contains(s))
+                .collect(Collectors.toSet());
+
+        logger.trace("validate resources requested {} against {}: inexistent {}",
+                String.valueOf(resources), String.valueOf(existing),
+                String.valueOf(inexistent));
+
+        if (!inexistent.isEmpty()) {
+            // use scope exception
+            // TODO add custom exception
+            String invalidScopes = String.join(" ", inexistent);
+            throw new InvalidScopeException("Invalid resource: " + invalidScopes, existing);
         }
-
     }
 
     private AuthorizationGrantType AUTHORIZATION_CODE = AuthorizationGrantType.AUTHORIZATION_CODE;

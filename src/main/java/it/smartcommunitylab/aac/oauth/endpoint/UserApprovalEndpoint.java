@@ -28,16 +28,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import io.swagger.v3.oas.annotations.Hidden;
+import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.model.UserAccount;
-import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.model.ResponseMode;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.oauth.store.AuthorizationRequestStore;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
-import it.smartcommunitylab.aac.scope.model.Scope;
+import it.smartcommunitylab.aac.scope.model.ApiScope;
 
 @Hidden
 @Controller
@@ -135,26 +135,20 @@ public class UserApprovalEndpoint implements InitializingBean {
             }
 
             // resolve scopes to user resources via registry
-            List<Scope> resources = new ArrayList<>();
-            for (String scope : scopes) {
-                Scope s = scopeRegistry.findScope(scope);
-                if (s == null) {
-                    // build empty model
-                    s = new Scope(scope);
-                    s.setName("scope.name." + scope);
-                    s.setDescription("scope.description." + scope);
-                    s.setType(ScopeType.GENERIC);
+            List<ApiScope> resources = new ArrayList<>();
+            if (scopes != null) {
+                for (String scope : scopes) {
+                    ApiScope s = scopeRegistry.resolveScope(realm, scope);
+                    resources.add(s);
                 }
-
-                resources.add(s);
             }
 
             // filter already approved scopes
-            List<Scope> approvalResources = resources.stream().filter(s -> !approvedScopes.contains(s.getScope()))
+            List<ApiScope> approvalResources = resources.stream().filter(s -> !approvedScopes.contains(s.getScope()))
                     .collect(Collectors.toList());
             model.put("resources", approvalResources);
 
-            List<Scope> hiddenResources = resources.stream().filter(s -> approvedScopes.contains(s.getScope()))
+            List<ApiScope> hiddenResources = resources.stream().filter(s -> approvedScopes.contains(s.getScope()))
                     .collect(Collectors.toList());
             model.put("hiddenResources", hiddenResources);
 
@@ -173,6 +167,11 @@ public class UserApprovalEndpoint implements InitializingBean {
 
             return new ModelAndView("user-approval", model);
         } catch (RuntimeException e) {
+            // send to error page
+            model.put("error", e.getMessage());
+
+            return new ModelAndView(errorPage, model);
+        } catch (NoSuchScopeException e) {
             // send to error page
             model.put("error", e.getMessage());
 

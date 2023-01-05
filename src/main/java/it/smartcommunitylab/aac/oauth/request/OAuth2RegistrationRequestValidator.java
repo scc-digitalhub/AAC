@@ -4,6 +4,6 @@ import org.springframework.security.oauth2.common.exceptions.InvalidRequestExcep
 
 public interface OAuth2RegistrationRequestValidator {
 
-    public void validate(ClientRegistrationRequest registrationRequest) throws InvalidRequestException;
+    public void validate(String realm, ClientRegistrationRequest registrationRequest) throws InvalidRequestException;
 
 }

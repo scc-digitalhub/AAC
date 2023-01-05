@@ -17,8 +17,10 @@ public class SubjectTypeScopeApprover<S extends ApiScope> extends AbstractScopeA
     public static final int DEFAULT_DURATION_S = 3600; // 1h
 
     private int duration;
-
     private String subjectType;
+    // strict mode when set blocks the request on denial,
+    // otherwise we return undecided to let the processor skip the scope
+    private boolean strictMode = false;
 
     public SubjectTypeScopeApprover(S scope) {
         super(scope);
@@ -38,6 +40,14 @@ public class SubjectTypeScopeApprover<S extends ApiScope> extends AbstractScopeA
         this.duration = duration;
     }
 
+    public boolean isStrictMode() {
+        return strictMode;
+    }
+
+    public void setStrictMode(boolean strictMode) {
+        this.strictMode = strictMode;
+    }
+
     @Override
     public LimitedApiScopeApproval approve(User user, ClientDetails client, Collection<String> scopes) {
         if (scopes == null || scopes.isEmpty() || !scopes.contains(scope.getScope())) {
@@ -46,6 +56,11 @@ public class SubjectTypeScopeApprover<S extends ApiScope> extends AbstractScopeA
 
         ApprovalStatus approvalStatus = SystemKeys.RESOURCE_USER.equals(subjectType) ? ApprovalStatus.APPROVED
                 : ApprovalStatus.DENIED;
+
+        if (!strictMode && approvalStatus == ApprovalStatus.DENIED) {
+            // return undecided
+            return null;
+        }
 
         return new LimitedApiScopeApproval(scope.getApiResourceId(), scope.getScope(),
                 user.getSubjectId(), client.getClientId(),
@@ -60,6 +75,11 @@ public class SubjectTypeScopeApprover<S extends ApiScope> extends AbstractScopeA
 
         ApprovalStatus approvalStatus = SystemKeys.RESOURCE_CLIENT.equals(subjectType) ? ApprovalStatus.APPROVED
                 : ApprovalStatus.DENIED;
+
+        if (!strictMode && approvalStatus == ApprovalStatus.DENIED) {
+            // return undecided
+            return null;
+        }
 
         return new LimitedApiScopeApproval(scope.getApiResourceId(), scope.getScope(),
                 client.getClientId(), client.getClientId(),
