@@ -10,7 +10,7 @@ public class AdminApiResource extends AbstractInternalApiResource {
         super(realm, baseUrl, RESOURCE_ID);
 
         // statically register admin scopes
-        setScopes(new AdminRealmsScope(realm));
+        setApiScopes(new AdminRealmsScope(realm));
     }
 
     // TODO replace with keys for i18n

@@ -5,14 +5,14 @@ import it.smartcommunitylab.aac.core.model.Resource;
 
 public interface ApiResource extends Resource {
 
-    //unique identifier
+    // unique identifier
     public String getApiResourceId();
 
     public String getName();
 
     public String getDescription();
-    
-    //resource indicator as per RFC8707
+
+    // resource indicator as per RFC8707
     public String getResource();
 
     // a resource defines a namespace (as URI)
@@ -20,7 +20,12 @@ public interface ApiResource extends Resource {
     public String getNamespace();
 
     // a resource defines a set of scopes
-    public Collection<? extends ApiScope> getScopes();
+    public Collection<String> getScopes();
+
+    public Collection<? extends ApiScope> getApiScopes();
+
+    // a resource can define a set of claims under its namespace
+    // TODO
 
     default String getResourceId() {
         return getResource();

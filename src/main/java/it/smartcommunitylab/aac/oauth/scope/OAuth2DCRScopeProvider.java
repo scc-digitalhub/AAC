@@ -4,23 +4,18 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.scope.approver.AuthorityScopeApprover;
-import it.smartcommunitylab.aac.scope.base.AbstractApiScopeProvider;
+import it.smartcommunitylab.aac.scope.base.AbstractScopeProvider;
 import it.smartcommunitylab.aac.scope.base.AbstractInternalApiScope;
 
-public class OAuth2DCRScopeProvider extends AbstractApiScopeProvider<AbstractInternalApiScope> {
+public class OAuth2DCRScopeProvider extends AbstractScopeProvider<AbstractInternalApiScope> {
 
-    public OAuth2DCRScopeProvider(OAuth2DCRResource resource) {
-        super(SystemKeys.AUTHORITY_OAUTH2, resource.getProvider(), resource.getScopes());
-        Assert.notNull(resource, "resource can not be null");
-    }
+    public OAuth2DCRScopeProvider(AbstractInternalApiScope s) {
+        super(SystemKeys.AUTHORITY_OAUTH2, s.getProvider(), s.getRealm(), s);
 
-    @Override
-    protected AuthorityScopeApprover<AbstractInternalApiScope> buildScopeApprover(AbstractInternalApiScope s) {
         // build approver
         AuthorityScopeApprover<AbstractInternalApiScope> sa = new AuthorityScopeApprover<>(s);
 
@@ -32,7 +27,8 @@ public class OAuth2DCRScopeProvider extends AbstractApiScopeProvider<AbstractInt
         Set<? extends GrantedAuthority> authorities = s.getAuthorities().stream()
                 .map(a -> new RealmGrantedAuthority(s.getRealm(), a)).collect(Collectors.toSet());
         sa.setGrantedAuthorities(authorities);
-        return sa;
+
+        setApprover(sa);
     }
 
 }

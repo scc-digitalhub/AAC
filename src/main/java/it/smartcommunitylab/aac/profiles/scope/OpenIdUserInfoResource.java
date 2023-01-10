@@ -12,7 +12,7 @@ public class OpenIdUserInfoResource extends AbstractInternalApiResource {
 
         // statically register scopes
         // TODO evaluate making configurable
-        setScopes(
+        setApiScopes(
                 new OpenIdDefaultScope(realm),
                 new OpenIdEmailScope(realm),
                 new OpenIdAddressScope(realm),

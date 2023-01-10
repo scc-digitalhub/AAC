@@ -10,7 +10,7 @@ public class GroupsResource extends AbstractInternalApiResource {
         super(realm, baseUrl, RESOURCE_ID);
 
         // statically register scopes
-        setScopes(
+        setApiScopes(
                 new ClientGroupsScope(realm),
                 new UserGroupsScope(realm));
     }

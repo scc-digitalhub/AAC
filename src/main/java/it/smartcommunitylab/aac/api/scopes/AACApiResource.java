@@ -10,7 +10,7 @@ public class AACApiResource extends AbstractInternalApiResource {
     public AACApiResource(String realm, String baseUrl) {
         super(realm, baseUrl, RESOURCE_ID);
 
-        setScopes(
+        setApiScopes(
                 new ApiAttributesScope(realm),
                 new ApiAuditScope(realm),
                 new ApiClientAppScope(realm),
@@ -28,7 +28,7 @@ public class AACApiResource extends AbstractInternalApiResource {
     // let provider decide which are available
     public AACApiResource(String realm, String baseUrl, AbstractInternalApiScope... scopes) {
         super(realm, baseUrl, RESOURCE_ID);
-        setScopes(scopes);
+        setApiScopes(scopes);
     }
 
     // TODO replace with keys for i18n

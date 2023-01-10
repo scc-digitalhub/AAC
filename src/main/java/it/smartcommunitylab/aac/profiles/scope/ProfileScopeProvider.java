@@ -1,9 +1,8 @@
 package it.smartcommunitylab.aac.profiles.scope;
 
-import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.scope.approver.SubjectTypeScopeApprover;
-import it.smartcommunitylab.aac.scope.base.AbstractApiScopeProvider;
+import it.smartcommunitylab.aac.scope.base.AbstractScopeProvider;
 import it.smartcommunitylab.aac.scope.base.AbstractInternalApiScope;
 
 /*
@@ -11,20 +10,16 @@ import it.smartcommunitylab.aac.scope.base.AbstractInternalApiScope;
  * 
  */
 
-public class ProfileScopeProvider extends AbstractApiScopeProvider<AbstractInternalApiScope> {
+public class ProfileScopeProvider extends AbstractScopeProvider<AbstractInternalApiScope> {
 
-    public ProfileScopeProvider(ProfileApiResource resource) {
-        super(SystemKeys.AUTHORITY_INTERNAL, resource.getProvider(), resource.getScopes());
-        Assert.notNull(resource, "resource can not be null");
-    }
+    public ProfileScopeProvider(AbstractInternalApiScope s) {
+        super(s.getAuthority(), s.getProvider(), s.getRealm(), s);
 
-    @Override
-    protected SubjectTypeScopeApprover<AbstractInternalApiScope> buildScopeApprover(AbstractInternalApiScope s) {
         // build approver based on type
         SubjectTypeScopeApprover<AbstractInternalApiScope> sa = new SubjectTypeScopeApprover<>(s);
         sa.setSubjectType(s.getSubjectType());
 
-        return sa;
+        setApprover(sa);
     }
 
 //

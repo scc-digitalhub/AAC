@@ -11,7 +11,7 @@ public class OpenIdResource extends AbstractInternalApiResource {
         super(SystemKeys.AUTHORITY_OIDC, realm, baseUrl, RESOURCE_ID);
 
         // statically register scopes
-        setScopes(
+        setApiScopes(
                 new OpenIdScope(realm),
                 new OfflineAccessScope(realm));
     }

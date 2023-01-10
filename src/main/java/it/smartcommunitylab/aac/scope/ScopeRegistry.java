@@ -25,7 +25,6 @@ import it.smartcommunitylab.aac.scope.model.ApiScopeProvider;
 public class ScopeRegistry {
 
     private final ApiResourceProviderAuthorityService resourceAuthorityService;
-    private final ApiScopeProviderAuthorityService scopeAuthorityService;
 
     public ScopeRegistry(
             ApiResourceProviderAuthorityService resourceAuthorityService,

@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.scope.model.ApiResource;
 
-public abstract class AbstractApiResource implements ApiResource {
+public abstract class AbstractApiResource<S extends AbstractApiScope> implements ApiResource {
 
     @JsonInclude
     @Transient

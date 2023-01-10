@@ -1,19 +1,33 @@
 package it.smartcommunitylab.aac.scope.base;
 
+import org.springframework.util.Assert;
+
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.scope.model.ApiScope;
+import it.smartcommunitylab.aac.core.base.AbstractProvider;
+import it.smartcommunitylab.aac.scope.approver.WhitelistScopeApprover;
+import it.smartcommunitylab.aac.scope.model.ApiScopeApproval;
 import it.smartcommunitylab.aac.scope.model.ApiScopeProvider;
 
-public abstract class AbstractScopeProvider<S extends ApiScope> implements ApiScopeProvider<S> {
+public class AbstractScopeProvider<S extends AbstractApiScope> extends AbstractProvider<S>
+        implements ApiScopeProvider<S> {
 
-    private String authority;
-    private String provider;
+    protected final S scope;
+    protected AbstractScopeApprover<S, ? extends ApiScopeApproval> approver;
 
-    protected String realm;
+    public AbstractScopeProvider(String authority, String provider, String realm, S scope) {
+        super(authority, provider, realm);
+        Assert.notNull(scope, "scope can not be null");
 
-    protected AbstractScopeProvider(String authority, String provider) {
-        this.authority = authority;
-        this.provider = provider;
+        this.scope = scope;
+        // by default no scope approver is provided, use whitelist
+        this.approver = new WhitelistScopeApprover<>(scope);
+
+    }
+
+    protected void setApprover(AbstractScopeApprover<S, ? extends ApiScopeApproval> approver) {
+        if (approver != null) {
+            this.approver = approver;
+        }
     }
 
     @Override
@@ -21,28 +35,14 @@ public abstract class AbstractScopeProvider<S extends ApiScope> implements ApiSc
         return SystemKeys.RESOURCE_SCOPE;
     }
 
-    public String getAuthority() {
-        return authority;
+    @Override
+    public S getScope() {
+        return scope;
     }
 
-    public void setAuthority(String authority) {
-        this.authority = authority;
-    }
-
-    public String getProvider() {
-        return provider;
-    }
-
-    public void setProvider(String provider) {
-        this.provider = provider;
-    }
-
-    public String getRealm() {
-        return realm;
-    }
-
-    public void setRealm(String realm) {
-        this.realm = realm;
+    @Override
+    public AbstractScopeApprover<S, ?> getScopeApprover() {
+        return approver;
     }
 
 }

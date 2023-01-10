@@ -1,10 +1,5 @@
 package it.smartcommunitylab.aac.core.base;
 
-import java.util.regex.Pattern;
-
-import org.springframework.util.StringUtils;
-
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.Resource;
 import it.smartcommunitylab.aac.core.provider.ResourceProvider;
 

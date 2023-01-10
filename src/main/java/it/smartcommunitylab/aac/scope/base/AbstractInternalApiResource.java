@@ -5,12 +5,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
 
-public abstract class AbstractInternalApiResource extends AbstractApiResource {
+public abstract class AbstractInternalApiResource extends AbstractApiResource<AbstractInternalApiScope> {
 
     private final String uri;
     private final String resourceId;
@@ -52,7 +53,7 @@ public abstract class AbstractInternalApiResource extends AbstractApiResource {
 
     @Override
     public String getResource() {
-        // use URI + id as static schema
+        // use URI + id as static schema for indicator
         return uri + SystemKeys.URN_SEPARATOR + id;
     }
 
@@ -63,17 +64,21 @@ public abstract class AbstractInternalApiResource extends AbstractApiResource {
     }
 
     @Override
-    public Collection<AbstractInternalApiScope> getScopes() {
+    public Collection<String> getScopes() {
+        return scopes.stream().map(s -> s.getScope()).collect(Collectors.toList());
+    }
+
+    public Collection<AbstractInternalApiScope> getApiScopes() {
         return scopes;
     }
 
-    public void setScopes(Collection<AbstractInternalApiScope> scopes) {
+    public void setApiScopes(Collection<AbstractInternalApiScope> scopes) {
         Assert.notNull(scopes, "scopes can not be null or empty");
         this.scopes = Collections.unmodifiableSet(new TreeSet<>(scopes));
     }
 
-    public void setScopes(AbstractInternalApiScope... scopes) {
-        setScopes(Arrays.asList(scopes));
+    public void setApiScopes(AbstractInternalApiScope... scopes) {
+        setApiScopes(Arrays.asList(scopes));
     }
 
 }

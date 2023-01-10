@@ -11,7 +11,7 @@ public class OAuth2DCRResource extends AbstractInternalApiResource {
         super(SystemKeys.AUTHORITY_OAUTH2, realm, baseUrl, RESOURCE_ID);
 
         // statically register scopes
-        setScopes(new OAuth2DCRScope(realm));
+        setApiScopes(new OAuth2DCRScope(realm));
     }
 
     // TODO replace with keys for i18n
