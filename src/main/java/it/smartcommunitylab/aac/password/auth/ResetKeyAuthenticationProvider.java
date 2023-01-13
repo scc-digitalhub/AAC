@@ -57,8 +57,11 @@ public class ResetKeyAuthenticationProvider implements AuthenticationProvider {
                 throw new BadCredentialsException("invalid request");
             }
 
-            // do confirm
-            passwordService.confirmReset(key);
+            // verify only, won't disable the key
+            passwordService.verifyReset(key);
+
+            // do confirm - DISABLED
+//            passwordService.confirmReset(key);
 //            if (!account.isChangeOnFirstAccess()) {
 //                throw new BadCredentialsException("invalid request");
 //            }

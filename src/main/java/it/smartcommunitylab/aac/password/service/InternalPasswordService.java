@@ -363,6 +363,62 @@ public class InternalPasswordService extends AbstractProvider
         return password;
     }
 
+    public InternalUserPassword verifyReset(String resetKey) throws NoSuchCredentialException {
+        if (!StringUtils.hasText(resetKey)) {
+            throw new IllegalArgumentException("empty-key");
+        }
+
+        InternalUserPassword password = passwordRepository.findByProviderAndResetKey(repositoryId, resetKey);
+        if (password == null) {
+            throw new NoSuchCredentialException();
+        }
+
+        // validate key, we do it simple
+        boolean isValid = false;
+
+        // password must be active, can't reset inactive
+        boolean isActive = STATUS_ACTIVE.equals(password.getStatus());
+        if (!isActive) {
+            logger.error("invalid key, inactive");
+            throw new InvalidDataException("key");
+        }
+
+        // validate key match
+        // useless check since we fetch account with key as input..
+        boolean isMatch = resetKey.equals(password.getResetKey());
+
+        if (!isMatch) {
+            logger.error("invalid key, not matching");
+            throw new InvalidDataException("key");
+        }
+
+        // validate deadline
+        Calendar calendar = Calendar.getInstance();
+        if (password.getResetDeadline() == null) {
+            logger.error("corrupt or used key, missing deadline");
+            // do not leak reason
+            throw new InvalidDataException("key");
+        }
+
+        boolean isExpired = calendar.after(password.getResetDeadline());
+
+        if (isExpired) {
+            logger.error("expired key on " + String.valueOf(password.getResetDeadline()));
+            // do not leak reason
+            throw new InvalidDataException("key");
+        }
+
+        isValid = isActive && isMatch && !isExpired;
+
+        if (!isValid) {
+            throw new InvalidDataException("key");
+        }
+
+        // password are encrypted, return as is
+        password = passwordRepository.detach(password);
+        return password;
+    }
+
     public InternalUserPassword confirmReset(String resetKey) throws NoSuchCredentialException {
         if (!StringUtils.hasText(resetKey)) {
             throw new IllegalArgumentException("empty-key");

@@ -127,10 +127,12 @@ public class InternalPasswordResetOnAccessFilter extends OncePerRequestFilter {
 
             String repositoryId = providerConfig.getRepositoryId();
 
-            // check if account has an active password
+            // check if account has already set a password
+            // we look for an active password created *after* this login
+            long deadline = userAuth.getCreatedAt().getEpochSecond() * 1000;
             InternalUserPassword pass = passwordRepository
                     .findByProviderAndUsernameAndStatusOrderByCreateDateDesc(repositoryId, username, "active");
-            if (pass == null) {
+            if (pass == null || pass.getCreateDate().getTime() < deadline) {
                 // require change because we still lack a valid password for post-reset login
                 targetUrl = "/changepwd/" + providerId + "/" + account.getUuid();
                 requireChange = true;
@@ -150,6 +152,8 @@ public class InternalPasswordResetOnAccessFilter extends OncePerRequestFilter {
                 this.redirectStrategy.sendRedirect(request, response, targetUrl);
                 return;
             } else {
+                // TODO evaluate explicit confirm/removal of this reset key
+
                 // check if logout is set
                 if (logoutAfterReset) {
                     // clear context - will force login
