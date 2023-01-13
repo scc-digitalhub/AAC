@@ -29,6 +29,7 @@ import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.internal.auth.InternalAuthenticationException;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
@@ -145,11 +146,12 @@ public class ResetKeyAuthenticationFilter extends AbstractAuthenticationProcessi
         // set as attribute to enable fallback to login on error
         request.setAttribute("realm", realm);
 
-        String code = request.getParameter("code");
+        try {
+            String code = request.getParameter("code");
 
-        if (!StringUtils.hasText(code)) {
-            throw new BadCredentialsException("missing or invalid confirm code");
-        }
+            if (!StringUtils.hasText(code)) {
+                throw new BadCredentialsException("missing or invalid confirm code");
+            }
 
         // fetch account
         InternalUserPassword password = userPasswordService.findCredentialsByResetKey(repositoryId, code);
@@ -158,13 +160,13 @@ public class ResetKeyAuthenticationFilter extends AbstractAuthenticationProcessi
             throw new BadCredentialsException("invalid-key");
         }
 
-        InternalUserAccount account = userAccountService.findAccountById(repositoryId, password.getUsername());
-        if (account == null) {
-            // don't leak user does not exists
-            throw new BadCredentialsException("invalid-key");
-        }
+            InternalUserAccount account = userAccountService.findAccountById(repositoryId, password.getUsername());
+            if (account == null) {
+                // don't leak user does not exists
+                throw new BadCredentialsException("invalid-key");
+            }
 
-        String username = account.getUsername();
+            String username = account.getUsername();
 
 //        HttpSession session = request.getSession(true);
 //        // user always needs to update password from here, if successful
@@ -173,27 +175,30 @@ public class ResetKeyAuthenticationFilter extends AbstractAuthenticationProcessi
 //        session.setAttribute(RequestAwareAuthenticationSuccessHandler.SAVED_REQUEST,
 //                "/changepwd/" + providerId + "/" + account.getUuid());
 
-        // build a request
-        ResetKeyAuthenticationToken authenticationRequest = new ResetKeyAuthenticationToken(username,
-                code);
+            // build a request
+            ResetKeyAuthenticationToken authenticationRequest = new ResetKeyAuthenticationToken(username,
+                    code);
 
-        ProviderWrappedAuthenticationToken wrappedAuthRequest = new ProviderWrappedAuthenticationToken(
-                authenticationRequest,
-                providerId, SystemKeys.AUTHORITY_PASSWORD);
+            ProviderWrappedAuthenticationToken wrappedAuthRequest = new ProviderWrappedAuthenticationToken(
+                    authenticationRequest,
+                    providerId, SystemKeys.AUTHORITY_PASSWORD);
 
-        // also collect request details
-        WebAuthenticationDetails webAuthenticationDetails = new WebAuthenticationDetails(request);
+            // also collect request details
+            WebAuthenticationDetails webAuthenticationDetails = new WebAuthenticationDetails(request);
 
-        // set details
-        wrappedAuthRequest.setAuthenticationDetails(webAuthenticationDetails);
+            // set details
+            wrappedAuthRequest.setAuthenticationDetails(webAuthenticationDetails);
 
-        // authenticate via extended authManager
-        UserAuthentication userAuthentication = (UserAuthentication) getAuthenticationManager()
-                .authenticate(wrappedAuthRequest);
+            // authenticate via extended authManager
+            UserAuthentication userAuthentication = (UserAuthentication) getAuthenticationManager()
+                    .authenticate(wrappedAuthRequest);
 
-        // return authentication to be set in security context
-        return userAuthentication;
-
+            // return authentication to be set in security context
+            return userAuthentication;
+        } catch (BadCredentialsException e) {
+            throw new InternalAuthenticationException(null, null, null, "reset-key", e,
+                    e.getMessage());
+        }
     }
 
     public AuthenticationEntryPoint getAuthenticationEntryPoint() {
