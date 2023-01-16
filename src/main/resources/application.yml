@@ -102,7 +102,6 @@ authorities:
         enablePasswordReset: true
         passwordSupportWhitespace: false
         passwordRequireNumber: true
-        enablePasswordSet: true
         passwordMaxLength: 15
         passwordMinLength: 6
         passwordRequireAlpha: true
@@ -121,8 +120,14 @@ authorities:
      password:
         passwordResetValidity: 86400
         enablePasswordReset: true
-        maxSessionDuration: 86400       
-        confirmationRequired: true
+        passwordSupportWhitespace: false
+        passwordRequireNumber: true
+        passwordMaxLength: 15
+        passwordMinLength: 6
+        passwordRequireAlpha: true
+        passwordRequireUppercaseAlpha: false
+        passwordRequireSpecial: false   
+        passwordKeepNumber: 1   
      oidc:
         scope: openid,email
         userNameAttributeName: sub
