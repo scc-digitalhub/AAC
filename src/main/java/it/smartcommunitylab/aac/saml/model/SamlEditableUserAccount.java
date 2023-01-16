@@ -1,17 +1,15 @@
-package it.smartcommunitylab.aac.internal.model;
+package it.smartcommunitylab.aac.saml.model;
 
 import java.util.Date;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -22,22 +20,23 @@ import it.smartcommunitylab.aac.repository.JsonSchemaIgnore;
 @Valid
 @JsonInclude(Include.ALWAYS)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonPropertyOrder({ "username", "email", "name", "surname", "lang" })
-public class InternalEditableUserAccount extends AbstractEditableAccount {
-    private static final long serialVersionUID = SystemKeys.AAC_INTERNAL_SERIAL_VERSION;
+@JsonPropertyOrder({ "username", "givenName", "familyName", "lang" })
+public class SamlEditableUserAccount extends AbstractEditableAccount {
+    private static final long serialVersionUID = SystemKeys.AAC_OIDC_SERIAL_VERSION;
     public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_ACCOUNT + SystemKeys.ID_SEPARATOR
-            + SystemKeys.AUTHORITY_INTERNAL;
+            + SystemKeys.AUTHORITY_SAML;
 
     private static final JsonNode schema;
     static {
-        schema = generator.generateSchema(InternalEditableUserAccount.class);
+        schema = generator.generateSchema(SamlEditableUserAccount.class);
     }
+
     // properties
-//    @Schema(name = "username", title = "field.username", description = "description.username")
-//    @NotBlank
-    // NOT editable for now
     @JsonSchemaIgnore
-    private String username;
+    private String subjectId;
+
+    @JsonSchemaIgnore
+    private String email;
 
     @JsonSchemaIgnore
     private Date createDate;
@@ -45,12 +44,11 @@ public class InternalEditableUserAccount extends AbstractEditableAccount {
     @JsonSchemaIgnore
     private Date modifiedDate;
 
-    // attributes
-    @Schema(name = "email", title = "field.email", description = "description.email")
-    @NotEmpty
-    @Email(message = "{validation.email}")
-    private String email;
+    @Schema(name = "username", title = "field.username", description = "description.username")
+    @NotBlank
+    private String username;
 
+    // attributes
     @Schema(name = "name", title = "field.name", description = "description.name")
     @Size(min = 2, max = 70)
     private String name;
@@ -62,18 +60,27 @@ public class InternalEditableUserAccount extends AbstractEditableAccount {
     @Schema(name = "language", title = "field.language", description = "description.language")
     private String lang;
 
-    protected InternalEditableUserAccount() {
-        super(SystemKeys.AUTHORITY_INTERNAL, null, null);
+    protected SamlEditableUserAccount() {
+        super(SystemKeys.AUTHORITY_OIDC, null, null);
     }
 
-    public InternalEditableUserAccount(String provider, String uuid) {
+    public SamlEditableUserAccount(String provider, String uuid) {
         super(SystemKeys.AUTHORITY_INTERNAL, provider, uuid);
     }
 
-    public InternalEditableUserAccount(String provider, String realm, String userId, String uuid) {
-        super(SystemKeys.AUTHORITY_INTERNAL, provider, uuid);
+    public SamlEditableUserAccount(String authority, String provider, String uuid) {
+        super(authority, provider, uuid);
+    }
+
+    public SamlEditableUserAccount(String authority, String provider, String realm, String userId, String uuid) {
+        super(authority, provider, uuid);
         setRealm(realm);
         setUserId(userId);
+    }
+
+    @Override
+    public JsonNode getSchema() {
+        return schema;
     }
 
     @Override
@@ -83,15 +90,15 @@ public class InternalEditableUserAccount extends AbstractEditableAccount {
 
     @Override
     public String getAccountId() {
-        return username;
+        return subjectId;
     }
 
-    public String getUsername() {
-        return username;
+    public String getSubjectId() {
+        return subjectId;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setSubjectId(String subjectId) {
+        this.subjectId = subjectId;
     }
 
     public String getEmail() {
@@ -100,6 +107,14 @@ public class InternalEditableUserAccount extends AbstractEditableAccount {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getName() {
@@ -124,11 +139,6 @@ public class InternalEditableUserAccount extends AbstractEditableAccount {
 
     public void setLang(String lang) {
         this.lang = lang;
-    }
-
-    @Override
-    public JsonNode getSchema() {
-        return schema;
     }
 
     public Date getCreateDate() {

@@ -918,6 +918,10 @@ public class InternalAccountService
                 getProvider(), getRealm(),
                 account.getUserId(), account.getUuid());
         ea.setUsername(account.getUsername());
+
+        ea.setCreateDate(account.getCreateDate());
+        ea.setModifiedDate(account.getModifiedDate());
+
         ea.setEmail(account.getEmail());
         ea.setName(account.getName());
         ea.setSurname(account.getSurname());
