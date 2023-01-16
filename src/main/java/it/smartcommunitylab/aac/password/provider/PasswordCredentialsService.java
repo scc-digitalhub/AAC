@@ -26,6 +26,7 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.base.AbstractCredentialsService;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
+import it.smartcommunitylab.aac.core.model.EditableUserCredentials;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.crypto.PasswordHash;
@@ -371,6 +372,8 @@ public class PasswordCredentialsService extends
 
     /*
      * Editable
+     * TODO represent a single logical "ediablePassword" backed by different
+     * passwords to expose a single, constant-id "credential" to console
      */
     public InternalEditableUserPassword getEditableCredential(String accountId, String credentialId)
             throws NoSuchCredentialException {
@@ -400,11 +403,71 @@ public class PasswordCredentialsService extends
 //        throw new UnsupportedOperationException();
 //    }
 //
-//    public InternalEditableUserPassword editCredential(String accountId, String credentialId,
-//            EditableUserCredentials credentials)
-//            throws RegistrationException, NoSuchCredentialException {
-//        throw new UnsupportedOperationException();
-//    }
+    public InternalEditableUserPassword editCredential(String accountId, String credentialId,
+            EditableUserCredentials uc)
+            throws RegistrationException, NoSuchCredentialException {
+        if (uc == null) {
+            throw new RegistrationException();
+        }
+
+        Assert.isInstanceOf(InternalEditableUserPassword.class, uc,
+                "registration must be an instance of internal user password");
+        InternalEditableUserPassword reg = (InternalEditableUserPassword) uc;
+
+        // skip validation of password against policy, will be done later
+        // we only make sure password is usable
+        String password = reg.getPassword();
+        if (!StringUtils.hasText(password) || password.length() < config.getPasswordMinLength()
+                || password.length() > config.getPasswordMaxLength()) {
+            throw new RegistrationException("invalid password");
+        }
+
+        // fetch user
+        InternalUserAccount account = accountService.findAccountById(repositoryId, accountId);
+        if (account == null) {
+            throw new NoSuchCredentialException();
+        }
+
+        // fetch password
+        InternalUserPassword cred = credentialsService.findCredentialsById(repositoryId, credentialId);
+        if (cred == null) {
+            throw new NoSuchCredentialException();
+        }
+
+        // only active credentials can be used for edit
+        if (!cred.isActive()) {
+            throw new NoSuchCredentialException();
+        }
+
+        try {
+            // validate current password for authorization
+            boolean isValid = hasher.validatePassword(reg.getCurPassword(), cred.getPassword());
+            if (!isValid) {
+                throw new RegistrationException("invalid_password");
+            }
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            throw new SystemException(e.getMessage());
+        }
+
+        try {
+
+            // update password via set to keep password history
+            InternalUserPassword newPassword = this.setPassword(account.getUsername(), password, false);
+
+            // TODO evaluate how to handle id change
+            // for now return same editable blanked
+            // note that this will be inactive so NOT editable again
+            InternalEditableUserPassword ed = new InternalEditableUserPassword(getProvider(), cred.getUuid());
+            ed.setCredentialsId(cred.getCredentialsId());
+            ed.setUserId(cred.getUserId());
+            ed.setUsername(cred.getUsername());
+
+            return ed;
+        } catch (NoSuchUserException e) {
+            throw new NoSuchCredentialException();
+        }
+    }
+
     @Override
     public String getRegisterUrl() {
         return null;
