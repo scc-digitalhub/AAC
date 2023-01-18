@@ -1,11 +1,16 @@
 package it.smartcommunitylab.aac.scope.base;
 
+import java.util.Collection;
+
 import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.claims.base.AbstractClaimDefinition;
+import it.smartcommunitylab.aac.claims.model.ClaimDefinition;
 import it.smartcommunitylab.aac.scope.model.ApiResource;
+import it.smartcommunitylab.aac.scope.model.Scope;
 
 public abstract class AbstractApiResource<S extends AbstractApiScope> implements ApiResource {
 
@@ -19,8 +24,10 @@ public abstract class AbstractApiResource<S extends AbstractApiScope> implements
 
     protected String realm;
 
-    // TODO i18n
     protected String name;
+
+    // TODO i18n
+    protected String title;
     protected String description;
 
     protected AbstractApiResource(String authority, String provider) {
@@ -81,6 +88,14 @@ public abstract class AbstractApiResource<S extends AbstractApiScope> implements
         this.name = name;
     }
 
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
     public String getDescription() {
         return description;
     }
@@ -88,5 +103,11 @@ public abstract class AbstractApiResource<S extends AbstractApiScope> implements
     public void setDescription(String description) {
         this.description = description;
     }
+
+    @Override
+    public abstract Collection<? extends AbstractApiScope> getScopes();
+
+    @Override
+    public abstract Collection<? extends AbstractClaimDefinition> getClaims();
 
 }

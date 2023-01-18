@@ -10,9 +10,9 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.core.model.ClientAttributes;
-import it.smartcommunitylab.aac.model.Group;
-import it.smartcommunitylab.aac.model.RealmRole;
+import it.smartcommunitylab.aac.groups.model.Group;
 import it.smartcommunitylab.aac.model.SpaceRole;
+import it.smartcommunitylab.aac.roles.model.RealmRole;
 
 public class ClientDetails {
 
@@ -196,6 +196,7 @@ public class ClientDetails {
     /*
      * Space roles
      */
+    @Deprecated
     public Set<SpaceRole> getSpaceRoles() {
         return spaceRoles;
     }

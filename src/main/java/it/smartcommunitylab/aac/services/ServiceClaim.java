@@ -15,7 +15,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import it.smartcommunitylab.aac.claims.model.AbstractClaim;
+import it.smartcommunitylab.aac.claims.base.AbstractClaim;
 import it.smartcommunitylab.aac.model.AttributeType;
 import it.smartcommunitylab.aac.services.persistence.ServiceClaimEntity;
 

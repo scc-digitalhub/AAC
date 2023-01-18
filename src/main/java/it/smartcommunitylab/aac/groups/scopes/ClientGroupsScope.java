@@ -15,15 +15,15 @@ public class ClientGroupsScope extends AbstractInternalApiScope {
         this.subjectType = SystemKeys.RESOURCE_CLIENT;
     }
 
-    // TODO replace with keys for i18n
-    @Override
-    public String getName() {
-        return "Read client's groups";
-    }
-
-    @Override
-    public String getDescription() {
-        return "Groups of the current client. Read access only.";
-    }
+//    // TODO replace with keys for i18n
+//    @Override
+//    public String getName() {
+//        return "Read client's groups";
+//    }
+//
+//    @Override
+//    public String getDescription() {
+//        return "Groups of the current client. Read access only.";
+//    }
 
 }

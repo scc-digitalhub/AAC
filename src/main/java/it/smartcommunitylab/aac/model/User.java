@@ -22,6 +22,8 @@ import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
+import it.smartcommunitylab.aac.groups.model.Group;
+import it.smartcommunitylab.aac.roles.model.RealmRole;
 
 /*
  * A model describing the user outside the auth/security context.

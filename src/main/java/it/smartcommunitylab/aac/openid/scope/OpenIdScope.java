@@ -15,15 +15,15 @@ public class OpenIdScope extends AbstractInternalApiScope {
         this.subjectType = SystemKeys.RESOURCE_USER;
     }
 
-    // TODO replace with keys for i18n
-    @Override
-    public String getName() {
-        return "OpenId";
-    }
-
-    @Override
-    public String getDescription() {
-        return "User identity information (username and identifier). Read access only.";
-    }
+//    // TODO replace with keys for i18n
+//    @Override
+//    public String getName() {
+//        return "OpenId";
+//    }
+//
+//    @Override
+//    public String getDescription() {
+//        return "User identity information (username and identifier). Read access only.";
+//    }
 
 }

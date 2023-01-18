@@ -41,9 +41,9 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.service.SubjectService;
+import it.smartcommunitylab.aac.groups.model.Group;
 import it.smartcommunitylab.aac.groups.persistence.GroupEntity;
 import it.smartcommunitylab.aac.groups.service.GroupService;
-import it.smartcommunitylab.aac.model.Group;
 import it.smartcommunitylab.aac.model.Subject;
 
 /**

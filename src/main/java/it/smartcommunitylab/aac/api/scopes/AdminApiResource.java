@@ -10,18 +10,20 @@ public class AdminApiResource extends AbstractInternalApiResource {
         super(realm, baseUrl, RESOURCE_ID);
 
         // statically register admin scopes
-        setApiScopes(new AdminRealmsScope(realm));
+        setScopes(new AdminRealmsScope(realm));
+
+        // no claims for now
     }
 
-    // TODO replace with keys for i18n
-    @Override
-    public String getName() {
-        return "AAC Admin api";
-    }
-
-    @Override
-    public String getDescription() {
-        return "Access AAC admin api";
-    }
+//    // TODO replace with keys for i18n
+//    @Override
+//    public String getName() {
+//        return "AAC Admin api";
+//    }
+//
+//    @Override
+//    public String getDescription() {
+//        return "Access AAC admin api";
+//    }
 
 }

@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.api.scopes.ApiRolesScope;
-import it.smartcommunitylab.aac.roles.BaseRealmRolesController;
+import it.smartcommunitylab.aac.roles.controller.BaseRealmRolesController;
 
 @RestController
 @ApiSecurityTag(ApiRolesScope.SCOPE)

@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.claims.model;
 
 import java.io.Serializable;
 
+import it.smartcommunitylab.aac.claims.base.AbstractClaim;
 import it.smartcommunitylab.aac.model.AttributeType;
 
 /*
@@ -28,7 +29,7 @@ public class SerializableClaim extends AbstractClaim {
         this.type = AttributeType.OBJECT;
     }
 
-    public AttributeType getType() {
+    public AttributeType getAttributeType() {
         return type;
     }
 

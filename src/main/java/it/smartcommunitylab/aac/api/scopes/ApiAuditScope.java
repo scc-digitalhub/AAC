@@ -12,15 +12,15 @@ public class ApiAuditScope extends AbstractInternalApiScope {
         setAuthorities(Config.R_ADMIN);
     }
 
-    // TODO replace with keys for i18n
-    @Override
-    public String getName() {
-        return "Read audit log";
-    }
-
-    @Override
-    public String getDescription() {
-        return "Audit log for events. Read access only.";
-    }
+//    // TODO replace with keys for i18n
+//    @Override
+//    public String getName() {
+//        return "Read audit log";
+//    }
+//
+//    @Override
+//    public String getDescription() {
+//        return "Audit log for events. Read access only.";
+//    }
 
 }

@@ -30,9 +30,9 @@ public interface UserIdentity extends UserResource, Serializable {
     // attributes are mapped into multiple sets
     public Collection<UserAttributes> getAttributes();
 
-    default String getType() {
-        return SystemKeys.RESOURCE_IDENTITY;
-    }
+//    default String getType() {
+//        return SystemKeys.RESOURCE_IDENTITY;
+//    }
 
     // id is global
     // by default user identity id is the account id

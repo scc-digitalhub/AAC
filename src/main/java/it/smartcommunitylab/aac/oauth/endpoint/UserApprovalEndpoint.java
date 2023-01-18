@@ -37,7 +37,7 @@ import it.smartcommunitylab.aac.oauth.model.ResponseMode;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.oauth.store.AuthorizationRequestStore;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
-import it.smartcommunitylab.aac.scope.model.ApiScope;
+import it.smartcommunitylab.aac.scope.model.Scope;
 
 @Hidden
 @Controller
@@ -135,20 +135,20 @@ public class UserApprovalEndpoint implements InitializingBean {
             }
 
             // resolve scopes to user resources via registry
-            List<ApiScope> resources = new ArrayList<>();
+            List<Scope> resources = new ArrayList<>();
             if (scopes != null) {
                 for (String scope : scopes) {
-                    ApiScope s = scopeRegistry.resolveScope(realm, scope);
+                    Scope s = scopeRegistry.resolveScope(realm, scope);
                     resources.add(s);
                 }
             }
 
             // filter already approved scopes
-            List<ApiScope> approvalResources = resources.stream().filter(s -> !approvedScopes.contains(s.getScope()))
+            List<Scope> approvalResources = resources.stream().filter(s -> !approvedScopes.contains(s.getScope()))
                     .collect(Collectors.toList());
             model.put("resources", approvalResources);
 
-            List<ApiScope> hiddenResources = resources.stream().filter(s -> approvedScopes.contains(s.getScope()))
+            List<Scope> hiddenResources = resources.stream().filter(s -> approvedScopes.contains(s.getScope()))
                     .collect(Collectors.toList());
             model.put("hiddenResources", hiddenResources);
 

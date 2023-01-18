@@ -5,9 +5,9 @@ import javax.persistence.Transient;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.scope.model.ApiScope;
+import it.smartcommunitylab.aac.scope.model.Scope;
 
-public abstract class AbstractApiScope implements ApiScope {
+public abstract class AbstractApiScope implements Scope {
 
     @JsonInclude
     @Transient

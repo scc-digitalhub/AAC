@@ -3,6 +3,9 @@ package it.smartcommunitylab.aac.claims;
 import java.util.Collections;
 import java.util.List;
 
+import it.smartcommunitylab.aac.claims.model.Claim;
+import it.smartcommunitylab.aac.claims.model.ClaimsSet;
+
 public class DefaultClaimsSet implements ClaimsSet {
 
     private String resourceId;

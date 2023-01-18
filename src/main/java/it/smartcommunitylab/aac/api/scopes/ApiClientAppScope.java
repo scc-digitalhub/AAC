@@ -12,15 +12,15 @@ public class ApiClientAppScope extends AbstractInternalApiScope {
         setAuthorities(Config.R_ADMIN, Config.R_DEVELOPER);
     }
 
-    // TODO replace with keys for i18n
-    @Override
-    public String getName() {
-        return "Manage client apps";
-    }
-
-    @Override
-    public String getDescription() {
-        return "Manage client applications.";
-    }
+//    // TODO replace with keys for i18n
+//    @Override
+//    public String getName() {
+//        return "Manage client apps";
+//    }
+//
+//    @Override
+//    public String getDescription() {
+//        return "Manage client applications.";
+//    }
 
 }

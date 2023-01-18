@@ -53,14 +53,14 @@ import it.smartcommunitylab.aac.core.service.ClientEntityService;
 import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.core.service.UserAccountService;
 import it.smartcommunitylab.aac.core.service.UserService;
+import it.smartcommunitylab.aac.groups.model.Group;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.model.ConnectedApp;
-import it.smartcommunitylab.aac.model.Group;
 import it.smartcommunitylab.aac.model.Realm;
-import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.store.ExtTokenStore;
 import it.smartcommunitylab.aac.oauth.store.SearchableApprovalStore;
+import it.smartcommunitylab.aac.roles.model.RealmRole;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
 import it.smartcommunitylab.aac.scope.model.Scope;
 

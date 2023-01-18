@@ -10,7 +10,7 @@ import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.scope.model.ApiResource;
 import it.smartcommunitylab.aac.scope.model.ApiResourceProvider;
-import it.smartcommunitylab.aac.scope.model.ApiScope;
+import it.smartcommunitylab.aac.scope.model.Scope;
 import it.smartcommunitylab.aac.scope.model.ApiScopeProvider;
 
 /*
@@ -39,7 +39,7 @@ public class ScopeRegistry {
     /*
      * Scopes according to OAuth2
      */
-    public ApiScope tryResolveScope(String realm, String scope) {
+    public Scope tryResolveScope(String realm, String scope) {
         // ask every provider
         // TODO improve
         return scopeAuthorityService.getAuthorities().stream()
@@ -49,8 +49,8 @@ public class ScopeRegistry {
                 .findAny().orElse(null);
     }
 
-    public ApiScope resolveScope(String realm, String scope) throws NoSuchScopeException {
-        ApiScope s = tryResolveScope(realm, scope);
+    public Scope resolveScope(String realm, String scope) throws NoSuchScopeException {
+        Scope s = tryResolveScope(realm, scope);
         if (s == null) {
             throw new NoSuchScopeException();
         }
@@ -58,7 +58,7 @@ public class ScopeRegistry {
         return s;
     }
 
-    public ApiScope resolveScopeById(String realm, String scopeId) {
+    public Scope resolveScopeById(String realm, String scopeId) {
         // ask every provider
         // TODO improve
         return scopeAuthorityService.getAuthorities().stream()
@@ -73,7 +73,7 @@ public class ScopeRegistry {
      * every provider can expose one or more resources
      * 
      */
-    public ApiScope findScope(String realm, String scopeId) {
+    public Scope findScope(String realm, String scopeId) {
         ApiScopeProvider<?> sp = findScopeProvider(realm, scopeId);
         if (sp == null) {
             return null;
@@ -82,8 +82,8 @@ public class ScopeRegistry {
         return sp.findScope(scopeId);
     }
 
-    public ApiScope getScope(String realm, String scopeId) throws NoSuchScopeException {
-        ApiScope s = findScope(realm, scopeId);
+    public Scope getScope(String realm, String scopeId) throws NoSuchScopeException {
+        Scope s = findScope(realm, scopeId);
         if (s == null) {
             throw new NoSuchScopeException();
         }
@@ -91,7 +91,7 @@ public class ScopeRegistry {
         return s;
     }
 
-    public Collection<ApiScope> listScopes(String realm) {
+    public Collection<Scope> listScopes(String realm) {
         // ask every provider
         // TODO improve
         return scopeAuthorityService.getAuthorities().stream()
@@ -100,9 +100,9 @@ public class ScopeRegistry {
                 .collect(Collectors.toList());
     }
 
-    public ApiScopeProvider<? extends ApiScope> findScopeProvider(String realm, String scopeId) {
+    public ApiScopeProvider<? extends Scope> findScopeProvider(String realm, String scopeId) {
         // resolve scope to fetch provider
-        ApiScope s = resolveScopeById(realm, scopeId);
+        Scope s = resolveScopeById(realm, scopeId);
         if (s == null) {
             return null;
         }
@@ -115,7 +115,7 @@ public class ScopeRegistry {
                 .map(a -> a.findProvider(provider)).filter(p -> p != null).findAny().orElse(null);
     }
 
-    public ApiScopeProvider<? extends ApiScope> getScopeProvider(String realm, String scopeId)
+    public ApiScopeProvider<? extends Scope> getScopeProvider(String realm, String scopeId)
             throws NoSuchScopeException {
         ApiScopeProvider<?> sp = findScopeProvider(realm, scopeId);
         if (sp == null) {

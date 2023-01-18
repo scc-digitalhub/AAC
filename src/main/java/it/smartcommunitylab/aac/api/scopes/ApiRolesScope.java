@@ -12,15 +12,15 @@ public class ApiRolesScope extends AbstractInternalApiScope {
         setAuthorities(Config.R_ADMIN);
     }
 
-    // TODO replace with keys for i18n
-    @Override
-    public String getName() {
-        return "Manage roles";
-    }
-
-    @Override
-    public String getDescription() {
-        return "Manage realm and space roles.";
-    }
+//    // TODO replace with keys for i18n
+//    @Override
+//    public String getName() {
+//        return "Manage roles";
+//    }
+//
+//    @Override
+//    public String getDescription() {
+//        return "Manage realm and space roles.";
+//    }
 
 }

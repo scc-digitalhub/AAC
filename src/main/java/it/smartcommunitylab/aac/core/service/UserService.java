@@ -34,15 +34,15 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.groups.model.Group;
 import it.smartcommunitylab.aac.groups.service.GroupService;
 import it.smartcommunitylab.aac.internal.InternalAttributeAuthority;
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeService;
-import it.smartcommunitylab.aac.model.Group;
-import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.model.SubjectStatus;
+import it.smartcommunitylab.aac.roles.model.RealmRole;
 import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
 import it.smartcommunitylab.aac.roles.service.SubjectRoleService;
 

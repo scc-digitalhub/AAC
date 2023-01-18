@@ -3,7 +3,7 @@ package it.smartcommunitylab.aac.scope.model;
 import it.smartcommunitylab.aac.core.provider.ResourceProvider;
 import it.smartcommunitylab.aac.scope.ScopeApprover;
 
-public interface ApiScopeProvider<S extends ApiScope> extends ResourceProvider<S> {
+public interface ApiScopeProvider<S extends Scope> extends ResourceProvider<S> {
 
     public S getScope();
 

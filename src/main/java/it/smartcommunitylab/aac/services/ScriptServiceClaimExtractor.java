@@ -16,13 +16,13 @@ import org.springframework.util.StringUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import it.smartcommunitylab.aac.claims.Claim;
-import it.smartcommunitylab.aac.claims.ClaimsSet;
 import it.smartcommunitylab.aac.claims.DefaultClaimsSet;
 import it.smartcommunitylab.aac.claims.ResourceClaimsExtractor;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
-import it.smartcommunitylab.aac.claims.model.AbstractClaim;
+import it.smartcommunitylab.aac.claims.base.AbstractClaim;
 import it.smartcommunitylab.aac.claims.model.BooleanClaim;
+import it.smartcommunitylab.aac.claims.model.Claim;
+import it.smartcommunitylab.aac.claims.model.ClaimsSet;
 import it.smartcommunitylab.aac.claims.model.DateClaim;
 import it.smartcommunitylab.aac.claims.model.NumberClaim;
 import it.smartcommunitylab.aac.claims.model.SerializableClaim;

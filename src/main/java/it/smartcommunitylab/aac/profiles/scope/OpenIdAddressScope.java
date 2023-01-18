@@ -14,16 +14,16 @@ public class OpenIdAddressScope extends AbstractInternalApiScope {
         // require user
         this.subjectType = SystemKeys.RESOURCE_USER;
     }
-
-    // TODO replace with keys for i18n
-    @Override
-    public String getName() {
-        return "Read user's address";
-    }
-
-    @Override
-    public String getDescription() {
-        return "Basic user's address.";
-    }
+//
+//    // TODO replace with keys for i18n
+//    @Override
+//    public String getName() {
+//        return "Read user's address";
+//    }
+//
+//    @Override
+//    public String getDescription() {
+//        return "Basic user's address.";
+//    }
 
 }

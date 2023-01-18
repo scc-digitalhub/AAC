@@ -1,16 +1,14 @@
 package it.smartcommunitylab.aac.scope.model;
 
 import java.util.Collection;
+
+import it.smartcommunitylab.aac.claims.model.ClaimDefinition;
 import it.smartcommunitylab.aac.core.model.Resource;
 
 public interface ApiResource extends Resource {
 
     // unique identifier
-    public String getApiResourceId();
-
-    public String getName();
-
-    public String getDescription();
+    public String getResourceId();
 
     // resource indicator as per RFC8707
     public String getResource();
@@ -19,15 +17,21 @@ public interface ApiResource extends Resource {
     // used for claims when provided
     public String getNamespace();
 
-    // a resource defines a set of scopes
-    public Collection<String> getScopes();
+    // logical name
+    public String getName();
 
-    public Collection<? extends ApiScope> getApiScopes();
+    // user presentation
+    // TODO translate map?
+    public String getTitle();
+
+    public String getDescription();
+
+    // a resource defines a set of scopes
+//    public Collection<String> getScopes();
+
+    public Collection<? extends Scope> getScopes();
 
     // a resource can define a set of claims under its namespace
-    // TODO
+    public Collection<? extends ClaimDefinition> getClaims();
 
-    default String getResourceId() {
-        return getResource();
-    }
 }

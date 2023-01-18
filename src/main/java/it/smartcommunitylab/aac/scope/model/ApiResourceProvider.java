@@ -1,5 +1,7 @@
 package it.smartcommunitylab.aac.scope.model;
 
+import it.smartcommunitylab.aac.claims.model.ClaimsExtractor;
+import it.smartcommunitylab.aac.claims.model.ClaimsSet;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.core.provider.ResourceProvider;
 
@@ -15,6 +17,8 @@ public interface ApiResourceProvider<R extends ApiResource> extends ResourceProv
 
     public R getResource();
 
-    public ApiScopeProvider<? extends ApiScope> getScopeProvider(String scope) throws NoSuchScopeException;
+    public ApiScopeProvider<? extends Scope> getScopeProvider(String scope) throws NoSuchScopeException;
+    
+    public ClaimsExtractor<? extends ClaimsSet> getClaimsExtractor();
 
 }

@@ -16,14 +16,14 @@ public class ClientRolesScope extends AbstractInternalApiScope {
     }
 
     // TODO replace with keys for i18n
-    @Override
-    public String getName() {
-        return "Read client's roles";
-    }
-
-    @Override
-    public String getDescription() {
-        return "Roles and authorities of the current client. Read access only.";
-    }
+//    @Override
+//    public String getName() {
+//        return "Read client's roles";
+//    }
+//
+//    @Override
+//    public String getDescription() {
+//        return "Roles and authorities of the current client. Read access only.";
+//    }
 
 }

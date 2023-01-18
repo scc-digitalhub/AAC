@@ -36,14 +36,6 @@ public abstract class AbstractScopeApproval implements ApiScopeApproval {
         return SystemKeys.RESOURCE_SCOPE_APPROVAL;
     }
 
-    @Override
-    public String getResourceId() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(subject).append(SystemKeys.ID_SEPARATOR).append(client);
-        sb.append(SystemKeys.URN_SEPARATOR).append(scope);
-        return sb.toString();
-    }
-
     /**
      * Private constructor for JPA and other serialization tools.
      * 

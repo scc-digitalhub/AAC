@@ -30,9 +30,9 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.roles.model.RealmRole;
 
 /**
  * Describe a user in a reduced form, used for processing and profile

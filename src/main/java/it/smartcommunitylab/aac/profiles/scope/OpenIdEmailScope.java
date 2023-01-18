@@ -15,15 +15,15 @@ public class OpenIdEmailScope extends AbstractInternalApiScope {
         this.subjectType = SystemKeys.RESOURCE_USER;
     }
 
-    // TODO replace with keys for i18n
-    @Override
-    public String getName() {
-        return "Read user's email";
-    }
-
-    @Override
-    public String getDescription() {
-        return "Basic user's email";
-    }
+//    // TODO replace with keys for i18n
+//    @Override
+//    public String getName() {
+//        return "Read user's email";
+//    }
+//
+//    @Override
+//    public String getDescription() {
+//        return "Basic user's email";
+//    }
 
 }

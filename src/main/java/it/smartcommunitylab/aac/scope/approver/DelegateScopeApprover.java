@@ -10,7 +10,7 @@ import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.scope.ScopeApprover;
 import it.smartcommunitylab.aac.scope.base.AbstractScopeApprover;
-import it.smartcommunitylab.aac.scope.model.ApiScope;
+import it.smartcommunitylab.aac.scope.model.Scope;
 import it.smartcommunitylab.aac.scope.model.ApiScopeApproval;
 
 /*
@@ -19,7 +19,7 @@ import it.smartcommunitylab.aac.scope.model.ApiScopeApproval;
  * Do note that this approver will never return a DENY
  */
 
-public class DelegateScopeApprover<S extends ApiScope> extends AbstractScopeApprover<S, ApiScopeApproval> {
+public class DelegateScopeApprover<S extends Scope> extends AbstractScopeApprover<S, ApiScopeApproval> {
 
     private List<ScopeApprover<? extends ApiScopeApproval>> approvers;
 

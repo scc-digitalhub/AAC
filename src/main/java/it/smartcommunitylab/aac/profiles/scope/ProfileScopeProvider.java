@@ -1,6 +1,5 @@
 package it.smartcommunitylab.aac.profiles.scope;
 
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.scope.approver.SubjectTypeScopeApprover;
 import it.smartcommunitylab.aac.scope.base.AbstractScopeProvider;
 import it.smartcommunitylab.aac.scope.base.AbstractInternalApiScope;

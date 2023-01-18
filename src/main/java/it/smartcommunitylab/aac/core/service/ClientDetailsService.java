@@ -16,10 +16,10 @@ import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.persistence.ClientEntity;
+import it.smartcommunitylab.aac.groups.model.Group;
 import it.smartcommunitylab.aac.groups.service.GroupService;
-import it.smartcommunitylab.aac.model.Group;
-import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.SpaceRole;
+import it.smartcommunitylab.aac.roles.model.RealmRole;
 import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
 import it.smartcommunitylab.aac.roles.service.SubjectRoleService;
 

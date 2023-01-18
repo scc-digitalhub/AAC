@@ -24,7 +24,7 @@ import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.scope.ScopeApprover;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
-import it.smartcommunitylab.aac.scope.model.ApiScope;
+import it.smartcommunitylab.aac.scope.model.Scope;
 import it.smartcommunitylab.aac.scope.model.ApiScopeApproval;
 import it.smartcommunitylab.aac.scope.model.ApiScopeProvider;
 
@@ -76,7 +76,7 @@ public class ScopeApprovalHandler implements UserApprovalHandler {
             for (String s : scopes) {
                 try {
                     // TODO refactor with OAuth2 Scope representation
-                    ApiScope scope = scopeRegistry.resolveScope(realm, s);
+                    Scope scope = scopeRegistry.resolveScope(realm, s);
                     ApiScopeProvider<?> sp = scopeRegistry.getScopeProvider(realm, scope.getScopeId());
                     ScopeApprover<? extends ApiScopeApproval> sa = sp.getScopeApprover(s);
                     if (sa == null) {

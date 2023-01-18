@@ -11,19 +11,19 @@ public class OpenIdResource extends AbstractInternalApiResource {
         super(SystemKeys.AUTHORITY_OIDC, realm, baseUrl, RESOURCE_ID);
 
         // statically register scopes
-        setApiScopes(
+        setScopes(
                 new OpenIdScope(realm),
                 new OfflineAccessScope(realm));
     }
 
-    // TODO replace with keys for i18n
-    @Override
-    public String getName() {
-        return "OpenId Connect";
-    }
-
-    @Override
-    public String getDescription() {
-        return "OpenId Connect core";
-    }
+//    // TODO replace with keys for i18n
+//    @Override
+//    public String getName() {
+//        return "OpenId Connect";
+//    }
+//
+//    @Override
+//    public String getDescription() {
+//        return "OpenId Connect core";
+//    }
 }

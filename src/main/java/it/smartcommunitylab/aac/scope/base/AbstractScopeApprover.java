@@ -4,10 +4,10 @@ import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.scope.ScopeApprover;
-import it.smartcommunitylab.aac.scope.model.ApiScope;
+import it.smartcommunitylab.aac.scope.model.Scope;
 import it.smartcommunitylab.aac.scope.model.ApiScopeApproval;
 
-public abstract class AbstractScopeApprover<S extends ApiScope, A extends ApiScopeApproval>
+public abstract class AbstractScopeApprover<S extends Scope, A extends ApiScopeApproval>
         implements ScopeApprover<A> {
 
     private String authority;

@@ -37,8 +37,8 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchRoleException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.model.RealmRole;
-import it.smartcommunitylab.aac.roles.BaseRealmRolesController;
+import it.smartcommunitylab.aac.roles.controller.BaseRealmRolesController;
+import it.smartcommunitylab.aac.roles.model.RealmRole;
 
 @RestController
 @Hidden

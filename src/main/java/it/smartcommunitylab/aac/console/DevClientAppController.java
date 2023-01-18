@@ -60,10 +60,10 @@ import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.dto.FunctionValidationBean;
 import it.smartcommunitylab.aac.model.ClientApp;
-import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.roles.RealmRoleManager;
 import it.smartcommunitylab.aac.roles.SpaceRoleManager;
+import it.smartcommunitylab.aac.roles.model.RealmRole;
 
 @RestController
 @Hidden

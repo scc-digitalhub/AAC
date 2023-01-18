@@ -71,6 +71,8 @@ public class SystemKeys {
     public static final String RESOURCE_SCOPE_APPROVAL = "scope_approval";
     public static final String RESOURCE_API_RESOURCE = "api_resource";
     public static final String RESOURCE_SCOPE = "scope";
+    public static final String RESOURCE_CLAIM = "claim";
+    public static final String RESOURCE_CLAIMS_SET = "claims_set";
 
     public static final String PATH_SEPARATOR = "/-/";
     public static final String ID_SEPARATOR = ":";

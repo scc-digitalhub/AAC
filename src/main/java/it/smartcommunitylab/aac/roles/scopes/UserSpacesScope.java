@@ -4,6 +4,7 @@ import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.scope.base.AbstractInternalApiScope;
 
+@Deprecated
 public class UserSpacesScope extends AbstractInternalApiScope {
 
     public static final String SCOPE = Config.SCOPE_USER_SPACES;

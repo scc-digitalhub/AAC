@@ -36,9 +36,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.claims.ClaimsSet;
 import it.smartcommunitylab.aac.claims.DefaultClaimsService;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
+import it.smartcommunitylab.aac.claims.model.ClaimsSet;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;

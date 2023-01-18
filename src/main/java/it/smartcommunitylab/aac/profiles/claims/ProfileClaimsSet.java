@@ -7,8 +7,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import it.smartcommunitylab.aac.claims.Claim;
-import it.smartcommunitylab.aac.claims.ClaimsSet;
+import it.smartcommunitylab.aac.claims.model.Claim;
+import it.smartcommunitylab.aac.claims.model.ClaimsSet;
 import it.smartcommunitylab.aac.claims.model.SerializableClaim;
 import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
 

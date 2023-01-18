@@ -6,20 +6,20 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
 import it.smartcommunitylab.aac.scope.ScopeApprover;
-import it.smartcommunitylab.aac.scope.model.ApiScope;
+import it.smartcommunitylab.aac.scope.model.Scope;
 
 @Service
 public class ScopeApproverFactory {
 
-    public <S extends ApiScope> WhitelistScopeApprover.Builder<S> whitelist(S s) {
+    public <S extends Scope> WhitelistScopeApprover.Builder<S> whitelist(S s) {
         return new WhitelistScopeApprover.Builder<S>(s);
     }
 
-    public <S extends ApiScope> AuthorityScopeApprover<S> from(Set<? extends GrantedAuthority> grantedAuthorities) {
+    public <S extends Scope> AuthorityScopeApprover<S> from(Set<? extends GrantedAuthority> grantedAuthorities) {
         return null;
     }
 
-    public <S extends ApiScope> ScopeApprover<?> policy(String policy) {
+    public <S extends Scope> ScopeApprover<?> policy(String policy) {
 
         // an expression defining a tree-like representation of approvers
         // combination is supported only via anyOf/allOf

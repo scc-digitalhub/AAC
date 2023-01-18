@@ -12,15 +12,15 @@ public class ApiScopesScope extends AbstractInternalApiScope {
         setAuthorities(Config.R_ADMIN, Config.R_DEVELOPER);
     }
 
-    // TODO replace with keys for i18n
-    @Override
-    public String getName() {
-        return "Manage scopes";
-    }
-
-    @Override
-    public String getDescription() {
-        return "Manage resources and scopes";
-    }
+//    // TODO replace with keys for i18n
+//    @Override
+//    public String getName() {
+//        return "Manage scopes";
+//    }
+//
+//    @Override
+//    public String getDescription() {
+//        return "Manage resources and scopes";
+//    }
 
 }

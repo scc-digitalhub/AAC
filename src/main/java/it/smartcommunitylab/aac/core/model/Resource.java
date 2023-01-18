@@ -18,10 +18,10 @@ public interface Resource {
     // TODO replace with proper typing <T> on resource
     public String getType();
 
-    // resourceId is local to (type)/authority+provider
-    public String getResourceId();
+//    // resourceId is local to (type)/authority+provider
+//    public String getResourceId();
 
-    default public String getUrn() {
-        return null;
-    }
+//    default public String getUrn() {
+//        return null;
+//    }
 }

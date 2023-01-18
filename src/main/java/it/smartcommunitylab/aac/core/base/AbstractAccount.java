@@ -34,11 +34,11 @@ public abstract class AbstractAccount extends AbstractBaseUserResource implement
         // use uuid from persisted model
         return getUuid();
     }
-
-    @Override
-    public String getResourceId() {
-        return getAccountId();
-    }
+//
+//    @Override
+//    public String getResourceId() {
+//        return getAccountId();
+//    }
 
     // uuid is mandatory
     public abstract String getUuid();

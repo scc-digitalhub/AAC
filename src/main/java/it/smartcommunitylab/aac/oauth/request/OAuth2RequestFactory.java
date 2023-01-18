@@ -553,7 +553,7 @@ public class OAuth2RequestFactory
             return scopes.stream()
                     .map(s -> scopeRegistry.tryResolveScope(realm, s))
                     .filter(s -> s != null)
-                    .map(s -> scopeRegistry.resolveResourceById(realm, s.getApiResourceId()))
+                    .map(s -> scopeRegistry.resolveResourceById(realm, s.getResourceId()))
                     .filter(r -> r != null)
                     .map(r -> r.getResource())
                     .filter(i -> i != null)

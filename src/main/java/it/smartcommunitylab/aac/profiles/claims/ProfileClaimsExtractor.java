@@ -5,7 +5,7 @@ import java.util.Collection;
 import java.util.Map;
 
 import it.smartcommunitylab.aac.claims.ScopeClaimsExtractor;
-import it.smartcommunitylab.aac.claims.ClaimsSet;
+import it.smartcommunitylab.aac.claims.model.ClaimsSet;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;

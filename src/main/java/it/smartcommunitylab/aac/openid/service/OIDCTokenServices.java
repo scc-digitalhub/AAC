@@ -33,8 +33,8 @@ import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWT;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.claims.Claim;
-import it.smartcommunitylab.aac.claims.ClaimsSet;
+import it.smartcommunitylab.aac.claims.model.Claim;
+import it.smartcommunitylab.aac.claims.model.ClaimsSet;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchResourceException;

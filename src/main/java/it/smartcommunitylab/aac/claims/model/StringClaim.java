@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.claims.model;
 
+import it.smartcommunitylab.aac.claims.base.AbstractClaim;
 import it.smartcommunitylab.aac.model.AttributeType;
 
 public class StringClaim extends AbstractClaim {
@@ -16,7 +17,7 @@ public class StringClaim extends AbstractClaim {
     }
 
     @Override
-    public AttributeType getType() {
+    public AttributeType getAttributeType() {
         return AttributeType.STRING;
     }
 

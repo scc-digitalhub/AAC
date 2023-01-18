@@ -14,7 +14,6 @@ public interface UserResource extends Resource {
     // uuid is global
     public String getUuid();
 
-    @Override
     @JsonSchemaIgnore
     default public String getUrn() {
         StringBuilder sb = new StringBuilder();
@@ -22,7 +21,7 @@ public interface UserResource extends Resource {
         sb.append(getType()).append(SystemKeys.URN_SEPARATOR);
         sb.append(getAuthority()).append(SystemKeys.ID_SEPARATOR);
         sb.append(getProvider()).append(SystemKeys.ID_SEPARATOR);
-        sb.append(getResourceId());
+        sb.append(getId());
 
         return sb.toString();
     }

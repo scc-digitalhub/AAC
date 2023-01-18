@@ -5,11 +5,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
-
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.claims.base.AbstractClaimDefinition;
 
 public abstract class AbstractInternalApiResource extends AbstractApiResource<AbstractInternalApiScope> {
 
@@ -18,6 +17,7 @@ public abstract class AbstractInternalApiResource extends AbstractApiResource<Ab
     private final String id;
 
     private Set<AbstractInternalApiScope> scopes;
+    private Set<AbstractClaimDefinition> claims;
 
     public AbstractInternalApiResource(String realm, String uri, String resourceId) {
         this(SystemKeys.AUTHORITY_INTERNAL, realm, uri, resourceId);
@@ -46,7 +46,7 @@ public abstract class AbstractInternalApiResource extends AbstractApiResource<Ab
     }
 
     @Override
-    public String getApiResourceId() {
+    public String getResourceId() {
         return resourceId;
 
     }
@@ -64,21 +64,47 @@ public abstract class AbstractInternalApiResource extends AbstractApiResource<Ab
     }
 
     @Override
-    public Collection<String> getScopes() {
-        return scopes.stream().map(s -> s.getScope()).collect(Collectors.toList());
+    public Collection<AbstractInternalApiScope> getScopes() {
+        return Collections.unmodifiableSet(scopes);
     }
 
-    public Collection<AbstractInternalApiScope> getApiScopes() {
-        return scopes;
-    }
-
-    public void setApiScopes(Collection<AbstractInternalApiScope> scopes) {
+    public void setScopes(Collection<AbstractInternalApiScope> scopes) {
         Assert.notNull(scopes, "scopes can not be null or empty");
         this.scopes = Collections.unmodifiableSet(new TreeSet<>(scopes));
     }
 
-    public void setApiScopes(AbstractInternalApiScope... scopes) {
-        setApiScopes(Arrays.asList(scopes));
+    public void setScopes(AbstractInternalApiScope... scopes) {
+        setScopes(Arrays.asList(scopes));
+    }
+
+    public Set<AbstractClaimDefinition> getClaims() {
+        return claims;
+    }
+
+    public void setClaims(Collection<AbstractClaimDefinition> claims) {
+        Assert.notNull(claims, "claims can not be null or empty");
+        this.claims = Collections.unmodifiableSet(new TreeSet<>(claims));
+    }
+
+    public void setClaims(AbstractClaimDefinition... claims) {
+        setClaims(Arrays.asList(claims));
+    }
+
+    // i18n: use id as key for language files
+    @Override
+    public String getName() {
+        return resourceId;
+    }
+
+    @Override
+    public String getTitle() {
+        return "resources." + resourceId + ".title";
+
+    }
+
+    @Override
+    public String getDescription() {
+        return "resources." + resourceId + ".description";
     }
 
 }

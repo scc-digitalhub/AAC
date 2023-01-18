@@ -12,15 +12,15 @@ public class ApiProviderScope extends AbstractInternalApiScope {
         setAuthorities(Config.R_ADMIN);
     }
 
-    // TODO replace with keys for i18n
-    @Override
-    public String getName() {
-        return "Manage providers";
-    }
-
-    @Override
-    public String getDescription() {
-        return "Manage identity and attribute providers.";
-    }
+//    // TODO replace with keys for i18n
+//    @Override
+//    public String getName() {
+//        return "Manage providers";
+//    }
+//
+//    @Override
+//    public String getDescription() {
+//        return "Manage identity and attribute providers.";
+//    }
 
 }

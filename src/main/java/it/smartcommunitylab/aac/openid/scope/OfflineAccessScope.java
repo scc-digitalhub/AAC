@@ -15,15 +15,15 @@ public class OfflineAccessScope extends AbstractInternalApiScope {
         this.subjectType = SystemKeys.RESOURCE_USER;
     }
 
-    // TODO replace with keys for i18n
-    @Override
-    public String getName() {
-        return "Offline access";
-    }
-
-    @Override
-    public String getDescription() {
-        return "Offline access for obtaining refresh tokens";
-    }
+//    // TODO replace with keys for i18n
+//    @Override
+//    public String getName() {
+//        return "Offline access";
+//    }
+//
+//    @Override
+//    public String getDescription() {
+//        return "Offline access for obtaining refresh tokens";
+//    }
 
 }

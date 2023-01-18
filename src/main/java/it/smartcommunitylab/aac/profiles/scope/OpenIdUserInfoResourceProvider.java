@@ -1,35 +1,23 @@
 package it.smartcommunitylab.aac.profiles.scope;
 
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import it.smartcommunitylab.aac.common.NoSuchScopeException;
+import it.smartcommunitylab.aac.profiles.claims.OpenIdUserInfoClaimsExtractor;
 import it.smartcommunitylab.aac.scope.base.AbstractInternalApiScope;
-import it.smartcommunitylab.aac.scope.base.AbstractResourceProvider;
-import it.smartcommunitylab.aac.scope.model.ApiScopeProvider;
+import it.smartcommunitylab.aac.scope.base.AbstractInternalResourceProvider;
 
-public class OpenIdUserInfoResourceProvider
-        extends AbstractResourceProvider<OpenIdUserInfoResource, AbstractInternalApiScope> {
-
-    private Map<String, ApiScopeProvider<?>> providers;
+public class OpenIdUserInfoResourceProvider extends AbstractInternalResourceProvider<OpenIdUserInfoResource> {
 
     protected OpenIdUserInfoResourceProvider(OpenIdUserInfoResource resource) {
-        super(resource.getAuthority(), resource.getProvider(), resource.getRealm(), resource);
-
-        // build all providers eagerly, internal resources are static
-        providers = resource.getApiScopes().stream()
-                .map(s -> new ProfileScopeProvider(s))
-                .collect(Collectors.toMap(p -> p.getScope().getScope(), p -> p));
+        super(resource);
     }
 
     @Override
-    public ApiScopeProvider<?> getScopeProvider(String scope) throws NoSuchScopeException {
-        ApiScopeProvider<?> sp = providers.get(scope);
-        if (sp == null) {
-            throw new NoSuchScopeException();
-        }
+    protected ProfileScopeProvider buildScopeProvider(AbstractInternalApiScope scope) {
+        return new ProfileScopeProvider(scope);
+    }
 
-        return sp;
+    @Override
+    protected OpenIdUserInfoClaimsExtractor buildClaimsExtractor(OpenIdUserInfoResource resource) {
+        return new OpenIdUserInfoClaimsExtractor(resource);
     }
 
 }

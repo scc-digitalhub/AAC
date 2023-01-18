@@ -20,6 +20,7 @@ import it.smartcommunitylab.aac.scope.base.AbstractInternalApiScope;
 import it.smartcommunitylab.aac.scope.base.AbstractScopeApproval;
 import it.smartcommunitylab.aac.scope.base.AbstractScopeApprover;
 
+@Deprecated
 public class InternalApiScopeProvider extends AbstractScopeProvider<AbstractInternalApiScope> {
 
     public InternalApiScopeProvider(AbstractInternalApiScope scope) {

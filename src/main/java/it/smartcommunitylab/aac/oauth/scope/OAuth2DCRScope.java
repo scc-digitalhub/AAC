@@ -15,15 +15,15 @@ public class OAuth2DCRScope extends AbstractInternalApiScope {
         setAuthorities(Config.R_ADMIN, Config.R_DEVELOPER);
     }
 
-    // TODO replace with keys for i18n
-    @Override
-    public String getName() {
-        return "Dynamic client registration";
-    }
-
-    @Override
-    public String getDescription() {
-        return "Dynamic client registration for OAuth2/OIDC";
-    }
+//    // TODO replace with keys for i18n
+//    @Override
+//    public String getName() {
+//        return "Dynamic client registration";
+//    }
+//
+//    @Override
+//    public String getDescription() {
+//        return "Dynamic client registration for OAuth2/OIDC";
+//    }
 
 }

@@ -12,15 +12,15 @@ public class ApiRealmScope extends AbstractInternalApiScope {
         setAuthorities(Config.R_ADMIN);
     }
 
-    // TODO replace with keys for i18n
-    @Override
-    public String getName() {
-        return "Manage realm";
-    }
-
-    @Override
-    public String getDescription() {
-        return "Manage realm settings and customization.";
-    }
+//    // TODO replace with keys for i18n
+//    @Override
+//    public String getName() {
+//        return "Manage realm";
+//    }
+//
+//    @Override
+//    public String getDescription() {
+//        return "Manage realm settings and customization.";
+//    }
 
 }

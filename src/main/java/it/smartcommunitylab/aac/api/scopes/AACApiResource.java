@@ -10,7 +10,8 @@ public class AACApiResource extends AbstractInternalApiResource {
     public AACApiResource(String realm, String baseUrl) {
         super(realm, baseUrl, RESOURCE_ID);
 
-        setApiScopes(
+        // set scopes
+        setScopes(
                 new ApiAttributesScope(realm),
                 new ApiAuditScope(realm),
                 new ApiClientAppScope(realm),
@@ -22,24 +23,25 @@ public class AACApiResource extends AbstractInternalApiResource {
                 new ApiServicesScope(realm),
                 new ApiUsersScope(realm));
 
+        // no claims for now
     }
 
     // we don't register scopes statically
     // let provider decide which are available
     public AACApiResource(String realm, String baseUrl, AbstractInternalApiScope... scopes) {
         super(realm, baseUrl, RESOURCE_ID);
-        setApiScopes(scopes);
+        setScopes(scopes);
     }
 
-    // TODO replace with keys for i18n
-    @Override
-    public String getName() {
-        return "AAC Api";
-    }
-
-    @Override
-    public String getDescription() {
-        return "Access AAC api";
-    }
+//    // TODO replace with keys for i18n
+//    @Override
+//    public String getName() {
+//        return "AAC Api";
+//    }
+//
+//    @Override
+//    public String getDescription() {
+//        return "Access AAC api";
+//    }
 
 }

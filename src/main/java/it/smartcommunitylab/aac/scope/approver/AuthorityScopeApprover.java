@@ -12,11 +12,11 @@ import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.scope.base.AbstractScopeApprover;
-import it.smartcommunitylab.aac.scope.model.ApiScope;
+import it.smartcommunitylab.aac.scope.model.Scope;
 import it.smartcommunitylab.aac.scope.model.ApprovalStatus;
 import it.smartcommunitylab.aac.scope.model.LimitedApiScopeApproval;
 
-public class AuthorityScopeApprover<S extends ApiScope> extends AbstractScopeApprover<S, LimitedApiScopeApproval> {
+public class AuthorityScopeApprover<S extends Scope> extends AbstractScopeApprover<S, LimitedApiScopeApproval> {
 
     public static final int DEFAULT_DURATION_S = 3600; // 1h
 
@@ -84,7 +84,7 @@ public class AuthorityScopeApprover<S extends ApiScope> extends AbstractScopeApp
 
         ApprovalStatus approvalStatus = approved ? ApprovalStatus.APPROVED : ApprovalStatus.DENIED;
 
-        return new LimitedApiScopeApproval(scope.getApiResourceId(), scope.getScope(),
+        return new LimitedApiScopeApproval(scope.getResourceId(), scope.getScope(),
                 user.getSubjectId(), client.getClientId(),
                 duration, approvalStatus);
     }
@@ -116,7 +116,7 @@ public class AuthorityScopeApprover<S extends ApiScope> extends AbstractScopeApp
         }
 
         ApprovalStatus approvalStatus = approved ? ApprovalStatus.APPROVED : ApprovalStatus.DENIED;
-        return new LimitedApiScopeApproval(scope.getApiResourceId(), scope.getScope(),
+        return new LimitedApiScopeApproval(scope.getResourceId(), scope.getScope(),
                 client.getClientId(), client.getClientId(),
                 duration, approvalStatus);
     }

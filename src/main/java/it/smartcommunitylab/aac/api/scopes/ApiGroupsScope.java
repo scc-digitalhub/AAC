@@ -12,15 +12,15 @@ public class ApiGroupsScope extends AbstractInternalApiScope {
         setAuthorities(Config.R_ADMIN);
     }
 
-    // TODO replace with keys for i18n
-    @Override
-    public String getName() {
-        return "Manage groups";
-    }
-
-    @Override
-    public String getDescription() {
-        return "Manage realm groups and memberships.";
-    }
+//    // TODO replace with keys for i18n
+//    @Override
+//    public String getName() {
+//        return "Manage groups";
+//    }
+//
+//    @Override
+//    public String getDescription() {
+//        return "Manage realm groups and memberships.";
+//    }
 
 }

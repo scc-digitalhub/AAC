@@ -18,11 +18,11 @@ import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.dto.UserProfile;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.scope.base.AbstractScopeApprover;
-import it.smartcommunitylab.aac.scope.model.ApiScope;
+import it.smartcommunitylab.aac.scope.model.Scope;
 import it.smartcommunitylab.aac.scope.model.ApprovalStatus;
 import it.smartcommunitylab.aac.scope.model.LimitedApiScopeApproval;
 
-public class ScriptScopeApprover<S extends ApiScope> extends AbstractScopeApprover<S, LimitedApiScopeApproval> {
+public class ScriptScopeApprover<S extends Scope> extends AbstractScopeApprover<S, LimitedApiScopeApproval> {
 
     public static final String APPROVAL_FUNCTION = "approver";
     public static final int DEFAULT_DURATION_S = 3600; // 1h
@@ -104,7 +104,7 @@ public class ScriptScopeApprover<S extends ApiScope> extends AbstractScopeApprov
 
             ApprovalStatus approvalStatus = result.approved ? ApprovalStatus.APPROVED : ApprovalStatus.DENIED;
 
-            return new LimitedApiScopeApproval(scope.getApiResourceId(), scope.getScope(),
+            return new LimitedApiScopeApproval(scope.getResourceId(), scope.getScope(),
                     user.getSubjectId(), client.getClientId(),
                     expiresIn, approvalStatus);
 
@@ -153,7 +153,7 @@ public class ScriptScopeApprover<S extends ApiScope> extends AbstractScopeApprov
 
             ApprovalStatus approvalStatus = result.approved ? ApprovalStatus.APPROVED : ApprovalStatus.DENIED;
 
-            return new LimitedApiScopeApproval(scope.getApiResourceId(), scope.getScope(),
+            return new LimitedApiScopeApproval(scope.getResourceId(), scope.getScope(),
                     client.getClientId(), client.getClientId(),
                     expiresIn, approvalStatus);
 

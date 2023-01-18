@@ -34,11 +34,11 @@ import org.springframework.util.StringUtils;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchGroupException;
 import it.smartcommunitylab.aac.core.service.SubjectService;
+import it.smartcommunitylab.aac.groups.model.Group;
 import it.smartcommunitylab.aac.groups.persistence.GroupEntity;
 import it.smartcommunitylab.aac.groups.persistence.GroupEntityRepository;
 import it.smartcommunitylab.aac.groups.persistence.GroupMemberEntity;
 import it.smartcommunitylab.aac.groups.persistence.GroupMemberEntityRepository;
-import it.smartcommunitylab.aac.model.Group;
 import it.smartcommunitylab.aac.model.Subject;
 
 /**

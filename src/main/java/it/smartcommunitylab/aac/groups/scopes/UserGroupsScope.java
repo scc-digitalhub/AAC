@@ -14,16 +14,16 @@ public class UserGroupsScope extends AbstractInternalApiScope {
         // require user
         this.subjectType = SystemKeys.RESOURCE_USER;
     }
-
-    // TODO replace with keys for i18n
-    @Override
-    public String getName() {
-        return "Read user's groups";
-    }
-
-    @Override
-    public String getDescription() {
-        return "Groups of the current platform user. Read access only.";
-    }
+//
+//    // TODO replace with keys for i18n
+//    @Override
+//    public String getName() {
+//        return "Read user's groups";
+//    }
+//
+//    @Override
+//    public String getDescription() {
+//        return "Groups of the current platform user. Read access only.";
+//    }
 
 }

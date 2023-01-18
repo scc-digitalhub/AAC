@@ -15,15 +15,15 @@ public class OpenIdDefaultScope extends AbstractInternalApiScope {
         this.subjectType = SystemKeys.RESOURCE_USER;
     }
 
-    // TODO replace with keys for i18n
-    @Override
-    public String getName() {
-        return "Read user's standard profile";
-    }
-
-    @Override
-    public String getDescription() {
-        return "Basic user profile data (name, surname, email). Read access only.";
-    }
+//    // TODO replace with keys for i18n
+//    @Override
+//    public String getName() {
+//        return "Read user's standard profile";
+//    }
+//
+//    @Override
+//    public String getDescription() {
+//        return "Basic user profile data (name, surname, email). Read access only.";
+//    }
 
 }

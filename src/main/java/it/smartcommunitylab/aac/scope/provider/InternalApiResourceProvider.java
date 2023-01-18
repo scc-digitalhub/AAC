@@ -9,6 +9,7 @@ import it.smartcommunitylab.aac.scope.base.AbstractInternalApiScope;
 import it.smartcommunitylab.aac.scope.base.AbstractResourceProvider;
 import it.smartcommunitylab.aac.scope.model.ApiScopeProvider;
 
+@Deprecated
 public class InternalApiResourceProvider
         extends AbstractResourceProvider<AbstractInternalApiResource, AbstractInternalApiScope> {
 

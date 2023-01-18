@@ -12,15 +12,15 @@ public class ApiUsersScope extends AbstractInternalApiScope {
         setAuthorities(Config.R_ADMIN);
     }
 
-    // TODO replace with keys for i18n
-    @Override
-    public String getName() {
-        return "Manage users";
-    }
-
-    @Override
-    public String getDescription() {
-        return "Manage user identities, accounts and attributes.";
-    }
+//    // TODO replace with keys for i18n
+//    @Override
+//    public String getName() {
+//        return "Manage users";
+//    }
+//
+//    @Override
+//    public String getDescription() {
+//        return "Manage user identities, accounts and attributes.";
+//    }
 
 }

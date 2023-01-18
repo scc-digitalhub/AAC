@@ -23,7 +23,7 @@ public abstract class AbstractApiResourceConfigurationProvider<A extends Abstrac
         cs.setTitleMap(providerConfig.getTitleMap());
         cs.setDescriptionMap(providerConfig.getDescriptionMap());
 
-        String resourceId = providerConfig.getResource() != null ? providerConfig.getResource().getApiResourceId()
+        String resourceId = providerConfig.getResource() != null ? providerConfig.getResource().getResourceId()
                 : null;
         cs.setResource(resourceId);
 

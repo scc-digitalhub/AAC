@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
+import it.smartcommunitylab.aac.roles.model.RealmRole;
 
 /*
  * ClientApp describes clients as configuration properties

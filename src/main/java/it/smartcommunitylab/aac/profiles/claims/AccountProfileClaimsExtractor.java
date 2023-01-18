@@ -8,11 +8,11 @@ import java.util.List;
 import java.util.Map;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.claims.ScopeClaimsExtractor;
+import it.smartcommunitylab.aac.claims.model.Claim;
+import it.smartcommunitylab.aac.claims.model.ClaimsSet;
 import it.smartcommunitylab.aac.claims.model.SerializableClaim;
-import it.smartcommunitylab.aac.claims.Claim;
-import it.smartcommunitylab.aac.claims.ClaimsSet;
 import it.smartcommunitylab.aac.claims.DefaultClaimsSet;
+import it.smartcommunitylab.aac.claims.ScopeClaimsExtractor;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;

@@ -14,16 +14,16 @@ public class OpenIdPhoneScope extends AbstractInternalApiScope {
         // require user
         this.subjectType = SystemKeys.RESOURCE_USER;
     }
-
-    // TODO replace with keys for i18n
-    @Override
-    public String getName() {
-        return "Read user's phone";
-    }
-
-    @Override
-    public String getDescription() {
-        return "Basic user's phone.";
-    }
+//
+//    // TODO replace with keys for i18n
+//    @Override
+//    public String getName() {
+//        return "Read user's phone";
+//    }
+//
+//    @Override
+//    public String getDescription() {
+//        return "Basic user's phone.";
+//    }
 
 }

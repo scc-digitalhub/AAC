@@ -64,7 +64,7 @@ public abstract class AbstractInternalApiScope extends AbstractApiScope {
     }
 
     @Override
-    public String getApiResourceId() {
+    public String getResourceId() {
         return resourceId;
     }
 
@@ -90,6 +90,18 @@ public abstract class AbstractInternalApiScope extends AbstractApiScope {
         this.subjectType = subjectType;
     }
 
+    // i18n: use id as key for language files
+    @Override
+    public String getName() {
+        return "scopes." + scope + "." + ".title";
+    }
+
+    @Override
+    public String getDescription() {
+        return "scopes." + scope + "." + ".description";
+    }
+
+    // policy
     @Override
     public String getPolicy() {
         if (policy == null) {

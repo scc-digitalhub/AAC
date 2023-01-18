@@ -5,14 +5,14 @@ import java.util.Collection;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.scope.base.AbstractScopeApprover;
-import it.smartcommunitylab.aac.scope.model.ApiScope;
+import it.smartcommunitylab.aac.scope.model.Scope;
 import it.smartcommunitylab.aac.scope.model.ApprovalStatus;
 import it.smartcommunitylab.aac.scope.model.LimitedApiScopeApproval;
 
 /*
  * An approver which will always return a positive result (no approval required)
  */
-public class WhitelistScopeApprover<S extends ApiScope> extends AbstractScopeApprover<S, LimitedApiScopeApproval> {
+public class WhitelistScopeApprover<S extends Scope> extends AbstractScopeApprover<S, LimitedApiScopeApproval> {
 
     public static final int DEFAULT_DURATION_S = 21600; // 6h
 
@@ -33,7 +33,7 @@ public class WhitelistScopeApprover<S extends ApiScope> extends AbstractScopeApp
             return null;
         }
 
-        return new LimitedApiScopeApproval(scope.getApiResourceId(), scope.getScope(),
+        return new LimitedApiScopeApproval(scope.getResourceId(), scope.getScope(),
                 user.getSubjectId(), client.getClientId(),
                 duration, ApprovalStatus.APPROVED);
     }
@@ -44,12 +44,12 @@ public class WhitelistScopeApprover<S extends ApiScope> extends AbstractScopeApp
             return null;
         }
 
-        return new LimitedApiScopeApproval(scope.getApiResourceId(), scope.getScope(),
+        return new LimitedApiScopeApproval(scope.getResourceId(), scope.getScope(),
                 client.getClientId(), client.getClientId(),
                 duration, ApprovalStatus.APPROVED);
     }
 
-    public static class Builder<S extends ApiScope> {
+    public static class Builder<S extends Scope> {
 
         private S scope;
         private Integer duration;
