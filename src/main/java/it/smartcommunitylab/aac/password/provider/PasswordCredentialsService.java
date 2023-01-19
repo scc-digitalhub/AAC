@@ -462,6 +462,10 @@ public class PasswordCredentialsService extends
             ed.setUserId(cred.getUserId());
             ed.setUsername(cred.getUsername());
 
+            // load policy
+            PasswordPolicy policy = getPasswordPolicy();
+            ed.setPolicy(policy);
+
             return ed;
         } catch (NoSuchUserException e) {
             throw new NoSuchCredentialException();
