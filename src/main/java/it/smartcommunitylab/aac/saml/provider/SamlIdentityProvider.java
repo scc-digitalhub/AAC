@@ -114,7 +114,7 @@ public class SamlIdentityProvider extends
     @Override
     public String getAuthenticationUrl() {
         // TODO build a realm-bound url, need updates on filters
-        return "/auth/" + getAuthority() + "authenticate/" + getProvider();
+        return "/auth/" + getAuthority() + "/authenticate/" + getProvider();
     }
 
     @Override
