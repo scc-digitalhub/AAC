@@ -1,4 +1,7 @@
-package it.smartcommunitylab.aac.password.dto;
+package it.smartcommunitylab.aac.password.model;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
@@ -7,6 +10,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.IntNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import it.smartcommunitylab.aac.SystemKeys;
@@ -26,11 +32,15 @@ public class InternalEditableUserPassword extends AbstractEditableUserCredential
         schema = generator.generateSchema(InternalEditableUserPassword.class);
     }
 
+    @JsonSchemaIgnore
     private String credentialsId;
 
     @NotBlank
     @JsonSchemaIgnore
     private String username;
+
+    @JsonSchemaIgnore
+    private PasswordPolicy policy;
 
     @Schema(name = "password", title = "field.password", description = "description.password", format = "password")
     @NotBlank
@@ -100,8 +110,30 @@ public class InternalEditableUserPassword extends AbstractEditableUserCredential
         this.curPassword = curPassword;
     }
 
+    public PasswordPolicy getPolicy() {
+        return policy;
+    }
+
+    public void setPolicy(PasswordPolicy policy) {
+        this.policy = policy;
+    }
+
     @Override
     public JsonNode getSchema() {
+        if (policy != null && schema != null) {
+            // translate password policy as json schema validation
+            Map<String, JsonNode> map = new HashMap<>();
+            map.put("minLength", new IntNode(policy.getPasswordMinLength()));
+            map.put("maxLength", new IntNode(policy.getPasswordMaxLength()));
+            map.put("pattern", new TextNode(policy.getPasswordPattern()));
+
+            // set password policy in schema
+            if (schema.get("properties") != null && schema.get("properties").get("password") != null) {
+                ObjectNode pp = (ObjectNode) schema.get("properties").get("password");
+                pp.setAll(map);
+            }
+        }
+
         return schema;
     }
 }

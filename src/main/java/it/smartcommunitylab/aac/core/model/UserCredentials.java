@@ -11,8 +11,6 @@ public interface UserCredentials extends UserResource, Credentials, CredentialsC
     // credentials are associated to accounts
     public String getAccountId();
 
-    public boolean isChangeOnFirstAccess();
-
     // credentialsId is local id for provider
     public String getCredentialsId();
 

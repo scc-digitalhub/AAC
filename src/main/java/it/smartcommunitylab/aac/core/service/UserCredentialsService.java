@@ -124,13 +124,15 @@ public class UserCredentialsService {
                 .collect(Collectors.toList());
 
         List<EditableUserCredentials> creds = services.stream().flatMap(
-                s -> s.listCredentials(userId).stream().map(a -> {
-                    try {
-                        return s.getEditableCredential(a.getAccountId(), a.getCredentialsId());
-                    } catch (NoSuchCredentialException | UnsupportedOperationException e1) {
-                        return null;
-                    }
-                }).filter(a -> a != null))
+                s -> s.listCredentials(userId).stream()
+                        .filter(c -> c.isActive())
+                        .map(a -> {
+                            try {
+                                return s.getEditableCredential(a.getAccountId(), a.getCredentialsId());
+                            } catch (NoSuchCredentialException | UnsupportedOperationException e1) {
+                                return null;
+                            }
+                        }).filter(a -> a != null))
                 .collect(Collectors.toList());
 
         return creds;

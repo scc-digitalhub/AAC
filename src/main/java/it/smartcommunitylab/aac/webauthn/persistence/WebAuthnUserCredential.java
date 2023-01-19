@@ -169,11 +169,6 @@ public class WebAuthnUserCredential extends AbstractUserCredentials {
         return CredentialsStatus.REVOKED.getValue().equals(status);
     }
 
-    @Override
-    public boolean isChangeOnFirstAccess() {
-        return false;
-    }
-
     public String getUsername() {
         return username;
     }

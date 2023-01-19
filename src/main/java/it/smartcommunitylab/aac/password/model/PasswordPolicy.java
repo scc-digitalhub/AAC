@@ -1,6 +1,8 @@
 package it.smartcommunitylab.aac.password.model;
 
-public class PasswordPolicy {
+import java.io.Serializable;
+
+public class PasswordPolicy implements Serializable {
     private int passwordMinLength = 5;
     private int passwordMaxLength = 12;
     private boolean passwordRequireAlpha = true;

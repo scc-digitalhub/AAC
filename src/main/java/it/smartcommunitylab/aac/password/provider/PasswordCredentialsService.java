@@ -31,7 +31,7 @@ import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.crypto.PasswordHash;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.password.PasswordCredentialsAuthority;
-import it.smartcommunitylab.aac.password.dto.InternalEditableUserPassword;
+import it.smartcommunitylab.aac.password.model.InternalEditableUserPassword;
 import it.smartcommunitylab.aac.password.model.PasswordPolicy;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.password.service.InternalPasswordUserCredentialsService;
@@ -385,6 +385,10 @@ public class PasswordCredentialsService extends
         ed.setCredentialsId(pass.getCredentialsId());
         ed.setUserId(pass.getUserId());
         ed.setUsername(pass.getUsername());
+
+        // load policy
+        PasswordPolicy policy = getPasswordPolicy();
+        ed.setPolicy(policy);
 
         return ed;
     }

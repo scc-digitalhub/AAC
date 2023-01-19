@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.victools.jsonschema.generator.SchemaGenerator;
 import it.smartcommunitylab.aac.core.model.EditableUserCredentials;
-import it.smartcommunitylab.aac.password.dto.InternalEditableUserPassword;
+import it.smartcommunitylab.aac.password.model.InternalEditableUserPassword;
 import it.smartcommunitylab.aac.repository.JsonSchemaIgnore;
 import it.smartcommunitylab.aac.repository.SchemaAnnotationIntrospector;
 import it.smartcommunitylab.aac.repository.SchemaGeneratorFactory;

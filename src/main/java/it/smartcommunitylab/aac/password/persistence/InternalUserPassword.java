@@ -138,7 +138,6 @@ public class InternalUserPassword extends AbstractUserCredentials {
         return CredentialsStatus.REVOKED.getValue().equals(status);
     }
 
-    @Override
     public boolean isChangeOnFirstAccess() {
         return changeOnFirstAccess != null ? changeOnFirstAccess.booleanValue() : false;
     }
