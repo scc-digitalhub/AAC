@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.saml.auth;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
@@ -51,7 +52,7 @@ public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter 
     private final Saml2AuthenticationRequestFactory authenticationRequestFactory;
 //    private final ProviderRepository<SamlIdentityProviderConfig> registrationRepository;
 
-    private Saml2AuthenticationRequestRepository<Saml2AuthenticationRequestContext> authenticationRequestRepository = new HttpSessionSaml2AuthenticationRequestRepository();
+    private Saml2AuthenticationRequestRepository<SerializableSaml2AuthenticationRequestContext> authenticationRequestRepository = new HttpSessionSaml2AuthenticationRequestRepository();
 
     public SamlWebSsoAuthenticationRequestFilter(
             ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository,
@@ -99,9 +100,15 @@ public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter 
             return;
         }
 
+        // translate context to a serializable version
+        // TODO drop and adopt resolver+request as per spring 5.6+
+        SerializableSaml2AuthenticationRequestContext ctx = new SerializableSaml2AuthenticationRequestContext(
+                context.getRelyingPartyRegistration().getRegistrationId(), context.getIssuer(),
+                context.getRelayState());
+
         // persist request if relayState is set
         if (StringUtils.hasText(context.getRelayState())) {
-            authenticationRequestRepository.saveAuthenticationRequest(context, request, response);
+            authenticationRequestRepository.saveAuthenticationRequest(ctx, request, response);
         }
 
         RelyingPartyRegistration relyingParty = context.getRelyingPartyRegistration();
@@ -110,6 +117,7 @@ public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter 
         } else {
             sendPost(response, context);
         }
+        logger.debug("sent request");
     }
 
     private void sendRedirect(HttpServletResponse response, Saml2AuthenticationRequestContext context)
@@ -194,7 +202,7 @@ public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter 
     }
 
     public void setAuthenticationRequestRepository(
-            Saml2AuthenticationRequestRepository<Saml2AuthenticationRequestContext> authenticationRequestRepository) {
+            Saml2AuthenticationRequestRepository<SerializableSaml2AuthenticationRequestContext> authenticationRequestRepository) {
         this.authenticationRequestRepository = authenticationRequestRepository;
     }
 
@@ -229,4 +237,5 @@ public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter 
                     .relayState(stateGenerator.generateKey()).build();
         }
     }
+
 }

@@ -213,6 +213,7 @@ public class SamlAuthenticationProvider
                 // get all attributes from principal except jwt attrs
                 // TODO handle all attributes not only strings.
                 Map<String, Serializable> principalAttributes = user.getAttributes().entrySet().stream()
+                        .filter(e -> e.getValue() != null)
                         .filter(e -> !SamlKeys.SAML_ATTRIBUTES.contains(e.getKey()))
                         .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
                 // execute script
@@ -224,6 +225,7 @@ public class SamlAuthenticationProvider
                 if (customAttributes != null) {
                     // replace map
                     principalAttributes = customAttributes.entrySet().stream()
+                            .filter(e -> e.getValue() != null)
                             .filter(e -> !SamlKeys.SAML_ATTRIBUTES.contains(e.getKey()))
                             .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
                     user.setAttributes(principalAttributes);
@@ -236,6 +238,7 @@ public class SamlAuthenticationProvider
         // re-read attributes as-is, transform to strings
         // TODO evaluate using a custom mapper to given profile
         Map<String, String> samlAttributes = user.getAttributes().entrySet().stream()
+                .filter(e -> e.getValue() != null)
                 .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().toString()));
 
         // fetch email when available

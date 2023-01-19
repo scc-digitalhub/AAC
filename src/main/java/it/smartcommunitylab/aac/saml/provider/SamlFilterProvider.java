@@ -19,6 +19,7 @@ import it.smartcommunitylab.aac.saml.auth.SamlMetadataFilter;
 import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository;
 import it.smartcommunitylab.aac.saml.auth.SamlWebSsoAuthenticationFilter;
 import it.smartcommunitylab.aac.saml.auth.SamlWebSsoAuthenticationRequestFilter;
+import it.smartcommunitylab.aac.saml.auth.SerializableSaml2AuthenticationRequestContext;
 import it.smartcommunitylab.aac.saml.service.HttpSessionSaml2AuthenticationRequestRepository;
 
 public class SamlFilterProvider implements FilterProvider {
@@ -54,7 +55,7 @@ public class SamlFilterProvider implements FilterProvider {
     @Override
     public List<Filter> getAuthFilters() {
         // build request repository bound to session
-        Saml2AuthenticationRequestRepository<Saml2AuthenticationRequestContext> authenticationRequestRepository = new HttpSessionSaml2AuthenticationRequestRepository();
+        Saml2AuthenticationRequestRepository<SerializableSaml2AuthenticationRequestContext> authenticationRequestRepository = new HttpSessionSaml2AuthenticationRequestRepository();
 
         // build filters
         SamlWebSsoAuthenticationRequestFilter requestFilter = new SamlWebSsoAuthenticationRequestFilter(

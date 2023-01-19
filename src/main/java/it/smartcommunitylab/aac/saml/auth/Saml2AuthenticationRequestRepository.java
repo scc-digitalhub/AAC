@@ -5,7 +5,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationRequestContext;
 
-public interface Saml2AuthenticationRequestRepository<T extends Saml2AuthenticationRequestContext> {
+public interface Saml2AuthenticationRequestRepository<T extends SerializableSaml2AuthenticationRequestContext> {
 
     T loadAuthenticationRequest(HttpServletRequest request);
 

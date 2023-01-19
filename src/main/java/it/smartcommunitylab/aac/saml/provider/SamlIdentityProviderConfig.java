@@ -155,11 +155,11 @@ public class SamlIdentityProviderConfig extends AbstractIdentityProviderConfig<S
     }
 
     public String getMetadataUrl() {
-        return "{baseUrl}" + getAuthority() + "metadata/{registrationId}";
+        return "{baseUrl}/auth/" + getAuthority() + "/metadata/{registrationId}";
     }
 
     public String getAssertionConsumerUrl() {
-        return "{baseUrl}" + getAuthority() + "sso/{registrationId}";
+        return "{baseUrl}/auth/" + getAuthority() + "/sso/{registrationId}";
     }
 
     public String getEntityId() {
