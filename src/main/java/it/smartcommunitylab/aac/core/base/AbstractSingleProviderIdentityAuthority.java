@@ -14,8 +14,8 @@ import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProviderConfig;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 
-public abstract class AbstractSingleProviderIdentityAuthority<S extends IdentityProvider<I, ?, ?, M, C>, I extends UserIdentity, M extends ConfigMap, C extends IdentityProviderConfig<M>>
-        extends AbstractSingleProviderAuthority<S, I, ConfigurableIdentityProvider, M, C>
+public abstract class AbstractSingleProviderIdentityAuthority<S extends IdentityProvider<I, ?, ?, M, C>, I extends UserIdentity, M extends AbstractConfigMap, C extends AbstractIdentityProviderConfig<M>>
+        extends AbstractSingleConfigurableProviderAuthority<S, I, ConfigurableIdentityProvider, M, C>
         implements IdentityProviderAuthority<S, I, M, C>, InitializingBean {
 
     // configuration provider

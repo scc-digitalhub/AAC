@@ -7,10 +7,11 @@ import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.authorities.TemplateProviderAuthority;
-import it.smartcommunitylab.aac.core.base.AbstractAuthorityService;
+import it.smartcommunitylab.aac.core.base.AbstractConfigurableAuthorityService;
 
 @Service
-public class TemplateProviderAuthorityService extends AbstractAuthorityService<TemplateProviderAuthority<?, ?, ?, ?>>
+public class TemplateProviderAuthorityService
+        extends AbstractConfigurableAuthorityService<TemplateProviderAuthority<?, ?, ?, ?>>
         implements InitializingBean {
 
     public TemplateProviderAuthorityService(Collection<TemplateProviderAuthority<?, ?, ?, ?>> authorities) {

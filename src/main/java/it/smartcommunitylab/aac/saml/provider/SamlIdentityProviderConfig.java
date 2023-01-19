@@ -20,12 +20,17 @@ import org.springframework.security.saml2.provider.service.registration.RelyingP
 import org.springframework.security.saml2.provider.service.registration.Saml2MessageBinding;
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 
 public class SamlIdentityProviderConfig extends AbstractIdentityProviderConfig<SamlIdentityProviderConfigMap> {
     private static final long serialVersionUID = SystemKeys.AAC_SAML_SERIAL_VERSION;
+    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_PROVIDER + SystemKeys.ID_SEPARATOR
+            + SamlIdentityProviderConfigMap.RESOURCE_TYPE;
 
     private transient RelyingPartyRegistration relyingPartyRegistration;
 
@@ -33,13 +38,14 @@ public class SamlIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         this(SystemKeys.AUTHORITY_SAML, provider, realm);
     }
 
-    public SamlIdentityProviderConfig(String authority, String provider, String realm) {
+    public SamlIdentityProviderConfig(@JsonProperty("authority") String authority,
+            @JsonProperty("provider") String provider, @JsonProperty("realm") String realm) {
         super(authority, provider, realm, new SamlIdentityProviderConfigMap());
         this.relyingPartyRegistration = null;
     }
 
-    public SamlIdentityProviderConfig(ConfigurableIdentityProvider cp) {
-        super(cp);
+    public SamlIdentityProviderConfig(ConfigurableIdentityProvider cp, SamlIdentityProviderConfigMap configMap) {
+        super(cp, configMap);
     }
 
     public String getRepositoryId() {
@@ -47,6 +53,7 @@ public class SamlIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         return getProvider();
     }
 
+    @JsonIgnore
     public RelyingPartyRegistration getRelyingPartyRegistration() {
         if (relyingPartyRegistration == null) {
             try {

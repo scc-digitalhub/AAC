@@ -22,7 +22,8 @@ public class InternalIdentityProviderConfigurationProvider
 
     @Override
     protected InternalIdentityProviderConfig buildConfig(ConfigurableIdentityProvider cp) {
-        return new InternalIdentityProviderConfig(cp);
+        // build configMap and then config
+        return new InternalIdentityProviderConfig(cp, getConfigMap(cp.getConfiguration()));
     }
 
 }

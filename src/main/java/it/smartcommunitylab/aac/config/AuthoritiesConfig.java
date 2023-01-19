@@ -6,9 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.util.StringUtils;
-import it.smartcommunitylab.aac.attributes.store.AutoJdbcAttributeStore;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
-import it.smartcommunitylab.aac.core.authorities.AccountServiceAuthority;
 import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
@@ -18,7 +16,6 @@ import it.smartcommunitylab.aac.core.service.InMemoryProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.openid.OIDCAccountServiceAuthority;
 import it.smartcommunitylab.aac.openid.OIDCIdentityAuthority;
-import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
@@ -73,13 +70,11 @@ public class AuthoritiesConfig {
 
                         // build config repositories
                         ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository = new InMemoryProviderConfigRepository<>();
-                        OIDCClientRegistrationRepository clientRegistrationRepository = new OIDCClientRegistrationRepository();
                         // instantiate authority
                         OIDCIdentityAuthority auth = new OIDCIdentityAuthority(
                                 id,
                                 oidcUserAccountService,
-                                registrationRepository,
-                                clientRegistrationRepository);
+                                registrationRepository);
 
                         auth.setConfigProvider(configProvider);
                         auth.setExecutionService(executionService);

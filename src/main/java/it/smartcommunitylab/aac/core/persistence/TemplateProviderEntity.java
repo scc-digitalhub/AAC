@@ -18,6 +18,7 @@ import it.smartcommunitylab.aac.repository.HashMapConverter;
 public class TemplateProviderEntity implements ProviderEntity {
 
     @NotNull
+    @Column(name = "authority", length = 128)
     private String authority;
 
     @Id
@@ -45,7 +46,7 @@ public class TemplateProviderEntity implements ProviderEntity {
 
     @NotNull
     @Column(name = "enabled")
-    private boolean enabled;
+    private Boolean enabled;
 
     @Column(name = "languages")
     private String languages;
@@ -60,6 +61,9 @@ public class TemplateProviderEntity implements ProviderEntity {
     @Column(name = "configuration_map")
     @Convert(converter = HashMapConverter.class)
     private Map<String, Serializable> configurationMap;
+
+    @Column(name = "version")
+    private Integer version;
 
     public TemplateProviderEntity() {
 
@@ -118,10 +122,14 @@ public class TemplateProviderEntity implements ProviderEntity {
     }
 
     public boolean isEnabled() {
-        return enabled;
+        return enabled != null ? enabled.booleanValue() : false;
     }
 
-    public void setEnabled(boolean enabled) {
+    public Boolean getEnabled() {
+        return this.enabled;
+    }
+
+    public void setEnabled(Boolean enabled) {
         this.enabled = enabled;
     }
 
@@ -149,4 +157,11 @@ public class TemplateProviderEntity implements ProviderEntity {
         this.configurationMap = configurationMap;
     }
 
+    public int getVersion() {
+        return version != null ? version : 0;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
+    }
 }

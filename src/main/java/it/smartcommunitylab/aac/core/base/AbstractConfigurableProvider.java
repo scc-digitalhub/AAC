@@ -11,7 +11,7 @@ import it.smartcommunitylab.aac.core.model.Resource;
 import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfig;
 
-public abstract class AbstractConfigurableProvider<R extends Resource, T extends ConfigurableProvider, M extends ConfigMap, C extends ProviderConfig<M, T>>
+public abstract class AbstractConfigurableProvider<R extends Resource, T extends ConfigurableProvider, M extends ConfigMap, C extends ProviderConfig<M>>
         extends AbstractProvider<R> implements ConfigurableResourceProvider<R, T, M, C> {
 
     protected final C config;
@@ -31,11 +31,6 @@ public abstract class AbstractConfigurableProvider<R extends Resource, T extends
     @Override
     public C getConfig() {
         return config;
-    }
-
-    @Override
-    public T getConfigurable() {
-        return getConfig().getConfigurable();
     }
 
     @Override

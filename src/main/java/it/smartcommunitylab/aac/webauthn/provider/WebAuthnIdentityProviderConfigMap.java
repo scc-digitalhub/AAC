@@ -22,6 +22,10 @@ import it.smartcommunitylab.aac.core.base.AbstractConfigMap;
 public class WebAuthnIdentityProviderConfigMap extends AbstractConfigMap implements Serializable {
     private static final long serialVersionUID = SystemKeys.AAC_WEBAUTHN_SERIAL_VERSION;
 
+    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_CONFIG + SystemKeys.ID_SEPARATOR
+            + SystemKeys.RESOURCE_IDENTITY_PROVIDER + SystemKeys.ID_SEPARATOR
+            + SystemKeys.AUTHORITY_WEBAUTHN;
+
     @Max(3 * 24 * 60 * 60)
     protected Integer maxSessionDuration;
 

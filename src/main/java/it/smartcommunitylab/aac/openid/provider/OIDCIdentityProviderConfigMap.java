@@ -17,8 +17,12 @@ import it.smartcommunitylab.aac.oauth.model.PromptMode;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class OIDCIdentityProviderConfigMap extends AbstractConfigMap implements Serializable {
+public class OIDCIdentityProviderConfigMap extends AbstractConfigMap {
     private static final long serialVersionUID = SystemKeys.AAC_OIDC_SERIAL_VERSION;
+
+    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_CONFIG + SystemKeys.ID_SEPARATOR
+            + SystemKeys.RESOURCE_IDENTITY_PROVIDER + SystemKeys.ID_SEPARATOR
+            + SystemKeys.AUTHORITY_OIDC;
 
     private String clientId;
     private String clientSecret;

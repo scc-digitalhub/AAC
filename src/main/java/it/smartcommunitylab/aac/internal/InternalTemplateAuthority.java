@@ -6,9 +6,13 @@ import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.authorities.TemplateProviderAuthority;
-import it.smartcommunitylab.aac.core.base.AbstractSingleProviderAuthority;
+import it.smartcommunitylab.aac.core.base.AbstractSingleConfigurableProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableTemplateProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.core.service.TranslatorProviderConfigRepository;
+import it.smartcommunitylab.aac.internal.provider.InternalAccountServiceConfig;
+import it.smartcommunitylab.aac.internal.provider.InternalAccountServiceConfigConverter;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.provider.InternalTemplateProvider;
 import it.smartcommunitylab.aac.templates.model.TemplateModel;
 import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfig;
@@ -18,7 +22,7 @@ import it.smartcommunitylab.aac.templates.service.TemplateService;
 
 @Service
 public class InternalTemplateAuthority extends
-        AbstractSingleProviderAuthority<InternalTemplateProvider, TemplateModel, ConfigurableTemplateProvider, TemplateProviderConfigMap, RealmTemplateProviderConfig>
+        AbstractSingleConfigurableProviderAuthority<InternalTemplateProvider, TemplateModel, ConfigurableTemplateProvider, TemplateProviderConfigMap, RealmTemplateProviderConfig>
         implements
         TemplateProviderAuthority<InternalTemplateProvider, TemplateModel, TemplateProviderConfigMap, RealmTemplateProviderConfig> {
 
@@ -31,7 +35,7 @@ public class InternalTemplateAuthority extends
     public InternalTemplateAuthority(
             TemplateService templateService,
             ProviderConfigRepository<RealmTemplateProviderConfig> registrationRepository) {
-        super(SystemKeys.AUTHORITY_INTERNAL, registrationRepository);
+        super(SystemKeys.AUTHORITY_INTERNAL, new InternalConfigTranslatorRepository(registrationRepository));
         Assert.notNull(templateService, "template service is mandatory");
 
         this.templateService = templateService;
@@ -59,6 +63,25 @@ public class InternalTemplateAuthority extends
                 config.getRealm());
 
         return p;
+    }
+
+    static class InternalConfigTranslatorRepository extends
+            TranslatorProviderConfigRepository<RealmTemplateProviderConfig, RealmTemplateProviderConfig> {
+
+        public InternalConfigTranslatorRepository(
+                ProviderConfigRepository<RealmTemplateProviderConfig> externalRepository) {
+            super(externalRepository);
+            setConverter(config -> {
+                RealmTemplateProviderConfig c = new RealmTemplateProviderConfig(SystemKeys.AUTHORITY_INTERNAL,
+                        config.getProvider(), config.getRealm(), config.getConfigMap());
+                c.setCustomStyle(config.getCustomStyle());
+                c.setLanguages(c.getLanguages());
+
+                return c;
+
+            });
+        }
+
     }
 
 }

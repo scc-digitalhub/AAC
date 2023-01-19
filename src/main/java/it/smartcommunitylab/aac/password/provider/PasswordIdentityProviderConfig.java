@@ -1,5 +1,7 @@
 package it.smartcommunitylab.aac.password.provider;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
@@ -7,16 +9,20 @@ import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 public class PasswordIdentityProviderConfig
         extends AbstractIdentityProviderConfig<PasswordIdentityProviderConfigMap> {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
+    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_PROVIDER + SystemKeys.ID_SEPARATOR
+            + PasswordIdentityProviderConfigMap.RESOURCE_TYPE;
 
     private final static int DEFAULT_SESSION_DURATION = 24 * 60 * 60; // 24h
     private final static int DEFAULT_RESET_DURATION = 900; // 15m
 
-    public PasswordIdentityProviderConfig(String provider, String realm) {
+    public PasswordIdentityProviderConfig(@JsonProperty("provider") String provider,
+            @JsonProperty("realm") String realm) {
         super(SystemKeys.AUTHORITY_PASSWORD, provider, realm, new PasswordIdentityProviderConfigMap());
     }
 
-    public PasswordIdentityProviderConfig(ConfigurableIdentityProvider cp) {
-        super(cp);
+    public PasswordIdentityProviderConfig(ConfigurableIdentityProvider cp,
+            PasswordIdentityProviderConfigMap configMap) {
+        super(cp, configMap);
     }
 
     public String getRepositoryId() {

@@ -16,7 +16,7 @@ public class ScriptAttributeConfigurationProvider extends
 
     @Override
     protected ScriptAttributeProviderConfig buildConfig(ConfigurableAttributeProvider cp) {
-        return new ScriptAttributeProviderConfig(cp);
+        return new ScriptAttributeProviderConfig(cp, getConfigMap(cp.getConfiguration()));
     }
 
 }

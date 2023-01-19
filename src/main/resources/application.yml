@@ -29,7 +29,12 @@ jdbc:
    user: ${JDBC_USER:ac}
    password: ${JDBC_PASS:ac}
    show-sql: false
-
+   
+persistence:
+   repository:
+      providerConfig: memory
+   
+   
 # AAC ADMIN USER PASSWORD
 admin:
    username: ${ADMIN_USERNAME:admin}
@@ -249,6 +254,9 @@ spring:
         cache.period: 3600
    h2.console.enabled: false       
    jpa.hibernate.ddl-auto: validate
+   session:
+    store-type: jdbc
+    jdbc.initialize-schema: always   
 
 # ROLE PREFIX FOR AUTHORIZATION CHECK
 authorization:

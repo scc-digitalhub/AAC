@@ -15,7 +15,6 @@ import it.smartcommunitylab.aac.SystemKeys;
 @Valid
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@ConstructorBinding
 public class ConfigurableAttributeProvider extends ConfigurableProvider {
 
     private Set<String> attributeSets;
@@ -38,11 +37,6 @@ public class ConfigurableAttributeProvider extends ConfigurableProvider {
     @SuppressWarnings("unused")
     private ConfigurableAttributeProvider() {
         this((String) null, (String) null, (String) null);
-    }
-
-    @Override
-    public void setType(String type) {
-        // not supported
     }
 
     public Set<String> getAttributeSets() {

@@ -11,7 +11,7 @@ import it.smartcommunitylab.aac.core.provider.ProviderConfig;
  * Single provider per realm 
  */
 
-public interface SingleProviderAuthority<S extends ConfigurableResourceProvider<R, T, M, C>, R extends Resource, T extends ConfigurableProvider, M extends ConfigMap, C extends ProviderConfig<M, T>> {
+public interface SingleProviderAuthority<S extends ConfigurableResourceProvider<R, T, M, C>, R extends Resource, T extends ConfigurableProvider, M extends ConfigMap, C extends ProviderConfig<M>> {
 
     public S findProviderByRealm(String realm);
 

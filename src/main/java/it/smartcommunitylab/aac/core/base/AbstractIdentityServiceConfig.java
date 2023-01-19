@@ -2,10 +2,24 @@ package it.smartcommunitylab.aac.core.base;
 
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityService;
 import it.smartcommunitylab.aac.core.provider.IdentityServiceConfig;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityServiceConfig;
 
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonSubTypes({
+        @Type(value = InternalIdentityServiceConfig.class, name = InternalIdentityServiceConfig.RESOURCE_TYPE),
+})
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(Include.ALWAYS)
 public abstract class AbstractIdentityServiceConfig<M extends AbstractConfigMap>
         extends AbstractProviderConfig<M, ConfigurableIdentityService>
         implements IdentityServiceConfig<M> {
@@ -17,8 +31,8 @@ public abstract class AbstractIdentityServiceConfig<M extends AbstractConfigMap>
         super(authority, provider, realm, configMap);
     }
 
-    protected AbstractIdentityServiceConfig(ConfigurableIdentityService cp) {
-        super(cp);
+    protected AbstractIdentityServiceConfig(ConfigurableIdentityService cp, M configMap) {
+        super(cp, configMap);
         this.repositoryId = cp.getRepositoryId();
     }
 
@@ -29,25 +43,6 @@ public abstract class AbstractIdentityServiceConfig<M extends AbstractConfigMap>
 
     public void setRepositoryId(String repositoryId) {
         this.repositoryId = repositoryId;
-    }
-
-    @Override
-    public ConfigurableIdentityService getConfigurable() {
-        ConfigurableIdentityService cp = new ConfigurableIdentityService(getAuthority(),
-                getProvider(),
-                getRealm());
-        cp.setType(SystemKeys.RESOURCE_IDENTITY);
-
-        cp.setName(getName());
-        cp.setTitleMap(getTitleMap());
-        cp.setDescriptionMap(getDescriptionMap());
-
-        cp.setRepositoryId(repositoryId);
-
-        cp.setEnabled(true);
-        cp.setConfiguration(getConfiguration());
-
-        return cp;
     }
 
 }

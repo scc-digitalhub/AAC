@@ -19,7 +19,7 @@ import it.smartcommunitylab.aac.core.provider.TemplateProviderConfig;
 import it.smartcommunitylab.aac.templates.model.TemplateModel;
 import it.smartcommunitylab.aac.templates.service.TemplateService;
 
-public abstract class AbstractTemplateProvider<T extends TemplateModel, M extends ConfigMap, C extends TemplateProviderConfig<M>>
+public abstract class AbstractTemplateProvider<T extends TemplateModel, M extends AbstractConfigMap, C extends TemplateProviderConfig<M>>
         extends
         AbstractConfigurableProvider<T, ConfigurableTemplateProvider, M, C>
         implements TemplateProvider<T, M, C>,

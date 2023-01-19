@@ -23,7 +23,7 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.filter.CompositeFilter;
 
 import it.smartcommunitylab.aac.core.ExtendedUserAuthenticationManager;
-import it.smartcommunitylab.aac.core.authorities.AuthorityService;
+import it.smartcommunitylab.aac.core.authorities.ConfigurableAuthorityService;
 import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
 
@@ -33,7 +33,7 @@ public class AuthConfig {
 
     @Autowired
 //    private IdentityProviderAuthorityService identityProviderAuthorityService;
-    private AuthorityService<IdentityProviderAuthority<?, ?, ?, ?>> identityProviderAuthorityService;
+    private ConfigurableAuthorityService<IdentityProviderAuthority<?, ?, ?, ?>> identityProviderAuthorityService;
 
     @Autowired
     private ExtendedUserAuthenticationManager authManager;

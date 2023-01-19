@@ -16,18 +16,18 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.openid.apple.AppleIdentityAuthority;
+import it.smartcommunitylab.aac.openid.apple.auth.AppleClientRegistrationRepository;
 import it.smartcommunitylab.aac.openid.apple.auth.AppleLoginAuthenticationFilter;
 import it.smartcommunitylab.aac.openid.apple.auth.AppleRedirectAuthenticationFilter;
-import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 
 public class AppleFilterProvider implements FilterProvider {
 
-    private final OIDCClientRegistrationRepository clientRegistrationRepository;
+    private final AppleClientRegistrationRepository clientRegistrationRepository;
     private final ProviderConfigRepository<AppleIdentityProviderConfig> registrationRepository;
 
     private AuthenticationManager authManager;
 
-    public AppleFilterProvider(OIDCClientRegistrationRepository clientRegistrationRepository,
+    public AppleFilterProvider(AppleClientRegistrationRepository clientRegistrationRepository,
             ProviderConfigRepository<AppleIdentityProviderConfig> registrationRepository) {
         Assert.notNull(registrationRepository, "registration repository is mandatory");
         Assert.notNull(clientRegistrationRepository, "client registration repository is mandatory");

@@ -1,12 +1,15 @@
 package it.smartcommunitylab.aac.openid.provider;
 
 import java.text.ParseException;
+
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrations;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.nimbusds.jose.jwk.JWK;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -16,22 +19,25 @@ import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 
 public class OIDCIdentityProviderConfig extends AbstractIdentityProviderConfig<OIDCIdentityProviderConfigMap> {
     private static final long serialVersionUID = SystemKeys.AAC_OIDC_SERIAL_VERSION;
+    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_PROVIDER + SystemKeys.ID_SEPARATOR
+            + OIDCIdentityProviderConfigMap.RESOURCE_TYPE;
 
     private static final String WELL_KNOWN_CONFIGURATION_OPENID = "/.well-known/openid-configuration";
 
-    private ClientRegistration clientRegistration;
+    private transient ClientRegistration clientRegistration;
 
     public OIDCIdentityProviderConfig(String provider, String realm) {
         this(SystemKeys.AUTHORITY_OIDC, provider, realm);
     }
 
-    public OIDCIdentityProviderConfig(String authority, String provider, String realm) {
+    public OIDCIdentityProviderConfig(@JsonProperty("authority") String authority,
+            @JsonProperty("provider") String provider, @JsonProperty("realm") String realm) {
         super(authority, provider, realm, new OIDCIdentityProviderConfigMap());
         this.clientRegistration = null;
     }
 
-    public OIDCIdentityProviderConfig(ConfigurableIdentityProvider cp) {
-        super(cp);
+    public OIDCIdentityProviderConfig(ConfigurableIdentityProvider cp, OIDCIdentityProviderConfigMap configMap) {
+        super(cp, configMap);
     }
 
     public String getRepositoryId() {
@@ -39,6 +45,7 @@ public class OIDCIdentityProviderConfig extends AbstractIdentityProviderConfig<O
         return getProvider();
     }
 
+    @JsonIgnore
     public ClientRegistration getClientRegistration() {
         if (clientRegistration == null) {
             clientRegistration = toClientRegistration();
