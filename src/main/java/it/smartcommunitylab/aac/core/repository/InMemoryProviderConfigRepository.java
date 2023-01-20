@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.core.service;
+package it.smartcommunitylab.aac.core.repository;
 
 import java.util.Collection;
 import java.util.Map;

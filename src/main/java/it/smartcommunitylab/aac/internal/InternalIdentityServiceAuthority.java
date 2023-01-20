@@ -12,7 +12,7 @@ import it.smartcommunitylab.aac.core.base.AbstractProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityService;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.core.service.TranslatorProviderConfigRepository;
+import it.smartcommunitylab.aac.core.repository.TranslatorProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.internal.model.InternalEditableUserAccount;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;

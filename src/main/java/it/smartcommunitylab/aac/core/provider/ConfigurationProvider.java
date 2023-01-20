@@ -32,6 +32,7 @@ public interface ConfigurationProvider<M extends ConfigMap, T extends Configurab
      * Expose and translate to valid configMap
      */
 
+    @Deprecated
     public M getDefaultConfigMap();
 
     public M getConfigMap(Map<String, Serializable> map);

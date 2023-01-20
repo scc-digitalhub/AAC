@@ -9,7 +9,7 @@ import it.smartcommunitylab.aac.core.authorities.TemplateProviderAuthority;
 import it.smartcommunitylab.aac.core.base.AbstractSingleConfigurableProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableTemplateProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.core.service.TranslatorProviderConfigRepository;
+import it.smartcommunitylab.aac.core.repository.TranslatorProviderConfigRepository;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountServiceConfig;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountServiceConfigConverter;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;

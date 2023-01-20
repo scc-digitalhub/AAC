@@ -1,7 +1,7 @@
 package it.smartcommunitylab.aac.webauthn.service;
 
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.core.service.TranslatorProviderConfigRepository;
+import it.smartcommunitylab.aac.core.repository.TranslatorProviderConfigRepository;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsServiceConfig;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 
