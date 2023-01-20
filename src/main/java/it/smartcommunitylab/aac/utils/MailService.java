@@ -100,8 +100,13 @@ public class MailService {
         mailSender.setHost(mailHost);
         mailSender.setPort(mailPort);
         mailSender.setProtocol(mailProtocol);
-        mailSender.setPassword(mailPwd);
-        mailSender.setUsername(mailUser);
+        if(mailPwd==null || mailPwd.trim().compareTo("")==0) {       	
+        	logger.trace("SMTP password is blank, username and password are not set");
+        } else {
+        	logger.trace("SMTP password is not blank, setting username and password");
+            mailSender.setPassword(mailPwd);
+            mailSender.setUsername(mailUser);        	
+        }
 
         Properties props = new Properties();
         props.load(mailProps.getInputStream());
