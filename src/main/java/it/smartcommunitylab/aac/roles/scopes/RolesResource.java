@@ -12,7 +12,7 @@ public class RolesResource extends AbstractInternalApiResource {
 
         // statically register scopes
         setScopes(
-//                new UserSpacesScope(realm),
+                new UserSpacesScope(realm),
                 new ClientRolesScope(realm),
                 new UserRolesScope(realm));
 

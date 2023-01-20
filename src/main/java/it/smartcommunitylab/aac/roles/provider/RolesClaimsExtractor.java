@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.roles.provider;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -10,12 +11,15 @@ import java.util.stream.Collectors;
 import it.smartcommunitylab.aac.claims.base.AbstractClaim;
 import it.smartcommunitylab.aac.claims.base.AbstractResourceClaimsExtractor;
 import it.smartcommunitylab.aac.core.ClientDetails;
+import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.roles.claims.RolesClaim;
+import it.smartcommunitylab.aac.roles.claims.SpacesClaim;
 import it.smartcommunitylab.aac.roles.model.RealmRole;
 import it.smartcommunitylab.aac.roles.scopes.ClientRolesScope;
 import it.smartcommunitylab.aac.roles.scopes.RolesResource;
 import it.smartcommunitylab.aac.roles.scopes.UserRolesScope;
+import it.smartcommunitylab.aac.roles.scopes.UserSpacesScope;
 
 public class RolesClaimsExtractor extends AbstractResourceClaimsExtractor<RolesResource> {
 
@@ -28,19 +32,36 @@ public class RolesClaimsExtractor extends AbstractResourceClaimsExtractor<RolesR
             Map<String, Serializable> extensions) {
 
         // check if scope is present
-        if (scopes == null || !scopes.contains(UserRolesScope.SCOPE)) {
+        if (scopes == null || (!scopes.contains(UserRolesScope.SCOPE) && !scopes.contains(UserSpacesScope.SCOPE))) {
             return null;
         }
 
-        // we get roles from user, it should be up-to-date
-        Set<RealmRole> roles = user.getRealmRoles();
+        List<AbstractClaim> claims = new ArrayList<>();
 
-        // build a claim for every role
-        // note: we filter roles on client realm
-        List<AbstractClaim> claims = roles.stream()
-                .filter(r -> r.getRealm().equals(client.getRealm()))
-                .map(r -> new RolesClaim(r.getRole()))
-                .collect(Collectors.toList());
+        if (scopes.contains(UserRolesScope.SCOPE)) {
+            // we get roles from user, it should be up-to-date
+            Set<RealmRole> roles = user.getRealmRoles();
+
+            // build a claim for every role
+            // note: we filter roles on client realm
+            List<AbstractClaim> rolesClaims = roles.stream()
+                    .filter(r -> r.getRealm().equals(client.getRealm()))
+                    .map(r -> new RolesClaim(r.getRole()))
+                    .collect(Collectors.toList());
+            claims.addAll(rolesClaims);
+        }
+
+        // TODO remove and either move to different package or to extension
+        if (scopes.contains(UserSpacesScope.SCOPE)) {
+            // we get roles from user, it should be up-to-date
+            Set<SpaceRole> roles = user.getSpaceRoles();
+
+            // build a claim for every role
+            List<AbstractClaim> rolesClaims = roles.stream()
+                    .map(r -> new SpacesClaim(r.getAuthority()))
+                    .collect(Collectors.toList());
+            claims.addAll(rolesClaims);
+        }
 
         return claims;
     }
