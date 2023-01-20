@@ -5,23 +5,26 @@ import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.claims.base.AbstractClaimsSet;
 import it.smartcommunitylab.aac.claims.model.ClaimsExtractor;
-import it.smartcommunitylab.aac.claims.model.ClaimsSet;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
-import it.smartcommunitylab.aac.core.base.AbstractProvider;
+import it.smartcommunitylab.aac.core.base.AbstractConfigMap;
+import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
 import it.smartcommunitylab.aac.scope.model.ApiResourceProvider;
 import it.smartcommunitylab.aac.scope.model.ApiScopeProvider;
+import it.smartcommunitylab.aac.scope.model.ConfigurableApiResourceProvider;
 
-public abstract class AbstractResourceProvider<R extends AbstractApiResource<S>, S extends AbstractApiScope>
-        extends AbstractProvider<R>
+public abstract class AbstractResourceProvider<R extends AbstractApiResource<S>, S extends AbstractApiScope, M extends AbstractConfigMap, C extends AbstractApiResourceProviderConfig<R, M>>
+        extends AbstractConfigurableProvider<R, ConfigurableApiResourceProvider, M, C>
         implements ApiResourceProvider<R> {
 
-    private final R resource;
+    protected final R resource;
 
-    protected AbstractResourceProvider(String authority, String provider, String realm, R resource) {
-        super(authority, provider, realm);
-        Assert.notNull(resource, "resource can not be null");
+    protected AbstractResourceProvider(String authority, String provider, String realm, C providerConfig) {
+        super(authority, provider, realm, providerConfig);
+        Assert.notNull(providerConfig, "provider config is mandatory");
 
-        this.resource = resource;
+        Assert.notNull(providerConfig.getResource(), "resource can not be null");
+
+        this.resource = providerConfig.getResource();
     }
 
     @Override

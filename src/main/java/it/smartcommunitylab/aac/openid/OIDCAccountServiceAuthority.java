@@ -7,7 +7,7 @@ import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.authorities.AccountServiceAuthority;
 import it.smartcommunitylab.aac.core.base.AbstractEditableAccount;
-import it.smartcommunitylab.aac.core.base.AbstractProviderAuthority;
+import it.smartcommunitylab.aac.core.base.AbstractConfigurableProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableAccountProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
@@ -23,7 +23,7 @@ import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
 @Service
 public class OIDCAccountServiceAuthority
         extends
-        AbstractProviderAuthority<OIDCAccountService, OIDCUserAccount, ConfigurableAccountProvider, OIDCIdentityProviderConfigMap, OIDCAccountServiceConfig>
+        AbstractConfigurableProviderAuthority<OIDCAccountService, OIDCUserAccount, ConfigurableAccountProvider, OIDCIdentityProviderConfigMap, OIDCAccountServiceConfig>
         implements
         AccountServiceAuthority<OIDCAccountService, OIDCUserAccount, AbstractEditableAccount, OIDCIdentityProviderConfigMap, OIDCAccountServiceConfig> {
 

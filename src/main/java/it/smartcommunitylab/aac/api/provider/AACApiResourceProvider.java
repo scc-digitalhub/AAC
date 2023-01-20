@@ -5,10 +5,11 @@ import it.smartcommunitylab.aac.scope.base.AbstractInternalApiScope;
 import it.smartcommunitylab.aac.scope.base.AbstractInternalResourceProvider;
 import it.smartcommunitylab.aac.scope.model.ApiScopeProvider;
 
-public class AACApiResourceProvider extends AbstractInternalResourceProvider<AACApiResource> {
+public class AACApiResourceProvider
+        extends AbstractInternalResourceProvider<AACApiResource, AACApiResourceProviderConfig> {
 
-    public AACApiResourceProvider(AACApiResource resource) {
-        super(resource);
+    public AACApiResourceProvider(AACApiResourceProviderConfig config) {
+        super(config.getAuthority(), config.getProvider(), config.getRealm(), config);
     }
 
     @Override

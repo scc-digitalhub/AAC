@@ -14,7 +14,7 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.api;
+package it.smartcommunitylab.aac.api.controller;
 
 import java.util.Collection;
 import java.util.HashSet;

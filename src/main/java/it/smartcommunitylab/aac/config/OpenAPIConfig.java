@@ -34,7 +34,7 @@ import io.swagger.v3.oas.models.security.Scopes;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.api.ApiOperationCustomizer;
+import it.smartcommunitylab.aac.api.controller.ApiOperationCustomizer;
 import it.smartcommunitylab.aac.api.scopes.AACApiResource;
 import it.smartcommunitylab.aac.api.scopes.AdminApiResource;
 import it.smartcommunitylab.aac.oauth.scope.OAuth2DCRResource;
@@ -169,7 +169,7 @@ public class OpenAPIConfig {
     public GroupedOpenApi apiCore(ApiOperationCustomizer customizer) {
         return GroupedOpenApi.builder()
                 .group("AAC Management API")
-                .packagesToScan("it.smartcommunitylab.aac.api")
+                .packagesToScan("it.smartcommunitylab.aac.api.controller")
                 .pathsToExclude("/api/realms", "/api/realms/**")
                 .addOperationCustomizer(customizer)
 //                .addOperationCustomizer((operation, handlerMethod) -> {
@@ -183,7 +183,7 @@ public class OpenAPIConfig {
     public GroupedOpenApi adminCore(ApiOperationCustomizer customizer) {
         return GroupedOpenApi.builder()
                 .group("AAC Admin API")
-                .packagesToScan("it.smartcommunitylab.aac.api")
+                .packagesToScan("it.smartcommunitylab.aac.api.controller")
                 .pathsToMatch("/api/realms", "/api/realms/**")
 //                .addOperationCustomizer((operation, handlerMethod) -> {
 //                    operation.addSecurityItem(new SecurityRequirement().addList("oauth2", AdminRealmsScope.SCOPE));

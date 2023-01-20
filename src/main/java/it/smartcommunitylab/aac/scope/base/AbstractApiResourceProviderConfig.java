@@ -1,5 +1,7 @@
 package it.smartcommunitylab.aac.scope.base;
 
+import org.springframework.util.Assert;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -35,6 +37,12 @@ public abstract class AbstractApiResourceProviderConfig<A extends AbstractApiRes
     protected AbstractApiResourceProviderConfig(ConfigurableApiResourceProvider cp, M configMap) {
         super(cp, configMap);
         this.resource = null;
+    }
+
+    protected AbstractApiResourceProviderConfig(A res, M configMap) {
+        super(res.getAuthority(), res.getProvider(), res.getRealm(), configMap);
+        Assert.notNull(res, "resource can not be null");
+        this.resource = res;
     }
 
     public A getResource() {

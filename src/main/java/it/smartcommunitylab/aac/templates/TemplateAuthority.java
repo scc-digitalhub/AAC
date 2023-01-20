@@ -7,7 +7,7 @@ import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.authorities.TemplateProviderAuthority;
-import it.smartcommunitylab.aac.core.base.AbstractSingleConfigurableProviderAuthority;
+import it.smartcommunitylab.aac.core.base.AbstractSingleRegistrableProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableTemplateProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.profiles.scope.OpenIdUserInfoResource;
@@ -20,7 +20,7 @@ import it.smartcommunitylab.aac.templates.service.TemplateService;
 
 @Service
 public class TemplateAuthority extends
-        AbstractSingleConfigurableProviderAuthority<TemplateTemplateProvider, TemplateModel, ConfigurableTemplateProvider, TemplateProviderConfigMap, RealmTemplateProviderConfig>
+        AbstractSingleRegistrableProviderAuthority<TemplateTemplateProvider, TemplateModel, ConfigurableTemplateProvider, TemplateProviderConfigMap, RealmTemplateProviderConfig>
         implements
         TemplateProviderAuthority<TemplateTemplateProvider, TemplateModel, TemplateProviderConfigMap, RealmTemplateProviderConfig> {
 

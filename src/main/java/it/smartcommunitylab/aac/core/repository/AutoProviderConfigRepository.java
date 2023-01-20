@@ -41,6 +41,10 @@ public class AutoProviderConfigRepository<C extends AbstractProviderConfig<M, T>
 
     @Override
     public C findByProviderId(String providerId) {
+        if (providerId == null) {
+            throw new IllegalArgumentException();
+        }
+
         C c = repository.findByProviderId(providerId);
         if (c == null) {
             // use creator and store if successful
@@ -60,6 +64,10 @@ public class AutoProviderConfigRepository<C extends AbstractProviderConfig<M, T>
 
     @Override
     public Collection<C> findByRealm(String realm) {
+        if (realm == null) {
+            throw new IllegalArgumentException();
+        }
+
         Collection<C> list = repository.findByRealm(realm);
         if (list.isEmpty()) {
             // use factory and store if successful

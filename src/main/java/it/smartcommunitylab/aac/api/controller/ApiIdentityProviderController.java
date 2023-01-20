@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.api;
+package it.smartcommunitylab.aac.api.controller;
 
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;

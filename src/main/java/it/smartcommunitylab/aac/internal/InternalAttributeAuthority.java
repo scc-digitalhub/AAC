@@ -8,7 +8,7 @@ import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
 import it.smartcommunitylab.aac.core.authorities.AttributeProviderAuthority;
-import it.smartcommunitylab.aac.core.base.AbstractSingleConfigurableProviderAuthority;
+import it.smartcommunitylab.aac.core.base.AbstractSingleRegistrableProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
@@ -21,7 +21,7 @@ import it.smartcommunitylab.aac.internal.provider.InternalAttributeProviderConfi
 @Service
 public class InternalAttributeAuthority
         extends
-        AbstractSingleConfigurableProviderAuthority<InternalAttributeService, UserAttributes, ConfigurableAttributeProvider, InternalAttributeProviderConfigMap, InternalAttributeProviderConfig>
+        AbstractSingleRegistrableProviderAuthority<InternalAttributeService, UserAttributes, ConfigurableAttributeProvider, InternalAttributeProviderConfigMap, InternalAttributeProviderConfig>
         implements
         AttributeProviderAuthority<InternalAttributeService, InternalAttributeProviderConfigMap, InternalAttributeProviderConfig>,
         InitializingBean {

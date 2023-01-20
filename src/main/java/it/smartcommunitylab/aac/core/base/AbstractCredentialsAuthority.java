@@ -14,7 +14,7 @@ import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.AccountCredentialsService;
 
 public abstract class AbstractCredentialsAuthority<S extends AccountCredentialsService<R, E, M, C>, R extends UserCredentials, E extends EditableUserCredentials, M extends AbstractConfigMap, C extends AbstractCredentialsServiceConfig<M>>
-        extends AbstractSingleConfigurableProviderAuthority<S, R, ConfigurableCredentialsProvider, M, C>
+        extends AbstractSingleRegistrableProviderAuthority<S, R, ConfigurableCredentialsProvider, M, C>
         implements CredentialsServiceAuthority<S, R, E, M, C> {
 
     // configuration provider

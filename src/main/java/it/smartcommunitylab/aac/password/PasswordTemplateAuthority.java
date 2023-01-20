@@ -6,7 +6,7 @@ import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.authorities.TemplateProviderAuthority;
-import it.smartcommunitylab.aac.core.base.AbstractSingleConfigurableProviderAuthority;
+import it.smartcommunitylab.aac.core.base.AbstractSingleRegistrableProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableTemplateProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.repository.TranslatorProviderConfigRepository;
@@ -19,7 +19,7 @@ import it.smartcommunitylab.aac.templates.service.TemplateService;
 
 @Service
 public class PasswordTemplateAuthority extends
-        AbstractSingleConfigurableProviderAuthority<PasswordTemplateProvider, TemplateModel, ConfigurableTemplateProvider, TemplateProviderConfigMap, RealmTemplateProviderConfig>
+        AbstractSingleRegistrableProviderAuthority<PasswordTemplateProvider, TemplateModel, ConfigurableTemplateProvider, TemplateProviderConfigMap, RealmTemplateProviderConfig>
         implements
         TemplateProviderAuthority<PasswordTemplateProvider, TemplateModel, TemplateProviderConfigMap, RealmTemplateProviderConfig> {
 

@@ -7,15 +7,16 @@ import it.smartcommunitylab.aac.claims.base.AbstractClaimsExtractor;
 import it.smartcommunitylab.aac.claims.extractors.NullClaimsExtractor;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.scope.model.ApiScopeProvider;
+import it.smartcommunitylab.aac.scope.provider.InternalApiResourceProviderConfigMap;
 
-public abstract class AbstractInternalResourceProvider<R extends AbstractInternalApiResource>
-        extends AbstractResourceProvider<R, AbstractInternalApiScope> {
+public abstract class AbstractInternalResourceProvider<R extends AbstractInternalApiResource, C extends AbstractApiResourceProviderConfig<R, InternalApiResourceProviderConfigMap>>
+        extends AbstractResourceProvider<R, AbstractInternalApiScope, InternalApiResourceProviderConfigMap, C> {
 
     protected Map<String, ApiScopeProvider<AbstractInternalApiScope>> providers;
     protected AbstractClaimsExtractor extractor;
 
-    protected AbstractInternalResourceProvider(R resource) {
-        super(resource.getAuthority(), resource.getProvider(), resource.getRealm(), resource);
+    protected AbstractInternalResourceProvider(String authority, String provider, String realm, C providerConfig) {
+        super(authority, provider, realm, providerConfig);
 
         // build all providers eagerly, internal resources are static
         providers = resource.getScopes().stream()

@@ -12,9 +12,9 @@ import it.smartcommunitylab.aac.core.model.Resource;
 import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 
-public abstract class AbstractSingleConfigurableProviderAuthority<S extends ConfigurableResourceProvider<R, T, M, C>, R extends Resource, T extends ConfigurableProvider, M extends AbstractConfigMap, C extends AbstractProviderConfig<M, T>>
-        extends AbstractConfigurableProviderAuthority<S, R, T, M, C> implements SingleProviderAuthority<S, R, T, M, C> {
-    public AbstractSingleConfigurableProviderAuthority(
+public abstract class AbstractSingleRegistrableProviderAuthority<S extends ConfigurableResourceProvider<R, T, M, C>, R extends Resource, T extends ConfigurableProvider, M extends AbstractConfigMap, C extends AbstractProviderConfig<M, T>>
+        extends AbstractRegistrableProviderAuthority<S, R, T, M, C> implements SingleProviderAuthority<S, R, T, M, C> {
+    public AbstractSingleRegistrableProviderAuthority(
             String authorityId,
             ProviderConfigRepository<C> registrationRepository) {
         super(authorityId, registrationRepository);

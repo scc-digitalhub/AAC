@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.api;
+package it.smartcommunitylab.aac.api.controller;
 
 import java.util.HashMap;
 import java.util.Map;
