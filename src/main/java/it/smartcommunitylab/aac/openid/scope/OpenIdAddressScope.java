@@ -1,15 +1,15 @@
-package it.smartcommunitylab.aac.profiles.scope;
+package it.smartcommunitylab.aac.openid.scope;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.scope.base.AbstractInternalApiScope;
+import it.smartcommunitylab.aac.openid.scope.OpenIdUserInfoResource.AbstractOpenIdUserInfoScope;
 
-public class OpenIdAddressScope extends AbstractInternalApiScope {
+public class OpenIdAddressScope extends AbstractOpenIdUserInfoScope {
 
     public static final String SCOPE = Config.SCOPE_ADDRESS;
 
     public OpenIdAddressScope(String realm) {
-        super(SystemKeys.AUTHORITY_OIDC, realm, OpenIdUserInfoResource.RESOURCE_ID, SCOPE);
+        super(realm, SCOPE);
 
         // require user
         this.subjectType = SystemKeys.RESOURCE_USER;

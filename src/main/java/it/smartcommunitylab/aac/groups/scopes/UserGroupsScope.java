@@ -2,14 +2,14 @@ package it.smartcommunitylab.aac.groups.scopes;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.scope.base.AbstractInternalApiScope;
+import it.smartcommunitylab.aac.groups.scopes.GroupsResource.AbstractGroupsScope;
 
-public class UserGroupsScope extends AbstractInternalApiScope {
+public class UserGroupsScope extends AbstractGroupsScope {
 
     public static final String SCOPE = Config.SCOPE_USER_GROUP;
 
     public UserGroupsScope(String realm) {
-        super(realm, GroupsResource.RESOURCE_ID, SCOPE);
+        super(realm, SCOPE);
 
         // require user
         this.subjectType = SystemKeys.RESOURCE_USER;

@@ -29,9 +29,9 @@ public abstract class AbstractInternalApiScope extends AbstractApiScope {
     // we could also restrict subject types
     protected String subjectType;
 
-    public AbstractInternalApiScope(String realm, String resourceId, String scope) {
-        this(SystemKeys.AUTHORITY_INTERNAL, realm, resourceId, scope);
-    }
+//    public AbstractInternalApiScope(String realm, String resourceId, String scope) {
+//        this(SystemKeys.AUTHORITY_INTERNAL, realm, resourceId, scope);
+//    }
 
     public AbstractInternalApiScope(String authority, String realm, String resourceId, String scope) {
         super(authority, resourceId);

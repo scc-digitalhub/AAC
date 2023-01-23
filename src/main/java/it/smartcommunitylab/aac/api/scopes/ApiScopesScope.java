@@ -1,14 +1,14 @@
 package it.smartcommunitylab.aac.api.scopes;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.scope.base.AbstractInternalApiScope;
+import it.smartcommunitylab.aac.api.scopes.AACApiResource.AbstractAACApiScope;
 
-public class ApiScopesScope extends AbstractInternalApiScope {
+public class ApiScopesScope extends AbstractAACApiScope {
 
     public static final String SCOPE = AACApiResource.RESOURCE_ID + ".scopes";
 
     public ApiScopesScope(String realm) {
-        super(realm, AACApiResource.RESOURCE_ID, SCOPE);
+        super(realm, SCOPE);
         setAuthorities(Config.R_ADMIN, Config.R_DEVELOPER);
     }
 

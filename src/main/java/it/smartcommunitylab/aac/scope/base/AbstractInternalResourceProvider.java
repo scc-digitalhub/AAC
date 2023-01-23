@@ -3,16 +3,17 @@ package it.smartcommunitylab.aac.scope.base;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import it.smartcommunitylab.aac.claims.base.AbstractClaimDefinition;
 import it.smartcommunitylab.aac.claims.base.AbstractClaimsExtractor;
 import it.smartcommunitylab.aac.claims.extractors.NullClaimsExtractor;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.scope.model.ApiScopeProvider;
 import it.smartcommunitylab.aac.scope.provider.InternalApiResourceProviderConfigMap;
 
-public abstract class AbstractInternalResourceProvider<R extends AbstractInternalApiResource, C extends AbstractApiResourceProviderConfig<R, InternalApiResourceProviderConfigMap>>
-        extends AbstractResourceProvider<R, AbstractInternalApiScope, InternalApiResourceProviderConfigMap, C> {
+public abstract class AbstractInternalResourceProvider<R extends AbstractInternalApiResource<S, D>, S extends AbstractInternalApiScope, D extends AbstractClaimDefinition, C extends AbstractApiResourceProviderConfig<R, InternalApiResourceProviderConfigMap>>
+        extends AbstractResourceProvider<R, S, InternalApiResourceProviderConfigMap, C> {
 
-    protected Map<String, ApiScopeProvider<AbstractInternalApiScope>> providers;
+    protected Map<String, ApiScopeProvider<S>> providers;
     protected AbstractClaimsExtractor extractor;
 
     protected AbstractInternalResourceProvider(String authority, String provider, String realm, C providerConfig) {
@@ -27,7 +28,7 @@ public abstract class AbstractInternalResourceProvider<R extends AbstractInterna
 
     }
 
-    protected abstract ApiScopeProvider<AbstractInternalApiScope> buildScopeProvider(AbstractInternalApiScope scope);
+    protected abstract ApiScopeProvider<S> buildScopeProvider(S scope);
 
     protected AbstractClaimsExtractor buildClaimsExtractor(R resource) {
         // use a null extractor by default
@@ -36,8 +37,8 @@ public abstract class AbstractInternalResourceProvider<R extends AbstractInterna
     }
 
     @Override
-    public ApiScopeProvider<AbstractInternalApiScope> getScopeProvider(String scope) throws NoSuchScopeException {
-        ApiScopeProvider<AbstractInternalApiScope> sp = providers.get(scope);
+    public ApiScopeProvider<S> getScopeProvider(String scope) throws NoSuchScopeException {
+        ApiScopeProvider<S> sp = providers.get(scope);
         if (sp == null) {
             throw new NoSuchScopeException();
         }
@@ -50,11 +51,11 @@ public abstract class AbstractInternalResourceProvider<R extends AbstractInterna
         return extractor;
     }
 
-    protected Map<String, ApiScopeProvider<AbstractInternalApiScope>> getProviders() {
+    protected Map<String, ApiScopeProvider<S>> getProviders() {
         return providers;
     }
 
-    protected void setProviders(Map<String, ApiScopeProvider<AbstractInternalApiScope>> providers) {
+    protected void setProviders(Map<String, ApiScopeProvider<S>> providers) {
         this.providers = providers;
     }
 

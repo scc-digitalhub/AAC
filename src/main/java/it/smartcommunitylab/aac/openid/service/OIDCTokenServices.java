@@ -52,12 +52,12 @@ import it.smartcommunitylab.aac.oauth.common.ServerErrorException;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.openid.common.IdToken;
+import it.smartcommunitylab.aac.openid.scope.OpenIdAddressScope;
+import it.smartcommunitylab.aac.openid.scope.OpenIdDefaultScope;
+import it.smartcommunitylab.aac.openid.scope.OpenIdEmailScope;
+import it.smartcommunitylab.aac.openid.scope.OpenIdPhoneScope;
 import it.smartcommunitylab.aac.openid.token.IdTokenServices;
 import it.smartcommunitylab.aac.profiles.claims.OpenIdClaimsExtractorProvider;
-import it.smartcommunitylab.aac.profiles.scope.OpenIdAddressScope;
-import it.smartcommunitylab.aac.profiles.scope.OpenIdDefaultScope;
-import it.smartcommunitylab.aac.profiles.scope.OpenIdEmailScope;
-import it.smartcommunitylab.aac.profiles.scope.OpenIdPhoneScope;
 
 public class OIDCTokenServices implements IdTokenServices, InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());

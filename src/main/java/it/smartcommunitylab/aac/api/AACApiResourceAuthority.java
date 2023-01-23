@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.api.provider.AACApiResourceProvider;
-import it.smartcommunitylab.aac.api.provider.AACApiResourceProviderConfig;
+import it.smartcommunitylab.aac.api.provider.AACApiResourceProvider.AACApiResourceProviderConfig;
 import it.smartcommunitylab.aac.api.scopes.AACApiResource;
 import it.smartcommunitylab.aac.core.base.AbstractConfigurableProviderAuthority;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
@@ -18,7 +18,7 @@ public class AACApiResourceAuthority
         extends
         AbstractConfigurableProviderAuthority<AACApiResourceProvider, AACApiResource, ConfigurableApiResourceProvider, InternalApiResourceProviderConfigMap, AACApiResourceProviderConfig>
         implements ApiResourceProviderAuthority<AACApiResourceProvider, AACApiResource> {
-    public static final String AUTHORITY = "aac.api";
+    public static final String AUTHORITY = AACApiResource.RESOURCE_ID;
 
     public AACApiResourceAuthority(
             ProviderConfigRepository<AACApiResourceProviderConfig> registrationRepository,

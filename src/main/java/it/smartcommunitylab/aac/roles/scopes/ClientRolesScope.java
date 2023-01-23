@@ -2,14 +2,14 @@ package it.smartcommunitylab.aac.roles.scopes;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.scope.base.AbstractInternalApiScope;
+import it.smartcommunitylab.aac.roles.scopes.RolesResource.AbstractRolesScope;
 
-public class ClientRolesScope extends AbstractInternalApiScope {
+public class ClientRolesScope extends AbstractRolesScope {
 
     public static final String SCOPE = Config.SCOPE_CLIENT_ROLE;
 
     public ClientRolesScope(String realm) {
-        super(realm, RolesResource.RESOURCE_ID, SCOPE);
+        super(realm, SCOPE);
 
         // require client
         this.subjectType = SystemKeys.RESOURCE_CLIENT;

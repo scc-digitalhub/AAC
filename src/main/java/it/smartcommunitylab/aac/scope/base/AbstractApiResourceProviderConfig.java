@@ -7,15 +7,11 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractConfigMap;
 import it.smartcommunitylab.aac.core.base.AbstractProviderConfig;
-import it.smartcommunitylab.aac.core.provider.IdentityProviderConfig;
 import it.smartcommunitylab.aac.scope.model.ApiResourceProviderConfig;
 import it.smartcommunitylab.aac.scope.model.ConfigurableApiResourceProvider;
-import it.smartcommunitylab.aac.scope.provider.InternalApiResourceProviderConfig;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes({

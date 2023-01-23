@@ -2,14 +2,14 @@ package it.smartcommunitylab.aac.openid.scope;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.scope.base.AbstractInternalApiScope;
+import it.smartcommunitylab.aac.openid.scope.OpenIdResource.AbstractOpenIdScope;
 
-public class OpenIdScope extends AbstractInternalApiScope {
+public class OpenIdScope extends AbstractOpenIdScope {
 
     public static final String SCOPE = Config.SCOPE_OPENID;
 
     public OpenIdScope(String realm) {
-        super(SystemKeys.AUTHORITY_OIDC, realm, OpenIdResource.RESOURCE_ID, SCOPE);
+        super(realm, SCOPE);
 
         // require user
         this.subjectType = SystemKeys.RESOURCE_USER;

@@ -11,7 +11,7 @@ import it.smartcommunitylab.aac.scope.base.AbstractApiResourceProviderConfig;
 import it.smartcommunitylab.aac.scope.base.AbstractInternalApiResource;
 import it.smartcommunitylab.aac.scope.model.ConfigurableApiResourceProvider;
 
-public class InternalApiResourceConfigRepository<R extends AbstractInternalApiResource, C extends AbstractApiResourceProviderConfig<R, InternalApiResourceProviderConfigMap>>
+public class InternalApiResourceConfigRepository<R extends AbstractInternalApiResource<?, ?>, C extends AbstractApiResourceProviderConfig<R, InternalApiResourceProviderConfigMap>>
         extends
         AutoProviderConfigRepository<C, InternalApiResourceProviderConfigMap, ConfigurableApiResourceProvider> {
 

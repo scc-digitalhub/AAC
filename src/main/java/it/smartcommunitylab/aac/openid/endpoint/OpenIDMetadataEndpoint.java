@@ -54,7 +54,7 @@ import it.smartcommunitylab.aac.oauth.model.ResponseType;
 import it.smartcommunitylab.aac.oauth.model.SubjectType;
 import it.smartcommunitylab.aac.oauth.scope.OAuth2DCRResource;
 import it.smartcommunitylab.aac.openid.scope.OpenIdResource;
-import it.smartcommunitylab.aac.profiles.scope.OpenIdUserInfoResource;
+import it.smartcommunitylab.aac.openid.scope.OpenIdUserInfoResource;
 import it.smartcommunitylab.aac.scope.model.ApiResource;
 
 /**

@@ -10,18 +10,19 @@ import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.claims.base.AbstractClaimDefinition;
 
-public abstract class AbstractInternalApiResource extends AbstractApiResource<AbstractInternalApiScope> {
+public abstract class AbstractInternalApiResource<S extends AbstractInternalApiScope, C extends AbstractClaimDefinition>
+        extends AbstractApiResource<S> {
 
     private final String uri;
     private final String resourceId;
     private final String id;
 
-    private Set<AbstractInternalApiScope> scopes;
-    private Set<AbstractClaimDefinition> claims;
+    private Set<S> scopes;
+    private Set<C> claims;
 
-    public AbstractInternalApiResource(String realm, String uri, String resourceId) {
-        this(SystemKeys.AUTHORITY_INTERNAL, realm, uri, resourceId);
-    }
+//    public AbstractInternalApiResource(String realm, String uri, String resourceId) {
+//        this(SystemKeys.AUTHORITY_INTERNAL, realm, uri, resourceId);
+//    }
 
     public AbstractInternalApiResource(String authority, String realm, String uri, String resourceId) {
         // realm is used to build a unique providerId
@@ -64,29 +65,31 @@ public abstract class AbstractInternalApiResource extends AbstractApiResource<Ab
     }
 
     @Override
-    public Collection<AbstractInternalApiScope> getScopes() {
+    public Collection<S> getScopes() {
         return Collections.unmodifiableSet(scopes);
     }
 
-    public void setScopes(Collection<AbstractInternalApiScope> scopes) {
+    public void setScopes(Collection<S> scopes) {
         Assert.notNull(scopes, "scopes can not be null or empty");
         this.scopes = Collections.unmodifiableSet(new TreeSet<>(scopes));
     }
 
-    public void setScopes(AbstractInternalApiScope... scopes) {
+    @SuppressWarnings("unchecked")
+    public void setScopes(S... scopes) {
         setScopes(Arrays.asList(scopes));
     }
 
-    public Set<AbstractClaimDefinition> getClaims() {
+    public Set<C> getClaims() {
         return claims;
     }
 
-    public void setClaims(Collection<AbstractClaimDefinition> claims) {
+    public void setClaims(Collection<C> claims) {
         Assert.notNull(claims, "claims can not be null or empty");
         this.claims = Collections.unmodifiableSet(new TreeSet<>(claims));
     }
 
-    public void setClaims(AbstractClaimDefinition... claims) {
+    @SuppressWarnings("unchecked")
+    public void setClaims(C... claims) {
         setClaims(Arrays.asList(claims));
     }
 

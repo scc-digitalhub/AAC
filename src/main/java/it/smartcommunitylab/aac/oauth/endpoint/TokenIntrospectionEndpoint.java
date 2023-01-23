@@ -63,7 +63,7 @@ import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.model.TokenIntrospection;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.openid.scope.OpenIdResource;
-import it.smartcommunitylab.aac.profiles.scope.OpenIdUserInfoResource;
+import it.smartcommunitylab.aac.openid.scope.OpenIdUserInfoResource;
 import it.smartcommunitylab.aac.scope.model.ApiResource;
 
 /**

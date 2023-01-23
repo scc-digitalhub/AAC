@@ -1,14 +1,18 @@
 package it.smartcommunitylab.aac.api.scopes;
 
+import it.smartcommunitylab.aac.api.AACApiResourceAuthority;
+import it.smartcommunitylab.aac.claims.base.AbstractClaimDefinition;
 import it.smartcommunitylab.aac.scope.base.AbstractInternalApiResource;
 import it.smartcommunitylab.aac.scope.base.AbstractInternalApiScope;
 
-public class AACApiResource extends AbstractInternalApiResource {
+public class AACApiResource extends
+        AbstractInternalApiResource<it.smartcommunitylab.aac.api.scopes.AACApiResource.AbstractAACApiScope, AbstractClaimDefinition> {
 
     public static final String RESOURCE_ID = "aac.api";
+    public static final String AUTHORITY = AACApiResourceAuthority.AUTHORITY;
 
     public AACApiResource(String realm, String baseUrl) {
-        super(realm, baseUrl, RESOURCE_ID);
+        super(AUTHORITY, realm, baseUrl, RESOURCE_ID);
 
         // set scopes
         setScopes(
@@ -28,8 +32,8 @@ public class AACApiResource extends AbstractInternalApiResource {
 
     // we don't register scopes statically
     // let provider decide which are available
-    public AACApiResource(String realm, String baseUrl, AbstractInternalApiScope... scopes) {
-        super(realm, baseUrl, RESOURCE_ID);
+    public AACApiResource(String realm, String baseUrl, AbstractAACApiScope... scopes) {
+        super(AUTHORITY, realm, baseUrl, RESOURCE_ID);
         setScopes(scopes);
     }
 
@@ -43,5 +47,11 @@ public class AACApiResource extends AbstractInternalApiResource {
 //    public String getDescription() {
 //        return "Access AAC api";
 //    }
+    public static class AbstractAACApiScope extends AbstractInternalApiScope {
 
+        public AbstractAACApiScope(String realm, String scope) {
+            super(AUTHORITY, realm, RESOURCE_ID, scope);
+        }
+
+    }
 }

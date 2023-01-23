@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.api.scopes;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.api.AdminApiResourceAuthority;
 import it.smartcommunitylab.aac.scope.base.AbstractInternalApiScope;
 
 public class AdminRealmsScope extends AbstractInternalApiScope {
@@ -8,7 +9,7 @@ public class AdminRealmsScope extends AbstractInternalApiScope {
     public static final String SCOPE = AdminApiResource.RESOURCE_ID + ".realms";
 
     public AdminRealmsScope(String realm) {
-        super(realm, AdminApiResource.RESOURCE_ID, SCOPE);
+        super(AdminApiResourceAuthority.AUTHORITY, realm, AdminApiResource.RESOURCE_ID, SCOPE);
         setAuthorities(Config.R_ADMIN);
     }
 

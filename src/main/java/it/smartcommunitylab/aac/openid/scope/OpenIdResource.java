@@ -1,14 +1,18 @@
 package it.smartcommunitylab.aac.openid.scope;
 
-import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.claims.base.AbstractClaimDefinition;
+import it.smartcommunitylab.aac.openid.OpenIdResourceAuthority;
 import it.smartcommunitylab.aac.scope.base.AbstractInternalApiResource;
+import it.smartcommunitylab.aac.scope.base.AbstractInternalApiScope;
 
-public class OpenIdResource extends AbstractInternalApiResource {
+public class OpenIdResource extends
+        AbstractInternalApiResource<it.smartcommunitylab.aac.openid.scope.OpenIdResource.AbstractOpenIdScope, AbstractClaimDefinition> {
 
     public static final String RESOURCE_ID = "openid.oidc";
+    public static final String AUTHORITY = OpenIdResourceAuthority.AUTHORITY;
 
     public OpenIdResource(String realm, String baseUrl) {
-        super(SystemKeys.AUTHORITY_OIDC, realm, baseUrl, RESOURCE_ID);
+        super(AUTHORITY, realm, baseUrl, RESOURCE_ID);
 
         // statically register scopes
         setScopes(
@@ -26,4 +30,12 @@ public class OpenIdResource extends AbstractInternalApiResource {
 //    public String getDescription() {
 //        return "OpenId Connect core";
 //    }
+
+    public static class AbstractOpenIdScope extends AbstractInternalApiScope {
+
+        public AbstractOpenIdScope(String realm, String scope) {
+            super(AUTHORITY, realm, RESOURCE_ID, scope);
+        }
+
+    }
 }

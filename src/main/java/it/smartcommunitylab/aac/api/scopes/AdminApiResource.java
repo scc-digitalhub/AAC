@@ -1,13 +1,15 @@
 package it.smartcommunitylab.aac.api.scopes;
 
+import it.smartcommunitylab.aac.api.AdminApiResourceAuthority;
+import it.smartcommunitylab.aac.claims.base.AbstractClaimDefinition;
 import it.smartcommunitylab.aac.scope.base.AbstractInternalApiResource;
 
-public class AdminApiResource extends AbstractInternalApiResource {
+public class AdminApiResource extends AbstractInternalApiResource<AdminRealmsScope, AbstractClaimDefinition> {
 
     public static final String RESOURCE_ID = "aac.admin";
 
     public AdminApiResource(String realm, String baseUrl) {
-        super(realm, baseUrl, RESOURCE_ID);
+        super(AdminApiResourceAuthority.AUTHORITY, realm, baseUrl, RESOURCE_ID);
 
         // statically register admin scopes
         setScopes(new AdminRealmsScope(realm));

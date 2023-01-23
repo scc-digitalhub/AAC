@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.profiles.claims;
+package it.smartcommunitylab.aac.openid.provider;
 
 import java.io.Serializable;
 import java.text.ParseException;
@@ -23,14 +23,14 @@ import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.model.AttributeType;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.openid.scope.OpenIdAddressScope;
+import it.smartcommunitylab.aac.openid.scope.OpenIdDefaultScope;
+import it.smartcommunitylab.aac.openid.scope.OpenIdEmailScope;
+import it.smartcommunitylab.aac.openid.scope.OpenIdPhoneScope;
 import it.smartcommunitylab.aac.openid.scope.OpenIdScope;
+import it.smartcommunitylab.aac.openid.scope.OpenIdUserInfoResource;
 import it.smartcommunitylab.aac.profiles.extractor.OpenIdProfileExtractor;
 import it.smartcommunitylab.aac.profiles.model.OpenIdProfile;
-import it.smartcommunitylab.aac.profiles.scope.OpenIdAddressScope;
-import it.smartcommunitylab.aac.profiles.scope.OpenIdDefaultScope;
-import it.smartcommunitylab.aac.profiles.scope.OpenIdEmailScope;
-import it.smartcommunitylab.aac.profiles.scope.OpenIdPhoneScope;
-import it.smartcommunitylab.aac.profiles.scope.OpenIdUserInfoResource;
 
 public class OpenIdUserInfoClaimsExtractor extends AbstractResourceClaimsExtractor<OpenIdUserInfoResource> {
     private final OpenIdProfileExtractor extractor;

@@ -10,7 +10,7 @@ import it.smartcommunitylab.aac.core.authorities.TemplateProviderAuthority;
 import it.smartcommunitylab.aac.core.base.AbstractSingleRegistrableProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableTemplateProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.profiles.scope.OpenIdUserInfoResource;
+import it.smartcommunitylab.aac.openid.scope.OpenIdUserInfoResource;
 import it.smartcommunitylab.aac.templates.model.TemplateModel;
 import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfig;
 import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfigurationProvider;
