@@ -18,8 +18,9 @@ import it.smartcommunitylab.aac.attributes.model.TimeAttribute;
 import it.smartcommunitylab.aac.core.model.Attribute;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.model.AttributeType;
+import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
 
-public abstract class AbstractUserProfileExtractor implements UserProfileExtractor {
+public abstract class AbstractUserProfileExtractor<P extends AbstractProfile> implements UserProfileExtractor<P> {
 
     // lookup an attribute in multiple sets, return first match
     protected Attribute getAttribute(Collection<UserAttributes> attributes, String key, String... identifier) {

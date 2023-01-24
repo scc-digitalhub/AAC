@@ -21,7 +21,7 @@ import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.profiles.model.OpenIdProfile;
 
 @Component
-public class OpenIdProfileExtractor extends AbstractUserProfileExtractor {
+public class OpenIdProfileExtractor extends AbstractUserProfileExtractor<OpenIdProfile> {
 
     @Override
     public String getIdentifier() {

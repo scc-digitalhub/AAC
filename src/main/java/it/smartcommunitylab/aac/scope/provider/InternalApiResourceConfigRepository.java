@@ -15,10 +15,18 @@ public class InternalApiResourceConfigRepository<R extends AbstractInternalApiRe
         extends
         AutoProviderConfigRepository<C, InternalApiResourceProviderConfigMap, ConfigurableApiResourceProvider> {
 
+    protected InternalApiResourceConfigRepository(ProviderConfigRepository<C> baseRepository) {
+        super(baseRepository);
+    }
+
     public InternalApiResourceConfigRepository(
             ProviderConfigRepository<C> baseRepository, String resourceId,
             Function<String, C> builder) {
         super(baseRepository);
+        setBuilder(resourceId, builder);
+    }
+
+    protected void setBuilder(String resourceId, Function<String, C> builder) {
         Assert.notNull(builder, "builder can not be null");
 
         // set factories
@@ -42,7 +50,6 @@ public class InternalApiResourceConfigRepository<R extends AbstractInternalApiRe
             // build resource and config
             return builder.apply(realm);
         });
-
     }
 
 }

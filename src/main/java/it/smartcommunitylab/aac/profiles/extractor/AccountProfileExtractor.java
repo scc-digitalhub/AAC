@@ -16,7 +16,7 @@ import it.smartcommunitylab.aac.model.AttributeType;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.profiles.model.AccountProfile;
 
-public class AccountProfileExtractor extends AbstractUserProfileExtractor {
+public class AccountProfileExtractor extends AbstractUserProfileExtractor<AccountProfile> {
 
     @Override
     public String getIdentifier() {

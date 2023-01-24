@@ -16,7 +16,7 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.profiles.model.CustomProfile;
 
-public class AttributeSetProfileExtractor extends AbstractUserProfileExtractor {
+public class AttributeSetProfileExtractor extends AbstractUserProfileExtractor<CustomProfile> {
 
     // profile identifier, same as attribute set id
     private final String identifier;
@@ -63,7 +63,7 @@ public class AttributeSetProfileExtractor extends AbstractUserProfileExtractor {
     }
 
     @Override
-    public Collection<? extends CustomProfile> extractUserProfiles(User user) throws InvalidDefinitionException {
+    public Collection<CustomProfile> extractUserProfiles(User user) throws InvalidDefinitionException {
         // fetch custom attributes
         List<UserAttributes> userAttributes = user.getAttributes().stream()
                 .filter(ua -> !ua.getIdentifier().startsWith("aac."))

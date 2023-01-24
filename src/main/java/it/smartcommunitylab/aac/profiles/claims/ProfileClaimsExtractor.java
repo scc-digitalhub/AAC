@@ -12,6 +12,7 @@ import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
 
+@Deprecated
 public abstract class ProfileClaimsExtractor implements ScopeClaimsExtractor {
 
     @Override

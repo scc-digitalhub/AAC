@@ -4,14 +4,13 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.scope.base.AbstractInternalApiScope;
 
-public class CustomProfileScope extends AbstractInternalApiScope {
+public class CustomProfileScope extends AbstractProfileScope {
 
     private final String identifier;
 
     public CustomProfileScope(String realm, String identifier) {
-        super(SystemKeys.AUTHORITY_INTERNAL, realm, ProfileApiResource.RESOURCE_ID, "profile." + identifier + ".me");
+        super(realm, "profile." + identifier + ".me");
         Assert.hasText(identifier, "identifier can not be null");
         this.identifier = identifier;
 

@@ -14,7 +14,7 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.profiles.model.EmailProfile;
 
-public class EmailProfileExtractor extends AbstractUserProfileExtractor {
+public class EmailProfileExtractor extends AbstractUserProfileExtractor<EmailProfile> {
 
     @Override
     public String getIdentifier() {

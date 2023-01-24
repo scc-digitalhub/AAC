@@ -13,7 +13,7 @@ import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
  * Core implementations leverage a pre-made schema but implementations can extend the model.
  * Do note that not all method are required, implementations could choose to return one or more.
  */
-public interface UserProfileExtractor {
+public interface UserProfileExtractor<P extends AbstractProfile> {
 
     /*
      * Profile identifier, assumed to be also a scope in the form
@@ -25,7 +25,7 @@ public interface UserProfileExtractor {
     /*
      * Get the profile from the given identity, where possible
      */
-    public AbstractProfile extractUserProfile(UserIdentity identity)
+    public P extractUserProfile(UserIdentity identity)
             throws InvalidDefinitionException;
 
     /*
@@ -35,7 +35,7 @@ public interface UserProfileExtractor {
      * 
      * This method is *required* to return a valid profile.
      */
-    public AbstractProfile extractUserProfile(User user)
+    public P extractUserProfile(User user)
             throws InvalidDefinitionException;
 
     /*
@@ -43,6 +43,6 @@ public interface UserProfileExtractor {
      * one. For example in case of multiple identities.
      */
 
-    public Collection<? extends AbstractProfile> extractUserProfiles(User user)
+    public Collection<P> extractUserProfiles(User user)
             throws InvalidDefinitionException;
 }
