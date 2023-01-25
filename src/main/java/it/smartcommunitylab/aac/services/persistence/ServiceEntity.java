@@ -24,6 +24,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 
 import it.smartcommunitylab.aac.repository.HashMapBase64Converter;
@@ -33,7 +34,10 @@ import it.smartcommunitylab.aac.repository.HashMapBase64Converter;
  *
  */
 @Entity
-@Table(name = "service_model")
+@Table(name = "service_model", uniqueConstraints = {
+        @UniqueConstraint(columnNames = { "realm", "resource" }),
+        @UniqueConstraint(columnNames = { "realm", "namespace" }),
+})
 public class ServiceEntity {
 
     public static final String ID_PREFIX = "s_";
@@ -46,12 +50,16 @@ public class ServiceEntity {
     @Column(length = 128)
     private String realm;
 
-    private String description;
-    private String name;
+    @NotNull
+    private String namespace;
 
     @NotNull
-    @Column(unique = true)
-    private String namespace;
+    private String resource;
+    private String name;
+
+    // TODO i18n
+    private String title;
+    private String description;
 
     @Lob
     @Column(name = "claim_mapping")
@@ -82,6 +90,14 @@ public class ServiceEntity {
         this.name = name;
     }
 
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
     public String getDescription() {
         return description;
     }
@@ -96,6 +112,14 @@ public class ServiceEntity {
 
     public void setNamespace(String namespace) {
         this.namespace = namespace;
+    }
+
+    public String getResource() {
+        return resource;
+    }
+
+    public void setResource(String resource) {
+        this.resource = resource;
     }
 
     public Map<String, String> getClaimMappings() {

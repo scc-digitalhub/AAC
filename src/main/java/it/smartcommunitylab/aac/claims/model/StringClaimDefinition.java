@@ -10,7 +10,7 @@ public class StringClaimDefinition extends AbstractClaimDefinition {
     }
 
     @Override
-    public AttributeType getAttributeType() {
+    public AttributeType getType() {
         return AttributeType.STRING;
     }
 

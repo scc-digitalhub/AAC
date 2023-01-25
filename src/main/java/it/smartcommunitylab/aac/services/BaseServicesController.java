@@ -28,6 +28,9 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchServiceException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.services.model.ApiService;
+import it.smartcommunitylab.aac.services.model.ApiServiceClaimDefinition;
+import it.smartcommunitylab.aac.services.model.ApiServiceScope;
 
 /*
  * Base controller for custom services
@@ -61,7 +64,7 @@ public class BaseServicesController implements InitializingBean {
 
     @GetMapping("/services/{realm}")
     @Operation(summary = "list services from realm")
-    public Collection<Service> listServices(
+    public Collection<ApiService> listServices(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
             throws NoSuchRealmException {
         logger.debug("list services for realm {}",
@@ -72,9 +75,9 @@ public class BaseServicesController implements InitializingBean {
 
     @PostMapping("/services/{realm}")
     @Operation(summary = "add a new service to realm")
-    public Service addService(
+    public ApiService addService(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestBody @Valid @NotNull Service s) throws NoSuchRealmException, RegistrationException {
+            @RequestBody @Valid @NotNull ApiService s) throws NoSuchRealmException, RegistrationException {
         logger.debug("add service for realm {}",
                 StringUtils.trimAllWhitespace(realm));
 
@@ -86,7 +89,7 @@ public class BaseServicesController implements InitializingBean {
 
     @GetMapping("/services/{realm}/{serviceId}")
     @Operation(summary = "get a specific service from realm")
-    public Service getService(
+    public ApiService getService(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId)
             throws NoSuchServiceException, NoSuchRealmException {
@@ -98,10 +101,10 @@ public class BaseServicesController implements InitializingBean {
 
     @PutMapping("/services/{realm}/{serviceId}")
     @Operation(summary = "update a specific service in realm")
-    public Service updateService(
+    public ApiService updateService(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
-            @RequestBody @Valid @NotNull Service s)
+            @RequestBody @Valid @NotNull ApiService s)
             throws NoSuchServiceException, NoSuchRealmException, RegistrationException {
         logger.debug("update service {} for realm {}",
                 StringUtils.trimAllWhitespace(serviceId), StringUtils.trimAllWhitespace(realm));
@@ -145,7 +148,7 @@ public class BaseServicesController implements InitializingBean {
 
     @GetMapping("/services/{realm}/{serviceId}/scopes")
     @Operation(summary = "get scopes for a given service in realm")
-    public Collection<ServiceScope> listServiceScopes(
+    public Collection<ApiServiceScope> listServiceScopes(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId)
             throws NoSuchRealmException, NoSuchServiceException {
@@ -157,10 +160,10 @@ public class BaseServicesController implements InitializingBean {
 
     @PostMapping("/services/{realm}/{serviceId}/scopes")
     @Operation(summary = "add a new scope to a given service in realm")
-    public ServiceScope addServiceScope(
+    public ApiServiceScope addServiceScope(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
-            @RequestBody @Valid @NotNull ServiceScope s)
+            @RequestBody @Valid @NotNull ApiServiceScope s)
             throws NoSuchRealmException, NoSuchServiceException, RegistrationException {
         logger.debug("add scope to service {} for realm {}",
                 StringUtils.trimAllWhitespace(serviceId), StringUtils.trimAllWhitespace(realm));
@@ -173,7 +176,7 @@ public class BaseServicesController implements InitializingBean {
 
     @GetMapping("/services/{realm}/{serviceId}/scopes/{scope}")
     @Operation(summary = "get a specific scope from a given service in realm")
-    public ServiceScope getServiceScope(
+    public ApiServiceScope getServiceScope(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SCOPE_PATTERN) String scope)
@@ -187,11 +190,11 @@ public class BaseServicesController implements InitializingBean {
 
     @PutMapping("/services/{realm}/{serviceId}/scopes/{scope}")
     @Operation(summary = "update a specific scope from a given service in realm")
-    public ServiceScope updateServiceScope(
+    public ApiServiceScope updateServiceScope(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SCOPE_PATTERN) String scope,
-            @RequestBody @Valid @NotNull ServiceScope s)
+            @RequestBody @Valid @NotNull ApiServiceScope s)
             throws NoSuchScopeException, NoSuchServiceException, RegistrationException {
         logger.debug("update scope {} from service {} for realm {}",
                 StringUtils.trimAllWhitespace(scope), StringUtils.trimAllWhitespace(serviceId),
@@ -222,7 +225,7 @@ public class BaseServicesController implements InitializingBean {
      */
     @GetMapping("/services/{realm}/{serviceId}/claims")
     @Operation(summary = "get claims for a given service in realm")
-    public Collection<ServiceClaim> listServiceClaims(
+    public Collection<ApiServiceClaimDefinition> listServiceClaims(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId)
             throws NoSuchRealmException, NoSuchServiceException {
@@ -234,10 +237,10 @@ public class BaseServicesController implements InitializingBean {
 
     @PostMapping("/services/{realm}/{serviceId}/claims")
     @Operation(summary = "add a new claim to a given service in realm")
-    public ServiceClaim addServiceClaim(
+    public ApiServiceClaimDefinition addServiceClaim(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
-            @RequestBody @Valid @NotNull ServiceClaim s)
+            @RequestBody @Valid @NotNull ApiServiceClaimDefinition s)
             throws NoSuchRealmException, NoSuchServiceException, RegistrationException {
         logger.debug("add claim to service {} for realm {}",
                 StringUtils.trimAllWhitespace(serviceId), StringUtils.trimAllWhitespace(realm));
@@ -250,7 +253,7 @@ public class BaseServicesController implements InitializingBean {
 
     @GetMapping("/services/{realm}/{serviceId}/claims/{key}")
     @Operation(summary = "get a specific claim from a given service in realm")
-    public ServiceClaim getServiceClaim(
+    public ApiServiceClaimDefinition getServiceClaim(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.KEY_PATTERN) String key)
@@ -264,11 +267,11 @@ public class BaseServicesController implements InitializingBean {
 
     @PutMapping("/services/{realm}/{serviceId}/claims/{key}")
     @Operation(summary = "update a specific claim from a given service in realm")
-    public ServiceClaim updateServiceClaim(
+    public ApiServiceClaimDefinition updateServiceClaim(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.KEY_PATTERN) String key,
-            @RequestBody @Valid @NotNull ServiceClaim s)
+            @RequestBody @Valid @NotNull ApiServiceClaimDefinition s)
             throws NoSuchClaimException, NoSuchServiceException, RegistrationException {
         logger.debug("update claim {} from service {} for realm {}",
                 StringUtils.trimAllWhitespace(key), StringUtils.trimAllWhitespace(serviceId),

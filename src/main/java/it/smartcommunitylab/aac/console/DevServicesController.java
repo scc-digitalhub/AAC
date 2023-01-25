@@ -43,14 +43,14 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.dto.FunctionValidationBean;
 import it.smartcommunitylab.aac.services.BaseServicesController;
-import it.smartcommunitylab.aac.services.Service;
+import it.smartcommunitylab.aac.services.model.ApiService;
 
 @RestController
 @Hidden
 @RequestMapping("/console/dev")
 public class DevServicesController extends BaseServicesController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final TypeReference<Map<String, List<Service>>> typeRef = new TypeReference<Map<String, List<Service>>>() {
+    private final TypeReference<Map<String, List<ApiService>>> typeRef = new TypeReference<Map<String, List<ApiService>>>() {
     };
     private final String LIST_KEY = "services";
 
@@ -65,7 +65,7 @@ public class DevServicesController extends BaseServicesController {
      * Import/export for console
      */
     @PutMapping("/services/{realm}")
-    public Collection<Service> importRealmService(
+    public Collection<ApiService> importRealmService(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam(required = false, defaultValue = "false") boolean reset,
             @RequestPart(name = "yaml", required = false) @Valid String yaml,
@@ -94,8 +94,8 @@ public class DevServicesController extends BaseServicesController {
                 yaml = new String(file.getBytes(), StandardCharsets.UTF_8);
             }
 
-            List<Service> services = new ArrayList<>();
-            List<Service> regs = new ArrayList<>();
+            List<ApiService> services = new ArrayList<>();
+            List<ApiService> regs = new ArrayList<>();
 
             // read as raw yaml to check if collection
             Yaml reader = new Yaml();
@@ -103,18 +103,18 @@ public class DevServicesController extends BaseServicesController {
             boolean multiple = obj.containsKey(LIST_KEY);
 
             if (multiple) {
-                Map<String, List<Service>> list = yamlObjectMapper.readValue(yaml, typeRef);
-                for (Service reg : list.get(LIST_KEY)) {
+                Map<String, List<ApiService>> list = yamlObjectMapper.readValue(yaml, typeRef);
+                for (ApiService reg : list.get(LIST_KEY)) {
                     regs.add(reg);
                 }
             } else {
                 // try single element
-                Service reg = yamlObjectMapper.readValue(file.getInputStream(), Service.class);
+                ApiService reg = yamlObjectMapper.readValue(file.getInputStream(), ApiService.class);
                 regs.add(reg);
             }
 
             // register all
-            for (Service reg : regs) {
+            for (ApiService reg : regs) {
                 // align config
                 reg.setRealm(realm);
                 if (reset) {
@@ -126,7 +126,7 @@ public class DevServicesController extends BaseServicesController {
                     logger.trace("service bean: {}", String.valueOf(reg));
                 }
 
-                Service service = serviceManager.addService(realm, reg);
+                ApiService service = serviceManager.addService(realm, reg);
                 services.add(service);
             }
 
@@ -154,7 +154,7 @@ public class DevServicesController extends BaseServicesController {
         logger.debug("export service {} for realm {}",
                 StringUtils.trimAllWhitespace(serviceId), StringUtils.trimAllWhitespace(realm));
 
-        Service service = serviceManager.getService(realm, serviceId);
+        ApiService service = serviceManager.getService(realm, serviceId);
         String s = yamlObjectMapper.writeValueAsString(service);
 
         // write as file

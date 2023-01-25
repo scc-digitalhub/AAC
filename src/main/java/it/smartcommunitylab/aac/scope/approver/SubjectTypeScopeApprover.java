@@ -4,8 +4,8 @@ import java.util.Collection;
 
 import org.springframework.util.Assert;
 
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.ClientDetails;
+import it.smartcommunitylab.aac.model.SubjectType;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.scope.base.AbstractScopeApprover;
 import it.smartcommunitylab.aac.scope.model.Scope;
@@ -17,7 +17,7 @@ public class SubjectTypeScopeApprover<S extends Scope> extends AbstractScopeAppr
     public static final int DEFAULT_DURATION_S = 3600; // 1h
 
     private int duration;
-    private String subjectType;
+    private SubjectType subjectType;
     // strict mode when set blocks the request on denial,
     // otherwise we return undecided to let the processor skip the scope
     private boolean strictMode = false;
@@ -27,13 +27,18 @@ public class SubjectTypeScopeApprover<S extends Scope> extends AbstractScopeAppr
         this.duration = DEFAULT_DURATION_S;
     }
 
-    public void setSubjectType(String subjectType) {
-        Assert.hasText(subjectType, "subject type can not be null or empty");
-        if (!SystemKeys.RESOURCE_USER.equals(subjectType) && !SystemKeys.RESOURCE_CLIENT.equals(subjectType)) {
+    public void setSubjectType(SubjectType type) {
+        Assert.notNull(type, "invalid subject type");
+        if (SubjectType.USER != type && SubjectType.CLIENT != type) {
             throw new IllegalArgumentException("invalid subject type: set either user or client");
         }
 
-        this.subjectType = subjectType;
+        this.subjectType = type;
+    }
+
+    public void setSubjectType(String subjectType) {
+        Assert.hasText(subjectType, "subject type can not be null or empty");
+        setSubjectType(SubjectType.parse(subjectType));
     }
 
     public void setDuration(int duration) {
@@ -54,7 +59,7 @@ public class SubjectTypeScopeApprover<S extends Scope> extends AbstractScopeAppr
             return null;
         }
 
-        ApprovalStatus approvalStatus = SystemKeys.RESOURCE_USER.equals(subjectType) ? ApprovalStatus.APPROVED
+        ApprovalStatus approvalStatus = SubjectType.USER == subjectType ? ApprovalStatus.APPROVED
                 : ApprovalStatus.DENIED;
 
         if (!strictMode && approvalStatus == ApprovalStatus.DENIED) {
@@ -73,7 +78,7 @@ public class SubjectTypeScopeApprover<S extends Scope> extends AbstractScopeAppr
             return null;
         }
 
-        ApprovalStatus approvalStatus = SystemKeys.RESOURCE_CLIENT.equals(subjectType) ? ApprovalStatus.APPROVED
+        ApprovalStatus approvalStatus = SubjectType.CLIENT == subjectType ? ApprovalStatus.APPROVED
                 : ApprovalStatus.DENIED;
 
         if (!strictMode && approvalStatus == ApprovalStatus.DENIED) {

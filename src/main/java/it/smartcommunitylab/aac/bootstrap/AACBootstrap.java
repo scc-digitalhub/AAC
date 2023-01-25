@@ -61,8 +61,8 @@ import it.smartcommunitylab.aac.oauth.service.OAuth2ClientAppService;
 import it.smartcommunitylab.aac.password.auth.UsernamePasswordAuthenticationToken;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
-import it.smartcommunitylab.aac.services.Service;
-import it.smartcommunitylab.aac.services.ServicesService;
+import it.smartcommunitylab.aac.services.model.ApiService;
+import it.smartcommunitylab.aac.services.service.ServicesService;
 
 @Component
 @Transactional
@@ -605,7 +605,7 @@ public class AACBootstrap {
                         try {
                             // add or update via service
                             String id = s.getServiceId();
-                            Service service = serviceService.findService(id);
+                            ApiService service = serviceService.findService(id);
                             if (service == null) {
                                 logger.debug("add service {} for realm {}", id, String.valueOf(s.getRealm()));
 

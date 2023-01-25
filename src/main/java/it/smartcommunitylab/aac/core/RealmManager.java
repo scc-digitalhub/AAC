@@ -346,8 +346,8 @@ public class RealmManager {
             webAuthnUserCredentialsService.deleteAllCredentials(slug, credentials);
 
             // remove services
-            List<it.smartcommunitylab.aac.services.Service> services = servicesManager.listServices(slug);
-            for (it.smartcommunitylab.aac.services.Service service : services) {
+            List<it.smartcommunitylab.aac.services.model.ApiService> services = servicesManager.listServices(slug);
+            for (it.smartcommunitylab.aac.services.model.ApiService service : services) {
                 try {
                     String serviceId = service.getServiceId();
 
@@ -544,7 +544,7 @@ public class RealmManager {
         }
 
         // services
-        List<it.smartcommunitylab.aac.services.Service> services = servicesManager.listServices(realm);
+        List<it.smartcommunitylab.aac.services.model.ApiService> services = servicesManager.listServices(realm);
         rc.setServices(services);
 
         // clients

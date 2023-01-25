@@ -1,7 +1,7 @@
 package it.smartcommunitylab.aac.roles.scopes;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.model.SubjectType;
 import it.smartcommunitylab.aac.roles.scopes.RolesResource.AbstractRolesScope;
 
 public class ClientRolesScope extends AbstractRolesScope {
@@ -12,7 +12,7 @@ public class ClientRolesScope extends AbstractRolesScope {
         super(realm, SCOPE);
 
         // require client
-        this.subjectType = SystemKeys.RESOURCE_CLIENT;
+        this.subjectType = SubjectType.CLIENT;
     }
 
     // TODO replace with keys for i18n

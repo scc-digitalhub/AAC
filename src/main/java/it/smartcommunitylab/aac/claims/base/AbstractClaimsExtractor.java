@@ -88,7 +88,7 @@ public abstract class AbstractClaimsExtractor extends AbstractProvider<AbstractC
                     throw new IllegalArgumentException("invalid-claim");
                 }
 
-                if (def.getAttributeType() != c.getAttributeType()) {
+                if (def.getType() != c.getAttributeType()) {
                     throw new IllegalArgumentException("invalid-claim");
                 }
             });

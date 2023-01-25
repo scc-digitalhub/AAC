@@ -68,9 +68,9 @@ import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.scope.ScopeApprover;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
 import it.smartcommunitylab.aac.scope.model.Scope;
-import it.smartcommunitylab.aac.services.ScriptServiceClaimExtractor;
-import it.smartcommunitylab.aac.services.Service;
-import it.smartcommunitylab.aac.services.ServicesService;
+import it.smartcommunitylab.aac.services.claims.ScriptServiceClaimExtractor;
+import it.smartcommunitylab.aac.services.model.ApiService;
+import it.smartcommunitylab.aac.services.service.ServicesService;
 import it.smartcommunitylab.aac.templates.TemplateAuthority;
 import it.smartcommunitylab.aac.templates.TemplatesManager;
 import it.smartcommunitylab.aac.templates.model.TemplateModel;
@@ -179,7 +179,7 @@ public class DevManager {
         clientDetails.setScopes(approvedScopes);
 
         // fetch service
-        Service service = servicesService.getService(serviceId);
+        ApiService service = servicesService.getService(serviceId);
 
         // clear hookFunctions already set and pass only test function
         Map<String, String> functions = new HashMap<>();

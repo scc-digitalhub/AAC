@@ -1,8 +1,8 @@
 package it.smartcommunitylab.aac.groups.scopes;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.groups.scopes.GroupsResource.AbstractGroupsScope;
+import it.smartcommunitylab.aac.model.SubjectType;
 
 public class ClientGroupsScope extends AbstractGroupsScope {
 
@@ -12,7 +12,7 @@ public class ClientGroupsScope extends AbstractGroupsScope {
         super(realm, SCOPE);
 
         // require client
-        this.subjectType = SystemKeys.RESOURCE_CLIENT;
+        this.subjectType = SubjectType.CLIENT;
     }
 
 //    // TODO replace with keys for i18n

@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.services;
+package it.smartcommunitylab.aac.services.claims;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -32,6 +32,8 @@ import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.dto.UserProfile;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.services.model.ApiService;
+import it.smartcommunitylab.aac.services.model.ApiServiceClaimDefinition;
 
 public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
     public static final String CLAIM_MAPPING_FUNCTION = "claimMapping";
@@ -41,12 +43,12 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
     };
     private final TypeReference<ArrayList<Serializable>> serListTypeRef = new TypeReference<ArrayList<Serializable>>() {
     };
-    private final Service service;
+    private final ApiService service;
     private ScriptExecutionService executionService;
 
     // TODO add a loadingcache for scripts
 
-    public ScriptServiceClaimExtractor(Service service) {
+    public ScriptServiceClaimExtractor(ApiService service) {
         Assert.notNull(service, "services is required");
         this.service = service;
     }
@@ -189,10 +191,10 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
         return map;
     }
 
-    private List<Claim> processClaims(Collection<ServiceClaim> serviceClaimsList,
+    private List<Claim> processClaims(Collection<ApiServiceClaimDefinition> serviceClaimsList,
             Map<String, Serializable> customClaims) {
         List<Claim> claims = new ArrayList<>();
-        Map<String, ServiceClaim> serviceClaims = serviceClaimsList.stream()
+        Map<String, ApiServiceClaimDefinition> serviceClaims = serviceClaimsList.stream()
                 .collect(Collectors.toMap(sc -> sc.getKey(), sc -> sc));
 
         for (Map.Entry<String, Serializable> entry : customClaims.entrySet()) {
@@ -200,7 +202,7 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
 
             if (serviceClaims.containsKey(key)) {
                 // try to parse as definition, or drop
-                ServiceClaim model = serviceClaims.get(key);
+                ApiServiceClaimDefinition model = serviceClaims.get(key);
                 if (model.isMultiple()) {
                     // try to parse a collection
                     try {
@@ -237,7 +239,7 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
         return claims;
     }
 
-    private Claim parseClaim(ServiceClaim model, Serializable value) {
+    private Claim parseClaim(ApiServiceClaimDefinition model, Serializable value) {
         AbstractClaim c = null;
         try {
             switch (model.getType()) {

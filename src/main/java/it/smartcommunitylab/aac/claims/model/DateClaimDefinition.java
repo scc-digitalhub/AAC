@@ -10,7 +10,7 @@ public class DateClaimDefinition extends AbstractClaimDefinition {
     }
 
     @Override
-    public AttributeType getAttributeType() {
+    public AttributeType getType() {
         return AttributeType.DATE;
     }
 

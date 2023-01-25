@@ -30,12 +30,17 @@ import it.smartcommunitylab.aac.repository.CustomJpaRepository;
 @Repository
 public interface ServiceEntityRepository extends CustomJpaRepository<ServiceEntity, String> {
 
-    List<ServiceEntity> findByNameContainingIgnoreCase(String name);
+    ServiceEntity findByRealmAndNamespace(String realm, String namespace);
+
+    ServiceEntity findByRealmAndResource(String realm, String resource);
 
     List<ServiceEntity> findByRealm(String realm);
 
-    ServiceEntity findByNamespace(String namespace);
+    List<ServiceEntity> findByNameContainingIgnoreCase(String name);
 
-    @Query("select namespace from #{#entityName}")
-    List<String> listAllNamespaces();
+    @Query("select namespace from #{#entityName} where realm = ?1")
+    List<String> listAllNamespacesByRealm(String realm);
+
+    @Query("select namespace from #{#entityName} where realm = ?1")
+    List<String> listAllResourcesByRealm(String realm);
 }

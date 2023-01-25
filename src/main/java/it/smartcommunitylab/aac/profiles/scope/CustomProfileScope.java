@@ -3,7 +3,7 @@ package it.smartcommunitylab.aac.profiles.scope;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.model.SubjectType;
 
 public class CustomProfileScope extends AbstractProfileScope {
 
@@ -15,7 +15,7 @@ public class CustomProfileScope extends AbstractProfileScope {
         this.identifier = identifier;
 
         // require user
-        this.subjectType = SystemKeys.RESOURCE_USER;
+        this.subjectType = SubjectType.USER;
     }
 
     // TODO replace with keys for i18n

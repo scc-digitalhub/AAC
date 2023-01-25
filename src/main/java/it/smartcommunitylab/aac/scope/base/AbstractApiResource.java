@@ -8,9 +8,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.claims.base.AbstractClaimDefinition;
-import it.smartcommunitylab.aac.claims.model.ClaimDefinition;
 import it.smartcommunitylab.aac.scope.model.ApiResource;
-import it.smartcommunitylab.aac.scope.model.Scope;
 
 public abstract class AbstractApiResource<S extends AbstractApiScope> implements ApiResource {
 

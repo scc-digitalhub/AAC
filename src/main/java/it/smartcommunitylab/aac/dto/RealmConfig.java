@@ -19,7 +19,7 @@ import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableTemplateProvider;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
-import it.smartcommunitylab.aac.services.Service;
+import it.smartcommunitylab.aac.services.model.ApiService;
 
 @Valid
 @JsonInclude(Include.NON_NULL)
@@ -37,7 +37,7 @@ public class RealmConfig {
     private ConfigurableTemplateProvider templates;
 
     // services
-    private List<Service> services;
+    private List<ApiService> services;
 
     // clientApps
     private List<ClientApp> clientApps;
@@ -88,11 +88,11 @@ public class RealmConfig {
         this.templates = templates;
     }
 
-    public List<Service> getServices() {
+    public List<ApiService> getServices() {
         return services;
     }
 
-    public void setServices(List<Service> services) {
+    public void setServices(List<ApiService> services) {
         this.services = services;
     }
 

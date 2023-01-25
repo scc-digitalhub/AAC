@@ -27,12 +27,11 @@ import it.smartcommunitylab.aac.repository.CustomJpaRepository;
  *
  */
 @Repository
-public interface ServiceClaimRepository extends CustomJpaRepository<ServiceClaimEntity, Long> {
+public interface ServiceClaimRepository extends CustomJpaRepository<ServiceClaimEntity, String> {
 
-//    @Query("select s from ServiceClaim s where s.service.serviceId = LOWER(?1)")
-    List<ServiceClaimEntity> findByServiceId(String serviceId);
-
-//    @Query("select s from ServiceClaim s where s.service.serviceId = LOWER(?1) and key = LOWER(?2)")
     ServiceClaimEntity findByServiceIdAndKey(String serviceId, String key);
 
+    List<ServiceClaimEntity> findByServiceId(String serviceId);
+
+    List<ServiceClaimEntity> findByRealm(String realm);
 }

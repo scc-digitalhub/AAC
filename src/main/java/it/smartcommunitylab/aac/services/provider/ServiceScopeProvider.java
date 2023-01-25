@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.services;
+package it.smartcommunitylab.aac.services.provider;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -15,14 +15,15 @@ import it.smartcommunitylab.aac.scope.ScopeApprover;
 import it.smartcommunitylab.aac.scope.ScopeProvider;
 import it.smartcommunitylab.aac.scope.model.ApiResource;
 import it.smartcommunitylab.aac.scope.model.Scope;
+import it.smartcommunitylab.aac.services.model.ApiService;
 
 public class ServiceScopeProvider implements ScopeProvider {
 
-    private final Service service;
+    private final ApiService service;
     private ApiResource resource;
     private Map<String, ScopeApprover> approvers = new HashMap<>();
 
-    public ServiceScopeProvider(Service service) {
+    public ServiceScopeProvider(ApiService service) {
         Assert.notNull(service, "services is required");
         this.service = service;
         build();

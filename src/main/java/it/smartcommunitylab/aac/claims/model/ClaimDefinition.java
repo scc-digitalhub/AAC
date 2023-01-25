@@ -13,7 +13,7 @@ public interface ClaimDefinition {
     // when multiple are provided, the result will be a collection
     public String getKey();
 
-    public AttributeType getAttributeType();
+    public AttributeType getType();
 
     // a human readable name for this claim
     // TODO evaluate removal

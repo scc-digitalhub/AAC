@@ -29,12 +29,12 @@ import it.smartcommunitylab.aac.repository.CustomJpaRepository;
 @Repository
 public interface ServiceScopeRepository extends CustomJpaRepository<ServiceScopeEntity, String> {
 
-    ServiceScopeEntity findByScope(String scope);
-
     ServiceScopeEntity findByServiceIdAndScope(String serviceId, String scope);
+
+    ServiceScopeEntity findByRealmAndScope(String realm, String scope);
 
     List<ServiceScopeEntity> findByServiceId(String serviceId);
 
-    List<ServiceScopeEntity> findByServiceIdAndType(String serviceId, String type);
+    List<ServiceScopeEntity> findByRealm(String realm);
 
 }

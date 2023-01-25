@@ -35,7 +35,7 @@ import it.smartcommunitylab.aac.roles.service.RealmRoleService;
 import it.smartcommunitylab.aac.roles.service.SubjectRoleService;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
 import it.smartcommunitylab.aac.scope.model.Scope;
-import it.smartcommunitylab.aac.services.ServiceScope;
+import it.smartcommunitylab.aac.services.model.ApiServiceScope;
 
 /*
  * Realm roles are bound to subjects and exists within a given realm
@@ -215,8 +215,8 @@ public class RealmRoleManager {
 
         // TODO evaluate same realm check
         String resourceId = s.getResourceId();
-        if (s instanceof ServiceScope) {
-            resourceId = ((ServiceScope) s).getServiceId();
+        if (s instanceof ApiServiceScope) {
+            resourceId = ((ApiServiceScope) s).getServiceId();
         }
 
         // add approval to store, will refresh if present
@@ -249,8 +249,8 @@ public class RealmRoleManager {
 
                 // TODO evaluate same realm check
                 String resourceId = s.getResourceId();
-                if (s instanceof ServiceScope) {
-                    resourceId = ((ServiceScope) s).getServiceId();
+                if (s instanceof ApiServiceScope) {
+                    resourceId = ((ApiServiceScope) s).getServiceId();
                 }
 
                 // add approval to store, will refresh if present
@@ -288,8 +288,8 @@ public class RealmRoleManager {
 
                 // TODO evaluate same realm check
                 String resourceId = s.getResourceId();
-                if (s instanceof ServiceScope) {
-                    resourceId = ((ServiceScope) s).getServiceId();
+                if (s instanceof ApiServiceScope) {
+                    resourceId = ((ApiServiceScope) s).getServiceId();
                 }
 
                 // add approval to store, will refresh if present

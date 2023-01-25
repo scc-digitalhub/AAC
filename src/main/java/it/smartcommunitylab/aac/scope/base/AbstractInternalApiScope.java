@@ -12,6 +12,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.model.SubjectType;
 
 public abstract class AbstractInternalApiScope extends AbstractApiScope {
 
@@ -27,7 +28,7 @@ public abstract class AbstractInternalApiScope extends AbstractApiScope {
     protected String policy;
 
     // we could also restrict subject types
-    protected String subjectType;
+    protected SubjectType subjectType;
 
 //    public AbstractInternalApiScope(String realm, String resourceId, String scope) {
 //        this(SystemKeys.AUTHORITY_INTERNAL, realm, resourceId, scope);
@@ -81,13 +82,19 @@ public abstract class AbstractInternalApiScope extends AbstractApiScope {
         setAuthorities(Arrays.asList(authorities));
     }
 
-    public String getSubjectType() {
+    public SubjectType getSubjectType() {
         return subjectType;
+    }
+
+    public void setSubjectType(SubjectType type) {
+        this.subjectType = type;
     }
 
     public void setSubjectType(String subjectType) {
         Assert.hasText(subjectType, "subjectType can not be null");
-        this.subjectType = subjectType;
+        SubjectType type = SubjectType.parse(subjectType);
+        Assert.notNull(type, "invalid subject type");
+        this.subjectType = type;
     }
 
     // i18n: use id as key for language files
@@ -116,7 +123,7 @@ public abstract class AbstractInternalApiScope extends AbstractApiScope {
         // build a composite policy where required
         List<String> policies = new ArrayList<>();
         if (authorities != null) {
-            // build policy from authorities
+            // build policy for authorities
             StringBuilder sb = new StringBuilder();
             sb.append("authority(");
             sb.append(StringUtils.collectionToCommaDelimitedString(authorities));
@@ -125,10 +132,10 @@ public abstract class AbstractInternalApiScope extends AbstractApiScope {
         }
 
         if (subjectType != null) {
-            // build policy from type
+            // build policy for type
             StringBuilder sb = new StringBuilder();
             sb.append("subjectType(");
-            sb.append(subjectType);
+            sb.append(subjectType.getValue());
             sb.append(")");
             policies.add(sb.toString());
         }

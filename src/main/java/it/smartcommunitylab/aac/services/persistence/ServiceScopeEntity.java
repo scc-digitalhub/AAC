@@ -22,6 +22,8 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 import it.smartcommunitylab.aac.repository.StringBase64Converter;
@@ -31,43 +33,36 @@ import it.smartcommunitylab.aac.repository.StringBase64Converter;
  *
  */
 @Entity
-@Table(name = "service_scope")
+@Table(name = "service_scope", uniqueConstraints = {
+        @UniqueConstraint(columnNames = { "service_id", "scope" }),
+        @UniqueConstraint(columnNames = { "realm", "scope" })
+})
 public class ServiceScopeEntity {
 
     @Id
-    @Column(length = 128)
-    private String scope;
-
-    /**
-     * ServiceDescriptor ID
-     */
-//    @ManyToOne(optional = false)
-//    @OnDelete(action = OnDeleteAction.CASCADE)
-//    @JoinColumn(nullable = false, name = "service_id", referencedColumnName = "service_id")
-//    private ServiceEntity service;
+    @NotNull
+    @Column(name = "scope_id", length = 128, unique = true)
+    private String scopeId;
 
     @NotNull
     @Column(name = "service_id", length = 128)
     private String serviceId;
 
-    /**
-     * Human-readable scope name
-     */
+    @NotNull
+    @Column(name = "realm", length = 128)
+    private String realm;
+
+    @NotBlank
+    @Column(length = 128)
+    private String scope;
+
+    // user presentation
+    // TODO i18n
     private String name;
-    /**
-     * Resource description
-     */
     private String description;
 
-    @Column(name = "scope_type", length = 32)
-    private String type;
-
-    /**
-     * Claims exposed with the scopes (comma-separated list)
-     */
-    @Lob
-    @Column(name = "claims")
-    private String claims;
+    // subject type
+    private String approvalType;
 
     /**
      * Roles required to access the scope
@@ -79,21 +74,16 @@ public class ServiceScopeEntity {
     /**
      * Space Roles required to access the scope
      */
+    @Deprecated
     @Lob
     @Column(name = "approval_space_roles")
     private String approvalSpaceRoles;
-
-//    /**
-//     * Authority that can access this resource
-//     */
-//    @Enumerated(EnumType.STRING)
-//    private AUTHORITY authority;
 
     /**
      * Whether explicit manual approval required
      */
     @Column(name = "approval_manual")
-    private boolean approvalRequired = false;
+    private Boolean approvalRequired;
 
     @Lob
     @Column(name = "approval_function")
@@ -104,7 +94,7 @@ public class ServiceScopeEntity {
      * Whether any approval suffices, or we need consensus from all
      */
     @Column(name = "approval_any")
-    private boolean approvalAny = true;
+    private Boolean approvalAny;
 
     public String getScope() {
         return scope;
@@ -130,6 +120,14 @@ public class ServiceScopeEntity {
         this.serviceId = serviceId;
     }
 
+    public String getRealm() {
+        return realm;
+    }
+
+    public void setRealm(String realm) {
+        this.realm = realm;
+    }
+
     public String getName() {
         return name;
     }
@@ -146,12 +144,12 @@ public class ServiceScopeEntity {
         this.description = description;
     }
 
-    public String getClaims() {
-        return claims;
+    public String getApprovalType() {
+        return approvalType;
     }
 
-    public void setClaims(String claims) {
-        this.claims = claims;
+    public void setApprovalType(String approvalType) {
+        this.approvalType = approvalType;
     }
 
     public String getApprovalRoles() {
@@ -179,27 +177,35 @@ public class ServiceScopeEntity {
     }
 
     public boolean isApprovalRequired() {
+        return approvalRequired != null ? approvalRequired.booleanValue() : false;
+    }
+
+    public Boolean getApprovalRequired() {
         return approvalRequired;
     }
 
-    public void setApprovalRequired(boolean approvalRequired) {
+    public void setApprovalRequired(Boolean approvalRequired) {
         this.approvalRequired = approvalRequired;
     }
 
     public boolean isApprovalAny() {
+        return approvalAny != null ? approvalAny.booleanValue() : false;
+    }
+
+    public Boolean getApprovalAny() {
         return approvalAny;
     }
 
-    public void setApprovalAny(boolean approvalAny) {
+    public void setApprovalAny(Boolean approvalAny) {
         this.approvalAny = approvalAny;
     }
 
-    public String getType() {
-        return type;
+    public String getScopeId() {
+        return scopeId;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setScopeId(String scopeId) {
+        this.scopeId = scopeId;
     }
 
 }
