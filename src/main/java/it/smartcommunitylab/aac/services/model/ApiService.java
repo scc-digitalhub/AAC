@@ -15,7 +15,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.scope.model.ApiResource;
+import it.smartcommunitylab.aac.scope.base.AbstractApiResource;
 
 /*
  * A service defines an api composed of a namespace (used as audience)
@@ -24,7 +24,7 @@ import it.smartcommunitylab.aac.scope.model.ApiResource;
 @Valid
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ApiService implements ApiResource {
+public class ApiService extends AbstractApiResource<ApiServiceScope> {
 
     @Size(max = 128)
     @Pattern(regexp = SystemKeys.SLUG_PATTERN)
@@ -38,14 +38,6 @@ public class ApiService implements ApiResource {
     @Pattern(regexp = SystemKeys.NAMESPACE_PATTERN)
     private String namespace;
 
-    @Size(max = 128)
-    private String realm;
-
-    private String name;
-    // TODO i18n
-    private String title;
-    private String description;
-
     private Collection<ApiServiceScope> scopes = Collections.emptyList();
     private Collection<ApiServiceClaimDefinition> claims = Collections.emptyList();
 
@@ -57,6 +49,19 @@ public class ApiService implements ApiResource {
 
     @JsonIgnore
     private String clientClaimsExtractor;
+
+    /*
+     * Claim webhook
+     */
+    private String webhookExtractor;
+
+    public ApiService() {
+        super(SystemKeys.AUTHORITY_SERVICE, (String) null);
+    }
+
+    public ApiService(String serviceId) {
+        super(SystemKeys.AUTHORITY_SERVICE, serviceId);
+    }
 
     @Override
     public String getResourceId() {
@@ -141,6 +146,14 @@ public class ApiService implements ApiResource {
 
     public void setClaims(Collection<ApiServiceClaimDefinition> claims) {
         this.claims = claims;
+    }
+
+    public String getWebhookExtractor() {
+        return webhookExtractor;
+    }
+
+    public void setWebhookExtractor(String webhookExtractor) {
+        this.webhookExtractor = webhookExtractor;
     }
 
     public String getUserClaimsExtractor() {

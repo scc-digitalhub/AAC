@@ -9,20 +9,24 @@ import java.util.stream.Collectors;
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.claims.model.ClaimsSetExtractor;
+import it.smartcommunitylab.aac.claims.extractors.NullClaimsExtractor;
 import it.smartcommunitylab.aac.claims.model.ClaimsExtractor;
 import it.smartcommunitylab.aac.claims.model.ClaimsSet;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.model.User;
 
-public abstract class AbstractClaimsExtractor extends AbstractProvider<AbstractClaimsSet>
-        implements ClaimsExtractor<AbstractClaimsSet> {
+public abstract class AbstractClaimsSetExtractor extends AbstractProvider<AbstractClaimsSet>
+        implements ClaimsSetExtractor<AbstractClaimsSet> {
 
     private final String resource;
     protected Map<String, AbstractClaimDefinition> definitions;
     protected String namespace;
 
-    public AbstractClaimsExtractor(String authority, String provider, String realm, String resource) {
+    protected ClaimsExtractor<? extends AbstractClaim> claimsExtractor = new NullClaimsExtractor();
+
+    public AbstractClaimsSetExtractor(String authority, String provider, String realm, String resource) {
         super(authority, provider, realm);
         Assert.hasText(resource, "resource can not be null");
 
@@ -33,13 +37,17 @@ public abstract class AbstractClaimsExtractor extends AbstractProvider<AbstractC
     @Override
     public String getType() {
         return SystemKeys.RESOURCE_CLAIMS_SET;
-
     }
 
     protected void setDefinitions(Collection<AbstractClaimDefinition> definitions) {
         if (definitions != null) {
             this.definitions = definitions.stream().collect(Collectors.toMap(c -> c.getKey(), c -> c));
         }
+    }
+
+    protected void setClaimsExtractor(ClaimsExtractor<AbstractClaim> claimsExtractor) {
+        Assert.notNull(claimsExtractor, "claims extractor can not be null");
+        this.claimsExtractor = claimsExtractor;
     }
 
     public String getNamespace() {
@@ -113,7 +121,7 @@ public abstract class AbstractClaimsExtractor extends AbstractProvider<AbstractC
     @Override
     public DefaultUserClaimsSet extract(User user, ClientDetails client, Collection<String> scopes,
             Map<String, Serializable> extensions) {
-        Collection<AbstractClaim> claims = extractUserClaims(user, client, scopes, extensions);
+        Collection<? extends AbstractClaim> claims = claimsExtractor.extractUserClaims(user, client, scopes, extensions);
         if (claims == null) {
             // nothing to return
             return null;
@@ -136,7 +144,7 @@ public abstract class AbstractClaimsExtractor extends AbstractProvider<AbstractC
     @Override
     public DefaultClientClaimsSet extract(ClientDetails client, Collection<String> scopes,
             Map<String, Serializable> extensions) {
-        Collection<AbstractClaim> claims = extractClientClaims(client, scopes, extensions);
+        Collection<? extends AbstractClaim> claims = claimsExtractor.extractClientClaims(client, scopes, extensions);
         if (claims == null) {
             // nothing to return
             return null;
@@ -155,11 +163,5 @@ public abstract class AbstractClaimsExtractor extends AbstractProvider<AbstractC
 
         return claimsSet;
     }
-
-    protected abstract Collection<AbstractClaim> extractUserClaims(User user, ClientDetails client,
-            Collection<String> scopes, Map<String, Serializable> extensions);
-
-    protected abstract Collection<AbstractClaim> extractClientClaims(ClientDetails client, Collection<String> scopes,
-            Map<String, Serializable> extensions);
 
 }

@@ -27,7 +27,7 @@ public class DefaultClaimDefinition implements ClaimDefinition {
     }
 
     @Override
-    public AttributeType getAttributeType() {
+    public AttributeType getType() {
         return attributeType;
     }
 

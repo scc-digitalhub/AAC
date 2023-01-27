@@ -22,8 +22,8 @@ public class RolesResourceProvider extends
     }
 
     @Override
-    protected RolesClaimsExtractor buildClaimsExtractor(RolesResource resource) {
-        return new RolesClaimsExtractor(resource);
+    protected RolesClaimsSetExtractor buildClaimsExtractor(RolesResource resource) {
+        return new RolesClaimsSetExtractor(resource);
     }
 
     public static class RolesResourceProviderConfig

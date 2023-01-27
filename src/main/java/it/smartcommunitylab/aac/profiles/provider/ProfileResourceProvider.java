@@ -1,15 +1,16 @@
-package it.smartcommunitylab.aac.profiles.scope;
+package it.smartcommunitylab.aac.profiles.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.claims.model.SerializableClaimDefinition;
-import it.smartcommunitylab.aac.profiles.provider.ProfileClaimsExtractor;
+import it.smartcommunitylab.aac.profiles.scope.AbstractProfileScope;
+import it.smartcommunitylab.aac.profiles.scope.ProfileResource;
 import it.smartcommunitylab.aac.scope.base.AbstractApiResourceProviderConfig;
 import it.smartcommunitylab.aac.scope.base.AbstractInternalResourceProvider;
 import it.smartcommunitylab.aac.scope.provider.InternalApiResourceProviderConfigMap;
 import it.smartcommunitylab.aac.scope.provider.SubjectTypeInternalScopeProvider;
 
 public class ProfileResourceProvider extends
-        AbstractInternalResourceProvider<ProfileResource, AbstractProfileScope, SerializableClaimDefinition, it.smartcommunitylab.aac.profiles.scope.ProfileResourceProvider.ProfileResourceProviderConfig> {
+        AbstractInternalResourceProvider<ProfileResource, AbstractProfileScope, SerializableClaimDefinition, it.smartcommunitylab.aac.profiles.provider.ProfileResourceProvider.ProfileResourceProviderConfig> {
 
     public ProfileResourceProvider(ProfileResourceProviderConfig config) {
         super(config.getAuthority(), config.getProvider(), config.getRealm(), config);
@@ -21,8 +22,8 @@ public class ProfileResourceProvider extends
     }
 
     @Override
-    protected ProfileClaimsExtractor buildClaimsExtractor(ProfileResource resource) {
-        return new ProfileClaimsExtractor(resource);
+    protected ProfileClaimsSetExtractor buildClaimsExtractor(ProfileResource resource) {
+        return new ProfileClaimsSetExtractor(resource);
     }
 
     public static class ProfileResourceProviderConfig

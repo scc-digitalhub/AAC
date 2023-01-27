@@ -23,8 +23,8 @@ public class OpenIdUserInfoResourceProvider extends
     }
 
     @Override
-    protected OpenIdUserInfoClaimsExtractor buildClaimsExtractor(OpenIdUserInfoResource resource) {
-        return new OpenIdUserInfoClaimsExtractor(resource);
+    protected OpenIdUserInfoClaimsSetExtractor buildClaimsExtractor(OpenIdUserInfoResource resource) {
+        return new OpenIdUserInfoClaimsSetExtractor(resource);
     }
 
     public static class OpenIdUserInfoResourceProviderConfig

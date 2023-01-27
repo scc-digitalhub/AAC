@@ -21,6 +21,7 @@ import it.smartcommunitylab.aac.model.User;
  * but they need to respond to the defined scope they are invoked on.
  */
 
+@Deprecated
 public interface ScopeClaimsExtractor {
 
     public String getRealm();

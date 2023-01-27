@@ -22,8 +22,8 @@ public class GroupsResourceProvider extends
     }
 
     @Override
-    protected GroupsClaimsExtractor buildClaimsExtractor(GroupsResource resource) {
-        return new GroupsClaimsExtractor(resource);
+    protected GroupsClaimsSetExtractor buildClaimsExtractor(GroupsResource resource) {
+        return new GroupsClaimsSetExtractor(resource);
     }
 
     public static class GroupsResourceProviderConfig

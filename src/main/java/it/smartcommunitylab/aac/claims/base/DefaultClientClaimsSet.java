@@ -62,7 +62,7 @@ public class DefaultClientClaimsSet extends AbstractClaimsSet implements ClientR
         return c;
     }
 
-    public void setClaims(Collection<AbstractClaim> claims) {
+    public void setClaims(Collection<? extends AbstractClaim> claims) {
         if (claims != null) {
             this.claims = claims.stream()
                     .map(c -> {

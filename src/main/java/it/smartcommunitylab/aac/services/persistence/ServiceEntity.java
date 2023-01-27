@@ -66,6 +66,9 @@ public class ServiceEntity {
     @Convert(converter = HashMapBase64Converter.class)
     private Map<String, String> claimMappings;
 
+    @Column(name = "claim_webhook")
+    private String claimWebhook;
+
     public String getServiceId() {
         return serviceId;
     }
@@ -128,6 +131,14 @@ public class ServiceEntity {
 
     public void setClaimMappings(Map<String, String> claimMappings) {
         this.claimMappings = claimMappings;
+    }
+
+    public String getClaimWebhook() {
+        return claimWebhook;
+    }
+
+    public void setClaimWebhook(String claimWebhook) {
+        this.claimWebhook = claimWebhook;
     }
 
 }

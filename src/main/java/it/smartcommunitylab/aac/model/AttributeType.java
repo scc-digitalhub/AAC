@@ -12,6 +12,7 @@ public enum AttributeType {
     DATE("date"),
     DATETIME("datetime"),
     TIME("time"),
+    INSTANT("instant"),
     OBJECT("object");
 
     private final String value;

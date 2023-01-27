@@ -30,7 +30,10 @@ public interface Claim {
 //    // a flag signaling if this claim is single or multiple use
 //    public boolean isMultiple();
 
-    // the value in a serializable format, ready for store or export
+    // the value in a serializable format, ready for store
     public @Nullable Serializable getValue();
+
+    // the value in an export-ready format, compatible with parsers
+    public @Nullable Serializable exportValue();
 
 }

@@ -8,7 +8,7 @@ import it.smartcommunitylab.aac.scope.approver.WhitelistScopeApprover;
 import it.smartcommunitylab.aac.scope.model.ApiScopeApproval;
 import it.smartcommunitylab.aac.scope.model.ApiScopeProvider;
 
-public class AbstractScopeProvider<S extends AbstractApiScope> extends AbstractProvider<S>
+public abstract class AbstractScopeProvider<S extends AbstractApiScope> extends AbstractProvider<S>
         implements ApiScopeProvider<S> {
 
     protected final S scope;

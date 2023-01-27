@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.core.ClientDetails;
@@ -17,6 +19,7 @@ import it.smartcommunitylab.aac.scope.model.ApprovalStatus;
 import it.smartcommunitylab.aac.scope.model.LimitedApiScopeApproval;
 
 public class AuthorityScopeApprover<S extends Scope> extends AbstractScopeApprover<S, LimitedApiScopeApproval> {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     public static final int DEFAULT_DURATION_S = 3600; // 1h
 
@@ -58,6 +61,9 @@ public class AuthorityScopeApprover<S extends Scope> extends AbstractScopeApprov
 
     @Override
     public LimitedApiScopeApproval approve(User user, ClientDetails client, Collection<String> scopes) {
+        logger.debug("approve user {} for client {} with scopes {}", String.valueOf(user.getSubjectId()),
+                String.valueOf(client.getClientId()), String.valueOf(scopes));
+
         if (scopes == null || scopes.isEmpty() || !scopes.contains(scope.getScope())) {
             return null;
         }
@@ -84,6 +90,9 @@ public class AuthorityScopeApprover<S extends Scope> extends AbstractScopeApprov
 
         ApprovalStatus approvalStatus = approved ? ApprovalStatus.APPROVED : ApprovalStatus.DENIED;
 
+        logger.debug("approve user {} for client {} with scopes {}: {}", user.getSubjectId(),
+                client.getClientId(), String.valueOf(scopes), approvalStatus);
+
         return new LimitedApiScopeApproval(scope.getResourceId(), scope.getScope(),
                 user.getSubjectId(), client.getClientId(),
                 duration, approvalStatus);
@@ -91,6 +100,8 @@ public class AuthorityScopeApprover<S extends Scope> extends AbstractScopeApprov
 
     @Override
     public LimitedApiScopeApproval approve(ClientDetails client, Collection<String> scopes) {
+        logger.debug("approve client {} with scopes {}", String.valueOf(client.getClientId()), String.valueOf(scopes));
+
         if (scopes == null || scopes.isEmpty() || !scopes.contains(scope.getScope())) {
             return null;
         }
@@ -116,6 +127,10 @@ public class AuthorityScopeApprover<S extends Scope> extends AbstractScopeApprov
         }
 
         ApprovalStatus approvalStatus = approved ? ApprovalStatus.APPROVED : ApprovalStatus.DENIED;
+
+        logger.debug("approve client {} with scopes {}: {}", client.getClientId(), String.valueOf(scopes),
+                approvalStatus);
+
         return new LimitedApiScopeApproval(scope.getResourceId(), scope.getScope(),
                 client.getClientId(), client.getClientId(),
                 duration, approvalStatus);

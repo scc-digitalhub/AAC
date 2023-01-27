@@ -1,5 +1,7 @@
 package it.smartcommunitylab.aac.claims.base;
 
+import java.io.Serializable;
+
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
@@ -75,4 +77,8 @@ public abstract class AbstractClaim implements Claim {
 //        return isMultiple != null ? isMultiple.booleanValue() : false;
 //    }
 
+    public Serializable exportValue() {
+        // by default use current value as-is
+        return getValue();
+    }
 }

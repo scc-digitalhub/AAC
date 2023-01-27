@@ -11,8 +11,8 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.profiles.provider.ProfileResourceProvider.ProfileResourceProviderConfig;
 import it.smartcommunitylab.aac.profiles.scope.ProfileResource;
-import it.smartcommunitylab.aac.profiles.scope.ProfileResourceProvider.ProfileResourceProviderConfig;
 
 public class ProfileResourceConfigRepository
         implements ProviderConfigRepository<ProfileResourceProviderConfig> {

@@ -5,15 +5,17 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.scope.ScopeApprover;
+import it.smartcommunitylab.aac.scope.base.AbstractApiScope;
 import it.smartcommunitylab.aac.scope.base.AbstractScopeApproval;
 import it.smartcommunitylab.aac.scope.base.AbstractScopeApprover;
-import it.smartcommunitylab.aac.scope.model.Scope;
 import it.smartcommunitylab.aac.scope.model.ApprovalStatus;
 import it.smartcommunitylab.aac.scope.model.LimitedApiScopeApproval;
-import it.smartcommunitylab.aac.scope.model.ApiScopeApproval;
 
 /*
  * A scope approver which requires consensus between all approvers.
@@ -21,7 +23,9 @@ import it.smartcommunitylab.aac.scope.model.ApiScopeApproval;
  * Do note that a single MISS or DENY will suffice for negative responses.
  */
 
-public class CombinedScopeApprover<S extends Scope> extends AbstractScopeApprover<S, ApiScopeApproval> {
+public class CombinedScopeApprover<S extends AbstractApiScope> extends AbstractScopeApprover<S, AbstractScopeApproval> {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+
     public static final int DEFAULT_DURATION_S = 3600; // 1h
     public static final int MIN_DURATION_S = 30; // 30s
 
@@ -43,7 +47,7 @@ public class CombinedScopeApprover<S extends Scope> extends AbstractScopeApprove
     }
 
     @Override
-    public ApiScopeApproval approve(User user, ClientDetails client, Collection<String> scopes) {
+    public AbstractScopeApproval approve(User user, ClientDetails client, Collection<String> scopes) {
         if (scopes == null || scopes.isEmpty() || !scopes.contains(scope.getScope())) {
             return null;
         }
@@ -51,8 +55,8 @@ public class CombinedScopeApprover<S extends Scope> extends AbstractScopeApprove
         int duration = DEFAULT_DURATION_S;
 
         // get consensus for approve, or a single miss/deny
-        for (ScopeApprover<? extends ApiScopeApproval> approver : approvers) {
-            ApiScopeApproval appr = approver.approve(user, client, scopes);
+        for (ScopeApprover<? extends AbstractScopeApproval> approver : approvers) {
+            AbstractScopeApproval appr = approver.approve(user, client, scopes);
 
             if (appr == null) {
                 // lack of an approval is final
@@ -73,6 +77,9 @@ public class CombinedScopeApprover<S extends Scope> extends AbstractScopeApprove
             }
         }
 
+        logger.debug("approve user {} for client {} with scopes {}: {}", user.getSubjectId(),
+                client.getClientId(), String.valueOf(scopes), ApprovalStatus.APPROVED);
+
         // consensus from all approvers, build approval
         return new LimitedApiScopeApproval(scope.getResourceId(), scope.getScope(),
                 user.getSubjectId(), client.getClientId(),
@@ -80,7 +87,7 @@ public class CombinedScopeApprover<S extends Scope> extends AbstractScopeApprove
     }
 
     @Override
-    public ApiScopeApproval approve(ClientDetails client, Collection<String> scopes) {
+    public AbstractScopeApproval approve(ClientDetails client, Collection<String> scopes) {
         if (scopes == null || scopes.isEmpty() || !scopes.contains(scope.getScope())) {
             return null;
         }
@@ -88,8 +95,8 @@ public class CombinedScopeApprover<S extends Scope> extends AbstractScopeApprove
         int duration = DEFAULT_DURATION_S;
 
         // get consensus for approve, or a single miss/deny
-        for (ScopeApprover<? extends ApiScopeApproval> approver : approvers) {
-            ApiScopeApproval appr = approver.approve(client, scopes);
+        for (ScopeApprover<? extends AbstractScopeApproval> approver : approvers) {
+            AbstractScopeApproval appr = approver.approve(client, scopes);
 
             if (appr == null) {
                 // lack of an approval is final
@@ -109,6 +116,9 @@ public class CombinedScopeApprover<S extends Scope> extends AbstractScopeApprove
                 }
             }
         }
+
+        logger.debug("approve client {} with scopes {}: {}", client.getClientId(), String.valueOf(scopes),
+                ApprovalStatus.APPROVED);
 
         // consensus from all approvers, build approval
         return new LimitedApiScopeApproval(scope.getResourceId(), scope.getScope(),

@@ -4,8 +4,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import it.smartcommunitylab.aac.claims.base.AbstractClaimDefinition;
-import it.smartcommunitylab.aac.claims.base.AbstractClaimsExtractor;
-import it.smartcommunitylab.aac.claims.extractors.NullClaimsExtractor;
+import it.smartcommunitylab.aac.claims.base.AbstractClaimsSetExtractor;
+import it.smartcommunitylab.aac.claims.extractors.NullClaimsSetExtractor;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.scope.model.ApiScopeProvider;
 import it.smartcommunitylab.aac.scope.provider.InternalApiResourceProviderConfigMap;
@@ -14,7 +14,7 @@ public abstract class AbstractInternalResourceProvider<R extends AbstractInterna
         extends AbstractResourceProvider<R, S, InternalApiResourceProviderConfigMap, C> {
 
     protected Map<String, ApiScopeProvider<S>> providers;
-    protected AbstractClaimsExtractor extractor;
+    protected AbstractClaimsSetExtractor extractor;
 
     protected AbstractInternalResourceProvider(String authority, String provider, String realm, C providerConfig) {
         super(authority, provider, realm, providerConfig);
@@ -30,9 +30,9 @@ public abstract class AbstractInternalResourceProvider<R extends AbstractInterna
 
     protected abstract ApiScopeProvider<S> buildScopeProvider(S scope);
 
-    protected AbstractClaimsExtractor buildClaimsExtractor(R resource) {
+    protected AbstractClaimsSetExtractor buildClaimsExtractor(R resource) {
         // use a null extractor by default
-        return new NullClaimsExtractor<R>(resource.getAuthority(), resource.getProvider(), resource.getRealm(),
+        return new NullClaimsSetExtractor(resource.getAuthority(), resource.getProvider(), resource.getRealm(),
                 resource.getResource());
     }
 
@@ -47,7 +47,7 @@ public abstract class AbstractInternalResourceProvider<R extends AbstractInterna
     }
 
     @Override
-    public AbstractClaimsExtractor getClaimsExtractor() {
+    public AbstractClaimsSetExtractor getClaimsExtractor() {
         return extractor;
     }
 
@@ -59,11 +59,11 @@ public abstract class AbstractInternalResourceProvider<R extends AbstractInterna
         this.providers = providers;
     }
 
-    protected AbstractClaimsExtractor getExtractor() {
+    protected AbstractClaimsSetExtractor getExtractor() {
         return extractor;
     }
 
-    protected void setExtractor(AbstractClaimsExtractor extractor) {
+    protected void setExtractor(AbstractClaimsSetExtractor extractor) {
         this.extractor = extractor;
     }
 

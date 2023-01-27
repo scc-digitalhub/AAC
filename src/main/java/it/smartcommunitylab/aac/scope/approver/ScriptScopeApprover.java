@@ -7,6 +7,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -23,6 +25,7 @@ import it.smartcommunitylab.aac.scope.model.ApprovalStatus;
 import it.smartcommunitylab.aac.scope.model.LimitedApiScopeApproval;
 
 public class ScriptScopeApprover<S extends Scope> extends AbstractScopeApprover<S, LimitedApiScopeApproval> {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     public static final String APPROVAL_FUNCTION = "approver";
     public static final int DEFAULT_DURATION_S = 3600; // 1h
@@ -62,14 +65,19 @@ public class ScriptScopeApprover<S extends Scope> extends AbstractScopeApprover<
 
     @Override
     public LimitedApiScopeApproval approve(User user, ClientDetails client, Collection<String> scopes) {
+        logger.debug("approve user {} for client {} with scopes {}", String.valueOf(user.getSubjectId()),
+                String.valueOf(client.getClientId()), String.valueOf(scopes));
+
         if (scopes == null || scopes.isEmpty() || !scopes.contains(scope.getScope())) {
             return null;
         }
 
         if (executionService == null) {
+            logger.trace("execution service is null");
             return null;
         }
         if (!StringUtils.hasText(functionCode)) {
+            logger.trace("function code is null");
             return null;
         }
 
@@ -104,6 +112,9 @@ public class ScriptScopeApprover<S extends Scope> extends AbstractScopeApprover<
 
             ApprovalStatus approvalStatus = result.approved ? ApprovalStatus.APPROVED : ApprovalStatus.DENIED;
 
+            logger.debug("approve user {} for client {} with scopes {}: {}", user.getSubjectId(),
+                    client.getClientId(), String.valueOf(scopes), approvalStatus);
+
             return new LimitedApiScopeApproval(scope.getResourceId(), scope.getScope(),
                     user.getSubjectId(), client.getClientId(),
                     expiresIn, approvalStatus);
@@ -116,14 +127,18 @@ public class ScriptScopeApprover<S extends Scope> extends AbstractScopeApprover<
 
     @Override
     public LimitedApiScopeApproval approve(ClientDetails client, Collection<String> scopes) {
+        logger.debug("approve client {} with scopes {}", String.valueOf(client.getClientId()), String.valueOf(scopes));
+
         if (scopes == null || scopes.isEmpty() || !scopes.contains(scope.getScope())) {
             return null;
         }
 
         if (executionService == null) {
+            logger.trace("execution service is null");
             return null;
         }
         if (!StringUtils.hasText(functionCode)) {
+            logger.trace("function code is null");
             return null;
         }
 
@@ -152,6 +167,9 @@ public class ScriptScopeApprover<S extends Scope> extends AbstractScopeApprover<
             }
 
             ApprovalStatus approvalStatus = result.approved ? ApprovalStatus.APPROVED : ApprovalStatus.DENIED;
+
+            logger.debug("approve client {} with scopes {}: {}", client.getClientId(), String.valueOf(scopes),
+                    approvalStatus);
 
             return new LimitedApiScopeApproval(scope.getResourceId(), scope.getScope(),
                     client.getClientId(), client.getClientId(),

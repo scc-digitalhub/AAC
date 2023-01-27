@@ -4,7 +4,7 @@ import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.claims.base.AbstractClaimsSet;
-import it.smartcommunitylab.aac.claims.model.ClaimsExtractor;
+import it.smartcommunitylab.aac.claims.model.ClaimsSetExtractor;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.core.base.AbstractConfigMap;
 import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
@@ -42,6 +42,6 @@ public abstract class AbstractResourceProvider<R extends AbstractApiResource<S>,
             throws NoSuchScopeException;
 
     @Override
-    public abstract ClaimsExtractor<? extends AbstractClaimsSet> getClaimsExtractor();
+    public abstract ClaimsSetExtractor<? extends AbstractClaimsSet> getClaimsExtractor();
 
 }

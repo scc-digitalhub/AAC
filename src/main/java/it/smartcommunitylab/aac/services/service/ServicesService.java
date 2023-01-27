@@ -1,5 +1,9 @@
 package it.smartcommunitylab.aac.services.service;
 
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -250,6 +254,11 @@ public class ServicesService {
             throw new InvalidDataException("namespace");
         }
 
+        // resource indicator must be an uri
+        if (!isValidUri(resource)) {
+            throw new InvalidDataException("resource");
+        }
+
         String title = reg.getTitle();
         if (StringUtils.hasText(title)) {
             title = Jsoup.clean(title, Safelist.none());
@@ -267,6 +276,15 @@ public class ServicesService {
         Map<String, String> claimMappings = new HashMap<>();
         claimMappings.put(SubjectType.USER.getValue(), userClaimsExtractor);
         claimMappings.put(SubjectType.CLIENT.getValue(), clientClaimsExtractor);
+
+        String webhookExtractor = reg.getWebhookExtractor();
+        if (StringUtils.hasText(webhookExtractor)) {
+            if (!isValidUrl(webhookExtractor)) {
+                throw new InvalidDataException("webhook");
+            }
+        } else {
+            webhookExtractor = null;
+        }
 
         // check for collisions
         ServiceEntity se = serviceRepository.findOne(serviceId);
@@ -300,6 +318,7 @@ public class ServicesService {
         se.setDescription(description);
 
         se.setClaimMappings(claimMappings);
+        se.setClaimWebhook(webhookExtractor);
 
         logger.debug("save service {} for realm {}", serviceId, realm);
         if (logger.isTraceEnabled()) {
@@ -351,6 +370,11 @@ public class ServicesService {
             throw new InvalidDataException("namespace");
         }
 
+        // resource indicator must be an uri
+        if (!isValidUri(resource)) {
+            throw new InvalidDataException("resource");
+        }
+
         String title = reg.getTitle();
         if (StringUtils.hasText(title)) {
             title = Jsoup.clean(title, Safelist.none());
@@ -369,6 +393,15 @@ public class ServicesService {
         claimMappings.put(SubjectType.USER.getValue(), userClaimsExtractor);
         claimMappings.put(SubjectType.CLIENT.getValue(), clientClaimsExtractor);
 
+        String webhookExtractor = reg.getWebhookExtractor();
+        if (StringUtils.hasText(webhookExtractor)) {
+            if (!isValidUrl(webhookExtractor)) {
+                throw new InvalidDataException("webhook");
+            }
+        } else {
+            webhookExtractor = null;
+        }
+
         // check for collisions if required
         if (!se.getNamespace().equals(namespace)) {
             ServiceEntity s = serviceRepository.findByRealmAndNamespace(realm, namespace);
@@ -386,6 +419,7 @@ public class ServicesService {
         se.setName(name);
         se.setDescription(description);
         se.setClaimMappings(claimMappings);
+        se.setClaimWebhook(webhookExtractor);
 
         logger.debug("save service {} for realm {}", serviceId, realm);
         if (logger.isTraceEnabled()) {
@@ -425,7 +459,7 @@ public class ServicesService {
     }
 
     private ApiService toService(ServiceEntity se) {
-        ApiService service = new ApiService();
+        ApiService service = new ApiService(se.getServiceId());
         service.setServiceId(se.getServiceId());
         service.setRealm(se.getRealm());
 
@@ -448,6 +482,8 @@ public class ServicesService {
 
         service.setUserClaimsExtractor(userClaimsExtractor);
         service.setClientClaimsExtractor(clientClaimsExtractor);
+
+        service.setWebhookExtractor(se.getClaimWebhook());
 
         return service;
     }
@@ -930,6 +966,24 @@ public class ServicesService {
      */
     private String generateId() {
         return UUID.randomUUID().toString();
+    }
+
+    boolean isValidUrl(String url) {
+        try {
+            URL u = new URL(url);
+            return u != null;
+        } catch (MalformedURLException e) {
+            return false;
+        }
+    }
+
+    boolean isValidUri(String uri) {
+        try {
+            URI u = new URI(uri);
+            return u != null;
+        } catch (URISyntaxException e) {
+            return false;
+        }
     }
 
 //    /*
