@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.console;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -16,6 +17,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -66,10 +69,35 @@ public class UserConsoleController {
     @Autowired
     private ScopeManager scopeManager;
 
+
+    @GetMapping("/authorities")
+    public ResponseEntity<List<? extends GrantedAuthority>> getAuthorities(Authentication auth){
+        return  ResponseEntity.ok(new ArrayList<>(auth.getAuthorities()));
+    }
+
+
+    @GetMapping("/status")
+    public ResponseEntity<Void> checkStatus(){
+        return ResponseEntity.ok().build();
+    } 
+
+
+
     /*
      * User
      */
+
+
+
     @GetMapping("/details")
+    public ResponseEntity<Page<UserDetails>> myUserList(Pageable pageable) throws InvalidDefinitionException {
+        UserDetails user = currentUser();
+        List<UserDetails> result = Collections.singletonList(user);
+        Page<UserDetails> page = new PageImpl<>(result, pageable, result.size());
+        return ResponseEntity.ok(page);
+    }
+
+    @GetMapping("/details/{userId}")
     public ResponseEntity<UserDetails> myUser() throws InvalidDefinitionException {
         UserDetails user = currentUser();
 
@@ -78,7 +106,7 @@ public class UserConsoleController {
 
     }
 
-    @DeleteMapping("/details")
+    @DeleteMapping("/details/{userId}")
     public ResponseEntity<Void> deleteUser() {
         UserDetails user = currentUser();
 
