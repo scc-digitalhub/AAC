@@ -234,6 +234,43 @@ public class ApiServiceScope extends AbstractApiScope {
         return policy;
     }
 
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((scope == null) ? 0 : scope.hashCode());
+        result = prime * result + ((scopeId == null) ? 0 : scopeId.hashCode());
+        result = prime * result + ((serviceId == null) ? 0 : serviceId.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        ApiServiceScope other = (ApiServiceScope) obj;
+        if (scope == null) {
+            if (other.scope != null)
+                return false;
+        } else if (!scope.equals(other.scope))
+            return false;
+        if (scopeId == null) {
+            if (other.scopeId != null)
+                return false;
+        } else if (!scopeId.equals(other.scopeId))
+            return false;
+        if (serviceId == null) {
+            if (other.serviceId != null)
+                return false;
+        } else if (!serviceId.equals(other.serviceId))
+            return false;
+        return true;
+    }
+
 //    public static ServiceScope from(String serviceId, ServiceScopeEntity entity) {
 //        ServiceScope scope = new ServiceScope();
 //        scope.scope = entity.getScope();

@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.api.scopes.ApiServicesScope;
-import it.smartcommunitylab.aac.services.BaseServicesController;
+import it.smartcommunitylab.aac.services.controller.BaseServicesController;
 
 @RestController
 @ApiSecurityTag(ApiServicesScope.SCOPE)

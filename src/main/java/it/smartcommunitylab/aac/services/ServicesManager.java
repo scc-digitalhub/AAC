@@ -1,18 +1,10 @@
 package it.smartcommunitylab.aac.services;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.jsoup.Jsoup;
-import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -21,41 +13,26 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.security.oauth2.provider.approval.Approval.ApprovalStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.claims.ExtractorsRegistry;
-import it.smartcommunitylab.aac.claims.ScriptExecutionService;
-import it.smartcommunitylab.aac.common.DuplicatedDataException;
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchClaimException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchServiceException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
-import it.smartcommunitylab.aac.model.AttributeType;
 import it.smartcommunitylab.aac.model.Realm;
-import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.oauth.store.SearchableApprovalStore;
-import it.smartcommunitylab.aac.scope.ScopeApprover;
-import it.smartcommunitylab.aac.scope.ScopeProvider;
-import it.smartcommunitylab.aac.scope.ScopeRegistry;
-import it.smartcommunitylab.aac.scope.approver.AuthorityScopeApprover;
-import it.smartcommunitylab.aac.scope.approver.CombinedScopeApprover;
-import it.smartcommunitylab.aac.scope.approver.DelegateScopeApprover;
-import it.smartcommunitylab.aac.scope.approver.RoleScopeApprover;
-import it.smartcommunitylab.aac.scope.approver.ScriptScopeApprover;
-import it.smartcommunitylab.aac.scope.approver.StoreScopeApprover;
-import it.smartcommunitylab.aac.scope.approver.WhitelistScopeApprover;
-import it.smartcommunitylab.aac.scope.model.Scope;
-import it.smartcommunitylab.aac.services.claims.ServiceResourceClaimsExtractorProvider;
 import it.smartcommunitylab.aac.services.model.ApiService;
 import it.smartcommunitylab.aac.services.model.ApiServiceClaimDefinition;
 import it.smartcommunitylab.aac.services.model.ApiServiceScope;
-import it.smartcommunitylab.aac.services.provider.ServiceScopeProvider;
+import it.smartcommunitylab.aac.services.provider.ApiServiceResourceProviderConfig;
 import it.smartcommunitylab.aac.services.service.ServicesService;
 
 /*
@@ -71,7 +48,7 @@ public class ServicesManager implements InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
-    private ServicesService serviceService;
+    private ServicesService servicesService;
 
     @Autowired
     private RealmService realmService;
@@ -80,53 +57,47 @@ public class ServicesManager implements InitializingBean {
     private SubjectService subjectService;
 
     @Autowired
-    private ScopeRegistry scopeRegistry;
+    private ApiServiceResourceAuthority serviceAuthority;
 
     @Autowired
-    private ExtractorsRegistry extractorsRegistry;
+    private ProviderConfigRepository<ApiServiceResourceProviderConfig> registrationRepository;
 
     @Autowired
     private SearchableApprovalStore approvalStore;
-
-    @Autowired
-    private ScriptExecutionService executionService;
-
-    private ServiceResourceClaimsExtractorProvider resourceClaimsExtractorProvider;
 
     public ServicesManager() {
     }
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        // build and register the claims extractor
-        resourceClaimsExtractorProvider = new ServiceResourceClaimsExtractorProvider(serviceService);
-        resourceClaimsExtractorProvider.setExecutionService(executionService);
+        Assert.notNull(servicesService, "services service is required");
+        Assert.notNull(serviceAuthority, "services authority is required");
+        Assert.notNull(registrationRepository, "registration repository is required");
 
-        extractorsRegistry.registerExtractorProvider(resourceClaimsExtractorProvider);
+        init();
+    }
 
-        // export all scope providers to registry
-        List<ApiService> services = serviceService.listServices();
+    public void init() {
+        // export all resource providers to repository
+        // TODO move to bootstrap
+        List<ApiService> services = servicesService.listServices();
         for (ApiService service : services) {
             String serviceId = service.getServiceId();
-            List<ApiServiceScope> scopes = serviceService.listScopes(serviceId);
-            service.setScopes(scopes);
 
-            // build provider
-            ServiceScopeProvider sp = new ServiceScopeProvider(service);
-
-            // add approvers where needed
-            for (ApiServiceScope sc : scopes) {
-                ScopeApprover approver = buildScopeApprover(service.getRealm(), service.getNamespace(), sc);
-                if (approver != null) {
-                    sp.addApprover(sc.getScope(), approver);
-                }
+            // we load from db so version is zero, let's check
+            // note: we load only missing configs to avoid a cascade effect on
+            // multi-instance startup
+            if (registrationRepository.findByProviderId(serviceId) != null) {
+                // skip loading
+                continue;
             }
 
+            // build config
+            ApiServiceResourceProviderConfig providerConfig = new ApiServiceResourceProviderConfig(service);
+
             // register
-            scopeRegistry.registerScopeProvider(sp);
-
+            registrationRepository.addRegistration(providerConfig);
         }
-
     }
 
     /*
@@ -134,15 +105,22 @@ public class ServicesManager implements InitializingBean {
      * 
      */
     public ApiService findService(String realm, String serviceId) {
+        logger.debug("find service {} for realm {}", StringUtils.trimAllWhitespace(serviceId),
+                StringUtils.trimAllWhitespace(realm));
 
-        ApiService service = serviceService.findService(serviceId);
+        if (SystemKeys.REALM_GLOBAL.equals(realm) || SystemKeys.REALM_SYSTEM.equals(realm)) {
+            // not supported
+            return null;
+        }
+
+        ApiService service = servicesService.findService(serviceId);
 
         if (service == null) {
             return null;
         }
 
         if (!realm.equals(service.getRealm())) {
-            throw new IllegalArgumentException("service does not match realm");
+            throw new IllegalArgumentException("realm-mismatch");
         }
 
         // note: find returns a bare model
@@ -150,289 +128,129 @@ public class ServicesManager implements InitializingBean {
     }
 
     public ApiService getService(String realm, String serviceId) throws NoSuchServiceException, NoSuchRealmException {
+        logger.debug("get service {} for realm {}", StringUtils.trimAllWhitespace(serviceId),
+                StringUtils.trimAllWhitespace(realm));
+
+        if (SystemKeys.REALM_GLOBAL.equals(realm) || SystemKeys.REALM_SYSTEM.equals(realm)) {
+            // not supported
+            return null;
+        }
+
         Realm re = realmService.getRealm(realm);
 
-        ApiService service = serviceService.getService(serviceId);
+        ApiService service = servicesService.getService(serviceId);
         if (!re.getSlug().equals(service.getRealm())) {
-            throw new IllegalArgumentException("service does not match realm");
+            throw new IllegalArgumentException("realm-mismatch");
         }
 
         return service;
     }
 
-//    public Service getServiceByNamespace(String realm, String namespace) throws NoSuchServiceException {
-//        return serviceService.getServiceByNamespace(namespace);
-//    }
-
     public List<ApiService> listServices(String realm) throws NoSuchRealmException {
-        Realm re = realmService.getRealm(realm);
+        logger.debug("list services for realm {}", StringUtils.trimAllWhitespace(realm));
 
-        return serviceService.listServices(re.getSlug());
+        if (SystemKeys.REALM_GLOBAL.equals(realm) || SystemKeys.REALM_SYSTEM.equals(realm)) {
+            // not supported
+            return Collections.emptyList();
+        }
+
+        Realm re = realmService.getRealm(realm);
+        return servicesService.listServices(re.getSlug());
     }
 
-    public ApiService addService(String realm, ApiService service) throws NoSuchRealmException, RegistrationException {
+    public ApiService addService(String realm, ApiService reg) throws NoSuchRealmException, RegistrationException {
+        logger.debug("add service to realm {}", StringUtils.trimAllWhitespace(realm));
+        if (logger.isTraceEnabled()) {
+            logger.trace("service bean: {}", StringUtils.trimAllWhitespace(reg.toString()));
+        }
+
         // fetch realm
         Realm re = realmService.getRealm(realm);
-        String serviceId = service.getServiceId();
-        String namespace = Jsoup.clean(service.getNamespace().toLowerCase(), Safelist.none());
-        String name = service.getName();
-        String description = service.getDescription();
 
-        if (StringUtils.hasText(name)) {
-            name = Jsoup.clean(name, Safelist.none());
-        }
-        if (StringUtils.hasText(description)) {
-            description = Jsoup.clean(description, Safelist.none());
-        }
-        if (!StringUtils.hasText(name)) {
-            name = namespace;
+        // fetch and validate id if provided
+        String serviceId = reg.getServiceId();
+
+        if (serviceId != null && !serviceId.matches(SystemKeys.SLUG_PATTERN)) {
+            throw new RegistrationException("invalid service id");
         }
 
-        // add
-        ApiService s = serviceService.addService(re.getSlug(), serviceId, namespace, name, description);
-        serviceId = s.getServiceId();
+        // add, will process related
+        ApiService service = servicesService.addService(re.getSlug(), serviceId, reg);
 
-        try {
-            // optional
-            Map<String, String> claimMapping = service.getClaimMapping();
-            if (claimMapping != null && !claimMapping.isEmpty()) {
+        // always register the resource
+        // build provider config
+        ApiServiceResourceProviderConfig providerConfig = new ApiServiceResourceProviderConfig(service);
 
-                s = serviceService.updateService(serviceId, name, description, claimMapping);
+        // register and force reload
+        serviceAuthority.registerProvider(providerConfig);
 
-            }
-
-            // related
-            Collection<ApiServiceScope> scopes = service.getScopes();
-            Set<ApiServiceScope> serviceScopes = new HashSet<>();
-
-            if (scopes != null && !scopes.isEmpty()) {
-                for (ApiServiceScope sc : scopes) {
-                    sc.setServiceId(serviceId);
-                    ApiServiceScope ss = addServiceScope(realm, serviceId, sc);
-                    serviceScopes.add(ss);
-                }
-            }
-            s.setScopes(serviceScopes);
-
-            Collection<ApiServiceClaimDefinition> claims = service.getClaims();
-            Set<ApiServiceClaimDefinition> serviceClaims = new HashSet<>();
-            if (claims != null && !claims.isEmpty()) {
-                for (ApiServiceClaimDefinition sc : claims) {
-                    sc.setServiceId(serviceId);
-                    ApiServiceClaimDefinition ss = addServiceClaim(realm, serviceId, sc);
-                    serviceClaims.add(ss);
-                }
-            }
-            s.setClaims(serviceClaims);
-
-            // build provider
-            if (!serviceScopes.isEmpty()) {
-                ServiceScopeProvider sp = new ServiceScopeProvider(s);
-
-                // add approvers where needed
-                for (ApiServiceScope sc : serviceScopes) {
-                    ScopeApprover approver = buildScopeApprover(s.getRealm(), s.getNamespace(), sc);
-                    if (approver != null) {
-                        sp.addApprover(sc.getScope(), approver);
-                    }
-                }
-
-                // register
-                scopeRegistry.registerScopeProvider(sp);
-            }
-
-        } catch (NoSuchServiceException e) {
-            // something broken
-            throw new SystemException();
-        }
-
-        return s;
+        return service;
     }
 
-    public ApiService updateService(String realm, String serviceId, ApiService service)
+    public ApiService updateService(String realm, String serviceId, ApiService reg)
             throws NoSuchServiceException, NoSuchRealmException, RegistrationException {
+        logger.debug("update service {} for realm {}", StringUtils.trimAllWhitespace(serviceId),
+                StringUtils.trimAllWhitespace(realm));
+        if (logger.isTraceEnabled()) {
+            logger.trace("service bean: {}", StringUtils.trimAllWhitespace(reg.toString()));
+        }
+
         // fetch realm
         Realm re = realmService.getRealm(realm);
 
-        // load full
-        ApiService ss = serviceService.getService(serviceId);
-
-        if (!re.getSlug().equals(ss.getRealm())) {
-            throw new IllegalArgumentException("service does not match realm");
+        // load bare
+        ApiService service = servicesService.findService(serviceId);
+        if (service == null) {
+            throw new NoSuchServiceException();
         }
 
-        if (StringUtils.hasText(service.getServiceId()) && !serviceId.equals(service.getServiceId())) {
-            throw new IllegalArgumentException("serviceId does not match service");
+        if (!re.getSlug().equals(service.getRealm())) {
+            throw new IllegalArgumentException("realm-mismatch");
         }
 
-        // explode
-        String namespace = service.getNamespace().toLowerCase();
-        String name = service.getName();
-        String description = service.getDescription();
+        // update service, will process related
+        service = servicesService.updateService(serviceId, reg);
 
-        if (StringUtils.hasText(name)) {
-            name = Jsoup.clean(name, Safelist.none());
-        }
-        if (StringUtils.hasText(description)) {
-            description = Jsoup.clean(description, Safelist.none());
-        }
-        if (!StringUtils.hasText(name)) {
-            name = namespace;
-        }
-        Map<String, String> claimMapping = service.getClaimMapping();
+        // refresh service
+        refreshService(serviceId);
 
-        // update
-        ApiService result = serviceService.updateService(serviceId, name, description, claimMapping);
-        // inflate with old data
-        result.setScopes(ss.getScopes());
-        result.setClaims(ss.getClaims());
-
-        try {
-
-            // unregister provider if present
-            ScopeProvider spr = scopeRegistry.findScopeProvider(namespace);
-            if (spr != null && spr instanceof ServiceScopeProvider) {
-                scopeRegistry.unregisterScopeProvider(spr);
-            }
-
-            // related
-            Collection<ApiServiceScope> scopes = service.getScopes();
-            Set<ApiServiceScope> serviceScopes = new HashSet<>();
-
-            if (scopes != null && !scopes.isEmpty()) {
-                for (ApiServiceScope sc : scopes) {
-                    sc.setServiceId(serviceId);
-
-                    // check if exists or new
-                    ApiServiceScope ssc = null;
-                    if (ss.getScopes().contains(sc)) {
-
-                        try {
-                            ssc = updateServiceScope(realm, serviceId, sc.getScope(), sc);
-                        } catch (NoSuchScopeException e) {
-                            // removed, use add
-                            ssc = addServiceScope(realm, serviceId, sc);
-                        }
-                    } else {
-                        ssc = addServiceScope(realm, serviceId, sc);
-                    }
-
-                    if (ssc != null) {
-                        serviceScopes.add(ssc);
-                    }
-                }
-            }
-
-            // reduce and get removed scopes
-            Set<ApiServiceScope> removedScopes = ss.getScopes().stream().filter(s -> !serviceScopes.contains(s))
-                    .collect(Collectors.toSet());
-            for (ApiServiceScope sc : removedScopes) {
-
-                try {
-                    deleteServiceScope(realm, serviceId, sc.getScope());
-                } catch (NoSuchScopeException e) {
-                    // already removed
-                }
-            }
-
-            result.setScopes(serviceScopes);
-
-            Collection<ApiServiceClaimDefinition> claims = service.getClaims();
-            Set<ApiServiceClaimDefinition> serviceClaims = new HashSet<>();
-            if (claims != null && !claims.isEmpty()) {
-                for (ApiServiceClaimDefinition sc : claims) {
-                    sc.setServiceId(serviceId);
-
-                    // check if exists or new
-                    ApiServiceClaimDefinition ssc = null;
-                    if (ss.getClaims().contains(sc)) {
-                        try {
-                            ssc = updateServiceClaim(realm, serviceId, sc.getKey(), sc);
-                        } catch (NoSuchClaimException e) {
-                            // removed, use add
-                            ssc = addServiceClaim(realm, serviceId, sc);
-                        }
-                    } else {
-                        ssc = addServiceClaim(realm, serviceId, sc);
-                    }
-
-                    if (ssc != null) {
-                        serviceClaims.add(ssc);
-                    }
-
-                }
-            }
-
-            // reduce and get removed claims
-            Set<ApiServiceClaimDefinition> removedClaims = ss.getClaims().stream().filter(s -> !serviceClaims.contains(s))
-                    .collect(Collectors.toSet());
-            for (ApiServiceClaimDefinition sc : removedClaims) {
-                try {
-                    deleteServiceClaim(realm, serviceId, sc.getKey());
-                } catch (NoSuchClaimException e) {
-                    // already removed
-                }
-            }
-
-            result.setClaims(serviceClaims);
-
-            // build provider
-            if (!serviceScopes.isEmpty()) {
-                ServiceScopeProvider sp = new ServiceScopeProvider(result);
-
-                // add approvers where needed
-                for (ApiServiceScope sc : serviceScopes) {
-                    ScopeApprover approver = buildScopeApprover(result.getRealm(), result.getNamespace(), sc);
-                    if (approver != null) {
-                        sp.addApprover(sc.getScope(), approver);
-                    }
-                }
-
-                // register
-                scopeRegistry.registerScopeProvider(sp);
-            }
-
-        } catch (NoSuchServiceException e) {
-            // something broken
-            throw new SystemException();
-        }
-
-        return result;
+        return service;
     }
 
     public void deleteService(String realm, String serviceId) throws NoSuchServiceException {
-        ApiService service = serviceService.getService(serviceId);
+        logger.debug("delete service {} for realm {}", StringUtils.trimAllWhitespace(serviceId),
+                StringUtils.trimAllWhitespace(realm));
+
+        ApiService service = servicesService.getService(serviceId);
         if (service != null) {
             if (!realm.equals(service.getRealm())) {
-                throw new IllegalArgumentException("service does not match realm");
+                throw new IllegalArgumentException("realm-mismatch");
             }
+
+            // always unregister
+            serviceAuthority.unregisterProvider(serviceId);
 
             // TODO remove tokens with this audience?
-
-            // unregister provider if present
-            String namespace = service.getNamespace();
-            ScopeProvider spr = scopeRegistry.findScopeProvider(namespace);
-            if (spr != null && spr instanceof ServiceScopeProvider) {
-                scopeRegistry.unregisterScopeProvider(spr);
-            }
-
-            // cleanup scopes
-            for (ApiServiceScope sc : service.getScopes()) {
-
-                // TODO invalidate tokens with this scope?
-
-                // remove approvals
-                try {
-                    Collection<Approval> approvals = approvalStore.findScopeApprovals(sc.getScope());
-                    approvalStore.revokeApprovals(approvals);
-                } catch (Exception e) {
-                }
-            }
-
-            // TODO unregister custom extractors when implemented
+            // TODO invalidate tokens with this scopes?
 
             // remove, will cleanup related entities
-            serviceService.deleteService(serviceId);
+            servicesService.deleteService(serviceId);
+        }
+    }
+
+    private void refreshService(String serviceId) throws NoSuchServiceException {
+        try {
+            // refresh service
+            ApiService service = servicesService.getService(serviceId);
+
+            // always register the resource
+            // build provider config
+            ApiServiceResourceProviderConfig providerConfig = new ApiServiceResourceProviderConfig(service);
+
+            // register and force reload
+            serviceAuthority.registerProvider(providerConfig);
+        } catch (RegistrationException e) {
+            logger.error("error refreshing service {}: {}", serviceId, e.getMessage());
         }
     }
 
@@ -441,400 +259,271 @@ public class ServicesManager implements InitializingBean {
      */
     public List<ApiServiceScope> listServiceScopes(String realm, String serviceId) throws NoSuchServiceException {
         // use finder to avoid loading all related
-        ApiService service = serviceService.findService(serviceId);
+        ApiService service = servicesService.findService(serviceId);
         if (service == null) {
             throw new NoSuchServiceException();
         }
 
         if (!realm.equals(service.getRealm())) {
-            throw new IllegalArgumentException("service does not match realm");
+            throw new IllegalArgumentException("realm-mismatch");
         }
 
-        return serviceService.listScopes(serviceId);
+        return servicesService.listScopes(serviceId);
     }
 
-    public ApiServiceScope getServiceScope(String realm, String serviceId, String scope)
+    public ApiServiceScope getServiceScope(String realm, String serviceId, String scopeId)
             throws NoSuchServiceException, NoSuchScopeException {
         // use finder to avoid loading all related
-        ApiService service = serviceService.findService(serviceId);
+        ApiService service = servicesService.findService(serviceId);
         if (service == null) {
             throw new NoSuchServiceException();
         }
 
         if (!realm.equals(service.getRealm())) {
-            throw new IllegalArgumentException("service does not match realm");
+            throw new IllegalArgumentException("realm-mismatch");
         }
 
-        return serviceService.getScope(serviceId, scope);
+        ApiServiceScope scope = servicesService.getScope(scopeId);
+        if (!realm.equals(scope.getRealm())) {
+            throw new IllegalArgumentException("realm-mismatch");
+        }
+        if (!serviceId.equals(scope.getServiceId())) {
+            throw new IllegalArgumentException("service-mismatch");
+        }
+
+        return scope;
     }
 
-    public ApiServiceScope addServiceScope(String realm, String serviceId, ApiServiceScope sc)
+    public ApiServiceScope addServiceScope(String realm, String serviceId, ApiServiceScope reg)
             throws NoSuchServiceException, RegistrationException {
+
         // use finder to avoid loading all related
-        ApiService service = serviceService.findService(serviceId);
+        ApiService service = servicesService.findService(serviceId);
         if (service == null) {
             throw new NoSuchServiceException();
         }
 
         if (!realm.equals(service.getRealm())) {
-            throw new IllegalArgumentException("service does not match realm");
+            throw new IllegalArgumentException("realm-mismatch");
         }
 
-        // explode
-        String scope = Jsoup.clean(sc.getScope().toLowerCase(), Safelist.none());
-        String name = sc.getName();
-        String description = sc.getDescription();
-        if (StringUtils.hasText(name)) {
-            name = Jsoup.clean(name, Safelist.none());
-        }
-        if (StringUtils.hasText(description)) {
-            description = Jsoup.clean(description, Safelist.none());
-        }
-        if (!StringUtils.hasText(name)) {
-            name = scope;
+        // fetch and validate id if provided
+        String scopeId = reg.getScopeId();
+        if (scopeId != null && !scopeId.matches(SystemKeys.SLUG_PATTERN)) {
+            throw new RegistrationException("invalid scope id");
         }
 
-        // check if scope if already defined elsewhere
-        Scope se = scopeRegistry.findScope(scope);
-        if (se != null) {
-            throw new DuplicatedDataException("scope");
-        }
-
-//        ScopeType type = sc.getType() != null ? sc.getType() : ScopeType.GENERIC;
-        ScopeType type = null;
-        Set<String> claims = sc.getClaims();
-        Set<String> roles = sc.getApprovalRoles();
-        Set<String> spaceRoles = sc.getApprovalSpaceRoles();
-        String approvalFunction = sc.getApprovalFunction();
-
-        boolean approvalAny = sc.isApprovalAny();
-        boolean approvalRequired = sc.isApprovalRequired();
-
-        ApiServiceScope s = serviceService.addScope(serviceId, scope,
-                name, description, type,
-                claims,
-                roles, spaceRoles,
-                approvalFunction,
-                approvalRequired, approvalAny);
+        // add
+        ApiServiceScope scope = servicesService.addScope(serviceId, scopeId, reg);
 
         // refresh service
-        String namespace = service.getNamespace();
-        List<ApiServiceScope> serviceScopes = serviceService.listScopes(serviceId);
-        service.setScopes(serviceScopes);
+        refreshService(serviceId);
 
-        // unregister provider if present
-        ScopeProvider spr = scopeRegistry.findScopeProvider(namespace);
-        if (spr != null && spr instanceof ServiceScopeProvider) {
-            scopeRegistry.unregisterScopeProvider(spr);
-        }
-
-        // build provider
-        if (!serviceScopes.isEmpty()) {
-            ServiceScopeProvider sp = new ServiceScopeProvider(service);
-
-            // add approvers where needed
-            for (ApiServiceScope scs : serviceScopes) {
-                ScopeApprover approver = buildScopeApprover(service.getRealm(), service.getNamespace(), scs);
-                if (approver != null) {
-                    sp.addApprover(scs.getScope(), approver);
-                }
-            }
-
-            // register
-            scopeRegistry.registerScopeProvider(sp);
-        }
-
-        return s;
+        return scope;
     }
 
-    public ApiServiceScope updateServiceScope(String realm, String serviceId, String scope, ApiServiceScope sc)
+    public ApiServiceScope updateServiceScope(String realm, String serviceId, String scopeId, ApiServiceScope reg)
+            throws NoSuchServiceException, NoSuchScopeException, RegistrationException {
+
+        // use finder to avoid loading all related
+        ApiService service = servicesService.findService(serviceId);
+        if (service == null) {
+            throw new NoSuchServiceException();
+        }
+
+        if (!realm.equals(service.getRealm())) {
+            throw new IllegalArgumentException("realm-mismatch");
+        }
+
+        ApiServiceScope scope = servicesService.getScope(scopeId);
+        if (!realm.equals(scope.getRealm())) {
+            throw new IllegalArgumentException("realm-mismatch");
+        }
+        if (!serviceId.equals(scope.getServiceId())) {
+            throw new IllegalArgumentException("service-mismatch");
+        }
+
+        // update
+        scope = servicesService.updateScope(scopeId, reg);
+
+        // refresh service
+        refreshService(serviceId);
+
+        return scope;
+    }
+
+    public void deleteServiceScope(String realm, String serviceId, String scopeId)
             throws NoSuchServiceException, NoSuchScopeException {
 
         // use finder to avoid loading all related
-        ApiService service = serviceService.findService(serviceId);
+        ApiService service = servicesService.findService(serviceId);
         if (service == null) {
             throw new NoSuchServiceException();
         }
 
         if (!realm.equals(service.getRealm())) {
-            throw new IllegalArgumentException("service does not match realm");
+            throw new IllegalArgumentException("realm-mismatch");
         }
 
-        if (StringUtils.hasText(sc.getServiceId()) && !serviceId.equals(sc.getServiceId())) {
-            throw new IllegalArgumentException("scope does not match service");
+        ApiServiceScope scope = servicesService.getScope(scopeId);
+        if (!realm.equals(scope.getRealm())) {
+            throw new IllegalArgumentException("realm-mismatch");
+        }
+        if (!serviceId.equals(scope.getServiceId())) {
+            throw new IllegalArgumentException("service-mismatch");
         }
 
-        if (StringUtils.hasText(sc.getScope()) && !scope.equals(sc.getScope())) {
-            throw new IllegalArgumentException("scope does not match");
+        // TODO invalidate tokens with this scope?
+
+        // remove approvals
+        try {
+            Collection<Approval> approvals = approvalStore.findScopeApprovals(scope.getScope());
+            approvalStore.revokeApprovals(approvals);
+        } catch (Exception e) {
         }
 
-        // explode
-        String name = sc.getName();
-        String description = sc.getDescription();
-        if (StringUtils.hasText(name)) {
-            name = Jsoup.clean(name, Safelist.none());
-        }
-        if (StringUtils.hasText(description)) {
-            description = Jsoup.clean(description, Safelist.none());
-        }
-        if (!StringUtils.hasText(name)) {
-            name = scope;
-        }
-//      ScopeType type = sc.getType() != null ? sc.getType() : ScopeType.GENERIC;
-        ScopeType type = null;
-        Set<String> claims = sc.getClaims();
-        Set<String> roles = sc.getApprovalRoles();
-        Set<String> spaceRoles = sc.getApprovalSpaceRoles();
-        String approvalFunction = sc.getApprovalFunction();
-
-        boolean approvalAny = sc.isApprovalAny();
-        boolean approvalRequired = sc.isApprovalRequired();
-
-        ApiServiceScope s = serviceService.updateScope(serviceId, scope,
-                name, description, type,
-                claims,
-                roles, spaceRoles,
-                approvalFunction,
-                approvalRequired, approvalAny);
+        // remove
+        servicesService.deleteScope(scopeId);
 
         // refresh service
-        String namespace = service.getNamespace();
-        List<ApiServiceScope> serviceScopes = serviceService.listScopes(serviceId);
-        service.setScopes(serviceScopes);
-
-        // unregister provider if present
-        ScopeProvider spr = scopeRegistry.findScopeProvider(namespace);
-        if (spr != null && spr instanceof ServiceScopeProvider) {
-            scopeRegistry.unregisterScopeProvider(spr);
-        }
-
-        // build provider
-        if (!serviceScopes.isEmpty()) {
-            ServiceScopeProvider sp = new ServiceScopeProvider(service);
-
-            // add approvers where needed
-            for (ApiServiceScope scs : serviceScopes) {
-                ScopeApprover approver = buildScopeApprover(service.getRealm(), service.getNamespace(), scs);
-                if (approver != null) {
-                    sp.addApprover(scs.getScope(), approver);
-                }
-            }
-
-            // register
-            scopeRegistry.registerScopeProvider(sp);
-        }
-
-        return s;
-    }
-
-    public void deleteServiceScope(String realm, String serviceId, String scope)
-            throws NoSuchServiceException, NoSuchScopeException {
-
-        // use finder to avoid loading all related
-        ApiService service = serviceService.findService(serviceId);
-        if (service == null) {
-            throw new NoSuchServiceException();
-        }
-
-        if (!realm.equals(service.getRealm())) {
-            throw new IllegalArgumentException("service does not match realm");
-        }
-
-        ApiServiceScope sc = serviceService.getScope(serviceId, scope);
-        if (sc != null) {
-            String namespace = service.getNamespace();
-
-            // unregister provider if present
-            ScopeProvider spr = scopeRegistry.findScopeProvider(namespace);
-            if (spr != null && spr instanceof ServiceScopeProvider) {
-                scopeRegistry.unregisterScopeProvider(spr);
-            }
-
-            // TODO invalidate tokens with this scope?
-
-            // remove approvals
-            try {
-                Collection<Approval> approvals = approvalStore.findScopeApprovals(scope);
-                approvalStore.revokeApprovals(approvals);
-            } catch (Exception e) {
-            }
-
-            // remove
-            serviceService.deleteScope(serviceId, scope);
-
-            // refresh service
-            List<ApiServiceScope> serviceScopes = serviceService.listScopes(serviceId);
-            service.setScopes(serviceScopes);
-
-            // build provider
-            if (!serviceScopes.isEmpty()) {
-                ServiceScopeProvider sp = new ServiceScopeProvider(service);
-
-                // add approvers where needed
-                for (ApiServiceScope scs : serviceScopes) {
-                    ScopeApprover approver = buildScopeApprover(service.getRealm(), service.getNamespace(), scs);
-                    if (approver != null) {
-                        sp.addApprover(scs.getScope(), approver);
-                    }
-                }
-
-                // register
-                scopeRegistry.registerScopeProvider(sp);
-            }
-
-        }
+        refreshService(serviceId);
     }
 
     /*
      * Claims
      */
 
-    public List<ApiServiceClaimDefinition> listServiceClaims(String realm, String serviceId) throws NoSuchServiceException {
+    public List<ApiServiceClaimDefinition> listServiceClaims(String realm, String serviceId)
+            throws NoSuchServiceException {
         // use finder to avoid loading all related
-        ApiService service = serviceService.findService(serviceId);
+        ApiService service = servicesService.findService(serviceId);
         if (service == null) {
             throw new NoSuchServiceException();
         }
 
         if (!realm.equals(service.getRealm())) {
-            throw new IllegalArgumentException("service does not match realm");
+            throw new IllegalArgumentException("realm-mismatch");
         }
 
-        return serviceService.listClaims(serviceId);
+        return servicesService.listClaims(serviceId);
     }
 
-    public ApiServiceClaimDefinition getServiceClaim(String realm, String serviceId, String key)
+    public ApiServiceClaimDefinition getServiceClaim(String realm, String serviceId, String claimId)
             throws NoSuchServiceException, NoSuchClaimException {
         // use finder to avoid loading all related
-        ApiService service = serviceService.findService(serviceId);
+        ApiService service = servicesService.findService(serviceId);
         if (service == null) {
             throw new NoSuchServiceException();
         }
 
         if (!realm.equals(service.getRealm())) {
-            throw new IllegalArgumentException("service does not match realm");
+            throw new IllegalArgumentException("realm-mismatch");
         }
 
-        return serviceService.getClaim(serviceId, key);
+        ApiServiceClaimDefinition claim = servicesService.getClaim(claimId);
+        if (!realm.equals(claim.getRealm())) {
+            throw new IllegalArgumentException("realm-mismatch");
+        }
+        if (!serviceId.equals(claim.getServiceId())) {
+            throw new IllegalArgumentException("service-mismatch");
+        }
+
+        return claim;
     }
 
-    public ApiServiceClaimDefinition addServiceClaim(String realm, String serviceId, ApiServiceClaimDefinition claim)
+    public ApiServiceClaimDefinition addServiceClaim(String realm, String serviceId, ApiServiceClaimDefinition reg)
             throws NoSuchServiceException, RegistrationException {
         // use finder to avoid loading all related
-        ApiService service = serviceService.findService(serviceId);
+        ApiService service = servicesService.findService(serviceId);
         if (service == null) {
             throw new NoSuchServiceException();
         }
 
         if (!realm.equals(service.getRealm())) {
-            throw new IllegalArgumentException("service does not match realm");
+            throw new IllegalArgumentException("realm-mismatch");
         }
 
-        // explode
-        String key = Jsoup.clean(claim.getKey(), Safelist.none());
-        String name = claim.getName();
-        String description = claim.getDescription();
-        if (StringUtils.hasText(name)) {
-            name = Jsoup.clean(name, Safelist.none());
+        // fetch and validate id if provided
+        String claimId = reg.getClaimId();
+        if (claimId != null && !claimId.matches(SystemKeys.SLUG_PATTERN)) {
+            throw new RegistrationException("invalid claim id");
         }
-        if (StringUtils.hasText(description)) {
-            description = Jsoup.clean(description, Safelist.none());
-        }
-        if (!StringUtils.hasText(name)) {
-            name = key;
-        }
-        AttributeType type = claim.getType() != null ? claim.getType() : AttributeType.STRING;
-        boolean isMultiple = claim.isMultiple();
 
-        ApiServiceClaimDefinition sc = serviceService.addClaim(serviceId, key,
-                name, description, type, isMultiple);
+        // add
+        ApiServiceClaimDefinition claim = servicesService.addClaim(serviceId, claimId, reg);
 
-        return sc;
+        // refresh service
+        refreshService(serviceId);
 
+        return claim;
     }
 
-    public ApiServiceClaimDefinition updateServiceClaim(String realm, String serviceId, String key, ApiServiceClaimDefinition claim)
+    public ApiServiceClaimDefinition updateServiceClaim(String realm, String serviceId, String claimId,
+            ApiServiceClaimDefinition reg) throws NoSuchServiceException, NoSuchClaimException, RegistrationException {
+
+        // use finder to avoid loading all related
+        ApiService service = servicesService.findService(serviceId);
+        if (service == null) {
+            throw new NoSuchServiceException();
+        }
+
+        if (!realm.equals(service.getRealm())) {
+            throw new IllegalArgumentException("realm-mismatch");
+        }
+
+        ApiServiceClaimDefinition claim = servicesService.getClaim(claimId);
+        if (!realm.equals(claim.getRealm())) {
+            throw new IllegalArgumentException("realm-mismatch");
+        }
+        if (!serviceId.equals(claim.getServiceId())) {
+            throw new IllegalArgumentException("service-mismatch");
+        }
+
+        // update
+        claim = servicesService.updateClaim(claimId, reg);
+
+        // refresh service
+        refreshService(serviceId);
+
+        return claim;
+    }
+
+    public void deleteServiceClaim(String realm, String serviceId, String claimId)
             throws NoSuchServiceException, NoSuchClaimException {
 
         // use finder to avoid loading all related
-        ApiService service = serviceService.findService(serviceId);
+        ApiService service = servicesService.findService(serviceId);
         if (service == null) {
             throw new NoSuchServiceException();
         }
 
         if (!realm.equals(service.getRealm())) {
-            throw new IllegalArgumentException("service does not match realm");
+            throw new IllegalArgumentException("realm-mismatch");
         }
 
-        if (StringUtils.hasText(claim.getServiceId()) && !serviceId.equals(claim.getServiceId())) {
-            throw new IllegalArgumentException("claim does not match service");
+        ApiServiceClaimDefinition claim = servicesService.getClaim(claimId);
+        if (!realm.equals(claim.getRealm())) {
+            throw new IllegalArgumentException("realm-mismatch");
+        }
+        if (!serviceId.equals(claim.getServiceId())) {
+            throw new IllegalArgumentException("service-mismatch");
         }
 
-        if (StringUtils.hasText(claim.getKey()) && !key.equals(claim.getKey())) {
-            throw new IllegalArgumentException("key does not match");
-        }
+        // we leave current tokens with the claim populated
+        // remove only entity
+        servicesService.deleteClaim(claimId);
 
-        // explode
-        String name = claim.getName();
-        String description = claim.getDescription();
-        if (StringUtils.hasText(name)) {
-            name = Jsoup.clean(name, Safelist.none());
-        }
-        if (StringUtils.hasText(description)) {
-            description = Jsoup.clean(description, Safelist.none());
-        }
-        if (!StringUtils.hasText(name)) {
-            name = key;
-        }
-        AttributeType type = claim.getType() != null ? claim.getType() : AttributeType.STRING;
-        boolean isMultiple = claim.isMultiple();
-
-        ApiServiceClaimDefinition sc = serviceService.updateClaim(serviceId, key,
-                name, description, type, isMultiple);
-
-        return sc;
-    }
-
-    public void deleteServiceClaim(String realm, String serviceId, String key)
-            throws NoSuchServiceException, NoSuchClaimException {
-
-        // use finder to avoid loading all related
-        ApiService service = serviceService.findService(serviceId);
-        if (service == null) {
-            throw new NoSuchServiceException();
-        }
-
-        if (!realm.equals(service.getRealm())) {
-            throw new IllegalArgumentException("service does not match realm");
-        }
-
-        ApiServiceClaimDefinition claim = serviceService.getClaim(serviceId, key);
-        if (claim != null) {
-            // TODO update custom extractors when implemented
-
-            // we leave current tokens with the claim populated
-            // remove only entity
-            serviceService.deleteClaim(serviceId, key);
-        }
+        // refresh service
+        refreshService(serviceId);
     }
 
     /*
      * Scope Approvals
      */
 
-    public Collection<Approval> getServiceScopeApprovals(String realm, String serviceId, String scope)
+    public Collection<Approval> getServiceScopeApprovals(String realm, String serviceId, String scopeId)
             throws NoSuchServiceException, NoSuchScopeException {
-        // use finder to avoid loading all related
-        ApiService service = serviceService.findService(serviceId);
-        if (service == null) {
-            throw new NoSuchServiceException();
-        }
-
-        if (!realm.equals(service.getRealm())) {
-            throw new IllegalArgumentException("service does not match realm");
-        }
-
-        ApiServiceScope sc = serviceService.getScope(serviceId, scope);
+        ApiServiceScope sc = getServiceScope(realm, serviceId, scopeId);
 
         // we use serviceId as id
         String resourceId = serviceId;
@@ -844,41 +533,28 @@ public class ServicesManager implements InitializingBean {
 
     }
 
-    /**
-     * @param realm
-     * @param serviceId
-     * @return
-     * @throws NoSuchServiceException
-     */
     public Collection<Approval> getServiceApprovals(String realm, String serviceId) throws NoSuchServiceException {
         // use finder to avoid loading all related
-        ApiService service = serviceService.findService(serviceId);
+        ApiService service = servicesService.findService(serviceId);
         if (service == null) {
             throw new NoSuchServiceException();
         }
 
         if (!realm.equals(service.getRealm())) {
-            throw new IllegalArgumentException("service does not match realm");
+            throw new IllegalArgumentException("realm-mismatch");
         }
+
         // we use serviceId as id
         String resourceId = serviceId;
         return approvalStore.findUserApprovals(resourceId);
     }
 
-    public Approval addServiceScopeApproval(String realm, String serviceId, String scope, String subjectId,
+    public Approval addServiceScopeApproval(String realm, String serviceId, String scopeId, String subjectId,
             int duration, boolean approved)
             throws NoSuchServiceException, NoSuchScopeException {
-        // use finder to avoid loading all related
-        ApiService service = serviceService.findService(serviceId);
-        if (service == null) {
-            throw new NoSuchServiceException();
-        }
 
-        if (!realm.equals(service.getRealm())) {
-            throw new IllegalArgumentException("service does not match realm");
-        }
-
-        ApiServiceScope sc = serviceService.getScope(serviceId, scope);
+        ApiServiceScope sc = getServiceScope(realm, serviceId, scopeId);
+        String scope = sc.getScope();
 
         // check if subject exists
         Subject sub = subjectService.findSubject(subjectId);
@@ -895,26 +571,17 @@ public class ServicesManager implements InitializingBean {
         // we use serviceId as id
         String resourceId = serviceId;
 
-        Approval approval = new Approval(resourceId, subjectId, sc.getScope(), expiresAt, approvalStatus);
+        Approval approval = new Approval(resourceId, subjectId, scope, expiresAt, approvalStatus);
         approvalStore.addApprovals(Collections.singleton(approval));
 
         return approvalStore.findApproval(serviceId, subjectId, scope);
 
     }
 
-    public void revokeServiceScopeApproval(String realm, String serviceId, String scope, String subjectId)
+    public void revokeServiceScopeApproval(String realm, String serviceId, String scopeId, String subjectId)
             throws NoSuchServiceException, NoSuchScopeException {
-        // use finder to avoid loading all related
-        ApiService service = serviceService.findService(serviceId);
-        if (service == null) {
-            throw new NoSuchServiceException();
-        }
 
-        if (!realm.equals(service.getRealm())) {
-            throw new IllegalArgumentException("service does not match realm");
-        }
-
-        ApiServiceScope sc = serviceService.getScope(serviceId, scope);
+        ApiServiceScope sc = getServiceScope(realm, serviceId, scopeId);
 
         // we use serviceId as id
         String resourceId = serviceId;
@@ -925,60 +592,11 @@ public class ServicesManager implements InitializingBean {
         }
     }
 
-    private ScopeApprover buildScopeApprover(String realm, String namespace, ApiServiceScope sc) {
-//        String scope = sc.getScope();
-//        List<ScopeApprover> approvers = new ArrayList<>();
-//        if (StringUtils.hasText(sc.getApprovalFunction())) {
-//            ScriptScopeApprover sa = new ScriptScopeApprover(realm, namespace, scope);
-//            sa.setExecutionService(executionService);
-//            sa.setFunctionCode(sc.getApprovalFunction());
-//            approvers.add(sa);
-//        }
-//
-//        if (sc.getApprovalRoles() != null && !sc.getApprovalRoles().isEmpty()) {
-//            AuthorityScopeApprover sa = new AuthorityScopeApprover(realm, namespace, scope);
-//            sa.setAuthorities(sc.getApprovalRoles());
-//            approvers.add(sa);
-//        }
-//
-//        if (sc.getApprovalSpaceRoles() != null && !sc.getApprovalSpaceRoles().isEmpty()) {
-//            RoleScopeApprover sa = new RoleScopeApprover(realm, namespace, scope);
-//            sa.setRoles(sc.getApprovalSpaceRoles());
-//            approvers.add(sa);
-//        }
-//
-//        if (sc.isApprovalRequired()) {
-//            StoreScopeApprover sa = new StoreScopeApprover(realm, namespace, scope);
-//            sa.setApprovalStore(approvalStore);
-//            // we use serviceId as the authorizer authority
-//            sa.setUserId(sc.getServiceId());
-//            approvers.add(sa);
-//        }
-//
-//        if (approvers.isEmpty()) {
-//            // use whitelist, scope is autoapproved
-//            return new WhitelistScopeApprover(realm, namespace, scope);
-//        }
-//
-//        if (approvers.size() == 1) {
-//            return approvers.get(0);
-//        }
-//
-//        if (sc.isApprovalAny()) {
-//            return new DelegateScopeApprover(realm, namespace, scope, approvers);
-//        } else {
-//            return new CombinedScopeApprover(realm, namespace, scope, approvers);
-//        }
-        return null;
-    }
-
-    /**
-     * 
-     * @param serviceNamespace
-     * @return
-     */
     public Boolean checkServiceNamespace(String realm, String serviceNamespace) {
-        return serviceService.findServiceByNamespace(serviceNamespace.toLowerCase()) != null;
+        return servicesService.findServiceByNamespace(realm, serviceNamespace.toLowerCase()) != null;
     }
 
+    public Boolean checkServiceResource(String realm, String resource) {
+        return servicesService.findServiceByResource(realm, resource) != null;
+    }
 }

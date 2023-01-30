@@ -4,6 +4,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -99,6 +100,9 @@ public class ServicesService {
 
     /*
      * Api Service
+     * 
+     * notes: find methods will resolve only the service, while get/list will
+     * resolve also related entities and load
      */
     private ApiService loadService(ServiceEntity s) {
         String serviceId = s.getServiceId();
@@ -187,11 +191,11 @@ public class ServicesService {
         return loadService(s);
     }
 
-//    @Transactional(readOnly = true)
-//    public List<ApiService> listServices() {
-//        List<ServiceEntity> services = serviceRepository.findAll();
-//        return services.stream().map(s -> toService(s)).collect(Collectors.toList());
-//    }
+    @Transactional(readOnly = true)
+    public List<ApiService> listServices() {
+        List<ServiceEntity> services = serviceRepository.findAll();
+        return services.stream().map(s -> loadService(s)).collect(Collectors.toList());
+    }
 
     @Transactional(readOnly = true)
     public List<ApiService> listServices(String realm) {
@@ -326,7 +330,43 @@ public class ServicesService {
         }
 
         se = serviceRepository.save(se);
-        return toService(se);
+
+        ApiService service = toService(se);
+
+        // related entities
+        if (reg.getScopes() != null) {
+            List<ApiServiceScope> scopes = reg.getScopes().stream()
+                    .map(s -> {
+                        try {
+                            return addScope(service.getServiceId(), s.getScopeId(), s);
+                        } catch (NoSuchServiceException | RegistrationException e) {
+                            // ignore
+                            return null;
+                        }
+                    })
+                    .filter(s -> s != null)
+                    .collect(Collectors.toList());
+
+            service.setScopes(scopes);
+        }
+
+        if (reg.getClaims() != null) {
+            List<ApiServiceClaimDefinition> claims = reg.getClaims().stream()
+                    .map(c -> {
+                        try {
+                            return addClaim(service.getServiceId(), c.getClaimId(), c);
+                        } catch (NoSuchServiceException | RegistrationException e) {
+                            // ignore
+                            return null;
+                        }
+                    })
+                    .filter(s -> s != null)
+                    .collect(Collectors.toList());
+
+            service.setClaims(claims);
+        }
+
+        return service;
     }
 
     public ApiService updateService(@NotBlank String serviceId, @NotNull ApiService reg)
@@ -427,7 +467,67 @@ public class ServicesService {
         }
 
         se = serviceRepository.save(se);
-        return toService(se);
+
+        ApiService service = toService(se);
+
+        // related entities
+        if (reg.getScopes() != null) {
+            // fetch current
+            List<ApiServiceScope> curScopes = findScopes(serviceId);
+
+            // update from registration
+            List<ApiServiceScope> scopes = reg.getScopes().stream()
+                    .map(s -> {
+                        try {
+                            return addOrUpdateScope(service.getServiceId(), s.getScopeId(), s);
+                        } catch (NoSuchServiceException | RegistrationException e) {
+                            // ignore
+                            return null;
+                        }
+                    })
+                    .filter(s -> s != null)
+                    .collect(Collectors.toList());
+
+            // remove orphans
+            List<ApiServiceScope> toRemove = curScopes.stream()
+                    .filter(s -> scopes.contains(s))
+                    .collect(Collectors.toList());
+            toRemove.forEach(s -> {
+                deleteScope(s.getScopeId());
+            });
+
+            service.setScopes(scopes);
+        }
+
+        if (reg.getClaims() != null) {
+            // fetch current
+            List<ApiServiceClaimDefinition> curClaims = findClaims(serviceId);
+
+            // update from registration
+            List<ApiServiceClaimDefinition> claims = reg.getClaims().stream()
+                    .map(c -> {
+                        try {
+                            return addOrUpdateClaim(service.getServiceId(), c.getClaimId(), c);
+                        } catch (NoSuchServiceException | RegistrationException e) {
+                            // ignore
+                            return null;
+                        }
+                    })
+                    .filter(s -> s != null)
+                    .collect(Collectors.toList());
+
+            // remove orphans
+            List<ApiServiceClaimDefinition> toRemove = curClaims.stream()
+                    .filter(c -> claims.contains(c))
+                    .collect(Collectors.toList());
+            toRemove.forEach(c -> {
+                deleteClaim(c.getClaimId());
+            });
+
+            service.setClaims(claims);
+        }
+
+        return service;
     }
 
     public void deleteService(String serviceId) throws NoSuchServiceException {
@@ -750,6 +850,32 @@ public class ServicesService {
         return toScope(se);
     }
 
+    public ApiServiceScope addOrUpdateScope(
+            @NotBlank String serviceId, @Nullable String scopeId, @NotNull ApiServiceScope reg)
+            throws NoSuchServiceException, RegistrationException {
+        logger.debug("add or update scope with id {} for service {}", String.valueOf(scopeId),
+                String.valueOf(serviceId));
+        if (scopeId == null) {
+            scopeId = reg.getScopeId();
+        }
+
+        if (scopeId == null) {
+            return addScope(serviceId, null, reg);
+        }
+
+        ServiceScopeEntity se = scopeRepository.findOne(scopeId);
+        if (se == null) {
+            return addScope(serviceId, scopeId, reg);
+        } else {
+            try {
+                return updateScope(scopeId, reg);
+            } catch (NoSuchScopeException e) {
+                // error
+                throw new RegistrationException();
+            }
+        }
+    }
+
     public void deleteScope(@NotBlank String scopeId) {
         logger.debug("delete scope with id {}", String.valueOf(scopeId));
 
@@ -768,6 +894,7 @@ public class ServicesService {
         ApiServiceClaimDefinition claim = new ApiServiceClaimDefinition(c.getKey());
         claim.setClaimId(c.getClaimId());
         claim.setServiceId(c.getServiceId());
+        claim.setRealm(c.getRealm());
 
         claim.setType(c.getType() != null ? AttributeType.parse(c.getType()) : null);
         claim.setIsMultiple(c.getMultiple());
@@ -948,6 +1075,32 @@ public class ServicesService {
 
         sc = claimRepository.save(sc);
         return toClaim(sc);
+    }
+
+    public ApiServiceClaimDefinition addOrUpdateClaim(
+            @NotBlank String serviceId, @Nullable String claimId, @NotNull ApiServiceClaimDefinition reg)
+            throws NoSuchServiceException, RegistrationException {
+        logger.debug("add or update claim with id {} for service {}", String.valueOf(claimId),
+                String.valueOf(serviceId));
+        if (claimId == null) {
+            claimId = reg.getClaimId();
+        }
+
+        if (claimId == null) {
+            return addClaim(serviceId, null, reg);
+        }
+
+        ServiceClaimEntity sc = claimRepository.findOne(claimId);
+        if (sc == null) {
+            return addClaim(serviceId, claimId, reg);
+        } else {
+            try {
+                return updateClaim(claimId, reg);
+            } catch (NoSuchClaimException e) {
+                // error
+                throw new RegistrationException();
+            }
+        }
     }
 
     public void deleteClaim(@NotBlank String claimId) {

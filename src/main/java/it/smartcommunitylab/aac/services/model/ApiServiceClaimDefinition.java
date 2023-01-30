@@ -18,6 +18,8 @@ public class ApiServiceClaimDefinition extends AbstractClaimDefinition {
     @Size(max = 128)
     private String serviceId;
 
+    private String realm;
+
     @Size(max = 128)
     private String claimId;
 
@@ -50,6 +52,51 @@ public class ApiServiceClaimDefinition extends AbstractClaimDefinition {
 
     public void setType(AttributeType type) {
         this.type = type;
+    }
+
+    public String getRealm() {
+        return realm;
+    }
+
+    public void setRealm(String realm) {
+        this.realm = realm;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((claimId == null) ? 0 : claimId.hashCode());
+        result = prime * result + ((serviceId == null) ? 0 : serviceId.hashCode());
+        result = prime * result + ((key == null) ? 0 : key.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        ApiServiceClaimDefinition other = (ApiServiceClaimDefinition) obj;
+        if (claimId == null) {
+            if (other.claimId != null)
+                return false;
+        } else if (!claimId.equals(other.claimId))
+            return false;
+        if (serviceId == null) {
+            if (other.serviceId != null)
+                return false;
+        } else if (!serviceId.equals(other.serviceId))
+            return false;
+        if (key == null) {
+            if (other.key != null)
+                return false;
+        } else if (!key.equals(other.key))
+            return false;
+        return true;
     }
 
 //    /*

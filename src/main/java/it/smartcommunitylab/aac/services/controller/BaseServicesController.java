@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.services;
+package it.smartcommunitylab.aac.services.controller;
 
 import java.util.Collection;
 import javax.validation.Valid;
@@ -28,6 +28,7 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchServiceException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.services.ServicesManager;
 import it.smartcommunitylab.aac.services.model.ApiService;
 import it.smartcommunitylab.aac.services.model.ApiServiceClaimDefinition;
 import it.smartcommunitylab.aac.services.model.ApiServiceScope;
@@ -174,50 +175,50 @@ public class BaseServicesController implements InitializingBean {
         return serviceManager.addServiceScope(realm, serviceId, s);
     }
 
-    @GetMapping("/services/{realm}/{serviceId}/scopes/{scope}")
+    @GetMapping("/services/{realm}/{serviceId}/scopes/{scopeId}")
     @Operation(summary = "get a specific scope from a given service in realm")
     public ApiServiceScope getServiceScope(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SCOPE_PATTERN) String scope)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SCOPE_PATTERN) String scopeId)
             throws NoSuchScopeException, NoSuchRealmException, NoSuchServiceException {
         logger.debug("get scope {} from service {} for realm {}",
-                StringUtils.trimAllWhitespace(scope), StringUtils.trimAllWhitespace(serviceId),
+                StringUtils.trimAllWhitespace(scopeId), StringUtils.trimAllWhitespace(serviceId),
                 StringUtils.trimAllWhitespace(realm));
 
-        return serviceManager.getServiceScope(realm, serviceId, scope);
+        return serviceManager.getServiceScope(realm, serviceId, scopeId);
     }
 
-    @PutMapping("/services/{realm}/{serviceId}/scopes/{scope}")
+    @PutMapping("/services/{realm}/{serviceId}/scopes/{scopeId}")
     @Operation(summary = "update a specific scope from a given service in realm")
     public ApiServiceScope updateServiceScope(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SCOPE_PATTERN) String scope,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SCOPE_PATTERN) String scopeId,
             @RequestBody @Valid @NotNull ApiServiceScope s)
             throws NoSuchScopeException, NoSuchServiceException, RegistrationException {
         logger.debug("update scope {} from service {} for realm {}",
-                StringUtils.trimAllWhitespace(scope), StringUtils.trimAllWhitespace(serviceId),
+                StringUtils.trimAllWhitespace(scopeId), StringUtils.trimAllWhitespace(serviceId),
                 StringUtils.trimAllWhitespace(realm));
 
         if (logger.isTraceEnabled()) {
             logger.trace("scope bean {}", StringUtils.trimAllWhitespace(s.toString()));
         }
-        return serviceManager.updateServiceScope(realm, serviceId, scope, s);
+        return serviceManager.updateServiceScope(realm, serviceId, scopeId, s);
     }
 
-    @DeleteMapping("/services/{realm}/{serviceId}/scopes/{scope}")
+    @DeleteMapping("/services/{realm}/{serviceId}/scopes/{scopeId}")
     @Operation(summary = "delete a specific scope from a given service in realm")
     public void deleteServiceScope(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SCOPE_PATTERN) String scope)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SCOPE_PATTERN) String scopeId)
             throws NoSuchScopeException, NoSuchServiceException {
         logger.debug("delete scope {} from service {} for realm {}",
-                StringUtils.trimAllWhitespace(scope), StringUtils.trimAllWhitespace(serviceId),
+                StringUtils.trimAllWhitespace(scopeId), StringUtils.trimAllWhitespace(serviceId),
                 StringUtils.trimAllWhitespace(realm));
 
-        serviceManager.deleteServiceScope(realm, serviceId, scope);
+        serviceManager.deleteServiceScope(realm, serviceId, scopeId);
     }
 
     /*
@@ -251,99 +252,99 @@ public class BaseServicesController implements InitializingBean {
         return serviceManager.addServiceClaim(realm, serviceId, s);
     }
 
-    @GetMapping("/services/{realm}/{serviceId}/claims/{key}")
+    @GetMapping("/services/{realm}/{serviceId}/claims/{claimId}")
     @Operation(summary = "get a specific claim from a given service in realm")
     public ApiServiceClaimDefinition getServiceClaim(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.KEY_PATTERN) String key)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.KEY_PATTERN) String claimId)
             throws NoSuchClaimException, NoSuchRealmException, NoSuchServiceException {
         logger.debug("get claim {} from service {} for realm {}",
-                StringUtils.trimAllWhitespace(key), StringUtils.trimAllWhitespace(serviceId),
+                StringUtils.trimAllWhitespace(claimId), StringUtils.trimAllWhitespace(serviceId),
                 StringUtils.trimAllWhitespace(realm));
 
-        return serviceManager.getServiceClaim(realm, serviceId, key);
+        return serviceManager.getServiceClaim(realm, serviceId, claimId);
     }
 
-    @PutMapping("/services/{realm}/{serviceId}/claims/{key}")
+    @PutMapping("/services/{realm}/{serviceId}/claims/{claimId}")
     @Operation(summary = "update a specific claim from a given service in realm")
     public ApiServiceClaimDefinition updateServiceClaim(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.KEY_PATTERN) String key,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.KEY_PATTERN) String claimId,
             @RequestBody @Valid @NotNull ApiServiceClaimDefinition s)
             throws NoSuchClaimException, NoSuchServiceException, RegistrationException {
         logger.debug("update claim {} from service {} for realm {}",
-                StringUtils.trimAllWhitespace(key), StringUtils.trimAllWhitespace(serviceId),
+                StringUtils.trimAllWhitespace(claimId), StringUtils.trimAllWhitespace(serviceId),
                 StringUtils.trimAllWhitespace(realm));
 
         if (logger.isTraceEnabled()) {
             logger.trace("claim bean {}", StringUtils.trimAllWhitespace(s.toString()));
         }
-        return serviceManager.updateServiceClaim(realm, serviceId, key, s);
+        return serviceManager.updateServiceClaim(realm, serviceId, claimId, s);
     }
 
-    @DeleteMapping("/services/{realm}/{serviceId}/claims/{key}")
+    @DeleteMapping("/services/{realm}/{serviceId}/claims/{claimId}")
     @Operation(summary = "delete a specific claim from a given service in realm")
     public void deleteServiceClaim(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.KEY_PATTERN) String key)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.KEY_PATTERN) String claimId)
             throws NoSuchClaimException, NoSuchServiceException {
         logger.debug("delete claim {} from service {} for realm {}",
-                StringUtils.trimAllWhitespace(key), StringUtils.trimAllWhitespace(serviceId),
+                StringUtils.trimAllWhitespace(claimId), StringUtils.trimAllWhitespace(serviceId),
                 StringUtils.trimAllWhitespace(realm));
 
-        serviceManager.deleteServiceClaim(realm, serviceId, key);
+        serviceManager.deleteServiceClaim(realm, serviceId, claimId);
     }
 
     /*
      * Service scope approvals
      */
 
-    @GetMapping("/services/{realm}/{serviceId}/scopes/{scope}/approvals")
+    @GetMapping("/services/{realm}/{serviceId}/scopes/{scopeId}/approvals")
     @Operation(summary = "get approvals for a given scope from a given service in realm")
     public Collection<Approval> getServiceScopeApprovals(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SCOPE_PATTERN) String scope)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SCOPE_PATTERN) String scopeId)
             throws NoSuchRealmException, NoSuchServiceException, NoSuchScopeException {
-        logger.debug("list approvals from service {}for realm {}",
-                StringUtils.trimAllWhitespace(serviceId), StringUtils.trimAllWhitespace(realm));
+        logger.debug("list approvals from service {} scope {} for realm {}", StringUtils.trimAllWhitespace(serviceId),
+                StringUtils.trimAllWhitespace(scopeId), StringUtils.trimAllWhitespace(realm));
 
-        return serviceManager.getServiceScopeApprovals(realm, serviceId, scope);
+        return serviceManager.getServiceScopeApprovals(realm, serviceId, scopeId);
     }
 
-    @PostMapping("/services/{realm}/{serviceId}/scopes/{scope}/approvals")
+    @PostMapping("/services/{realm}/{serviceId}/scopes/{scopeId}/approvals")
     @Operation(summary = "add a new approval for a given scope in a given service in realm")
     public Approval addServiceScopeApproval(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SCOPE_PATTERN) String scope,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SCOPE_PATTERN) String scopeId,
             @RequestParam @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
             @RequestParam(required = false, defaultValue = "true") boolean approved)
             throws NoSuchRealmException, NoSuchServiceException, NoSuchScopeException {
         logger.debug("add approval for scope {} client {} to service {} for realm {}",
-                StringUtils.trimAllWhitespace(scope), StringUtils.trimAllWhitespace(clientId),
+                StringUtils.trimAllWhitespace(scopeId), StringUtils.trimAllWhitespace(clientId),
                 StringUtils.trimAllWhitespace(serviceId), StringUtils.trimAllWhitespace(realm));
 
         int duration = SystemKeys.DEFAULT_APPROVAL_VALIDITY;
-        return serviceManager.addServiceScopeApproval(realm, serviceId, scope, clientId, duration, approved);
+        return serviceManager.addServiceScopeApproval(realm, serviceId, scopeId, clientId, duration, approved);
     }
 
-    @DeleteMapping("/services/{realm}/{serviceId}/scopes/{scope}/approvals")
+    @DeleteMapping("/services/{realm}/{serviceId}/scopes/{scopeId}/approvals")
     @Operation(summary = "remove an approval for a given scope in a given service in realm")
     public void deleteServiceScopeApproval(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SCOPE_PATTERN) String scope,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SCOPE_PATTERN) String scopeId,
             @RequestParam @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
             throws NoSuchRealmException, NoSuchScopeException, NoSuchServiceException {
         logger.debug("revoke approval for scope {} client {} from service {} for realm {}",
-                StringUtils.trimAllWhitespace(scope), StringUtils.trimAllWhitespace(clientId),
+                StringUtils.trimAllWhitespace(scopeId), StringUtils.trimAllWhitespace(clientId),
                 StringUtils.trimAllWhitespace(serviceId), StringUtils.trimAllWhitespace(realm));
 
-        serviceManager.revokeServiceScopeApproval(realm, serviceId, scope, clientId);
+        serviceManager.revokeServiceScopeApproval(realm, serviceId, scopeId, clientId);
     }
 
 }

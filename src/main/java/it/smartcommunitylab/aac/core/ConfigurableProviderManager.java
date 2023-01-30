@@ -51,6 +51,8 @@ public abstract class ConfigurableProviderManager<C extends ConfigurableProvider
      * Configurable Providers
      */
     public Collection<C> listProviders(String realm) throws NoSuchRealmException {
+        logger.debug("list providers for realm {}", StringUtils.trimAllWhitespace(realm));
+
         if (SystemKeys.REALM_GLOBAL.equals(realm) || SystemKeys.REALM_SYSTEM.equals(realm)) {
             return providerService.listProviders(realm);
         }

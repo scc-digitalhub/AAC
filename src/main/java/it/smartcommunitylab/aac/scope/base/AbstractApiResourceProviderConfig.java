@@ -1,5 +1,10 @@
 package it.smartcommunitylab.aac.scope.base;
 
+import java.util.Collections;
+import java.util.Locale;
+import java.util.Map;
+
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -12,6 +17,7 @@ import it.smartcommunitylab.aac.core.base.AbstractConfigMap;
 import it.smartcommunitylab.aac.core.base.AbstractProviderConfig;
 import it.smartcommunitylab.aac.scope.model.ApiResourceProviderConfig;
 import it.smartcommunitylab.aac.scope.model.ConfigurableApiResourceProvider;
+import liquibase.repackaged.org.apache.commons.lang3.LocaleUtils;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes({
@@ -25,15 +31,15 @@ public abstract class AbstractApiResourceProviderConfig<A extends AbstractApiRes
 
     protected A resource;
 
-    protected AbstractApiResourceProviderConfig(String authority, String provider, String realm, M configMap) {
-        super(authority, provider, realm, configMap);
-        this.resource = null;
-    }
-
-    protected AbstractApiResourceProviderConfig(ConfigurableApiResourceProvider cp, M configMap) {
-        super(cp, configMap);
-        this.resource = null;
-    }
+//    protected AbstractApiResourceProviderConfig(String authority, String provider, String realm, M configMap) {
+//        super(authority, provider, realm, configMap);
+//        this.resource = null;
+//    }
+//
+//    protected AbstractApiResourceProviderConfig(ConfigurableApiResourceProvider cp, M configMap) {
+//        super(cp, configMap);
+//        this.resource = null;
+//    }
 
     protected AbstractApiResourceProviderConfig(A res, M configMap) {
         super(res.getAuthority(), res.getProvider(), res.getRealm(), configMap);
@@ -43,6 +49,36 @@ public abstract class AbstractApiResourceProviderConfig<A extends AbstractApiRes
 
     public A getResource() {
         return resource;
+    }
+
+    @Override
+    public String getName() {
+        return resource.getName();
+    }
+
+    @Override
+    public String getTitle(Locale locale) {
+        // TODO i18n
+        return resource.getTitle();
+    }
+
+    @Override
+    public Map<String, String> getTitleMap() {
+        // TODO i18n
+        return Collections.singletonMap(LocaleContextHolder.getLocale().getLanguage(), resource.getTitle());
+
+    }
+
+    @Override
+    public String getDescription(Locale locale) {
+        // TODO i18n
+        return resource.getDescription();
+    }
+
+    @Override
+    public Map<String, String> getDescriptionMap() {
+        // TODO i18n
+        return Collections.singletonMap(LocaleContextHolder.getLocale().getLanguage(), resource.getDescription());
     }
 
 }

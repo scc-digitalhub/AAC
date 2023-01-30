@@ -42,7 +42,7 @@ import it.smartcommunitylab.aac.common.NoSuchServiceException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.dto.FunctionValidationBean;
-import it.smartcommunitylab.aac.services.BaseServicesController;
+import it.smartcommunitylab.aac.services.controller.BaseServicesController;
 import it.smartcommunitylab.aac.services.model.ApiService;
 
 @RestController
@@ -175,6 +175,17 @@ public class DevServicesController extends BaseServicesController {
             @RequestParam @Valid @NotBlank @Pattern(regexp = SystemKeys.NAMESPACE_PATTERN) String ns)
             throws NoSuchRealmException {
         return serviceManager.checkServiceNamespace(realm, ns);
+    }
+
+    /*
+     * Resource URI
+     */
+    @GetMapping("/services/{realm}/nsexists")
+    public Boolean checkRealmServiceResource(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @RequestParam @Valid @NotBlank @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String resource)
+            throws NoSuchRealmException {
+        return serviceManager.checkServiceResource(realm, resource);
     }
 
     /*

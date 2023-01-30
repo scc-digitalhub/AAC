@@ -10,7 +10,6 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.oauth.store.SearchableApprovalStore;
-import it.smartcommunitylab.aac.scope.base.AbstractApiResourceProviderConfig;
 import it.smartcommunitylab.aac.scope.base.AbstractResourceProvider;
 import it.smartcommunitylab.aac.scope.provider.InternalApiResourceProviderConfigMap;
 import it.smartcommunitylab.aac.services.model.ApiService;
@@ -18,7 +17,7 @@ import it.smartcommunitylab.aac.services.model.ApiServiceScope;
 
 public class ApiServiceResourceProvider
         extends
-        AbstractResourceProvider<ApiService, ApiServiceScope, InternalApiResourceProviderConfigMap, it.smartcommunitylab.aac.services.provider.ApiServiceResourceProvider.ApiServiceResourceProviderConfig> {
+        AbstractResourceProvider<ApiService, ApiServiceScope, InternalApiResourceProviderConfigMap, it.smartcommunitylab.aac.services.provider.ApiServiceResourceProviderConfig> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private Map<String, ApiServiceScopeProvider> providers;
@@ -55,17 +54,6 @@ public class ApiServiceResourceProvider
     @Override
     public ApiServiceClaimsSetExtractor getClaimsExtractor() {
         return extractor;
-    }
-
-    public static class ApiServiceResourceProviderConfig
-            extends AbstractApiResourceProviderConfig<ApiService, InternalApiResourceProviderConfigMap> {
-        private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
-        public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_PROVIDER + SystemKeys.ID_SEPARATOR
-                + SystemKeys.RESOURCE_API_RESOURCE + SystemKeys.ID_SEPARATOR + SystemKeys.AUTHORITY_SERVICE;
-
-        public ApiServiceResourceProviderConfig(ApiService res) {
-            super(res, new InternalApiResourceProviderConfigMap());
-        }
     }
 
 }
