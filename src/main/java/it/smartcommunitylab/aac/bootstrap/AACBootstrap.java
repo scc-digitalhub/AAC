@@ -61,7 +61,9 @@ import it.smartcommunitylab.aac.oauth.service.OAuth2ClientAppService;
 import it.smartcommunitylab.aac.password.auth.UsernamePasswordAuthenticationToken;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
+import it.smartcommunitylab.aac.services.ApiServiceResourceAuthority;
 import it.smartcommunitylab.aac.services.model.ApiService;
+import it.smartcommunitylab.aac.services.provider.ApiServiceResourceProviderConfig;
 import it.smartcommunitylab.aac.services.service.ServicesService;
 
 @Component
@@ -143,6 +145,9 @@ public class AACBootstrap {
 
     @Autowired
     private PasswordHash hasher;
+
+    @Autowired
+    private ApiServiceResourceAuthority serviceAuthority;
 
 //    @EventListener
     public void onApplicationEvent(ApplicationStartedEvent event) {
@@ -598,6 +603,12 @@ public class AACBootstrap {
                             throw new IllegalArgumentException("missing namespace");
                         }
 
+                        // validate resource
+                        if (!StringUtils.hasText(s.getResource())) {
+                            logger.error("error creating service, missing resource identifier");
+                            throw new IllegalArgumentException("missing resource identifier");
+                        }
+
                         if (logger.isTraceEnabled()) {
                             logger.trace("service: {}", String.valueOf(s));
                         }
@@ -609,8 +620,7 @@ public class AACBootstrap {
                             if (service == null) {
                                 logger.debug("add service {} for realm {}", id, String.valueOf(s.getRealm()));
 
-                                service = serviceService.addService(s.getRealm(), id, s.getNamespace(), s.getName(),
-                                        s.getDescription());
+                                service = serviceService.addService(s.getRealm(), id, s);
                             } else {
                                 // check again realm match over existing
                                 if (!slug.equals(service.getRealm())) {
@@ -620,8 +630,18 @@ public class AACBootstrap {
 
                                 logger.debug("update service {} for realm {}", id, String.valueOf(s.getRealm()));
 
-                                service = serviceService.updateService(id, s.getName(), s.getDescription(), null);
+                                service = serviceService.updateService(id, s);
                             }
+
+                            // TODO register properly
+                            service = serviceService.getService(id);
+
+                            // build provider config
+                            ApiServiceResourceProviderConfig providerConfig = new ApiServiceResourceProviderConfig(
+                                    service);
+
+                            // register and force reload
+                            serviceAuthority.registerProvider(providerConfig);
 
                         } catch (RegistrationException | NoSuchServiceException e) {
                             logger.error(

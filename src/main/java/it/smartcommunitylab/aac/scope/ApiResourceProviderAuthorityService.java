@@ -8,13 +8,17 @@ import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractAuthorityService;
+import it.smartcommunitylab.aac.scope.model.ApiResource;
+import it.smartcommunitylab.aac.scope.model.ApiResourceProvider;
 import it.smartcommunitylab.aac.scope.model.ApiResourceProviderAuthority;
 
 @Service
-public class ApiResourceProviderAuthorityService extends AbstractAuthorityService<ApiResourceProviderAuthority<?, ?>>
+public class ApiResourceProviderAuthorityService extends
+        AbstractAuthorityService<ApiResourceProviderAuthority<? extends ApiResourceProvider<?>, ? extends ApiResource>>
         implements InitializingBean {
 
-    public ApiResourceProviderAuthorityService(Collection<ApiResourceProviderAuthority<?, ?>> authorities) {
+    public ApiResourceProviderAuthorityService(
+            Collection<ApiResourceProviderAuthority<? extends ApiResourceProvider<?>, ? extends ApiResource>> authorities) {
         super(SystemKeys.RESOURCE_API_RESOURCE);
         this.setAuthorities(authorities);
     }

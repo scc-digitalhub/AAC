@@ -66,7 +66,6 @@ import it.smartcommunitylab.aac.oauth.token.RefreshTokenGranter;
 import it.smartcommunitylab.aac.oauth.token.ResourceOwnerPasswordTokenGranter;
 import it.smartcommunitylab.aac.openid.service.OIDCTokenServices;
 import it.smartcommunitylab.aac.openid.token.IdTokenServices;
-import it.smartcommunitylab.aac.profiles.claims.OpenIdClaimsExtractorProvider;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
 
 /*
