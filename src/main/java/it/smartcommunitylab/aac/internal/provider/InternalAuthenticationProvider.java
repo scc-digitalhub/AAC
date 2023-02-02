@@ -11,6 +11,7 @@ import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.auth.ConfirmKeyAuthenticationProvider;
 import it.smartcommunitylab.aac.internal.auth.InternalAuthenticationException;
 import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
@@ -22,25 +23,27 @@ public class InternalAuthenticationProvider
 
     // provider configuration
     private final InternalIdentityProviderConfig config;
+    private final String repositoryId;
 
-    private final InternalAccountProvider accountProvider;
+    private final UserAccountService<InternalUserAccount> userAccountService;
     private final ConfirmKeyAuthenticationProvider confirmKeyProvider;
 
     public InternalAuthenticationProvider(String providerId,
-            InternalAccountProvider accountProvider,
+            UserAccountService<InternalUserAccount> userAccountService,
             InternalIdentityConfirmService confirmService,
             InternalIdentityProviderConfig providerConfig, String realm) {
         super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
-        Assert.notNull(accountProvider, "account provider is mandatory");
+        Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(confirmService, "account confirm service is mandatory");
         Assert.notNull(providerConfig, "provider config is mandatory");
 
         this.config = providerConfig;
-        this.accountProvider = accountProvider;
+        this.repositoryId = config.getRepositoryId();
+        this.userAccountService = userAccountService;
 
         // build confirm key provider
-        confirmKeyProvider = new ConfirmKeyAuthenticationProvider(providerId, confirmService, realm);
-
+        confirmKeyProvider = new ConfirmKeyAuthenticationProvider(providerId, userAccountService, confirmService,
+                repositoryId, realm);
     }
 
     @Override
@@ -50,7 +53,7 @@ public class InternalAuthenticationProvider
         String credentials = String
                 .valueOf(authentication.getCredentials());
 
-        InternalUserAccount account = accountProvider.findAccount(username);
+        InternalUserAccount account = userAccountService.findAccountById(repositoryId, username);
         if (account == null) {
             throw new InternalAuthenticationException(username, username, credentials, "unknown",
                     new BadCredentialsException("invalid user or key"));

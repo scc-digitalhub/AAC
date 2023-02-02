@@ -12,10 +12,10 @@ import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.crypto.InternalPasswordEncoder;
 import it.smartcommunitylab.aac.internal.auth.InternalAuthenticationException;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.provider.InternalAccountProvider;
 import it.smartcommunitylab.aac.password.auth.ResetKeyAuthenticationProvider;
 import it.smartcommunitylab.aac.password.auth.ResetKeyAuthenticationToken;
 import it.smartcommunitylab.aac.password.auth.UsernamePasswordAuthenticationProvider;
@@ -30,8 +30,9 @@ public class PasswordAuthenticationProvider
 
     // provider configuration
     private final PasswordIdentityProviderConfig config;
+    private final String repositoryId;
 
-    private final InternalAccountProvider accountProvider;
+    private final UserAccountService<InternalUserAccount> userAccountService;
     private final UsernamePasswordAuthenticationProvider authProvider;
     private final ResetKeyAuthenticationProvider resetKeyProvider;
 
@@ -41,28 +42,30 @@ public class PasswordAuthenticationProvider
     private final PasswordEncoder passwordEncoder;
 
     public PasswordAuthenticationProvider(String providerId,
-            InternalAccountProvider accountProvider,
+            UserAccountService<InternalUserAccount> userAccountService,
             PasswordIdentityCredentialsService passwordService,
             PasswordIdentityProviderConfig providerConfig, String realm) {
         super(SystemKeys.AUTHORITY_PASSWORD, providerId, realm);
-        Assert.notNull(accountProvider, "account provider is mandatory");
+        Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(passwordService, "password service is mandatory");
         Assert.notNull(providerConfig, "provider config is mandatory");
 
         this.config = providerConfig;
-        this.accountProvider = accountProvider;
+        this.repositoryId = config.getRepositoryId();
+        this.userAccountService = userAccountService;
 
         // build a password encoder
         this.passwordEncoder = new InternalPasswordEncoder();
 
         // build our internal auth provider
-        authProvider = new UsernamePasswordAuthenticationProvider(providerId, accountProvider, passwordService, realm);
+        authProvider = new UsernamePasswordAuthenticationProvider(providerId, userAccountService, passwordService,
+                repositoryId, realm);
 //        // we use our password encoder
 //        authProvider.setPasswordEncoder(passwordEncoder);
 
         // build additional providers
-        resetKeyProvider = new ResetKeyAuthenticationProvider(providerId, accountProvider, passwordService,
-                realm);
+        resetKeyProvider = new ResetKeyAuthenticationProvider(providerId, userAccountService, passwordService,
+                repositoryId, realm);
 
     }
 
@@ -78,7 +81,7 @@ public class PasswordAuthenticationProvider
         String username = authentication.getName();
         String credentials = String.valueOf(authentication.getCredentials());
 
-        InternalUserAccount account = accountProvider.findAccountByUsername(username);
+        InternalUserAccount account = userAccountService.findAccountById(repositoryId, username);
         if (account == null) {
             // mitigate timing attacks to encode the provider password if usernamePassword
             if (authentication instanceof UsernamePasswordAuthenticationToken

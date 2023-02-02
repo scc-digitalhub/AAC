@@ -28,8 +28,8 @@ import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.core.authorities.AuthorityService;
-import it.smartcommunitylab.aac.core.authorities.ProviderAuthority;
+import it.smartcommunitylab.aac.core.authorities.ConfigurableAuthorityService;
+import it.smartcommunitylab.aac.core.authorities.ConfigurableProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
@@ -37,12 +37,12 @@ import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
 import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 
 @Transactional
-public abstract class ConfigurableProviderService<A extends ProviderAuthority<?, ?, C, ?, ?>, C extends ConfigurableProvider, E extends ProviderEntity>
+public abstract class ConfigurableProviderService<A extends ConfigurableProviderAuthority<?, ?, C, ?, ?>, C extends ConfigurableProvider, E extends ProviderEntity>
         implements InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     protected final ProviderEntityService<E> providerService;
-    protected final AuthorityService<A> authorityService;
+    protected final ConfigurableAuthorityService<A> authorityService;
 
     // keep a local map for system providers since these are not in db
     // key is providerId
@@ -53,7 +53,7 @@ public abstract class ConfigurableProviderService<A extends ProviderAuthority<?,
     protected Converter<C, E> configConverter;
     protected Converter<E, C> entityConverter;
 
-    public ConfigurableProviderService(AuthorityService<A> providerAuthorityService,
+    public ConfigurableProviderService(ConfigurableAuthorityService<A> providerAuthorityService,
             ProviderEntityService<E> providerService) {
         Assert.notNull(providerAuthorityService, "authority service is required");
         Assert.notNull(providerService, "provider entity service is required");
@@ -137,12 +137,11 @@ public abstract class ConfigurableProviderService<A extends ProviderAuthority<?,
         return entityConverter.convert(pe);
     }
 
-    public C addProvider(String realm,
-            C provider)
+    public C addProvider(String realm, C cp)
             throws RegistrationException, SystemException, NoSuchAuthorityException {
         logger.debug("add provider for realm {}", StringUtils.trimAllWhitespace(realm));
         if (logger.isTraceEnabled()) {
-            logger.trace("provider bean: {}", StringUtils.trimAllWhitespace(provider.toString()));
+            logger.trace("provider bean: {}", StringUtils.trimAllWhitespace(cp.toString()));
         }
         if (SystemKeys.REALM_GLOBAL.equals(realm) || SystemKeys.REALM_SYSTEM.equals(realm)) {
             // we do not persist in db global providers
@@ -150,7 +149,7 @@ public abstract class ConfigurableProviderService<A extends ProviderAuthority<?,
         }
 
         // check if id provided
-        String providerId = provider.getProvider();
+        String providerId = cp.getProvider();
         if (StringUtils.hasText(providerId)) {
             E pe = providerService.findProvider(providerId);
             if (pe != null) {
@@ -164,14 +163,17 @@ public abstract class ConfigurableProviderService<A extends ProviderAuthority<?,
 
         }
 
-        // unpack props and validate
-        E entity = configConverter.convert(provider);
+        // set initial version to 1
+        cp.setVersion(1);
 
-        String authority = provider.getAuthority();
+        // unpack props and validate
+        E entity = configConverter.convert(cp);
+
+        String authority = cp.getAuthority();
 
         // we validate config by converting to specific configMap
         ConfigurationProvider<?, ?, ?> configProvider = getConfigurationProvider(authority);
-        ConfigMap configurable = configProvider.getConfigMap(provider.getConfiguration());
+        ConfigMap configurable = configProvider.getConfigMap(cp.getConfiguration());
 
         // check with validator
         if (validator != null) {
@@ -193,35 +195,46 @@ public abstract class ConfigurableProviderService<A extends ProviderAuthority<?,
         return entityConverter.convert(pe);
     }
 
-    public C updateProvider(
-            String providerId, C provider)
-            throws NoSuchProviderException, NoSuchAuthorityException {
+    public C updateProvider(String providerId, C cp)
+            throws NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
         logger.debug("update provider {}", StringUtils.trimAllWhitespace(providerId));
         if (logger.isTraceEnabled()) {
-            logger.trace("provider bean: {}", StringUtils.trimAllWhitespace(provider.toString()));
+            logger.trace("provider bean: {}", StringUtils.trimAllWhitespace(cp.toString()));
         }
 
         E pe = providerService.getProvider(providerId);
 
-        if (StringUtils.hasText(provider.getProvider()) && !providerId.equals(provider.getProvider())) {
+        if (StringUtils.hasText(cp.getProvider()) && !providerId.equals(cp.getProvider())) {
             throw new IllegalArgumentException("configuration does not match provider");
         }
 
-        if (!pe.getAuthority().equals(provider.getAuthority())) {
+        if (!pe.getAuthority().equals(cp.getAuthority())) {
             throw new IllegalArgumentException("authority mismatch");
         }
 
-        if (!pe.getRealm().equals(provider.getRealm())) {
+        if (!pe.getRealm().equals(cp.getRealm())) {
             throw new IllegalArgumentException("realm mismatch");
         }
 
-        E entity = configConverter.convert(provider);
+        // check version and increment when necessary
+        if (cp.getVersion() == null) {
+            cp.setVersion(pe.getVersion());
+        }
+
+        if (cp.getVersion() < pe.getVersion()) {
+            throw new IllegalArgumentException("invalid version");
+        } else if (cp.getVersion() == pe.getVersion()) {
+            // increment
+            cp.setVersion(pe.getVersion() + 1);
+        }
+
+        E entity = configConverter.convert(cp);
 
         String authority = pe.getAuthority();
 
         // we validate config by converting to specific configMap
         ConfigurationProvider<?, ?, ?> configProvider = getConfigurationProvider(authority);
-        ConfigMap configurable = configProvider.getConfigMap(provider.getConfiguration());
+        ConfigMap configurable = configProvider.getConfigMap(cp.getConfiguration());
 
         // check with validator
         if (validator != null) {

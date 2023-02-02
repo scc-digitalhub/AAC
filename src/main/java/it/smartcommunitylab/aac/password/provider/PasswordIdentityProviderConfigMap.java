@@ -15,12 +15,15 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractConfigMap;
-import it.smartcommunitylab.aac.internal.model.CredentialsType;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PasswordIdentityProviderConfigMap extends AbstractConfigMap implements Serializable {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
+
+    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_CONFIG + SystemKeys.ID_SEPARATOR
+            + SystemKeys.RESOURCE_IDENTITY_PROVIDER + SystemKeys.ID_SEPARATOR
+            + SystemKeys.AUTHORITY_PASSWORD;
 
     @Max(30 * 24 * 60 * 60)
     private Integer maxSessionDuration;
@@ -37,8 +40,6 @@ public class PasswordIdentityProviderConfigMap extends AbstractConfigMap impleme
      */
 
     private Boolean enablePasswordReset;
-    private Boolean enablePasswordSet;
-
     @Max(3 * 24 * 60 * 60)
     private Integer passwordResetValidity;
 
@@ -65,10 +66,6 @@ public class PasswordIdentityProviderConfigMap extends AbstractConfigMap impleme
     private Boolean passwordSupportWhitespace;
 
     public PasswordIdentityProviderConfigMap() {
-    }
-
-    public CredentialsType getCredentialsType() {
-        return CredentialsType.PASSWORD;
     }
 
     public String getRepositoryId() {
@@ -109,14 +106,6 @@ public class PasswordIdentityProviderConfigMap extends AbstractConfigMap impleme
 
     public void setEnablePasswordReset(Boolean enablePasswordReset) {
         this.enablePasswordReset = enablePasswordReset;
-    }
-
-    public Boolean getEnablePasswordSet() {
-        return enablePasswordSet;
-    }
-
-    public void setEnablePasswordSet(Boolean enablePasswordSet) {
-        this.enablePasswordSet = enablePasswordSet;
     }
 
     public Integer getPasswordResetValidity() {
@@ -207,7 +196,6 @@ public class PasswordIdentityProviderConfigMap extends AbstractConfigMap impleme
         this.requireAccountConfirmation = map.getRequireAccountConfirmation();
 
         this.enablePasswordReset = map.getEnablePasswordReset();
-        this.enablePasswordSet = map.getEnablePasswordSet();
         this.passwordResetValidity = map.getPasswordResetValidity();
 
         // password policy, optional

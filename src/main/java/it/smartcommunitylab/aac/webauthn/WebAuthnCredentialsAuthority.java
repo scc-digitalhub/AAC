@@ -8,14 +8,14 @@ import it.smartcommunitylab.aac.core.base.AbstractCredentialsAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.webauthn.model.WebAuthnEditableUserCredential;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredential;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsConfigurationProvider;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsService;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsServiceConfig;
-import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfigMap;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnConfigTranslatorRepository;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnRegistrationRpService;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserCredentialsService;
 
@@ -26,12 +26,13 @@ import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserCredentialsService;
  */
 @Service
 public class WebAuthnCredentialsAuthority extends
-        AbstractCredentialsAuthority<WebAuthnCredentialsService, WebAuthnUserCredential, WebAuthnIdentityProviderConfigMap, WebAuthnCredentialsServiceConfig> {
+        AbstractCredentialsAuthority<WebAuthnCredentialsService, WebAuthnUserCredential, WebAuthnEditableUserCredential, WebAuthnIdentityProviderConfigMap, WebAuthnCredentialsServiceConfig> {
 
     public static final String AUTHORITY_URL = "/auth/webauthn/";
 
     // internal account service
     private final UserAccountService<InternalUserAccount> accountService;
+    private ResourceEntityService resourceService;
 
     // key repository
     private final WebAuthnUserCredentialsService credentialsService;
@@ -43,8 +44,8 @@ public class WebAuthnCredentialsAuthority extends
             UserAccountService<InternalUserAccount> userAccountService,
             WebAuthnUserCredentialsService credentialsService,
             WebAuthnRegistrationRpService rpService,
-            ProviderConfigRepository<WebAuthnIdentityProviderConfig> registrationRepository) {
-        super(SystemKeys.AUTHORITY_WEBAUTHN, new WebAuthnConfigTranslatorRepository(registrationRepository));
+            ProviderConfigRepository<WebAuthnCredentialsServiceConfig> registrationRepository) {
+        super(SystemKeys.AUTHORITY_WEBAUTHN, registrationRepository);
         Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(credentialsService, "credentials service is mandatory");
         Assert.notNull(rpService, "webauthn rp service is mandatory");
@@ -60,14 +61,21 @@ public class WebAuthnCredentialsAuthority extends
         this.configProvider = configProvider;
     }
 
+    @Autowired
+    public void setResourceService(ResourceEntityService resourceService) {
+        this.resourceService = resourceService;
+    }
+
     @Override
     public WebAuthnCredentialsService buildProvider(WebAuthnCredentialsServiceConfig config) {
-        WebAuthnCredentialsService idp = new WebAuthnCredentialsService(
+        WebAuthnCredentialsService service = new WebAuthnCredentialsService(
                 config.getProvider(),
                 accountService, credentialsService, rpService,
                 config, config.getRealm());
 
-        return idp;
+        service.setResourceService(resourceService);
+
+        return service;
     }
 
     @Override

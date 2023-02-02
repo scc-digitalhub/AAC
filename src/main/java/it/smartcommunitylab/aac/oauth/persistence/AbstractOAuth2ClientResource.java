@@ -74,9 +74,4 @@ public abstract class AbstractOAuth2ClientResource implements ClientResource, Se
         return sb.toString();
     }
 
-    @Override
-    public String getUuid() {
-        return null;
-    }
-
 }

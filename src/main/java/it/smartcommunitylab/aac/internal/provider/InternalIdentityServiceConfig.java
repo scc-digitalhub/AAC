@@ -6,13 +6,17 @@ import it.smartcommunitylab.aac.core.model.ConfigurableIdentityService;
 
 public class InternalIdentityServiceConfig extends AbstractIdentityServiceConfig<InternalIdentityProviderConfigMap> {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
+    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_PROVIDER + SystemKeys.ID_SEPARATOR
+            + SystemKeys.RESOURCE_CONFIG + SystemKeys.ID_SEPARATOR
+            + SystemKeys.RESOURCE_IDENTITY_SERVICE + SystemKeys.ID_SEPARATOR
+            + SystemKeys.AUTHORITY_INTERNAL;
 
     public InternalIdentityServiceConfig(String provider, String realm) {
         super(SystemKeys.AUTHORITY_INTERNAL, provider, realm, new InternalIdentityProviderConfigMap());
     }
 
-    public InternalIdentityServiceConfig(ConfigurableIdentityService cp) {
-        super(cp);
+    public InternalIdentityServiceConfig(ConfigurableIdentityService cp, InternalIdentityProviderConfigMap configMap) {
+        super(cp, configMap);
     }
 
     public String getRepositoryId() {

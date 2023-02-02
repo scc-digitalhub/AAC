@@ -22,7 +22,7 @@ public class WebAuthnIdentityConfigurationProvider extends
 
     @Override
     protected WebAuthnIdentityProviderConfig buildConfig(ConfigurableIdentityProvider cp) {
-        return new WebAuthnIdentityProviderConfig(cp);
+        return new WebAuthnIdentityProviderConfig(cp, getConfigMap(cp.getConfiguration()));
     }
 
 }

@@ -8,7 +8,7 @@ public class InternalUserAccountId implements Serializable {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
-    private String provider;
+    private String repositoryId;
     private String username;
 
     public InternalUserAccountId() {
@@ -16,16 +16,16 @@ public class InternalUserAccountId implements Serializable {
 
     public InternalUserAccountId(String provider, String username) {
         super();
-        this.provider = provider;
+        this.repositoryId = provider;
         this.username = username;
     }
 
-    public String getProvider() {
-        return provider;
+    public String getRepositoryId() {
+        return repositoryId;
     }
 
-    public void setProvider(String provider) {
-        this.provider = provider;
+    public void setRepositoryId(String repositoryId) {
+        this.repositoryId = repositoryId;
     }
 
     public String getUsername() {
@@ -40,7 +40,7 @@ public class InternalUserAccountId implements Serializable {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((provider == null) ? 0 : provider.hashCode());
+        result = prime * result + ((repositoryId == null) ? 0 : repositoryId.hashCode());
         result = prime * result + ((username == null) ? 0 : username.hashCode());
         return result;
     }
@@ -54,10 +54,10 @@ public class InternalUserAccountId implements Serializable {
         if (getClass() != obj.getClass())
             return false;
         InternalUserAccountId other = (InternalUserAccountId) obj;
-        if (provider == null) {
-            if (other.provider != null)
+        if (repositoryId == null) {
+            if (other.repositoryId != null)
                 return false;
-        } else if (!provider.equals(other.provider))
+        } else if (!repositoryId.equals(other.repositoryId))
             return false;
         if (username == null) {
             if (other.username != null)

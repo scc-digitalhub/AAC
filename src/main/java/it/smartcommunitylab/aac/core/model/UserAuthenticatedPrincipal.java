@@ -5,8 +5,6 @@ import java.util.Map;
 
 import org.springframework.security.core.AuthenticatedPrincipal;
 
-import it.smartcommunitylab.aac.SystemKeys;
-
 /*
  * An authenticated user principal, associated with an identity provider and an account as a user resource
  * 
@@ -25,13 +23,7 @@ public interface UserAuthenticatedPrincipal extends AuthenticatedPrincipal, User
     // principal attributes as received from idp
     public Map<String, Serializable> getAttributes();
 
-    default String getType() {
-        return SystemKeys.RESOURCE_PRINCIPAL;
-    }
-
     // principalId is local to the provider
-    default String getPrincipalId() {
-        return getId();
-    }
+    String getPrincipalId();
 
 }

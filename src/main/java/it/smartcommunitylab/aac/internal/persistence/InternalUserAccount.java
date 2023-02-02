@@ -1,13 +1,15 @@
 package it.smartcommunitylab.aac.internal.persistence;
 
+import java.io.Serializable;
 import java.util.Date;
+import java.util.Map;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -19,8 +21,6 @@ import org.springframework.security.core.CredentialsContainer;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractAccount;
 import it.smartcommunitylab.aac.model.SubjectStatus;
@@ -31,14 +31,15 @@ import it.smartcommunitylab.aac.model.SubjectStatus;
 @EntityListeners(AuditingEntityListener.class)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class InternalUserAccount extends AbstractAccount implements CredentialsContainer {
-
-    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
+    private static final long serialVersionUID = SystemKeys.AAC_INTERNAL_SERIAL_VERSION;
+    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_ACCOUNT + SystemKeys.ID_SEPARATOR
+            + SystemKeys.AUTHORITY_INTERNAL;
 
     // account id
     @Id
     @NotBlank
-    @Column(name = "provider_id", length = 128)
-    private String provider;
+    @Column(name = "repository_id", length = 128)
+    private String repositoryId;
 
     @Id
     @NotBlank
@@ -55,15 +56,12 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
     @Column(name = "user_id", length = 128)
     private String userId;
 
-    @JsonInclude
-    @Transient
-    private String authority;
-
     @NotBlank
     @Column(length = 128)
     private String realm;
 
     // login
+    @Column(length = 16)
     private String status;
 
     // attributes
@@ -93,26 +91,20 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
     private Date modifiedDate;
 
     public InternalUserAccount() {
-        super(SystemKeys.AUTHORITY_INTERNAL, null, null);
+        super(SystemKeys.AUTHORITY_INTERNAL, null);
     }
 
     public InternalUserAccount(String authority) {
-        super(authority, null, null);
-        this.authority = authority;
+        super(authority, null);
     }
 
     @Override
-    public String getAuthority() {
-        return authority != null ? authority : super.getAuthority();
+    public String getType() {
+        return RESOURCE_TYPE;
     }
 
     @Override
-    public String getProvider() {
-        return provider;
-    }
-
-    @Override
-    public String getId() {
+    public String getAccountId() {
         return username;
     }
 
@@ -167,29 +159,21 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
         this.uuid = uuid;
     }
 
-    public void setAuthority(String authority) {
-        this.authority = authority;
-    }
-
     public void setRealm(String realm) {
         this.realm = realm;
-    }
-
-    public void setProvider(String provider) {
-        this.provider = provider;
     }
 
     public void setUsername(String username) {
         this.username = username;
     }
 
-//    public String getPassword() {
-//        return password;
-//    }
-//
-//    public void setPassword(String password) {
-//        this.password = password;
-//    }
+    public String getRepositoryId() {
+        return repositoryId;
+    }
+
+    public void setRepositoryId(String repositoryId) {
+        this.repositoryId = repositoryId;
+    }
 
     public String getStatus() {
         return status;
@@ -277,11 +261,22 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
     }
 
     @Override
+    public Map<String, Serializable> getAttributes() {
+        // internal account has no additional attributes
+        return null;
+    }
+
+    @Override
+    public void setAttributes(Map<String, Serializable> attributes) {
+        // internal account has no additional attributes
+    }
+
+    @Override
     public String toString() {
-        return "InternalUserAccount [provider=" + provider + ", username=" + username + ", uuid=" + uuid + ", userId="
-                + userId + ", authority=" + authority + ", realm=" + realm + ", status=" + status + ", email=" + email
-                + ", name=" + name + ", surname=" + surname + ", lang=" + lang + ", confirmed=" + confirmed
-                + ", createDate=" + createDate + ", modifiedDate=" + modifiedDate + "]";
+        return "InternalUserAccount [repositoryId=" + repositoryId + ", username=" + username + ", uuid=" + uuid
+                + ", userId=" + userId + ", realm=" + realm + ", status=" + status
+                + ", email=" + email + ", name=" + name + ", surname=" + surname + ", lang=" + lang + ", confirmed="
+                + confirmed + ", createDate=" + createDate + ", modifiedDate=" + modifiedDate + "]";
     }
 
 }

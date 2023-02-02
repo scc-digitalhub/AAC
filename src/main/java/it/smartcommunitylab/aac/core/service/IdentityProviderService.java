@@ -54,12 +54,14 @@ public class IdentityProviderService
         ConfigurableIdentityProvider internalConfig = new ConfigurableIdentityProvider(
                 SystemKeys.AUTHORITY_INTERNAL, SystemKeys.AUTHORITY_INTERNAL,
                 SystemKeys.REALM_SYSTEM);
+        internalConfig.setVersion(1);
         logger.debug("configure internal idp for system realm");
         systemProviders.put(internalConfig.getProvider(), internalConfig);
 
         ConfigurableIdentityProvider internalPasswordIdpConfig = new ConfigurableIdentityProvider(
                 SystemKeys.AUTHORITY_PASSWORD, SystemKeys.AUTHORITY_INTERNAL + "_" + SystemKeys.AUTHORITY_PASSWORD,
                 SystemKeys.REALM_SYSTEM);
+        internalPasswordIdpConfig.setVersion(1);
         logger.debug("configure internal password idp for system realm");
         systemProviders.put(internalPasswordIdpConfig.getProvider(), internalPasswordIdpConfig);
     }
@@ -145,6 +147,8 @@ public class IdentityProviderService
             ConfigurableIdentityProvider cp = new ConfigurableIdentityProvider(pe.getAuthority(), pe.getProvider(),
                     pe.getRealm());
             cp.setConfiguration(pe.getConfigurationMap());
+            cp.setVersion(pe.getVersion());
+
             cp.setEnabled(pe.isEnabled());
             cp.setPersistence(pe.getPersistence());
             cp.setEvents(pe.getEvents());
@@ -171,7 +175,7 @@ public class IdentityProviderService
             pe.setProvider(reg.getProvider());
             pe.setRealm(reg.getRealm());
             pe.setEnabled(reg.isEnabled());
-            pe.setLinkable(reg.isLinkable());
+            pe.setLinkable(reg.getLinkable());
 
             String name = reg.getName();
             if (StringUtils.hasText(name)) {
@@ -201,28 +205,7 @@ public class IdentityProviderService
 
             // TODO add enum
             String persistence = reg.getPersistence();
-            if (!StringUtils.hasText(persistence)) {
-                persistence = SystemKeys.PERSISTENCE_LEVEL_REPOSITORY;
-            }
-
-            if (!SystemKeys.PERSISTENCE_LEVEL_REPOSITORY.equals(persistence)
-                    && !SystemKeys.PERSISTENCE_LEVEL_MEMORY.equals(persistence)
-                    && !SystemKeys.PERSISTENCE_LEVEL_SESSION.equals(persistence)
-                    && !SystemKeys.PERSISTENCE_LEVEL_NONE.equals(persistence)) {
-                throw new RegistrationException("invalid persistence level");
-            }
-
             String events = reg.getEvents();
-            if (!StringUtils.hasText(events)) {
-                events = SystemKeys.EVENTS_LEVEL_DETAILS;
-            }
-
-            if (!SystemKeys.EVENTS_LEVEL_DETAILS.equals(events)
-                    && !SystemKeys.EVENTS_LEVEL_FULL.equals(events)
-                    && !SystemKeys.EVENTS_LEVEL_MINIMAL.equals(events)
-                    && !SystemKeys.EVENTS_LEVEL_NONE.equals(events)) {
-                throw new RegistrationException("invalid events level");
-            }
 
             Integer position = (reg.getPosition() != null && reg.getPosition().intValue() > 0) ? reg.getPosition()
                     : null;
@@ -232,6 +215,8 @@ public class IdentityProviderService
             pe.setPosition(position);
 
             pe.setConfigurationMap(reg.getConfiguration());
+            pe.setVersion(reg.getVersion());
+
             pe.setHookFunctions(reg.getHookFunctions());
 
             return pe;

@@ -2,12 +2,16 @@ package it.smartcommunitylab.aac.password.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractCredentialsServiceConfig;
-import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsService;
+import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsProvider;
 
 public class PasswordCredentialsServiceConfig
         extends AbstractCredentialsServiceConfig<PasswordIdentityProviderConfigMap> {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
-
+    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_PROVIDER + SystemKeys.ID_SEPARATOR
+            + SystemKeys.RESOURCE_CONFIG + SystemKeys.ID_SEPARATOR
+            + SystemKeys.RESOURCE_CREDENTIALS_SERVICE + SystemKeys.ID_SEPARATOR
+            + SystemKeys.AUTHORITY_PASSWORD;
+    
     private final static int MIN_DURATION = 300;
     private final static int PASSWORD_MIN_LENGTH = 2;
     private final static int PASSWORD_MAX_LENGTH = 75;
@@ -16,8 +20,9 @@ public class PasswordCredentialsServiceConfig
         super(SystemKeys.AUTHORITY_PASSWORD, provider, realm, new PasswordIdentityProviderConfigMap());
     }
 
-    public PasswordCredentialsServiceConfig(ConfigurableCredentialsService cp) {
-        super(cp);
+    public PasswordCredentialsServiceConfig(ConfigurableCredentialsProvider cp,
+            PasswordIdentityProviderConfigMap configMap) {
+        super(cp, configMap);
     }
 
     public String getRepositoryId() {
@@ -35,10 +40,6 @@ public class PasswordCredentialsServiceConfig
 
     public boolean isEnablePasswordReset() {
         return configMap.getEnablePasswordReset() != null ? configMap.getEnablePasswordReset().booleanValue() : true;
-    }
-
-    public boolean isEnablePasswordSet() {
-        return configMap.getEnablePasswordSet() != null ? configMap.getEnablePasswordSet().booleanValue() : true;
     }
 
     public boolean isPasswordRequireAlpha() {

@@ -14,7 +14,7 @@ public interface UserAccountService<U extends UserAccount> {
 
     public U findAccountById(@NotNull String repository, @NotNull String id);
 
-    public U findAccountByUuid(@NotNull String repository, @NotNull String uuid);
+    public U findAccountByUuid(@NotNull String uuid);
 
     public List<U> findAccountByUsername(@NotNull String repository, @NotNull String username);
 

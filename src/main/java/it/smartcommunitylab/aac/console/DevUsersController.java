@@ -44,8 +44,8 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.controller.BaseUserController;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.dto.ConnectedAppProfile;
 import it.smartcommunitylab.aac.groups.GroupManager;
+import it.smartcommunitylab.aac.model.ConnectedApp;
 import it.smartcommunitylab.aac.model.Group;
 import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.SpaceRole;
@@ -262,11 +262,11 @@ public class DevUsersController extends BaseUserController {
     }
 
     @GetMapping("/users/{realm}/{userId}/apps")
-    public ResponseEntity<Collection<ConnectedAppProfile>> getRealmUserApps(
+    public ResponseEntity<Collection<ConnectedApp>> getRealmUserApps(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
             throws NoSuchRealmException, NoSuchUserException {
-        Collection<ConnectedAppProfile> result = userManager.getConnectedApps(realm, userId);
+        Collection<ConnectedApp> result = userManager.getConnectedApps(realm, userId);
         return ResponseEntity.ok(result);
     }
 

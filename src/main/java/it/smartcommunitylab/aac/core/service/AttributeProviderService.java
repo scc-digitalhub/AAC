@@ -12,8 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.authorities.AttributeProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.persistence.AttributeProviderEntity;
@@ -41,6 +39,8 @@ public class AttributeProviderService
             ConfigurableAttributeProvider cp = new ConfigurableAttributeProvider(pe.getAuthority(), pe.getProvider(),
                     pe.getRealm());
             cp.setConfiguration(pe.getConfigurationMap());
+            cp.setVersion(pe.getVersion());
+
             cp.setEnabled(pe.isEnabled());
             cp.setPersistence(pe.getPersistence());
             cp.setEvents(pe.getEvents());
@@ -99,33 +99,13 @@ public class AttributeProviderService
 
             // TODO add enum
             String persistence = reg.getPersistence();
-            if (!StringUtils.hasText(persistence)) {
-                persistence = SystemKeys.PERSISTENCE_LEVEL_REPOSITORY;
-            }
-
-            if (!SystemKeys.PERSISTENCE_LEVEL_REPOSITORY.equals(persistence)
-                    && !SystemKeys.PERSISTENCE_LEVEL_MEMORY.equals(persistence)
-                    && !SystemKeys.PERSISTENCE_LEVEL_SESSION.equals(persistence)
-                    && !SystemKeys.PERSISTENCE_LEVEL_NONE.equals(persistence)) {
-                throw new RegistrationException("invalid persistence level");
-            }
-
             String events = reg.getEvents();
-            if (!StringUtils.hasText(events)) {
-                events = SystemKeys.EVENTS_LEVEL_DETAILS;
-            }
-
-            if (!SystemKeys.EVENTS_LEVEL_DETAILS.equals(events)
-                    && !SystemKeys.EVENTS_LEVEL_FULL.equals(events)
-                    && !SystemKeys.EVENTS_LEVEL_MINIMAL.equals(events)
-                    && !SystemKeys.EVENTS_LEVEL_NONE.equals(events)) {
-                throw new RegistrationException("invalid events level");
-            }
 
             pe.setPersistence(persistence);
             pe.setEvents(events);
 
             pe.setConfigurationMap(reg.getConfiguration());
+            pe.setVersion(reg.getVersion());
 
             pe.setAttributeSets(StringUtils.collectionToCommaDelimitedString(reg.getAttributeSets()));
 

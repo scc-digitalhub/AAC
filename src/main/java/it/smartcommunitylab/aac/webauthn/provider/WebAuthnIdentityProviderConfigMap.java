@@ -6,8 +6,6 @@ import java.util.Map;
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
-import javax.validation.constraints.Pattern;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -24,11 +22,12 @@ import it.smartcommunitylab.aac.core.base.AbstractConfigMap;
 public class WebAuthnIdentityProviderConfigMap extends AbstractConfigMap implements Serializable {
     private static final long serialVersionUID = SystemKeys.AAC_WEBAUTHN_SERIAL_VERSION;
 
+    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_CONFIG + SystemKeys.ID_SEPARATOR
+            + SystemKeys.RESOURCE_IDENTITY_PROVIDER + SystemKeys.ID_SEPARATOR
+            + SystemKeys.AUTHORITY_WEBAUTHN;
+
     @Max(3 * 24 * 60 * 60)
     protected Integer maxSessionDuration;
-
-    @Pattern(regexp = SystemKeys.SLUG_PATTERN)
-    private String repositoryId;
 
     private Boolean displayAsButton;
 
@@ -52,14 +51,6 @@ public class WebAuthnIdentityProviderConfigMap extends AbstractConfigMap impleme
 
     public void setMaxSessionDuration(Integer maxSessionDuration) {
         this.maxSessionDuration = maxSessionDuration;
-    }
-
-    public String getRepositoryId() {
-        return repositoryId;
-    }
-
-    public void setRepositoryId(String repositoryId) {
-        this.repositoryId = repositoryId;
     }
 
     public Boolean getDisplayAsButton() {
@@ -121,7 +112,6 @@ public class WebAuthnIdentityProviderConfigMap extends AbstractConfigMap impleme
     @JsonIgnore
     public void setConfiguration(WebAuthnIdentityProviderConfigMap map) {
         this.maxSessionDuration = map.getMaxSessionDuration();
-        this.repositoryId = map.getRepositoryId();
 
         this.displayAsButton = map.getDisplayAsButton();
         this.allowUntrustedAttestation = map.getAllowUntrustedAttestation();

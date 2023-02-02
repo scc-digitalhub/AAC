@@ -26,7 +26,7 @@ public class OIDCIdentityConfigurationProvider extends
 
     @Override
     protected OIDCIdentityProviderConfig buildConfig(ConfigurableIdentityProvider cp) {
-        return new OIDCIdentityProviderConfig(cp);
+        return new OIDCIdentityProviderConfig(cp, getConfigMap(cp.getConfiguration()));
     }
 
 }

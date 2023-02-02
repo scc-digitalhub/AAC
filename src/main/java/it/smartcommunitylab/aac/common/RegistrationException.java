@@ -22,7 +22,7 @@ import it.smartcommunitylab.aac.SystemKeys;
  * @author raman
  *
  */
-public class RegistrationException extends RuntimeException {
+public class RegistrationException extends Exception {
     private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
 
     public static final String ERROR = "error.registration";

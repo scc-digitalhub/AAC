@@ -12,10 +12,13 @@ import it.smartcommunitylab.aac.attributes.store.AttributeStore;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityProvider;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.core.provider.AccountProvider;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.openid.model.OIDCUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.openid.model.OIDCUserIdentity;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
+import it.smartcommunitylab.aac.openid.provider.OIDCAccountPrincipalConverter;
 import it.smartcommunitylab.aac.openid.provider.OIDCAccountProvider;
 import it.smartcommunitylab.aac.openid.provider.OIDCAttributeProvider;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
@@ -29,7 +32,8 @@ public class AppleIdentityProvider
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // providers
-    private final OIDCAccountProvider accountProvider;
+    private final AppleAccountService accountService;
+    private final OIDCAccountPrincipalConverter principalConverter;
     private final OIDCAttributeProvider attributeProvider;
     private final AppleAuthenticationProvider authenticationProvider;
     private final OIDCSubjectResolver subjectResolver;
@@ -37,23 +41,25 @@ public class AppleIdentityProvider
     public AppleIdentityProvider(
             String providerId,
             UserAccountService<OIDCUserAccount> userAccountService,
-            AttributeStore attributeStore,
             AppleIdentityProviderConfig config,
             String realm) {
-        super(SystemKeys.AUTHORITY_APPLE, providerId, userAccountService, config, realm);
-        Assert.notNull(attributeStore, "attribute store is mandatory");
+        super(SystemKeys.AUTHORITY_APPLE, providerId, config, realm);
 
         logger.debug("create apple provider  with id {}", String.valueOf(providerId));
 
-        OIDCIdentityProviderConfig oidcConfig = config.toOidcProviderConfig();
-
         // build resource providers, we use our providerId to ensure consistency
-        this.accountProvider = new OIDCAccountProvider(SystemKeys.AUTHORITY_APPLE, providerId, userAccountService,
-                oidcConfig, realm);
-        this.attributeProvider = new OIDCAttributeProvider(SystemKeys.AUTHORITY_APPLE, providerId, attributeStore,
-                oidcConfig, realm);
+        AppleAccountServiceConfigConverter configConverter = new AppleAccountServiceConfigConverter();
+        this.accountService = new AppleAccountService(providerId, userAccountService, configConverter.convert(config),
+                realm);
+
+        this.principalConverter = new OIDCAccountPrincipalConverter(SystemKeys.AUTHORITY_APPLE, providerId,
+                userAccountService, realm);
+        this.principalConverter.setTrustEmailAddress(config.trustEmailAddress());
+
+        this.attributeProvider = new OIDCAttributeProvider(SystemKeys.AUTHORITY_APPLE, providerId, realm);
         this.subjectResolver = new OIDCSubjectResolver(SystemKeys.AUTHORITY_APPLE, providerId, userAccountService,
-                oidcConfig, realm);
+                config.getRepositoryId(), realm);
+        this.subjectResolver.setLinkable(config.isLinkable());
 
         // build custom authenticator
         this.authenticationProvider = new AppleAuthenticationProvider(providerId, userAccountService, config, realm);
@@ -71,9 +77,8 @@ public class AppleIdentityProvider
         this.authenticationProvider.setExecutionService(executionService);
     }
 
-    @Override
-    public AppleIdentityProviderConfig getConfig() {
-        return config;
+    public void setResourceService(ResourceEntityService resourceService) {
+        this.accountService.setResourceService(resourceService);
     }
 
     @Override
@@ -82,13 +87,18 @@ public class AppleIdentityProvider
     }
 
     @Override
-    public OIDCAccountProvider getAccountProvider() {
-        return accountProvider;
+    public AccountProvider<OIDCUserAccount> getAccountProvider() {
+        return accountService;
     }
 
     @Override
-    public OIDCAccountProvider getAccountPrincipalConverter() {
-        return accountProvider;
+    public AppleAccountService getAccountService() {
+        return accountService;
+    }
+
+    @Override
+    public OIDCAccountPrincipalConverter getAccountPrincipalConverter() {
+        return principalConverter;
     }
 
     @Override

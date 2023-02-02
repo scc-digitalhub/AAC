@@ -14,8 +14,9 @@ import it.smartcommunitylab.aac.core.base.AbstractAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.openid.OIDCKeys;
 
 public class OIDCUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincipal {
-
     private static final long serialVersionUID = SystemKeys.AAC_OIDC_SERIAL_VERSION;
+    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_PRINCIPAL + SystemKeys.ID_SEPARATOR
+            + SystemKeys.AUTHORITY_OIDC;
 
     // subject identifier from external provider is local id
     private final String subject;
@@ -23,7 +24,11 @@ public class OIDCUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
     // link attributes
     private Boolean emailVerified;
 
+    // TODO handle serializable
     private OAuth2User principal;
+
+    private String username;
+    private String emailAddress;
 
     // locally set attributes, for example after custom mapping
     private Map<String, Serializable> attributes;
@@ -34,9 +39,26 @@ public class OIDCUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
 
     public OIDCUserAuthenticatedPrincipal(String authority, String provider, String realm, String userId,
             String subject) {
-        super(authority, provider, realm, userId);
+        super(authority, provider);
         Assert.hasText(subject, "subject can not be null or empty");
         this.subject = subject;
+        setRealm(realm);
+        setUserId(userId);
+    }
+
+    @Override
+    public String getType() {
+        return RESOURCE_TYPE;
+    }
+
+    @Override
+    public String getUsername() {
+        return StringUtils.hasText(username) ? username : subject;
+    }
+
+    @Override
+    public String getEmailAddress() {
+        return emailAddress;
     }
 
     public String getSubject() {
@@ -44,13 +66,13 @@ public class OIDCUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
     }
 
     @Override
-    public String getId() {
+    public String getPrincipalId() {
         return subject;
     }
 
     @Override
     public String getName() {
-        return username;
+        return getUsername();
     }
 
     @Override
@@ -94,29 +116,26 @@ public class OIDCUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
             attributes.entrySet().forEach(e -> result.put(e.getKey(), e.getValue()));
         }
 
-        // make sure these are never overridden
-        result.put("authority", getAuthority());
-        result.put("provider", getProvider());
-        result.put("sub", subject);
-        result.put("id", subject);
-
+        // override if set
         if (StringUtils.hasText(username)) {
             result.put("name", username);
         }
 
         if (StringUtils.hasText(emailAddress)) {
-            result.put("email", emailAddress);
+            result.put(OpenIdAttributesSet.EMAIL, emailAddress);
         }
 
         if (emailVerified != null) {
             result.put(OpenIdAttributesSet.EMAIL_VERIFIED, emailVerified.booleanValue());
         }
 
-        return result;
-    }
+        // add base attributes
+        result.putAll(super.getAttributes());
 
-    public void setUuid(String uuid) {
-        this.uuid = uuid;
+        // make sure these are never overridden
+        result.put("sub", subject);
+
+        return result;
     }
 
     public OAuth2User getPrincipal() {

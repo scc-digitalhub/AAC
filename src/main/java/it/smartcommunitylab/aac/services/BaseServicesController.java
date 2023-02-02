@@ -74,7 +74,7 @@ public class BaseServicesController implements InitializingBean {
     @Operation(summary = "add a new service to realm")
     public Service addService(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestBody @Valid @NotNull Service s) throws NoSuchRealmException {
+            @RequestBody @Valid @NotNull Service s) throws NoSuchRealmException, RegistrationException {
         logger.debug("add service for realm {}",
                 StringUtils.trimAllWhitespace(realm));
 
@@ -101,7 +101,8 @@ public class BaseServicesController implements InitializingBean {
     public Service updateService(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
-            @RequestBody @Valid @NotNull Service s) throws NoSuchServiceException, NoSuchRealmException {
+            @RequestBody @Valid @NotNull Service s)
+            throws NoSuchServiceException, NoSuchRealmException, RegistrationException {
         logger.debug("update service {} for realm {}",
                 StringUtils.trimAllWhitespace(serviceId), StringUtils.trimAllWhitespace(realm));
 

@@ -70,6 +70,7 @@ public class TemplateProviderService
 
             pe.setEnabled(reg.isEnabled());
             pe.setConfigurationMap(reg.getConfiguration());
+            pe.setVersion(reg.getVersion());
 
             return pe;
         }
@@ -91,7 +92,9 @@ public class TemplateProviderService
             cp.setCustomStyle(pe.getCustomStyle());
 
             cp.setEnabled(pe.isEnabled());
+            
             cp.setConfiguration(pe.getConfigurationMap());
+            cp.setVersion(pe.getVersion());
 
             return cp;
         }

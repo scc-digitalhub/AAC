@@ -23,7 +23,6 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.ProviderWrappedAuthenticationToken;
-import it.smartcommunitylab.aac.core.auth.RequestAwareAuthenticationSuccessHandler;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
@@ -31,9 +30,8 @@ import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.auth.InternalAuthenticationException;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
-import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
-import it.smartcommunitylab.aac.password.service.InternalUserPasswordService;
+import it.smartcommunitylab.aac.password.service.InternalPasswordUserCredentialsService;
 
 /*
  * Handles login requests for internal authority, via extended auth manager
@@ -55,16 +53,16 @@ public class UsernamePasswordAuthenticationFilter extends AbstractAuthentication
     private final UserAccountService<InternalUserAccount> userAccountService;
 
     // TODO remove
-    private final InternalUserPasswordService userPasswordService;
+    private final InternalPasswordUserCredentialsService userPasswordService;
 
     public UsernamePasswordAuthenticationFilter(UserAccountService<InternalUserAccount> userAccountService,
-            InternalUserPasswordService userPasswordService,
+            InternalPasswordUserCredentialsService userPasswordService,
             ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository) {
         this(userAccountService, userPasswordService, registrationRepository, DEFAULT_FILTER_URI, null);
     }
 
     public UsernamePasswordAuthenticationFilter(UserAccountService<InternalUserAccount> userAccountService,
-            InternalUserPasswordService userPasswordService,
+            InternalPasswordUserCredentialsService userPasswordService,
             ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository,
             String filterProcessingUrl, AuthenticationEntryPoint authenticationEntryPoint) {
         super(filterProcessingUrl);
@@ -153,26 +151,27 @@ public class UsernamePasswordAuthenticationFilter extends AbstractAuthentication
                     e.getMessage());
         }
 
-        // fetch account to check
-        // if this does not exists we'll let authProvider handle the error to ensure
-        // proper audit
-        // TODO rework, this should be handled post login by adding another filter
-        String repositoryId = providerConfig.getRepositoryId();
-        InternalUserAccount account = userAccountService.findAccountById(repositoryId, username);
-        // fetch active password
-        InternalUserPassword credentials = userPasswordService.findPassword(repositoryId, username);
-
-        if (account != null && credentials != null) {
-            HttpSession session = request.getSession(true);
-            if (session != null) {
-                // check if user needs to reset password, and add redirect
-                if (credentials.isChangeOnFirstAccess()) {
-                    // TODO build url
-                    session.setAttribute(RequestAwareAuthenticationSuccessHandler.SAVED_REQUEST,
-                            "/changepwd/" + providerId + "/" + account.getUuid());
-                }
-            }
-        }
+        // DISABLED, TODO implement filter
+//        // fetch account to check
+//        // if this does not exists we'll let authProvider handle the error to ensure
+//        // proper audit
+//        // TODO rework, this should be handled post login by adding another filter
+//        String repositoryId = providerConfig.getRepositoryId();
+//        InternalUserAccount account = userAccountService.findAccountById(repositoryId, username);
+//        // fetch active password
+//        InternalUserPassword credentials = userPasswordService.findPassword(repositoryId, username);
+//
+//        if (account != null && credentials != null) {
+//            HttpSession session = request.getSession(true);
+//            if (session != null) {
+//                // check if user needs to reset password, and add redirect
+//                if (credentials.isChangeOnFirstAccess()) {
+//                    // TODO build url
+//                    session.setAttribute(RequestAwareAuthenticationSuccessHandler.SAVED_REQUEST,
+//                            "/changepwd/" + providerId + "/" + account.getUuid());
+//                }
+//            }
+//        }
 
         // build a request
         UsernamePasswordAuthenticationToken authenticationRequest = new UsernamePasswordAuthenticationToken(username,

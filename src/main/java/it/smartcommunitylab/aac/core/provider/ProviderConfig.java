@@ -2,12 +2,15 @@ package it.smartcommunitylab.aac.core.provider;
 
 import java.util.Map;
 
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
-import it.smartcommunitylab.aac.core.model.Resource;
 
-public interface ProviderConfig<M extends ConfigMap, T extends ConfigurableProvider> extends Resource {
+public interface ProviderConfig<M extends ConfigMap> {
+
+    public String getRealm();
+
+    public String getAuthority();
+
+    public String getProvider();
 
     public String getName();
 
@@ -17,15 +20,6 @@ public interface ProviderConfig<M extends ConfigMap, T extends ConfigurableProvi
 
     public M getConfigMap();
 
-    public T getConfigurable();
+    public int getVersion();
 
-    @Override
-    default public String getId() {
-        return getProvider();
-    }
-
-    @Override
-    default public String getType() {
-        return SystemKeys.RESOURCE_CONFIG;
-    }
 }

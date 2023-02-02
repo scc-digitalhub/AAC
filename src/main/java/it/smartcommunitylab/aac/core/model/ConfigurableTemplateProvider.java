@@ -15,7 +15,6 @@ import it.smartcommunitylab.aac.SystemKeys;
 @Valid
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@ConstructorBinding
 public class ConfigurableTemplateProvider extends ConfigurableProvider {
 
     private Set<String> languages;
@@ -35,11 +34,6 @@ public class ConfigurableTemplateProvider extends ConfigurableProvider {
     private ConfigurableTemplateProvider() {
         this((String) null, (String) null, (String) null);
         this.languages = Collections.emptySet();
-    }
-
-    @Override
-    public void setType(String type) {
-        // not supported
     }
 
     public Set<String> getLanguages() {

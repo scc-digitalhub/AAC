@@ -9,9 +9,9 @@ import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 
 public class RealmAuditEvent extends AuditEvent {
-    
+
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
-    
+
     private final String realm;
 
     public RealmAuditEvent(String realm, Instant timestamp, String principal, String type, Map<String, Object> data) {
@@ -28,6 +28,19 @@ public class RealmAuditEvent extends AuditEvent {
     public String toString() {
         return "RealmAuditEvent [realm=" + realm + ", timestamp=" + getTimestamp() + ", principal="
                 + getPrincipal() + ", type=" + getType() + ", data=" + getData() + "]";
+    }
+
+    public String getId() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(getTimestamp());
+        if (getPrincipal() != null) {
+            sb.append("-").append(getPrincipal());
+        }
+        return sb.toString();
+    }
+
+    public long getTime() {
+        return getTimestamp() != null ? getTimestamp().getEpochSecond() : -1;
     }
 
 }

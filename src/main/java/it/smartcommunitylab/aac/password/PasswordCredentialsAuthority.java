@@ -9,15 +9,17 @@ import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.core.service.TranslatorProviderConfigRepository;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.password.model.InternalEditableUserPassword;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.password.provider.PasswordCredentialsConfigurationProvider;
 import it.smartcommunitylab.aac.password.provider.PasswordCredentialsService;
 import it.smartcommunitylab.aac.password.provider.PasswordCredentialsServiceConfig;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfigMap;
-import it.smartcommunitylab.aac.password.service.InternalUserPasswordService;
+import it.smartcommunitylab.aac.password.service.InternalPasswordUserCredentialsService;
 import it.smartcommunitylab.aac.utils.MailService;
 
 /*
@@ -27,22 +29,23 @@ import it.smartcommunitylab.aac.utils.MailService;
  */
 @Service
 public class PasswordCredentialsAuthority extends
-        AbstractCredentialsAuthority<PasswordCredentialsService, InternalUserPassword, PasswordIdentityProviderConfigMap, PasswordCredentialsServiceConfig> {
+        AbstractCredentialsAuthority<PasswordCredentialsService, InternalUserPassword, InternalEditableUserPassword, PasswordIdentityProviderConfigMap, PasswordCredentialsServiceConfig> {
 
     public static final String AUTHORITY_URL = "/auth/password/";
 
     // internal account service
     private final UserAccountService<InternalUserAccount> accountService;
 
-    // key repository
-    private final InternalUserPasswordService passwordService;
+    // password service
+    private final InternalPasswordUserCredentialsService passwordService;
 
     private MailService mailService;
     private RealmAwareUriBuilder uriBuilder;
+    private ResourceEntityService resourceService;
 
     public PasswordCredentialsAuthority(
             UserAccountService<InternalUserAccount> userAccountService,
-            InternalUserPasswordService passwordService,
+            InternalPasswordUserCredentialsService passwordService,
             ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository) {
         super(SystemKeys.AUTHORITY_PASSWORD, new PasswordConfigTranslatorRepository(registrationRepository));
         Assert.notNull(userAccountService, "account service is mandatory");
@@ -68,17 +71,23 @@ public class PasswordCredentialsAuthority extends
         this.uriBuilder = uriBuilder;
     }
 
+    @Autowired
+    public void setResourceService(ResourceEntityService resourceService) {
+        this.resourceService = resourceService;
+    }
+
     @Override
     public PasswordCredentialsService buildProvider(PasswordCredentialsServiceConfig config) {
-        PasswordCredentialsService idp = new PasswordCredentialsService(
+        PasswordCredentialsService service = new PasswordCredentialsService(
                 config.getProvider(),
                 accountService, passwordService,
                 config, config.getRealm());
 
-        idp.setMailService(mailService);
-        idp.setUriBuilder(uriBuilder);
+        service.setMailService(mailService);
+        service.setUriBuilder(uriBuilder);
+        service.setResourceService(resourceService);
 
-        return idp;
+        return service;
     }
 
     @Override
@@ -101,8 +110,9 @@ public class PasswordCredentialsAuthority extends
 
                 // we share the same configMap
                 config.setConfigMap(source.getConfigMap());
-                return config;
+                config.setRepositoryId(source.getRepositoryId());
 
+                return config;
             });
         }
 

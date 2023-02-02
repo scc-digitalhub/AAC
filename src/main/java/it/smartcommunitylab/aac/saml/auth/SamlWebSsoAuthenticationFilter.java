@@ -48,7 +48,7 @@ public class SamlWebSsoAuthenticationFilter extends AbstractAuthenticationProces
     private final ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository;
     private final Saml2AuthenticationTokenConverter authenticationConverter;
 
-    private Saml2AuthenticationRequestRepository<Saml2AuthenticationRequestContext> authenticationRequestRepository = new HttpSessionSaml2AuthenticationRequestRepository();
+    private Saml2AuthenticationRequestRepository<SerializableSaml2AuthenticationRequestContext> authenticationRequestRepository = new HttpSessionSaml2AuthenticationRequestRepository();
 
     private AuthenticationEntryPoint authenticationEntryPoint;
 
@@ -146,7 +146,7 @@ public class SamlWebSsoAuthenticationFilter extends AbstractAuthenticationProces
         }
 
         // fetch request, we handle only responses to locally initiated sessions
-        Saml2AuthenticationRequestContext authenticationContext = authenticationRequestRepository
+        SerializableSaml2AuthenticationRequestContext authenticationContext = authenticationRequestRepository
                 .loadAuthenticationRequest(request);
         if (authenticationContext == null) {
             // response doesn't belong here...
@@ -154,7 +154,7 @@ public class SamlWebSsoAuthenticationFilter extends AbstractAuthenticationProces
                     "Wrong destination for response");
             throw new Saml2AuthenticationException(saml2Error);
         }
-        String registrationId = authenticationContext.getRelyingPartyRegistration().getRegistrationId();
+        String registrationId = authenticationContext.getRelyingPartyRegistrationId();
 
         // fetch rp registration
         RelyingPartyRegistration registration = authenticationRequest.getRelyingPartyRegistration();
@@ -199,7 +199,7 @@ public class SamlWebSsoAuthenticationFilter extends AbstractAuthenticationProces
     }
 
     public void setAuthenticationRequestRepository(
-            Saml2AuthenticationRequestRepository<Saml2AuthenticationRequestContext> authenticationRequestRepository) {
+            Saml2AuthenticationRequestRepository<SerializableSaml2AuthenticationRequestContext> authenticationRequestRepository) {
         this.authenticationRequestRepository = authenticationRequestRepository;
     }
 

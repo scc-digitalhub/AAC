@@ -15,21 +15,31 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityConfirmService;
 
 public class ConfirmKeyAuthenticationProvider implements AuthenticationProvider {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    private final UserAccountService<InternalUserAccount> userAccountService;
     private final InternalIdentityConfirmService confirmService;
 
-    public ConfirmKeyAuthenticationProvider(String providerId,
-            InternalIdentityConfirmService confirmService,
-            String realm) {
-        Assert.hasText(providerId, "provider can not be null or empty");
-        Assert.notNull(confirmService, "account confirm service is mandatory");
+    private final String repositoryId;
 
+    public ConfirmKeyAuthenticationProvider(String providerId,
+            UserAccountService<InternalUserAccount> userAccountService,
+            InternalIdentityConfirmService confirmService,
+            String repositoryId, String realm) {
+        Assert.hasText(providerId, "provider can not be null or empty");
+        Assert.notNull(userAccountService, "account service is mandatory");
+        Assert.notNull(confirmService, "account confirm service is mandatory");
+        Assert.hasText(repositoryId, "repository id can not be null or empty");
+
+        this.userAccountService = userAccountService;
         this.confirmService = confirmService;
+
+        this.repositoryId = repositoryId;
     }
 
     @Override
@@ -47,7 +57,7 @@ public class ConfirmKeyAuthenticationProvider implements AuthenticationProvider 
         }
 
         try {
-            InternalUserAccount account = confirmService.findAccountByUsername(username);
+            InternalUserAccount account = userAccountService.findAccountById(repositoryId, username);
             if (account == null) {
                 throw new BadCredentialsException("invalid request");
             }

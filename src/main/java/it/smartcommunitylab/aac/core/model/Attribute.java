@@ -10,7 +10,7 @@ import it.smartcommunitylab.aac.model.AttributeType;
  * While unusual, attributes may assume multiple values. 
  */
 
-public interface Attribute {
+public interface Attribute extends Serializable {
 
     public String getKey();
 

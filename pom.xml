@@ -4,13 +4,13 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>it.smartcommunitylab</groupId>
 	<artifactId>aac</artifactId>
-	<version>4.1.0-SNAPSHOT</version>
+	<version>4.2.0-SNAPSHOT</version>
 	<name>aac</name>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.7.3</version>
+		<version>2.7.6</version>
 	</parent>
 
 	<properties>
@@ -19,6 +19,7 @@
 		<springdoc.version>1.6.9</springdoc.version>
 		<jsoup.version>1.15.2</jsoup.version>
 		<yubico.version>2.0.0</yubico.version>
+		<jsonschema.version>4.28.0</jsonschema.version>
 		<profile.authorization />
 	</properties>
 
@@ -101,7 +102,11 @@
 			<artifactId>spring-test</artifactId>
 		</dependency>
 
-
+		<dependency>
+			<groupId>org.springframework.session</groupId>
+			<artifactId>spring-session-jdbc</artifactId>
+		</dependency>
+		
 		<dependency>
 			<groupId>org.springframework.security.oauth</groupId>
 			<artifactId>spring-security-oauth2</artifactId>
@@ -124,6 +129,11 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.dataformat</groupId>
 			<artifactId>jackson-dataformat-yaml</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.fasterxml.jackson.dataformat</groupId>
+			<artifactId>jackson-dataformat-cbor</artifactId>
 		</dependency>
 
 		<dependency>
@@ -232,6 +242,26 @@
 			<version>${jsoup.version}</version>
 		</dependency>
 
+		<dependency>
+			<groupId>com.github.victools</groupId>
+			<artifactId>jsonschema-generator</artifactId>
+			<version>${jsonschema.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.github.victools</groupId>
+			<artifactId>jsonschema-module-jackson</artifactId>
+			<version>${jsonschema.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.github.victools</groupId>
+			<artifactId>jsonschema-module-javax-validation</artifactId>
+			<version>${jsonschema.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.github.victools</groupId>
+			<artifactId>jsonschema-module-swagger-2</artifactId>
+			<version>${jsonschema.version}</version>
+		</dependency>
 
 		<dependency>
 			<groupId>org.bouncycastle</groupId>

@@ -36,9 +36,11 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.IdentityProviderManager;
+import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
+import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.service.IdentityProviderAuthorityService;
 
@@ -166,7 +168,7 @@ public class BaseIdentityProviderController implements InitializingBean {
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             @RequestBody @Valid @NotNull ConfigurableIdentityProvider reg,
             @RequestParam(required = false, defaultValue = "false") Optional<Boolean> force)
-            throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException {
+            throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
         logger.debug("update idp {} for realm {}",
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
@@ -213,7 +215,8 @@ public class BaseIdentityProviderController implements InitializingBean {
     public void deleteIdp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
-            throws NoSuchProviderException, NoSuchRealmException, SystemException, NoSuchAuthorityException {
+            throws NoSuchProviderException, NoSuchRealmException, SystemException, NoSuchAuthorityException,
+            RegistrationException {
         logger.debug("delete idp {} for realm {}",
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
@@ -250,7 +253,7 @@ public class BaseIdentityProviderController implements InitializingBean {
     public ConfigurableIdentityProvider unregisterIdp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
-            throws NoSuchProviderException, NoSuchRealmException, NoSuchAuthorityException {
+            throws NoSuchProviderException, NoSuchRealmException, NoSuchAuthorityException, RegistrationException {
         logger.debug("unregister idp {} for realm {}",
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
@@ -283,7 +286,7 @@ public class BaseIdentityProviderController implements InitializingBean {
 
     @GetMapping("/idps/{realm}/{providerId}/config")
     @Operation(summary = "get an identity provider active configuration")
-    public ConfigurableProperties getIdpConfiguration(
+    public ConfigurableIdentityProvider getIdpConfiguration(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
             throws NoSuchProviderException, NoSuchRealmException, NoSuchAuthorityException {
@@ -296,13 +299,15 @@ public class BaseIdentityProviderController implements InitializingBean {
         }
 
         // load from authority
-        IdentityProvider<?, ?, ?, ? extends ConfigMap, ?> idp = authorityService.getAuthority(provider.getAuthority())
-                .getProvider(providerId);
+        IdentityProviderAuthority<?, ?, ?, ?> authority = authorityService.getAuthority(provider.getAuthority());
+        IdentityProvider<?, ?, ?, ?, ?> idp = authority.getProvider(providerId);
+
         if (idp == null) {
             throw new NoSuchProviderException();
         }
 
-        return idp.getConfigurable();
+//        return authority.getConfigurationProvider().getConfigurable(idp.getConfig());
+        return null;
     }
 
 }

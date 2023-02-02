@@ -41,20 +41,6 @@ public class InternalIdentityConfirmService extends AbstractProvider<UserCredent
     }
 
     @Transactional(readOnly = true)
-    public InternalUserAccount findAccountByUsername(String username) {
-        InternalUserAccount account = accountService.findAccountById(repositoryId, username);
-        if (account == null) {
-            return null;
-        }
-
-        // map to our authority
-        account.setAuthority(getAuthority());
-        account.setProvider(getProvider());
-
-        return account;
-    }
-
-    @Transactional(readOnly = true)
     public InternalUserAccount findAccountByConfirmationKey(String key) {
         InternalUserAccount account = confirmKeyService.findAccountByConfirmationKey(repositoryId, key);
         if (account == null) {

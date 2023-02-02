@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.webauthn.provider;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.yubico.webauthn.data.UserVerificationRequirement;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -8,20 +9,25 @@ import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 
 public class WebAuthnIdentityProviderConfig extends AbstractIdentityProviderConfig<WebAuthnIdentityProviderConfigMap> {
     private static final long serialVersionUID = SystemKeys.AAC_WEBAUTHN_SERIAL_VERSION;
+    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_PROVIDER + SystemKeys.ID_SEPARATOR
+            + WebAuthnIdentityProviderConfigMap.RESOURCE_TYPE;
 
     private static final int TIMEOUT = 9;
     private final static int MAX_SESSION_DURATION = 24 * 60 * 60; // 24h
 
-    public WebAuthnIdentityProviderConfig(String provider, String realm) {
+    public WebAuthnIdentityProviderConfig(@JsonProperty("provider") String provider,
+            @JsonProperty("realm") String realm) {
         super(SystemKeys.AUTHORITY_WEBAUTHN, provider, realm, new WebAuthnIdentityProviderConfigMap());
     }
 
-    public WebAuthnIdentityProviderConfig(ConfigurableIdentityProvider cp) {
-        super(cp);
+    public WebAuthnIdentityProviderConfig(ConfigurableIdentityProvider cp,
+            WebAuthnIdentityProviderConfigMap configMap) {
+        super(cp, configMap);
     }
 
     public String getRepositoryId() {
-        return configMap.getRepositoryId() != null ? configMap.getRepositoryId() : getRealm();
+        // not configurable for now
+        return getRealm();
     }
 
     /*

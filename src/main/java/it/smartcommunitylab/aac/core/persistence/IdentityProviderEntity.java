@@ -11,7 +11,6 @@ import javax.persistence.Lob;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.repository.HashMapBase64Converter;
 import it.smartcommunitylab.aac.repository.HashMapConverter;
 
@@ -20,6 +19,7 @@ import it.smartcommunitylab.aac.repository.HashMapConverter;
 public class IdentityProviderEntity implements ProviderEntity {
 
     @NotNull
+    @Column(name = "authority", length = 128)
     private String authority;
 
     @Id
@@ -33,7 +33,7 @@ public class IdentityProviderEntity implements ProviderEntity {
 
     @NotNull
     @Column(name = "enabled")
-    private boolean enabled;
+    private Boolean enabled;
 
     @NotNull
     @Column(name = "name", length = 128)
@@ -51,7 +51,7 @@ public class IdentityProviderEntity implements ProviderEntity {
 
     @NotNull
     @Column(name = "linkable")
-    private boolean linkable = true;
+    private Boolean linkable = true;
 
     @Column(name = "persistence_level", length = 32)
     private String persistence;
@@ -73,6 +73,9 @@ public class IdentityProviderEntity implements ProviderEntity {
     @Column(name = "hook_functions")
     @Convert(converter = HashMapBase64Converter.class)
     private Map<String, String> hookFunctions;
+
+    @Column(name = "version")
+    private Integer version;
 
     public IdentityProviderEntity() {
 
@@ -107,7 +110,11 @@ public class IdentityProviderEntity implements ProviderEntity {
     }
 
     public boolean isEnabled() {
-        return enabled;
+        return enabled != null ? enabled.booleanValue() : false;
+    }
+
+    public Boolean getEnabled() {
+        return this.enabled;
     }
 
     public void setEnabled(boolean enabled) {
@@ -115,7 +122,11 @@ public class IdentityProviderEntity implements ProviderEntity {
     }
 
     public boolean isLinkable() {
-        return linkable;
+        return linkable != null ? linkable.booleanValue() : false;
+    }
+
+    public Boolean getLinkable() {
+        return this.linkable;
     }
 
     public void setLinkable(boolean linkable) {
@@ -186,9 +197,12 @@ public class IdentityProviderEntity implements ProviderEntity {
         this.hookFunctions = hookFunctions;
     }
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_IDENTITY_PROVIDER;
+    public int getVersion() {
+        return version != null ? version : 0;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
     }
 
 }

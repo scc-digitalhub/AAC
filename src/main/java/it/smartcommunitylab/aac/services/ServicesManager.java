@@ -164,7 +164,7 @@ public class ServicesManager implements InitializingBean {
         return serviceService.listServices(re.getSlug());
     }
 
-    public Service addService(String realm, Service service) throws NoSuchRealmException {
+    public Service addService(String realm, Service service) throws NoSuchRealmException, RegistrationException {
         // fetch realm
         Realm re = realmService.getRealm(realm);
         String serviceId = service.getServiceId();
@@ -244,7 +244,7 @@ public class ServicesManager implements InitializingBean {
     }
 
     public Service updateService(String realm, String serviceId, Service service)
-            throws NoSuchServiceException, NoSuchRealmException {
+            throws NoSuchServiceException, NoSuchRealmException, RegistrationException {
         // fetch realm
         Realm re = realmService.getRealm(realm);
 
@@ -303,8 +303,6 @@ public class ServicesManager implements InitializingBean {
 
                         try {
                             ssc = updateServiceScope(realm, serviceId, sc.getScope(), sc);
-                        } catch (RegistrationException e) {
-                            // ignore
                         } catch (NoSuchScopeException e) {
                             // removed, use add
                             ssc = addServiceScope(realm, serviceId, sc);
@@ -344,8 +342,6 @@ public class ServicesManager implements InitializingBean {
                     if (ss.getClaims().contains(sc)) {
                         try {
                             ssc = updateServiceClaim(realm, serviceId, sc.getKey(), sc);
-                        } catch (RegistrationException e) {
-                            // ignore
                         } catch (NoSuchClaimException e) {
                             // removed, use add
                             ssc = addServiceClaim(realm, serviceId, sc);

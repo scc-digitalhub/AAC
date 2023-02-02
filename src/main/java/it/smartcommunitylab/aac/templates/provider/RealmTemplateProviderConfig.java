@@ -15,6 +15,8 @@ public class RealmTemplateProviderConfig
         extends AbstractProviderConfig<TemplateProviderConfigMap, ConfigurableTemplateProvider>
         implements TemplateProviderConfig<TemplateProviderConfigMap> {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
+    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_PROVIDER + SystemKeys.ID_SEPARATOR
+            + TemplateProviderConfigMap.RESOURCE_TYPE;
 
     private Set<String> languages;
     private String customStyle;
@@ -25,10 +27,22 @@ public class RealmTemplateProviderConfig
         this.languages = Collections.emptySet();
     }
 
-    public RealmTemplateProviderConfig(ConfigurableTemplateProvider cp) {
-        super(cp);
+    public RealmTemplateProviderConfig(ConfigurableTemplateProvider cp, TemplateProviderConfigMap configMap) {
+        super(cp, configMap);
         this.languages = cp.getLanguages();
         this.customStyle = cp.getCustomStyle();
+    }
+
+    /**
+     * Private constructor for JPA and other serialization tools.
+     * 
+     * We need to implement this to enable deserialization of resources via
+     * reflection
+     */
+    @SuppressWarnings("unused")
+    public RealmTemplateProviderConfig() {
+        super((String) null, (String) null, (String) null, new TemplateProviderConfigMap());
+        this.languages = Collections.emptySet();
     }
 
     public Set<String> getLanguages() {
@@ -46,22 +60,6 @@ public class RealmTemplateProviderConfig
 
     public void setCustomStyle(String customStyle) {
         this.customStyle = customStyle;
-    }
-
-    @Override
-    public ConfigurableTemplateProvider getConfigurable() {
-        ConfigurableTemplateProvider cp = new ConfigurableTemplateProvider(getAuthority(), getProvider(), getRealm());
-        cp.setName(getName());
-        cp.setTitleMap(getTitleMap());
-        cp.setDescriptionMap(getDescriptionMap());
-
-        cp.setLanguages(getLanguages());
-        cp.setCustomStyle(getCustomStyle());
-
-        cp.setEnabled(true);
-        cp.setConfiguration(getConfiguration());
-
-        return cp;
     }
 
 }

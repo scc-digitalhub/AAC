@@ -15,8 +15,8 @@ import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.AttributeProviderConfig;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 
-public abstract class AbstractAttributeAuthority<S extends AttributeProvider<M, C>, M extends ConfigMap, C extends AttributeProviderConfig<M>>
-        extends AbstractAuthority<S, UserAttributes, ConfigurableAttributeProvider, M, C>
+public abstract class AbstractAttributeAuthority<S extends AttributeProvider<M, C>, M extends AbstractConfigMap, C extends AbstractAttributeProviderConfig<M>>
+        extends AbstractConfigurableProviderAuthority<S, UserAttributes, ConfigurableAttributeProvider, M, C>
         implements AttributeProviderAuthority<S, M, C>, InitializingBean {
 
     // attributes sets service

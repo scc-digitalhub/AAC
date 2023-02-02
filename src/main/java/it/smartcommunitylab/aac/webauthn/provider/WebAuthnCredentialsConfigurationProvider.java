@@ -4,7 +4,7 @@ import org.springframework.stereotype.Service;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.config.CredentialsAuthoritiesProperties;
 import it.smartcommunitylab.aac.core.base.AbstractCredentialsConfigurationProvider;
-import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsService;
+import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsProvider;
 
 @Service
 public class WebAuthnCredentialsConfigurationProvider extends
@@ -21,8 +21,8 @@ public class WebAuthnCredentialsConfigurationProvider extends
     }
 
     @Override
-    protected WebAuthnCredentialsServiceConfig buildConfig(ConfigurableCredentialsService cp) {
-        return new WebAuthnCredentialsServiceConfig(cp);
+    protected WebAuthnCredentialsServiceConfig buildConfig(ConfigurableCredentialsProvider cp) {
+        return new WebAuthnCredentialsServiceConfig(cp, getConfigMap(cp.getConfiguration()));
     }
 
 }

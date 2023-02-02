@@ -11,20 +11,20 @@ import it.smartcommunitylab.aac.repository.DetachableJpaRepository;
 public interface OIDCUserAccountRepository
         extends CustomJpaRepository<OIDCUserAccount, OIDCUserAccountId>, DetachableJpaRepository<OIDCUserAccount> {
 
-    OIDCUserAccount findByProviderAndUuid(String provider, String uuid);
+    OIDCUserAccount findByUuid(String uuid);
 
-    List<OIDCUserAccount> findByProviderAndEmail(String provider, String email);
+    List<OIDCUserAccount> findByRepositoryIdAndEmail(String repositoryId, String email);
 
-    List<OIDCUserAccount> findByProviderAndUsername(String provider, String username);
+    List<OIDCUserAccount> findByRepositoryIdAndUsername(String repositoryId, String username);
 
     List<OIDCUserAccount> findByRealm(String realm);
 
-    List<OIDCUserAccount> findByProvider(String provider);
+    List<OIDCUserAccount> findByRepositoryId(String repositoryId);
 
     List<OIDCUserAccount> findByUserId(String userId);
 
     List<OIDCUserAccount> findByUserIdAndRealm(String userId, String realm);
 
-    List<OIDCUserAccount> findByUserIdAndProvider(String userId, String provider);
+    List<OIDCUserAccount> findByUserIdAndRepositoryId(String userId, String repositoryId);
 
 }

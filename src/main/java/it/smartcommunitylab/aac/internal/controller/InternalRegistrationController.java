@@ -153,9 +153,8 @@ public class InternalRegistrationController {
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid,
             Model model, Locale locale,
-            @ModelAttribute("reg") @Valid UserRegistrationBean reg,
-            HttpServletRequest request,
-            BindingResult result)
+            @ModelAttribute("reg") @Valid UserRegistrationBean reg, BindingResult result,
+            HttpServletRequest request)
             throws NoSuchProviderException, NoSuchUserException {
 
         try {
@@ -236,12 +235,13 @@ public class InternalRegistrationController {
 
     /**
      * Redirect to registration page
+     * @throws RegistrationException 
      */
     @Hidden
     @RequestMapping(value = "/auth/internal/register/{providerId}", method = RequestMethod.GET)
     public String registrationPage(
             @PathVariable("providerId") String providerId,
-            Model model, Locale locale) throws NoSuchProviderException, NoSuchRealmException {
+            Model model, Locale locale) throws NoSuchProviderException, NoSuchRealmException, RegistrationException {
 
         // resolve provider
         InternalIdentityService idp = internalAuthority.getProvider(providerId);
@@ -268,7 +268,7 @@ public class InternalRegistrationController {
 //        }
 
         // fetch password service if available
-        AccountCredentialsService<?, ?, ?> cs = idp.getCredentialsService(SystemKeys.AUTHORITY_PASSWORD);
+        AccountCredentialsService<?, ?, ?, ?> cs = idp.getCredentialsService(SystemKeys.AUTHORITY_PASSWORD);
         if (cs != null) {
             PasswordCredentialsService service = (PasswordCredentialsService) cs;
             // expose password policy by passing idp config
@@ -292,8 +292,7 @@ public class InternalRegistrationController {
     @RequestMapping(value = "/auth/internal/register/{providerId}", method = RequestMethod.POST)
     public String register(Model model, Locale locale,
             @PathVariable("providerId") String providerId,
-            @ModelAttribute("reg") @Valid UserRegistrationBean reg,
-            BindingResult result,
+            @ModelAttribute("reg") @Valid UserRegistrationBean reg, BindingResult result,
             HttpServletRequest req) {
         try {
             // resolve provider
@@ -311,7 +310,7 @@ public class InternalRegistrationController {
             model.addAttribute("displayName", realm);
 
             // fetch password service if available
-            AccountCredentialsService<?, ?, ?> cs = idp.getCredentialsService(SystemKeys.AUTHORITY_PASSWORD);
+            AccountCredentialsService<?, ?, ?, ?> cs = idp.getCredentialsService(SystemKeys.AUTHORITY_PASSWORD);
             PasswordCredentialsService service = null;
             if (cs != null) {
                 service = (PasswordCredentialsService) cs;

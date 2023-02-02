@@ -4,6 +4,7 @@ import java.util.Collection;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
@@ -42,21 +43,6 @@ public interface IdentityProvider<I extends UserIdentity, U extends UserAccount,
     public ExtendedAuthenticationProvider<P, U> getAuthenticationProvider();
 
     /*
-     * Account provider acts as the source for user accounts, when the details are
-     * persisted in the provider or available for requests. Do note that idps are
-     * not required to persist accounts.
-     */
-    public AccountProvider<U> getAccountProvider();
-
-    /*
-     * Attribute providers retrieve and format user properties available to the
-     * provider as UserAttributes bounded to the UserIdentity exposed to the outside
-     * world.
-     */
-
-    public IdentityAttributeProvider<P, U> getAttributeProvider();
-
-    /*
      * Subject resolvers can discover a matching user by receiving identifying
      * properties (such as email) and looking at locally (in the provider)
      * registered accounts to find an existing identity for the same user.
@@ -72,7 +58,7 @@ public interface IdentityProvider<I extends UserIdentity, U extends UserAccount,
      */
 
     public I convertIdentity(UserAuthenticatedPrincipal principal, String userId)
-            throws NoSuchUserException;
+            throws NoSuchUserException, RegistrationException;
 
     /*
      * Fetch identities from this provider
@@ -110,7 +96,7 @@ public interface IdentityProvider<I extends UserIdentity, U extends UserAccount,
      * 
      * Providers must expose the ability to link/relink identities to a given user
      */
-    public I linkIdentity(String userId, String identityId) throws NoSuchUserException;
+    public I linkIdentity(String userId, String identityId) throws NoSuchUserException, RegistrationException;
 
     /*
      * Delete accounts.

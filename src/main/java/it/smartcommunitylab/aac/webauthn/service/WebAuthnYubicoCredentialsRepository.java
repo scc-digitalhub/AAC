@@ -27,8 +27,9 @@ import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredentialsRepo
 public class WebAuthnYubicoCredentialsRepository implements CredentialRepository {
 
     private final String repositoryId;
-    private final UserAccountService<InternalUserAccount> userAccountService;
     private final WebAuthnUserCredentialsRepository credentialsRepository;
+
+    private final WebAuthnUserHandleService userHandleService;
 
     public WebAuthnYubicoCredentialsRepository(String repositoryId,
             UserAccountService<InternalUserAccount> userAccountService,
@@ -37,15 +38,18 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
         Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(credentialsRepository, "credentials repository is mandatory");
 
-        this.userAccountService = userAccountService;
         this.credentialsRepository = credentialsRepository;
         this.repositoryId = repositoryId;
+
+        // build service
+        this.userHandleService = new WebAuthnUserHandleService(userAccountService);
     }
 
     @Override
     public Set<PublicKeyCredentialDescriptor> getCredentialIdsForUsername(String username) {
         // fetch all active credentials for this user
-        List<WebAuthnUserCredential> credentials = credentialsRepository.findByProviderAndUsername(repositoryId, username)
+        List<WebAuthnUserCredential> credentials = credentialsRepository
+                .findByRepositoryIdAndUsername(repositoryId, username)
                 .stream()
                 .filter(c -> CredentialsStatus.ACTIVE.getValue().equals(c.getStatus()))
                 .collect(Collectors.toList());
@@ -71,24 +75,14 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
         return descriptors;
     }
 
-    public ByteArray extractUserHandleFromAccount(InternalUserAccount account) {
-
-//      yubico userhandle is uuid as base64
-//     String userHandle = Base64.getUrlEncoder().withoutPadding().encodeToString(account.getUuid().getBytes());
-//     return Optional.of(ByteArray.fromBase64(userHandle));
-
-        // yubico userhandle is uuid
-        return new ByteArray(account.getUuid().getBytes());
-    }
-
     @Override
     public Optional<ByteArray> getUserHandleForUsername(String username) {
-        InternalUserAccount account = userAccountService.findAccountById(repositoryId, username);
-        if (account == null) {
+        String userHandle = userHandleService.getUserHandleForUsername(repositoryId, username);
+        if (userHandle == null) {
             return Optional.empty();
         }
 
-        return Optional.of(extractUserHandleFromAccount(account));
+        return Optional.of(new ByteArray(userHandle.getBytes()));
     }
 
     @Override
@@ -97,18 +91,10 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
             return Optional.empty();
         }
 
-//        // yubico userhandle is base64
-//        String userHandle = bytes.getBase64Url();
-//        String uuid = new String(Base64.getUrlDecoder().decode(userHandle.getBytes()));
+        String userHandle = new String(bytes.getBytes());
+        String userName = userHandleService.getUsernameForUserHandle(repositoryId, userHandle);
 
-        // yubico userhandle is uuid
-        String uuid = new String(bytes.getBytes());
-        InternalUserAccount account = userAccountService.findAccountByUuid(repositoryId, uuid);
-        if (account == null) {
-            return Optional.empty();
-        }
-
-        return Optional.of(account.getUsername());
+        return Optional.of(userName);
     }
 
     @Override
@@ -119,10 +105,9 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
 
         // we use yubico ids as base64
         String id = credentialId.getBase64Url();
-        // yubico userhandle is uuid
-        String uuid = new String(userHandle.getBytes());
-        WebAuthnUserCredential credential = credentialsRepository.findByProviderAndUserHandleAndCredentialId(repositoryId,
-                uuid, id);
+
+        WebAuthnUserCredential credential = credentialsRepository.findByRepositoryIdAndUserHandleAndCredentialId(
+                repositoryId, new String(userHandle.getBytes()), id);
         if (credential == null) {
             return Optional.empty();
         }
@@ -143,7 +128,7 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
 
         // we use yubico ids as base64
         String id = credentialId.getBase64Url();
-        List<WebAuthnUserCredential> credentials = credentialsRepository.findByProviderAndCredentialId(repositoryId,
+        List<WebAuthnUserCredential> credentials = credentialsRepository.findByRepositoryIdAndCredentialId(repositoryId,
                 id);
         return credentials.stream()
                 .map(c -> {

@@ -1,14 +1,17 @@
 package it.smartcommunitylab.aac.openid.persistence;
 
+import java.io.Serializable;
 import java.util.Date;
+import java.util.Map;
 
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
+import javax.persistence.Lob;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
@@ -17,24 +20,25 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.util.StringUtils;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractAccount;
 import it.smartcommunitylab.aac.model.SubjectStatus;
+import it.smartcommunitylab.aac.repository.HashMapSerializableConverter;
 
 @Entity
 @IdClass(OIDCUserAccountId.class)
 @Table(name = "oidc_users")
 @EntityListeners(AuditingEntityListener.class)
 public class OIDCUserAccount extends AbstractAccount {
-
     private static final long serialVersionUID = SystemKeys.AAC_OIDC_SERIAL_VERSION;
+    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_ACCOUNT + SystemKeys.ID_SEPARATOR
+            + SystemKeys.AUTHORITY_OIDC;
 
     @Id
     @NotBlank
-    @Column(name = "provider_id", length = 128)
-    private String provider;
+    @Column(name = "repository_id", length = 128)
+    private String repositoryId;
 
     // subject identifier from external provider
     @Id
@@ -51,10 +55,6 @@ public class OIDCUserAccount extends AbstractAccount {
     @NotNull
     @Column(name = "user_id", length = 128)
     private String userId;
-
-    @JsonInclude
-    @Transient
-    private String authority;
 
     @NotBlank
     @Column(length = 128)
@@ -97,27 +97,27 @@ public class OIDCUserAccount extends AbstractAccount {
     @Column(name = "last_modified_date")
     private Date modifiedDate;
 
+    @Lob
+    @Column(name = "attributes")
+    @JsonIgnore
+    @Convert(converter = HashMapSerializableConverter.class)
+    private Map<String, Serializable> attributes;
+
     public OIDCUserAccount() {
-        super(SystemKeys.AUTHORITY_OIDC, null, null);
+        super(SystemKeys.AUTHORITY_OIDC, null);
     }
 
     public OIDCUserAccount(String authority) {
-        super(authority, null, null);
-        this.authority = authority;
+        super(authority, null);
     }
 
     @Override
-    public String getAuthority() {
-        return authority != null ? authority : super.getAuthority();
+    public String getType() {
+        return RESOURCE_TYPE;
     }
 
     @Override
-    public String getProvider() {
-        return provider;
-    }
-
-    @Override
-    public String getId() {
+    public String getAccountId() {
         return subject;
     }
 
@@ -156,14 +156,6 @@ public class OIDCUserAccount extends AbstractAccount {
      * fields
      */
 
-    public void setProvider(String provider) {
-        this.provider = provider;
-    }
-
-    public void setAuthority(String authority) {
-        this.authority = authority;
-    }
-
     public void setUsername(String username) {
         this.username = username;
     }
@@ -174,6 +166,14 @@ public class OIDCUserAccount extends AbstractAccount {
 
     public void setSubject(String subject) {
         this.subject = subject;
+    }
+
+    public String getRepositoryId() {
+        return repositoryId;
+    }
+
+    public void setRepositoryId(String repositoryId) {
+        this.repositoryId = repositoryId;
     }
 
     public void setUuid(String uuid) {
@@ -284,10 +284,18 @@ public class OIDCUserAccount extends AbstractAccount {
         this.modifiedDate = modifiedDate;
     }
 
+    public Map<String, Serializable> getAttributes() {
+        return attributes;
+    }
+
+    public void setAttributes(Map<String, Serializable> attributes) {
+        this.attributes = attributes;
+    }
+
     @Override
     public String toString() {
-        return "OIDCUserAccount [provider=" + provider + ", subject=" + subject + ", uuid=" + uuid + ", userId="
-                + userId + ", authority=" + authority + ", realm=" + realm + ", status=" + status + ", username="
+        return "OIDCUserAccount [repositoryId=" + repositoryId + ", subject=" + subject + ", uuid=" + uuid + ", userId="
+                + userId + ", realm=" + realm + ", status=" + status + ", username="
                 + username + ", issuer=" + issuer + ", email=" + email + ", emailVerified=" + emailVerified + ", name="
                 + name + ", givenName=" + givenName + ", familyName=" + familyName + ", lang=" + lang + ", picture="
                 + picture + ", createDate=" + createDate + ", modifiedDate=" + modifiedDate + "]";

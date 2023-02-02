@@ -1,17 +1,20 @@
 package it.smartcommunitylab.aac.bootstrap;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
@@ -25,13 +28,13 @@ import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
+import it.smartcommunitylab.aac.common.NoSuchCredentialException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchServiceException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.core.ClientManager;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableTemplateProvider;
@@ -39,28 +42,27 @@ import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.core.provider.UserCredentialsService;
 import it.smartcommunitylab.aac.core.service.AttributeProviderService;
 import it.smartcommunitylab.aac.core.service.ConfigurableProviderService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderService;
 import it.smartcommunitylab.aac.core.service.RealmService;
+import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.TemplateProviderService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
+import it.smartcommunitylab.aac.crypto.PasswordHash;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.SubjectStatus;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientAppService;
-import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.password.auth.UsernamePasswordAuthenticationToken;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
-import it.smartcommunitylab.aac.password.service.InternalUserPasswordService;
 import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
-import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import it.smartcommunitylab.aac.services.Service;
 import it.smartcommunitylab.aac.services.ServicesService;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserCredentialsService;
 
 @Component
 @Transactional
@@ -113,22 +115,34 @@ public class AACBootstrap {
     private SpaceRoleService roleService;
 
     @Autowired
+    private it.smartcommunitylab.aac.core.service.UserAccountService userAccountService;
+
+    @Autowired
+    private it.smartcommunitylab.aac.core.service.UserCredentialsService userCredentialsService;
+
+    @Autowired
     private UserAccountService<InternalUserAccount> internalUserAccountService;
 
-    @Autowired
-    private UserAccountService<OIDCUserAccount> oidcUserAccountService;
+//    @Autowired
+//    private UserAccountService<OIDCUserAccount> oidcUserAccountService;
+//
+//    @Autowired
+//    private UserAccountService<SamlUserAccount> samlUserAccountService;
+//
+//    @Autowired
+//    private UserCredentialsService<WebAuthnUserCredential> webAuthnUserCredentialsService;
 
     @Autowired
-    private UserAccountService<SamlUserAccount> samlUserAccountService;
-
-    @Autowired
-    private WebAuthnUserCredentialsService webAuthnUserCredentialsService;
-
-    @Autowired
-    private InternalUserPasswordService internalUserPasswordService;
+    private UserCredentialsService<InternalUserPassword> internalUserPasswordService;
 
     @Autowired
     private OAuth2ClientAppService clientAppService;
+
+    @Autowired
+    private ResourceEntityService resourceService;
+
+    @Autowired
+    private PasswordHash hasher;
 
 //    @EventListener
     public void onApplicationEvent(ApplicationStartedEvent event) {
@@ -159,14 +173,6 @@ public class AACBootstrap {
 
             // validate and remediate realm provider configs
             bootstrapRealmProviders();
-
-            // custom bootstrap
-            if (apply) {
-                logger.debug("application bootstrap");
-                bootstrapConfig();
-            } else {
-                logger.debug("bootstrap disabled by config");
-            }
 
         } catch (Exception e) {
             logger.error("error bootstrapping: " + e.getMessage());
@@ -242,11 +248,12 @@ public class AACBootstrap {
         logger.debug("create internal admin user for realm system", username);
 
         String realm = SystemKeys.REALM_SYSTEM;
+        String repositoryId = realm;
 
         String userId = null;
         UserEntity user = null;
 
-        InternalUserAccount account = internalUserAccountService.findAccountById(realm, username);
+        InternalUserAccount account = internalUserAccountService.findAccountById(repositoryId, username);
         if (account == null) {
             // register as new user
             userId = userEntityService.createUser(realm).getUuid();
@@ -261,7 +268,7 @@ public class AACBootstrap {
             account.setEmail(email);
             account.setStatus(SubjectStatus.ACTIVE.getValue());
             account.setConfirmed(true);
-            account = internalUserAccountService.addAccount(realm, username, account);
+            account = internalUserAccountService.addAccount(repositoryId, username, account);
         } else {
             userId = account.getUserId();
 
@@ -276,7 +283,7 @@ public class AACBootstrap {
             // set as active
             account.setStatus(SubjectStatus.ACTIVE.getValue());
 
-            account = internalUserAccountService.updateAccount(realm, username, account);
+            account = internalUserAccountService.updateAccount(repositoryId, username, account);
 
             // update user
             user = userEntityService.updateUser(userId, username, email);
@@ -287,8 +294,16 @@ public class AACBootstrap {
             user = userEntityService.activateUser(userId);
 
             // always reset password
-            internalUserPasswordService.deletePassword(realm, username);
-            internalUserPasswordService.setPassword(realm, username, password, false, -1, 0);
+            internalUserPasswordService.deleteAllCredentialsByAccount(repositoryId, username);
+            InternalUserPassword pass = new InternalUserPassword();
+            pass.setId(UUID.randomUUID().toString());
+            pass.setProvider(repositoryId);
+            pass.setUsername(username);
+            pass.setUserId(account.getUserId());
+            pass.setRealm(account.getRealm());
+            pass.setPassword(hasher.createHash(password));
+            pass.setChangeOnFirstAccess(false);
+            internalUserPasswordService.addCredentials(repositoryId, pass.getId(), pass);
 
             // assign authorities to subject
             String subjectId = user.getUuid();
@@ -316,16 +331,25 @@ public class AACBootstrap {
             logger.debug("admin user id {}", userId);
             logger.debug("admin user {}", user.toString());
             logger.debug("admin account {}", account.toString());
-        } catch (NoSuchUserException | NoSuchSubjectException e) {
+        } catch (NoSuchUserException | NoSuchSubjectException | NoSuchAlgorithmException | InvalidKeySpecException e) {
             logger.error("error updating admin account: " + e.getMessage());
         }
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void bootstrapConfig() throws Exception {
+    public void bootstrapConfig() {
+        // custom bootstrap
+        if (!apply) {
+            logger.debug("bootstrap disabled by config");
+            return;
+        }
+
+        logger.debug("application bootstrap");
+
         // read configuration
         if (config == null) {
-            throw new IllegalArgumentException("error loading config");
+            logger.error("error loading config");
+            return;
         }
 
         /*
@@ -716,11 +740,12 @@ public class AACBootstrap {
                             UserEntity user = null;
                             if (StringUtils.hasText(userId)) {
                                 user = userEntityService.findUser(userId);
+                            } else {
+                                userId = userEntityService.createUser(slug).getUuid();
                             }
 
                             if (user == null) {
                                 // register as new user
-                                userId = userEntityService.createUser(slug).getUuid();
                                 user = userEntityService.addUser(userId, slug, u.getUsername(), u.getEmailAddress());
                             }
 
@@ -731,106 +756,152 @@ public class AACBootstrap {
                                 u.setStatus(SubjectStatus.ACTIVE.getValue());
                             }
 
+                            // user account via service
+                            String uuid = u.getUuid();
+
                             UserAccount account = null;
-
-                            // TODO refactor with a single method
-                            if (u instanceof InternalUserAccount) {
-                                // cast
-                                InternalUserAccount ua = (InternalUserAccount) u;
-                                // validate provider
-                                if (!StringUtils.hasText(ua.getProvider())) {
-                                    // use realm as default
-                                    providerId = slug;
-                                    ua.setProvider(slug);
-                                }
-
-                                // set confirmed by default
-                                if (!ua.isConfirmed()) {
-                                    ua.setConfirmed(true);
-                                }
-
-                                account = internalUserAccountService.findAccountById(providerId, id);
-                                if (account == null) {
-                                    logger.debug("add internal account {} for realm {}", id, slug);
-
-                                    // register account
-                                    account = internalUserAccountService.addAccount(slug, ua.getAccountId(), ua);
-                                } else {
-                                    // check again realm match over existing
-                                    if (!slug.equals(account.getRealm())) {
-                                        logger.error("error creating internal account, realm mismatch");
-                                        return;
-                                    }
-
-                                    logger.debug("update internal account {} for realm {}", id, slug);
-                                    account = internalUserAccountService.updateAccount(slug, ua.getAccountId(), ua);
-                                }
+                            if (StringUtils.hasText(uuid)) {
+                                // existing accounts are matched via UUID
+                                account = userAccountService.findUserAccount(uuid);
                             }
 
-                            if (u instanceof OIDCUserAccount) {
-                                // cast
-                                OIDCUserAccount ua = (OIDCUserAccount) u;
+                            if (account == null) {
+                                String authority = u.getAuthority();
+                                String provider = u.getProvider();
 
-                                // validate provider
-                                if (!StringUtils.hasText(ua.getProvider())) {
-                                    // we ask id to be provided otherwise we would create a new one every time
+                                if (!StringUtils.hasText(authority) || !StringUtils.hasText(provider)) {
+                                    // we ask id to be provided
                                     logger.error("error creating user, missing provider");
                                     throw new IllegalArgumentException("missing provider");
                                 }
 
-                                account = oidcUserAccountService.findAccountById(providerId, id);
-                                if (account == null) {
-                                    logger.debug("add oidc account {} for realm {}", id, slug);
+                                logger.debug("add {} account {} for realm {}", authority, id, slug);
 
-                                    // register account
-                                    account = oidcUserAccountService.addAccount(slug, ua.getAccountId(), ua);
-                                } else {
-                                    // check again realm match over existing
-                                    if (!slug.equals(account.getRealm())) {
-                                        logger.error("error creating oidc account, realm mismatch");
-                                        return;
-                                    }
-
-                                    logger.debug("update oidc account {} for realm {}", id, slug);
-                                    account = oidcUserAccountService.updateAccount(slug, ua.getAccountId(), ua);
-                                }
-                            }
-
-                            if (u instanceof SamlUserAccount) {
-                                // cast
-                                SamlUserAccount ua = (SamlUserAccount) u;
-
-                                // validate provider
-                                if (!StringUtils.hasText(ua.getProvider())) {
-                                    // we ask id to be provided otherwise we would create a new one every time
-                                    logger.error("error creating user, missing provider");
-                                    throw new IllegalArgumentException("missing provider");
+                                // create as new
+                                account = userAccountService.createUserAccount(authority, providerId, userId, id, u);
+                            } else {
+                                // check again realm match over existing
+                                if (!slug.equals(account.getRealm())) {
+                                    logger.error("error creating account, realm mismatch");
+                                    return;
                                 }
 
-                                account = samlUserAccountService.findAccountById(providerId, id);
-                                if (account == null) {
-                                    logger.debug("add saml account {} for realm {}", id, slug);
+                                logger.debug("update {} account {} for realm {}", account.getAuthority(), id, slug);
 
-                                    // register account
-                                    account = samlUserAccountService.addAccount(slug, ua.getAccountId(), ua);
-                                } else {
-                                    // check again realm match over existing
-                                    if (!slug.equals(account.getRealm())) {
-                                        logger.error("error creating saml account, realm mismatch");
-                                        return;
-                                    }
+                                // update
+                                account = userAccountService.updateUserAccount(uuid, u);
+                            }
 
-                                    logger.debug("update saml account {} for realm {}", id, slug);
-                                    account = samlUserAccountService.updateAccount(slug, ua.getAccountId(), ua);
+//                            UserAccount account = null;
+//
+//                            // TODO refactor with a single method
+//                            if (u instanceof InternalUserAccount) {
+//                                // cast
+//                                InternalUserAccount ua = (InternalUserAccount) u;
+//                                // validate provider
+//                                if (!StringUtils.hasText(ua.getProvider())) {
+//                                    // use realm as default
+//                                    providerId = slug;
+//                                    ua.setProvider(slug);
+//                                }
+//
+//                                // set confirmed by default
+//                                if (!ua.isConfirmed()) {
+//                                    ua.setConfirmed(true);
+//                                }
+//
+//                                account = internalUserAccountService.findAccountById(providerId, id);
+//                                if (account == null) {
+//                                    logger.debug("add internal account {} for realm {}", id, slug);
+//
+//                                    // register account
+//                                    account = internalUserAccountService.addAccount(slug, ua.getAccountId(), ua);
+//                                } else {
+//                                    // check again realm match over existing
+//                                    if (!slug.equals(account.getRealm())) {
+//                                        logger.error("error creating internal account, realm mismatch");
+//                                        return;
+//                                    }
+//
+//                                    logger.debug("update internal account {} for realm {}", id, slug);
+//                                    account = internalUserAccountService.updateAccount(slug, ua.getAccountId(), ua);
+//                                }
+//                            }
+//
+//                            if (u instanceof OIDCUserAccount) {
+//                                // cast
+//                                OIDCUserAccount ua = (OIDCUserAccount) u;
+//
+//                                // validate provider
+//                                if (!StringUtils.hasText(ua.getProvider())) {
+//                                    // we ask id to be provided otherwise we would create a new one every time
+//                                    logger.error("error creating user, missing provider");
+//                                    throw new IllegalArgumentException("missing provider");
+//                                }
+//
+//                                account = oidcUserAccountService.findAccountById(providerId, id);
+//                                if (account == null) {
+//                                    logger.debug("add oidc account {} for realm {}", id, slug);
+//
+//                                    // register account
+//                                    account = oidcUserAccountService.addAccount(slug, ua.getAccountId(), ua);
+//                                } else {
+//                                    // check again realm match over existing
+//                                    if (!slug.equals(account.getRealm())) {
+//                                        logger.error("error creating oidc account, realm mismatch");
+//                                        return;
+//                                    }
+//
+//                                    logger.debug("update oidc account {} for realm {}", id, slug);
+//                                    account = oidcUserAccountService.updateAccount(slug, ua.getAccountId(), ua);
+//                                }
+//                            }
+//
+//                            if (u instanceof SamlUserAccount) {
+//                                // cast
+//                                SamlUserAccount ua = (SamlUserAccount) u;
+//
+//                                // validate provider
+//                                if (!StringUtils.hasText(ua.getProvider())) {
+//                                    // we ask id to be provided otherwise we would create a new one every time
+//                                    logger.error("error creating user, missing provider");
+//                                    throw new IllegalArgumentException("missing provider");
+//                                }
+//
+//                                account = samlUserAccountService.findAccountById(providerId, id);
+//                                if (account == null) {
+//                                    logger.debug("add saml account {} for realm {}", id, slug);
+//
+//                                    // register account
+//                                    account = samlUserAccountService.addAccount(slug, ua.getAccountId(), ua);
+//                                } else {
+//                                    // check again realm match over existing
+//                                    if (!slug.equals(account.getRealm())) {
+//                                        logger.error("error creating saml account, realm mismatch");
+//                                        return;
+//                                    }
+//
+//                                    logger.debug("update saml account {} for realm {}", id, slug);
+//                                    account = samlUserAccountService.updateAccount(slug, ua.getAccountId(), ua);
+//                                }
+//                            }
+
+                            if (account != null) {
+                                if (logger.isTraceEnabled()) {
+                                    logger.trace("{} user account: {}", String.valueOf(account.getAuthority()),
+                                            String.valueOf(account));
                                 }
+
+                                // register as resource if missing
+                                if (resourceService.findResourceEntity(account.getUuid()) == null) {
+                                    resourceService.addResourceEntity(account.getUuid(), SystemKeys.RESOURCE_ACCOUNT,
+                                            account.getAuthority(), account.getProvider(), account.getAccountId());
+                                }
+
                             }
 
-                            if (logger.isTraceEnabled()) {
-                                logger.trace("{} user account: {}", String.valueOf(account.getAuthority()),
-                                        String.valueOf(account));
-                            }
-
-                        } catch (RegistrationException | NoSuchUserException e) {
+                        } catch (RegistrationException | NoSuchUserException | NoSuchAuthorityException
+                                | NoSuchProviderException e) {
                             logger.error("error creating {} user {}: {}", String.valueOf(u.getAuthority()),
                                     String.valueOf(u.getAccountId()), e.getMessage());
                         }
@@ -872,6 +943,12 @@ public class AACBootstrap {
                             throw new IllegalArgumentException("missing account id");
                         }
 
+                        // validate id
+                        if (!StringUtils.hasText(c.getCredentialsId())) {
+                            // we ask id to be provided otherwise we would create a new one every time
+                            logger.error("error creating credentials, missing id");
+                            throw new IllegalArgumentException("missing id");
+                        }
                         if (logger.isTraceEnabled()) {
                             logger.trace("{} user credentials: {}", String.valueOf(c.getType()), String.valueOf(c));
                         }
@@ -882,71 +959,126 @@ public class AACBootstrap {
                             String providerId = c.getProvider();
 
                             // we skip account check
+                            String accountId = c.getAccountId();
 
                             // set status as active by default
                             if (!StringUtils.hasText(c.getStatus())) {
                                 c.setStatus(SubjectStatus.ACTIVE.getValue());
                             }
 
+                            // user credentials via service
+                            String uuid = c.getUuid();
+
                             UserCredentials credentials = null;
-
-                            // TODO refactor with a single method
-                            // TODO refactor password services over repo
-                            // TODO support webauthn
-                            if ("credentials_password".equals(c.getType())) {
-                                // cast
-                                InternalUserPassword uc = (InternalUserPassword) c;
-
-                                if (!StringUtils.hasText(uc.getProvider())) {
-                                    providerId = slug;
-                                }
-
-                                // extract password and encode if required
-                                String password = uc.getPassword();
-                                // TODO encode and set via new service
-                                if (id != null) {
-                                    credentials = internalUserPasswordService.findPasswordById(id);
-                                }
-
-                                if (credentials == null) {
-                                    logger.debug("add password {} for realm {} account {}", id, slug,
-                                            uc.getAccountId());
-
-                                    credentials = internalUserPasswordService.setPassword(providerId, uc.getUsername(),
-                                            password, false, null, 0);
-                                } else {
-                                    // check again realm match over existing
-                                    if (!slug.equals(credentials.getRealm())) {
-                                        logger.error("error creating {} password, realm mismatch");
-                                        return;
-                                    }
-
-                                    logger.debug("update password {} for realm {} account {}", id, slug,
-                                            uc.getAccountId());
-                                    credentials = internalUserPasswordService.setPassword(providerId, uc.getUsername(),
-                                            password, false, null, 0);
-                                }
+                            if (StringUtils.hasText(uuid)) {
+                                // existing are matched via UUID
+                                credentials = userCredentialsService.findUserCredentials(uuid);
                             }
 
-                            if (logger.isTraceEnabled()) {
-                                logger.trace("{} user credentials: {}", String.valueOf(credentials.getType()),
-                                        String.valueOf(credentials));
+                            if (credentials == null) {
+                                String authority = c.getAuthority();
+                                String provider = c.getProvider();
+
+                                if (!StringUtils.hasText(authority) || !StringUtils.hasText(provider)) {
+                                    // we ask id to be provided
+                                    logger.error("error creating credentials, missing provider");
+                                    throw new IllegalArgumentException("missing provider");
+                                }
+
+                                logger.debug("add {} credentials {} for realm {} account {}", authority, id, slug,
+                                        accountId);
+
+                                // create as new
+                                credentials = userCredentialsService.createUserCredentials(authority, providerId,
+                                        accountId, id, c);
+                            } else {
+                                // check again realm match over existing
+                                if (!slug.equals(credentials.getRealm())) {
+                                    logger.error("error creating credentials, realm mismatch");
+                                    return;
+                                }
+
+                                logger.debug("update {} credentials {} for realm {} account {}",
+                                        credentials.getAuthority(), id, slug,
+                                        accountId);
+
+                                // update
+                                credentials = userCredentialsService.updateUserCredentials(uuid, c);
                             }
 
-                        } catch (RegistrationException | NoSuchUserException e) {
+                            if (credentials != null) {
+                                if (logger.isTraceEnabled()) {
+                                    logger.trace("{} user credentials: {}", String.valueOf(credentials.getAuthority()),
+                                            String.valueOf(credentials));
+                                }
+
+                                // register as resource if missing
+                                if (resourceService.findResourceEntity(credentials.getUuid()) == null) {
+                                    resourceService.addResourceEntity(credentials.getUuid(),
+                                            SystemKeys.RESOURCE_CREDENTIALS,
+                                            credentials.getAuthority(), credentials.getProvider(),
+                                            credentials.getAccountId());
+                                }
+
+                            }
+
+//                            // TODO refactor with a single method
+//                            // TODO refactor password services over repo
+//                            // TODO support webauthn
+//                            if ("credentials_password".equals(c.getType())) {
+//                                // cast
+//                                InternalUserPassword uc = (InternalUserPassword) c;
+//
+//                                if (!StringUtils.hasText(uc.getProvider())) {
+//                                    providerId = slug;
+//                                }
+//
+//                                // extract password and encode if required
+//                                String password = uc.getPassword();
+//                                // TODO encode and set via new service
+//                                if (id != null) {
+//                                    credentials = internalUserPasswordService.findPasswordById(id);
+//                                }
+//
+//                                if (credentials == null) {
+//                                    logger.debug("add password {} for realm {} account {}", id, slug,
+//                                            uc.getAccountId());
+//
+//                                    credentials = internalUserPasswordService.setPassword(providerId, uc.getUsername(),
+//                                            password, false, null, 0);
+//                                } else {
+//                                    // check again realm match over existing
+//                                    if (!slug.equals(credentials.getRealm())) {
+//                                        logger.error("error creating {} password, realm mismatch");
+//                                        return;
+//                                    }
+//
+//                                    logger.debug("update password {} for realm {} account {}", id, slug,
+//                                            uc.getAccountId());
+//                                    credentials = internalUserPasswordService.setPassword(providerId, uc.getUsername(),
+//                                            password, false, null, 0);
+//                                }
+//                            }
+
+                        } catch (RegistrationException | NoSuchCredentialException | NoSuchUserException
+                                | NoSuchAuthorityException | NoSuchProviderException e) {
                             logger.error("error creating {} user credentials {}: {}", String.valueOf(c.getAuthority()),
                                     String.valueOf(c.getId()), e.getMessage());
                         }
                     });
                 }
 
+                logger.debug("bootstrap realm {} created", String.valueOf(slug));
             } catch (Exception e) {
                 logger.error("error creating realm " + String.valueOf(slug) + ": " + e.getMessage());
                 if (logger.isTraceEnabled()) {
                     e.printStackTrace();
                 }
             }
+
         });
+
+        logger.debug("bootstrap config done");
 
         /*
          * Migrations?

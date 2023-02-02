@@ -29,7 +29,12 @@ jdbc:
    user: ${JDBC_USER:ac}
    password: ${JDBC_PASS:ac}
    show-sql: false
-
+   
+persistence:
+   repository:
+      providerConfig: memory
+   
+   
 # AAC ADMIN USER PASSWORD
 admin:
    username: ${ADMIN_USERNAME:admin}
@@ -41,6 +46,12 @@ admin:
 
 # BASIC SECURITY PROPERTIES
 security:
+   api: 
+      cors: 
+        origins: "*"
+   console: 
+      cors: 
+        origins:
    keystore: ${JWK_KEYSTORE:classpath:/keystore.jwks} 
    cache:
       jwks: no-cache, no-store, max-age=0, must-revalidate #set cacheable with "public, max-age=3600, must-revalidate, no-transform"
@@ -243,6 +254,9 @@ spring:
         cache.period: 3600
    h2.console.enabled: false       
    jpa.hibernate.ddl-auto: validate
+   session:
+    store-type: jdbc
+    jdbc.initialize-schema: always   
 
 # ROLE PREFIX FOR AUTHORIZATION CHECK
 authorization:

@@ -34,11 +34,11 @@ public interface UserIdentity extends UserResource, Serializable {
         return SystemKeys.RESOURCE_IDENTITY;
     }
 
-    // id is local to provider
+    // id is global
     // by default user identity id is the account id
     // the same id should be assigned to authenticatedPrincipal
     default String getId() {
-        return getAccount() == null ? null : getAccount().getAccountId();
+        return getAccount() == null ? null : getAccount().getId();
     }
 
     // uuid is global
@@ -46,6 +46,12 @@ public interface UserIdentity extends UserResource, Serializable {
     // the same id should be assigned to authenticatedPrincipal
     default String getUuid() {
         return getAccount() == null ? null : getAccount().getUuid();
+    }
+
+    // resourceId is local
+    // by default user identity id is the account id
+    default String getIdentityId() {
+        return getAccount() == null ? null : getAccount().getAccountId();
     }
 
 }

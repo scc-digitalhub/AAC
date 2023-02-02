@@ -7,8 +7,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 public enum CredentialsStatus {
     ACTIVE("active"),
     INACTIVE("inactive"),
-    REVOKED("revoked"),
-    EXPIRED("expired");
+    REVOKED("revoked");
 
     private final String value;
 

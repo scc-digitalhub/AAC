@@ -6,15 +6,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.util.StringUtils;
-import it.smartcommunitylab.aac.attributes.store.AutoJdbcAttributeStore;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.core.service.AccountServiceAuthorityService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderAuthorityService;
 import it.smartcommunitylab.aac.core.service.InMemoryProviderConfigRepository;
+import it.smartcommunitylab.aac.core.service.ResourceEntityService;
+import it.smartcommunitylab.aac.openid.OIDCAccountServiceAuthority;
 import it.smartcommunitylab.aac.openid.OIDCIdentityAuthority;
-import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
@@ -31,10 +32,13 @@ public class AuthoritiesConfig {
     private UserAccountService<OIDCUserAccount> oidcUserAccountService;
 
     @Autowired
-    private AutoJdbcAttributeStore jdbcAttributeStore;
+    private ScriptExecutionService executionService;
 
     @Autowired
-    private ScriptExecutionService executionService;
+    private ResourceEntityService resourceService;
+
+    @Autowired
+    private AccountServiceAuthorityService accountServiceAuthorityService;
 
     @Bean
     public IdentityProviderAuthorityService identityProviderAuthorityService(
@@ -59,26 +63,32 @@ public class AuthoritiesConfig {
                     // TODO refactor
 
                     if (authProp.getOidc() != null) {
-                        // buid oidc config provider
+                        // build oidc config provider
                         OIDCIdentityProviderConfigMap configMap = authProp.getOidc();
                         OIDCIdentityConfigurationProvider configProvider = new OIDCIdentityConfigurationProvider(id,
                                 configMap);
 
                         // build config repositories
                         ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository = new InMemoryProviderConfigRepository<>();
-                        OIDCClientRegistrationRepository clientRegistrationRepository = new OIDCClientRegistrationRepository();
                         // instantiate authority
                         OIDCIdentityAuthority auth = new OIDCIdentityAuthority(
                                 id,
-                                oidcUserAccountService, jdbcAttributeStore,
-                                registrationRepository,
-                                clientRegistrationRepository);
+                                oidcUserAccountService,
+                                registrationRepository);
 
                         auth.setConfigProvider(configProvider);
                         auth.setExecutionService(executionService);
+                        auth.setResourceService(resourceService);
 
                         // register for manager
                         service.registerAuthority(auth);
+
+                        // also register connected account service
+                        OIDCAccountServiceAuthority aauth = new OIDCAccountServiceAuthority(
+                                id, oidcUserAccountService, registrationRepository);
+                        aauth.setResourceService(resourceService);
+                        accountServiceAuthorityService.registerAuthority(aauth);
+
                     }
                 }
             }

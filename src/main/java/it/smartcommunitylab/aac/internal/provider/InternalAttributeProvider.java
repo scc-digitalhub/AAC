@@ -29,9 +29,6 @@ public class InternalAttributeProvider<P extends InternalUserAuthenticatedPrinci
             String authority, String providerId,
             String realm) {
         super(authority, providerId, realm);
-
-        // disable attribute store
-        this.attributeStore = null;
     }
 
     @Override

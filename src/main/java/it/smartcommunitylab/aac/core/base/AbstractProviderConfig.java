@@ -1,35 +1,16 @@
 package it.smartcommunitylab.aac.core.base;
 
 import java.io.Serializable;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import org.springframework.util.Assert;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.model.ConfigMap;
-import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfig;
 
-public abstract class AbstractProviderConfig<M extends ConfigMap, T extends ConfigurableProvider>
-        implements ProviderConfig<M, T>, ConfigurableProperties, Serializable {
+public abstract class AbstractProviderConfig<M extends AbstractConfigMap, T extends ConfigurableProvider>
+        implements ProviderConfig<M>, Serializable {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
-
-    protected final static ObjectMapper mapper = new ObjectMapper();
-    protected final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
-    };
-
-    @JsonIgnore
-    private final JavaType type;
 
     private final String authority;
     private final String realm;
@@ -40,34 +21,23 @@ public abstract class AbstractProviderConfig<M extends ConfigMap, T extends Conf
     protected Map<String, String> descriptionMap;
 
     protected M configMap;
+    protected int version;
 
     protected AbstractProviderConfig(String authority, String provider, String realm, M configMap) {
-        Assert.hasText(authority, "authority id is mandatory");
-
         this.authority = authority;
         this.realm = realm;
         this.provider = provider;
-
         this.configMap = configMap;
-
-        this.type = extractType();
-        Assert.notNull(type, "type could not be extracted");
+        this.version = 0;
     }
 
-    protected AbstractProviderConfig(T cp) {
-        this(cp.getAuthority(), cp.getProvider(), cp.getRealm(), null);
+    protected AbstractProviderConfig(T cp, M configMap) {
+        this(cp.getAuthority(), cp.getProvider(), cp.getRealm(), configMap);
         this.name = cp.getName();
         this.titleMap = cp.getTitleMap();
         this.descriptionMap = cp.getDescriptionMap();
 
-        // set config
-        this.setConfiguration(cp.getConfiguration());
-    }
-
-    private JavaType extractType() {
-        // resolve generics type via subclass trick
-        Type t = ((ParameterizedType) this.getClass().getGenericSuperclass()).getActualTypeArguments()[0];
-        return mapper.getTypeFactory().constructSimpleType((Class<?>) t, null);
+        this.version = cp.getVersion() != null ? cp.getVersion() : 0;
     }
 
     /**
@@ -143,18 +113,12 @@ public abstract class AbstractProviderConfig<M extends ConfigMap, T extends Conf
         this.configMap = configMap;
     }
 
-    @Override
-    public Map<String, Serializable> getConfiguration() {
-        // use mapper
-        mapper.setSerializationInclusion(Include.NON_EMPTY);
-        return mapper.convertValue(getConfigMap(), typeRef);
+    public int getVersion() {
+        return version;
     }
 
-    @Override
-    public void setConfiguration(Map<String, Serializable> props) {
-//        M map = getConfigMapConverter().convert(props);
-        M map = mapper.convertValue(props, type);
-        setConfigMap(map);
+    public void setVersion(int version) {
+        this.version = version;
     }
 
 }
