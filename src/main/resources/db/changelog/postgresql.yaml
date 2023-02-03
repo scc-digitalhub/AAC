@@ -1,0 +1,195 @@
+databaseChangeLog:
+# set the properties values to change type between DBMS
+#  -  property:
+#        dbms:  oracle,postgresql
+#        name:  clob.type
+#        value:  clob
+#  -  property:
+#        dbms:  mysql,mariadb
+#        name:  clob.type
+#        value:  longtext
+  -  changeSet:
+        id: "1-create-attributes-postgresql-if-not-exsists"
+        author: "Gian Paolo Rossi"
+        preConditions:
+           - onFail: MARK_RAN
+           - not:
+              - tableExists:
+                 tableName: attributes
+        dbms: postgresql
+        changes:
+          -  createTable:
+               tableName:  attributes
+               columns:
+                 -  column:
+                      name:  entity_id
+                      type:  varchar (256)
+                 -  column:
+                      name:  provider_id
+                      type:  varchar (256)
+                 -  column:
+                      name:  attr_key
+                      type:  varchar (256)
+                 -  column:
+                      name:  attr_value
+                      type:  bytea
+  -  changeSet:
+        id: "2-create-audit-postgresql-if-not-exsists"
+        author: "Gian Paolo Rossi"
+        preConditions:
+           - onFail: MARK_RAN
+           - not:
+              - tableExists:
+                 tableName: audit
+        dbms: postgresql
+        changes:
+          -  createTable:
+               tableName:  audit
+               columns:
+                 -  column:
+                      name:  time
+                      type:  timestamp
+                 -  column:
+                      name:  principal
+                      type:  varchar (255)
+                 -  column:
+                      name:  realm
+                      type:  varchar (255)
+                      defaultValue: "null"
+                 -  column:
+                      name:  type
+                      type:  varchar (255)
+                 -  column:
+                      name:  event
+                      type:  bytea 
+  -  changeSet:
+        id: "3-create-oauth_approvals-postgresql-if-not-exsists"
+        author: "Gian Paolo Rossi"
+        preConditions:
+           - onFail: MARK_RAN
+           - not:
+              - tableExists:
+                 tableName: oauth_approvals
+        dbms: postgresql
+        changes:
+          -  createTable:
+               tableName:  oauth_approvals
+               columns:
+                 -  column:
+                      name:  clientId
+                      type:  varchar (255)
+                      defaultValue: "null"
+                 -  column:
+                      name:  expiresAt
+                      type:  timestamp
+                      defaultValue: "null"
+                 -  column:
+                      name:  lastModifiedAt
+                      type:  timestamp
+                      defaultValue: "null"                      
+                 -  column:
+                      name:  scope
+                      type:  varchar (255)
+                      defaultValue: "null"
+                 -  column:
+                      name:  status
+                      type:  varchar (255)
+                      defaultValue: "null"
+                 -  column:
+                      name:  userId
+                      type:  varchar (255)
+                      defaultValue: "null"
+  -  changeSet:
+        id: "4-create-oauth_code-postgresql-if-not-exsists"
+        author: "Gian Paolo Rossi"
+        preConditions:
+           - onFail: MARK_RAN
+           - not:
+              - tableExists:
+                 tableName: oauth_code
+        dbms: postgresql
+        changes:
+          -  createTable:
+               tableName:  oauth_code
+               columns:
+                 -  column:
+                      name:  code
+                      type:  varchar (256)
+                 -  column:
+                      name:  client_id
+                      type:  varchar (256)
+                 -  column:
+                      name:  expiresAt
+                      type:  timestamp                      
+                 -  column:
+                      name:  authentication
+                      type:  bytea 
+  -  changeSet:
+        id: "5-create-oauth_refresh_token-postgresql-if-not-exsists"
+        author: "Gian Paolo Rossi"
+        preConditions:
+           - onFail: MARK_RAN
+           - not:
+              - tableExists:
+                 tableName: oauth_refresh_token
+        dbms: postgresql
+        changes:
+          -  createTable:
+               tableName:  oauth_refresh_token
+               columns:
+                 -  column:
+                      name:  token_id
+                      type:  varchar (64)
+                      constraints:
+                         nullable: false 
+                         primaryKey: true                      
+                 -  column:
+                      name:  token
+                      type:  bytea
+                      constraints:
+                         nullable: false                      
+                 -  column:
+                      name:  authentication
+                      type:  bytea
+                      constraints:
+                         nullable: false                                          
+  -  changeSet:
+        id: "6-create-oauth_access_token-postgresql-if-not-exsists"
+        author: "Gian Paolo Rossi"
+        preConditions:
+           - onFail: MARK_RAN
+           - not:
+              - tableExists:
+                 tableName: oauth_access_token
+        dbms: postgresql
+        changes:
+          -  createTable:
+               tableName:  oauth_access_token
+               columns:
+                 -  column:
+                      name:  token_id
+                      type:  varchar (256)
+                      constraints:
+                         nullable: false 
+                         primaryKey: true                      
+                 -  column:
+                      name:  token
+                      type:  bytea
+                      constraints:
+                         nullable: false                      
+                 -  column:
+                      name:  authentication_id
+                      type:  varchar (256)                                                                                                                           
+                 -  column:
+                      name:  user_name
+                      type:  varchar (256)
+                 -  column:
+                      name:  client_id
+                      type:  varchar (256)
+                 -  column:
+                      name:  authentication
+                      type:  bytea                      
+                 -  column:
+                      name:  refresh_token
+                      type:  varchar (256)                                                                                                           
+                                                                
