@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:fragment="header">
+</head>
+
+<body>
+   <div th:fragment="message">
+      <p>
+		Art <span data-th-text="${user.name}">Mario</span> <span data-th-text="${user.surname}">Rot</span>,
+         <br>
+		Sie sind registriert bei <b data-th-text="${realm.name}">AAC</b>
+         <br>
+		Um die Registrierung abzuschlie\u00DFen, \u00F6ffnen Sie dieses <a href="#" th:href="${action.url}">verbinden</a>.
+      </p>
+      <p>
+		Bitte wenden Sie sich an <a href="mailto:" th:href="'mailto:'+${application.email}">unterst\u00FCtzen</a> im Falle von
+         Probleme mit Zugang.
+      </p>
+   </div>
+</body>
+
+</html>
