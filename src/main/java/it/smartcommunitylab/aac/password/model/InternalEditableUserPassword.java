@@ -1,8 +1,10 @@
 package it.smartcommunitylab.aac.password.model;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.persistence.Column;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 
@@ -41,6 +43,15 @@ public class InternalEditableUserPassword extends AbstractEditableUserCredential
 
     @JsonSchemaIgnore
     private PasswordPolicy policy;
+
+    @JsonSchemaIgnore
+    private Date createDate;
+
+    @JsonSchemaIgnore
+    private Date modifiedDate;
+
+    @JsonSchemaIgnore
+    private Date expireDate;
 
     @Schema(name = "password", title = "field.password", description = "description.password", format = "password")
     @NotBlank
@@ -116,6 +127,30 @@ public class InternalEditableUserPassword extends AbstractEditableUserCredential
 
     public void setPolicy(PasswordPolicy policy) {
         this.policy = policy;
+    }
+
+    public Date getCreateDate() {
+        return createDate;
+    }
+
+    public void setCreateDate(Date createDate) {
+        this.createDate = createDate;
+    }
+
+    public Date getModifiedDate() {
+        return modifiedDate;
+    }
+
+    public void setModifiedDate(Date modifiedDate) {
+        this.modifiedDate = modifiedDate;
+    }
+
+    public Date getExpireDate() {
+        return expireDate;
+    }
+
+    public void setExpireDate(Date expireDate) {
+        this.expireDate = expireDate;
     }
 
     @Override

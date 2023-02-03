@@ -388,6 +388,9 @@ public class PasswordCredentialsService extends
         ed.setCredentialsId(pass.getCredentialsId());
         ed.setUserId(pass.getUserId());
         ed.setUsername(pass.getUsername());
+        ed.setCreateDate(pass.getCreateDate());
+        ed.setModifiedDate(pass.getCreateDate());
+        ed.setExpireDate(pass.getExpirationDate());
 
         // load policy
         PasswordPolicy policy = getPasswordPolicy();
@@ -461,6 +464,9 @@ public class PasswordCredentialsService extends
             ed.setCredentialsId(cred.getCredentialsId());
             ed.setUserId(cred.getUserId());
             ed.setUsername(cred.getUsername());
+            ed.setCreateDate(cred.getCreateDate());
+            ed.setModifiedDate(cred.getCreateDate());
+            ed.setExpireDate(cred.getExpirationDate());
 
             // load policy
             PasswordPolicy policy = getPasswordPolicy();

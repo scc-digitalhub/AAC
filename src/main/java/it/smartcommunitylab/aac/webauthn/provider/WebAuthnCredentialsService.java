@@ -358,6 +358,9 @@ public class WebAuthnCredentialsService extends
         ed.setUsername(cred.getUsername());
         ed.setUserHandle(cred.getUserHandle());
         ed.setDisplayName(cred.getDisplayName());
+        ed.setCreateDate(cred.getCreateDate());
+        ed.setModifiedDate(cred.getCreateDate());
+        ed.setLastUsedDate(cred.getLastUsedDate());
 
         return ed;
     }

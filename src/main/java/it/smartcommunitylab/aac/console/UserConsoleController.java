@@ -1,8 +1,13 @@
 package it.smartcommunitylab.aac.console;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
@@ -20,6 +25,7 @@ import org.springframework.security.authentication.InsufficientAuthenticationExc
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.session.SessionInformation;
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,6 +33,10 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.Config;
@@ -44,6 +54,7 @@ import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.MyUserManager;
 import it.smartcommunitylab.aac.core.ScopeManager;
 import it.smartcommunitylab.aac.core.UserDetails;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.base.AbstractEditableAccount;
 import it.smartcommunitylab.aac.core.base.AbstractEditableUserCredentials;
 import it.smartcommunitylab.aac.core.model.EditableUserAccount;
@@ -51,6 +62,7 @@ import it.smartcommunitylab.aac.core.model.EditableUserCredentials;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.model.ConnectedApp;
 import it.smartcommunitylab.aac.model.ScopeType;
+import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
 import it.smartcommunitylab.aac.scope.Scope;
 
@@ -59,6 +71,16 @@ import it.smartcommunitylab.aac.scope.Scope;
 @Hidden
 @RequestMapping("/console/user")
 public class UserConsoleController {
+
+    // TODO remove workaround for token serialization
+    private final static ObjectMapper tokenMapper;
+    static {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.disable(MapperFeature.USE_ANNOTATIONS);
+        tokenMapper = mapper;
+    }
+    private final TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
+    };
 
     @Autowired
     private AuthenticationHelper authHelper;
@@ -69,25 +91,19 @@ public class UserConsoleController {
     @Autowired
     private ScopeManager scopeManager;
 
-
     @GetMapping("/authorities")
-    public ResponseEntity<List<? extends GrantedAuthority>> getAuthorities(Authentication auth){
-        return  ResponseEntity.ok(new ArrayList<>(auth.getAuthorities()));
+    public ResponseEntity<List<? extends GrantedAuthority>> getAuthorities(UserAuthentication auth) {
+        return ResponseEntity.ok(new ArrayList<>(auth.getAuthorities()));
     }
 
-
     @GetMapping("/status")
-    public ResponseEntity<Void> checkStatus(){
+    public ResponseEntity<Void> checkStatus() {
         return ResponseEntity.ok().build();
-    } 
-
-
+    }
 
     /*
      * User
      */
-
-
 
     @GetMapping("/details")
     public ResponseEntity<Page<UserDetails>> myUserList(Pageable pageable) throws InvalidDefinitionException {
@@ -270,9 +286,28 @@ public class UserConsoleController {
     }
 
     @GetMapping("/sessions")
-    public ResponseEntity<Page<SessionInformation>> mySessions(Pageable pageable) throws InvalidDefinitionException {
-        List<SessionInformation> result = new ArrayList<>(userManager.getMySessions());
-        Page<SessionInformation> page = new PageImpl<>(result, pageable, result.size());
+    public ResponseEntity<Page<IdentifiableSessionInformation>> mySessions(Pageable pageable)
+            throws InvalidDefinitionException {
+        List<IdentifiableSessionInformation> result = userManager.getMySessions().stream()
+                .map(s -> new IdentifiableSessionInformation(s.getPrincipal(), s.getSessionId(), s.getLastRequest()))
+                .collect(Collectors.toList());
+        Page<IdentifiableSessionInformation> page = new PageImpl<>(result, pageable, result.size());
+        return ResponseEntity.ok(page);
+    }
+
+    @GetMapping("/tokens")
+    public ResponseEntity<Page<Map<String, Serializable>>> myTokens(Pageable pageable)
+            throws InvalidDefinitionException {
+
+        Collection<AACOAuth2AccessToken> tokens = userManager.getMyAccessTokens();
+        List<Map<String, Serializable>> result = tokens.stream()
+                .map(t -> {
+                    HashMap<String, Serializable> m = tokenMapper.convertValue(t, typeRef);
+                    m.put("id", t.getToken());
+                    return m;
+                })
+                .filter(t -> t != null).collect(Collectors.toList());
+        Page<Map<String, Serializable>> page = new PageImpl<>(result, pageable, result.size());
         return ResponseEntity.ok(page);
     }
 
@@ -310,5 +345,15 @@ public class UserConsoleController {
         }
 
         return user;
+    }
+
+    public static class IdentifiableSessionInformation extends SessionInformation {
+        public IdentifiableSessionInformation(Object principal, String sessionId, Date lastRequest) {
+            super(principal, sessionId, lastRequest);
+        }
+
+        public String getId() {
+            return getSessionId();
+        }
     }
 }

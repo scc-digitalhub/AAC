@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.session.SessionInformation;
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.stereotype.Service;
@@ -51,6 +52,8 @@ import it.smartcommunitylab.aac.model.ConnectedApp;
 import it.smartcommunitylab.aac.model.ConnectedDevice;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
+import it.smartcommunitylab.aac.oauth.store.ExtTokenStore;
 import it.smartcommunitylab.aac.oauth.store.SearchableApprovalStore;
 import it.smartcommunitylab.aac.profiles.ProfileManager;
 import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
@@ -106,7 +109,7 @@ public class MyUserManager {
     private AttributeProviderService attributeProviderService;
 
     @Autowired
-    private TokenStore tokenStore;
+    private ExtTokenStore tokenStore;
 
     @Autowired
     private AuditEventStore auditStore;
@@ -310,37 +313,90 @@ public class MyUserManager {
         UserDetails details = curUserDetails();
         String subjectId = details.getSubjectId();
         Collection<Approval> approvals = approvalStore.findUserApprovals(subjectId);
-        Map<ClientEntity, List<Scope>> map = new HashMap<>();
+        Map<String, List<Approval>> map = approvals.stream().collect(Collectors.groupingBy(a -> a.getClientId()));
+        Set<String> keys = approvals.stream().map(a -> a.getScope()).collect(Collectors.toSet());
 
-        for (Approval appr : approvals) {
-            try {
-                String clientId = appr.getClientId();
-                ClientEntity client = clientService.getClient(clientId);
-                Scope scope = scopeRegistry.getScope(appr.getScope());
-
-                if (!map.containsKey(client)) {
-                    map.put(client, new ArrayList<>());
-                }
-
-                map.get(client).add(scope);
-
-            } catch (NoSuchClientException | NoSuchScopeException e) {
-                // client was removed or scope does not exists
-                // we should remove the approval
-                approvalStore.revokeApprovals(Collections.singleton(appr));
-            }
-        }
+        Map<String, Scope> scopes = keys.stream()
+                .map(s -> {
+                    try {
+                        return scopeRegistry.getScope(s);
+                    } catch (NoSuchScopeException e) {
+                        // client was removed or scope does not exists
+                        // we should remove the approval
+                        return null;
+                    }
+                })
+                .filter(s -> s != null)
+                .collect(Collectors.toMap(s -> s.getScope(), s -> s));
 
         List<ConnectedApp> apps = map.entrySet().stream()
                 .map(e -> {
-                    ClientEntity client = e.getKey();
-                    ConnectedApp app = new ConnectedApp(subjectId, client.getClientId(),
-                            client.getRealm(), e.getValue());
-                    app.setAppName(client.getName());
-                    app.setAppDescription(client.getDescription());
-                    return app;
+                    try {
+                        String clientId = e.getKey();
+                        ClientEntity client = clientService.getClient(clientId);
+                        ConnectedApp app = new ConnectedApp(subjectId, client.getClientId(), client.getRealm());
+                        app.setAppName(client.getName());
+                        app.setAppDescription(client.getDescription());
+
+                        // set approvals
+                        app.setApprovals(e.getValue());
+
+                        // evaluate dates
+                        Date createDate = e.getValue().stream().map(a -> a.getLastUpdatedAt()).min(Date::compareTo)
+                                .orElse(null);
+                        Date modifiedDate = e.getValue().stream().map(a -> a.getLastUpdatedAt()).max(Date::compareTo)
+                                .orElse(null);
+                        Date expireDate = e.getValue().stream().map(a -> a.getExpiresAt()).max(Date::compareTo)
+                                .orElse(null);
+                        app.setCreateDate(createDate);
+                        app.setModifiedDate(modifiedDate);
+                        app.setExpireDate(expireDate);
+
+                        List<Scope> list = e.getValue().stream().map(a -> scopes.get(a.getScope()))
+                                .filter(s -> s != null)
+                                .collect(Collectors.toList());
+                        app.setScopes(list);
+
+                        return app;
+                    } catch (NoSuchClientException ec) {
+                        // client was removed or scope does not exists
+                        // we should remove the approval
+//                        approvalStore.revokeApprovals(Collections.singleton(appr));
+                        return null;
+                    }
                 })
+                .filter(a -> a != null)
                 .collect(Collectors.toList());
+//
+//        for (Approval appr : approvals) {
+//            try {
+//                String clientId = appr.getClientId();
+//                ClientEntity client = clientService.getClient(clientId);
+//                Scope scope = scopeRegistry.getScope(appr.getScope());
+//
+//                if (!map.containsKey(client)) {
+//                    map.put(client, new ArrayList<>());
+//                }
+//
+//                map.get(client).add(scope);
+//
+//            } catch (NoSuchClientException | NoSuchScopeException e) {
+//                // client was removed or scope does not exists
+//                // we should remove the approval
+//                approvalStore.revokeApprovals(Collections.singleton(appr));
+//            }
+//        }
+//
+//        List<ConnectedApp> apps = map.entrySet().stream()
+//                .map(e -> {
+//                    ClientEntity client = e.getKey();
+//                    ConnectedApp app = new ConnectedApp(subjectId, client.getClientId(),
+//                            client.getRealm(), e.getValue());
+//                    app.setAppName(client.getName());
+//                    app.setAppDescription(client.getDescription());
+//                    return app;
+//                })
+//                .collect(Collectors.toList());
 
         return apps;
     }
@@ -460,16 +516,38 @@ public class MyUserManager {
         UserDetails details = curUserDetails();
         String subjectId = details.getSubjectId();
 
-//        return sessionManager.listUserSessions(subjectId, details.getRealm(), details.getUsername());
+        return sessionManager.listUserSessions(subjectId, details.getRealm(), details.getUsername());
 
-        // fetch from context for now
-        UserAuthentication userAuth = authHelper.getUserAuthentication();
-        WebAuthenticationDetails webDetails = userAuth.getWebAuthenticationDetails();
-
-        SessionInformation sessionInfo = new SessionInformation(userAuth.getPrincipal(), webDetails.getSessionId(),
-                new Date());
-        return Collections.singleton(sessionInfo);
+//        // fetch from context for now
+//        UserAuthentication userAuth = authHelper.getUserAuthentication();
+//        WebAuthenticationDetails webDetails = userAuth.getWebAuthenticationDetails();
+//
+//        SessionInformation sessionInfo = new SessionInformation(userAuth.getPrincipal(), webDetails.getSessionId(),
+//                new Date());
+//        return Collections.singleton(sessionInfo);
     }
+
+    /*
+     * Tokens
+     */
+    public Collection<AACOAuth2AccessToken> getMyAccessTokens() {
+        UserDetails details = curUserDetails();
+        String subjectId = details.getSubjectId();
+        // WORKAROUND: currently tokenStore doesn't persist subject, but only username
+        // as such we fetch all matching username, and filter
+        String username = details.getUsername();
+
+        Collection<AACOAuth2AccessToken> tokens = tokenStore.findTokensByUserName(username).stream()
+                .filter(t -> AACOAuth2AccessToken.class.isInstance(t))
+                .map(t -> (AACOAuth2AccessToken) t)
+                .filter(t -> subjectId.equals(t.getSubject()))
+                .collect(Collectors.toList());
+
+        return tokens;
+
+    }
+
+    // TODO refresh tokens
 
     /*
      * Audit
