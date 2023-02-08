@@ -101,7 +101,7 @@ public class WebAuthnCredentialsController {
         // NOTE: credentials are listed by user not account
         // TODO implement picker for account when more than one available
         String userId = user.getSubjectId();
-        Collection<WebAuthnUserCredential> credentials = service.listCredentials(userId);
+        Collection<WebAuthnUserCredential> credentials = service.listCredentialsByUser(userId);
         model.addAttribute("credentials", credentials);
 
         // build url

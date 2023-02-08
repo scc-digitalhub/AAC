@@ -1,13 +1,9 @@
-import * as React from 'react';
 import { Box, Grid } from '@mui/material';
 import {
-    useCreatePath,
-    NumberField,
     useListContext,
     RecordContextProvider,
     SimpleListProps,
     RaRecord,
-    useResourceContext,
     useTranslate,
     Identifier,
 } from 'react-admin';
@@ -15,25 +11,25 @@ import LinearProgress from '@mui/material/LinearProgress';
 import { Card, CardContent, CardActions, CardHeader } from '@mui/material';
 import { isValidElement, ReactElement, ReactNode } from 'react';
 
-const style = {
-    // Use flex layout with column direction for components in the card
-    // (CardContent and CardActions)
-    display: 'flex',
-    flexDirection: 'column',
+// const style = {
+//     // Use flex layout with column direction for components in the card
+//     // (CardContent and CardActions)
+//     display: 'flex',
+//     flexDirection: 'column',
 
-    // Justify the content so that CardContent will always be at the top of the card,
-    // and CardActions will be at the bottom
-    justifyContent: 'space-between',
-};
+//     // Justify the content so that CardContent will always be at the top of the card,
+//     // and CardActions will be at the bottom
+//     justifyContent: 'space-between',
+// };
 
 export const GridList = <RecordType extends RaRecord = any>(
     props: GridListProps<RecordType>
 ) => {
-    const { className, cols = 6, linkType = 'edit' } = props;
+    const { cols = 6 } = props;
     const { primaryText, secondaryText, tertiaryText, icon, actions } = props;
 
-    const { data, isLoading, total } = useListContext<RecordType>(props);
-    const resource = useResourceContext(props);
+    const { data, isLoading } = useListContext<RecordType>(props);
+    // const resource = useResourceContext(props);
     const translate = useTranslate();
 
     if (isLoading === true) {
@@ -135,7 +131,7 @@ export type FunctionToElement<RecordType extends RaRecord = any> = (
 export interface GridListProps<RecordType extends RaRecord = any>
     extends SimpleListProps {
     cols?: number;
-    icon?: FunctionToElement<RecordType>;
+    icon?: FunctionToElement<RecordType> | ReactElement;
     tertiaryText?: FunctionToElement<RecordType> | string;
     actions?: FunctionToElement<RecordType> | ReactElement;
 }

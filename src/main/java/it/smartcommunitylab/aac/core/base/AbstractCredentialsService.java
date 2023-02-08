@@ -1,9 +1,12 @@
 package it.smartcommunitylab.aac.core.base;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import javax.validation.constraints.NotNull;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,7 +90,23 @@ public abstract class AbstractCredentialsService<UC extends AbstractUserCredenti
      * for credentials API
      */
     @Override
-    public Collection<UC> listCredentials(String userId) {
+    public Collection<UC> listCredentials(String accountId) {
+        logger.debug("list credentials for account {}", String.valueOf(accountId));
+
+        // fetch all
+        return credentialsService.findCredentialsByAccount(repositoryId, accountId).stream()
+                .map(p -> {
+                    // map to ourselves
+                    p.setProvider(getProvider());
+
+                    // clear value for extra safety
+                    p.eraseCredentials();
+                    return p;
+                }).collect(Collectors.toList());
+    }
+
+    @Override
+    public Collection<UC> listCredentialsByUser(String userId) {
         logger.debug("list credentials for user {}", String.valueOf(userId));
 
         // fetch all
@@ -133,7 +152,8 @@ public abstract class AbstractCredentialsService<UC extends AbstractUserCredenti
     }
 
     @Override
-    public UC addCredential(String accountId, String credentialId, UserCredentials uc) throws NoSuchUserException, RegistrationException {
+    public UC addCredential(String accountId, String credentialId, UserCredentials uc)
+            throws NoSuchUserException, RegistrationException {
         logger.debug("add credential for account {} with id {}", String.valueOf(accountId),
                 String.valueOf(credentialId));
         if (logger.isTraceEnabled()) {
@@ -188,7 +208,7 @@ public abstract class AbstractCredentialsService<UC extends AbstractUserCredenti
     }
 
     @Override
-    public UC setCredential(String accountId, String credentialsId, UserCredentials uc)
+    public UC setCredential(String credentialsId, UserCredentials uc)
             throws RegistrationException, NoSuchCredentialException {
         logger.debug("set credential {}", String.valueOf(credentialsId));
         if (logger.isTraceEnabled()) {
@@ -213,10 +233,6 @@ public abstract class AbstractCredentialsService<UC extends AbstractUserCredenti
         UC cred = credentialsService.findCredentialsById(repositoryId, credentialsId);
         if (cred == null) {
             throw new NoSuchCredentialException();
-        }
-
-        if (!cred.getAccountId().equals(accountId)) {
-            throw new IllegalArgumentException("account-mismatch");
         }
 
         // update registration
@@ -276,7 +292,30 @@ public abstract class AbstractCredentialsService<UC extends AbstractUserCredenti
     }
 
     @Override
-    public void deleteCredentials(String userId) {
+    public void deleteCredentials(String accountId) {
+        logger.debug("delete all credentials for account {}", String.valueOf(accountId));
+
+        // fetch all to collect ids
+        Collection<UC> credentials = credentialsService.findCredentialsByAccount(repositoryId, accountId);
+
+        // delete in batch
+        Set<String> ids = credentials.stream().map(p -> p.getId()).collect(Collectors.toSet());
+        credentialsService.deleteAllCredentials(repositoryId, ids);
+
+        if (resourceService != null) {
+            // remove resources
+            try {
+                // delete in batch
+                Set<String> uuids = credentials.stream().map(p -> p.getUuid()).collect(Collectors.toSet());
+                resourceService.deleteAllResourceEntities(uuids);
+            } catch (RuntimeException re) {
+                logger.error("error removing resources: {}", re.getMessage());
+            }
+        }
+    }
+
+    @Override
+    public void deleteCredentialsByUser(String userId) {
         logger.debug("delete all credentials for user {}", String.valueOf(userId));
 
         // fetch all to collect ids
@@ -300,18 +339,37 @@ public abstract class AbstractCredentialsService<UC extends AbstractUserCredenti
 
     /*
      * Editable
+     * Implementations *may* support editable credentials
+     * TODO split
      */
-    public EC getEditableCredential(String accountId, String credentialId) throws NoSuchCredentialException {
+    public Collection<EC> listEditableCredentials(String accountId) {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public Collection<EC> listEditableCredentialsByUser(String userId) {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public EC getEditableCredential(String credentialId) throws NoSuchCredentialException {
         throw new UnsupportedOperationException();
     }
 
-    public EC registerCredential(String accountId, EditableUserCredentials credentials)
+    @Override
+    public EC registerEditableCredential(String accountId, EditableUserCredentials credentials)
             throws RegistrationException, NoSuchUserException {
         throw new UnsupportedOperationException();
     }
 
-    public EC editCredential(String accountId, String credentialId, EditableUserCredentials credentials)
+    @Override
+    public EC editEditableCredential(String credentialId, EditableUserCredentials credentials)
             throws RegistrationException, NoSuchCredentialException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void deleteEditableCredential(@NotNull String credentialId) throws NoSuchCredentialException {
         throw new UnsupportedOperationException();
     }
 

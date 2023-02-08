@@ -33,10 +33,18 @@ export default (baseUrl: string, httpClient = fetchJson): AuthProvider => {
         },
         getIdentity: async () => {
             //load from profile
-            const url = `${apiUrl}/profile`;
+            let url = `${apiUrl}/me`;
             const { status, json } = await httpClient(url);
 
             if (status !== 200 || !json || !json.subjectId) {
+                throw new Error('profile error');
+            }
+
+            //explode realm model
+            url = `${apiUrl}/realm`;
+            const { status: rstatus, json: rjson } = await httpClient(url);
+
+            if (rstatus !== 200 || !rjson || !rjson.slug) {
                 throw new Error('profile error');
             }
 
@@ -44,6 +52,7 @@ export default (baseUrl: string, httpClient = fetchJson): AuthProvider => {
                 id: json.subjectId,
                 fullName: json.username,
                 ...json,
+                realm: rjson,
             };
         },
         getPermissions: async () => {

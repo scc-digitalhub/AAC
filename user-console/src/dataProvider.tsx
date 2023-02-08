@@ -18,6 +18,42 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
     const provider = jsonServerProvider(apiUrl, httpClient);
 
     return {
+        apiUrl: async () => apiUrl,
+        invoke: ({
+            path,
+            params,
+            body,
+            options,
+        }: {
+            path: string;
+            params?: any;
+            body?: string;
+            options?: Options;
+        }) => {
+            let url = `${apiUrl}/${path}`;
+            if (params) {
+                url = `${apiUrl}/${path}?${stringify(params)}`;
+            }
+            const opts = options ? options : {};
+            if (body) {
+                opts.body = body;
+            }
+            return httpClient(url, opts).then(({ headers, json }) => {
+                return json;
+            });
+        },
+        myAuthorities: () => {
+            const url = `${apiUrl}/authorities`;
+            return httpClient(url).then(({ json }) => {
+                return json;
+            });
+        },
+        myRealm: () => {
+            const url = `${apiUrl}/realm`;
+            return httpClient(url).then(({ json }) => {
+                return json;
+            });
+        },
         getList: (resource, params) => {
             const { page, perPage } = params.pagination;
             const { field, order } = params.sort;

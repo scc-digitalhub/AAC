@@ -1,18 +1,26 @@
-import * as React from 'react';
 import {
     AppBar,
     AppBarProps,
     Layout,
     LayoutProps,
     MenuProps,
-    useResourceDefinitions,
+    useGetIdentity,
 } from 'react-admin';
-import MenuItem from '@mui/material/MenuItem';
 import { Box, Typography } from '@mui/material';
 import { Menu } from 'react-admin';
+
 import LockIcon from '@mui/icons-material/Lock';
+import AccountBoxIcon from '@mui/icons-material/AccountBox';
+import VpnKeyIcon from '@mui/icons-material/VpnKey';
+import AppShortcutIcon from '@mui/icons-material/AppShortcut';
 
 const MyAppBar = (props: AppBarProps) => {
+    const { data, isLoading } = useGetIdentity();
+    let title = 'AAC';
+    if (!isLoading && data && data.realm) {
+        title = data.realm.name;
+    }
+
     return (
         <AppBar {...props} color="primary">
             <Box flex="1">
@@ -29,9 +37,10 @@ const MyAppBar = (props: AppBarProps) => {
                         // letterSpacing: '.3rem',
                         color: 'inherit',
                         textDecoration: 'none',
+                        textTransform: 'uppercase',
                     }}
                 >
-                    AAC
+                    {title}
                 </Typography>
             </Box>
         </AppBar>
@@ -39,17 +48,37 @@ const MyAppBar = (props: AppBarProps) => {
 };
 
 const MyMenu = (props: MenuProps) => {
-    const resources = useResourceDefinitions();
-    const links = Object.keys(resources)
-        .filter(name => resources[name].hasList)
-        .map(name => {
-            return <Menu.ResourceItem key={name} name={name} />;
-        });
+    // const resources = useResourceDefinitions();
+    // const links = Object.keys(resources)
+    //     .filter(name => resources[name].hasList)
+    //     .map(name => {
+    //         return <Menu.ResourceItem key={name} name={name} />;
+    //     });
 
     return (
         <Menu>
             <Menu.DashboardItem />
-            {links}
+            {/* {links} */}
+            <Menu.Item
+                to="/accounts"
+                primaryText="accounts"
+                leftIcon={<LockIcon />}
+            />
+            <Menu.Item
+                to="/profiles"
+                primaryText="profiles"
+                leftIcon={<AccountBoxIcon />}
+            />
+            <Menu.Item
+                to="/credentials"
+                primaryText="credentials"
+                leftIcon={<VpnKeyIcon />}
+            />
+            <Menu.Item
+                to="/connections"
+                primaryText="connections"
+                leftIcon={<AppShortcutIcon />}
+            />
             <Menu.Item
                 to="/security"
                 primaryText="security"

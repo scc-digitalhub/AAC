@@ -7,6 +7,10 @@ const messages: TranslationMessages = {
     developer: 'Developer',
     user: 'User',
     security: 'Security',
+    accounts: 'Accounts',
+    profiles: 'Personal Info',
+    credentials: 'Credentials',
+    connections: 'Connected Apps',
     resources: {
         accounts: {
             name: 'Account |||| Accounts',
@@ -23,74 +27,132 @@ const messages: TranslationMessages = {
         connections: {
             name: 'Connected App |||| Connected Apps',
         },
-    },
-    dashboard: {
-        welcome: 'Welcome, %{name}',
-        description:
-            'Manage you personal information, accounts and review your security settings.',
-        review_manage: 'Review and manage your accounts',
-        manage_accounts: 'Manage Accounts',
-        view_update: 'View and update your credentials',
-        edit_profile: 'Edit profile',
-        active_sessions:
-            'You have currently active sessions on one or more devices.',
-        view_sessions: 'View sessions',
-        view_and: 'view connections in applications',
-        manage_connections: 'Manage Connections',
-        credentials: 'Credentials',
-        accounts: 'Accounts',
-        third_party: '3rd party apps',
-        edit_credentials: 'Edit credentials',
-    },
-    accounts_page: {
-        header: 'Accounts',
-        description:
-            'View, manage and connect your local, social and external accounts',
-        registered_user: 'Registered user',
-        delete_user: {
-            title: 'Delete user',
-            text: 'Remove your user and all the associated information',
-            action: 'Delete user',
-            confirm: 'Delete your user %{id}?',
-            content:
-                'Are you sure you want to delete your account? This action cannot be undone!',
-        },
-        delete_account: {
-            content:
-                'Are you sure you want to delete your account? This action cannot be undone!',
-        },
-    },
-    profiles_page: {
-        header: 'Personal info',
-        description:
-            'Review and inspect your personal information, as available to applications and services.',
-    },
-    connections_page: {
-        header: 'Connected applications',
-        description:
-            'Manage and control application permissions. You gave access to some of your personal information to applications and sites. Review and remove access to applications you no longer use or trust.',
-        permissions: 'Has access to %{num} permissions',
-    },
-    credentials_page: {
         password: {
+            details: 'A secure password helps protecting your account',
+            policy: {
+                description:
+                    'The password must satisfy the following requisites:',
+                strength: 'New password strength',
+                passwordMinLength: 'Minimum length: %{value}',
+                passwordMaxLength: 'Maximum length: %{value}',
+                passwordRequireAlpha: 'Require letters',
+                passwordRequireUppercaseAlpha: 'Require an uppercase character',
+                passwordRequireNumber: 'Require a number',
+                passwordRequireSpecial: 'Require a special character',
+                passwordSupportWhitespace: 'Supports white-spaces',
+            },
+        },
+        webauthn: {
+            details:
+                'A secure key serves as a security factor for strong authentication',
+        },
+    },
+    page: {
+        dashboard: {
+            welcome: 'Welcome, %{name}',
+            description:
+                'Manage you personal information, accounts and review your security settings.',
+            accounts: {
+                title: 'Accounts',
+                description: 'Review and manage your accounts',
+                manage: 'Manage accounts',
+            },
+            connections: {
+                title: 'Connected applications',
+                description: 'View and manage 3rd party connected applications',
+                manage: 'Manage connections',
+            },
+            credentials: {
+                title: 'Credentials',
+                description: 'View and update your credentials',
+                manage: 'Manage credentials',
+            },
+        },
+        accounts: {
+            header: 'Accounts',
+            description:
+                'View, manage and connect your local, social and external accounts',
+            registered_user: 'Registered user',
+            register_user: {
+                title: 'Register user',
+                text: 'Register a local account to persist your user and be able to login via credentials such as password, security keys etc',
+                action: 'Register user',
+            },
+            delete_user: {
+                title: 'Delete user',
+                text: 'Remove your user and all the associated information',
+                action: 'Delete user',
+                confirm: 'Delete your user %{id}?',
+                content:
+                    'Are you sure you want to delete your account? This action cannot be undone!',
+            },
+            delete_account: {
+                content:
+                    'Are you sure you want to delete your account? This action cannot be undone!',
+            },
+        },
+        profiles: {
+            header: 'Personal info',
+            description:
+                'Review and inspect your personal information, as available to applications and services.',
+        },
+        connections: {
+            header: 'Connected applications',
+            description:
+                'Manage and control application permissions. You gave access to some of your personal information to applications and sites. Review and remove access to applications you no longer use or trust.',
+            permissions_num: 'Has access to %{num} permissions',
+        },
+        credentials: {
+            header: 'Credentials',
+            description:
+                'Review, update, reset and delete the security credentials associated to your account',
+        },
+        password: {
+            title: 'Manage password',
+            subtitle: 'Set, change and rotate your personal password for login',
             edit: {
                 title: 'Update password',
                 description: 'Change your old password and set a new one',
             },
+            delete: {
+                content:
+                    "Are you sure you want to delete your password? You won't be able to login via password",
+            },
+        },
+        webauthn: {
+            title: 'Manage security keys',
+            subtitle:
+                'Register and use security keys such as your phone or a portable key',
+            create: {
+                title: 'Register a security key',
+                description:
+                    'Associate a local or roaming security key to your personal account',
+            },
+            edit: {
+                title: 'Update a security key',
+                description:
+                    'Update the security key registration by changing the properties',
+            },
+            delete: {
+                content:
+                    'Are you sure you want to delete the key? This operation can not be undone',
+            },
+        },
+        security: {
+            header: 'Security',
+            description: 'View your security settings and review the audit',
+        },
+        audit: {
+            title: 'Audit',
+            description: 'Recent security activity',
         },
     },
-    password: {
-        policy: {
-            description: 'The password must satisfy the following requisites:',
-            strength: 'New password strength',
-            passwordMinLength: 'Minimum length: %{value}',
-            passwordMaxLength: 'Maximum length: %{value}',
-            passwordRequireAlpha: 'Require letters',
-            passwordRequireUppercaseAlpha: 'Require an uppercase character',
-            passwordRequireNumber: 'Require a number',
-            passwordRequireSpecial: 'Require a special character',
-            passwordSupportWhitespace: 'Supports white-spaces',
-        },
+    alert: {
+        authorization_expired: 'The authorization is expired',
+        missing_account: 'You need a registered account to proceed',
+        webauthn_unsupported:
+            'This browser does not support security keys (webauthn)',
+        invalid_attestation: 'Invalid attestation',
     },
     edit_password: {
         password: 'Password',
@@ -106,6 +168,22 @@ const messages: TranslationMessages = {
         numeric_requirement: 'Requires a number',
         special_requirement: 'Requires a special char',
         uppercase_requirement: 'Requires a uppercase letter',
+    },
+    action: {
+        register: 'Register',
+    },
+    field: {
+        username: 'Username',
+        name: 'Name',
+        surname: 'Surname',
+        email: 'Email',
+        email_verified: 'Email verified',
+        id: 'id',
+        given_name: 'Given Name',
+        family_name: 'Family Name',
+        preferred_username: 'Username',
+        locale: 'Locale',
+        zoneinfo: 'Timezone',
     },
     error: {
         already_registered: 'Already registered.',

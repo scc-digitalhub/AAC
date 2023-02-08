@@ -4,22 +4,23 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nullable;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.session.SessionInformation;
-import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.approval.Approval;
-import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
 import it.smartcommunitylab.aac.audit.store.AuditEventStore;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
@@ -31,16 +32,11 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.core.auth.UserAuthentication;
-import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.EditableUserAccount;
-import it.smartcommunitylab.aac.core.model.EditableUserCredentials;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.persistence.ClientEntity;
-import it.smartcommunitylab.aac.core.service.AccountServiceAuthorityService;
 import it.smartcommunitylab.aac.core.service.AttributeProviderService;
 import it.smartcommunitylab.aac.core.service.ClientEntityService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderService;
@@ -48,6 +44,8 @@ import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.core.service.UserAccountService;
 import it.smartcommunitylab.aac.core.service.UserCredentialsService;
 import it.smartcommunitylab.aac.core.service.UserService;
+import it.smartcommunitylab.aac.internal.InternalAccountServiceAuthority;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.model.ConnectedApp;
 import it.smartcommunitylab.aac.model.ConnectedDevice;
 import it.smartcommunitylab.aac.model.Realm;
@@ -55,6 +53,9 @@ import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 import it.smartcommunitylab.aac.oauth.store.ExtTokenStore;
 import it.smartcommunitylab.aac.oauth.store.SearchableApprovalStore;
+import it.smartcommunitylab.aac.password.PasswordCredentialsAuthority;
+import it.smartcommunitylab.aac.password.model.InternalEditableUserPassword;
+import it.smartcommunitylab.aac.password.provider.PasswordCredentialsService;
 import it.smartcommunitylab.aac.profiles.ProfileManager;
 import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
 import it.smartcommunitylab.aac.profiles.model.BasicProfile;
@@ -62,6 +63,11 @@ import it.smartcommunitylab.aac.profiles.model.EmailProfile;
 import it.smartcommunitylab.aac.profiles.model.OpenIdProfile;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
+import it.smartcommunitylab.aac.webauthn.WebAuthnCredentialsAuthority;
+import it.smartcommunitylab.aac.webauthn.model.WebAuthnEditableUserCredential;
+import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationRequest;
+import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationStartRequest;
+import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsService;
 
 /*
  * Manager for current user
@@ -118,8 +124,13 @@ public class MyUserManager {
     private ProfileManager profileManager;
 
     @Autowired
-    private AccountServiceAuthorityService accountServiceAuthorityService;
+    private InternalAccountServiceAuthority internalAccountServiceAuthority;
 
+    @Autowired
+    private PasswordCredentialsAuthority passwordCredentialsAuthority;
+
+    @Autowired
+    private WebAuthnCredentialsAuthority webAuthnCredentialsAuthority;
     /*
      * Current user, from context
      */
@@ -165,6 +176,17 @@ public class MyUserManager {
         } catch (NoSuchUserException e) {
             // nothing more to do
         }
+    }
+
+    public Realm getMyRealm() throws NoSuchRealmException {
+        UserDetails details = curUserDetails();
+        String slug = details.getRealm();
+
+        Realm realm = realmService.getRealm(slug);
+        // make sure config is clear
+        realm.setOAuthConfiguration(null);
+
+        return realm;
     }
 
     /*
@@ -222,22 +244,30 @@ public class MyUserManager {
     }
 
     /*
-     * Credentials
+     * Credentials: Password
      */
-    public Collection<EditableUserCredentials> getMyCredentials() throws NoSuchUserException {
+    public Collection<InternalEditableUserPassword> getMyPassword()
+            throws NoSuchUserException {
         UserDetails details = curUserDetails();
         String userId = details.getSubjectId();
+        String realm = details.getRealm();
 
-        return userCredentialsService.listEditableUserCredentials(userId);
+        try {
+            return passwordCredentialsAuthority.getProviderByRealm(realm).listEditableCredentialsByUser(userId);
+        } catch (NoSuchProviderException e) {
+            return Collections.emptyList();
+        }
     }
 
-    public EditableUserCredentials getMyCredentials(String uuid)
+    public InternalEditableUserPassword getMyPassword(String id)
             throws NoSuchCredentialException, NoSuchProviderException, NoSuchUserException, NoSuchAuthorityException {
         UserDetails details = curUserDetails();
         String userId = details.getSubjectId();
+        String realm = details.getRealm();
 
         // fetch credentials and check user match
-        EditableUserCredentials cred = userCredentialsService.getEditableUserCredentials(uuid);
+        InternalEditableUserPassword cred = passwordCredentialsAuthority.getProviderByRealm(realm)
+                .getEditableCredential(id);
         if (!cred.getUserId().equals(userId)) {
             throw new IllegalArgumentException("user-mismatch");
         }
@@ -245,36 +275,201 @@ public class MyUserManager {
         return cred;
     }
 
-    public <U extends EditableUserCredentials> EditableUserCredentials updateMyCredentials(String uuid, U reg)
+    public InternalEditableUserPassword registerMyPassword(InternalEditableUserPassword reg)
             throws NoSuchCredentialException, NoSuchProviderException, NoSuchUserException, RegistrationException,
             NoSuchAuthorityException {
         UserDetails details = curUserDetails();
         String userId = details.getSubjectId();
+        String realm = details.getRealm();
 
-        // fetch credentials and check user match
-        EditableUserCredentials cred = userCredentialsService.getEditableUserCredentials(uuid);
-        if (!cred.getUserId().equals(userId)) {
+        // resolve a local account from service to enable registration *after* login
+        InternalUserAccount account = null;
+        if (StringUtils.hasText(reg.getUsername())) {
+            account = internalAccountServiceAuthority.getProviderByRealm(realm).findAccount(reg.getUsername());
+        } else {
+            account = internalAccountServiceAuthority.getProviderByRealm(realm).listAccounts(userId)
+                    .stream().findFirst().orElse(null);
+        }
+        if (account == null) {
+            throw new RegistrationException("missing-account");
+        }
+
+        if (!userId.equals(account.getUserId())) {
             throw new IllegalArgumentException("user-mismatch");
         }
 
         // execute
-        return userCredentialsService.editUserCredentials(uuid, reg);
+        return passwordCredentialsAuthority.getProviderByRealm(realm).registerEditableCredential(account.getAccountId(),
+                reg);
     }
 
-    public void deleteMyCredentials(String uuid)
+    public InternalEditableUserPassword updateMyPassword(String id, InternalEditableUserPassword reg)
             throws NoSuchCredentialException, NoSuchProviderException, NoSuchUserException, RegistrationException,
             NoSuchAuthorityException {
         UserDetails details = curUserDetails();
         String userId = details.getSubjectId();
+        String realm = details.getRealm();
+
+        PasswordCredentialsService service = passwordCredentialsAuthority.getProviderByRealm(realm);
 
         // fetch credentials and check user match
-        EditableUserCredentials cred = userCredentialsService.getEditableUserCredentials(uuid);
+        InternalEditableUserPassword cred = service.getEditableCredential(id);
         if (!cred.getUserId().equals(userId)) {
             throw new IllegalArgumentException("user-mismatch");
         }
 
         // execute
-        userCredentialsService.deleteUserCredentials(uuid);
+        return service.editEditableCredential(id, reg);
+    }
+
+    public void deleteMyPassword(String id)
+            throws NoSuchCredentialException, NoSuchProviderException, NoSuchUserException, RegistrationException,
+            NoSuchAuthorityException {
+        UserDetails details = curUserDetails();
+        String userId = details.getSubjectId();
+        String realm = details.getRealm();
+
+        PasswordCredentialsService service = passwordCredentialsAuthority.getProviderByRealm(realm);
+
+        // fetch credentials and check user match
+        InternalEditableUserPassword cred = service.getEditableCredential(id);
+        if (!cred.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("user-mismatch");
+        }
+
+        // execute
+        service.deleteEditableCredential(id);
+    }
+
+    /*
+     * Credentials: WebAuthn
+     */
+    public Collection<WebAuthnEditableUserCredential> getMyWebAuthnCredentials()
+            throws NoSuchUserException {
+        UserDetails details = curUserDetails();
+        String userId = details.getSubjectId();
+        String realm = details.getRealm();
+
+        try {
+            return webAuthnCredentialsAuthority.getProviderByRealm(realm).listEditableCredentialsByUser(userId);
+        } catch (NoSuchProviderException e) {
+            return Collections.emptyList();
+        }
+    }
+
+    public WebAuthnEditableUserCredential getMyWebAuthnCredential(String id)
+            throws NoSuchCredentialException, NoSuchProviderException, NoSuchUserException, NoSuchAuthorityException {
+        UserDetails details = curUserDetails();
+        String userId = details.getSubjectId();
+        String realm = details.getRealm();
+
+        // fetch credentials and check user match
+        WebAuthnEditableUserCredential cred = webAuthnCredentialsAuthority.getProviderByRealm(realm)
+                .getEditableCredential(id);
+        if (!cred.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("user-mismatch");
+        }
+
+        return cred;
+    }
+
+    public WebAuthnRegistrationRequest registerMyWebAuthnCredential(@Nullable WebAuthnEditableUserCredential reg)
+            throws NoSuchProviderException, NoSuchUserException, RegistrationException, NoSuchAuthorityException {
+        UserDetails details = curUserDetails();
+        String userId = details.getSubjectId();
+        String realm = details.getRealm();
+
+        // resolve a local account from service to enable registration *after* login
+        InternalUserAccount account = null;
+        if (reg != null && StringUtils.hasText(reg.getUsername())) {
+            account = internalAccountServiceAuthority.getProviderByRealm(realm).findAccount(reg.getUsername());
+        } else {
+            account = internalAccountServiceAuthority.getProviderByRealm(realm).listAccounts(userId)
+                    .stream().findFirst().orElse(null);
+        }
+        if (account == null) {
+            throw new RegistrationException("missing-account");
+        }
+
+        if (!userId.equals(account.getUserId())) {
+            throw new IllegalArgumentException("user-mismatch");
+        }
+
+        // generate
+        WebAuthnRegistrationStartRequest req = new WebAuthnRegistrationStartRequest();
+        req.setUsername(account.getAccountId());
+        if (reg != null) {
+            req.setDisplayName(reg.getDisplayName());
+        }
+
+        return webAuthnCredentialsAuthority.getProviderByRealm(realm).startRegistration(account.getAccountId(), req);
+    }
+
+    public WebAuthnEditableUserCredential registerMyWebAuthnCredential(WebAuthnRegistrationRequest request,
+            WebAuthnEditableUserCredential reg)
+            throws NoSuchCredentialException, NoSuchProviderException, NoSuchUserException, RegistrationException,
+            NoSuchAuthorityException {
+        UserDetails details = curUserDetails();
+        String userId = details.getSubjectId();
+        String realm = details.getRealm();
+
+        // resolve a local account from service to enable registration *after* login
+        InternalUserAccount account = null;
+        if (StringUtils.hasText(reg.getUsername())) {
+            account = internalAccountServiceAuthority.getProviderByRealm(realm).findAccount(reg.getUsername());
+        } else {
+            account = internalAccountServiceAuthority.getProviderByRealm(realm).listAccounts(userId)
+                    .stream().findFirst().orElse(null);
+        }
+        if (account == null) {
+            throw new RegistrationException("missing-account");
+        }
+
+        if (!userId.equals(account.getUserId())) {
+            throw new IllegalArgumentException("user-mismatch");
+        }
+
+        // save
+        return webAuthnCredentialsAuthority.getProviderByRealm(realm)
+                .registerEditableCredential(account.getAccountId(), reg, request);
+    }
+
+    public WebAuthnEditableUserCredential updateMyWebAuthnCredential(String id, WebAuthnEditableUserCredential reg)
+            throws NoSuchCredentialException, NoSuchProviderException, NoSuchUserException, RegistrationException,
+            NoSuchAuthorityException {
+        UserDetails details = curUserDetails();
+        String userId = details.getSubjectId();
+        String realm = details.getRealm();
+
+        WebAuthnCredentialsService service = webAuthnCredentialsAuthority.getProviderByRealm(realm);
+
+        // fetch credentials and check user match
+        WebAuthnEditableUserCredential cred = service.getEditableCredential(id);
+        if (!cred.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("user-mismatch");
+        }
+
+        // execute
+        return service.editEditableCredential(id, reg);
+    }
+
+    public void deleteMyWebAuthnCredential(String id)
+            throws NoSuchCredentialException, NoSuchProviderException, NoSuchUserException, RegistrationException,
+            NoSuchAuthorityException {
+        UserDetails details = curUserDetails();
+        String userId = details.getSubjectId();
+        String realm = details.getRealm();
+
+        WebAuthnCredentialsService service = webAuthnCredentialsAuthority.getProviderByRealm(realm);
+
+        // fetch credentials and check user match
+        WebAuthnEditableUserCredential cred = service.getEditableCredential(id);
+        if (!cred.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("user-mismatch");
+        }
+
+        // execute
+        service.deleteEditableCredential(id);
     }
 
     /*

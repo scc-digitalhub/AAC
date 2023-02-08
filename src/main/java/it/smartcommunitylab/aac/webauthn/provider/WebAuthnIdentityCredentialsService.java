@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.webauthn.provider;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -127,7 +128,12 @@ public class WebAuthnIdentityCredentialsService extends AbstractProvider<WebAuth
 
         // update field
         c.setSignatureCount(count);
-        logger.debug("update credential {} signature count to {}", c.getCredentialId(), String.valueOf(count));
+
+        // register usage date
+        c.setLastUsedDate(new Date());
+
+        logger.debug("update credential {} signature count to {} on date {}", c.getCredentialId(),
+                String.valueOf(count), String.valueOf(c.getLastUsedDate()));
 
         c = credentialsService.updateCredentials(repositoryId, c.getId(), c);
         return c;

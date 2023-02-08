@@ -3,13 +3,12 @@ import { Link } from 'react-router-dom';
 import { useGetIdentity, useTranslate } from 'react-admin';
 import LinearProgress from '@mui/material/LinearProgress';
 import { Card, CardContent, CardActions, CardHeader } from '@mui/material';
-import { Container, Grid, Typography, Button, Avatar } from '@mui/material';
+import { Container, Grid, Button, Avatar } from '@mui/material';
 
 import GroupIcon from '@mui/icons-material/Group';
 import KeyIcon from '@mui/icons-material/Key';
 import AppShortcutIcon from '@mui/icons-material/AppShortcut';
 import { PageTitle } from '../components/pageTitle';
-import { transform } from 'typescript';
 
 const UserDashboard = () => {
     const { data, isLoading } = useGetIdentity();
@@ -20,8 +19,10 @@ const UserDashboard = () => {
     return (
         <Container maxWidth="lg">
             <PageTitle
-                text={translate('dashboard.welcome', { name: data.fullName })}
-                secondaryText={translate('dashboard.description')}
+                text={translate('page.dashboard.welcome', {
+                    name: data.fullName,
+                })}
+                secondaryText={translate('page.dashboard.description')}
                 icon={
                     data.username && (
                         <Avatar
@@ -47,17 +48,16 @@ const UserDashboard = () => {
                 <Grid item xs={12} md={6} zeroMinWidth>
                     <Card sx={{ height: '100%' }}>
                         <CardHeader
-                            title={translate('accounts')}
+                            title={translate('page.dashboard.accounts.title')}
                             avatar={<GroupIcon />}
                             titleTypographyProps={{ variant: 'h6' }}
                         />
                         <CardContent>
-                            {' '}
-                            {translate('dashboard.review_manage')}
+                            {translate('page.dashboard.accounts.description')}
                         </CardContent>
                         <CardActions>
                             <Button component={Link} to="/accounts">
-                                {translate('dashboard.manage_accounts')}
+                                {translate('page.dashboard.accounts.manage')}
                             </Button>
                         </CardActions>
                     </Card>
@@ -66,18 +66,20 @@ const UserDashboard = () => {
                 <Grid item xs={12} md={6} zeroMinWidth>
                     <Card sx={{ height: '100%' }}>
                         <CardHeader
-                            title={translate('dashboard.credentials')}
+                            title={translate(
+                                'page.dashboard.credentials.title'
+                            )}
                             avatar={<KeyIcon />}
                             titleTypographyProps={{ variant: 'h6' }}
                         />
                         <CardContent>
-                            {' '}
-                            {translate('dashboard.view_update')}
+                            {translate(
+                                'page.dashboard.credentials.description'
+                            )}
                         </CardContent>
                         <CardActions>
                             <Button component={Link} to="/credentials">
-                                {' '}
-                                {translate('dashboard.credentials')}
+                                {translate('page.dashboard.credentials.manage')}
                             </Button>
                         </CardActions>
                     </Card>
@@ -86,12 +88,16 @@ const UserDashboard = () => {
                 <Grid item xs={12} md={6} zeroMinWidth>
                     <Card sx={{ height: '100%' }}>
                         <CardHeader
-                            title={translate('dashboard.third_party')}
+                            title={translate(
+                                'page.dashboard.connections.title'
+                            )}
                             avatar={<AppShortcutIcon />}
                             titleTypographyProps={{ variant: 'h6' }}
                         />
                         <CardContent>
-                            {translate('dashboard.view_and')}
+                            {translate(
+                                'page.dashboard.connections.description'
+                            )}
                         </CardContent>
                         <CardActions>
                             <Button
@@ -99,8 +105,7 @@ const UserDashboard = () => {
                                 to="/connections"
                                 size="small"
                             >
-                                {' '}
-                                {translate('dashboard.manage_connections')}
+                                {translate('page.dashboard.connections.manage')}
                             </Button>
                         </CardActions>
                     </Card>

@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.webauthn.provider;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -28,6 +29,7 @@ import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractCredentialsService;
+import it.smartcommunitylab.aac.core.model.EditableUserCredentials;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
@@ -123,9 +125,14 @@ public class WebAuthnCredentialsService extends
 
     }
 
-    public WebAuthnUserCredential saveRegistration(String username, WebAuthnRegistrationRequest request)
+    public WebAuthnUserCredential saveRegistration(String username, String displayName,
+            WebAuthnRegistrationRequest request)
             throws NoSuchUserException, RegistrationException {
         logger.debug("save registration for user {}", StringUtils.trimAllWhitespace(username));
+
+        if (request == null) {
+            throw new RegistrationException();
+        }
 
         // fetch user
         InternalUserAccount account = accountService.findAccountById(repositoryId, username);
@@ -136,6 +143,9 @@ public class WebAuthnCredentialsService extends
         String userHandle = request.getUserHandle();
         RegistrationResult result = request.getRegistrationResult();
         AttestationResponse attestation = request.getAttestationResponse();
+        if (displayName == null) {
+            displayName = request.getStartRequest().getDisplayName();
+        }
 
         if (!account.getUuid().equals(userHandle)) {
             throw new IllegalArgumentException("user mismatch");
@@ -166,7 +176,7 @@ public class WebAuthnCredentialsService extends
         credential.setCredentialId(result.getKeyId().getId().getBase64Url());
         credential.setUserHandle(userHandle);
 
-        credential.setDisplayName(request.getStartRequest().getDisplayName());
+        credential.setDisplayName(displayName);
         credential.setPublicKeyCose(result.getPublicKeyCose().getBase64());
         credential.setSignatureCount(result.getSignatureCount());
 
@@ -304,7 +314,7 @@ public class WebAuthnCredentialsService extends
     }
 
     @Override
-    public WebAuthnUserCredential setCredential(String accountId, String credentialsId, UserCredentials uc)
+    public WebAuthnUserCredential setCredential(String credentialsId, UserCredentials uc)
             throws RegistrationException, NoSuchCredentialException {
         Assert.isInstanceOf(WebAuthnUserCredential.class, uc,
                 "registration must be an instance of webauthn user credential");
@@ -322,8 +332,11 @@ public class WebAuthnCredentialsService extends
             throw new NoSuchCredentialException();
         }
 
-        if (!cred.getAccountId().equals(accountId)) {
-            throw new IllegalArgumentException("account-mismatch");
+        // fetch user
+        String accountId = cred.getAccountId();
+        InternalUserAccount account = accountService.findAccountById(repositoryId, accountId);
+        if (account == null) {
+            throw new NoSuchCredentialException();
         }
 
         // update only allowed fields
@@ -342,16 +355,10 @@ public class WebAuthnCredentialsService extends
 
     /*
      * Editable
+     * TODO split
      */
-    public WebAuthnEditableUserCredential getEditableCredential(String accountId, String credentialId)
-            throws NoSuchCredentialException {
-        // get as editable
-        WebAuthnUserCredential cred = getCredential(credentialId);
 
-        if (!cred.getAccountId().equals(accountId)) {
-            throw new IllegalArgumentException("account-mismatch");
-        }
-
+    private WebAuthnEditableUserCredential toEditable(WebAuthnUserCredential cred) {
         WebAuthnEditableUserCredential ed = new WebAuthnEditableUserCredential(getProvider(), cred.getUuid());
         ed.setCredentialsId(cred.getCredentialsId());
         ed.setUserId(cred.getUserId());
@@ -363,6 +370,127 @@ public class WebAuthnCredentialsService extends
         ed.setLastUsedDate(cred.getLastUsedDate());
 
         return ed;
+    }
+
+    @Override
+    public Collection<WebAuthnEditableUserCredential> listEditableCredentials(String accountId) {
+        // fetch ALL active
+        List<WebAuthnUserCredential> credentials = credentialService
+                .findCredentialsByAccount(repositoryId, accountId).stream()
+                .filter(c -> STATUS_ACTIVE.equals(c.getStatus()))
+                .collect(Collectors.toList());
+
+        return credentials.stream().map(c -> toEditable(c)).collect(Collectors.toList());
+    }
+
+    @Override
+    public Collection<WebAuthnEditableUserCredential> listEditableCredentialsByUser(String userId) {
+        // fetch ALL active
+        List<WebAuthnUserCredential> credentials = credentialService
+                .findCredentialsByUser(repositoryId, userId).stream()
+                .filter(c -> STATUS_ACTIVE.equals(c.getStatus()))
+                .collect(Collectors.toList());
+
+        return credentials.stream().map(c -> toEditable(c)).collect(Collectors.toList());
+    }
+
+    @Override
+    public WebAuthnEditableUserCredential getEditableCredential(String credentialId)
+            throws NoSuchCredentialException {
+        // get as editable
+        WebAuthnUserCredential cred = getCredential(credentialId);
+        return toEditable(cred);
+    }
+
+    @Override
+    public void deleteEditableCredential(String credentialId) throws NoSuchCredentialException {
+        deleteCredential(credentialId);
+    }
+
+    @Override
+    public WebAuthnEditableUserCredential editEditableCredential(String credentialId, EditableUserCredentials uc)
+            throws RegistrationException, NoSuchCredentialException {
+        if (uc == null) {
+            throw new RegistrationException();
+        }
+
+        Assert.isInstanceOf(WebAuthnEditableUserCredential.class, uc,
+                "registration must be an instance of webauthn credential");
+        WebAuthnEditableUserCredential reg = (WebAuthnEditableUserCredential) uc;
+
+        // we can edit only display name
+        String displayName = reg.getDisplayName();
+        if (StringUtils.hasText(displayName)) {
+            displayName = Jsoup.clean(displayName, Safelist.none());
+        }
+
+        WebAuthnUserCredential cred = credentialService.findCredentialsById(repositoryId, credentialId);
+        if (cred == null) {
+            throw new NoSuchCredentialException();
+        }
+
+        // fetch user
+        String accountId = cred.getAccountId();
+        InternalUserAccount account = accountService.findAccountById(repositoryId, accountId);
+        if (account == null) {
+            throw new NoSuchCredentialException();
+        }
+
+        // update only allowed fields
+        cred.setDisplayName(displayName);
+
+        cred = credentialService.updateCredentials(repositoryId, cred.getId(), cred);
+
+        // map to ourselves
+        cred.setProvider(getProvider());
+
+        // clear value for extra safety
+        cred.eraseCredentials();
+
+        return toEditable(cred);
+    }
+
+    public WebAuthnEditableUserCredential registerEditableCredential(String accountId,
+            WebAuthnEditableUserCredential credentials, WebAuthnRegistrationRequest request)
+            throws RegistrationException, NoSuchUserException {
+
+        if (credentials == null || request == null) {
+            throw new RegistrationException();
+        }
+
+        // fetch attestation from registration
+        String attestation = credentials.getAttestation();
+        if (!StringUtils.hasText(attestation)) {
+            throw new RegistrationException("missing attestation");
+        }
+
+        // we can edit only display name
+        String displayName = credentials.getDisplayName();
+        if (StringUtils.hasText(displayName)) {
+            displayName = Jsoup.clean(displayName, Safelist.none());
+        } else {
+            displayName = accountId;
+        }
+
+        // update request and process
+        AttestationResponse attestationResponse = new AttestationResponse();
+        attestationResponse.setAttestation(attestation);
+        request.setAttestationResponse(attestationResponse);
+
+        // parse body
+        PublicKeyCredential<AuthenticatorAttestationResponse, ClientRegistrationExtensionOutputs> pkc = null;
+        try {
+            pkc = PublicKeyCredential.parseRegistrationResponseJson(attestation);
+        } catch (IOException e) {
+        }
+
+        request = this.finishRegistration(accountId, request, pkc);
+
+        // save successful registration as credential
+        WebAuthnUserCredential credential = saveRegistration(accountId, displayName, request);
+
+        return toEditable(credential);
+
     }
 
     @Override

@@ -50,6 +50,13 @@ public class WebAuthnEditableUserCredential extends AbstractEditableUserCredenti
     @NotBlank
     private String displayName;
 
+    // attestation for new registrations
+    @JsonSchemaIgnore
+    private String key;
+
+    @JsonSchemaIgnore
+    private String attestation;
+
     public WebAuthnEditableUserCredential() {
         super(SystemKeys.AUTHORITY_WEBAUTHN, null, null);
     }
@@ -131,6 +138,22 @@ public class WebAuthnEditableUserCredential extends AbstractEditableUserCredenti
 
     public void setLastUsedDate(Date lastUsedDate) {
         this.lastUsedDate = lastUsedDate;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
+    }
+
+    public String getAttestation() {
+        return attestation;
+    }
+
+    public void setAttestation(String attestation) {
+        this.attestation = attestation;
     }
 
     @Override

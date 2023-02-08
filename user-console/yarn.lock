@@ -1892,6 +1892,16 @@
   resolved "https://registry.yarnpkg.com/@rushstack/eslint-patch/-/eslint-patch-1.2.0.tgz#8be36a1f66f3265389e90b5f9c9962146758f728"
   integrity sha512-sXo/qW2/pAcmT43VoRKOJbDOfV3cYpq3szSVfIThQXNt+E4DfKj361vaAt3c88U5tPUxzEswam7GW48PJqtKAg==
 
+"@simplewebauthn/browser@^7.0.1":
+  version "7.0.1"
+  resolved "https://registry.yarnpkg.com/@simplewebauthn/browser/-/browser-7.0.1.tgz#32098080e2c7c5c9bcb563fcf4efc8173ca10c0b"
+  integrity sha512-zFTTQojH8FWAvzBeB9WHMkZz5XrHaNQwKmdpGDfyRtXHJSLlWUjZN1egD2vWqU+gE0CKl0NRZJ56uLugBs9AUg==
+
+"@simplewebauthn/typescript-types@^7.0.0":
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/@simplewebauthn/typescript-types/-/typescript-types-7.0.0.tgz#887178424220524e71c10ae4548fbb353ed58ae6"
+  integrity sha512-bV+xACCFTsrLR/23ozHO06ZllHZaxC8LlI5YCo79GvU2BrN+rePDU2yXwZIYndNWcMQwRdndRdAhpafOh9AC/g==
+
 "@sinclair/typebox@^0.24.1":
   version "0.24.51"
   resolved "https://registry.yarnpkg.com/@sinclair/typebox/-/typebox-0.24.51.tgz#645f33fe4e02defe26f2f5c0410e1c094eac7f5f"

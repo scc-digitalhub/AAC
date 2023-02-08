@@ -1,4 +1,3 @@
-import { useTranslate } from 'react-admin';
 import { Typography, Paper, Container } from '@mui/material';
 import { isValidElement, ReactElement } from 'react';
 

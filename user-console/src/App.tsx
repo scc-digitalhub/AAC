@@ -1,18 +1,9 @@
-import React from 'react';
-import logo from './logo.svg';
 import './App.css';
-import {
-    Admin,
-    CustomRoutes,
-    defaultTheme,
-    ListGuesser,
-    Resource,
-} from 'react-admin';
+import { Admin, CustomRoutes, defaultTheme, Resource } from 'react-admin';
 import { Route } from 'react-router-dom';
 import appDataProvider from './dataProvider';
 import appAuthProvider from './authProvider';
 import i18nProvider from './i18nProvider';
-import { AccountEdit, AccountList } from './resources/accounts';
 import MyLayout from './components/layout';
 
 import 'typeface-titillium-web';
@@ -22,14 +13,18 @@ import 'typeface-lora';
 import GroupIcon from '@mui/icons-material/Group';
 import AccountBoxIcon from '@mui/icons-material/AccountBox';
 import VpnKeyIcon from '@mui/icons-material/VpnKey';
-import LockIcon from '@mui/icons-material/Lock';
 import AppShortcutIcon from '@mui/icons-material/AppShortcut';
 
 import UserDashboard from './pages/dashboard';
-import { ProfilesList } from './resources/profiles';
-import { ConnectionsList } from './resources/connections';
+import { ConnectionsPage } from './pages/connections';
 import { SecurityPage } from './pages/security';
-import { CredentialEdit, CredentialsList } from './resources/credentials';
+import { CredentialsPage } from './pages/credentials';
+import { AccountsPage } from './pages/accounts';
+import { AccountEdit } from './resources/accounts';
+
+import { PasswordCreate, PasswordEdit } from './resources/password';
+import { WebAuthnCreate, WebAuthnEdit } from './resources/webauthn';
+import { ProfilesPage } from './pages/profiles';
 
 const dataProvider = appDataProvider('http://localhost:9090');
 const authProvider = appAuthProvider('http://localhost:9090');
@@ -112,21 +107,28 @@ const App = () => (
         <Resource
             name="accounts"
             icon={GroupIcon}
-            list={AccountList}
+            list={AccountsPage}
             edit={AccountEdit}
         />
-        <Resource name="profiles" icon={AccountBoxIcon} list={ProfilesList} />
+        <Resource name="profiles" icon={AccountBoxIcon} list={ProfilesPage} />
+        <Resource name="credentials" icon={VpnKeyIcon} list={CredentialsPage} />
         <Resource
-            name="credentials"
-            icon={VpnKeyIcon}
-            list={CredentialsList}
-            edit={CredentialEdit}
+            name="password"
+            list={CredentialsPage}
+            edit={PasswordEdit}
+            create={PasswordCreate}
+        />
+        <Resource
+            name="webauthn"
+            list={CredentialsPage}
+            edit={WebAuthnEdit}
+            create={WebAuthnCreate}
         />
 
         <Resource
             name="connections"
             icon={AppShortcutIcon}
-            list={ConnectionsList}
+            list={ConnectionsPage}
         />
         <CustomRoutes>
             <Route path="/security" element={<SecurityPage />} />

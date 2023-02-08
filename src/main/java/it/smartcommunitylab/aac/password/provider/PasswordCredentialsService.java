@@ -3,6 +3,7 @@ package it.smartcommunitylab.aac.password.provider;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.mail.MessagingException;
+import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
@@ -19,6 +21,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.InvalidPasswordException;
 import it.smartcommunitylab.aac.common.NoSuchCredentialException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
@@ -324,7 +327,7 @@ public class PasswordCredentialsService extends
     }
 
     @Override
-    public InternalUserPassword setCredential(String accountId, String credentialId, UserCredentials uc)
+    public InternalUserPassword setCredential(String credentialId, UserCredentials uc)
             throws RegistrationException, NoSuchCredentialException {
         if (uc == null) {
             throw new RegistrationException();
@@ -342,15 +345,16 @@ public class PasswordCredentialsService extends
             throw new RegistrationException("invalid password");
         }
 
-        // fetch user
-        InternalUserAccount account = accountService.findAccountById(repositoryId, accountId);
-        if (account == null) {
-            throw new NoSuchCredentialException();
-        }
-
         // fetch password
         InternalUserPassword cred = credentialsService.findCredentialsById(repositoryId, credentialId);
         if (cred == null) {
+            throw new NoSuchCredentialException();
+        }
+
+        // fetch user
+        String accountId = cred.getAccountId();
+        InternalUserAccount account = accountService.findAccountById(repositoryId, accountId);
+        if (account == null) {
             throw new NoSuchCredentialException();
         }
 
@@ -359,7 +363,7 @@ public class PasswordCredentialsService extends
         cred.setPassword(newPassword.getPassword());
 
         // save
-        InternalUserPassword pass = super.setCredential(accountId, credentialId, cred);
+        InternalUserPassword pass = super.setCredential(credentialId, cred);
 
         // map to ourselves
         pass.setProvider(getProvider());
@@ -375,15 +379,8 @@ public class PasswordCredentialsService extends
      * TODO represent a single logical "ediablePassword" backed by different
      * passwords to expose a single, constant-id "credential" to console
      */
-    public InternalEditableUserPassword getEditableCredential(String accountId, String credentialId)
-            throws NoSuchCredentialException {
-        // get as editable
-        InternalUserPassword pass = getCredential(credentialId);
 
-        if (!pass.getAccountId().equals(accountId)) {
-            throw new IllegalArgumentException("account-mismatch");
-        }
-
+    private InternalEditableUserPassword toEditable(InternalUserPassword pass) {
         InternalEditableUserPassword ed = new InternalEditableUserPassword(getProvider(), pass.getUuid());
         ed.setCredentialsId(pass.getCredentialsId());
         ed.setUserId(pass.getUserId());
@@ -399,14 +396,89 @@ public class PasswordCredentialsService extends
         return ed;
     }
 
-//
-//    public InternalEditableUserPassword registerCredential(String accountId, String credentialId,
-//            EditableUserCredentials credentials)
-//            throws RegistrationException, NoSuchCredentialException {
-//        throw new UnsupportedOperationException();
-//    }
-//
-    public InternalEditableUserPassword editCredential(String accountId, String credentialId,
+    @Override
+    public Collection<InternalEditableUserPassword> listEditableCredentials(String accountId) {
+        // TODO map MANY pass to ONE editable per user
+        // fetch ALL active
+        List<InternalUserPassword> credentials = passwordService
+                .findCredentialsByAccount(repositoryId, accountId).stream()
+                .filter(c -> STATUS_ACTIVE.equals(c.getStatus()))
+                .collect(Collectors.toList());
+
+        return credentials.stream().map(c -> toEditable(c)).collect(Collectors.toList());
+    }
+
+    @Override
+    public Collection<InternalEditableUserPassword> listEditableCredentialsByUser(String userId) {
+        // TODO map MANY pass to ONE editable per user
+        // fetch ALL active
+        List<InternalUserPassword> credentials = passwordService
+                .findCredentialsByUser(repositoryId, userId).stream()
+                .filter(c -> STATUS_ACTIVE.equals(c.getStatus()))
+                .collect(Collectors.toList());
+
+        return credentials.stream().map(c -> toEditable(c)).collect(Collectors.toList());
+    }
+
+    @Override
+    public InternalEditableUserPassword getEditableCredential(String credentialId)
+            throws NoSuchCredentialException {
+        // get as editable
+        // TODO map MANY pass to ONE editable per user
+        InternalUserPassword pass = getCredential(credentialId);
+        return toEditable(pass);
+    }
+
+    @Override
+    public InternalEditableUserPassword registerEditableCredential(String accountId,
+            EditableUserCredentials uc)
+            throws RegistrationException, NoSuchUserException {
+        if (uc == null) {
+            throw new RegistrationException();
+        }
+
+        Assert.isInstanceOf(InternalEditableUserPassword.class, uc,
+                "registration must be an instance of internal user password");
+        InternalEditableUserPassword reg = (InternalEditableUserPassword) uc;
+
+        // fetch user
+        InternalUserAccount account = accountService.findAccountById(repositoryId, accountId);
+        if (account == null) {
+            throw new NoSuchUserException();
+        }
+
+        // check if one password is already set
+        // we require NO password for registration, otherwise we should check against
+        // current for proper authorization (same as edit)
+        List<InternalUserPassword> list = passwordService.findCredentialsByAccount(repositoryId, accountId);
+        if (!list.isEmpty()) {
+            throw new AlreadyRegisteredException();
+        }
+        // skip validation of password against policy, will be done later
+        // we only make sure password is usable
+        String password = reg.getPassword();
+        if (!StringUtils.hasText(password) || password.length() < config.getPasswordMinLength()
+                || password.length() > config.getPasswordMaxLength()) {
+            throw new RegistrationException("invalid password");
+        }
+
+        // update password via set to keep password history
+        InternalUserPassword cred = this.setPassword(account.getUsername(), password, false);
+
+        // TODO map MANY pass to ONE editable per user
+        return toEditable(cred);
+    }
+
+    @Override
+    public void deleteEditableCredential(@NotNull String credentialId)
+            throws NoSuchCredentialException {
+        // TODO map MANY pass to ONE editable per user
+        String id = credentialId;
+        deleteCredential(id);
+    }
+
+    @Override
+    public InternalEditableUserPassword editEditableCredential(String credentialId,
             EditableUserCredentials uc)
             throws RegistrationException, NoSuchCredentialException {
         if (uc == null) {
@@ -425,15 +497,16 @@ public class PasswordCredentialsService extends
             throw new RegistrationException("invalid password");
         }
 
-        // fetch user
-        InternalUserAccount account = accountService.findAccountById(repositoryId, accountId);
-        if (account == null) {
-            throw new NoSuchCredentialException();
-        }
-
         // fetch password
         InternalUserPassword cred = credentialsService.findCredentialsById(repositoryId, credentialId);
         if (cred == null) {
+            throw new NoSuchCredentialException();
+        }
+
+        // fetch user
+        String accountId = cred.getAccountId();
+        InternalUserAccount account = accountService.findAccountById(repositoryId, accountId);
+        if (account == null) {
             throw new NoSuchCredentialException();
         }
 
@@ -455,24 +528,13 @@ public class PasswordCredentialsService extends
         try {
 
             // update password via set to keep password history
-            InternalUserPassword newPassword = this.setPassword(account.getUsername(), password, false);
+            this.setPassword(account.getUsername(), password, false);
 
-            // TODO evaluate how to handle id change
+            // TODO map MANY pass to ONE editable per user
+            // TODO evaluate how to handle id change (now)
             // for now return same editable blanked
             // note that this will be inactive so NOT editable again
-            InternalEditableUserPassword ed = new InternalEditableUserPassword(getProvider(), cred.getUuid());
-            ed.setCredentialsId(cred.getCredentialsId());
-            ed.setUserId(cred.getUserId());
-            ed.setUsername(cred.getUsername());
-            ed.setCreateDate(cred.getCreateDate());
-            ed.setModifiedDate(cred.getCreateDate());
-            ed.setExpireDate(cred.getExpirationDate());
-
-            // load policy
-            PasswordPolicy policy = getPasswordPolicy();
-            ed.setPolicy(policy);
-
-            return ed;
+            return toEditable(cred);
         } catch (NoSuchUserException e) {
             throw new NoSuchCredentialException();
         }

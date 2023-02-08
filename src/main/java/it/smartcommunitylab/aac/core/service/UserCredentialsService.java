@@ -19,7 +19,6 @@ import it.smartcommunitylab.aac.common.NoSuchCredentialException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.core.model.EditableUserCredentials;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.persistence.ResourceEntity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
@@ -84,59 +83,90 @@ public class UserCredentialsService {
         return service.getCredential(res.getResourceId());
     }
 
-    @Transactional(readOnly = false)
-    public EditableUserCredentials getEditableUserCredentials(String uuid)
-            throws NoSuchCredentialException, NoSuchProviderException, NoSuchAuthorityException {
-        logger.debug("get editable user credentials {}", StringUtils.trimAllWhitespace(uuid));
+//    @Transactional(readOnly = false)
+//    public EditableUserCredentials getEditableUserCredentials(String uuid)
+//            throws NoSuchCredentialException, NoSuchProviderException, NoSuchAuthorityException {
+//        logger.debug("get editable user credentials {}", StringUtils.trimAllWhitespace(uuid));
+//
+//        // resolve resource
+//        ResourceEntity res = getResource(uuid);
+//        String authorityId = res.getAuthority();
+//        String providerId = res.getProvider();
+//        String credentialId = res.getResourceId();
+//
+//        logger.debug("get editable user credentials {} via provider {}:{}", credentialId, authorityId, providerId);
+//
+//        // fetch service
+//        AccountCredentialsService<?, ?, ?, ?> service = credentialsServiceAuthorityService
+//                .getAuthority(res.getAuthority())
+//                .getProvider(res.getProvider());
+//
+//        // fetch credential
+//        UserCredentials cred = service.getCredential(res.getResourceId());
+//
+//        // fetch editable
+//        return service.getEditableCredential(credentialId);
+//    }
 
-        // resolve resource
-        ResourceEntity res = getResource(uuid);
-        String authorityId = res.getAuthority();
-        String providerId = res.getProvider();
-        String credentialId = res.getResourceId();
+//    @Transactional(readOnly = false)
+//    public Collection<EditableUserCredentials> listEditableUserCredentials(String userId) throws NoSuchUserException {
+//        logger.debug("get editable user {} credentials", StringUtils.trimAllWhitespace(userId));
+//
+//        // fetch user
+//        UserEntity ue = userService.getUser(userId);
+//        String realm = ue.getRealm();
+//
+//        // collect from all providers for the same realm
+//        List<AccountCredentialsService<?, ?, ?, ?>> services = credentialsServiceAuthorityService.getAuthorities()
+//                .stream()
+//                .flatMap(e -> e.getProvidersByRealm(realm).stream())
+//                .collect(Collectors.toList());
+//
+//        List<EditableUserCredentials> creds = services.stream().flatMap(
+//                s -> s.listCredentialsByUser(userId).stream()
+//                        .filter(c -> c.isActive())
+//                        .map(a -> {
+//                            try {
+//                                return s.getEditableCredential(a.getCredentialsId());
+//                            } catch (NoSuchCredentialException | UnsupportedOperationException e1) {
+//                                return null;
+//                            }
+//                        }).filter(a -> a != null))
+//                .collect(Collectors.toList());
+//
+//        return creds;
+//    }
 
-        logger.debug("get editable user credentials {} via provider {}:{}", credentialId, authorityId, providerId);
-
-        // fetch service
-        AccountCredentialsService<?, ?, ?, ?> service = credentialsServiceAuthorityService
-                .getAuthority(res.getAuthority())
-                .getProvider(res.getProvider());
-
-        // fetch credential
-        UserCredentials cred = service.getCredential(res.getResourceId());
-
-        // fetch editable
-        return service.getEditableCredential(cred.getAccountId(), credentialId);
-    }
-
-    @Transactional(readOnly = false)
-    public Collection<EditableUserCredentials> listEditableUserCredentials(String userId) throws NoSuchUserException {
-        logger.debug("get editable user {} credentials", StringUtils.trimAllWhitespace(userId));
-
-        // fetch user
-        UserEntity ue = userService.getUser(userId);
-        String realm = ue.getRealm();
-
-        // collect from all providers for the same realm
-        List<AccountCredentialsService<?, ?, ?, ?>> services = credentialsServiceAuthorityService.getAuthorities()
-                .stream()
-                .flatMap(e -> e.getProvidersByRealm(realm).stream())
-                .collect(Collectors.toList());
-
-        List<EditableUserCredentials> creds = services.stream().flatMap(
-                s -> s.listCredentials(userId).stream()
-                        .filter(c -> c.isActive())
-                        .map(a -> {
-                            try {
-                                return s.getEditableCredential(a.getAccountId(), a.getCredentialsId());
-                            } catch (NoSuchCredentialException | UnsupportedOperationException e1) {
-                                return null;
-                            }
-                        }).filter(a -> a != null))
-                .collect(Collectors.toList());
-
-        return creds;
-    }
+//    @Transactional(readOnly = false)
+//    public Collection<EditableUserCredentials> listEditableUserCredentials(String userId, String authorityId)
+//            throws NoSuchUserException, NoSuchAuthorityException {
+//        logger.debug("get editable user {} credentials from authority {}", StringUtils.trimAllWhitespace(userId),
+//                StringUtils.trimAllWhitespace(authorityId));
+//
+//        // fetch user
+//        UserEntity ue = userService.getUser(userId);
+//        String realm = ue.getRealm();
+//
+//        CredentialsServiceAuthority<? extends AccountCredentialsService<?, ?, ?, ?>, ?, ?, ?, ?> authority = credentialsServiceAuthorityService
+//                .getAuthority(authorityId);
+//
+//        // collect from all providers for the same realm
+//        List<? extends AccountCredentialsService<?, ?, ?, ?>> services = authority.getProvidersByRealm(realm);
+//
+//        List<EditableUserCredentials> creds = services.stream().flatMap(
+//                s -> s.listCredentialsByUser(userId).stream()
+//                        .filter(c -> c.isActive())
+//                        .map(a -> {
+//                            try {
+//                                return s.getEditableCredential(a.getCredentialsId());
+//                            } catch (NoSuchCredentialException | UnsupportedOperationException e1) {
+//                                return null;
+//                            }
+//                        }).filter(a -> a != null))
+//                .collect(Collectors.toList());
+//
+//        return creds;
+//    }
 
     @Transactional(readOnly = false)
     public Collection<UserCredentials> listUserCredentials(String userId) throws NoSuchUserException {
@@ -151,59 +181,59 @@ public class UserCredentialsService {
                 .stream()
                 .flatMap(e -> e.getProvidersByRealm(realm).stream())
                 .collect(Collectors.toList());
-        List<UserCredentials> creds = services.stream().flatMap(s -> s.listCredentials(userId).stream())
+        List<UserCredentials> creds = services.stream().flatMap(s -> s.listCredentialsByUser(userId).stream())
                 .collect(Collectors.toList());
 
         return creds;
     }
 
-    @Transactional(readOnly = false)
-    public EditableUserCredentials registerUserCredentials(String authority, String providerId, String accountId,
-            EditableUserCredentials reg)
-            throws NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
-        logger.debug("register user {} credentials via provider {}",
-                StringUtils.trimAllWhitespace(String.valueOf(accountId)),
-                StringUtils.trimAllWhitespace(providerId));
+//    @Transactional(readOnly = false)
+//    public EditableUserCredentials registerUserCredentials(String authority, String providerId, String accountId,
+//            EditableUserCredentials reg)
+//            throws NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
+//        logger.debug("register user {} credentials via provider {}",
+//                StringUtils.trimAllWhitespace(String.valueOf(accountId)),
+//                StringUtils.trimAllWhitespace(providerId));
+//
+//        if (reg == null) {
+//            throw new MissingDataException("registration");
+//        }
+//
+//        // fetch service
+//        AccountCredentialsService<?, ?, ?, ?> service = credentialsServiceAuthorityService.getAuthority(authority)
+//                .getProvider(providerId);
+//
+//        // execute
+//        return service.registerCredential(accountId, reg);
+//    }
 
-        if (reg == null) {
-            throw new MissingDataException("registration");
-        }
-
-        // fetch service
-        AccountCredentialsService<?, ?, ?, ?> service = credentialsServiceAuthorityService.getAuthority(authority)
-                .getProvider(providerId);
-
-        // execute
-        return service.registerCredential(accountId, reg);
-    }
-
-    @Transactional(readOnly = false)
-    public EditableUserCredentials editUserCredentials(String uuid, EditableUserCredentials reg)
-            throws NoSuchCredentialException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
-        logger.debug("edit user credentials {}", StringUtils.trimAllWhitespace(uuid));
-
-        if (reg == null) {
-            throw new MissingDataException("registration");
-        }
-
-        // resolve resource
-        ResourceEntity res = getResource(uuid);
-        String authorityId = res.getAuthority();
-        String providerId = res.getProvider();
-        String credentialId = res.getResourceId();
-
-        logger.debug("edit user credentials {} via provider {}:{}", credentialId, authorityId, providerId);
-
-        // fetch service
-        AccountCredentialsService<?, ?, ?, ?> service = credentialsServiceAuthorityService.getAuthority(authorityId)
-                .getProvider(providerId);
-
-        // find credentials
-        UserCredentials cred = service.getCredential(credentialId);
-
-        // execute
-        return service.editCredential(cred.getAccountId(), credentialId, reg);
-    }
+//    @Transactional(readOnly = false)
+//    public EditableUserCredentials editUserCredentials(String uuid, EditableUserCredentials reg)
+//            throws NoSuchCredentialException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
+//        logger.debug("edit user credentials {}", StringUtils.trimAllWhitespace(uuid));
+//
+//        if (reg == null) {
+//            throw new MissingDataException("registration");
+//        }
+//
+//        // resolve resource
+//        ResourceEntity res = getResource(uuid);
+//        String authorityId = res.getAuthority();
+//        String providerId = res.getProvider();
+//        String credentialId = res.getResourceId();
+//
+//        logger.debug("edit user credentials {} via provider {}:{}", credentialId, authorityId, providerId);
+//
+//        // fetch service
+//        AccountCredentialsService<?, ?, ?, ?> service = credentialsServiceAuthorityService.getAuthority(authorityId)
+//                .getProvider(providerId);
+//
+//        // find credentials
+//        UserCredentials cred = service.getCredential(credentialId);
+//
+//        // execute
+//        return service.editEditableCredential(credentialId, reg);
+//    }
 
     @Transactional(readOnly = false)
     public UserCredentials createUserCredentials(String authority, String providerId, String accountId,
@@ -247,11 +277,8 @@ public class UserCredentialsService {
         AccountCredentialsService<?, ?, ?, ?> service = credentialsServiceAuthorityService.getAuthority(authorityId)
                 .getProvider(providerId);
 
-        // find credentials
-        UserCredentials cred = service.getCredential(credentialId);
-
         // execute
-        return service.setCredential(cred.getAccountId(), credentialId, reg);
+        return service.setCredential(credentialId, reg);
     }
 
     @Transactional(readOnly = false)
@@ -310,7 +337,7 @@ public class UserCredentialsService {
                 .flatMap(e -> e.getProvidersByRealm(realm).stream())
                 .collect(Collectors.toList());
 
-        services.forEach(s -> s.deleteCredentials(userId));
+        services.forEach(s -> s.deleteCredentialsByUser(userId));
     }
 
     /*
