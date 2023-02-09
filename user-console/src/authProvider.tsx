@@ -15,7 +15,10 @@ export default (baseUrl: string, httpClient = fetchJson): AuthProvider => {
 
     return {
         login: async (params: any) => {},
-        logout: async (params: any) => {},
+        logout: async (params: any) => {
+            window.location.href = `${baseUrl}/logout`;
+            return;
+        },
         checkError: async (error: any) => {
             const status = error.status;
             if (status === 401 || status === 403) {

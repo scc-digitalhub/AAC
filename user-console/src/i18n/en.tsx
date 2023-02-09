@@ -146,6 +146,10 @@ const messages: TranslationMessages = {
             title: 'Audit',
             description: 'Recent security activity',
         },
+        login: {
+            header: 'Login',
+            description: 'Login is required to access the console',
+        },
     },
     alert: {
         authorization_expired: 'The authorization is expired',

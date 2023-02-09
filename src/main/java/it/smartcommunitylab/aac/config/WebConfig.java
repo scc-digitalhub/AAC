@@ -16,9 +16,9 @@ import org.springframework.web.servlet.config.annotation.ContentNegotiationConfi
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -124,6 +124,20 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(localeChangeInterceptor);
         registry.addInterceptor(languageInterceptor);
         registry.addInterceptor(templateInterceptor);
+    }
+
+    /*
+     * Static console resolvers for webpack style
+     */
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+
+        // user console
+        registry.addResourceHandler("/console/user/**")
+                .addResourceLocations("classpath:/console/user/")
+                .setCachePeriod(60 * 60 * 24 * 365) /* one year */
+                .resourceChain(false);
+
     }
 
 }

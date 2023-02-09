@@ -25,9 +25,12 @@ import { AccountEdit } from './resources/accounts';
 import { PasswordCreate, PasswordEdit } from './resources/password';
 import { WebAuthnCreate, WebAuthnEdit } from './resources/webauthn';
 import { ProfilesPage } from './pages/profiles';
+import { LoginPage } from './pages/login';
 
-const dataProvider = appDataProvider('http://localhost:9090');
-const authProvider = appAuthProvider('http://localhost:9090');
+const API_URL: string = process.env.REACT_APP_API_URL as string;
+console.log('REACT_APP_API_URL', API_URL);
+const dataProvider = appDataProvider(API_URL);
+const authProvider = appAuthProvider(API_URL);
 
 const myTheme = {
     ...defaultTheme,
@@ -88,7 +91,7 @@ const myTheme = {
             styleOverrides: {
                 // Name of the slot
                 root: {
-                    fontFamily: 'Lora,serif' as const,
+                    // fontFamily: 'Lora,serif' as const,
                 },
             },
         },
@@ -103,6 +106,10 @@ const App = () => (
         dashboard={UserDashboard}
         layout={MyLayout}
         theme={myTheme}
+        loginPage={<LoginPage />}
+        authCallbackPage={false}
+        requireAuth
+        disableTelemetry
     >
         <Resource
             name="accounts"
