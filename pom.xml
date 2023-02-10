@@ -108,7 +108,7 @@
 			<groupId>org.springframework.session</groupId>
 			<artifactId>spring-session-jdbc</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.springframework.security.oauth</groupId>
 			<artifactId>spring-security-oauth2</artifactId>
@@ -424,7 +424,7 @@
 						</goals>
 						<phase>compile</phase>
 						<configuration>
-							<arguments>build</arguments>
+							<arguments>dist</arguments>
 							<workingDirectory>${project.basedir}/user-console</workingDirectory>
 						</configuration>
 					</execution>

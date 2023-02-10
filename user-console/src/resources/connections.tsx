@@ -36,7 +36,12 @@ const getIcon = (record: any) => {
 
 export const ConnectionsList = () => {
     return (
-        <List resource="connections" pagination={false} actions={false}>
+        <List
+            component="div"
+            resource="connections"
+            pagination={false}
+            actions={false}
+        >
             <GridList
                 cols={6}
                 primaryText={record => {

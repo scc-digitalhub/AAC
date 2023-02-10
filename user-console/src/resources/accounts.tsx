@@ -10,9 +10,10 @@ import {
     LinearProgress,
     ListButton,
     SaveButton,
+    useTranslate,
 } from 'react-admin';
 import { List, SimpleForm, TextInput } from 'react-admin';
-import { Box, ListItem } from '@mui/material';
+import { Box, ListItem, Typography } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import KeyIcon from '@mui/icons-material/Key';
 import SwitchAccountIcon from '@mui/icons-material/SwitchAccount';
@@ -134,6 +135,8 @@ export const AccountEditForm = () => {
     return <div></div>;
 };
 export const InternalAccountEditForm = () => {
+    const translate = useTranslate();
+
     return (
         <SimpleForm
             toolbar={
@@ -146,6 +149,12 @@ export const InternalAccountEditForm = () => {
                 </Toolbar>
             }
         >
+            <Typography variant="h5">
+                {translate('page.accounts.edit.title')}
+            </Typography>
+            <Typography variant="subtitle1" sx={{ mb: 2 }}>
+                {translate('page.accounts.edit.description')}
+            </Typography>
             <TextInput source="name" />
             <TextInput source="surname" />
             <TextInput source="email" />

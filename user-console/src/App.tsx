@@ -8,7 +8,6 @@ import MyLayout from './components/layout';
 
 import 'typeface-titillium-web';
 import 'typeface-roboto-mono';
-import 'typeface-lora';
 
 import GroupIcon from '@mui/icons-material/Group';
 import AccountBoxIcon from '@mui/icons-material/AccountBox';
@@ -28,7 +27,6 @@ import { ProfilesPage } from './pages/profiles';
 import { LoginPage } from './pages/login';
 
 const API_URL: string = process.env.REACT_APP_API_URL as string;
-console.log('REACT_APP_API_URL', API_URL);
 const dataProvider = appDataProvider(API_URL);
 const authProvider = appAuthProvider(API_URL);
 

@@ -11,6 +11,13 @@ const messages: TranslationMessages = {
     profiles: 'Personal Info',
     credentials: 'Credentials',
     connections: 'Connected Apps',
+    languages: {
+        english: 'English',
+        italian: 'Italian',
+        german: 'German',
+        spanish: 'Spanish',
+        latvian: 'Latvian',
+    },
     resources: {
         accounts: {
             name: 'Account |||| Accounts',
@@ -51,7 +58,7 @@ const messages: TranslationMessages = {
         dashboard: {
             welcome: 'Welcome, %{name}',
             description:
-                'Manage you personal information, accounts and review your security settings.',
+                'Manage you personal information, accounts and review your security settings',
             accounts: {
                 title: 'Accounts',
                 description: 'Review and manage your accounts',
@@ -90,16 +97,20 @@ const messages: TranslationMessages = {
                 content:
                     'Are you sure you want to delete your account? This action cannot be undone!',
             },
+            edit: {
+                title: 'Update account',
+                description: 'Change your account information',
+            },
         },
         profiles: {
             header: 'Personal info',
             description:
-                'Review and inspect your personal information, as available to applications and services.',
+                'Review and inspect your personal information, as available to applications and services',
         },
         connections: {
             header: 'Connected applications',
             description:
-                'Manage and control application permissions. You gave access to some of your personal information to applications and sites. Review and remove access to applications you no longer use or trust.',
+                'Manage and control application permissions. You gave access to some of your personal information to applications and sites. Review and remove access to applications you no longer use or trust',
             permissions_num: 'Has access to %{num} permissions',
         },
         credentials: {
@@ -158,21 +169,6 @@ const messages: TranslationMessages = {
             'This browser does not support security keys (webauthn)',
         invalid_attestation: 'Invalid attestation',
     },
-    edit_password: {
-        password: 'Password',
-        change_password: 'Change password',
-        replace_current: 'Replace current password with a new one',
-        current_password: 'Current password',
-        verify_password: 'Verify password',
-        length: 'Length',
-        policy: 'Password policy',
-        min_requirement: 'Minimum password length: ',
-        max_requirement: 'Maximun password length: ',
-        alpha_requirement: 'Requires a letter',
-        numeric_requirement: 'Requires a number',
-        special_requirement: 'Requires a special char',
-        uppercase_requirement: 'Requires a uppercase letter',
-    },
     action: {
         register: 'Register',
     },
@@ -190,13 +186,13 @@ const messages: TranslationMessages = {
         zoneinfo: 'Timezone',
     },
     error: {
-        already_registered: 'Already registered.',
+        already_registered: 'Already registered',
         authentication_service:
-            'Authentication problem. Please try again later.',
+            'Authentication problem. Please try again later',
         bad_credentials: 'Invalid user or password',
         duplicated_data: 'Duplicated data',
-        internal_error: 'Internal error. Please try again.',
-        invalid_data: 'Invalid field data.',
+        internal_error: 'Internal error. Please try again',
+        invalid_data: 'Invalid field data',
         invalid_email: 'Invalid email',
         //invalid_password: 'Invalid user or password',
         invalid_password: {
@@ -211,19 +207,19 @@ const messages: TranslationMessages = {
                 'Invalid password: uppercase alpha char required',
             require_special: 'Invalid password: special character required',
             not_match: 'Invalid password: the passwords do not match',
-            policy: 'Invalid password: the passwords does not satisfy the policy',
+            policy: 'Invalid password: the password does not satisfy the policy',
         },
         invalid_user: 'Invalid user',
         locked: 'User locked',
         mismatch_passwords: 'Passwords does not match',
         missing_data: 'Missing data',
-        not_confirmed: 'Registration not confirmed.',
-        not_registered: 'Invalid user or password',
-        // registration: 'Registration problem. Please try again later.',
-        invalid_field: 'Invalid field data.',
-        unsupported_operation: 'Unsupported operation.',
+        not_confirmed: 'Registration not confirmed',
+        not_registered: 'Unregistered',
+        // registration: 'Registration problem. Please try again later',
+        invalid_field: 'Invalid field data',
+        unsupported_operation: 'Unsupported operation',
         wrong_password: 'Wrong password',
-        unauthenticated_user: 'User must be authenticated.',
+        unauthenticated_user: 'User must be authenticated',
         registration: {
             invalid_password: 'Invalid password',
         },

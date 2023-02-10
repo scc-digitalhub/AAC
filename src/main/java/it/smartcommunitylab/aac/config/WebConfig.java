@@ -19,6 +19,9 @@ import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
+import org.springframework.web.servlet.resource.EncodedResourceResolver;
+import org.springframework.web.servlet.resource.PathResourceResolver;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -136,7 +139,10 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/console/user/**")
                 .addResourceLocations("classpath:/console/user/")
                 .setCachePeriod(60 * 60 * 24 * 365) /* one year */
-                .resourceChain(false);
+                .resourceChain(true)
+                .addResolver(new EncodedResourceResolver())
+                .addResolver(new PathResourceResolver());
+        ;
 
     }
 

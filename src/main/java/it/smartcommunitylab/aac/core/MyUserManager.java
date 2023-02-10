@@ -46,6 +46,7 @@ import it.smartcommunitylab.aac.core.service.UserCredentialsService;
 import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.internal.InternalAccountServiceAuthority;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.provider.InternalAccountService;
 import it.smartcommunitylab.aac.model.ConnectedApp;
 import it.smartcommunitylab.aac.model.ConnectedDevice;
 import it.smartcommunitylab.aac.model.Realm;
@@ -283,12 +284,16 @@ public class MyUserManager {
         String realm = details.getRealm();
 
         // resolve a local account from service to enable registration *after* login
+        // TODO handle multiple providers
+        InternalAccountService service = internalAccountServiceAuthority.getProvidersByRealm(realm).stream().findFirst()
+                .orElse(null);
         InternalUserAccount account = null;
-        if (StringUtils.hasText(reg.getUsername())) {
-            account = internalAccountServiceAuthority.getProviderByRealm(realm).findAccount(reg.getUsername());
-        } else {
-            account = internalAccountServiceAuthority.getProviderByRealm(realm).listAccounts(userId)
-                    .stream().findFirst().orElse(null);
+        if (service != null) {
+            if (StringUtils.hasText(reg.getUsername())) {
+                account = service.findAccount(reg.getUsername());
+            } else {
+                account = service.listAccounts(userId).stream().findFirst().orElse(null);
+            }
         }
         if (account == null) {
             throw new RegistrationException("missing-account");
@@ -381,11 +386,15 @@ public class MyUserManager {
 
         // resolve a local account from service to enable registration *after* login
         InternalUserAccount account = null;
-        if (reg != null && StringUtils.hasText(reg.getUsername())) {
-            account = internalAccountServiceAuthority.getProviderByRealm(realm).findAccount(reg.getUsername());
-        } else {
-            account = internalAccountServiceAuthority.getProviderByRealm(realm).listAccounts(userId)
-                    .stream().findFirst().orElse(null);
+        // TODO handle multiple providers
+        InternalAccountService service = internalAccountServiceAuthority.getProvidersByRealm(realm).stream().findFirst()
+                .orElse(null);
+        if (service != null) {
+            if (reg != null && StringUtils.hasText(reg.getUsername())) {
+                account = service.findAccount(reg.getUsername());
+            } else {
+                account = service.listAccounts(userId).stream().findFirst().orElse(null);
+            }
         }
         if (account == null) {
             throw new RegistrationException("missing-account");
@@ -415,11 +424,15 @@ public class MyUserManager {
 
         // resolve a local account from service to enable registration *after* login
         InternalUserAccount account = null;
-        if (StringUtils.hasText(reg.getUsername())) {
-            account = internalAccountServiceAuthority.getProviderByRealm(realm).findAccount(reg.getUsername());
-        } else {
-            account = internalAccountServiceAuthority.getProviderByRealm(realm).listAccounts(userId)
-                    .stream().findFirst().orElse(null);
+        // TODO handle multiple providers
+        InternalAccountService service = internalAccountServiceAuthority.getProvidersByRealm(realm).stream().findFirst()
+                .orElse(null);
+        if (service != null) {
+            if (StringUtils.hasText(reg.getUsername())) {
+                account = service.findAccount(reg.getUsername());
+            } else {
+                account = service.listAccounts(userId).stream().findFirst().orElse(null);
+            }
         }
         if (account == null) {
             throw new RegistrationException("missing-account");
