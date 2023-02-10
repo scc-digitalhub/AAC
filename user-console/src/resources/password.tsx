@@ -203,7 +203,7 @@ export const PasswordEditForm = ({ askCurrent }: { askCurrent?: boolean }) => {
             {askCurrent && (
                 <PasswordInput
                     source="curPassword"
-                    inputProps={{ autocomplete: 'current-password' }}
+                    inputProps={{ autoComplete: 'current-password' }}
                     validate={required()}
                 />
             )}
@@ -354,7 +354,11 @@ export const PasswordPolicy = ({
                         const value = p[1];
                         const valid = validate(criteria, value);
                         return (
-                            <ListItem disableGutters disablePadding>
+                            <ListItem
+                                key={'password.policy.' + criteria}
+                                disableGutters
+                                disablePadding
+                            >
                                 <ListItemIcon
                                     sx={{
                                         minWidth: 32,

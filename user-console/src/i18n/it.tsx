@@ -1,8 +1,12 @@
 import { TranslationMessages } from 'ra-core';
 //use english ra.lang because italian is outdated
-import englishMessages from 'ra-language-english';
+import italianMessages from 'ra-language-english';
+import utils from '../utils';
+
+const raMessages = utils.deepCopy(italianMessages);
+
 //TODO create a dedicated translation
-englishMessages.ra.action = {
+raMessages.ra.action = {
     add_filter: 'Aggiungi filtro',
     add: 'Aggiungi',
     back: 'Indietro',
@@ -43,7 +47,7 @@ englishMessages.ra.action = {
     select_columns: 'Colonne',
 };
 
-englishMessages.ra.page = {
+raMessages.ra.page = {
     create: 'Crea %{name}',
     dashboard: 'Dashboard',
     edit: '%{name} %{recordRepresentation}',
@@ -56,14 +60,16 @@ englishMessages.ra.page = {
     invite: 'Vuoi aggiungerne?',
 };
 
-englishMessages.ra.boolean = {
+raMessages.ra.boolean = {
     true: 'Si',
     false: 'No',
     null: ' ',
 };
 
+raMessages.ra.page.dashboard = 'Home';
+
 const messages: TranslationMessages = {
-    ...englishMessages,
+    ...raMessages,
     admin: 'Admin',
     developer: 'Developer',
     user: 'Utente',
@@ -291,7 +297,5 @@ const messages: TranslationMessages = {
         },
     },
 };
-
-messages.ra.page.dashboard = 'Home';
 
 export default messages;

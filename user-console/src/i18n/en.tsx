@@ -1,8 +1,12 @@
 import { TranslationMessages } from 'ra-core';
 import englishMessages from 'ra-language-english';
+import utils from '../utils';
 
-const messages: TranslationMessages = {
-    ...englishMessages,
+const raMessages = utils.deepCopy(englishMessages);
+raMessages.ra.page.dashboard = 'Home';
+
+const enMessages: TranslationMessages = {
+    ...raMessages,
     admin: 'Admin',
     developer: 'Developer',
     user: 'User',
@@ -226,6 +230,4 @@ const messages: TranslationMessages = {
     },
 };
 
-messages.ra.page.dashboard = 'Home';
-
-export default messages;
+export default enMessages;
