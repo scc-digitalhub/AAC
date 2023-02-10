@@ -20,6 +20,8 @@
 		<jsoup.version>1.15.2</jsoup.version>
 		<yubico.version>2.0.0</yubico.version>
 		<jsonschema.version>4.28.0</jsonschema.version>
+		<node.version>v16.15.0</node.version>
+		<yarn.version>v1.21.1</yarn.version>
 		<profile.authorization />
 	</properties>
 
@@ -106,7 +108,7 @@
 			<groupId>org.springframework.session</groupId>
 			<artifactId>spring-session-jdbc</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.springframework.security.oauth</groupId>
 			<artifactId>spring-security-oauth2</artifactId>
@@ -383,6 +385,72 @@
 						</env>
 					</image>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.github.eirslett</groupId>
+				<artifactId>frontend-maven-plugin</artifactId>
+				<version>1.12.1</version>
+
+				<configuration>
+					<nodeVersion>${node.version}</nodeVersion>
+					<yarnVersion>${yarn.version}</yarnVersion>
+					<installDirectory>${project.build.directory}</installDirectory>
+				</configuration>
+				<executions>
+
+					<execution>
+						<id>install node and yarn</id>
+						<goals>
+							<goal>install-node-and-yarn</goal>
+						</goals>
+					</execution>
+
+					<execution>
+						<id>user console yarn install</id>
+						<goals>
+							<goal>yarn</goal>
+						</goals>
+						<phase>generate-resources</phase>
+						<configuration>
+							<arguments>install</arguments>
+							<workingDirectory>${project.basedir}/user-console</workingDirectory>
+						</configuration>
+					</execution>
+
+					<execution>
+						<id>user console build</id>
+						<goals>
+							<goal>yarn</goal>
+						</goals>
+						<phase>compile</phase>
+						<configuration>
+							<arguments>dist</arguments>
+							<workingDirectory>${project.basedir}/user-console</workingDirectory>
+						</configuration>
+					</execution>
+
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>user console package</id>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<phase>process-classes</phase>
+						<configuration>
+							<outputDirectory>${project.build.outputDirectory}/console/user</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${project.basedir}/user-console/build</directory>
+									<filtering>false</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 			<!-- <plugin> -->
 			<!-- <groupId>org.codehaus.mojo</groupId> -->

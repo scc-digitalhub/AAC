@@ -40,7 +40,7 @@ public class RealmAuditEvent extends AuditEvent {
     }
 
     public long getTime() {
-        return getTimestamp() != null ? getTimestamp().getEpochSecond() : -1;
+        return getTimestamp() != null ? getTimestamp().getEpochSecond() * 1000 : -1;
     }
 
 }

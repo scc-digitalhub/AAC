@@ -2,6 +2,8 @@ package it.smartcommunitylab.aac.core.provider;
 
 import java.util.Collection;
 
+import javax.validation.constraints.NotNull;
+
 import org.springframework.lang.Nullable;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -23,39 +25,55 @@ public interface AccountCredentialsService<R extends UserCredentials, E extends 
 
     /*
      * (user) editable credentials
+     * User can manage their credentials via a simplified (and unified) view.
+     * Do note that there is *no* requirement to represent a single credential
+     * consistently between editable and core.
+     * 
+     * TODO split service in 2: core and editable
      */
-    public E getEditableCredential(String accountId, String credentialId) throws NoSuchCredentialException;
+    public Collection<E> listEditableCredentials(@NotNull String accountId);
 
-    public E registerCredential(String accountId, EditableUserCredentials credentials)
+    public Collection<E> listEditableCredentialsByUser(@NotNull String userId);
+
+    public E getEditableCredential(@NotNull String credentialId) throws NoSuchCredentialException;
+
+    public E registerEditableCredential(@NotNull String accountId, @NotNull EditableUserCredentials credentials)
             throws RegistrationException, NoSuchUserException;
 
-    public E editCredential(String accountId, String credentialId, EditableUserCredentials credentials)
+    public E editEditableCredential(@NotNull String credentialId, @NotNull EditableUserCredentials credentials)
             throws RegistrationException, NoSuchCredentialException;
+
+    public void deleteEditableCredential(@NotNull String credentialId) throws NoSuchCredentialException;
 
     /*
      * Manage account credentials
+     * Real models used for authentication purposes, exposed via services and API
      */
 
-    public Collection<R> listCredentials(String userId);
+    public Collection<R> listCredentials(@NotNull String accountId);
 
-    public R findCredential(String credentialId);
+    public Collection<R> listCredentialsByUser(@NotNull String userId);
 
-    public R getCredential(String credentialId) throws NoSuchCredentialException;
+    public R findCredential(@NotNull String credentialId);
 
-    public R addCredential(String accountId, @Nullable String credentialId, UserCredentials uc)
+    public R getCredential(@NotNull String credentialId) throws NoSuchCredentialException;
+
+    public R addCredential(@NotNull String accountId, @Nullable String credentialId, @NotNull UserCredentials uc)
             throws NoSuchUserException, RegistrationException;
 
-    public R setCredential(String accountId, String credentialId, UserCredentials credentials)
+    public R setCredential(@NotNull String credentialId, @NotNull UserCredentials credentials)
             throws RegistrationException, NoSuchCredentialException;
 
 //    public void resetCredentials(String accountId, String credentialsId)
 //            throws NoSuchUserException, NoSuchCredentialException;
 
-    public R revokeCredential(String credentialId) throws NoSuchCredentialException, RegistrationException;
+    public R revokeCredential(@NotNull String credentialId) throws NoSuchCredentialException, RegistrationException;
 
-    public void deleteCredential(String credentialId) throws NoSuchCredentialException;
+    public void deleteCredential(@NotNull String credentialId) throws NoSuchCredentialException;
 
-    public void deleteCredentials(String userId);
+    public void deleteCredentials(@NotNull String accountId);
+
+    public void deleteCredentialsByUser(@NotNull String userId);
 
 //    /*
 //     * Action urls

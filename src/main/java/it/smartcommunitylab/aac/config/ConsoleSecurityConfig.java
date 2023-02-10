@@ -5,13 +5,17 @@ import org.springframework.context.annotation.Bean;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.AndRequestMatcher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsConfiguration;
@@ -66,7 +70,15 @@ public class ConsoleSecurityConfig {
     }
 
     public RequestMatcher getRequestMatcher() {
-        return new AntPathRequestMatcher(CONSOLE_PREFIX + "/**");
+        // skip index.html to let auth entry point enforce login
+        List<RequestMatcher> matchers = Arrays.stream(CONSOLES)
+                .map(c -> new NegatedRequestMatcher(new AntPathRequestMatcher(CONSOLE_PREFIX + "/" + c)))
+                .collect(Collectors.toList());
+
+        List<RequestMatcher> antMatchers = new ArrayList<>(matchers);
+        antMatchers.add(new AntPathRequestMatcher(CONSOLE_PREFIX + "/**"));
+
+        return new AndRequestMatcher(antMatchers);
 
     }
 
@@ -83,5 +95,9 @@ public class ConsoleSecurityConfig {
     }
 
     public static final String CONSOLE_PREFIX = "/console";
+
+    public static String[] CONSOLES = {
+            "user", "dev", "admin"
+    };
 
 }

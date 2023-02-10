@@ -23,6 +23,12 @@ public abstract class AbstractProfile implements Serializable {
         mapper.setSerializationInclusion(Include.NON_EMPTY);
     }
 
+    public String getId() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(getIdentifier());
+        return sb.toString();
+    }
+
     @JsonIgnore
     public abstract String getIdentifier();
 

@@ -1,5 +1,7 @@
 package it.smartcommunitylab.aac.webauthn.model;
 
+import java.util.Date;
+
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 
@@ -33,8 +35,27 @@ public class WebAuthnEditableUserCredential extends AbstractEditableUserCredenti
     @JsonSchemaIgnore
     private String userHandle;
 
+    @JsonSchemaIgnore
+    private Date createDate;
+
+    @JsonSchemaIgnore
+    private Date modifiedDate;
+
+    @JsonSchemaIgnore
+    private Date expireDate;
+
+    @JsonSchemaIgnore
+    private Date lastUsedDate;
+
     @NotBlank
     private String displayName;
+
+    // attestation for new registrations
+    @JsonSchemaIgnore
+    private String key;
+
+    @JsonSchemaIgnore
+    private String attestation;
 
     public WebAuthnEditableUserCredential() {
         super(SystemKeys.AUTHORITY_WEBAUTHN, null, null);
@@ -85,6 +106,54 @@ public class WebAuthnEditableUserCredential extends AbstractEditableUserCredenti
 
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
+    }
+
+    public Date getCreateDate() {
+        return createDate;
+    }
+
+    public void setCreateDate(Date createDate) {
+        this.createDate = createDate;
+    }
+
+    public Date getModifiedDate() {
+        return modifiedDate;
+    }
+
+    public void setModifiedDate(Date modifiedDate) {
+        this.modifiedDate = modifiedDate;
+    }
+
+    public Date getExpireDate() {
+        return expireDate;
+    }
+
+    public void setExpireDate(Date expireDate) {
+        this.expireDate = expireDate;
+    }
+
+    public Date getLastUsedDate() {
+        return lastUsedDate;
+    }
+
+    public void setLastUsedDate(Date lastUsedDate) {
+        this.lastUsedDate = lastUsedDate;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
+    }
+
+    public String getAttestation() {
+        return attestation;
+    }
+
+    public void setAttestation(String attestation) {
+        this.attestation = attestation;
     }
 
     @Override

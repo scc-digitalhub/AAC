@@ -1,7 +1,9 @@
 package it.smartcommunitylab.aac.webauthn.service;
 
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -49,6 +51,12 @@ public class WebAuthnRegistrationRpService {
     @Value("${application.url}")
     private String applicationUrl;
 
+    @Value("${security.webauthn.id}")
+    private String rpId;
+
+    @Value("${security.webauthn.origins}")
+    private String[] extraOrigins;
+
     private final UserAccountService<InternalUserAccount> userAccountService;
     private final WebAuthnUserCredentialsRepository credentialsRepository;
 
@@ -72,9 +80,21 @@ public class WebAuthnRegistrationRpService {
                     // build RP configuration
                     URL publicAppUrl = new URL(applicationUrl);
                     Set<String> origins = Collections.singleton(applicationUrl);
+                    if (extraOrigins != null && extraOrigins.length > 0) {
+                        // include extra origins as safe
+                        origins = new HashSet<>();
+                        origins.add(applicationUrl);
+                        origins.addAll(Arrays.asList(extraOrigins));
+                    }
+
+                    String id = publicAppUrl.getHost();
+                    if (StringUtils.hasText(rpId)) {
+                        // use custom
+                        id = rpId;
+                    }
 
                     RelyingPartyIdentity rpIdentity = RelyingPartyIdentity.builder()
-                            .id(publicAppUrl.getHost())
+                            .id(id)
                             .name(config.getRealm())
                             .build();
 

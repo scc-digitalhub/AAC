@@ -18,10 +18,13 @@ package it.smartcommunitylab.aac.model;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import javax.validation.constraints.NotBlank;
 
+import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.scope.Scope;
@@ -47,9 +50,22 @@ public class ConnectedApp {
     private String appDescription;
 
     private List<Scope> scopes;
+    private List<Approval> approvals;
+
+    private Date createDate;
+    private Date modifiedDate;
+    private Date expireDate;
 
     public ConnectedApp() {
 
+    }
+
+    public ConnectedApp(String subjectId, String clientId, String realm) {
+        this.subjectId = subjectId;
+        this.clientId = clientId;
+        this.realm = realm;
+
+        this.scopes = Collections.emptyList();
     }
 
     public ConnectedApp(String subjectId, String clientId, String realm, Collection<Scope> scopes) {
@@ -119,6 +135,38 @@ public class ConnectedApp {
 
     public void setScopes(List<Scope> scopes) {
         this.scopes = scopes;
+    }
+
+    public List<Approval> getApprovals() {
+        return approvals;
+    }
+
+    public void setApprovals(List<Approval> approvals) {
+        this.approvals = approvals;
+    }
+
+    public Date getCreateDate() {
+        return createDate;
+    }
+
+    public void setCreateDate(Date createDate) {
+        this.createDate = createDate;
+    }
+
+    public Date getModifiedDate() {
+        return modifiedDate;
+    }
+
+    public void setModifiedDate(Date modifiedDate) {
+        this.modifiedDate = modifiedDate;
+    }
+
+    public Date getExpireDate() {
+        return expireDate;
+    }
+
+    public void setExpireDate(Date expireDate) {
+        this.expireDate = expireDate;
     }
 
 }

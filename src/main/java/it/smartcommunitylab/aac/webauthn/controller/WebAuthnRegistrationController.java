@@ -276,7 +276,8 @@ public class WebAuthnRegistrationController {
         }
 
         // save successful registration as credential
-        WebAuthnUserCredential credential = service.saveRegistration(username, request);
+        WebAuthnUserCredential credential = service.saveRegistration(username,
+                request.getStartRequest().getDisplayName(), request);
 
         // register as new
         logger.debug("registered credential {} for user {} via userHandle {}", credential.getCredentialId(),

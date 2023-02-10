@@ -261,6 +261,7 @@ public class OIDCAuthenticationProvider
                 // TODO handle all attributes not only strings.
                 Map<String, Serializable> principalAttributes = user.getAttributes().entrySet().stream()
                         .filter(e -> !OIDCKeys.JWT_ATTRIBUTES.contains(e.getKey()))
+                        .filter(e -> e.getValue() != null)
                         .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
                 // execute script
                 Map<String, Serializable> customAttributes = executionService.executeFunction(

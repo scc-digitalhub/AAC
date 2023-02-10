@@ -52,6 +52,9 @@ security:
    console: 
       cors: 
         origins:
+   webauthn:
+      id:
+      origins:
    keystore: ${JWK_KEYSTORE:classpath:/keystore.jwks} 
    cache:
       jwks: no-cache, no-store, max-age=0, must-revalidate #set cacheable with "public, max-age=3600, must-revalidate, no-transform"
@@ -102,7 +105,6 @@ authorities:
         enablePasswordReset: true
         passwordSupportWhitespace: false
         passwordRequireNumber: true
-        enablePasswordSet: true
         passwordMaxLength: 15
         passwordMinLength: 6
         passwordRequireAlpha: true
@@ -121,8 +123,14 @@ authorities:
      password:
         passwordResetValidity: 86400
         enablePasswordReset: true
-        maxSessionDuration: 86400       
-        confirmationRequired: true
+        passwordSupportWhitespace: false
+        passwordRequireNumber: true
+        passwordMaxLength: 15
+        passwordMinLength: 6
+        passwordRequireAlpha: true
+        passwordRequireUppercaseAlpha: false
+        passwordRequireSpecial: false   
+        passwordKeepNumber: 1   
      oidc:
         scope: openid,email
         userNameAttributeName: sub

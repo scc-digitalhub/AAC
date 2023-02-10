@@ -180,7 +180,7 @@ public class InternalIdentityService
         if (loadCredentials) {
             List<UserCredentials> credentials = new ArrayList<>();
             getCredentialsServices().stream().forEach(s -> {
-                credentials.addAll(s.listCredentials(username));
+                credentials.addAll(s.listCredentialsByUser(username));
             });
 
             identity.setCredentials(credentials);
@@ -426,7 +426,7 @@ public class InternalIdentityService
         }
 
         // remove credentials
-        getCredentialsServices().forEach(c -> c.deleteCredentials(userId));
+        getCredentialsServices().forEach(c -> c.deleteCredentialsByUser(userId));
 
     }
 
@@ -443,7 +443,7 @@ public class InternalIdentityService
         // remove credentials matching account
 
         getCredentialsServices().forEach(c -> {
-            List<UserCredentials> creds = c.listCredentials(userId).stream()
+            List<UserCredentials> creds = c.listCredentialsByUser(userId).stream()
                     .filter(s -> s.getAccountId().equals(username)).collect(Collectors.toList());
             creds.forEach(s -> {
                 try {

@@ -1,12 +1,13 @@
 package it.smartcommunitylab.aac.internal.model;
 
+import java.util.Date;
+
 import javax.validation.Valid;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -16,6 +17,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractEditableAccount;
+import it.smartcommunitylab.aac.repository.JsonSchemaIgnore;
 
 @Valid
 @JsonInclude(Include.ALWAYS)
@@ -30,10 +32,18 @@ public class InternalEditableUserAccount extends AbstractEditableAccount {
     static {
         schema = generator.generateSchema(InternalEditableUserAccount.class);
     }
-
-    @Schema(name = "username", title = "field.username", description = "description.username")
-    @NotBlank
+    // properties
+//    @Schema(name = "username", title = "field.username", description = "description.username")
+//    @NotBlank
+    // NOT editable for now
+    @JsonSchemaIgnore
     private String username;
+
+    @JsonSchemaIgnore
+    private Date createDate;
+
+    @JsonSchemaIgnore
+    private Date modifiedDate;
 
     // attributes
     @Schema(name = "email", title = "field.email", description = "description.email")
@@ -119,6 +129,22 @@ public class InternalEditableUserAccount extends AbstractEditableAccount {
     @Override
     public JsonNode getSchema() {
         return schema;
+    }
+
+    public Date getCreateDate() {
+        return createDate;
+    }
+
+    public void setCreateDate(Date createDate) {
+        this.createDate = createDate;
+    }
+
+    public Date getModifiedDate() {
+        return modifiedDate;
+    }
+
+    public void setModifiedDate(Date modifiedDate) {
+        this.modifiedDate = modifiedDate;
     }
 
 }
