@@ -37,6 +37,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
@@ -100,8 +101,10 @@ public class MailService {
         mailSender.setHost(mailHost);
         mailSender.setPort(mailPort);
         mailSender.setProtocol(mailProtocol);
-        mailSender.setPassword(mailPwd);
-        mailSender.setUsername(mailUser);
+        if(StringUtils.hasText(mailPwd) && StringUtils.hasText(mailUser)) {
+        	mailSender.setPassword(mailPwd);
+            mailSender.setUsername(mailUser);	
+        }
 
         Properties props = new Properties();
         props.load(mailProps.getInputStream());
