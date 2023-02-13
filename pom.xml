@@ -17,7 +17,7 @@
 		<java.version>17</java.version>
 		<bouncycastle.version>1.71</bouncycastle.version>
 		<springdoc.version>1.6.9</springdoc.version>
-		<jsoup.version>1.15.2</jsoup.version>
+		<jsoup.version>1.15.3</jsoup.version>
 		<yubico.version>2.0.0</yubico.version>
 		<jsonschema.version>4.28.0</jsonschema.version>
 		<node.version>v16.15.0</node.version>
