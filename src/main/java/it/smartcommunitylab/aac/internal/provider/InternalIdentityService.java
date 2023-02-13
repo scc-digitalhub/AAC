@@ -108,9 +108,6 @@ public class InternalIdentityService
             throws NoSuchProviderException {
         AccountCredentialsService<?, ?, ?, ?> cs = getCredentialsServices().stream()
                 .filter(s -> s.getAuthority().equals(authority)).findFirst().orElse(null);
-        if (cs == null) {
-            throw new NoSuchProviderException();
-        }
 
         return cs;
     }
