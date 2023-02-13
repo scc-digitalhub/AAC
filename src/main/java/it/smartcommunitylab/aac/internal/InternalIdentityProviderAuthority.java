@@ -9,6 +9,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractSingleProviderIdentityAuthority;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityFilterProvider;
@@ -32,6 +33,10 @@ public class InternalIdentityProviderAuthority extends
     // filter provider
     private final InternalIdentityFilterProvider filterProvider;
 
+    //resource service for accounts
+    private ResourceEntityService resourceService;
+
+
     public InternalIdentityProviderAuthority(
             UserAccountService<InternalUserAccount> userAccountService, InternalUserConfirmKeyService confirmKeyService,
             ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository) {
@@ -54,6 +59,11 @@ public class InternalIdentityProviderAuthority extends
         this.configProvider = configProvider;
     }
 
+    @Autowired
+    public void setResourceService(ResourceEntityService resourceService) {
+        this.resourceService = resourceService;
+    }
+    
     @Override
     protected InternalIdentityProvider buildProvider(InternalIdentityProviderConfig config) {
         InternalIdentityProvider idp = new InternalIdentityProvider(
@@ -61,6 +71,7 @@ public class InternalIdentityProviderAuthority extends
                 accountService, confirmKeyService,
                 config, config.getRealm());
 
+        idp.setResourceService(resourceService);
         return idp;
     }
 

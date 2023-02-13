@@ -13,6 +13,7 @@ import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.LoginProvider;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
@@ -59,6 +60,10 @@ public class InternalIdentityProvider extends
         // always expose a valid resolver to satisfy authenticationManager at post login
         // TODO refactor to avoid fetching via resolver at this stage
         this.subjectResolver = new InternalSubjectResolver(providerId, userAccountService, repositoryId, false, realm);
+    }
+
+    public void setResourceService(ResourceEntityService resourceService) {
+        this.accountProvider.setResourceService(resourceService);
     }
 
     @Override
