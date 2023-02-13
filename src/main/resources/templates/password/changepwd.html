@@ -44,7 +44,7 @@
       <div class="alert alert-danger" role="alert" th:if="${error} != null" th:text="#{${error}}">
         Error text</div>
       <br>
-      <div class="col-md-12 form-group" th:if="${resetCode == null}">
+      <div class="col-md-12 form-group" th:if="${resetCode == false || cred != null}">
         <label th:text="#{field.pwd}  + '*: '"></label>
         <input class="form-control input-password" type="password" th:field="*{curPassword}" />
         <span class="password-icon" aria-hidden="true"> <svg class="password-icon-visible icon icon-sm">

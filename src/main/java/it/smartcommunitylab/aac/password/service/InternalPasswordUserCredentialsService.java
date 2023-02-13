@@ -202,8 +202,8 @@ public class InternalPasswordUserCredentialsService implements UserCredentialsSe
             password.setChangeOnFirstAccess(reg.getChangeOnFirstAccess());
             password.setExpirationDate(reg.getExpirationDate());
 
-            password.setResetDeadline(null);
-            password.setResetKey(null);
+            password.setResetDeadline(reg.getResetDeadline());
+            password.setResetKey(reg.getResetKey());
 
             password.setStatus(reg.getStatus());
 

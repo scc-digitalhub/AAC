@@ -15,6 +15,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityCredentialsService;
@@ -25,6 +26,7 @@ public class ResetKeyAuthenticationProvider implements AuthenticationProvider {
     private final UserAccountService<InternalUserAccount> userAccountService;
     private final PasswordIdentityCredentialsService passwordService;
 
+    private final String providerId;
     private final String repositoryId;
 
     public ResetKeyAuthenticationProvider(String providerId,
@@ -38,6 +40,7 @@ public class ResetKeyAuthenticationProvider implements AuthenticationProvider {
 
         this.userAccountService = userAccountService;
         this.passwordService = passwordService;
+        this.providerId = providerId;
         this.repositoryId = repositoryId;
 
     }
@@ -64,6 +67,10 @@ public class ResetKeyAuthenticationProvider implements AuthenticationProvider {
 
             // verify only, won't disable the key
             passwordService.verifyReset(key);
+
+            // set ourselves as provider
+            account.setAuthority(SystemKeys.AUTHORITY_PASSWORD);
+            account.setProvider(providerId);
 
             // do confirm - DISABLED
 //            passwordService.confirmReset(key);

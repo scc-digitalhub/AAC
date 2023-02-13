@@ -33,7 +33,7 @@ import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
-import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProviderConfig;
+import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
 
 public class InternalPasswordResetOnAccessFilter extends OncePerRequestFilter {
     static final String SAVED_REQUEST = "INTERNAL_PASSWORD_SAVED_REQUEST";
@@ -49,11 +49,11 @@ public class InternalPasswordResetOnAccessFilter extends OncePerRequestFilter {
     private RequestMatcher requestMatcher;
     private boolean logoutAfterReset = true;
 
-    private final ProviderConfigRepository<InternalPasswordIdentityProviderConfig> registrationRepository;
+    private final ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository;
     private final InternalUserPasswordRepository passwordRepository;
 
     public InternalPasswordResetOnAccessFilter(InternalUserPasswordRepository passwordRepository,
-            ProviderConfigRepository<InternalPasswordIdentityProviderConfig> registrationRepository) {
+            ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository) {
         Assert.notNull(passwordRepository, "password repository is mandatory");
         Assert.notNull(registrationRepository, "provider registration repository cannot be null");
 
@@ -118,8 +118,7 @@ public class InternalPasswordResetOnAccessFilter extends OncePerRequestFilter {
 
             // pick provider config to resolve repositoryId
             // TODO remove and include repositoryId in credentials embedded in auth token
-            InternalPasswordIdentityProviderConfig providerConfig = registrationRepository
-                    .findByProviderId(providerId);
+            PasswordIdentityProviderConfig providerConfig = registrationRepository.findByProviderId(providerId);
             if (providerConfig == null) {
                 this.logger.error("Error fetching configuration for active provider");
                 return;
@@ -131,7 +130,7 @@ public class InternalPasswordResetOnAccessFilter extends OncePerRequestFilter {
             // we look for an active password created *after* this login
             long deadline = userAuth.getCreatedAt().getEpochSecond() * 1000;
             InternalUserPassword pass = passwordRepository
-                    .findByProviderAndUsernameAndStatusOrderByCreateDateDesc(repositoryId, username, "active");
+                    .findByRepositoryIdAndUsernameAndStatusOrderByCreateDateDesc(repositoryId, username, "active");
             if (pass == null || pass.getCreateDate().getTime() < deadline) {
                 // require change because we still lack a valid password for post-reset login
                 targetUrl = "/changepwd/" + providerId + "/" + account.getUuid();

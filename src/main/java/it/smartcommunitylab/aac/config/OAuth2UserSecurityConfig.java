@@ -39,7 +39,7 @@ import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientService;
 import it.smartcommunitylab.aac.password.auth.InternalPasswordResetOnAccessFilter;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
-import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProviderConfig;
+import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
 
 /*
  * Security context for oauth2 endpoints
@@ -72,7 +72,7 @@ public class OAuth2UserSecurityConfig {
     private InternalUserPasswordRepository passwordRepository;
 
     @Autowired
-    private ProviderConfigRepository<InternalPasswordIdentityProviderConfig> internalPasswordIdentityProviderConfigRepository;
+    private ProviderConfigRepository<PasswordIdentityProviderConfig> internalPasswordIdentityProviderConfigRepository;
 
     /*
      * Configure a separated security context for oauth2 tokenEndpoints

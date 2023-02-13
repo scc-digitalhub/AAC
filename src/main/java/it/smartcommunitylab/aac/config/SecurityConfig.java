@@ -47,7 +47,7 @@ import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.crypto.InternalPasswordEncoder;
 import it.smartcommunitylab.aac.password.auth.InternalPasswordResetOnAccessFilter;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
-import it.smartcommunitylab.aac.password.provider.InternalPasswordIdentityProviderConfig;
+import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
 
 /*
  * Security config for AAC UI
@@ -76,7 +76,7 @@ public class SecurityConfig {
     private InternalUserPasswordRepository passwordRepository;
 
     @Autowired
-    private ProviderConfigRepository<InternalPasswordIdentityProviderConfig> internalPasswordIdentityProviderConfigRepository;
+    private ProviderConfigRepository<PasswordIdentityProviderConfig> internalPasswordIdentityProviderConfigRepository;
 
 //    /*
 //     * rememberme
