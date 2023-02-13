@@ -14,6 +14,9 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
+import org.springframework.session.web.http.CookieSerializer;
+import org.springframework.session.web.http.DefaultCookieSerializer;
+import org.springframework.util.StringUtils;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.DumperOptions.FlowStyle;
 import org.yaml.snakeyaml.DumperOptions.ScalarStyle;
@@ -79,8 +82,17 @@ import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserCredentialsService;
 @Order(2)
 public class PersistenceConfig {
 
+    @Value("${application.url}")
+    private String applicationUrl;
+
     @Value("${persistence.repository.providerConfig}")
     private String providerConfigRepository;
+
+    @Value("${security.session.cookie.sameSite}")
+    private String sessionCookieSameSite;
+
+    @Value("${security.session.cookie.secure}")
+    private Boolean sessionCookieSecure;
 
     @Autowired
     private DataSource dataSource;
@@ -167,6 +179,35 @@ public class PersistenceConfig {
     /*
      * Session registry
      */
+
+    @Bean
+    public CookieSerializer cookieSerializer() {
+        DefaultCookieSerializer serializer = new DefaultCookieSerializer();
+        if (applicationUrl != null) {
+            if (applicationUrl.startsWith("https")) {
+                // use None as SameSite policy because we save requests in session for OIDC/SAML
+                // TODO adopt LAX and resolve POST issues with session
+                serializer.setSameSite("None");
+                // we use None only with Secure=true otherwise it won't work
+                // NOTE: this will break session on http requests
+                serializer.setUseSecureCookie(true);
+            } else {
+                serializer.setSameSite("Lax");
+            }
+        }
+
+        // config can override
+        if (StringUtils.hasText(sessionCookieSameSite)) {
+            serializer.setSameSite(sessionCookieSameSite);
+        }
+
+        if (sessionCookieSecure != null) {
+            serializer.setUseSecureCookie(sessionCookieSecure.booleanValue());
+        }
+
+        return serializer;
+    }
+
     @Bean
     public SessionRegistry sessionRegistry() {
         return new SessionRegistryImpl();

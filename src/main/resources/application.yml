@@ -55,6 +55,10 @@ security:
    webauthn:
       id:
       origins:
+   session:
+      cookie:
+        sameSite: 
+        secure: 
    keystore: ${JWK_KEYSTORE:classpath:/keystore.jwks} 
    cache:
       jwks: no-cache, no-store, max-age=0, must-revalidate #set cacheable with "public, max-age=3600, must-revalidate, no-transform"
