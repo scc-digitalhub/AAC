@@ -83,6 +83,9 @@ public class UserService {
     private AccountServiceAuthorityService accountServiceAuthorityService;
 
     @Autowired
+    private CredentialsServiceAuthorityService credentialsServiceAuthorityService;
+
+    @Autowired
     private InternalAttributeAuthority internalAttributeAuthority;
 
     @Autowired
@@ -507,6 +510,11 @@ public class UserService {
         accountServiceAuthorityService.getAuthorities().stream()
                 .flatMap(a -> a.getProvidersByRealm(realm).stream())
                 .forEach(s -> s.deleteAccounts(subjectId));
+
+        // delete credentials via (active) services
+        credentialsServiceAuthorityService.getAuthorities().stream()
+                .flatMap(a -> a.getProvidersByRealm(realm).stream())
+                .forEach(s -> s.deleteCredentialsByUser(subjectId));
 
         // delete attributes via (active) providers
         attributeProviderAuthorityService.getAuthorities().stream()
