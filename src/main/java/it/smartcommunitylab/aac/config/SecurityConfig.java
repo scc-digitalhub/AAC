@@ -18,6 +18,8 @@ package it.smartcommunitylab.aac.config;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.servlet.Filter;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -33,12 +35,19 @@ import org.springframework.security.web.authentication.logout.HeaderWriterLogout
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.header.writers.ClearSiteDataHeaderWriter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.filter.CompositeFilter;
+
 import it.smartcommunitylab.aac.core.auth.ExtendedLogoutSuccessHandler;
 import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.crypto.InternalPasswordEncoder;
+import it.smartcommunitylab.aac.password.auth.InternalPasswordResetOnAccessFilter;
+import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
+import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
 
 /*
  * Security config for AAC UI
@@ -62,6 +71,12 @@ public class SecurityConfig {
 
     @Autowired
     private RealmAwarePathUriBuilder realmUriBuilder;
+
+    @Autowired
+    private InternalUserPasswordRepository passwordRepository;
+
+    @Autowired
+    private ProviderConfigRepository<PasswordIdentityProviderConfig> internalPasswordIdentityProviderConfigRepository;
 
 //    /*
 //     * rememberme
@@ -152,7 +167,7 @@ public class SecurityConfig {
                 .and()
 //                // TODO replace with filterRegistrationBean and explicitely map urls
 //                .addFilterBefore(new ExpiredUserAuthenticationFilter(), BasicAuthenticationFilter.class);
-
+                .addFilterAfter(buildSessionFilters(), BasicAuthenticationFilter.class)
                 // we always want a session here
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.ALWAYS);
@@ -227,6 +242,20 @@ public class SecurityConfig {
 
         return entryPoint;
 
+    }
+
+    private Filter buildSessionFilters() {
+        InternalPasswordResetOnAccessFilter passwordChangeFilter = new InternalPasswordResetOnAccessFilter(
+                passwordRepository, internalPasswordIdentityProviderConfigRepository);
+
+        // build a virtual filter chain as composite filter
+        ArrayList<Filter> filters = new ArrayList<>();
+        filters.add(passwordChangeFilter);
+
+        CompositeFilter filter = new CompositeFilter();
+        filter.setFilters(filters);
+
+        return filter;
     }
 
 }

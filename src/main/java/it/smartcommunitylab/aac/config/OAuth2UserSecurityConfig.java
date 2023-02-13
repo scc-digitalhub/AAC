@@ -22,10 +22,12 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CompositeFilter;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.core.auth.ExtendedLoginUrlAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.auth.LoginUrlRequestConverter;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.IdentityProviderAuthorityService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderService;
 import it.smartcommunitylab.aac.oauth.auth.AuthorizationEndpointFilter;
@@ -35,6 +37,9 @@ import it.smartcommunitylab.aac.oauth.endpoint.AuthorizationEndpoint;
 import it.smartcommunitylab.aac.oauth.endpoint.UserApprovalEndpoint;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientService;
+import it.smartcommunitylab.aac.password.auth.InternalPasswordResetOnAccessFilter;
+import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
+import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
 
 /*
  * Security context for oauth2 endpoints
@@ -63,6 +68,12 @@ public class OAuth2UserSecurityConfig {
     @Autowired
     private IdentityProviderService idpProviderService;
 
+    @Autowired
+    private InternalUserPasswordRepository passwordRepository;
+
+    @Autowired
+    private ProviderConfigRepository<PasswordIdentityProviderConfig> internalPasswordIdentityProviderConfigRepository;
+
     /*
      * Configure a separated security context for oauth2 tokenEndpoints
      */
@@ -86,6 +97,7 @@ public class OAuth2UserSecurityConfig {
                         getOAuth2UserFilters(idpProviderService, clientDetailsService, clientService,
                                 loginPath),
                         BasicAuthenticationFilter.class)
+                .addFilterAfter(getSessionFilters(), BasicAuthenticationFilter.class)
                 // we do want a valid user session for these endpoints
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
@@ -112,6 +124,23 @@ public class OAuth2UserSecurityConfig {
                 clientAwareConverter);
         authorizationFilter.setAuthenticationEntryPoint(entryPoint);
         return authorizationFilter;
+    }
+
+    private Filter getSessionFilters() {
+        InternalPasswordResetOnAccessFilter passwordResetFilter = new InternalPasswordResetOnAccessFilter(
+                passwordRepository, internalPasswordIdentityProviderConfigRepository);
+
+        // disable logout post-reset for oauth2 urls
+        passwordResetFilter.setLogoutAfterReset(false);
+
+        // build a virtual filter chain as composite filter
+        ArrayList<Filter> filters = new ArrayList<>();
+        filters.add(passwordResetFilter);
+
+        CompositeFilter filter = new CompositeFilter();
+        filter.setFilters(filters);
+
+        return filter;
     }
 
     private AuthenticationEntryPoint authEntryPoint(String loginUrl,

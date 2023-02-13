@@ -15,6 +15,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityCredentialsService;
@@ -25,6 +26,7 @@ public class UsernamePasswordAuthenticationProvider implements AuthenticationPro
     private final UserAccountService<InternalUserAccount> userAccountService;
     private final PasswordIdentityCredentialsService passwordService;
 
+    private final String providerId;
     private final String repositoryId;
 
     public UsernamePasswordAuthenticationProvider(String providerId,
@@ -39,6 +41,7 @@ public class UsernamePasswordAuthenticationProvider implements AuthenticationPro
         this.userAccountService = userAccountService;
         this.passwordService = passwordService;
 
+        this.providerId = providerId;
         this.repositoryId = repositoryId;
     }
 
@@ -66,6 +69,10 @@ public class UsernamePasswordAuthenticationProvider implements AuthenticationPro
             if (!passwordService.verifyPassword(username, password)) {
                 throw new BadCredentialsException("invalid request");
             }
+
+            // set ourselves as provider
+            account.setAuthority(SystemKeys.AUTHORITY_PASSWORD);
+            account.setProvider(providerId);
 
             // always grant user role
             // we really don't have any additional role on accounts, aac roles are set on

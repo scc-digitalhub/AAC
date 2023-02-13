@@ -205,15 +205,15 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
             // map to ourselves
             pass.setProvider(getProvider());
 
-            // password are encrypted, but clear value for extra safety
-            pass.eraseCredentials();
-
             // send mail
             try {
                 sendResetMail(account, pass.getResetKey());
             } catch (Exception e) {
                 logger.error(e.getMessage());
             }
+
+            // password are encrypted, but clear value for extra safety
+            pass.eraseCredentials();
 
             return pass;
         } catch (RegistrationException | NoSuchCredentialException | NoSuchAlgorithmException
@@ -283,6 +283,66 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
         pass.setStatus(STATUS_INACTIVE);
 
         pass = passwordService.updateCredentials(resetKey, pass.getId(), pass);
+
+        // map to ourselves
+        pass.setProvider(getProvider());
+
+        // password are encrypted, but clear value for extra safety
+        pass.eraseCredentials();
+
+        return pass;
+    }
+
+    public InternalUserPassword verifyReset(String resetKey) throws NoSuchCredentialException, InvalidDataException {
+        if (!StringUtils.hasText(resetKey)) {
+            throw new IllegalArgumentException("empty-key");
+        }
+
+        InternalUserPassword pass = passwordService.findCredentialsByResetKey(repositoryId, resetKey);
+        if (pass == null) {
+            throw new NoSuchCredentialException();
+        }
+
+        // validate key, we do it simple
+        boolean isValid = false;
+
+        // password must be active, can't reset inactive
+        boolean isActive = STATUS_ACTIVE.equals(pass.getStatus());
+        if (!isActive) {
+            logger.error("invalid key, inactive");
+            throw new InvalidDataException("key");
+        }
+
+        // validate key match
+        // useless check since we fetch account with key as input..
+        boolean isMatch = resetKey.equals(pass.getResetKey());
+
+        if (!isMatch) {
+            logger.error("invalid key, not matching");
+            throw new InvalidDataException("key");
+        }
+
+        // validate deadline
+        Calendar calendar = Calendar.getInstance();
+        if (pass.getResetDeadline() == null) {
+            logger.error("corrupt or used key, missing deadline");
+            // do not leak reason
+            throw new InvalidDataException("key");
+        }
+
+        boolean isExpired = calendar.after(pass.getResetDeadline());
+
+        if (isExpired) {
+            logger.error("expired key on " + String.valueOf(pass.getResetDeadline()));
+            // do not leak reason
+            throw new InvalidDataException("key");
+        }
+
+        isValid = isActive && isMatch && !isExpired;
+
+        if (!isValid) {
+            throw new InvalidDataException("key");
+        }
 
         // map to ourselves
         pass.setProvider(getProvider());
