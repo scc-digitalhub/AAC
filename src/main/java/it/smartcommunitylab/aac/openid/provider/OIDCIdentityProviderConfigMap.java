@@ -34,6 +34,7 @@ public class OIDCIdentityProviderConfigMap extends AbstractConfigMap {
 
     private String scope;
     private String userNameAttributeName;
+    private String subAttributeName;
     private Boolean trustEmailAddress;
     private Boolean requireEmailAddress;
     private Boolean alwaysTrustEmailAddress;
@@ -117,6 +118,14 @@ public class OIDCIdentityProviderConfigMap extends AbstractConfigMap {
 
     public void setUserNameAttributeName(String userNameAttributeName) {
         this.userNameAttributeName = userNameAttributeName;
+    }
+
+    public String getSubAttributeName() {
+        return subAttributeName;
+    }
+
+    public void setSubAttributeName(String subAttributeName) {
+        this.subAttributeName = subAttributeName;
     }
 
     public Boolean getTrustEmailAddress() {
@@ -219,6 +228,7 @@ public class OIDCIdentityProviderConfigMap extends AbstractConfigMap {
         this.enablePkce = map.getEnablePkce();
         this.scope = map.getScope();
         this.userNameAttributeName = map.getUserNameAttributeName();
+        this.subAttributeName = map.getSubAttributeName();
         this.trustEmailAddress = map.getTrustEmailAddress();
         this.alwaysTrustEmailAddress = map.getAlwaysTrustEmailAddress();
         this.requireEmailAddress = map.getRequireEmailAddress();

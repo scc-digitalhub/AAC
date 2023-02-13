@@ -6,6 +6,7 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.registration.ClientRegistrations;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -187,6 +188,11 @@ public class OIDCIdentityProviderConfig extends AbstractIdentityProviderConfig<O
 //
 //        return defaultValue;
 //    }
+
+    public String getSubAttributeName() {
+        return StringUtils.hasText(configMap.getSubAttributeName()) ? configMap.getSubAttributeName()
+                : IdTokenClaimNames.SUB;
+    }
 
     public boolean trustEmailAddress() {
         // do not trust email by default

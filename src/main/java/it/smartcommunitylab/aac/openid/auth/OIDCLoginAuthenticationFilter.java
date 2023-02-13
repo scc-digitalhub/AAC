@@ -191,6 +191,7 @@ public class OIDCLoginAuthenticationFilter extends AbstractAuthenticationProcess
 
         String redirectUri = UriComponentsBuilder.fromHttpUrl(UrlUtils.buildFullRequestUrl(request))
                 .replaceQuery(null)
+                .fragment(null)
                 .build()
                 .toUriString();
 
