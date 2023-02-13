@@ -166,6 +166,11 @@ public class LoginController {
                 .getAuthorities().stream()
                 .flatMap(a -> a.getProvidersByRealm(realm).stream()).collect(Collectors.toList());
 
+        // fetch account services for user registration
+        Collection<IdentityService<? extends UserIdentity, ?, ?, ?, ?>> services = identityServiceAuthorityService
+                .getAuthorities().stream()
+                .flatMap(a -> a.getProvidersByRealm(realm).stream()).collect(Collectors.toList());
+
         if (StringUtils.hasText(providerId)) {
             Optional<IdentityProvider<? extends UserIdentity, ?, ?, ?, ?>> idp = providers.stream()
                     .filter(p -> p.getProvider().equals(providerId)).findFirst();
@@ -184,6 +189,9 @@ public class LoginController {
             if (clientDetails.getRealm().equals(realm)) {
                 providers = providers.stream().filter(p -> clientDetails.getProviders().contains(p.getProvider()))
                         .collect(Collectors.toList());
+
+                services = services.stream().filter(p -> clientDetails.getProviders().contains(p.getProvider()))
+                        .collect(Collectors.toList());
             }
         }
 
@@ -196,19 +204,6 @@ public class LoginController {
             if (a != null) {
                 authorities.add(a);
             }
-        }
-
-        // bypass idp selection when only 1 is available
-        if (authorities.size() == 1) {
-            LoginProvider lab = authorities.get(0);
-            // note: we can bypass only providers which expose a button,
-            // anything else requires user interaction
-//            if (SystemKeys.DISPLAY_MODE_BUTTON.equals(lab.getDisplayMode())) {
-            String redirectUrl = lab.getLoginUrl();
-            logger.trace("bypass login for single idp, send to " + redirectUrl);
-            return "redirect:" + redirectUrl;
-//            }
-
         }
 
         // sort by position and name
@@ -235,16 +230,25 @@ public class LoginController {
 
         model.addAttribute("authorities", loginAuthorities);
 
-        // fetch account services for user registration
-        Collection<IdentityService<? extends UserIdentity, ?, ?, ?, ?>> services = identityServiceAuthorityService
-                .getAuthorities().stream()
-                .flatMap(a -> a.getProvidersByRealm(realm).stream()).collect(Collectors.toList());
-
         // get registration entries
         // TODO replace with model, with ordering etc
         List<String> registrations = services.stream().map(s -> s.getRegistrationUrl()).filter(r -> r != null)
                 .collect(Collectors.toList());
         model.addAttribute("registrations", registrations);
+
+        // bypass idp selection when only 1 is available
+        // and NO registration provider available
+        if (authorities.size() == 1 && registrations.isEmpty()) {
+            LoginProvider lab = authorities.get(0);
+            // note: we can bypass only providers which expose a button,
+            // anything else requires user interaction
+//            if (SystemKeys.DISPLAY_MODE_BUTTON.equals(lab.getDisplayMode())) {
+            String redirectUrl = lab.getLoginUrl();
+            logger.trace("bypass login for single idp, send to " + redirectUrl);
+            return "redirect:" + redirectUrl;
+//            }
+
+        }
 
         // check errors
         Exception error = (Exception) req.getSession()

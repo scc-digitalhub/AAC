@@ -62,9 +62,9 @@
             </div>
          </div>
 
-         <div class="row">
+         <div class="row" th:if="${policy} != null">
             <div class="col-md-12 form-group">
-               <div th:if="${policy} != null" th:replace="password/pwdpolicy :: policy"></div>
+               <div th:replace="password/pwdpolicy :: policy"></div>
             </div>
             <div class="col-md-12 form-group">
                <label th:text="#{field.pwd} + '*: '"></label>
