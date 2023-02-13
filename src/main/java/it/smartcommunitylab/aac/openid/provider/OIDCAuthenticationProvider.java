@@ -30,7 +30,6 @@ import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
-import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.util.Assert;
@@ -66,6 +65,7 @@ public class OIDCAuthenticationProvider
 
     private final OidcAuthorizationCodeAuthenticationProvider oidcProvider;
     private final OAuth2LoginAuthenticationProvider oauthProvider;
+    private String subAttributeName;
 
     protected String customMappingFunction;
     protected ScriptExecutionService executionService;
@@ -92,6 +92,9 @@ public class OIDCAuthenticationProvider
 
         // repositoryId is always providerId, oidc isolates data per provider
         this.repositoryId = providerId;
+
+        // let config set subject attribute name
+        this.subAttributeName = config.getSubAttributeName();
 
         // build appropriate client auth request converter
         OAuth2AuthorizationCodeGrantRequestEntityConverter requestEntityConverter = new OAuth2AuthorizationCodeGrantRequestEntityConverter();
@@ -196,7 +199,7 @@ public class OIDCAuthenticationProvider
                 // serializable..
                 OAuth2LoginAuthenticationToken authenticationToken = (OAuth2LoginAuthenticationToken) auth;
                 // extract sub identifier
-                String subject = authenticationToken.getPrincipal().getAttribute(IdTokenClaimNames.SUB);
+                String subject = authenticationToken.getPrincipal().getAttribute(subAttributeName);
                 if (!StringUtils.hasText(subject)) {
                     throw new OAuth2AuthenticationException(new OAuth2Error("invalid_request"));
                 }
@@ -235,7 +238,7 @@ public class OIDCAuthenticationProvider
         OAuth2User oauthDetails = (OAuth2User) principal;
 
         // upstream subject identifier
-        String subject = oauthDetails.getAttribute(IdTokenClaimNames.SUB);
+        String subject = oauthDetails.getAttribute(subAttributeName);
 
         // name is always available, is mapped via provider configuration
         String username = oauthDetails.getName();

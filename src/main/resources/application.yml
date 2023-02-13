@@ -166,8 +166,9 @@ authorities:
           authorizationUri: https://www.facebook.com/v15.0/dialog/oauth
           tokenUri: https://graph.facebook.com/v15.0/oauth/access_token
           userInfoUri: https://graph.facebook.com/me?fields=id,name,email
-          jwksUri: https://www.facebook.com/.well-known/oauth/openid/jwks/
-          userNameAttributeName: id        
+          jwkSetUri: https://www.facebook.com/.well-known/oauth/openid/jwks/
+          userNameAttributeName: email    
+          subAttributeName: id  
           trustEmailAddress: true
           enablePkce: false
       - id: github

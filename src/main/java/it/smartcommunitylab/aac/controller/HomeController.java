@@ -41,7 +41,10 @@ public class HomeController {
     @RolesAllowed("ROLE_USER")
     @GetMapping("/")
     public ModelAndView home() {
-        return new ModelAndView("redirect:/console/user");
+        // NOTE: set fragment empty to make sure redirected requests via 3xx
+        // do not keep their fragment
+        // we use # for in-app routing in react, so we want a clean route
+        return new ModelAndView("redirect:/console/user#");
     }
 
     @RolesAllowed("ROLE_USER")
@@ -55,6 +58,7 @@ public class HomeController {
     public ModelAndView devConsole() {
         return new ModelAndView("redirect:/dev");
     }
+
     @RolesAllowed("ROLE_USER")
     @GetMapping("/console/admin")
     public ModelAndView adminConsole() {
