@@ -399,14 +399,14 @@
 				<executions>
 
 					<execution>
-						<id>install node and yarn</id>
+						<id>install-node-and-yarn</id>
 						<goals>
 							<goal>install-node-and-yarn</goal>
 						</goals>
 					</execution>
 
 					<execution>
-						<id>user console yarn install</id>
+						<id>user-console-yarn-install</id>
 						<goals>
 							<goal>yarn</goal>
 						</goals>
