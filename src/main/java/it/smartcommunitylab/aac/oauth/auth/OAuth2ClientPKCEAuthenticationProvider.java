@@ -100,9 +100,14 @@ public class OAuth2ClientPKCEAuthenticationProvider extends ClientAuthentication
                     .get(PkceParameterNames.CODE_CHALLENGE_METHOD);
 
             // we need to be sure this is a PKCE request
-            if (!StringUtils.hasText(codeChallenge) || !StringUtils.hasText(codeChallengeMethod)) {
+            if (!StringUtils.hasText(codeChallenge)) {
                 // this is NOT a PKCE authcode
                 throw new BadCredentialsException("invalid request");
+            }
+
+            if (!StringUtils.hasText(codeChallengeMethod)) {
+                // default to plain as per RFC7636
+                codeChallengeMethod = "plain";
             }
 
             // validate challenge+verifier

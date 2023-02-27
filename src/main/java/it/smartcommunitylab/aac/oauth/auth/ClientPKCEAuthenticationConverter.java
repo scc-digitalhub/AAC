@@ -1,9 +1,12 @@
 package it.smartcommunitylab.aac.oauth.auth;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.data.util.Pair;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
@@ -25,8 +28,7 @@ public class ClientPKCEAuthenticationConverter extends OAuth2ClientAuthenticatio
 
         // fetch and validate parameters
         Map<String, String[]> parameters = request.getParameterMap();
-        if (!parameters.containsKey(OAuth2ParameterNames.CLIENT_ID)
-                || !parameters.containsKey(PkceParameterNames.CODE_VERIFIER)
+        if (!parameters.containsKey(PkceParameterNames.CODE_VERIFIER)
                 || !parameters.containsKey(OAuth2ParameterNames.CODE)
                 || !parameters.containsKey(OAuth2ParameterNames.GRANT_TYPE)) {
             // not a valid request
@@ -42,8 +44,7 @@ public class ClientPKCEAuthenticationConverter extends OAuth2ClientAuthenticatio
         }
 
         // make sure we get exactly 1 value per parameter
-        if (parameters.get(OAuth2ParameterNames.CLIENT_ID).length != 1
-                || parameters.get(OAuth2ParameterNames.CODE).length != 1
+        if (parameters.get(OAuth2ParameterNames.CODE).length != 1
                 || parameters.get(PkceParameterNames.CODE_VERIFIER).length != 1) {
             // throw oauth2 exception
             throw new OAuth2AuthenticationException(OAuth2ErrorCodes.INVALID_REQUEST);
@@ -53,6 +54,21 @@ public class ClientPKCEAuthenticationConverter extends OAuth2ClientAuthenticatio
         String clientId = request.getParameter(OAuth2ParameterNames.CLIENT_ID);
         String code = request.getParameter(OAuth2ParameterNames.CODE);
         String codeVerifier = request.getParameter(PkceParameterNames.CODE_VERIFIER);
+
+        // fallback to auth header for clientId if missing
+        if (!StringUtils.hasText(clientId)) {
+            try {
+                Pair<String, Optional<String>> basicAuth = ClientSecretBasicAuthenticationConverter
+                        .extractBasicAuth(request);
+
+                if (basicAuth != null) {
+                    clientId = basicAuth.getFirst();
+                }
+            } catch (IllegalArgumentException | UnsupportedEncodingException e) {
+                // throw oauth2 exception
+                throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST), e);
+            }
+        }
 
         // validate parameters are *not* empty
         if (!StringUtils.hasText(clientId) || !StringUtils.hasText(codeVerifier)) {

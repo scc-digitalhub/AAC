@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.oauth2.common.exceptions.InvalidRequestException;
 import org.springframework.security.oauth2.common.exceptions.InvalidScopeException;
+import org.springframework.security.oauth2.core.endpoint.PkceParameterNames;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.endpoint.RedirectResolver;
@@ -177,6 +178,20 @@ public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAut
         String redirectUri = authorizationRequest.getRedirectUri();
         if (StringUtils.hasText(redirectUri)) {
             validateRedirectUri(redirectUri, clientDetails);
+        }
+
+        // validate PKCE
+        String codeChallenge = authorizationRequest.getRequestParameters().get(PkceParameterNames.CODE_CHALLENGE);
+        String codeChallengeMethod = authorizationRequest.getRequestParameters()
+                .get(PkceParameterNames.CODE_CHALLENGE_METHOD);
+        if (StringUtils.hasText(codeChallenge)) {
+            if (!StringUtils.hasText(codeChallengeMethod)) {
+                codeChallengeMethod = "plain";
+            }
+
+            if (!"plain".equalsIgnoreCase(codeChallengeMethod) && !"S256".equalsIgnoreCase(codeChallengeMethod)) {
+                throw new InvalidRequestException("challenge method unsupported");
+            }
         }
 
     }
