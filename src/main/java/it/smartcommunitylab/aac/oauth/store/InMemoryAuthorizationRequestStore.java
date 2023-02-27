@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.oauth.store;
 
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.util.Collection;
 import java.util.Collections;
@@ -13,7 +14,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.StringUtils;
 
-public class InMemoryAuthorizationRequestStore implements AuthorizationRequestStore {
+public class InMemoryAuthorizationRequestStore implements AuthorizationRequestStore, Serializable {
 
     private final Map<String, AuthorizationRequest> requests;
 
