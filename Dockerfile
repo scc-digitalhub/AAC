@@ -1,26 +1,16 @@
 # syntax=docker/dockerfile:experimental
-FROM maven:3-openjdk-17 as deps
-COPY pom.xml /tmp/build/pom.xml
-WORKDIR /tmp/build
-#RUN --mount=type=bind,target=/root/.m2,source=/root/.m2,from=smartcommunitylab/aac:cache-alpine mvn package -DskipTests
-RUN mvn dependency:go-offline
-RUN mvn frontend:install-node-and-yarn
-COPY user-console/package.json /tmp/build/user-console/
-COPY user-console/yarn.lock /tmp/build/user-console/
-RUN mvn frontend:yarn@user-console-yarn-install
-
 
 FROM maven:3-openjdk-17 as build
-COPY --from=deps /root/.m2/. /root/.m2
-COPY --from=deps /tmp/build/target /tmp/build/target
-COPY ./ /tmp/build
-COPY --from=deps /tmp/build/user-console/node_modules/. /tmp/build/user-console/node_modules
-WORKDIR /tmp/build
-#RUN --mount=type=bind,target=/root/.m2,source=/root/.m2,from=smartcommunitylab/aac:cache-alpine mvn package -DskipTests
-RUN mvn package -DskipTests
+COPY ./src /tmp/src
+COPY ./pom.xml /tmp/pom.xml
+COPY ./user-console /tmp/user-console
+WORKDIR /tmp
+RUN --mount=type=cache,target=/root/.m2,source=/root/.m2,from=smartcommunitylab/aac:cache \ 
+    --mount=type=cache,target=/tmp/user-console/node_modules,source=/root/node_modules,from=smartcommunitylab/aac:cache \
+    mvn package -DskipTests
 
 FROM eclipse-temurin:17-jdk-alpine as builder
-COPY --from=build /tmp/build/target/aac.jar aac.jar
+COPY --from=build /tmp/target/aac.jar aac.jar
 RUN java -Djarmode=layertools -jar aac.jar extract
 
 
@@ -43,4 +33,4 @@ COPY --chown=aac:aac --from=builder spring-boot-loader/ ${USER_HOME}
 COPY --chown=aac:aac --from=builder application/ ${USER_HOME}
 USER aac
 ENTRYPOINT ["java", "org.springframework.boot.loader.JarLauncher"]
-#ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS} -jar ${APP}"]
+

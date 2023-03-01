@@ -1,13 +1,11 @@
-image: docker:19
+image: docker:latest
 
 services:
   - docker:dind
 
 stages:
   - build
-  - container-build
   - test
-  - container-scan
   - deploy
 
 include:
@@ -21,27 +19,35 @@ variables:
   DOCKER_DRIVER: overlay
   CONTAINER_IMAGE: smartcommunitylab/aac:$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA
   CONTAINER_IMAGE_LATEST: smartcommunitylab/aac:$CI_COMMIT_REF_NAME-latest
+  CONTAINER_CACHE_IMAGE: smartcommunitylab/aac:cache
   # MAVEN_CLI_OPTS: -DskipTests --batch-mode
   SAST_JAVA_VERSION: 17
 
-# maven-test:
-#   image: maven:3-openjdk-8
-#   stage: test
-#   script:
-#     - mvn $MAVEN_REPO test
+update-backend-cache-image:
+  stage: build
+  variables:
+    BUILDKIT_PROGRESS: plain
+    DOCKER_BUILDKIT: 1 
+  script:
+    - docker login -u $DHUB_USER -p $DHUB_PASS
+    - docker build -f Dockerfile-cache -t $CONTAINER_CACHE_IMAGE .
+    - docker push $CONTAINER_CACHE_IMAGE
+  rules:
+    - changes:
+      - pom.xml
+      - user-console/yarn.lock
+      - user-console/package.json
 
 maven-build:
   image: maven:3-openjdk-17
   stage: build
-  # only:
-  #   refs:
-  #     - dev
-  #     - master
   script:
     - mvn -DskipTests=true clean package
+  only:
+    - master
 
 backend-container-build:
-  stage: container-build
+  stage: build
   environment:
     name: $CI_COMMIT_REF_NAME
   script:
@@ -52,25 +58,40 @@ backend-container-build:
   only:
     - 4.x
     - 4.x-platform
+    - master
+
+spotbugs-sast:
+  rules:
+     - if: '$CI_COMMIT_REF_NAME == "master"'
+
+semgrep-sast:
+  rules:
+     - if: '$CI_COMMIT_REF_NAME == "master"'
+
+nodejs-scan-sast:
+  rules:
+     - if: '$CI_COMMIT_REF_NAME == "master"'
+
+gemnasium-maven-dependency_scanning:
+  rules:
+     - if: '$CI_COMMIT_REF_NAME == "master"'
+
+gemnasium-dependency_scanning:
+  rules:
+     - if: '$CI_COMMIT_REF_NAME == "master"'
 
 container_scanning:
-  stage: container-scan
+  stage: test
   variables:
     DOCKER_IMAGE: smartcommunitylab/aac:$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA
     DOCKERFILE_PATH: "Dockerfile"
     GIT_STRATEGY: fetch
     DOCKER_USER: ""
     DOCKER_PASSWORD: ""
-#   rules:
-#     - if: '$CI_COMMIT_REF_NAME != "adc-aac-test"'
-#
-# gemnasium-dependency_scanning:
-#   rules:
-#     - if: '$CI_COMMIT_REF_NAME != "adc-aac-test"'
-#
-# spotbugs-sast:
-#   rules:
-#     - if: '$CI_COMMIT_REF_NAME != "adc-aac-test"'
+  dependencies:
+    - backend-container-build
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"'
 
 deploy-dev:
   stage: deploy
