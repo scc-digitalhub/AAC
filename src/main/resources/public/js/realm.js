@@ -547,7 +547,6 @@ angular.module('aac.controllers.realm', [])
          RealmData.getDevelopers(slug)
             .then(function (data) {
                $scope.users = data;
-               return data;
             })
             .catch(function (err) {
                Utils.showError('Failed to load realm : ' + err.data.message);

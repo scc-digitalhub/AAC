@@ -19,6 +19,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -37,6 +39,7 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.config.ApplicationProperties;
+import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.core.base.AbstractAccount;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
@@ -461,7 +464,18 @@ public class RealmManager {
         dev.setUsername(user.getUsername());
         dev.setEmail(user.getEmail());
 
-        dev.setAuthorities(user.getAuthorities());
+        // filter realm+global authorities
+        Set<GrantedAuthority> authorities = user.getAuthorities().stream().filter(a -> {
+            if (a instanceof SimpleGrantedAuthority) {
+                return true;
+            }
+            if (a instanceof RealmGrantedAuthority) {
+                return realm.equals(((RealmGrantedAuthority) a).getRealm());
+            }
+            return false;
+        }).collect(Collectors.toSet());
+
+        dev.setAuthorities(authorities);
 
         return dev;
     }

@@ -405,9 +405,13 @@ angular.module('aac.controllers.realmapps', [])
 
         init();
     })
-    .controller('RealmAppController', function ($scope, $stateParams, $state, RealmData, RealmAppsData, RealmServices, RealmRoles, RoleSpaceData, Utils, $window) {
+    .controller('RealmAppController', function ($scope, $rootScope, $stateParams, $state, RealmData, RealmAppsData, RealmServices, RealmRoles, RoleSpaceData, Utils, $window) {
         var slug = $stateParams.realmId;
         var clientId = $stateParams.clientId;
+
+        $scope.isRealmAdmin = $rootScope.user.authorities.some(a => (a.realm === slug && a.role === 'ROLE_ADMIN'));
+        $scope.isRealmDev = $scope.isRealmAdmin || $rootScope.user.authorities.some(a => (a.realm === slug && a.role === 'ROLE_DEVELOPER'));
+
         $scope.clientView = 'overview';
 
         $scope.aceOption = {
@@ -427,7 +431,7 @@ angular.module('aac.controllers.realmapps', [])
             Utils.refreshFormBS(300);
         }
 
-        var init = function () {
+        var init = function () {                      
             //we load provider resources only at first load since it's expensive
             RealmData.getResources(slug)
                 .then(function (resources) {
@@ -465,7 +469,7 @@ angular.module('aac.controllers.realmapps', [])
                     $scope.services = sMap;
                 })
                 .then(function () {
-                    if ($scope.isAdmin) {
+                    if ($scope.isRealmAdmin) {
                         return RealmRoles.getRoles(slug);
                     } else {
                         return Promise.resolve();
@@ -555,7 +559,7 @@ angular.module('aac.controllers.realmapps', [])
                     return;
                 })
                 .then(function () {
-                    if ($scope.isAdmin) {
+                    if ($scope.isRealmAdmin) {
                         $scope.loadAudit();
                     }
                     return;
@@ -987,7 +991,7 @@ angular.module('aac.controllers.realmapps', [])
 
         $scope.updateAuthorities = function () {
             $('#authoritiesModal').modal('hide');
-            if (!$scope.isAdmin) {
+            if (!$scope.isRealmAdmin) {
                 Utils.showError('Invalid action: missing authorization');
                 return;
             }
@@ -1038,7 +1042,7 @@ angular.module('aac.controllers.realmapps', [])
         }
 
         $scope.reloadRoles = function (data) {
-            if (!$scope.isAdmin) {
+            if (!$scope.isRealmAdmin) {
                 $scope.roles = [];
                 $scope._roles = null;
                 return;
@@ -1098,7 +1102,7 @@ angular.module('aac.controllers.realmapps', [])
 
         // save roles
         var updateRoles = function (rolesAdd, rolesRemove) {
-            if (!$scope.isAdmin) {
+            if (!$scope.isRealmAdmin) {
                 Utils.showError('Invalid action: missing authorization');
                 return;
             }
@@ -1175,7 +1179,7 @@ angular.module('aac.controllers.realmapps', [])
         }
 
         $scope.reloadSpaceRoles = function (data) {
-            if (!$scope.isAdmin) {
+            if (!$scope.isRealmAdmin) {
                 $scope.spaceRoles = [];
                 return;
             }
@@ -1235,7 +1239,7 @@ angular.module('aac.controllers.realmapps', [])
 
 
         var updateSpaceRoles = function (rolesAdd, rolesRemove) {
-            if (!$scope.isAdmin) {
+            if (!$scope.isRealmAdmin) {
                 Utils.showError('Invalid action: missing authorization');
                 return;
             }
@@ -1287,7 +1291,7 @@ angular.module('aac.controllers.realmapps', [])
 
 
         $scope.reloadApprovals = function (data, rr) {
-            if (!$scope.isAdmin) {
+            if (!$scope.isRealmAdmin) {
                 $scope.approvals = [];
                 return;
             }
@@ -1351,7 +1355,7 @@ angular.module('aac.controllers.realmapps', [])
         $scope.updatePermissions = function () {
             $('#permissionsModal').modal('hide');
 
-            if (!$scope.isAdmin) {
+            if (!$scope.isRealmAdmin) {
                 Utils.showError('Invalid action: missing authorization');
                 return;
             }

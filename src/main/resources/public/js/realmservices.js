@@ -261,9 +261,13 @@ angular.module('aac.controllers.realmservices', [])
    * @param $http
    * @param $timeout
    */
-  .controller('RealmServiceController', function ($scope, $state, $stateParams, RealmServices, RealmAppsData, RealmData, Utils) {
+  .controller('RealmServiceController', function ($scope, $rootScope, $state, $stateParams, RealmServices, RealmAppsData, RealmData, Utils) {
     var slug = $stateParams.realmId;
     var serviceId = $stateParams.serviceId;
+
+    $scope.isRealmAdmin = $rootScope.user.authorities.some(a => (a.realm === slug && a.role === 'ROLE_ADMIN'));
+    $scope.isRealmDev = $scope.isRealmAdmin || $rootScope.user.authorities.some(a => (a.realm === slug && a.role === 'ROLE_DEVELOPER'));
+
     $scope.formView = 'overview';
 
     $scope.aceOption = {
@@ -343,7 +347,7 @@ angular.module('aac.controllers.realmservices', [])
           return data;
         })
         .then(function () {
-          if ($scope.isAdmin) {
+          if ($scope.isRealmAdmin) {
             $scope.loadApprovals();
           }
         })
@@ -720,7 +724,7 @@ angular.module('aac.controllers.realmservices', [])
     */
 
     $scope.loadApprovals = function () {
-      if (!$scope.isAdmin) {
+      if (!$scope.isRealmAdmin) {
         Utils.showError('Invalid action: missing authorization');
         return;
       }
@@ -758,7 +762,7 @@ angular.module('aac.controllers.realmservices', [])
     }
 
     $scope.saveApproval = function () {
-      if (!$scope.isAdmin) {
+      if (!$scope.isRealmAdmin) {
         Utils.showError('Invalid action: missing authorization');
         return;
       }
@@ -778,7 +782,7 @@ angular.module('aac.controllers.realmservices', [])
     }
 
     $scope.removeApproval = function (approval) {
-      if (!$scope.isAdmin) {
+      if (!$scope.isRealmAdmin) {
         Utils.showError('Invalid action: missing authorization');
         return;
       }
