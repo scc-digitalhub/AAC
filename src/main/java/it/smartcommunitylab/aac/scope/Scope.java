@@ -41,7 +41,6 @@ public class Scope {
     }
 
     public void setId(String id) {
-        Assert.hasText(scope, "scope can not be empty");
         this.scope = id;
     }
 
