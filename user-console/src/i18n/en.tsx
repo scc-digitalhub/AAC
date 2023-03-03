@@ -84,6 +84,7 @@ const enMessages: TranslationMessages = {
             description:
                 'View, manage and connect your local, social and external accounts',
             registered_user: 'Registered user',
+            unregistered_user: 'Unregistered user',
             register_user: {
                 title: 'Register user',
                 text: 'Register a local account to persist your user and be able to login via credentials such as password, security keys etc',

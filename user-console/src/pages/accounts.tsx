@@ -50,6 +50,7 @@ const UserActions = ({ user }: { user: any }) => {
                         <CreateButton
                             label="action.register"
                             icon={<PersonAddIcon />}
+                            disabled
                         />
                     </CardToolbar>
                 </Box>

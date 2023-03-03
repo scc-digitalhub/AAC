@@ -148,6 +148,7 @@ const messages: TranslationMessages = {
             description:
                 'Visualizza e gestisci i tuoi account e collega gli account social',
             registered_user: 'Utente registrato',
+            unregistered_user: 'Utente non registrato',
             register_user: {
                 title: "Registra l'utente",
                 text: 'Registra un account locale per persistere il tuo utente e poter effettuare il login con credenziali quali password, chiavi di sicurezza etc',
