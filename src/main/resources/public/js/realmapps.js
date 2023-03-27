@@ -409,7 +409,8 @@ angular.module('aac.controllers.realmapps', [])
         var slug = $stateParams.realmId;
         var clientId = $stateParams.clientId;
 
-        $scope.isRealmAdmin = $rootScope.user.authorities.some(a => (a.realm === slug && a.role === 'ROLE_ADMIN'));
+        var isSystemRealmAdmin = $rootScope.user.authorities.some(a => (a.realm === "system" && a.role === 'ROLE_ADMIN'));
+        $scope.isRealmAdmin = isSystemRealmAdmin || $rootScope.user.authorities.some(a => (a.realm === slug && a.role === 'ROLE_ADMIN'));
         $scope.isRealmDev = $scope.isRealmAdmin || $rootScope.user.authorities.some(a => (a.realm === slug && a.role === 'ROLE_DEVELOPER'));
 
         $scope.clientView = 'overview';
