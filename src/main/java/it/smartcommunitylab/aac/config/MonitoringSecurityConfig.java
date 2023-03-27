@@ -62,7 +62,7 @@ public class MonitoringSecurityConfig {
 
     public RequestMatcher getRequestMatcher() {
         List<RequestMatcher> endpointMatchers = Arrays.stream(endpoints)
-                .map(u -> new AntPathRequestMatcher(basePath + "/" + u))
+                .map(u -> new AntPathRequestMatcher(basePath + "/" + u + "/**"))
                 .collect(Collectors.toList());
         List<RequestMatcher> antMatchers = new ArrayList<>(endpointMatchers);
         antMatchers.add(new AntPathRequestMatcher(basePath + "/"));
