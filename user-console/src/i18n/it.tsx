@@ -16,7 +16,7 @@ raMessages.ra.action = {
     clear_array_input: 'Pulisci la lista',
     clear_input_value: 'Pulisci il campo',
     clone: 'Clona',
-    confirm: 'Confirma',
+    confirm: 'Conferma',
     create: 'Crea',
     create_item: 'Crea %{item}',
     delete: 'Cancella',
@@ -79,11 +79,11 @@ const messages: TranslationMessages = {
     credentials: 'Credenziali',
     connections: 'App connesse',
     languages: {
-        english: 'Ingliese',
+        english: 'Inglese',
         italian: 'Italiano',
         german: 'Tedesco',
         spanish: 'Spagnolo',
-        latvian: 'Lituano',
+        latvian: 'Lettone',
     },
     resources: {
         accounts: {
@@ -180,7 +180,7 @@ const messages: TranslationMessages = {
             header: 'Applicazioni collegate',
             description:
                 'Gestisci e controlla le applicazioni e i permessi. Hai dato accesso ad alcune delle tue informazioni personali a applicazioni di terze parti e siti web. Rivedi e rimuovi le applicazioni che non utilizzi più o che non ritieni affidabili',
-            permissions_num: 'Ha accesso a %{num} permissi',
+            permissions_num: 'Ha accesso a %{num} permessi',
         },
         credentials: {
             header: 'Credenziali',

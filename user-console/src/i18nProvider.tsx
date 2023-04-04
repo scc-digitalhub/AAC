@@ -2,7 +2,7 @@ import polyglotI18nProvider from 'ra-i18n-polyglot';
 import { TranslationMessages } from 'react-admin';
 import englishMessages from './i18n/en';
 import italianMessages from './i18n/it';
-import germanMessages from './i18n/en';
+import germanMessages from './i18n/de';
 import spanishMessages from './i18n/en';
 import latvianMessages from './i18n/en';
 
@@ -24,6 +24,6 @@ export default polyglotI18nProvider(
         { locale: 'it', name: 'IT' },
         // { locale: 'lv', name: 'LV' },
         // { locale: 'es', name: 'ES' },
-        // { locale: 'de', name: 'DE' },
+        { locale: 'de', name: 'DE' },
     ]
 );
