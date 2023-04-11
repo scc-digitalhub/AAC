@@ -1,0 +1,9 @@
+{
+	"jwt": {
+		"info_message": "Leer lassen, um die Systemvorgabe zu verwenden",
+		"howto_message": "Die Konfiguration eines benutzerdefinierten Algorithmus erfordert ein JWKSet (oder jwksURI), außer für HS256, das das Client-Geheimnis als Schlüssel verwendet"
+	},
+	"customization": {
+		"howto_message": "Passen Sie das Erscheinungsbild von AAC an, indem Sie benutzerdefinierte Nachrichten bereitstellen. Unterstützt grundlegende html-Tags."
+	}
+}
