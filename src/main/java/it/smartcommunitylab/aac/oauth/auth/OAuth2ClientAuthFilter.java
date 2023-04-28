@@ -56,8 +56,8 @@ public class OAuth2ClientAuthFilter extends OncePerRequestFilter {
                 new ClientJwtAssertionAuthenticationConverter(),
                 new ClientPKCEAuthenticationConverter(),
                 new ClientRefreshAuthenticationConverter(),
-                new ClientSecretBasicAuthenticationConverter(),
-                new ClientSecretPostAuthenticationConverter());
+                new ClientSecretPostAuthenticationConverter(),
+                new ClientSecretBasicAuthenticationConverter());
 
         // build request matcher
         requestMatcher = new AntPathRequestMatcher(filterProcessingUrl);
