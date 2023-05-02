@@ -26,7 +26,7 @@ public class ClientSecretBasicAuthenticationConverter extends OAuth2ClientAuthen
         try {
             Pair<String, Optional<String>> basicAuth = extractBasicAuth(request);
             if (basicAuth == null) {
-                throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST));
+                return null;
             }
 
             String clientId = basicAuth.getFirst();
