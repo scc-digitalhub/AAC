@@ -230,7 +230,7 @@
                         <p ng-if="!stats.loginEvents || stats.loginEvents.length == 0"> No events</p>
                         <table class="table" ng-if="stats.loginEvents && stats.loginEvents.length > 0">
                            <tr ng-repeat="item in stats.loginEvents">
-                              <td class="align-middle">{{item.timestamp.epochSecond * 1000 | date:'yyyy-MM-dd HH:mm'}}
+                              <td class="align-middle">{{item.timestamp * 1000 | date:'yyyy-MM-dd HH:mm'}}
                               </td>
                               <td class="align-middle">{{item.principal}}</td>
                            </tr>
@@ -248,7 +248,7 @@
                         <p ng-if="!stats.registrationEvents || stats.registrationEvents.length == 0"> No events</p>
                         <table class="table" ng-if="stats.registrationEvents && stats.registrationEvents.length > 0">
                            <tr ng-repeat="item in stats.registrationEvents">
-                              <td class="align-middle">{{item.timestamp.epochSecond * 1000 | date:'yyyy-MM-dd HH:mm'}}
+                              <td class="align-middle">{{item.timestamp * 1000 | date:'yyyy-MM-dd HH:mm'}}
                               </td>
                               <td class="align-middle">{{item.principal}}</td>
                            </tr>

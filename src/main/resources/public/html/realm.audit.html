@@ -50,7 +50,7 @@
                 </tr>
             </thead>
             <tr ng-repeat="item in events">
-                <td class="align-middle">{{item.timestamp.epochSecond * 1000 | date:'yyyy-MM-dd HH:mm:ss Z'}}</td>
+                <td class="align-middle">{{item.timestamp * 1000 | date:'yyyy-MM-dd HH:mm:ss Z'}}</td>
                 <td class="align-middle">{{item.type | uppercase}}</td>
                 <td class="align-middle">{{item.principal}}</td>
                 <td class="text-right">
@@ -75,7 +75,7 @@
             </div>
             <div class="modal-body" id="modal-body">
                 <h6>Timestamp</h6>
-                <p>{{modEvent.timestamp.epochSecond * 1000 | date:'yyyy-MM-dd HH:mm:ss Z'}}</p>
+                <p>{{modEvent.timestamp * 1000 | date:'yyyy-MM-dd HH:mm:ss Z'}}</p>
                 
                 <h6>Event type</h6>                
                 <p>{{modEvent.type | uppercase}}</p>
