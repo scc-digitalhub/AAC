@@ -7,7 +7,7 @@ COPY ./user-console /tmp/user-console
 WORKDIR /tmp
 RUN --mount=type=cache,target=/root/.m2,source=/root/.m2,from=smartcommunitylab/aac:cache \ 
     --mount=type=cache,target=/tmp/user-console/node_modules,source=/root/node_modules,from=smartcommunitylab/aac:cache \
-    mvn package -DskipTests
+    mvn package
 
 FROM eclipse-temurin:17-jdk-alpine as builder
 COPY --from=build /tmp/target/aac.jar aac.jar
