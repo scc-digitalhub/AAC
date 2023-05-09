@@ -18,3 +18,7 @@ bootstrap:
 #disable actuator
 management:
   port: -1
+
+# disable spring sessions for tests
+# workaround for https://github.com/spring-projects/spring-session/issues/2037
+spring.autoconfigure.exclude: org.springframework.boot.autoconfigure.session.SessionAutoConfiguration
