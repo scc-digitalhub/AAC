@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.auth;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -14,6 +15,7 @@ import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.auth.DefaultUserAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationToken;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
@@ -84,8 +86,11 @@ public class MockUserAuthenticationFactory
             // resolve
             Subject subject = idp.getSubjectResolver().resolveByAccountId(username);
             UserIdentity identity = idp.convertIdentity(principal, userId);
-            Collection<UserAttributes> attributeSets = idp.getAttributeProvider().convertPrincipalAttributes(principal,
-                    account);
+            Collection<UserAttributes> attributeSets = Collections.emptyList();
+
+            // Collection<UserAttributes> attributeSets =
+            // idp.getAttributeProvider().convertPrincipalAttributes(principal,
+//                    account);
 
             // build user authentication
             DefaultUserAuthenticationToken auth = new DefaultUserAuthenticationToken(
@@ -96,7 +101,7 @@ public class MockUserAuthenticationFactory
             // set authentication
             context.setAuthentication(auth);
 
-        } catch (NoSuchProviderException | NoSuchUserException e) {
+        } catch (NoSuchProviderException | NoSuchUserException | RegistrationException e) {
             e.printStackTrace();
         }
 

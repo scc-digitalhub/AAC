@@ -3,7 +3,11 @@ realms:
     slug: "test"
     public: true
     identityProviders: 
-      - provider: password
+      - provider: tinternal
+        authority: internal   
+        name: internal
+        type: identity           
+      - provider: tpassword
         authority: password   
         name: password
         type: identity        
@@ -52,7 +56,7 @@ realms:
         resourceIds: [
             ]
         providers:
-          - "password"
+          - "tpassword"
       - clientId: "test-1111-12345-client"
         type: "oauth2"
         name: "test client basic2"
@@ -95,27 +99,38 @@ realms:
         resourceIds: [
             ]
         providers:
-          - "password"          
+          - "tpassword"          
         
     users:
-      - userId: "test-0000-12345-user"
+      - uuid: 109990e9f5674a03ab1721e59e1ce05d
+        userId: 502e7f14-b6b3-49d3-8a00-ce2ed14f7a32
         username: test
         email: test@local.it
-        type: account
+        type: account:internal
         authority: internal
+        provider: tinternal
         name: Test
-        surname: User        
+        surname: User       
+        confirmed: true       
     
     credentials:
-      - type: credentials_password
+      - type: credentials:password
+        authority: password
+        provider: tpassword
+        id: 9a5623f8-1f1e-4ac0-bd15-394721fe1778        
         username: test
-        password: test123
+        password: test123        
+        
         
   - name: "two"
     slug: "two"        
     public: true
     identityProviders: 
-      - provider: password2
+      - provider: tinternal2
+        authority: internal   
+        name: internal2
+        type: identity            
+      - provider: tpassword2
         authority: password   
         name: password2
         type: identity   
@@ -164,21 +179,29 @@ realms:
         resourceIds: [
             ]
         providers:
-          - "password2"
+          - "tpassword2"
+        
         
     users:
-      - username: test
+      - uuid: 209990e9f5674a03ab1721e59e1ce05d
+        userId: 202e7f14-b6b3-49d3-8a00-ce2ed14f7a32
+        username: test
         email: test@local.it
-        type: account
+        type: account:internal
         authority: internal
+        provider: tinternal2
         name: Test
-        surname: User        
+        surname: User       
+        confirmed: true       
     
     credentials:
-      - type: credentials_password
+      - type: credentials:password
+        authority: password
+        provider: tpassword2
         username: test
-        password: test123
-
+        password: test123              
+        id: 2a5623f8-1f1e-4ac0-bd15-394721fe1778        
+        
 
 
                 
