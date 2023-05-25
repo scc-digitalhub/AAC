@@ -111,6 +111,36 @@ public class JWKSetTest {
                     assertThat(key.getKeyType()).satisfiesAnyOf(
                             typ -> assertThat(typ).isEqualTo(KeyType.RSA),
                             typ -> assertThat(typ).isEqualTo(KeyType.EC));
+                });
+
+    }
+
+    @Test
+    public void privateKeyIsNotExposed() throws Exception {
+        MvcResult res = this.mockMvc
+                .perform(get(JWKS_URL))
+                .andDo(print()).andExpect(status().isOk())
+                .andReturn();
+
+        // content type is json
+        assertEquals(res.getResponse().getContentType(), MediaType.APPLICATION_JSON_VALUE);
+
+        // read as string
+        String json = res.getResponse().getContentAsString();
+        assertThat(json).isNotBlank();
+
+        // try to parse keys
+        assertDoesNotThrow(() -> {
+            JWKSet.parse(json);
+        });
+
+        // parse
+        JWKSet set = JWKSet.parse(json);
+        assertThat(set).isNotNull();
+
+        // every key is public
+        assertThat(set.getKeys()).allSatisfy(
+                key -> {
                     // private key is not exposed
                     assertThat(key.isPrivate()).isFalse();
                 });

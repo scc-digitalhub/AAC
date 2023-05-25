@@ -11,10 +11,12 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.io.Serializable;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -56,6 +58,35 @@ public class OIDCRpInitiatedLogoutTest {
         });
     }
 
+    @Test
+    public void metadataEndpointIsValid() throws Exception {
+        MvcResult res = this.mockMvc
+                .perform(get(METADATA_URL))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        // parse as Map from JSON
+        String json = res.getResponse().getContentAsString();
+        Map<String, Serializable> metadata = mapper.readValue(json, typeRef);
+
+        // issuer
+        assertThat(metadata.get(OIDC_ENDSESSION_ENDPOINT)).isNotNull().isInstanceOf(String.class);
+        String endpoint = (String) metadata.get(OIDC_ENDSESSION_ENDPOINT);
+        assertThat(endpoint).isNotBlank();
+
+        // entpoint must be a valid URL
+        assertDoesNotThrow(() -> {
+            new URL(endpoint);
+        });
+
+        // url should use https - not checked
+
+        // endpoint as URL can not contain fragment
+        URL url = new URL(endpoint);
+        assertThat(url.getRef()).isNull();
+
+    }
+
     /*
      * Metadata endpoint
      * 
@@ -69,9 +100,10 @@ public class OIDCRpInitiatedLogoutTest {
 
     public static final Set<String> METADATA;
     public static final Set<String> REQUIRED_METADATA;
+    public final static String OIDC_ENDSESSION_ENDPOINT = "end_session_endpoint";
 
     private static final String[] REQUIRED_METADATA_VALUES = {
-            "end_session_endpoint"
+            OIDC_ENDSESSION_ENDPOINT
     };
 
     static {
