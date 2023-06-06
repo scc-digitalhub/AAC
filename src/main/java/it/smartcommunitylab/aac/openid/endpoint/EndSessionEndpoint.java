@@ -55,6 +55,7 @@ import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 @Tag(name = "OpenID Connect Session Management")
 public class EndSessionEndpoint {
 
+    public static final String END_SESSION_CONFIRM_URL = "/endsession/confirm";
     public static final String END_SESSION_URL = "/endsession";
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -82,7 +83,7 @@ public class EndSessionEndpoint {
     private OAuth2ClientDetailsService clientDetailsService;
 
     @Operation(summary = "Logout with user confirmation")
-    @RequestMapping(value = END_SESSION_URL, method = RequestMethod.GET)
+    @RequestMapping(value = END_SESSION_URL, method = {RequestMethod.GET, RequestMethod.POST})
     public String endSession(
             @RequestParam(value = "id_token_hint", required = false) @Pattern(regexp = SystemKeys.URI_PATTERN) String idTokenHint,
             @RequestParam(value = "post_logout_redirect_uri", required = false) @Pattern(regexp = SystemKeys.URI_PATTERN) String postLogoutRedirectUri,
@@ -178,13 +179,13 @@ public class EndSessionEndpoint {
             model.addAttribute("displayName", realm);
 
             // add form action
-            model.addAttribute("formAction", END_SESSION_URL);
+            model.addAttribute("formAction", END_SESSION_CONFIRM_URL);
             return "endsession";
         }
     }
 
     @Hidden
-    @RequestMapping(value = END_SESSION_URL, method = RequestMethod.POST)
+    @RequestMapping(value = END_SESSION_CONFIRM_URL, method = RequestMethod.POST)
     public void processLogout(@RequestParam(value = "approve", required = false) Optional<String> approve,
             HttpServletRequest request,
             HttpServletResponse response,
