@@ -15,7 +15,7 @@
 
 	<properties>
 		<java.version>17</java.version>
-		<bouncycastle.version>1.71</bouncycastle.version>
+		<bouncycastle.version>1.74</bouncycastle.version>
 		<springdoc.version>1.6.9</springdoc.version>
 		<jsoup.version>1.15.2</jsoup.version>
 		<yubico.version>2.0.0</yubico.version>
