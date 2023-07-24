@@ -1,17 +1,9 @@
 package it.smartcommunitylab.aac.dto;
 
-import java.util.List;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
-import org.springframework.util.Assert;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
-
 import it.smartcommunitylab.aac.core.base.AbstractAccount;
 import it.smartcommunitylab.aac.core.base.AbstractUserCredentials;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
@@ -20,6 +12,10 @@ import it.smartcommunitylab.aac.core.model.ConfigurableTemplateProvider;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.services.Service;
+import java.util.List;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import org.springframework.util.Assert;
 
 @Valid
 @JsonInclude(Include.NON_NULL)
@@ -48,8 +44,7 @@ public class RealmConfig {
     // credentials
     private List<AbstractUserCredentials> credentials;
 
-    public RealmConfig() {
-    }
+    public RealmConfig() {}
 
     public RealmConfig(Realm r) {
         Assert.notNull(r, "realm can not be null");
@@ -119,5 +114,4 @@ public class RealmConfig {
     public void setCredentials(List<AbstractUserCredentials> credentials) {
         this.credentials = credentials;
     }
-
 }

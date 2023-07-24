@@ -7,7 +7,6 @@ import java.util.Collection;
  * When used in protected scenarios, access to set content will be filtered based on scopes and authorizations
  */
 public interface AttributeSet {
-
     /*
      * The set identifier should match a scope, which when approved will enable
      * access to this set
@@ -30,5 +29,4 @@ public interface AttributeSet {
     public String getName();
 
     public String getDescription();
-
 }

@@ -1,8 +1,7 @@
 package it.smartcommunitylab.aac.saml.persistence;
 
-import java.io.Serializable;
-
 import it.smartcommunitylab.aac.SystemKeys;
+import java.io.Serializable;
 
 public class SamlUserAccountId implements Serializable {
 
@@ -11,8 +10,7 @@ public class SamlUserAccountId implements Serializable {
     private String repositoryId;
     private String subjectId;
 
-    public SamlUserAccountId() {
-    }
+    public SamlUserAccountId() {}
 
     public SamlUserAccountId(String repositoryId, String subjectId) {
         super();
@@ -47,24 +45,16 @@ public class SamlUserAccountId implements Serializable {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         SamlUserAccountId other = (SamlUserAccountId) obj;
         if (repositoryId == null) {
-            if (other.repositoryId != null)
-                return false;
-        } else if (!repositoryId.equals(other.repositoryId))
-            return false;
+            if (other.repositoryId != null) return false;
+        } else if (!repositoryId.equals(other.repositoryId)) return false;
         if (subjectId == null) {
-            if (other.subjectId != null)
-                return false;
-        } else if (!subjectId.equals(other.subjectId))
-            return false;
+            if (other.subjectId != null) return false;
+        } else if (!subjectId.equals(other.subjectId)) return false;
         return true;
     }
-
 }

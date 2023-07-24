@@ -1,12 +1,21 @@
 package it.smartcommunitylab.aac.oauth;
 
+import com.nimbusds.oauth2.sdk.GrantType;
+import com.nimbusds.oauth2.sdk.ParseException;
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
+import it.smartcommunitylab.aac.oauth.common.SecureStringKeyGenerator;
+import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
+import it.smartcommunitylab.aac.oauth.store.ExtTokenStore;
+import it.smartcommunitylab.aac.oauth.token.AACTokenEnhancer;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -26,8 +35,8 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.approval.Approval;
-import org.springframework.security.oauth2.provider.approval.ApprovalStore;
 import org.springframework.security.oauth2.provider.approval.Approval.ApprovalStatus;
+import org.springframework.security.oauth2.provider.approval.ApprovalStore;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 import org.springframework.security.oauth2.provider.token.ConsumerTokenServices;
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
@@ -36,32 +45,20 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import com.nimbusds.oauth2.sdk.GrantType;
-import com.nimbusds.oauth2.sdk.ParseException;
-
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.core.auth.UserAuthentication;
-import it.smartcommunitylab.aac.oauth.common.SecureStringKeyGenerator;
-import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
-import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
-import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
-import it.smartcommunitylab.aac.oauth.store.ExtTokenStore;
-import it.smartcommunitylab.aac.oauth.token.AACTokenEnhancer;
-
 /*
  * A complete tokenServices implementation.
- * 
+ *
  * Each request will result in a new token
  */
 
 public class OAuth2TokenServices
-        implements AuthorizationServerTokenServices, ConsumerTokenServices,
-        ResourceServerTokenServices, InitializingBean {
+    implements AuthorizationServerTokenServices, ConsumerTokenServices, ResourceServerTokenServices, InitializingBean {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // TODO remove logger in favor of events
     // TODO send audit event
-//    private static final Logger traceUserLogger = LoggerFactory.getLogger("traceUserToken");
+    //    private static final Logger traceUserLogger = LoggerFactory.getLogger("traceUserToken");
 
     // static config
     private static final StringKeyGenerator TOKEN_GENERATOR = new SecureStringKeyGenerator(20);
@@ -93,8 +90,8 @@ public class OAuth2TokenServices
     // otherwise we will keep serving the same claims
     // needs a new authToken == PreAuthenticatedAuthenticationToken and the relative
     // authprovider
-//    private boolean refreshAuthentication = false;
-//  private final ExtendedAuthenticationManager authManager;
+    //    private boolean refreshAuthentication = false;
+    //  private final ExtendedAuthenticationManager authManager;
 
     public OAuth2TokenServices(ExtTokenStore tokenStore) {
         Assert.notNull(tokenStore, "tokenStore is mandatory");
@@ -108,7 +105,6 @@ public class OAuth2TokenServices
     public void afterPropertiesSet() throws Exception {
         Assert.notNull(tokenStore, "token store is mandatory");
         Assert.notNull(clientDetailsService, "client details service is mandatory");
-
     }
 
     @Override
@@ -123,11 +119,11 @@ public class OAuth2TokenServices
 
         // validity interval for tokens
         int accessValiditySeconds = clientDetails.getAccessTokenValiditySeconds() != null
-                ? clientDetails.getAccessTokenValiditySeconds()
-                : accessTokenValiditySeconds;
+            ? clientDetails.getAccessTokenValiditySeconds()
+            : accessTokenValiditySeconds;
         int refreshValiditySeconds = clientDetails.getRefreshTokenValiditySeconds() != null
-                ? clientDetails.getRefreshTokenValiditySeconds()
-                : refreshTokenValiditySeconds;
+            ? clientDetails.getRefreshTokenValiditySeconds()
+            : refreshTokenValiditySeconds;
 
         AACOAuth2AccessToken accessToken = createAccessToken(authentication, accessValiditySeconds);
         if (accessToken == null || !StringUtils.hasText(accessToken.getValue())) {
@@ -139,8 +135,10 @@ public class OAuth2TokenServices
         accessToken.setRealm(clientDetails.getRealm());
 
         // if supported generate a new refresh token
-        if (supportsRefreshToken(authentication)
-                && clientDetails.getAuthorizedGrantTypes().contains(AuthorizationGrantType.REFRESH_TOKEN.getValue())) {
+        if (
+            supportsRefreshToken(authentication) &&
+            clientDetails.getAuthorizedGrantTypes().contains(AuthorizationGrantType.REFRESH_TOKEN.getValue())
+        ) {
             OAuth2RefreshToken refreshToken = createRefreshToken(authentication, refreshValiditySeconds);
             if (refreshToken != null && StringUtils.hasText(refreshToken.getValue())) {
                 tokenStore.storeRefreshToken(refreshToken, authentication);
@@ -155,15 +153,15 @@ public class OAuth2TokenServices
 
         tokenStore.storeAccessToken(accessToken, authentication);
 
-//        traceUserLogger.info(String.format("'type':'new','user':'%s','scope':'%s','token':'%s'",
-//                authentication.getName(), String.join(" ", accessToken.getScope()), accessToken.getValue()));
+        //        traceUserLogger.info(String.format("'type':'new','user':'%s','scope':'%s','token':'%s'",
+        //                authentication.getName(), String.join(" ", accessToken.getScope()), accessToken.getValue()));
         return accessToken;
     }
 
     @Override
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public OAuth2AccessToken refreshAccessToken(String refreshTokenValue, TokenRequest tokenRequest)
-            throws AuthenticationException {
+        throws AuthenticationException {
         logger.debug("refresh access token for token " + refreshTokenValue);
 
         OAuth2RefreshToken refreshToken = tokenStore.readRefreshToken(refreshTokenValue);
@@ -198,11 +196,11 @@ public class OAuth2TokenServices
 
         // validity interval for tokens
         int accessValiditySeconds = clientDetails.getAccessTokenValiditySeconds() != null
-                ? clientDetails.getAccessTokenValiditySeconds()
-                : accessTokenValiditySeconds;
+            ? clientDetails.getAccessTokenValiditySeconds()
+            : accessTokenValiditySeconds;
         int refreshValiditySeconds = clientDetails.getRefreshTokenValiditySeconds() != null
-                ? clientDetails.getRefreshTokenValiditySeconds()
-                : refreshTokenValiditySeconds;
+            ? clientDetails.getRefreshTokenValiditySeconds()
+            : refreshTokenValiditySeconds;
 
         // pick renewal to contain at least a number of access tokens
         int refreshRenewalSeconds = Math.max(refreshTokenRenewalWindowSeconds, accessValiditySeconds * 12);
@@ -227,8 +225,11 @@ public class OAuth2TokenServices
             if (refreshToken instanceof ExpiringOAuth2RefreshToken) {
                 // check if expired
                 ExpiringOAuth2RefreshToken expiringToken = (ExpiringOAuth2RefreshToken) refreshToken;
-                boolean isExpired = (expiringToken.getExpiration() == null
-                        || System.currentTimeMillis() > expiringToken.getExpiration().getTime());
+                boolean isExpired =
+                    (
+                        expiringToken.getExpiration() == null ||
+                        System.currentTimeMillis() > expiringToken.getExpiration().getTime()
+                    );
 
                 if (isExpired) {
                     tokenStore.removeRefreshToken(refreshToken);
@@ -236,10 +237,11 @@ public class OAuth2TokenServices
                 }
 
                 // renew if within window
-                renewToken = (!isExpired
-                        && System.currentTimeMillis() > (expiringToken.getExpiration().getTime()
-                                - refreshRenewalSeconds));
-
+                renewToken =
+                    (
+                        !isExpired &&
+                        System.currentTimeMillis() > (expiringToken.getExpiration().getTime() - refreshRenewalSeconds)
+                    );
             }
 
             // check if client has rotate to always configured
@@ -286,25 +288,23 @@ public class OAuth2TokenServices
             tokenStore.storeAccessToken(accessToken, refreshedAuthentication);
         }
 
-//        traceUserLogger.info(String.format("'type':'new','user':'%s','scope':'%s','token':'%s'",
-//                authentication.getName(), String.join(" ", accessToken.getScope()), accessToken.getValue()));
+        //        traceUserLogger.info(String.format("'type':'new','user':'%s','scope':'%s','token':'%s'",
+        //                authentication.getName(), String.join(" ", accessToken.getScope()), accessToken.getValue()));
         return accessToken;
-
     }
 
-//    @Override
-//    @Transactional(isolation = Isolation.SERIALIZABLE)
-//    public OAuth2RefreshToken createRefreshToken(OAuth2Authentication authentication) {
-//
-//        // TODO enforce validation of "offline_access" scope for refresh tokens?
-//
-//        // TODO Auto-generated method stub
-//        return null;
-//    }
+    //    @Override
+    //    @Transactional(isolation = Isolation.SERIALIZABLE)
+    //    public OAuth2RefreshToken createRefreshToken(OAuth2Authentication authentication) {
+    //
+    //        // TODO enforce validation of "offline_access" scope for refresh tokens?
+    //
+    //        // TODO Auto-generated method stub
+    //        return null;
+    //    }
 
     @Override
     public boolean revokeToken(String tokenValue) {
-
         // we don't know if the value identifies an access or refresh token
         // note that we could theoretically find collisions...
         boolean removedAccessToken = false;
@@ -329,22 +329,19 @@ public class OAuth2TokenServices
             tokenStore.removeRefreshToken(refreshToken);
 
             removedRefreshToken = true;
-
         }
 
         return removedAccessToken || removedRefreshToken;
     }
 
     @Override
-    public OAuth2Authentication loadAuthentication(String accessTokenValue) throws AuthenticationException,
-            InvalidTokenException {
-
+    public OAuth2Authentication loadAuthentication(String accessTokenValue)
+        throws AuthenticationException, InvalidTokenException {
         // load token and if needed remove expired
         OAuth2AccessToken accessToken = tokenStore.readAccessToken(accessTokenValue);
         if (accessToken == null) {
             throw new InvalidTokenException("Invalid access token: " + accessTokenValue);
         } else if (accessToken.isExpired()) {
-
             if (removeExpired) {
                 tokenStore.removeAccessToken(accessToken);
             }
@@ -392,21 +389,18 @@ public class OAuth2TokenServices
             logger.error("client " + clientId + " requested a refresh token without offline_access scope");
         }
 
-        logger.trace("create refresh token for " + clientId + " with validity "
-                + String.valueOf(validitySeconds));
+        logger.trace("create refresh token for " + clientId + " with validity " + String.valueOf(validitySeconds));
 
         // use a secure string as value to respect requirement
         // https://tools.ietf.org/html/rfc6749#section-10.10
         // 160bit = a buffer of 20 random bytes
         String value = tokenGenerator.generateKey();
         Date exp = Date.from(Instant.now().plusSeconds(validitySeconds));
-        ExpiringOAuth2RefreshToken refreshToken = new DefaultExpiringOAuth2RefreshToken(value,
-                exp);
+        ExpiringOAuth2RefreshToken refreshToken = new DefaultExpiringOAuth2RefreshToken(value, exp);
         return refreshToken;
     }
 
     private AACOAuth2AccessToken createAccessToken(OAuth2Authentication authentication, int validitySeconds) {
-
         OAuth2Request request = authentication.getOAuth2Request();
         String clientId = request.getClientId();
         Set<String> scopes = request.getScope();
@@ -425,8 +419,7 @@ public class OAuth2TokenServices
             subjectId = clientId;
         }
 
-        logger.trace("create access token for " + clientId + " with validity "
-                + String.valueOf(validitySeconds));
+        logger.trace("create access token for " + clientId + " with validity " + String.valueOf(validitySeconds));
 
         // use a secure string as value to respect requirement
         // https://tools.ietf.org/html/rfc6749#section-10.10
@@ -446,7 +439,6 @@ public class OAuth2TokenServices
     }
 
     private OAuth2Authentication refreshAuthentication(OAuth2Authentication authentication, TokenRequest tokenRequest) {
-
         String clientId = tokenRequest.getClientId();
 
         // check here if requested scopes are subset of granted
@@ -473,8 +465,10 @@ public class OAuth2TokenServices
         if (scopes != null && !scopes.isEmpty()) {
             // narrow down authorized scopes to requested
             // we filter here since narrowScope on request really is a setScope..
-            Set<String> narrowedScope = scopes.stream().filter(s -> allowedScopes.contains(s))
-                    .collect(Collectors.toSet());
+            Set<String> narrowedScope = scopes
+                .stream()
+                .filter(s -> allowedScopes.contains(s))
+                .collect(Collectors.toSet());
             request = request.narrowScope(narrowedScope);
         }
 
@@ -492,9 +486,11 @@ public class OAuth2TokenServices
             // invalid grant type, should not happen here
         }
 
-        if (!GrantType.AUTHORIZATION_CODE.equals(grantType)
-                && !GrantType.PASSWORD.equals(grantType)
-                && !GrantType.DEVICE_CODE.equals(grantType)) {
+        if (
+            !GrantType.AUTHORIZATION_CODE.equals(grantType) &&
+            !GrantType.PASSWORD.equals(grantType) &&
+            !GrantType.DEVICE_CODE.equals(grantType)
+        ) {
             return false;
         }
 
@@ -510,7 +506,6 @@ public class OAuth2TokenServices
         }
 
         return true;
-
     }
 
     private Set<String> getUserApproved(String subjectId, String clientId) {
@@ -574,5 +569,4 @@ public class OAuth2TokenServices
     public void setApprovalStore(ApprovalStore approvalStore) {
         this.approvalStore = approvalStore;
     }
-
 }

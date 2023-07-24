@@ -21,5 +21,4 @@ public class GroupsResource extends Resource {
     public String getDescription() {
         return "Access groups for user and clients";
     }
-
 }

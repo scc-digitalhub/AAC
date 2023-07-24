@@ -1,26 +1,23 @@
 package it.smartcommunitylab.aac.oauth.model;
 
-import java.text.ParseException;
-
-import javax.validation.Valid;
-
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.nimbusds.jose.jwk.JWKSet;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ClientCredentials;
 import it.smartcommunitylab.aac.oauth.persistence.AbstractOAuth2ClientResource;
+import java.text.ParseException;
+import javax.validation.Valid;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 @Valid
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ClientJwks extends AbstractOAuth2ClientResource implements ClientCredentials {
+
     private static final long serialVersionUID = SystemKeys.AAC_OAUTH2_SERIAL_VERSION;
 
     private String jwks;
@@ -69,5 +66,4 @@ public class ClientJwks extends AbstractOAuth2ClientResource implements ClientCr
     public void eraseCredentials() {
         this.jwks = null;
     }
-
 }

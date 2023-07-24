@@ -1,14 +1,13 @@
 package it.smartcommunitylab.aac.audit;
 
-import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
-import org.springframework.util.Assert;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
+import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
+import org.springframework.util.Assert;
 
 //TODO add custom serializer
-//TODO add subtype inference 
+//TODO add subtype inference
 
 public class UserAuthenticationSuccessEvent extends AuthenticationSuccessEvent {
 
@@ -18,9 +17,7 @@ public class UserAuthenticationSuccessEvent extends AuthenticationSuccessEvent {
     private final String provider;
     private final String realm;
 
-    public UserAuthenticationSuccessEvent(
-            String authority, String provider, String realm,
-            UserAuthentication auth) {
+    public UserAuthenticationSuccessEvent(String authority, String provider, String realm, UserAuthentication auth) {
         super(auth);
         Assert.hasText(authority, "authority is required");
         Assert.notNull(provider, "provider is required");
@@ -29,7 +26,6 @@ public class UserAuthenticationSuccessEvent extends AuthenticationSuccessEvent {
         this.authority = authority;
         this.provider = provider;
         this.realm = realm;
-
     }
 
     public UserAuthentication getAuthenticationToken() {
@@ -51,5 +47,4 @@ public class UserAuthenticationSuccessEvent extends AuthenticationSuccessEvent {
     public WebAuthenticationDetails getDetails() {
         return getAuthenticationToken().getWebAuthenticationDetails();
     }
-
 }

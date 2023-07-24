@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
 import org.springframework.util.Assert;
 
 public class PersistentAttributeStore implements AttributeStore {

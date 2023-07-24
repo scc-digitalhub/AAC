@@ -2,9 +2,7 @@ package it.smartcommunitylab.aac.core.auth;
 
 import java.util.Arrays;
 import java.util.List;
-
 import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationConverter;
 import org.springframework.util.Assert;
@@ -38,5 +36,4 @@ public class DelegatingAuthenticationConverter implements AuthenticationConverte
 
         return null;
     }
-
 }

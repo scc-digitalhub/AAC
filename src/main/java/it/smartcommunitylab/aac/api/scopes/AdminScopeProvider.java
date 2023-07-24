@@ -1,20 +1,18 @@
 package it.smartcommunitylab.aac.api.scopes;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.stereotype.Component;
-
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.scope.AuthorityScopeApprover;
 import it.smartcommunitylab.aac.scope.Resource;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeApprover;
 import it.smartcommunitylab.aac.scope.ScopeProvider;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.stereotype.Component;
 
 @Component
 public class AdminScopeProvider implements ScopeProvider {
@@ -61,5 +59,4 @@ public class AdminScopeProvider implements ScopeProvider {
     public ScopeApprover getApprover(String scope) {
         return approvers.get(scope);
     }
-
 }

@@ -1,32 +1,31 @@
 package it.smartcommunitylab.aac.saml.model;
 
-import java.util.Date;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.JsonNode;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractEditableAccount;
 import it.smartcommunitylab.aac.repository.JsonSchemaIgnore;
+import java.util.Date;
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
 @Valid
 @JsonInclude(Include.ALWAYS)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonPropertyOrder({ "username", "givenName", "familyName", "lang" })
 public class SamlEditableUserAccount extends AbstractEditableAccount {
+
     private static final long serialVersionUID = SystemKeys.AAC_OIDC_SERIAL_VERSION;
-    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_ACCOUNT + SystemKeys.ID_SEPARATOR
-            + SystemKeys.AUTHORITY_SAML;
+    public static final String RESOURCE_TYPE =
+        SystemKeys.RESOURCE_ACCOUNT + SystemKeys.ID_SEPARATOR + SystemKeys.AUTHORITY_SAML;
 
     private static final JsonNode schema;
+
     static {
         schema = generator.generateSchema(SamlEditableUserAccount.class);
     }
@@ -156,5 +155,4 @@ public class SamlEditableUserAccount extends AbstractEditableAccount {
     public void setModifiedDate(Date modifiedDate) {
         this.modifiedDate = modifiedDate;
     }
-
 }

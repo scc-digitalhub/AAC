@@ -1,11 +1,10 @@
 package it.smartcommunitylab.aac.oauth.endpoint;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,11 +16,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.util.HtmlUtils;
 
-import io.swagger.v3.oas.annotations.Hidden;
-
 @Hidden
 @Controller
 public class ErrorEndpoint {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     public static final String ERROR_URL = "/oauth/error";

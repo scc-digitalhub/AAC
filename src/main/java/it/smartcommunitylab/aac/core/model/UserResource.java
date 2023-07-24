@@ -8,7 +8,6 @@ import it.smartcommunitylab.aac.repository.JsonSchemaIgnore;
  */
 
 public interface UserResource extends Resource {
-
     public String getUserId();
 
     // uuid is global
@@ -16,7 +15,7 @@ public interface UserResource extends Resource {
 
     @Override
     @JsonSchemaIgnore
-    default public String getUrn() {
+    public default String getUrn() {
         StringBuilder sb = new StringBuilder();
         sb.append(SystemKeys.URN_PROTOCOL);
         sb.append(getType()).append(SystemKeys.URN_SEPARATOR);
@@ -26,5 +25,4 @@ public interface UserResource extends Resource {
 
         return sb.toString();
     }
-
 }

@@ -1,29 +1,34 @@
 package it.smartcommunitylab.aac.core.base;
 
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.util.Assert;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
-import it.smartcommunitylab.aac.core.provider.IdentityProviderConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProviderConfig;
+import it.smartcommunitylab.aac.core.provider.IdentityProviderConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.util.Assert;
 
-public abstract class AbstractSingleProviderIdentityAuthority<S extends IdentityProvider<I, ?, ?, M, C>, I extends UserIdentity, M extends AbstractConfigMap, C extends AbstractIdentityProviderConfig<M>>
-        extends AbstractSingleConfigurableProviderAuthority<S, I, ConfigurableIdentityProvider, M, C>
-        implements IdentityProviderAuthority<S, I, M, C>, InitializingBean {
+public abstract class AbstractSingleProviderIdentityAuthority<
+    S extends IdentityProvider<I, ?, ?, M, C>,
+    I extends UserIdentity,
+    M extends AbstractConfigMap,
+    C extends AbstractIdentityProviderConfig<M>
+>
+    extends AbstractSingleConfigurableProviderAuthority<S, I, ConfigurableIdentityProvider, M, C>
+    implements IdentityProviderAuthority<S, I, M, C>, InitializingBean {
 
     // configuration provider
     protected IdentityProviderConfigurationProvider<M, C> configProvider;
 
     public AbstractSingleProviderIdentityAuthority(
-            String authorityId,
-            ProviderConfigRepository<C> registrationRepository) {
+        String authorityId,
+        ProviderConfigRepository<C> registrationRepository
+    ) {
         super(authorityId, registrationRepository);
     }
 
@@ -53,5 +58,4 @@ public abstract class AbstractSingleProviderIdentityAuthority<S extends Identity
         // authorities are not required to expose filters
         return null;
     }
-
 }

@@ -1,15 +1,12 @@
 package it.smartcommunitylab.aac.scope;
 
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.model.ScopeType;
 import java.util.Set;
-
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
-
 import org.springframework.util.Assert;
-
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.model.ScopeType;
 
 @Valid
 public class Scope {
@@ -27,9 +24,7 @@ public class Scope {
     // additional audience connected to this scope
     protected Set<String> audience;
 
-    public Scope() {
-
-    }
+    public Scope() {}
 
     public Scope(String scope) {
         Assert.hasText(scope, "scope can not be empty");
@@ -110,19 +105,13 @@ public class Scope {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         Scope other = (Scope) obj;
         if (getScope() == null) {
-            if (other.getScope() != null)
-                return false;
-        } else if (!getScope().equals(other.getScope()))
-            return false;
+            if (other.getScope() != null) return false;
+        } else if (!getScope().equals(other.getScope())) return false;
         return true;
     }
-
 }

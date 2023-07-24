@@ -1,11 +1,16 @@
 package it.smartcommunitylab.aac.oauth.auth;
 
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.api.scopes.ApiScopeProvider;
+import it.smartcommunitylab.aac.common.NoSuchSubjectException;
+import it.smartcommunitylab.aac.core.service.SubjectService;
+import it.smartcommunitylab.aac.model.Subject;
+import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
@@ -15,13 +20,6 @@ import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.server.resource.introspection.BadOpaqueTokenException;
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector;
 import org.springframework.util.Assert;
-
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.api.scopes.ApiScopeProvider;
-import it.smartcommunitylab.aac.common.NoSuchSubjectException;
-import it.smartcommunitylab.aac.core.service.SubjectService;
-import it.smartcommunitylab.aac.model.Subject;
-import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 
 /*
  * A token inspector which resolves by looking via tokenStore.
@@ -36,8 +34,7 @@ public class InternalOpaqueTokenIntrospector implements OpaqueTokenIntrospector 
 
     private ApiScopeProvider apiProvider = new ApiScopeProvider();
 
-    public InternalOpaqueTokenIntrospector(
-            TokenStore tokenStore) {
+    public InternalOpaqueTokenIntrospector(TokenStore tokenStore) {
         Assert.notNull(tokenStore, "token store can not be null");
         this.tokenStore = tokenStore;
     }
@@ -51,7 +48,6 @@ public class InternalOpaqueTokenIntrospector implements OpaqueTokenIntrospector 
     }
 
     public OAuth2AuthenticatedPrincipal introspect(String tokenValue) {
-
         OAuth2AccessToken token = tokenStore.readAccessToken(tokenValue);
         if (token == null) {
             throw new BadOpaqueTokenException("Provided token isn't active");
@@ -110,13 +106,9 @@ public class InternalOpaqueTokenIntrospector implements OpaqueTokenIntrospector 
             params.put("realm", realm);
             params.putAll(accessToken.getClaims());
 
-            return new DefaultOAuth2AuthenticatedPrincipal(realm,
-                    principal, params, authorities);
-
+            return new DefaultOAuth2AuthenticatedPrincipal(realm, principal, params, authorities);
         } catch (NoSuchSubjectException e) {
             throw new BadOpaqueTokenException("Provided token isn't active");
         }
-
     }
-
 }

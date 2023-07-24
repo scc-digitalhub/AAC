@@ -1,8 +1,5 @@
 package it.smartcommunitylab.aac.internal.provider;
 
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
@@ -11,6 +8,8 @@ import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 @Transactional
 public class InternalIdentityConfirmService extends AbstractProvider<UserCredentials> {
@@ -19,10 +18,13 @@ public class InternalIdentityConfirmService extends AbstractProvider<UserCredent
     private final UserAccountService<InternalUserAccount> accountService;
     private final String repositoryId;
 
-    public InternalIdentityConfirmService(String providerId,
-            UserAccountService<InternalUserAccount> accountService,
-            InternalUserConfirmKeyService confirmKeyService,
-            InternalIdentityProviderConfig config, String realm) {
+    public InternalIdentityConfirmService(
+        String providerId,
+        UserAccountService<InternalUserAccount> accountService,
+        InternalUserConfirmKeyService confirmKeyService,
+        InternalIdentityProviderConfig config,
+        String realm
+    ) {
         super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
         Assert.notNull(accountService, "account service is mandatory");
         Assert.notNull(confirmKeyService, "confirm service is mandatory");
@@ -55,7 +57,7 @@ public class InternalIdentityConfirmService extends AbstractProvider<UserCredent
     }
 
     public InternalUserAccount confirmAccount(String username, String key)
-            throws NoSuchUserException, RegistrationException {
+        throws NoSuchUserException, RegistrationException {
         InternalUserAccount account = accountService.findAccountById(repositoryId, username);
         if (account == null) {
             return null;
@@ -69,5 +71,4 @@ public class InternalIdentityConfirmService extends AbstractProvider<UserCredent
 
         return account;
     }
-
 }

@@ -1,9 +1,14 @@
 package it.smartcommunitylab.aac.oauth.service;
 
+import it.smartcommunitylab.aac.core.persistence.ClientEntity;
+import it.smartcommunitylab.aac.core.service.ClientEntityService;
+import it.smartcommunitylab.aac.oauth.client.OAuth2ClientAdditionalConfig;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
+import it.smartcommunitylab.aac.oauth.persistence.OAuth2ClientEntity;
+import it.smartcommunitylab.aac.oauth.persistence.OAuth2ClientEntityRepository;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.security.oauth2.provider.NoSuchClientException;
@@ -11,26 +16,21 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.core.persistence.ClientEntity;
-import it.smartcommunitylab.aac.core.service.ClientEntityService;
-import it.smartcommunitylab.aac.oauth.client.OAuth2ClientAdditionalConfig;
-import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
-import it.smartcommunitylab.aac.oauth.persistence.OAuth2ClientEntity;
-import it.smartcommunitylab.aac.oauth.persistence.OAuth2ClientEntityRepository;
-
 @Transactional
 public class OAuth2ClientDetailsService implements ClientDetailsService {
 
     // TODO evaluate direct repo access VS service
     // we lose validation but reduce complexity
-//    private final OAuth2ClientService clientService;
+    //    private final OAuth2ClientService clientService;
     private final OAuth2ClientEntityRepository clientRepository;
 
     // we need access to client roles, we use service since we are outside core
     private final ClientEntityService clientService;
 
-    public OAuth2ClientDetailsService(ClientEntityService clientService,
-            OAuth2ClientEntityRepository clientRepository) {
+    public OAuth2ClientDetailsService(
+        ClientEntityService clientService,
+        OAuth2ClientEntityRepository clientRepository
+    ) {
         Assert.notNull(clientService, "client service is mandatory");
         Assert.notNull(clientRepository, "oauth client repository is mandatory");
         this.clientRepository = clientRepository;
@@ -63,7 +63,7 @@ public class OAuth2ClientDetailsService implements ClientDetailsService {
 
         clientDetails.setIdTokenClaims(oauth.isIdTokenClaims());
         clientDetails.setFirstParty(oauth.isFirstParty());
-//        clientDetails.setAutoApproveScopes(StringUtils.commaDelimitedListToSet(oauth.getAutoApproveScopes()));
+        //        clientDetails.setAutoApproveScopes(StringUtils.commaDelimitedListToSet(oauth.getAutoApproveScopes()));
 
         // token settings
         clientDetails.setApplicationType(oauth.getApplicationType());
@@ -80,12 +80,14 @@ public class OAuth2ClientDetailsService implements ClientDetailsService {
 
         if (oauth.getAdditionalConfiguration() != null) {
             try {
-                OAuth2ClientAdditionalConfig config = OAuth2ClientAdditionalConfig
-                        .convert(oauth.getAdditionalConfiguration());
+                OAuth2ClientAdditionalConfig config = OAuth2ClientAdditionalConfig.convert(
+                    oauth.getAdditionalConfiguration()
+                );
 
                 if (config.getResponseTypes() != null) {
                     clientDetails.setResponseTypes(
-                            config.getResponseTypes().stream().map(t -> t.getValue()).collect(Collectors.toSet()));
+                        config.getResponseTypes().stream().map(t -> t.getValue()).collect(Collectors.toSet())
+                    );
                 }
 
                 // TODO handle all response config as per openid DCR
@@ -100,10 +102,9 @@ public class OAuth2ClientDetailsService implements ClientDetailsService {
                 }
 
                 boolean isRefreshTokenRotation = config.getRefreshTokenRotation() != null
-                        ? config.getRefreshTokenRotation().booleanValue()
-                        : false;
+                    ? config.getRefreshTokenRotation().booleanValue()
+                    : false;
                 clientDetails.setRefreshTokenRotation(isRefreshTokenRotation);
-
             } catch (Exception e) {
                 // ignore additional config
             }
@@ -120,29 +121,28 @@ public class OAuth2ClientDetailsService implements ClientDetailsService {
         clientDetails.setHookWebUrls(client.getHookWebUrls());
         clientDetails.setHookUniqueSpaces(client.getHookUniqueSpaces());
 
-//        // always grant role_client
-//        Set<GrantedAuthority> authorities = new HashSet<>();
-//        authorities.add(new SimpleGrantedAuthority(Config.R_CLIENT));
-//        try {
-//            List<ClientRoleEntity> clientRoles = clientService.getRoles(clientId);
-//
-//            authorities.addAll(clientRoles.stream()
-//                    .filter(r -> !StringUtils.hasText(r.getRealm()))
-//                    .map(r -> new SimpleGrantedAuthority(r.getRole()))
-//                    .collect(Collectors.toSet()));
-//
-//            authorities.addAll(clientRoles.stream()
-//                    .filter(r -> StringUtils.hasText(r.getRealm()))
-//                    .map(r -> new RealmGrantedAuthority(r.getRealm(), r.getRole()))
-//                    .collect(Collectors.toSet()));
-//
-//        } catch (it.smartcommunitylab.aac.common.NoSuchClientException e) {
-////            throw new NoSuchClientException("No client with requested id: " + clientId);
-//        }
+        //        // always grant role_client
+        //        Set<GrantedAuthority> authorities = new HashSet<>();
+        //        authorities.add(new SimpleGrantedAuthority(Config.R_CLIENT));
+        //        try {
+        //            List<ClientRoleEntity> clientRoles = clientService.getRoles(clientId);
+        //
+        //            authorities.addAll(clientRoles.stream()
+        //                    .filter(r -> !StringUtils.hasText(r.getRealm()))
+        //                    .map(r -> new SimpleGrantedAuthority(r.getRole()))
+        //                    .collect(Collectors.toSet()));
+        //
+        //            authorities.addAll(clientRoles.stream()
+        //                    .filter(r -> StringUtils.hasText(r.getRealm()))
+        //                    .map(r -> new RealmGrantedAuthority(r.getRealm(), r.getRole()))
+        //                    .collect(Collectors.toSet()));
+        //
+        //        } catch (it.smartcommunitylab.aac.common.NoSuchClientException e) {
+        ////            throw new NoSuchClientException("No client with requested id: " + clientId);
+        //        }
 
-//        clientDetails.setAuthorities(Collections.unmodifiableCollection(authorities));
+        //        clientDetails.setAuthorities(Collections.unmodifiableCollection(authorities));
 
         return clientDetails;
     }
-
 }

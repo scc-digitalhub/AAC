@@ -5,6 +5,4 @@ import org.springframework.core.annotation.Order;
 
 @Configuration
 @Order(16)
-public class ClientAuthConfig {
-
-}
+public class ClientAuthConfig {}

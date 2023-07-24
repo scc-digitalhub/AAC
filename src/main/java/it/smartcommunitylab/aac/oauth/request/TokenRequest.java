@@ -1,18 +1,16 @@
 package it.smartcommunitylab.aac.oauth.request;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
 import org.springframework.security.oauth2.common.util.OAuth2Utils;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.util.StringUtils;
-
-import it.smartcommunitylab.aac.SystemKeys;
 
 public class TokenRequest extends org.springframework.security.oauth2.provider.TokenRequest {
 
@@ -37,12 +35,14 @@ public class TokenRequest extends org.springframework.security.oauth2.provider.T
     protected Map<String, Serializable> extensions = new HashMap<>();
 
     public TokenRequest(
-            Map<String, String> requestParameters,
-            String clientId, String grantType,
-            Collection<String> scope,
-            Collection<String> resourceIds, Collection<String> audience) {
+        Map<String, String> requestParameters,
+        String clientId,
+        String grantType,
+        Collection<String> scope,
+        Collection<String> resourceIds,
+        Collection<String> audience
+    ) {
         super(requestParameters, clientId, scope, grantType);
-
         if (resourceIds != null) {
             this.resourceIds = new HashSet<>(resourceIds);
         }
@@ -99,10 +99,16 @@ public class TokenRequest extends org.springframework.security.oauth2.provider.T
             map.put("resource_ids", StringUtils.collectionToCommaDelimitedString(getResourceIds()));
         }
 
-        return new OAuth2Request(map, client.getClientId(),
-                client.getAuthorities(), true,
-                getScope(), getResourceIds(), null, null, null);
-
+        return new OAuth2Request(
+            map,
+            client.getClientId(),
+            client.getAuthorities(),
+            true,
+            getScope(),
+            getResourceIds(),
+            null,
+            null,
+            null
+        );
     }
-
 }

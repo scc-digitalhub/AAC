@@ -1,13 +1,11 @@
 package it.smartcommunitylab.aac.core.model;
 
-import javax.validation.Valid;
-
-import org.springframework.boot.context.properties.ConstructorBinding;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
 import it.smartcommunitylab.aac.SystemKeys;
+import javax.validation.Valid;
+import org.springframework.boot.context.properties.ConstructorBinding;
 
 @Valid
 @JsonInclude(Include.NON_NULL)
@@ -23,7 +21,7 @@ public class ConfigurableAccountProvider extends ConfigurableProvider {
 
     /**
      * Private constructor for JPA and other serialization tools.
-     * 
+     *
      * We need to implement this to enable deserialization of resources via
      * reflection
      */
@@ -47,5 +45,4 @@ public class ConfigurableAccountProvider extends ConfigurableProvider {
     public void setPersistence(String persistence) {
         this.persistence = persistence;
     }
-
 }

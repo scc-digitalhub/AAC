@@ -3,7 +3,6 @@ package it.smartcommunitylab.aac.core.provider;
 import java.util.Collection;
 
 public interface ProviderRepository<T extends ResourceProvider<?>> {
-
     T findByProviderId(String providerId);
 
     Collection<T> findAll();

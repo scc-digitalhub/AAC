@@ -1,10 +1,5 @@
 package it.smartcommunitylab.aac.webauthn.model;
 
-import java.util.Date;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -12,16 +7,21 @@ import com.fasterxml.jackson.databind.JsonNode;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractEditableUserCredentials;
 import it.smartcommunitylab.aac.repository.JsonSchemaIgnore;
+import java.util.Date;
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 
 @Valid
 @JsonInclude(Include.ALWAYS)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class WebAuthnEditableUserCredential extends AbstractEditableUserCredentials {
+
     private static final long serialVersionUID = SystemKeys.AAC_WEBAUTHN_SERIAL_VERSION;
-    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_CREDENTIALS + SystemKeys.ID_SEPARATOR
-            + SystemKeys.AUTHORITY_WEBAUTHN;
+    public static final String RESOURCE_TYPE =
+        SystemKeys.RESOURCE_CREDENTIALS + SystemKeys.ID_SEPARATOR + SystemKeys.AUTHORITY_WEBAUTHN;
 
     private static final JsonNode schema;
+
     static {
         schema = generator.generateSchema(WebAuthnEditableUserCredential.class);
     }

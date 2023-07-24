@@ -1,17 +1,16 @@
 package it.smartcommunitylab.aac.config;
 
-import java.util.List;
-
-import org.springframework.boot.context.properties.NestedConfigurationProperty;
-
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfigMap;
+import java.util.List;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 public class IdentityAuthoritiesProperties {
+
     // TODO add enable//disable flag on authorities
 
     @NestedConfigurationProperty
@@ -90,5 +89,4 @@ public class IdentityAuthoritiesProperties {
     public void setCustom(List<CustomAuthoritiesProperties> custom) {
         this.custom = custom;
     }
-
 }

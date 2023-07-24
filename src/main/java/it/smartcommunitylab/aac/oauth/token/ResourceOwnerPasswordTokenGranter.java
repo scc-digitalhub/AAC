@@ -1,9 +1,26 @@
 package it.smartcommunitylab.aac.oauth.token;
 
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.InvalidDefinitionException;
+import it.smartcommunitylab.aac.common.NoSuchClientException;
+import it.smartcommunitylab.aac.common.NoSuchScopeException;
+import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.core.UserDetails;
+import it.smartcommunitylab.aac.core.auth.RealmWrappedAuthenticationToken;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
+import it.smartcommunitylab.aac.core.service.ClientDetailsService;
+import it.smartcommunitylab.aac.core.service.UserService;
+import it.smartcommunitylab.aac.model.ScopeType;
+import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
+import it.smartcommunitylab.aac.password.auth.UsernamePasswordAuthenticationToken;
+import it.smartcommunitylab.aac.scope.Scope;
+import it.smartcommunitylab.aac.scope.ScopeApprover;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -24,25 +41,6 @@ import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.common.InvalidDefinitionException;
-import it.smartcommunitylab.aac.common.NoSuchClientException;
-import it.smartcommunitylab.aac.common.NoSuchScopeException;
-import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.auth.RealmWrappedAuthenticationToken;
-import it.smartcommunitylab.aac.core.auth.UserAuthentication;
-import it.smartcommunitylab.aac.core.service.ClientDetailsService;
-import it.smartcommunitylab.aac.core.service.UserService;
-import it.smartcommunitylab.aac.model.ScopeType;
-import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
-import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
-import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
-import it.smartcommunitylab.aac.password.auth.UsernamePasswordAuthenticationToken;
-import it.smartcommunitylab.aac.scope.Scope;
-import it.smartcommunitylab.aac.scope.ScopeApprover;
-
 public class ResourceOwnerPasswordTokenGranter extends AbstractTokenGranter {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -55,15 +53,22 @@ public class ResourceOwnerPasswordTokenGranter extends AbstractTokenGranter {
     private ClientDetailsService clientService;
     private UserService userService;
 
-    public ResourceOwnerPasswordTokenGranter(AuthenticationManager authenticationManager,
-            AuthorizationServerTokenServices tokenServices, OAuth2ClientDetailsService clientDetailsService,
-            OAuth2RequestFactory requestFactory) {
+    public ResourceOwnerPasswordTokenGranter(
+        AuthenticationManager authenticationManager,
+        AuthorizationServerTokenServices tokenServices,
+        OAuth2ClientDetailsService clientDetailsService,
+        OAuth2RequestFactory requestFactory
+    ) {
         this(authenticationManager, tokenServices, clientDetailsService, requestFactory, GRANT_TYPE);
     }
 
-    protected ResourceOwnerPasswordTokenGranter(AuthenticationManager authenticationManager,
-            AuthorizationServerTokenServices tokenServices,
-            OAuth2ClientDetailsService clientDetailsService, OAuth2RequestFactory requestFactory, String grantType) {
+    protected ResourceOwnerPasswordTokenGranter(
+        AuthenticationManager authenticationManager,
+        AuthorizationServerTokenServices tokenServices,
+        OAuth2ClientDetailsService clientDetailsService,
+        OAuth2RequestFactory requestFactory,
+        String grantType
+    ) {
         super(tokenServices, clientDetailsService, requestFactory, grantType);
         this.authenticationManager = authenticationManager;
     }
@@ -77,8 +82,12 @@ public class ResourceOwnerPasswordTokenGranter extends AbstractTokenGranter {
         OAuth2AccessToken token = super.grant(grantType, tokenRequest);
 
         if (token != null) {
-            logger.trace("grant access token for client " + tokenRequest.getClientId() + " request "
-                    + tokenRequest.getRequestParameters().toString());
+            logger.trace(
+                "grant access token for client " +
+                tokenRequest.getClientId() +
+                " request " +
+                tokenRequest.getRequestParameters().toString()
+            );
 
             if (!allowRefresh) {
                 AACOAuth2AccessToken norefresh = new AACOAuth2AccessToken(token);
@@ -88,14 +97,12 @@ public class ResourceOwnerPasswordTokenGranter extends AbstractTokenGranter {
                 token = norefresh;
                 // TODO we should also remove the refresh token from DB
             }
-
         }
         return token;
     }
 
     @Override
     protected OAuth2Authentication getOAuth2Authentication(ClientDetails client, TokenRequest tokenRequest) {
-
         Map<String, String> parameters = new LinkedHashMap<String, String>(tokenRequest.getRequestParameters());
         String username = parameters.get("username");
         String password = parameters.get("password");
@@ -135,7 +142,6 @@ public class ResourceOwnerPasswordTokenGranter extends AbstractTokenGranter {
 
         OAuth2Request storedOAuth2Request = getRequestFactory().createOAuth2Request(client, tokenRequest);
         return new OAuth2Authentication(storedOAuth2Request, userAuth);
-
     }
 
     @Override
@@ -167,9 +173,12 @@ public class ResourceOwnerPasswordTokenGranter extends AbstractTokenGranter {
                             continue;
                         }
 
-                        Approval approval = sa.approveUserScope(s,
-                                translateUser(userDetails, sa.getRealm()), clientDetails,
-                                scopes);
+                        Approval approval = sa.approveUserScope(
+                            s,
+                            translateUser(userDetails, sa.getRealm()),
+                            clientDetails,
+                            scopes
+                        );
 
                         if (approval != null) {
                             if (!approval.isApproved()) {
@@ -180,12 +189,10 @@ public class ResourceOwnerPasswordTokenGranter extends AbstractTokenGranter {
                         throw new InvalidScopeException("Unauthorized scope: " + s);
                     }
                 }
-
             } catch (NoSuchClientException e1) {
                 throw new InvalidClientException("Invalid client");
             }
         }
-
     }
 
     private User translateUser(UserDetails userDetails, String realm) {
@@ -203,5 +210,4 @@ public class ResourceOwnerPasswordTokenGranter extends AbstractTokenGranter {
     public void setUserService(UserService userService) {
         this.userService = userService;
     }
-
 }

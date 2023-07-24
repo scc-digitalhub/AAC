@@ -21,5 +21,4 @@ public class OpenIdPhoneScope extends AbstractProfileScope {
     public String getDescription() {
         return "Basic user's phone.";
     }
-
 }

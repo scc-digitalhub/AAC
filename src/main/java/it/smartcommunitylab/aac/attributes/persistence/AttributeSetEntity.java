@@ -65,5 +65,4 @@ public class AttributeSetEntity {
     public void setRealm(String realm) {
         this.realm = realm;
     }
-
 }

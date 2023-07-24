@@ -1,19 +1,14 @@
 package it.smartcommunitylab.aac.core.base;
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 import com.github.victools.jsonschema.generator.SchemaGenerator;
-
 import it.smartcommunitylab.aac.attributes.provider.MapperAttributeProviderConfigMap;
 import it.smartcommunitylab.aac.attributes.provider.ScriptAttributeProviderConfigMap;
 import it.smartcommunitylab.aac.attributes.provider.WebhookAttributeProviderConfigMap;
@@ -26,10 +21,14 @@ import it.smartcommunitylab.aac.repository.SchemaGeneratorFactory;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.templates.provider.TemplateProviderConfigMap;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfigMap;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 //TODO evaluate adding generic type and resolving javatype for conversion here
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-@JsonSubTypes({
+@JsonSubTypes(
+    {
         @Type(value = InternalIdentityProviderConfigMap.class, name = InternalIdentityProviderConfigMap.RESOURCE_TYPE),
         @Type(value = PasswordIdentityProviderConfigMap.class, name = PasswordIdentityProviderConfigMap.RESOURCE_TYPE),
         @Type(value = WebAuthnIdentityProviderConfigMap.class, name = WebAuthnIdentityProviderConfigMap.RESOURCE_TYPE),
@@ -40,15 +39,15 @@ import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig
         @Type(value = ScriptAttributeProviderConfigMap.class, name = ScriptAttributeProviderConfigMap.RESOURCE_TYPE),
         @Type(value = WebhookAttributeProviderConfigMap.class, name = WebhookAttributeProviderConfigMap.RESOURCE_TYPE),
         @Type(value = TemplateProviderConfigMap.class, name = TemplateProviderConfigMap.RESOURCE_TYPE),
-
-})
-
+    }
+)
 public abstract class AbstractConfigMap implements ConfigMap, Serializable {
-    protected final static ObjectMapper mapper = new ObjectMapper();
-    private final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
-    };
-    protected final static JsonSchemaGenerator schemaGen = new JsonSchemaGenerator(mapper);
-    protected final static SchemaGenerator generator;
+
+    protected static final ObjectMapper mapper = new ObjectMapper();
+    private static final TypeReference<HashMap<String, Serializable>> typeRef =
+        new TypeReference<HashMap<String, Serializable>>() {};
+    protected static final JsonSchemaGenerator schemaGen = new JsonSchemaGenerator(mapper);
+    protected static final SchemaGenerator generator;
 
     static {
         generator = SchemaGeneratorFactory.build(mapper);
@@ -61,5 +60,4 @@ public abstract class AbstractConfigMap implements ConfigMap, Serializable {
         mapper.setSerializationInclusion(Include.NON_EMPTY);
         return mapper.convertValue(this, typeRef);
     }
-
 }

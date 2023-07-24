@@ -1,31 +1,30 @@
 package it.smartcommunitylab.aac.oauth.client;
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.oauth.model.EncryptionMethod;
 import it.smartcommunitylab.aac.oauth.model.JWEAlgorithm;
 import it.smartcommunitylab.aac.oauth.model.JWSAlgorithm;
 import it.smartcommunitylab.aac.oauth.model.ResponseType;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /*
  * Additional configuration holder
- * 
+ *
  * Store extra configuration (optional, non standard etc)
  */
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class OAuth2ClientAdditionalConfig implements Serializable {
+
     private static final long serialVersionUID = SystemKeys.AAC_OAUTH2_SERIAL_VERSION;
 
     private static ObjectMapper mapper = new ObjectMapper();
@@ -36,16 +35,20 @@ public class OAuth2ClientAdditionalConfig implements Serializable {
     // access token jwt config
     @JsonProperty("jwt_sign_alg")
     private JWSAlgorithm jwtSignAlgorithm;
+
     @JsonProperty("jwt_enc_alg")
     private JWEAlgorithm jwtEncAlgorithm;
+
     @JsonProperty("jwt_enc_method")
     private EncryptionMethod jwtEncMethod;
 
     // id token jwt config
     @JsonProperty("id_token_signed_response_alg")
     private JWSAlgorithm idTokenSignAlgorithm;
+
     @JsonProperty("id_token_encrypted_response_alg")
     private JWEAlgorithm idTokenEncAlgorithm;
+
     @JsonProperty("id_token_encrypted_response_enc")
     private EncryptionMethod idTokenEncMethod;
 
@@ -56,16 +59,20 @@ public class OAuth2ClientAdditionalConfig implements Serializable {
     // userinfo jwt config
     @JsonProperty("userinfo_signed_response_alg")
     private JWSAlgorithm userinfoSignAlgorithm;
+
     @JsonProperty("userinfo_encrypted_response_alg")
     private JWEAlgorithm userinfoEncAlgorithm;
+
     @JsonProperty("userinfo_encrypted_response_enc")
     private EncryptionMethod userinfoEncMethod;
 
     // requestobj jwt config
     @JsonProperty("request_object_signing_alg")
     private JWSAlgorithm requestobjSignAlgorithm;
+
     @JsonProperty("request_object_encryption_alg")
     private JWEAlgorithm requestobjEncAlgorithm;
+
     @JsonProperty("request_object_encryption_enc")
     private EncryptionMethod requestobjEncMethod;
 
@@ -248,5 +255,4 @@ public class OAuth2ClientAdditionalConfig implements Serializable {
     public void setRefreshTokenRotation(Boolean refreshTokenRotation) {
         this.refreshTokenRotation = refreshTokenRotation;
     }
-
 }

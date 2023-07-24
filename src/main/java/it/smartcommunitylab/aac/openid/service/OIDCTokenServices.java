@@ -1,37 +1,7 @@
 package it.smartcommunitylab.aac.openid.service;
 
-import java.io.Serializable;
-import java.nio.charset.Charset;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.security.authentication.InsufficientAuthenticationException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.crypto.keygen.StringKeyGenerator;
-import org.springframework.security.oauth2.common.OAuth2AccessToken;
-import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
-import org.springframework.security.oauth2.common.exceptions.InvalidRequestException;
-import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
-import org.springframework.security.oauth2.provider.ClientRegistrationException;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.springframework.security.oauth2.provider.OAuth2Request;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
 import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWT;
-
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.claims.Claim;
 import it.smartcommunitylab.aac.claims.ClaimsSet;
@@ -58,8 +28,36 @@ import it.smartcommunitylab.aac.profiles.scope.OpenIdAddressScope;
 import it.smartcommunitylab.aac.profiles.scope.OpenIdDefaultScope;
 import it.smartcommunitylab.aac.profiles.scope.OpenIdEmailScope;
 import it.smartcommunitylab.aac.profiles.scope.OpenIdPhoneScope;
+import java.io.Serializable;
+import java.nio.charset.Charset;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.keygen.StringKeyGenerator;
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
+import org.springframework.security.oauth2.common.exceptions.InvalidRequestException;
+import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
+import org.springframework.security.oauth2.provider.ClientRegistrationException;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.security.oauth2.provider.OAuth2Request;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 public class OIDCTokenServices implements IdTokenServices, InitializingBean {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private static final String MAX_AGE = "max_age";
@@ -92,8 +90,11 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
     private OAuth2ClientDetailsService clientDetailsService;
     private StringKeyGenerator tokenGenerator;
 
-    public OIDCTokenServices(String issuer, OpenIdClaimsExtractorProvider claimsExtractorProvider,
-            JWTService jwtService) {
+    public OIDCTokenServices(
+        String issuer,
+        OpenIdClaimsExtractorProvider claimsExtractorProvider,
+        JWTService jwtService
+    ) {
         Assert.hasText(issuer, "issuer can not be null or empty");
         Assert.notNull(claimsExtractorProvider, "openid claims extractor is required");
         Assert.notNull(jwtService, "jwt service is required");
@@ -103,7 +104,6 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
         this.jwtService = jwtService;
         this.tokenGenerator = TOKEN_GENERATOR;
         this.idTokenValiditySeconds = DEFAULT_ID_TOKEN_VALIDITY;
-
     }
 
     public void setClientService(ClientDetailsService clientService) {
@@ -144,7 +144,6 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
         }
 
         try {
-
             OAuth2ClientDetails oauth2ClientDetails = clientDetailsService.loadClientByClientId(clientId);
 
             Authentication userAuth = authentication.getUserAuthentication();
@@ -163,16 +162,22 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
             // build jti via secure generator
             String jti = tokenGenerator.generateKey();
 
-            Map<String, Object> claims = buildClaims(authentication, request, userDetails, oauth2ClientDetails, null,
-                    null);
+            Map<String, Object> claims = buildClaims(
+                authentication,
+                request,
+                userDetails,
+                oauth2ClientDetails,
+                null,
+                null
+            );
 
             // dates
             Instant issuedAt = Instant.now();
 
             // evaluate expiration
             int validitySeconds = oauth2ClientDetails.getIdTokenValiditySeconds() != null
-                    ? oauth2ClientDetails.getIdTokenValiditySeconds()
-                    : idTokenValiditySeconds;
+                ? oauth2ClientDetails.getIdTokenValiditySeconds()
+                : idTokenValiditySeconds;
             Instant expiresAt = issuedAt.plusSeconds(validitySeconds);
 
             IdToken idToken = new IdToken(issuer, subject, audience, jti, issuedAt, expiresAt, issuedAt, claims);
@@ -191,12 +196,11 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
             logger.error("claims service error: " + e.getMessage());
             throw new OAuth2Exception(e.getMessage());
         }
-
     }
 
     @Override
     public IdToken createIdToken(OAuth2Authentication authentication, OAuth2AccessToken accessToken)
-            throws AuthenticationException {
+        throws AuthenticationException {
         if (authentication == null) {
             throw new InsufficientAuthenticationException("Invalid authentication");
         }
@@ -215,7 +219,6 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
         }
 
         try {
-
             OAuth2ClientDetails oauth2ClientDetails = clientDetailsService.loadClientByClientId(clientId);
 
             Authentication userAuth = authentication.getUserAuthentication();
@@ -234,16 +237,22 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
             // build jti via secure generator
             String jti = tokenGenerator.generateKey();
 
-            Map<String, Object> claims = buildClaims(authentication, request, userDetails, oauth2ClientDetails,
-                    accessToken, null);
+            Map<String, Object> claims = buildClaims(
+                authentication,
+                request,
+                userDetails,
+                oauth2ClientDetails,
+                accessToken,
+                null
+            );
 
             // dates
             Instant issuedAt = Instant.now();
 
             // evaluate expiration
             int validitySeconds = oauth2ClientDetails.getIdTokenValiditySeconds() != null
-                    ? oauth2ClientDetails.getIdTokenValiditySeconds()
-                    : idTokenValiditySeconds;
+                ? oauth2ClientDetails.getIdTokenValiditySeconds()
+                : idTokenValiditySeconds;
             Instant expiresAt = issuedAt.plusSeconds(validitySeconds);
 
             IdToken idToken = new IdToken(issuer, subject, audience, jti, issuedAt, expiresAt, issuedAt, claims);
@@ -284,7 +293,6 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
         }
 
         try {
-
             OAuth2ClientDetails oauth2ClientDetails = clientDetailsService.loadClientByClientId(clientId);
 
             Authentication userAuth = authentication.getUserAuthentication();
@@ -303,16 +311,22 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
             // build jti via secure generator
             String jti = tokenGenerator.generateKey();
 
-            Map<String, Object> claims = buildClaims(authentication, request, userDetails, oauth2ClientDetails, null,
-                    code);
+            Map<String, Object> claims = buildClaims(
+                authentication,
+                request,
+                userDetails,
+                oauth2ClientDetails,
+                null,
+                code
+            );
 
             // dates
             Instant issuedAt = Instant.now();
 
             // evaluate expiration
             int validitySeconds = oauth2ClientDetails.getIdTokenValiditySeconds() != null
-                    ? oauth2ClientDetails.getIdTokenValiditySeconds()
-                    : idTokenValiditySeconds;
+                ? oauth2ClientDetails.getIdTokenValiditySeconds()
+                : idTokenValiditySeconds;
             Instant expiresAt = issuedAt.plusSeconds(validitySeconds);
 
             IdToken idToken = new IdToken(issuer, subject, audience, jti, issuedAt, expiresAt, issuedAt, claims);
@@ -335,7 +349,7 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
 
     @Override
     public IdToken createIdToken(OAuth2Authentication authentication, OAuth2AccessToken accessToken, String code)
-            throws AuthenticationException {
+        throws AuthenticationException {
         if (authentication == null) {
             throw new InsufficientAuthenticationException("Invalid authentication");
         }
@@ -358,7 +372,6 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
         }
 
         try {
-
             OAuth2ClientDetails oauth2ClientDetails = clientDetailsService.loadClientByClientId(clientId);
 
             Authentication userAuth = authentication.getUserAuthentication();
@@ -377,16 +390,22 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
             // build jti via secure generator
             String jti = tokenGenerator.generateKey();
 
-            Map<String, Object> claims = buildClaims(authentication, request, userDetails, oauth2ClientDetails,
-                    accessToken, code);
+            Map<String, Object> claims = buildClaims(
+                authentication,
+                request,
+                userDetails,
+                oauth2ClientDetails,
+                accessToken,
+                code
+            );
 
             // dates
             Instant issuedAt = Instant.now();
 
             // evaluate expiration
             int validitySeconds = oauth2ClientDetails.getIdTokenValiditySeconds() != null
-                    ? oauth2ClientDetails.getIdTokenValiditySeconds()
-                    : idTokenValiditySeconds;
+                ? oauth2ClientDetails.getIdTokenValiditySeconds()
+                : idTokenValiditySeconds;
             Instant expiresAt = issuedAt.plusSeconds(validitySeconds);
 
             IdToken idToken = new IdToken(issuer, subject, audience, jti, issuedAt, expiresAt, issuedAt, claims);
@@ -407,12 +426,15 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
         }
     }
 
-    private Map<String, Object> buildClaims(OAuth2Authentication authentication, OAuth2Request request,
-            UserDetails userDetails, OAuth2ClientDetails oauth2ClientDetails,
-            OAuth2AccessToken accessToken, String code)
-            throws NoSuchClientException, NoSuchResourceException, SystemException, InvalidDefinitionException,
-            OAuth2Exception {
-
+    private Map<String, Object> buildClaims(
+        OAuth2Authentication authentication,
+        OAuth2Request request,
+        UserDetails userDetails,
+        OAuth2ClientDetails oauth2ClientDetails,
+        OAuth2AccessToken accessToken,
+        String code
+    )
+        throws NoSuchClientException, NoSuchResourceException, SystemException, InvalidDefinitionException, OAuth2Exception {
         Authentication userAuth = authentication.getUserAuthentication();
         if (userAuth == null || !(userAuth instanceof UserAuthentication)) {
             throw new InvalidRequestException("id_token requires a valid user authentication");
@@ -428,13 +450,20 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
         User user = new User(userDetails);
         Map<String, Object> userClaims = new HashMap<>();
         // check if client wants all claims from accessToken in idTokens
-        if (accessToken != null && oauth2ClientDetails.isIdTokenClaims()
-                && accessToken instanceof AACOAuth2AccessToken) {
+        if (
+            accessToken != null && oauth2ClientDetails.isIdTokenClaims() && accessToken instanceof AACOAuth2AccessToken
+        ) {
             // keep claims not overlapping reserved
-            Map<String, Serializable> accessTokenClaims = ((AACOAuth2AccessToken) accessToken).getClaims()
-                    .entrySet().stream()
-                    .filter(e -> (!IdToken.REGISTERED_CLAIM_NAMES.contains(e.getKey()) &&
-                            !IdToken.STANDARD_CLAIM_NAMES.contains(e.getKey())))
+            Map<String, Serializable> accessTokenClaims =
+                ((AACOAuth2AccessToken) accessToken).getClaims()
+                    .entrySet()
+                    .stream()
+                    .filter(e ->
+                        (
+                            !IdToken.REGISTERED_CLAIM_NAMES.contains(e.getKey()) &&
+                            !IdToken.STANDARD_CLAIM_NAMES.contains(e.getKey())
+                        )
+                    )
                     .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
             userClaims.putAll(accessTokenClaims);
         }
@@ -448,9 +477,9 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
                 continue;
             }
             if (claimsExtractorProvider.getScopes().contains(scope)) {
-                ClaimsSet cs = claimsExtractorProvider.getExtractor(scope).extractUserClaims(scope, user,
-                        clientDetails,
-                        scopes, null);
+                ClaimsSet cs = claimsExtractorProvider
+                    .getExtractor(scope)
+                    .extractUserClaims(scope, user, clientDetails, scopes, null);
                 if (cs != null) {
                     claimss.addAll(cs.getClaims());
                 }
@@ -517,7 +546,5 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
         }
 
         return userClaims;
-
     }
-
 }

@@ -1,12 +1,10 @@
 package it.smartcommunitylab.aac.core;
 
-import org.springframework.security.core.Authentication;
-
 import it.smartcommunitylab.aac.core.auth.ClientAuthentication;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
+import org.springframework.security.core.Authentication;
 
 public interface AuthenticationHelper {
-
     public boolean isAuthenticated();
 
     public Authentication getAuthentication();
@@ -28,5 +26,4 @@ public interface AuthenticationHelper {
     public ClientAuthentication getClientAuthentication();
 
     public ClientDetails getClientDetails();
-
 }

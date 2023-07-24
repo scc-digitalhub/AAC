@@ -1,16 +1,15 @@
 package it.smartcommunitylab.aac.webauthn.service;
 
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.core.provider.UserAccountService;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-
 public class WebAuthnUserHandleService {
+
     private final UserAccountService<InternalUserAccount> userAccountService;
 
-    public WebAuthnUserHandleService(
-            UserAccountService<InternalUserAccount> userAccountService) {
+    public WebAuthnUserHandleService(UserAccountService<InternalUserAccount> userAccountService) {
         Assert.notNull(userAccountService, "account service is mandatory");
 
         this.userAccountService = userAccountService;
@@ -43,5 +42,4 @@ public class WebAuthnUserHandleService {
 
         return account.getUsername();
     }
-
 }

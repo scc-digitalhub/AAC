@@ -8,6 +8,4 @@ import org.springframework.core.annotation.Order;
  */
 @Configuration
 @Order(7)
-public class SamlConfig {
-
-}
+public class SamlConfig {}

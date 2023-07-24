@@ -1,10 +1,9 @@
 package it.smartcommunitylab.aac.webauthn.model;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -21,5 +20,4 @@ public class WebAuthnAuthenticationStartRequest {
     public void setUsername(String username) {
         this.username = username;
     }
-
 }

@@ -1,10 +1,9 @@
 package it.smartcommunitylab.aac.attributes.model;
 
-import java.io.Serializable;
-import java.text.ParseException;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.model.AttributeType;
+import java.io.Serializable;
+import java.text.ParseException;
 
 public class NumberAttribute extends AbstractAttribute {
 

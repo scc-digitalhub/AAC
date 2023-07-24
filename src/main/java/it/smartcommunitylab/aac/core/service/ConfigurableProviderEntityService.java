@@ -1,17 +1,14 @@
 package it.smartcommunitylab.aac.core.service;
 
+import it.smartcommunitylab.aac.common.NoSuchProviderException;
+import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
+import it.smartcommunitylab.aac.core.persistence.ProviderEntityRepository;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
-
-import it.smartcommunitylab.aac.common.NoSuchProviderException;
-
-import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
-import it.smartcommunitylab.aac.core.persistence.ProviderEntityRepository;
 
 public class ConfigurableProviderEntityService<P extends ProviderEntity> implements ProviderEntityService<P> {
 
@@ -57,9 +54,7 @@ public class ConfigurableProviderEntityService<P extends ProviderEntity> impleme
         return p;
     }
 
-    public P saveProvider(
-            String providerId,
-            P reg, Map<String, Serializable> configurationMap) {
+    public P saveProvider(String providerId, P reg, Map<String, Serializable> configurationMap) {
         P p = reg;
 
         if (providerId == null) {

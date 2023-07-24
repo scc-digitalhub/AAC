@@ -1,16 +1,13 @@
 package it.smartcommunitylab.aac.profiles.model;
 
-import java.time.LocalDate;
-import java.util.Date;
-
-import org.springframework.util.StringUtils;
-
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 import it.smartcommunitylab.aac.SystemKeys;
+import java.time.LocalDate;
+import java.util.Date;
+import org.springframework.util.StringUtils;
 
 @JsonInclude(Include.NON_EMPTY)
 public class OpenIdProfile extends AbstractProfile {
@@ -74,9 +71,7 @@ public class OpenIdProfile extends AbstractProfile {
     @JsonFormat(shape = JsonFormat.Shape.NUMBER)
     private Date updatedAt;
 
-    public OpenIdProfile() {
-
-    }
+    public OpenIdProfile() {}
 
     public OpenIdProfile(BasicProfile basic) {
         this.name = basic.getName();
@@ -291,5 +286,4 @@ public class OpenIdProfile extends AbstractProfile {
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
     }
-
 }

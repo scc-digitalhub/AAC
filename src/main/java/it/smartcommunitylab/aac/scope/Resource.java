@@ -1,16 +1,13 @@
 package it.smartcommunitylab.aac.scope;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
-
 import org.springframework.util.Assert;
-
-import it.smartcommunitylab.aac.SystemKeys;
 
 @Valid
 public class Resource {
@@ -26,9 +23,7 @@ public class Resource {
 
     private Set<Scope> scopes;
 
-    public Resource() {
-
-    }
+    public Resource() {}
 
     public Resource(String resourceId) {
         Assert.hasText(resourceId, "resource id can not be empty");
@@ -86,19 +81,13 @@ public class Resource {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         Resource other = (Resource) obj;
         if (resourceId == null) {
-            if (other.resourceId != null)
-                return false;
-        } else if (!resourceId.equals(other.resourceId))
-            return false;
+            if (other.resourceId != null) return false;
+        } else if (!resourceId.equals(other.resourceId)) return false;
         return true;
     }
-
 }

@@ -1,12 +1,11 @@
 package it.smartcommunitylab.aac.oauth.model;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import org.springframework.util.Assert;
 
-import com.fasterxml.jackson.annotation.JsonValue;
-
 /*
- * Prompt modes according to 
- * 
+ * Prompt modes according to
+ *
  * https://openid.net/specs/openid-connect-core-1_0.html
  */
 

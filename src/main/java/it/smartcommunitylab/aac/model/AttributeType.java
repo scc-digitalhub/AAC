@@ -1,11 +1,9 @@
 package it.smartcommunitylab.aac.model;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import org.springframework.util.Assert;
 
-import com.fasterxml.jackson.annotation.JsonValue;
-
 public enum AttributeType {
-
     STRING("string"),
     NUMBER("number"),
     BOOLEAN("boolean"),

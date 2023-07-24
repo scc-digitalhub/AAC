@@ -13,5 +13,4 @@ public class DetachableJpaRepositoryImpl<T> implements DetachableJpaRepository<T
         entityManager.detach(e);
         return e;
     }
-
 }

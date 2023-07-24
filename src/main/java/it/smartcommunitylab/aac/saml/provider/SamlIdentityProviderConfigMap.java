@@ -1,11 +1,5 @@
 package it.smartcommunitylab.aac.saml.provider;
 
-import java.io.Serializable;
-import java.util.Map;
-import java.util.Set;
-
-import javax.validation.Valid;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -13,15 +7,23 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractConfigMap;
+import java.io.Serializable;
+import java.util.Map;
+import java.util.Set;
+import javax.validation.Valid;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SamlIdentityProviderConfigMap extends AbstractConfigMap implements Serializable {
+
     private static final long serialVersionUID = SystemKeys.AAC_SAML_SERIAL_VERSION;
 
-    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_CONFIG + SystemKeys.ID_SEPARATOR
-            + SystemKeys.RESOURCE_IDENTITY_PROVIDER + SystemKeys.ID_SEPARATOR
-            + SystemKeys.AUTHORITY_SAML;
+    public static final String RESOURCE_TYPE =
+        SystemKeys.RESOURCE_CONFIG +
+        SystemKeys.ID_SEPARATOR +
+        SystemKeys.RESOURCE_IDENTITY_PROVIDER +
+        SystemKeys.ID_SEPARATOR +
+        SystemKeys.AUTHORITY_SAML;
 
     private String entityId;
 
@@ -54,8 +56,7 @@ public class SamlIdentityProviderConfigMap extends AbstractConfigMap implements 
     private Boolean alwaysTrustEmailAddress;
     private Boolean requireEmailAddress;
 
-    public SamlIdentityProviderConfigMap() {
-    }
+    public SamlIdentityProviderConfigMap() {}
 
     public String getSigningKey() {
         return signingKey;

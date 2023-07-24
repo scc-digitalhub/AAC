@@ -1,16 +1,13 @@
 package it.smartcommunitylab.aac.openid.persistence;
 
-import java.util.List;
-
-import org.springframework.stereotype.Repository;
-
 import it.smartcommunitylab.aac.repository.CustomJpaRepository;
 import it.smartcommunitylab.aac.repository.DetachableJpaRepository;
+import java.util.List;
+import org.springframework.stereotype.Repository;
 
 @Repository
 public interface OIDCUserAccountRepository
-        extends CustomJpaRepository<OIDCUserAccount, OIDCUserAccountId>, DetachableJpaRepository<OIDCUserAccount> {
-
+    extends CustomJpaRepository<OIDCUserAccount, OIDCUserAccountId>, DetachableJpaRepository<OIDCUserAccount> {
     OIDCUserAccount findByUuid(String uuid);
 
     List<OIDCUserAccount> findByRepositoryIdAndEmail(String repositoryId, String email);
@@ -26,5 +23,4 @@ public interface OIDCUserAccountRepository
     List<OIDCUserAccount> findByUserIdAndRealm(String userId, String realm);
 
     List<OIDCUserAccount> findByUserIdAndRepositoryId(String userId, String repositoryId);
-
 }

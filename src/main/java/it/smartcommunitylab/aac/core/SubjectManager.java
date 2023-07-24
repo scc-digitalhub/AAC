@@ -1,9 +1,15 @@
 package it.smartcommunitylab.aac.core;
 
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.NoSuchSubjectException;
+import it.smartcommunitylab.aac.core.service.RealmService;
+import it.smartcommunitylab.aac.core.service.SubjectService;
+import it.smartcommunitylab.aac.model.Realm;
+import it.smartcommunitylab.aac.model.Subject;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,18 +18,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.common.NoSuchRealmException;
-import it.smartcommunitylab.aac.common.NoSuchSubjectException;
-import it.smartcommunitylab.aac.core.service.RealmService;
-import it.smartcommunitylab.aac.core.service.SubjectService;
-import it.smartcommunitylab.aac.model.Realm;
-import it.smartcommunitylab.aac.model.Subject;
-
 @Service
-@PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')"
-        + " or hasAuthority(#realm+':" + Config.R_ADMIN + "')")
+@PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')" + " or hasAuthority(#realm+':" + Config.R_ADMIN + "')")
 public class SubjectManager {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
@@ -49,8 +47,11 @@ public class SubjectManager {
 
     @Transactional(readOnly = true)
     public Subject getSubject(String realm, String id) throws NoSuchSubjectException, NoSuchRealmException {
-        logger.debug("get subject {} for realm {}", StringUtils.trimAllWhitespace(id),
-                StringUtils.trimAllWhitespace(realm));
+        logger.debug(
+            "get subject {} for realm {}",
+            StringUtils.trimAllWhitespace(id),
+            StringUtils.trimAllWhitespace(realm)
+        );
         Realm r = realmService.getRealm(realm);
         Subject s = subjectService.getSubject(id);
 
@@ -71,8 +72,11 @@ public class SubjectManager {
 
     @Transactional(readOnly = true)
     public List<Subject> searchSubjects(String realm, String keywords, Set<String> types) throws NoSuchRealmException {
-        logger.debug("search subjects for realm {} with query {}", StringUtils.trimAllWhitespace(realm),
-                StringUtils.trimAllWhitespace(keywords));
+        logger.debug(
+            "search subjects for realm {} with query {}",
+            StringUtils.trimAllWhitespace(realm),
+            StringUtils.trimAllWhitespace(keywords)
+        );
 
         String query = StringUtils.trimAllWhitespace(keywords);
         Realm r = realmService.getRealm(realm);
@@ -89,5 +93,4 @@ public class SubjectManager {
 
         return subjects;
     }
-
 }

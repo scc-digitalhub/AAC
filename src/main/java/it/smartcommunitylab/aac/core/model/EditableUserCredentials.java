@@ -1,8 +1,7 @@
 package it.smartcommunitylab.aac.core.model;
 
-import java.io.Serializable;
-
 import it.smartcommunitylab.aac.SystemKeys;
+import java.io.Serializable;
 
 public interface EditableUserCredentials extends EditableResource, UserResource, Serializable {
     default String getType() {
@@ -11,5 +10,4 @@ public interface EditableUserCredentials extends EditableResource, UserResource,
 
     // local id for provider
     public String getCredentialsId();
-
 }

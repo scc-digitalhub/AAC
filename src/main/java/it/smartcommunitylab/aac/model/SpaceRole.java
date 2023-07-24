@@ -1,15 +1,12 @@
 package it.smartcommunitylab.aac.model;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Size;
-
-import org.springframework.util.StringUtils;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
 import it.smartcommunitylab.aac.Config;
+import javax.validation.Valid;
+import javax.validation.constraints.Size;
+import org.springframework.util.StringUtils;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -18,8 +15,10 @@ public class SpaceRole {
 
     // role definition
     private String context;
+
     @Size(max = 128)
     private String space;
+
     @Size(max = 128)
     private String role;
 
@@ -78,28 +77,19 @@ public class SpaceRole {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         SpaceRole other = (SpaceRole) obj;
         if (context == null) {
-            if (other.context != null)
-                return false;
-        } else if (!context.equals(other.context))
-            return false;
+            if (other.context != null) return false;
+        } else if (!context.equals(other.context)) return false;
         if (role == null) {
-            if (other.role != null)
-                return false;
-        } else if (!role.equals(other.role))
-            return false;
+            if (other.role != null) return false;
+        } else if (!role.equals(other.role)) return false;
         if (space == null) {
-            if (other.space != null)
-                return false;
-        } else if (!space.equals(other.space))
-            return false;
+            if (other.space != null) return false;
+        } else if (!space.equals(other.space)) return false;
         return true;
     }
 
@@ -164,10 +154,10 @@ public class SpaceRole {
     public static SpaceRole parse(String s) throws IllegalArgumentException {
         s = s.trim();
         int idx = s.lastIndexOf(':');
-        if (!StringUtils.hasText(s) || idx == s.length() - 1)
-            throw new IllegalArgumentException("Invalid Role format " + s);
-        if (idx <= 0)
-            return new SpaceRole(null, null, s.substring(idx + 1));
+        if (!StringUtils.hasText(s) || idx == s.length() - 1) throw new IllegalArgumentException(
+            "Invalid Role format " + s
+        );
+        if (idx <= 0) return new SpaceRole(null, null, s.substring(idx + 1));
         return memberOf(s.substring(0, idx), s.substring(idx + 1));
     }
 
@@ -175,20 +165,20 @@ public class SpaceRole {
         // context may be empty
         if (r.context != null && !r.context.matches("[\\w\\./]+")) {
             throw new IllegalArgumentException(
-                    "Invalid role context value: only alpha-numeric characters and '_./' allowed");
+                "Invalid role context value: only alpha-numeric characters and '_./' allowed"
+            );
         }
 
         // space empty only if context is empty
         if (r.space == null && r.context != null || r.space != null && !r.space.matches("[\\w\\.]+")) {
             throw new IllegalArgumentException(
-                    "Invalid role space value: only alpha-numeric characters and '_.' allowed");
+                "Invalid role space value: only alpha-numeric characters and '_.' allowed"
+            );
         }
 
         // role should never be empty
         if (r.role == null || !r.role.matches("[\\w\\.]+")) {
             throw new IllegalArgumentException("Invalid role value: only alpha-numeric characters and '_.' allowed");
         }
-
     }
-
 }

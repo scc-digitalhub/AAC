@@ -1,16 +1,22 @@
 package it.smartcommunitylab.aac.openid.apple.auth;
 
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.auth.ProviderWrappedAuthenticationToken;
+import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
+import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.openid.apple.AppleIdentityAuthority;
+import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfig;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
@@ -38,17 +44,8 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.auth.ProviderWrappedAuthenticationToken;
-import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
-import it.smartcommunitylab.aac.core.auth.UserAuthentication;
-import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
-import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.openid.apple.AppleIdentityAuthority;
-import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfig;
-
 /*
- * Custom oauth2 login filter, handles login via auth code 
+ * Custom oauth2 login filter, handles login via auth code
  * interacts with extended auth manager to process login requests per realm
  */
 public class AppleLoginAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
@@ -68,21 +65,26 @@ public class AppleLoginAuthenticationFilter extends AbstractAuthenticationProces
     private AuthorizationRequestRepository<OAuth2AuthorizationRequest> authorizationRequestRepository;
 
     public AppleLoginAuthenticationFilter(
-            ProviderConfigRepository<AppleIdentityProviderConfig> registrationRepository,
-            ClientRegistrationRepository clientRegistrationRepository) {
+        ProviderConfigRepository<AppleIdentityProviderConfig> registrationRepository,
+        ClientRegistrationRepository clientRegistrationRepository
+    ) {
         this(registrationRepository, clientRegistrationRepository, DEFAULT_FILTER_URI, null);
     }
 
     public AppleLoginAuthenticationFilter(
-            ProviderConfigRepository<AppleIdentityProviderConfig> registrationRepository,
-            ClientRegistrationRepository clientRegistrationRepository,
-            String filterProcessingUrl, AuthenticationEntryPoint authenticationEntryPoint) {
+        ProviderConfigRepository<AppleIdentityProviderConfig> registrationRepository,
+        ClientRegistrationRepository clientRegistrationRepository,
+        String filterProcessingUrl,
+        AuthenticationEntryPoint authenticationEntryPoint
+    ) {
         super(filterProcessingUrl);
         Assert.notNull(registrationRepository, "provider registration repository cannot be null");
         Assert.notNull(clientRegistrationRepository, "clientRegistrationRepository cannot be null");
         Assert.hasText(filterProcessingUrl, "filterProcessesUrl must contain a URL pattern");
-        Assert.isTrue(filterProcessingUrl.contains("{registrationId}"),
-                "filterProcessesUrl must contain a {registrationId} match variable");
+        Assert.isTrue(
+            filterProcessingUrl.contains("{registrationId}"),
+            "filterProcessesUrl must contain a {registrationId} match variable"
+        );
 
         this.registrationRepository = registrationRepository;
         this.clientRegistrationRepository = clientRegistrationRepository;
@@ -98,40 +100,46 @@ public class AppleLoginAuthenticationFilter extends AbstractAuthenticationProces
         }
 
         // build a resolver for requests to support external
-        this.authorizationRequestResolver = new DefaultOAuth2AuthorizationRequestResolver(clientRegistrationRepository,
-                AppleIdentityAuthority.AUTHORITY_URL + "authorize");
+        this.authorizationRequestResolver =
+            new DefaultOAuth2AuthorizationRequestResolver(
+                clientRegistrationRepository,
+                AppleIdentityAuthority.AUTHORITY_URL + "authorize"
+            );
 
         // enforce session id change to prevent fixation attacks
         setAllowSessionCreation(true);
         setSessionAuthenticationStrategy(new ChangeSessionIdAuthenticationStrategy());
 
         // use a custom failureHandler to return to login form
-        setAuthenticationFailureHandler(new AuthenticationFailureHandler() {
-            public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
-                    AuthenticationException exception) throws IOException, ServletException {
+        setAuthenticationFailureHandler(
+            new AuthenticationFailureHandler() {
+                public void onAuthenticationFailure(
+                    HttpServletRequest request,
+                    HttpServletResponse response,
+                    AuthenticationException exception
+                ) throws IOException, ServletException {
+                    // from SimpleUrlAuthenticationFailureHandler, save exception as session
+                    HttpSession session = request.getSession(true);
+                    if (session != null) {
+                        request.getSession().setAttribute(WebAttributes.AUTHENTICATION_EXCEPTION, exception);
+                    }
 
-                // from SimpleUrlAuthenticationFailureHandler, save exception as session
-                HttpSession session = request.getSession(true);
-                if (session != null) {
-                    request.getSession().setAttribute(WebAttributes.AUTHENTICATION_EXCEPTION, exception);
+                    getAuthenticationEntryPoint().commence(request, response, exception);
                 }
-
-                getAuthenticationEntryPoint().commence(request, response, exception);
             }
-        });
-
+        );
     }
 
     public final void setAuthorizationRequestRepository(
-            AuthorizationRequestRepository<OAuth2AuthorizationRequest> authorizationRequestRepository) {
+        AuthorizationRequestRepository<OAuth2AuthorizationRequest> authorizationRequestRepository
+    ) {
         Assert.notNull(authorizationRequestRepository, "authorizationRequestRepository cannot be null");
         this.authorizationRequestRepository = authorizationRequestRepository;
     }
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
-            throws AuthenticationException {
-
+        throws AuthenticationException {
         if (!requestMatcher.matches(request)) {
             return null;
         }
@@ -179,8 +187,10 @@ public class AppleLoginAuthenticationFilter extends AbstractAuthenticationProces
         params.put(OAuth2ParameterNames.ERROR_URI, errorUri);
 
         // consume request via state
-        OAuth2AuthorizationRequest authorizationRequest = authorizationRequestRepository
-                .removeAuthorizationRequest(request, response);
+        OAuth2AuthorizationRequest authorizationRequest = authorizationRequestRepository.removeAuthorizationRequest(
+            request,
+            response
+        );
 
         if (isExternal || authorizationRequest == null) {
             // (re)build a local request
@@ -202,10 +212,11 @@ public class AppleLoginAuthenticationFilter extends AbstractAuthenticationProces
             throw new OAuth2AuthenticationException(oauth2Error, oauth2Error.toString());
         }
 
-        String redirectUri = UriComponentsBuilder.fromHttpUrl(UrlUtils.buildFullRequestUrl(request))
-                .replaceQuery(null)
-                .build()
-                .toUriString();
+        String redirectUri = UriComponentsBuilder
+            .fromHttpUrl(UrlUtils.buildFullRequestUrl(request))
+            .replaceQuery(null)
+            .build()
+            .toUriString();
 
         // rebuild request
         OAuth2AuthorizationRequest.Builder builder = OAuth2AuthorizationRequest.from(authorizationRequest);
@@ -245,15 +256,19 @@ public class AppleLoginAuthenticationFilter extends AbstractAuthenticationProces
         Object authenticationDetails = this.authenticationDetailsSource.buildDetails(request);
 
         // build login token with params
-        OAuth2LoginAuthenticationToken authenticationRequest = new OAuth2LoginAuthenticationToken(clientRegistration,
-                new OAuth2AuthorizationExchange(authorizationRequest, authorizationResponse));
+        OAuth2LoginAuthenticationToken authenticationRequest = new OAuth2LoginAuthenticationToken(
+            clientRegistration,
+            new OAuth2AuthorizationExchange(authorizationRequest, authorizationResponse)
+        );
         authenticationRequest.setDetails(authenticationDetails);
 
         // wrap auth request for multi-provider manager
         // providerId is registrationId
         ProviderWrappedAuthenticationToken wrappedAuthRequest = new ProviderWrappedAuthenticationToken(
-                authenticationRequest,
-                providerId, SystemKeys.AUTHORITY_APPLE);
+            authenticationRequest,
+            providerId,
+            SystemKeys.AUTHORITY_APPLE
+        );
 
         // also collect request details
         WebAuthenticationDetails webAuthenticationDetails = new WebAuthenticationDetails(request);
@@ -261,16 +276,17 @@ public class AppleLoginAuthenticationFilter extends AbstractAuthenticationProces
 
         // authenticate via extended authManager
         UserAuthentication userAuthentication = (UserAuthentication) getAuthenticationManager()
-                .authenticate(wrappedAuthRequest);
+            .authenticate(wrappedAuthRequest);
 
         // return authentication to be set in security context
         return userAuthentication;
     }
 
     private boolean isAuthorizationResponse(String state, String code, String error) {
-        return (StringUtils.hasText(state) && StringUtils.hasText(code))
-                || (StringUtils.hasText(state) && StringUtils.hasText(error));
-
+        return (
+            (StringUtils.hasText(state) && StringUtils.hasText(code)) ||
+            (StringUtils.hasText(state) && StringUtils.hasText(error))
+        );
     }
 
     private static OAuth2AuthorizationResponse convert(Map<String, String> params, String redirectUri) {
@@ -279,19 +295,17 @@ public class AppleLoginAuthenticationFilter extends AbstractAuthenticationProces
         String state = params.get(OAuth2ParameterNames.STATE);
 
         if (StringUtils.hasText(code)) {
-            return OAuth2AuthorizationResponse.success(code)
-                    .redirectUri(redirectUri)
-                    .state(state)
-                    .build();
+            return OAuth2AuthorizationResponse.success(code).redirectUri(redirectUri).state(state).build();
         } else {
             String errorDescription = params.get(OAuth2ParameterNames.ERROR_DESCRIPTION);
             String errorUri = params.get(OAuth2ParameterNames.ERROR_URI);
-            return OAuth2AuthorizationResponse.error(errorCode)
-                    .redirectUri(redirectUri)
-                    .errorDescription(errorDescription)
-                    .errorUri(errorUri)
-                    .state(state)
-                    .build();
+            return OAuth2AuthorizationResponse
+                .error(errorCode)
+                .redirectUri(redirectUri)
+                .errorDescription(errorDescription)
+                .errorUri(errorUri)
+                .state(state)
+                .build();
         }
     }
 
@@ -302,5 +316,4 @@ public class AppleLoginAuthenticationFilter extends AbstractAuthenticationProces
     public void setAuthenticationEntryPoint(AuthenticationEntryPoint authenticationEntryPoint) {
         this.authenticationEntryPoint = authenticationEntryPoint;
     }
-
 }

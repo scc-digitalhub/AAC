@@ -1,12 +1,10 @@
 package it.smartcommunitylab.aac.oauth.auth;
 
-import java.util.Collection;
-
-import org.springframework.security.core.GrantedAuthority;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.DefaultClientAuthenticationToken;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
+import java.util.Collection;
+import org.springframework.security.core.GrantedAuthority;
 
 public abstract class OAuth2ClientAuthenticationToken extends DefaultClientAuthenticationToken {
 
@@ -17,11 +15,9 @@ public abstract class OAuth2ClientAuthenticationToken extends DefaultClientAuthe
 
     public OAuth2ClientAuthenticationToken(String clientId) {
         super(clientId);
-
     }
 
-    public OAuth2ClientAuthenticationToken(String clientId,
-            Collection<? extends GrantedAuthority> authorities) {
+    public OAuth2ClientAuthenticationToken(String clientId, Collection<? extends GrantedAuthority> authorities) {
         super(clientId, authorities);
     }
 
@@ -37,5 +33,4 @@ public abstract class OAuth2ClientAuthenticationToken extends DefaultClientAuthe
     public void setOAuth2ClientDetails(OAuth2ClientDetails details) {
         this.oauth2Details = details;
     }
-
 }

@@ -1,5 +1,13 @@
 package it.smartcommunitylab.aac.profiles.extractor;
 
+import it.smartcommunitylab.aac.attributes.model.BooleanAttribute;
+import it.smartcommunitylab.aac.attributes.model.DateAttribute;
+import it.smartcommunitylab.aac.attributes.model.DateTimeAttribute;
+import it.smartcommunitylab.aac.attributes.model.NumberAttribute;
+import it.smartcommunitylab.aac.attributes.model.TimeAttribute;
+import it.smartcommunitylab.aac.core.model.Attribute;
+import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.model.AttributeType;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -10,15 +18,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import it.smartcommunitylab.aac.attributes.model.BooleanAttribute;
-import it.smartcommunitylab.aac.attributes.model.DateAttribute;
-import it.smartcommunitylab.aac.attributes.model.DateTimeAttribute;
-import it.smartcommunitylab.aac.attributes.model.NumberAttribute;
-import it.smartcommunitylab.aac.attributes.model.TimeAttribute;
-import it.smartcommunitylab.aac.core.model.Attribute;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.model.AttributeType;
-
 public abstract class AbstractUserProfileExtractor implements UserProfileExtractor {
 
     // lookup an attribute in multiple sets, return first match
@@ -27,9 +26,10 @@ public abstract class AbstractUserProfileExtractor implements UserProfileExtract
     }
 
     protected Attribute getAttribute(Collection<UserAttributes> attributes, String key, Collection<String> identifier) {
-        Set<UserAttributes> sets = attributes.stream()
-                .filter(a -> identifier.contains(a.getIdentifier()))
-                .collect(Collectors.toSet());
+        Set<UserAttributes> sets = attributes
+            .stream()
+            .filter(a -> identifier.contains(a.getIdentifier()))
+            .collect(Collectors.toSet());
 
         for (UserAttributes uattr : sets) {
             Optional<Attribute> attr = uattr.getAttributes().stream().filter(a -> a.getKey().equals(key)).findFirst();
@@ -39,7 +39,6 @@ public abstract class AbstractUserProfileExtractor implements UserProfileExtract
         }
 
         return null;
-
     }
 
     protected String getStringAttribute(Attribute attr) {
@@ -157,5 +156,4 @@ public abstract class AbstractUserProfileExtractor implements UserProfileExtract
             return null;
         }
     }
-
 }

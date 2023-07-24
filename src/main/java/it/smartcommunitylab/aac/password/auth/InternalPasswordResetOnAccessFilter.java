@@ -1,16 +1,21 @@
 package it.smartcommunitylab.aac.password.auth;
 
+import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
+import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
+import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -27,18 +32,17 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.Assert;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
-import it.smartcommunitylab.aac.core.auth.UserAuthentication;
-import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
-import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
-import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
-
 public class InternalPasswordResetOnAccessFilter extends OncePerRequestFilter {
+
     static final String SAVED_REQUEST = "INTERNAL_PASSWORD_SAVED_REQUEST";
     static final String[] SKIP_URLS = {
-            "/api/**", "/html/**", "/js/**", "/lib/**", "/fonts/**", "/italia/**", "/i18n/**"
+        "/api/**",
+        "/html/**",
+        "/js/**",
+        "/lib/**",
+        "/fonts/**",
+        "/italia/**",
+        "/i18n/**",
     };
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -52,8 +56,10 @@ public class InternalPasswordResetOnAccessFilter extends OncePerRequestFilter {
     private final ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository;
     private final InternalUserPasswordRepository passwordRepository;
 
-    public InternalPasswordResetOnAccessFilter(InternalUserPasswordRepository passwordRepository,
-            ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository) {
+    public InternalPasswordResetOnAccessFilter(
+        InternalUserPasswordRepository passwordRepository,
+        ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository
+    ) {
         Assert.notNull(passwordRepository, "password repository is mandatory");
         Assert.notNull(registrationRepository, "provider registration repository cannot be null");
 
@@ -71,12 +77,12 @@ public class InternalPasswordResetOnAccessFilter extends OncePerRequestFilter {
     }
 
     private RequestMatcher buildRequestMatcher() {
-        List<RequestMatcher> antMatchers = Arrays.stream(SKIP_URLS)
-                .map(u -> new AntPathRequestMatcher(u))
-                .collect(Collectors.toList());
+        List<RequestMatcher> antMatchers = Arrays
+            .stream(SKIP_URLS)
+            .map(u -> new AntPathRequestMatcher(u))
+            .collect(Collectors.toList());
 
         return new NegatedRequestMatcher(new OrRequestMatcher(antMatchers));
-
     }
 
     public void setRedirectStrategy(RedirectStrategy redirectStrategy) {
@@ -93,7 +99,7 @@ public class InternalPasswordResetOnAccessFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-            throws ServletException, IOException {
+        throws ServletException, IOException {
         if (requestMatcher.matches(request) && requiresProcessing(request) && !changeRequestMatcher.matches(request)) {
             boolean requireChange = false;
             String targetUrl = null;
@@ -103,10 +109,12 @@ public class InternalPasswordResetOnAccessFilter extends OncePerRequestFilter {
 
             // fetch user auth and extract reset key tokens
             UserAuthentication userAuth = (UserAuthentication) SecurityContextHolder.getContext().getAuthentication();
-            Set<ResetKeyAuthenticationToken> resetTokens = userAuth.getAuthentications().stream()
-                    .filter(e -> ResetKeyAuthenticationToken.class.isInstance(e.getToken()))
-                    .map(e -> (ResetKeyAuthenticationToken) e.getToken())
-                    .collect(Collectors.toSet());
+            Set<ResetKeyAuthenticationToken> resetTokens = userAuth
+                .getAuthentications()
+                .stream()
+                .filter(e -> ResetKeyAuthenticationToken.class.isInstance(e.getToken()))
+                .map(e -> (ResetKeyAuthenticationToken) e.getToken())
+                .collect(Collectors.toSet());
 
             // check if any token still requires change
             // TODO handle more than one
@@ -129,8 +137,11 @@ public class InternalPasswordResetOnAccessFilter extends OncePerRequestFilter {
             // check if account has already set a password
             // we look for an active password created *after* this login
             long deadline = userAuth.getCreatedAt().getEpochSecond() * 1000;
-            InternalUserPassword pass = passwordRepository
-                    .findByRepositoryIdAndUsernameAndStatusOrderByCreateDateDesc(repositoryId, username, "active");
+            InternalUserPassword pass = passwordRepository.findByRepositoryIdAndUsernameAndStatusOrderByCreateDateDesc(
+                repositoryId,
+                username,
+                "active"
+            );
             if (pass == null || pass.getCreateDate().getTime() < deadline) {
                 // require change because we still lack a valid password for post-reset login
                 targetUrl = "/changepwd/" + providerId + "/" + account.getUuid();
@@ -189,13 +200,12 @@ public class InternalPasswordResetOnAccessFilter extends OncePerRequestFilter {
         }
 
         // process only if there is a reset key
-        return ((UserAuthentication) auth).getAuthentications().stream()
-                .anyMatch(e -> ResetKeyAuthenticationToken.class.isInstance(e.getToken()));
-
-//        // process only if there is a reset key or password token in context
-//        return ((UserAuthentication) auth).getAuthentications().stream()
-//                .anyMatch(e -> ResetKeyAuthenticationToken.class.isInstance(e.getToken())
-//                        || UsernamePasswordAuthenticationToken.class.isInstance(e.getToken()));
+        return ((UserAuthentication) auth).getAuthentications()
+            .stream()
+            .anyMatch(e -> ResetKeyAuthenticationToken.class.isInstance(e.getToken()));
+        //        // process only if there is a reset key or password token in context
+        //        return ((UserAuthentication) auth).getAuthentications().stream()
+        //                .anyMatch(e -> ResetKeyAuthenticationToken.class.isInstance(e.getToken())
+        //                        || UsernamePasswordAuthenticationToken.class.isInstance(e.getToken()));
     }
-
 }

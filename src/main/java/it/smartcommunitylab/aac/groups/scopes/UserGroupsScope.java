@@ -33,5 +33,4 @@ public class UserGroupsScope extends Scope {
     public String getDescription() {
         return "Groups of the current platform user. Read access only.";
     }
-
 }

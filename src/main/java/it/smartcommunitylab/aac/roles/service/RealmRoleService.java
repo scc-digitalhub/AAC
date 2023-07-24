@@ -1,17 +1,5 @@
 package it.smartcommunitylab.aac.roles.service;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.oauth2.provider.approval.Approval;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchRoleException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
@@ -23,6 +11,16 @@ import it.smartcommunitylab.aac.roles.persistence.RealmRoleEntity;
 import it.smartcommunitylab.aac.roles.persistence.RealmRoleEntityRepository;
 import it.smartcommunitylab.aac.roles.persistence.SubjectRoleEntity;
 import it.smartcommunitylab.aac.roles.persistence.SubjectRoleEntityRepository;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.oauth2.provider.approval.Approval;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 @Service
 @Transactional
@@ -33,9 +31,11 @@ public class RealmRoleService {
     private final SubjectService subjectService;
     private SearchableApprovalStore approvalStore;
 
-    public RealmRoleService(RealmRoleEntityRepository roleRepository,
-            SubjectRoleEntityRepository rolesRepository,
-            SubjectService subjectService) {
+    public RealmRoleService(
+        RealmRoleEntityRepository roleRepository,
+        SubjectRoleEntityRepository rolesRepository,
+        SubjectService subjectService
+    ) {
         Assert.notNull(roleRepository, "role repository is mandatory");
         Assert.notNull(rolesRepository, "roles repository is mandatory");
         Assert.notNull(subjectService, "subject service is mandatory");
@@ -54,11 +54,7 @@ public class RealmRoleService {
      * Role model
      */
 
-    public RealmRole addRole(
-            String roleId,
-            String realm, String role,
-            String name, String description) {
-
+    public RealmRole addRole(String roleId, String realm, String role, String name, String description) {
         RealmRoleEntity r = roleRepository.findByRealmAndRole(realm, role);
         if (r != null) {
             throw new IllegalArgumentException("role already exists with the same id");
@@ -82,7 +78,6 @@ public class RealmRoleService {
         r = roleRepository.save(r);
 
         return toRole(r);
-
     }
 
     @Transactional(readOnly = true)
@@ -114,8 +109,7 @@ public class RealmRoleService {
 
         long size = rolesRepository.countByRealmAndRole(r.getRealm(), r.getRole());
         if (withMembers) {
-            Collection<SubjectRoleEntity> subjects = rolesRepository.findByRealmAndRole(r.getRealm(),
-                    r.getRole());
+            Collection<SubjectRoleEntity> subjects = rolesRepository.findByRealmAndRole(r.getRealm(), r.getRole());
             return toRole(r, size, subjects);
         }
         return toRole(r, size);
@@ -149,9 +143,7 @@ public class RealmRoleService {
 
         if (withSubjects) {
             Collection<SubjectRoleEntity> subjects = rolesRepository.findByRealmAndRole(realm, role);
-            List<String> ss = subjects.stream()
-                    .map(SubjectRoleEntity::getSubject)
-                    .collect(Collectors.toList());
+            List<String> ss = subjects.stream().map(SubjectRoleEntity::getSubject).collect(Collectors.toList());
             rr.setSubjects(ss);
         }
 
@@ -163,11 +155,8 @@ public class RealmRoleService {
         return roleRepository.findByRealm(realm).stream().map(r -> toRole(r)).collect(Collectors.toList());
     }
 
-    public RealmRole updateRole(
-            String roleId,
-            String realm, String role,
-            String name, String description) throws NoSuchRoleException {
-
+    public RealmRole updateRole(String roleId, String realm, String role, String name, String description)
+        throws NoSuchRoleException {
         RealmRoleEntity r = roleRepository.findOne(roleId);
         if (r == null) {
             throw new NoSuchRoleException();
@@ -175,7 +164,7 @@ public class RealmRoleService {
 
         // update role
         // disable role update since we use it for mapping
-//        r.setRole(role);
+        //        r.setRole(role);
 
         r.setName(name);
         r.setDescription(description);
@@ -189,12 +178,10 @@ public class RealmRoleService {
         } else {
             try {
                 s = subjectService.updateSubject(roleId, name);
-            } catch (NoSuchSubjectException e) {
-            }
+            } catch (NoSuchSubjectException e) {}
         }
 
         return toRole(r);
-
     }
 
     public void deleteRole(String roleId) {
@@ -205,18 +192,17 @@ public class RealmRoleService {
             // remove subject if exists
             subjectService.deleteSubject(roleId);
         }
-
     }
 
-//    public Collection<Approval> getApprovals(String roleId) throws NoSuchRoleException {
-//        RealmRoleEntity r = roleRepository.findOne(roleId);
-//        if (r == null) {
-//            throw new NoSuchRoleException();
-//        }
-//
-//        Collection<Approval> approvals = approvalStore.findClientApprovals(roleId);
-//        return approvals;
-//    }
+    //    public Collection<Approval> getApprovals(String roleId) throws NoSuchRoleException {
+    //        RealmRoleEntity r = roleRepository.findOne(roleId);
+    //        if (r == null) {
+    //            throw new NoSuchRoleException();
+    //        }
+    //
+    //        Collection<Approval> approvals = approvalStore.findClientApprovals(roleId);
+    //        return approvals;
+    //    }
 
     private RealmRole toRole(RealmRoleEntity r) {
         RealmRole role = new RealmRole(r.getRealm(), r.getRole());
@@ -241,9 +227,7 @@ public class RealmRoleService {
 
     private RealmRole toRole(RealmRoleEntity re, long size, Collection<SubjectRoleEntity> subjects) {
         RealmRole r = toRole(re, size);
-        List<String> sj = subjects.stream()
-                .map(SubjectRoleEntity::getSubject)
-                .collect(Collectors.toList());
+        List<String> sj = subjects.stream().map(SubjectRoleEntity::getSubject).collect(Collectors.toList());
         r.setSubjects(sj);
         return r;
     }

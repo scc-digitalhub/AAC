@@ -1,18 +1,5 @@
 package it.smartcommunitylab.aac.openid.provider;
 
-import java.io.Serializable;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import org.jsoup.Jsoup;
-import org.jsoup.safety.Safelist;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.OpenIdAttributesSet;
 import it.smartcommunitylab.aac.attributes.mapper.OpenIdAttributesMapper;
@@ -23,10 +10,23 @@ import it.smartcommunitylab.aac.core.provider.AccountPrincipalConverter;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.openid.model.OIDCUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
+import java.io.Serializable;
+import java.util.Map;
+import java.util.stream.Collectors;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 @Transactional
-public class OIDCAccountPrincipalConverter extends AbstractProvider<OIDCUserAccount>
-        implements AccountPrincipalConverter<OIDCUserAccount> {
+public class OIDCAccountPrincipalConverter
+    extends AbstractProvider<OIDCUserAccount>
+    implements AccountPrincipalConverter<OIDCUserAccount> {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     protected final UserAccountService<OIDCUserAccount> accountService;
@@ -38,15 +38,20 @@ public class OIDCAccountPrincipalConverter extends AbstractProvider<OIDCUserAcco
     // attributes
     private final OpenIdAttributesMapper openidMapper;
 
-    public OIDCAccountPrincipalConverter(String providerId,
-            UserAccountService<OIDCUserAccount> accountService,
-            String realm) {
+    public OIDCAccountPrincipalConverter(
+        String providerId,
+        UserAccountService<OIDCUserAccount> accountService,
+        String realm
+    ) {
         this(SystemKeys.AUTHORITY_OIDC, providerId, accountService, realm);
     }
 
-    public OIDCAccountPrincipalConverter(String authority, String providerId,
-            UserAccountService<OIDCUserAccount> accountService,
-            String realm) {
+    public OIDCAccountPrincipalConverter(
+        String authority,
+        String providerId,
+        UserAccountService<OIDCUserAccount> accountService,
+        String realm
+    ) {
         super(authority, providerId, realm);
         Assert.notNull(accountService, "account service is mandatory");
 
@@ -79,8 +84,11 @@ public class OIDCAccountPrincipalConverter extends AbstractProvider<OIDCUserAcco
     @Override
     public OIDCUserAccount convertAccount(UserAuthenticatedPrincipal userPrincipal, String userId) {
         // we expect an instance of our model
-        Assert.isInstanceOf(OIDCUserAuthenticatedPrincipal.class, userPrincipal,
-                "principal must be an instance of oidc authenticated principal");
+        Assert.isInstanceOf(
+            OIDCUserAuthenticatedPrincipal.class,
+            userPrincipal,
+            "principal must be an instance of oidc authenticated principal"
+        );
         OIDCUserAuthenticatedPrincipal principal = (OIDCUserAuthenticatedPrincipal) userPrincipal;
 
         // we use upstream subject for accounts
@@ -94,36 +102,36 @@ public class OIDCAccountPrincipalConverter extends AbstractProvider<OIDCUserAcco
         // map attributes to openid set and flatten to string
         // we also clean every attribute and allow only plain text
         AttributeSet oidcAttributeSet = openidMapper.mapAttributes(attributes);
-        Map<String, String> oidcAttributes = oidcAttributeSet.getAttributes()
-                .stream()
-                .collect(Collectors.toMap(
-                        a -> a.getKey(),
-                        a -> a.exportValue()));
+        Map<String, String> oidcAttributes = oidcAttributeSet
+            .getAttributes()
+            .stream()
+            .collect(Collectors.toMap(a -> a.getKey(), a -> a.exportValue()));
 
         String email = clean(oidcAttributes.get(OpenIdAttributesSet.EMAIL));
-        username = StringUtils.hasText(oidcAttributes.get(OpenIdAttributesSet.PREFERRED_USERNAME))
+        username =
+            StringUtils.hasText(oidcAttributes.get(OpenIdAttributesSet.PREFERRED_USERNAME))
                 ? clean(oidcAttributes.get(OpenIdAttributesSet.PREFERRED_USERNAME))
                 : principal.getUsername();
 
         // update additional attributes
         String issuer = attributes.containsKey(IdTokenClaimNames.ISS)
-                ? clean(attributes.get(IdTokenClaimNames.ISS).toString())
-                : null;
+            ? clean(attributes.get(IdTokenClaimNames.ISS).toString())
+            : null;
         if (!StringUtils.hasText(issuer)) {
             issuer = provider;
         }
 
         String name = StringUtils.hasText(oidcAttributes.get(OpenIdAttributesSet.NAME))
-                ? clean(oidcAttributes.get(OpenIdAttributesSet.NAME))
-                : username;
+            ? clean(oidcAttributes.get(OpenIdAttributesSet.NAME))
+            : username;
 
         String familyName = clean(oidcAttributes.get(OpenIdAttributesSet.FAMILY_NAME));
         String givenName = clean(oidcAttributes.get(OpenIdAttributesSet.GIVEN_NAME));
 
         boolean defaultVerifiedStatus = trustEmailAddress;
         boolean emailVerified = StringUtils.hasText(oidcAttributes.get(OpenIdAttributesSet.EMAIL_VERIFIED))
-                ? Boolean.parseBoolean(oidcAttributes.get(OpenIdAttributesSet.EMAIL_VERIFIED))
-                : defaultVerifiedStatus;
+            ? Boolean.parseBoolean(oidcAttributes.get(OpenIdAttributesSet.EMAIL_VERIFIED))
+            : defaultVerifiedStatus;
 
         if (alwaysTrustEmailAddress) {
             emailVerified = true;
@@ -167,7 +175,5 @@ public class OIDCAccountPrincipalConverter extends AbstractProvider<OIDCUserAcco
             return Jsoup.clean(input, safe);
         }
         return null;
-
     }
-
 }

@@ -1,15 +1,5 @@
 package it.smartcommunitylab.aac.core.base;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Locale;
-import java.util.Map;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.util.Assert;
-
 import it.smartcommunitylab.aac.common.NoSuchTemplateException;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableTemplateProvider;
@@ -18,20 +8,31 @@ import it.smartcommunitylab.aac.core.provider.TemplateProvider;
 import it.smartcommunitylab.aac.core.provider.TemplateProviderConfig;
 import it.smartcommunitylab.aac.templates.model.TemplateModel;
 import it.smartcommunitylab.aac.templates.service.TemplateService;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Locale;
+import java.util.Map;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.util.Assert;
 
-public abstract class AbstractTemplateProvider<T extends TemplateModel, M extends AbstractConfigMap, C extends TemplateProviderConfig<M>>
-        extends
-        AbstractConfigurableProvider<T, ConfigurableTemplateProvider, M, C>
-        implements TemplateProvider<T, M, C>,
-        InitializingBean {
+public abstract class AbstractTemplateProvider<
+    T extends TemplateModel, M extends AbstractConfigMap, C extends TemplateProviderConfig<M>
+>
+    extends AbstractConfigurableProvider<T, ConfigurableTemplateProvider, M, C>
+    implements TemplateProvider<T, M, C>, InitializingBean {
 
     protected final TemplateService templateService;
     protected Map<String, Supplier<TemplateModel>> factories;
 
     public AbstractTemplateProvider(
-            String authority, String providerId,
-            TemplateService templateService,
-            C providerConfig, String realm) {
+        String authority,
+        String providerId,
+        TemplateService templateService,
+        C providerConfig,
+        String realm
+    ) {
         super(authority, providerId, realm, providerConfig);
         Assert.notNull(templateService, "template service is required");
 
@@ -78,16 +79,18 @@ public abstract class AbstractTemplateProvider<T extends TemplateModel, M extend
     public Collection<Template> getTemplates(Locale locale) {
         Assert.notNull(locale, "locale can not be null");
 
-        return factories.keySet().stream()
-                .map(e -> {
-                    try {
-                        return getTemplate(e, locale);
-                    } catch (NoSuchTemplateException e1) {
-                        return null;
-                    }
-                })
-                .filter(t -> t != null)
-                .collect(Collectors.toList());
+        return factories
+            .keySet()
+            .stream()
+            .map(e -> {
+                try {
+                    return getTemplate(e, locale);
+                } catch (NoSuchTemplateException e1) {
+                    return null;
+                }
+            })
+            .filter(t -> t != null)
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -96,8 +99,7 @@ public abstract class AbstractTemplateProvider<T extends TemplateModel, M extend
 
         String language = locale.getLanguage();
         TemplateModel m = getTemplate(template);
-        TemplateModel e = templateService.findTemplate(getAuthority(), getRealm(), template,
-                language);
+        TemplateModel e = templateService.findTemplate(getAuthority(), getRealm(), template, language);
 
         m.setLanguage(language);
         if (e != null) {
@@ -106,5 +108,4 @@ public abstract class AbstractTemplateProvider<T extends TemplateModel, M extend
 
         return m;
     }
-
 }

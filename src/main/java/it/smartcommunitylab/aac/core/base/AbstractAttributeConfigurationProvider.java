@@ -3,9 +3,11 @@ package it.smartcommunitylab.aac.core.base;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.provider.AttributeConfigurationProvider;
 
-public abstract class AbstractAttributeConfigurationProvider<M extends AbstractConfigMap, C extends AbstractAttributeProviderConfig<M>>
-        extends AbstractConfigurationProvider<M, ConfigurableAttributeProvider, C>
-        implements AttributeConfigurationProvider<M, C> {
+public abstract class AbstractAttributeConfigurationProvider<
+    M extends AbstractConfigMap, C extends AbstractAttributeProviderConfig<M>
+>
+    extends AbstractConfigurationProvider<M, ConfigurableAttributeProvider, C>
+    implements AttributeConfigurationProvider<M, C> {
 
     public AbstractAttributeConfigurationProvider(String authority) {
         super(authority);
@@ -13,9 +15,11 @@ public abstract class AbstractAttributeConfigurationProvider<M extends AbstractC
 
     @Override
     public ConfigurableAttributeProvider getConfigurable(C providerConfig) {
-        ConfigurableAttributeProvider cp = new ConfigurableAttributeProvider(providerConfig.getAuthority(),
-                providerConfig.getProvider(),
-                providerConfig.getRealm());
+        ConfigurableAttributeProvider cp = new ConfigurableAttributeProvider(
+            providerConfig.getAuthority(),
+            providerConfig.getProvider(),
+            providerConfig.getRealm()
+        );
 
         cp.setPersistence(providerConfig.getPersistence());
         cp.setEvents(providerConfig.getEvents());

@@ -1,13 +1,11 @@
 package it.smartcommunitylab.aac.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ConfigurationMap;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
-
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
-import it.smartcommunitylab.aac.oauth.model.OAuth2ConfigurationMap;
 
 @Valid
 @JsonInclude(Include.ALWAYS)
@@ -74,5 +72,4 @@ public class Realm {
     public void setOAuthConfiguration(OAuth2ConfigurationMap oauthConfiguration) {
         this.oauthConfiguration = oauthConfiguration;
     }
-
 }

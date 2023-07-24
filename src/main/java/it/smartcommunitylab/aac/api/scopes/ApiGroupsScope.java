@@ -1,10 +1,9 @@
 package it.smartcommunitylab.aac.api.scopes;
 
-import java.util.Collections;
-import java.util.Set;
-
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.model.ScopeType;
+import java.util.Collections;
+import java.util.Set;
 
 public class ApiGroupsScope extends ApiScope {
 
@@ -35,5 +34,4 @@ public class ApiGroupsScope extends ApiScope {
     public Set<String> getAuthorities() {
         return Collections.singleton(Config.R_ADMIN);
     }
-
 }

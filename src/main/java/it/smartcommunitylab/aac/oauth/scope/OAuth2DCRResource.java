@@ -3,6 +3,7 @@ package it.smartcommunitylab.aac.oauth.scope;
 import it.smartcommunitylab.aac.scope.Resource;
 
 public class OAuth2DCRResource extends Resource {
+
     public static final String RESOURCE_ID = "aac.oauth2";
 
     @Override

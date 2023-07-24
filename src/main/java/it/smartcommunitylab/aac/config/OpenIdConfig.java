@@ -5,6 +5,4 @@ import org.springframework.core.annotation.Order;
 
 @Configuration
 @Order(6)
-public class OpenIdConfig {
-
-}
+public class OpenIdConfig {}

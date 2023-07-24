@@ -8,13 +8,17 @@ import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfig;
 
 /*
- * Single provider per realm 
+ * Single provider per realm
  */
 
-public interface SingleProviderAuthority<S extends ConfigurableResourceProvider<R, T, M, C>, R extends Resource, T extends ConfigurableProvider, M extends ConfigMap, C extends ProviderConfig<M>> {
-
+public interface SingleProviderAuthority<
+    S extends ConfigurableResourceProvider<R, T, M, C>,
+    R extends Resource,
+    T extends ConfigurableProvider,
+    M extends ConfigMap,
+    C extends ProviderConfig<M>
+> {
     public S findProviderByRealm(String realm);
 
     public S getProviderByRealm(String realm) throws NoSuchProviderException;
-
 }

@@ -1,21 +1,18 @@
 package it.smartcommunitylab.aac.oauth.common;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import com.nimbusds.jwt.JWT;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
-
 import org.springframework.security.oauth2.common.OAuth2RefreshToken;
 import org.springframework.util.StringUtils;
-
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import com.nimbusds.jwt.JWT;
-
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 
 /*
  * Serialize oauth2 token according to https://tools.ietf.org/html/rfc6749#section-5.1
@@ -31,8 +28,7 @@ public class AACOAuth2AccessTokenSerializer extends StdSerializer<AACOAuth2Acces
 
     @Override
     public void serialize(AACOAuth2AccessToken token, JsonGenerator gen, SerializerProvider provider)
-            throws IOException {
-
+        throws IOException {
         // serialize with jackson
         gen.writeStartObject();
 
@@ -78,5 +74,4 @@ public class AACOAuth2AccessTokenSerializer extends StdSerializer<AACOAuth2Acces
         }
         gen.writeEndObject();
     }
-
 }

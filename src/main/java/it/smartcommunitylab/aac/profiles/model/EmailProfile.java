@@ -1,9 +1,8 @@
 package it.smartcommunitylab.aac.profiles.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 import it.smartcommunitylab.aac.SystemKeys;
 
 @JsonInclude(Include.NON_EMPTY)
@@ -18,8 +17,7 @@ public class EmailProfile extends AbstractProfile {
     @JsonProperty("email_verified")
     private Boolean emailVerified;
 
-    public EmailProfile() {
-    }
+    public EmailProfile() {}
 
     public EmailProfile(BasicProfile p) {
         email = p.getEmail();

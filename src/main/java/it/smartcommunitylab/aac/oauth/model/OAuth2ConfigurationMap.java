@@ -1,26 +1,23 @@
 package it.smartcommunitylab.aac.oauth.model;
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.validation.Valid;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+import javax.validation.Valid;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class OAuth2ConfigurationMap implements ConfigurableProperties {
 
     private static ObjectMapper mapper = new ObjectMapper();
-    private final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
-    };
+    private static final TypeReference<HashMap<String, Serializable>> typeRef =
+        new TypeReference<HashMap<String, Serializable>>() {};
 
     private Boolean enableClientRegistration;
     private Boolean openClientRegistration;
@@ -46,7 +43,7 @@ public class OAuth2ConfigurationMap implements ConfigurableProperties {
         if (openClientRegistration != null) {
             return openClientRegistration;
         }
-        
+
         return false;
     }
 
@@ -71,6 +68,5 @@ public class OAuth2ConfigurationMap implements ConfigurableProperties {
 
         this.enableClientRegistration = map.getEnableClientRegistration();
         this.openClientRegistration = map.getOpenClientRegistration();
-
     }
 }

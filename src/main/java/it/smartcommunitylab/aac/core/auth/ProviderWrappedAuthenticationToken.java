@@ -1,10 +1,9 @@
 package it.smartcommunitylab.aac.core.auth;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.Assert;
-
-import it.smartcommunitylab.aac.SystemKeys;
 
 public class ProviderWrappedAuthenticationToken extends WrappedAuthenticationToken {
 
@@ -13,20 +12,15 @@ public class ProviderWrappedAuthenticationToken extends WrappedAuthenticationTok
     private final String authority;
     private final String provider;
 
-    public ProviderWrappedAuthenticationToken(
-            AbstractAuthenticationToken token,
-            String provider) {
+    public ProviderWrappedAuthenticationToken(AbstractAuthenticationToken token, String provider) {
         this(token, provider, null);
     }
 
-    public ProviderWrappedAuthenticationToken(
-            AbstractAuthenticationToken token,
-            String provider, String authority) {
+    public ProviderWrappedAuthenticationToken(AbstractAuthenticationToken token, String provider, String authority) {
         super(token);
         Assert.hasText(provider, "provider can not be null or empty");
         this.authority = authority;
         this.provider = provider;
-
     }
 
     public String getAuthority() {
@@ -58,28 +52,19 @@ public class ProviderWrappedAuthenticationToken extends WrappedAuthenticationTok
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (!super.equals(obj))
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (!super.equals(obj)) return false;
+        if (getClass() != obj.getClass()) return false;
         ProviderWrappedAuthenticationToken other = (ProviderWrappedAuthenticationToken) obj;
         if (authority == null) {
-            if (other.authority != null)
-                return false;
-        } else if (!authority.equals(other.authority))
-            return false;
+            if (other.authority != null) return false;
+        } else if (!authority.equals(other.authority)) return false;
         if (provider == null) {
-            if (other.provider != null)
-                return false;
-        } else if (!provider.equals(other.provider))
-            return false;
+            if (other.provider != null) return false;
+        } else if (!provider.equals(other.provider)) return false;
         if (token == null) {
-            if (other.token != null)
-                return false;
-        } else if (!token.equals(other.token))
-            return false;
+            if (other.token != null) return false;
+        } else if (!token.equals(other.token)) return false;
         return true;
     }
 
@@ -113,5 +98,4 @@ public class ProviderWrappedAuthenticationToken extends WrappedAuthenticationTok
 
         return sb.toString();
     }
-
 }

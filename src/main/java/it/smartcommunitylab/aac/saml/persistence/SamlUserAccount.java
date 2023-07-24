@@ -1,9 +1,13 @@
 package it.smartcommunitylab.aac.saml.persistence;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.base.AbstractAccount;
+import it.smartcommunitylab.aac.model.SubjectStatus;
+import it.smartcommunitylab.aac.repository.HashMapSerializableConverter;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
-
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
@@ -14,26 +18,20 @@ import javax.persistence.Lob;
 import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.util.StringUtils;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractAccount;
-import it.smartcommunitylab.aac.model.SubjectStatus;
-import it.smartcommunitylab.aac.repository.HashMapSerializableConverter;
 
 @Entity
 @IdClass(SamlUserAccountId.class)
 @Table(name = "saml_users")
 @EntityListeners(AuditingEntityListener.class)
 public class SamlUserAccount extends AbstractAccount {
+
     private static final long serialVersionUID = SystemKeys.AAC_SAML_SERIAL_VERSION;
-    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_ACCOUNT + SystemKeys.ID_SEPARATOR
-            + SystemKeys.AUTHORITY_SAML;
+    public static final String RESOURCE_TYPE =
+        SystemKeys.RESOURCE_ACCOUNT + SystemKeys.ID_SEPARATOR + SystemKeys.AUTHORITY_SAML;
 
     @Id
     @NotBlank
@@ -72,6 +70,7 @@ public class SamlUserAccount extends AbstractAccount {
     private String issuer;
 
     private String email;
+
     @Column(name = "email_verified")
     private Boolean emailVerified;
 
@@ -273,12 +272,38 @@ public class SamlUserAccount extends AbstractAccount {
 
     @Override
     public String toString() {
-        return "SamlUserAccount [repositoryId=" + repositoryId + ", subjectId=" + subjectId + ", uuid=" + uuid
-                + ", userId="
-                + userId + ", realm=" + realm + ", status=" + status + ", username="
-                + username + ", issuer=" + issuer + ", email=" + email + ", emailVerified=" + emailVerified + ", name="
-                + name + ", surname=" + surname + ", lang=" + lang + ", createDate=" + createDate + ", modifiedDate="
-                + modifiedDate + "]";
+        return (
+            "SamlUserAccount [repositoryId=" +
+            repositoryId +
+            ", subjectId=" +
+            subjectId +
+            ", uuid=" +
+            uuid +
+            ", userId=" +
+            userId +
+            ", realm=" +
+            realm +
+            ", status=" +
+            status +
+            ", username=" +
+            username +
+            ", issuer=" +
+            issuer +
+            ", email=" +
+            email +
+            ", emailVerified=" +
+            emailVerified +
+            ", name=" +
+            name +
+            ", surname=" +
+            surname +
+            ", lang=" +
+            lang +
+            ", createDate=" +
+            createDate +
+            ", modifiedDate=" +
+            modifiedDate +
+            "]"
+        );
     }
-
 }

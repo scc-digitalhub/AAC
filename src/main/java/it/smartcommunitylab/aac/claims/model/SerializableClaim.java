@@ -1,13 +1,12 @@
 package it.smartcommunitylab.aac.claims.model;
 
-import java.io.Serializable;
-
 import it.smartcommunitylab.aac.model.AttributeType;
+import java.io.Serializable;
 
 /*
  * A claim type supporting OBJECT in serializable form.
  * Key is optional, to merge with other claims under the namespace set null
- * 
+ *
  * We let type resettable but we expect the definition to match the content.
  * Changing the type will render this claim opaque for service.
  */

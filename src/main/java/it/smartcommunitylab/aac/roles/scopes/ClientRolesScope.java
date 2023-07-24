@@ -31,5 +31,4 @@ public class ClientRolesScope extends Scope {
     public String getDescription() {
         return "Roles and authorities of the current client. Read access only.";
     }
-
 }

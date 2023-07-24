@@ -3,6 +3,7 @@ package it.smartcommunitylab.aac.openid.scope;
 import it.smartcommunitylab.aac.scope.Resource;
 
 public class OpenIdResource extends Resource {
+
     public static final String RESOURCE_ID = "aac.openid";
 
     @Override

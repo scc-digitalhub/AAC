@@ -1,11 +1,5 @@
 package it.smartcommunitylab.aac.password.provider;
 
-import java.util.Collection;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityProvider;
@@ -26,9 +20,15 @@ import it.smartcommunitylab.aac.password.model.InternalPasswordUserAuthenticated
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.password.service.InternalPasswordUserCredentialsService;
 import it.smartcommunitylab.aac.utils.MailService;
+import java.util.Collection;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.Assert;
 
-public class PasswordIdentityProvider extends
-        AbstractIdentityProvider<InternalUserIdentity, InternalUserAccount, InternalPasswordUserAuthenticatedPrincipal, PasswordIdentityProviderConfigMap, PasswordIdentityProviderConfig> {
+public class PasswordIdentityProvider
+    extends AbstractIdentityProvider<InternalUserIdentity, InternalUserAccount, InternalPasswordUserAuthenticatedPrincipal, PasswordIdentityProviderConfigMap, PasswordIdentityProviderConfig> {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // services
@@ -42,11 +42,12 @@ public class PasswordIdentityProvider extends
     private final InternalSubjectResolver subjectResolver;
 
     public PasswordIdentityProvider(
-            String providerId,
-            UserAccountService<InternalUserAccount> userAccountService,
-            InternalPasswordUserCredentialsService userPasswordService,
-            PasswordIdentityProviderConfig config,
-            String realm) {
+        String providerId,
+        UserAccountService<InternalUserAccount> userAccountService,
+        InternalPasswordUserCredentialsService userPasswordService,
+        PasswordIdentityProviderConfig config,
+        String realm
+    ) {
         super(SystemKeys.AUTHORITY_PASSWORD, providerId, config, realm);
         Assert.notNull(userPasswordService, "password service is mandatory");
 
@@ -55,18 +56,28 @@ public class PasswordIdentityProvider extends
 
         // build resource providers, we use our providerId to ensure consistency
         this.attributeProvider = new InternalAttributeProvider<>(SystemKeys.AUTHORITY_PASSWORD, providerId, realm);
-        this.accountProvider = new InternalAccountProvider(SystemKeys.AUTHORITY_PASSWORD, providerId,
-                userAccountService, repositoryId, realm);
-        this.principalConverter = new InternalAccountPrincipalConverter(SystemKeys.AUTHORITY_PASSWORD, providerId,
-                userAccountService, repositoryId,
-                realm);
+        this.accountProvider =
+            new InternalAccountProvider(
+                SystemKeys.AUTHORITY_PASSWORD,
+                providerId,
+                userAccountService,
+                repositoryId,
+                realm
+            );
+        this.principalConverter =
+            new InternalAccountPrincipalConverter(
+                SystemKeys.AUTHORITY_PASSWORD,
+                providerId,
+                userAccountService,
+                repositoryId,
+                realm
+            );
 
         // build providers
-        this.passwordService = new PasswordIdentityCredentialsService(providerId, userAccountService,
-                userPasswordService,
-                config, realm);
-        this.authenticationProvider = new PasswordAuthenticationProvider(providerId, userAccountService,
-                passwordService, config, realm);
+        this.passwordService =
+            new PasswordIdentityCredentialsService(providerId, userAccountService, userPasswordService, config, realm);
+        this.authenticationProvider =
+            new PasswordAuthenticationProvider(providerId, userAccountService, passwordService, config, realm);
 
         // always expose a valid resolver to satisfy authenticationManager at post login
         // TODO refactor to avoid fetching via resolver at this stage
@@ -127,12 +138,19 @@ public class PasswordIdentityProvider extends
     }
 
     @Override
-    protected InternalUserIdentity buildIdentity(InternalUserAccount account,
-            InternalPasswordUserAuthenticatedPrincipal principal,
-            Collection<UserAttributes> attributes) {
+    protected InternalUserIdentity buildIdentity(
+        InternalUserAccount account,
+        InternalPasswordUserAuthenticatedPrincipal principal,
+        Collection<UserAttributes> attributes
+    ) {
         // build identity
-        InternalUserIdentity identity = new InternalUserIdentity(getAuthority(), getProvider(), getRealm(), account,
-                principal);
+        InternalUserIdentity identity = new InternalUserIdentity(
+            getAuthority(),
+            getProvider(),
+            getRealm(),
+            account,
+            principal
+        );
         identity.setAttributes(attributes);
 
         // if attributes then load credentials
@@ -154,7 +172,6 @@ public class PasswordIdentityProvider extends
     public void deleteIdentity(String userId, String username) throws NoSuchUserException {
         // remove all credentials
         passwordService.deletePassword(username);
-
         // do not remove account because we are NOT authoritative
     }
 
@@ -192,7 +209,7 @@ public class PasswordIdentityProvider extends
 
         // login url is always form display
         ilp.setLoginUrl(getFormUrl());
-//        ilp.setRegistrationUrl(getRegistrationUrl());
+        //        ilp.setRegistrationUrl(getRegistrationUrl());
         ilp.setResetUrl(getResetUrl());
 
         // form action is always login action
@@ -206,5 +223,4 @@ public class PasswordIdentityProvider extends
 
         return ilp;
     }
-
 }

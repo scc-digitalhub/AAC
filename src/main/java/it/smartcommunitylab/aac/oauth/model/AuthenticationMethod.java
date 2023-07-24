@@ -1,11 +1,9 @@
 package it.smartcommunitylab.aac.oauth.model;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import org.springframework.util.Assert;
 
-import com.fasterxml.jackson.annotation.JsonValue;
-
 public enum AuthenticationMethod {
-
     /**
      * Clients that have received a client secret from the authorization server
      * authenticate with the authorization server in accordance with section 3.2.1
@@ -39,25 +37,25 @@ public enum AuthenticationMethod {
      */
     PRIVATE_KEY_JWT("private_key_jwt"),
 
-//    /**
-//     * PKI mutual TLS OAuth client authentication. See OAuth 2.0 Mutual TLS Client
-//     * Authentication and Certificate Bound Access Tokens (RFC 8705), section 2.1.
-//     */
-//    TLS_CLIENT_AUTH("tls_client_auth"),
-//
-//    /**
-//     * Self-signed certificate mutual TLS OAuth client authentication. See OAuth 2.0
-//     * Mutual TLS Client Authentication and Certificate Bound Access Tokens (RFC
-//     * 8705), section 2.2.
-//     */
-//    SELF_SIGNED_TLS_CLIENT_AUTH("self_signed_tls_client_auth"),
-//
-//    /**
-//     * Client authentication by means of a request object at the authorization or
-//     * PAR endpoints. Intended for OpenID Connect Federation 1.0 clients undertaking
-//     * automatic registration. See OpenID Connect Federation 1.0.
-//     */
-//    REQUEST_OBJECT("request_object"),
+    //    /**
+    //     * PKI mutual TLS OAuth client authentication. See OAuth 2.0 Mutual TLS Client
+    //     * Authentication and Certificate Bound Access Tokens (RFC 8705), section 2.1.
+    //     */
+    //    TLS_CLIENT_AUTH("tls_client_auth"),
+    //
+    //    /**
+    //     * Self-signed certificate mutual TLS OAuth client authentication. See OAuth 2.0
+    //     * Mutual TLS Client Authentication and Certificate Bound Access Tokens (RFC
+    //     * 8705), section 2.2.
+    //     */
+    //    SELF_SIGNED_TLS_CLIENT_AUTH("self_signed_tls_client_auth"),
+    //
+    //    /**
+    //     * Client authentication by means of a request object at the authorization or
+    //     * PAR endpoints. Intended for OpenID Connect Federation 1.0 clients undertaking
+    //     * automatic registration. See OpenID Connect Federation 1.0.
+    //     */
+    //    REQUEST_OBJECT("request_object"),
 
     /**
      * The client is a public client as defined in OAuth 2.0 and does not have a

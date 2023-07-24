@@ -1,12 +1,5 @@
 package it.smartcommunitylab.aac.webauthn.service;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import com.yubico.webauthn.CredentialRepository;
 import com.yubico.webauthn.RegisteredCredential;
 import com.yubico.webauthn.data.AuthenticatorTransport;
@@ -14,15 +7,19 @@ import com.yubico.webauthn.data.ByteArray;
 import com.yubico.webauthn.data.PublicKeyCredentialDescriptor;
 import com.yubico.webauthn.data.PublicKeyCredentialType;
 import com.yubico.webauthn.data.exception.Base64UrlException;
-
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredential;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredentialsRepository;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 public class WebAuthnYubicoCredentialsRepository implements CredentialRepository {
 
@@ -31,9 +28,11 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
 
     private final WebAuthnUserHandleService userHandleService;
 
-    public WebAuthnYubicoCredentialsRepository(String repositoryId,
-            UserAccountService<InternalUserAccount> userAccountService,
-            WebAuthnUserCredentialsRepository credentialsRepository) {
+    public WebAuthnYubicoCredentialsRepository(
+        String repositoryId,
+        UserAccountService<InternalUserAccount> userAccountService,
+        WebAuthnUserCredentialsRepository credentialsRepository
+    ) {
         Assert.hasText(repositoryId, "repository identifier is required");
         Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(credentialsRepository, "credentials repository is mandatory");
@@ -49,23 +48,26 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
     public Set<PublicKeyCredentialDescriptor> getCredentialIdsForUsername(String username) {
         // fetch all active credentials for this user
         List<WebAuthnUserCredential> credentials = credentialsRepository
-                .findByRepositoryIdAndUsername(repositoryId, username)
-                .stream()
-                .filter(c -> CredentialsStatus.ACTIVE.getValue().equals(c.getStatus()))
-                .collect(Collectors.toList());
+            .findByRepositoryIdAndUsername(repositoryId, username)
+            .stream()
+            .filter(c -> CredentialsStatus.ACTIVE.getValue().equals(c.getStatus()))
+            .collect(Collectors.toList());
 
         // build descriptors
         Set<PublicKeyCredentialDescriptor> descriptors = new HashSet<>();
         for (WebAuthnUserCredential c : credentials) {
             try {
-                Set<AuthenticatorTransport> transports = StringUtils.commaDelimitedListToSet(c.getTransports())
-                        .stream()
-                        .map(t -> AuthenticatorTransport.of(t))
-                        .collect(Collectors.toSet());
-                PublicKeyCredentialDescriptor descriptor = PublicKeyCredentialDescriptor.builder()
-                        .id(ByteArray.fromBase64Url(c.getCredentialId())).type(PublicKeyCredentialType.PUBLIC_KEY)
-                        .transports(transports)
-                        .build();
+                Set<AuthenticatorTransport> transports = StringUtils
+                    .commaDelimitedListToSet(c.getTransports())
+                    .stream()
+                    .map(t -> AuthenticatorTransport.of(t))
+                    .collect(Collectors.toSet());
+                PublicKeyCredentialDescriptor descriptor = PublicKeyCredentialDescriptor
+                    .builder()
+                    .id(ByteArray.fromBase64Url(c.getCredentialId()))
+                    .type(PublicKeyCredentialType.PUBLIC_KEY)
+                    .transports(transports)
+                    .build();
                 descriptors.add(descriptor);
             } catch (Base64UrlException e) {
                 // skip
@@ -107,7 +109,10 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
         String id = credentialId.getBase64Url();
 
         WebAuthnUserCredential credential = credentialsRepository.findByRepositoryIdAndUserHandleAndCredentialId(
-                repositoryId, new String(userHandle.getBytes()), id);
+            repositoryId,
+            new String(userHandle.getBytes()),
+            id
+        );
         if (credential == null) {
             return Optional.empty();
         }
@@ -128,27 +133,30 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
 
         // we use yubico ids as base64
         String id = credentialId.getBase64Url();
-        List<WebAuthnUserCredential> credentials = credentialsRepository.findByRepositoryIdAndCredentialId(repositoryId,
-                id);
-        return credentials.stream()
-                .map(c -> {
-                    try {
-                        return toRegisteredCredential(c);
-                    } catch (Base64UrlException e) {
-                        return null;
-                    }
-                })
-                .filter(c -> c != null)
-                .collect(Collectors.toSet());
-
+        List<WebAuthnUserCredential> credentials = credentialsRepository.findByRepositoryIdAndCredentialId(
+            repositoryId,
+            id
+        );
+        return credentials
+            .stream()
+            .map(c -> {
+                try {
+                    return toRegisteredCredential(c);
+                } catch (Base64UrlException e) {
+                    return null;
+                }
+            })
+            .filter(c -> c != null)
+            .collect(Collectors.toSet());
     }
 
     private RegisteredCredential toRegisteredCredential(WebAuthnUserCredential credential) throws Base64UrlException {
-        return RegisteredCredential.builder()
-                .credentialId(ByteArray.fromBase64Url(credential.getCredentialId()))
-                .userHandle(new ByteArray(credential.getUserHandle().getBytes()))
-                .publicKeyCose(ByteArray.fromBase64(credential.getPublicKeyCose()))
-                .signatureCount(credential.getSignatureCount())
-                .build();
+        return RegisteredCredential
+            .builder()
+            .credentialId(ByteArray.fromBase64Url(credential.getCredentialId()))
+            .userHandle(new ByteArray(credential.getUserHandle().getBytes()))
+            .publicKeyCose(ByteArray.fromBase64(credential.getPublicKeyCose()))
+            .signatureCount(credential.getSignatureCount())
+            .build();
     }
 }

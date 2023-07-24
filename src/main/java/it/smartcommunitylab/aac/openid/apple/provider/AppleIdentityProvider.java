@@ -1,12 +1,5 @@
 package it.smartcommunitylab.aac.openid.apple.provider;
 
-import java.util.Collection;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.store.AttributeStore;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
@@ -24,10 +17,14 @@ import it.smartcommunitylab.aac.openid.provider.OIDCAttributeProvider;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
 import it.smartcommunitylab.aac.openid.provider.OIDCLoginProvider;
 import it.smartcommunitylab.aac.openid.provider.OIDCSubjectResolver;
+import java.util.Collection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 public class AppleIdentityProvider
-        extends
-        AbstractIdentityProvider<OIDCUserIdentity, OIDCUserAccount, OIDCUserAuthenticatedPrincipal, AppleIdentityProviderConfigMap, AppleIdentityProviderConfig> {
+    extends AbstractIdentityProvider<OIDCUserIdentity, OIDCUserAccount, OIDCUserAuthenticatedPrincipal, AppleIdentityProviderConfigMap, AppleIdentityProviderConfig> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -39,38 +36,46 @@ public class AppleIdentityProvider
     private final OIDCSubjectResolver subjectResolver;
 
     public AppleIdentityProvider(
-            String providerId,
-            UserAccountService<OIDCUserAccount> userAccountService,
-            AppleIdentityProviderConfig config,
-            String realm) {
+        String providerId,
+        UserAccountService<OIDCUserAccount> userAccountService,
+        AppleIdentityProviderConfig config,
+        String realm
+    ) {
         super(SystemKeys.AUTHORITY_APPLE, providerId, config, realm);
-
         logger.debug("create apple provider  with id {}", String.valueOf(providerId));
 
         // build resource providers, we use our providerId to ensure consistency
         AppleAccountServiceConfigConverter configConverter = new AppleAccountServiceConfigConverter();
-        this.accountService = new AppleAccountService(providerId, userAccountService, configConverter.convert(config),
-                realm);
+        this.accountService =
+            new AppleAccountService(providerId, userAccountService, configConverter.convert(config), realm);
 
-        this.principalConverter = new OIDCAccountPrincipalConverter(SystemKeys.AUTHORITY_APPLE, providerId,
-                userAccountService, realm);
+        this.principalConverter =
+            new OIDCAccountPrincipalConverter(SystemKeys.AUTHORITY_APPLE, providerId, userAccountService, realm);
         this.principalConverter.setTrustEmailAddress(config.trustEmailAddress());
 
         this.attributeProvider = new OIDCAttributeProvider(SystemKeys.AUTHORITY_APPLE, providerId, realm);
-        this.subjectResolver = new OIDCSubjectResolver(SystemKeys.AUTHORITY_APPLE, providerId, userAccountService,
-                config.getRepositoryId(), realm);
+        this.subjectResolver =
+            new OIDCSubjectResolver(
+                SystemKeys.AUTHORITY_APPLE,
+                providerId,
+                userAccountService,
+                config.getRepositoryId(),
+                realm
+            );
         this.subjectResolver.setLinkable(config.isLinkable());
 
         // build custom authenticator
         this.authenticationProvider = new AppleAuthenticationProvider(providerId, userAccountService, config, realm);
 
         // function hooks from config
-        if (config.getHookFunctions() != null
-                && StringUtils.hasText(config.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION))) {
-            this.authenticationProvider
-                    .setCustomMappingFunction(config.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION));
+        if (
+            config.getHookFunctions() != null &&
+            StringUtils.hasText(config.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION))
+        ) {
+            this.authenticationProvider.setCustomMappingFunction(
+                    config.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION)
+                );
         }
-
     }
 
     public void setExecutionService(ScriptExecutionService executionService) {
@@ -112,11 +117,13 @@ public class AppleIdentityProvider
     }
 
     @Override
-    protected OIDCUserIdentity buildIdentity(OIDCUserAccount account, OIDCUserAuthenticatedPrincipal principal,
-            Collection<UserAttributes> attributes) {
+    protected OIDCUserIdentity buildIdentity(
+        OIDCUserAccount account,
+        OIDCUserAuthenticatedPrincipal principal,
+        Collection<UserAttributes> attributes
+    ) {
         // build identity
-        OIDCUserIdentity identity = new OIDCUserIdentity(getAuthority(), getProvider(), getRealm(), account,
-                principal);
+        OIDCUserIdentity identity = new OIDCUserIdentity(getAuthority(), getProvider(), getRealm(), account, principal);
         identity.setAttributes(attributes);
 
         return identity;
@@ -146,5 +153,4 @@ public class AppleIdentityProvider
 
         return lp;
     }
-
 }

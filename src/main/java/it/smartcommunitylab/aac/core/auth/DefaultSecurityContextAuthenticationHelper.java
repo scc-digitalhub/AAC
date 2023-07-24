@@ -1,17 +1,15 @@
 package it.smartcommunitylab.aac.core.auth;
 
+import it.smartcommunitylab.aac.core.AuthenticationHelper;
+import it.smartcommunitylab.aac.core.ClientDetails;
+import it.smartcommunitylab.aac.core.UserDetails;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.provider.SecurityContextAccessor;
-
-import it.smartcommunitylab.aac.core.AuthenticationHelper;
-import it.smartcommunitylab.aac.core.ClientDetails;
-import it.smartcommunitylab.aac.core.UserDetails;
 
 public class DefaultSecurityContextAuthenticationHelper implements AuthenticationHelper, SecurityContextAccessor {
 
@@ -45,7 +43,6 @@ public class DefaultSecurityContextAuthenticationHelper implements Authenticatio
         } else {
             return null;
         }
-
     }
 
     @Override
@@ -71,7 +68,6 @@ public class DefaultSecurityContextAuthenticationHelper implements Authenticatio
     @Override
     public boolean isClientAuthentication() {
         return (getUserAuthentication() != null);
-
     }
 
     @Override
@@ -84,7 +80,6 @@ public class DefaultSecurityContextAuthenticationHelper implements Authenticatio
         } else {
             return null;
         }
-
     }
 
     @Override
@@ -109,5 +104,4 @@ public class DefaultSecurityContextAuthenticationHelper implements Authenticatio
         }
         return Collections.unmodifiableSet(new HashSet<GrantedAuthority>(authentication.getAuthorities()));
     }
-
 }

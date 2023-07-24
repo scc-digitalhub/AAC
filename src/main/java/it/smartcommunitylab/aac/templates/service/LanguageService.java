@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
 import java.util.TreeSet;
-
 import org.springframework.stereotype.Service;
 
 @Service
@@ -22,5 +21,4 @@ public class LanguageService {
     public Set<String> getLanguages() {
         return languages;
     }
-
 }

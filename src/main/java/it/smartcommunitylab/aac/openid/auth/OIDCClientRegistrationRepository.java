@@ -1,11 +1,10 @@
 package it.smartcommunitylab.aac.openid.auth;
 
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.util.Assert;
-
-import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
 
 public class OIDCClientRegistrationRepository implements ClientRegistrationRepository {
 
@@ -13,7 +12,8 @@ public class OIDCClientRegistrationRepository implements ClientRegistrationRepos
     private final ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository;
 
     public OIDCClientRegistrationRepository(
-            ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository) {
+        ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository
+    ) {
         Assert.notNull(registrationRepository, "provider registration repository can not be null");
         this.registrationRepository = registrationRepository;
     }
@@ -36,5 +36,4 @@ public class OIDCClientRegistrationRepository implements ClientRegistrationRepos
         // TODO registrationId loading cache
         return providerConfig.getClientRegistration();
     }
-
 }

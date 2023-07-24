@@ -1,10 +1,5 @@
 package it.smartcommunitylab.aac.internal;
 
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractSingleProviderIdentityAuthority;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
@@ -15,14 +10,18 @@ import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityFilterProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
-import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigurationProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigurationProvider;
 import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 @Service
-public class InternalIdentityProviderAuthority extends
-        AbstractSingleProviderIdentityAuthority<InternalIdentityProvider, InternalUserIdentity, InternalIdentityProviderConfigMap, InternalIdentityProviderConfig>
-        implements InitializingBean {
+public class InternalIdentityProviderAuthority
+    extends AbstractSingleProviderIdentityAuthority<InternalIdentityProvider, InternalUserIdentity, InternalIdentityProviderConfigMap, InternalIdentityProviderConfig>
+    implements InitializingBean {
 
     public static final String AUTHORITY_URL = "/auth/internal/";
 
@@ -36,10 +35,11 @@ public class InternalIdentityProviderAuthority extends
     //resource service for accounts
     private ResourceEntityService resourceService;
 
-
     public InternalIdentityProviderAuthority(
-            UserAccountService<InternalUserAccount> userAccountService, InternalUserConfirmKeyService confirmKeyService,
-            ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository) {
+        UserAccountService<InternalUserAccount> userAccountService,
+        InternalUserConfirmKeyService confirmKeyService,
+        ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository
+    ) {
         super(SystemKeys.AUTHORITY_INTERNAL, registrationRepository);
         Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(confirmKeyService, "confirm key service is mandatory");
@@ -49,8 +49,8 @@ public class InternalIdentityProviderAuthority extends
         this.confirmKeyService = confirmKeyService;
 
         // build filter provider
-        this.filterProvider = new InternalIdentityFilterProvider(userAccountService, confirmKeyService,
-                registrationRepository);
+        this.filterProvider =
+            new InternalIdentityFilterProvider(userAccountService, confirmKeyService, registrationRepository);
     }
 
     @Autowired
@@ -63,13 +63,16 @@ public class InternalIdentityProviderAuthority extends
     public void setResourceService(ResourceEntityService resourceService) {
         this.resourceService = resourceService;
     }
-    
+
     @Override
     protected InternalIdentityProvider buildProvider(InternalIdentityProviderConfig config) {
         InternalIdentityProvider idp = new InternalIdentityProvider(
-                config.getProvider(),
-                accountService, confirmKeyService,
-                config, config.getRealm());
+            config.getProvider(),
+            accountService,
+            confirmKeyService,
+            config,
+            config.getRealm()
+        );
 
         idp.setResourceService(resourceService);
         return idp;
@@ -85,5 +88,4 @@ public class InternalIdentityProviderAuthority extends
         super.afterPropertiesSet();
         Assert.notNull(getConfigurationProvider(), "config provider is mandatory");
     }
-
 }

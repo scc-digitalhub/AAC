@@ -1,7 +1,16 @@
 package it.smartcommunitylab.aac.oauth.token;
 
+import it.smartcommunitylab.aac.common.InvalidDefinitionException;
+import it.smartcommunitylab.aac.common.NoSuchClientException;
+import it.smartcommunitylab.aac.common.NoSuchScopeException;
+import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.core.service.ClientDetailsService;
+import it.smartcommunitylab.aac.model.ScopeType;
+import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
+import it.smartcommunitylab.aac.scope.Scope;
+import it.smartcommunitylab.aac.scope.ScopeApprover;
 import java.util.Set;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
@@ -13,17 +22,6 @@ import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 
-import it.smartcommunitylab.aac.common.InvalidDefinitionException;
-import it.smartcommunitylab.aac.common.NoSuchClientException;
-import it.smartcommunitylab.aac.common.NoSuchScopeException;
-import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.core.service.ClientDetailsService;
-import it.smartcommunitylab.aac.model.ScopeType;
-import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
-import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
-import it.smartcommunitylab.aac.scope.Scope;
-import it.smartcommunitylab.aac.scope.ScopeApprover;
-
 public class ClientCredentialsTokenGranter extends AbstractTokenGranter {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -33,13 +31,20 @@ public class ClientCredentialsTokenGranter extends AbstractTokenGranter {
 
     private ClientDetailsService clientService;
 
-    public ClientCredentialsTokenGranter(AuthorizationServerTokenServices tokenServices,
-            OAuth2ClientDetailsService clientDetailsService, OAuth2RequestFactory requestFactory) {
+    public ClientCredentialsTokenGranter(
+        AuthorizationServerTokenServices tokenServices,
+        OAuth2ClientDetailsService clientDetailsService,
+        OAuth2RequestFactory requestFactory
+    ) {
         this(tokenServices, clientDetailsService, requestFactory, GRANT_TYPE);
     }
 
-    protected ClientCredentialsTokenGranter(AuthorizationServerTokenServices tokenServices,
-            OAuth2ClientDetailsService clientDetailsService, OAuth2RequestFactory requestFactory, String grantType) {
+    protected ClientCredentialsTokenGranter(
+        AuthorizationServerTokenServices tokenServices,
+        OAuth2ClientDetailsService clientDetailsService,
+        OAuth2RequestFactory requestFactory,
+        String grantType
+    ) {
         super(tokenServices, clientDetailsService, requestFactory, grantType);
     }
 
@@ -52,8 +57,12 @@ public class ClientCredentialsTokenGranter extends AbstractTokenGranter {
         OAuth2AccessToken token = super.grant(grantType, tokenRequest);
 
         if (token != null) {
-            logger.trace("grant access token for client " + tokenRequest.getClientId() + " request "
-                    + tokenRequest.getRequestParameters().toString());
+            logger.trace(
+                "grant access token for client " +
+                tokenRequest.getClientId() +
+                " request " +
+                tokenRequest.getRequestParameters().toString()
+            );
 
             if (!allowRefresh) {
                 AACOAuth2AccessToken norefresh = new AACOAuth2AccessToken(token);
@@ -98,7 +107,6 @@ public class ClientCredentialsTokenGranter extends AbstractTokenGranter {
                         throw new InvalidScopeException("Unauthorized scope: " + s);
                     }
                 }
-
             } catch (NoSuchClientException e1) {
                 throw new InvalidClientException("Invalid client");
             }
@@ -108,5 +116,4 @@ public class ClientCredentialsTokenGranter extends AbstractTokenGranter {
     public void setClientService(ClientDetailsService clientService) {
         this.clientService = clientService;
     }
-
 }

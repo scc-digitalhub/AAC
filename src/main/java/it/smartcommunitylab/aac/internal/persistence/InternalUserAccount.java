@@ -1,9 +1,12 @@
 package it.smartcommunitylab.aac.internal.persistence;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.base.AbstractAccount;
+import it.smartcommunitylab.aac.model.SubjectStatus;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
@@ -13,17 +16,11 @@ import javax.persistence.Table;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.util.StringUtils;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractAccount;
-import it.smartcommunitylab.aac.model.SubjectStatus;
 
 @Entity
 @IdClass(InternalUserAccountId.class)
@@ -31,9 +28,10 @@ import it.smartcommunitylab.aac.model.SubjectStatus;
 @EntityListeners(AuditingEntityListener.class)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class InternalUserAccount extends AbstractAccount implements CredentialsContainer {
+
     private static final long serialVersionUID = SystemKeys.AAC_INTERNAL_SERIAL_VERSION;
-    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_ACCOUNT + SystemKeys.ID_SEPARATOR
-            + SystemKeys.AUTHORITY_INTERNAL;
+    public static final String RESOURCE_TYPE =
+        SystemKeys.RESOURCE_ACCOUNT + SystemKeys.ID_SEPARATOR + SystemKeys.AUTHORITY_INTERNAL;
 
     // account id
     @Id
@@ -67,6 +65,7 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
     // attributes
     @Email
     private String email;
+
     private String name;
     private String surname;
 
@@ -75,6 +74,7 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
 
     // registration
     private boolean confirmed;
+
     @Column(name = "confirmation_deadline")
     private Date confirmationDeadline;
 
@@ -273,10 +273,34 @@ public class InternalUserAccount extends AbstractAccount implements CredentialsC
 
     @Override
     public String toString() {
-        return "InternalUserAccount [repositoryId=" + repositoryId + ", username=" + username + ", uuid=" + uuid
-                + ", userId=" + userId + ", realm=" + realm + ", status=" + status
-                + ", email=" + email + ", name=" + name + ", surname=" + surname + ", lang=" + lang + ", confirmed="
-                + confirmed + ", createDate=" + createDate + ", modifiedDate=" + modifiedDate + "]";
+        return (
+            "InternalUserAccount [repositoryId=" +
+            repositoryId +
+            ", username=" +
+            username +
+            ", uuid=" +
+            uuid +
+            ", userId=" +
+            userId +
+            ", realm=" +
+            realm +
+            ", status=" +
+            status +
+            ", email=" +
+            email +
+            ", name=" +
+            name +
+            ", surname=" +
+            surname +
+            ", lang=" +
+            lang +
+            ", confirmed=" +
+            confirmed +
+            ", createDate=" +
+            createDate +
+            ", modifiedDate=" +
+            modifiedDate +
+            "]"
+        );
     }
-
 }

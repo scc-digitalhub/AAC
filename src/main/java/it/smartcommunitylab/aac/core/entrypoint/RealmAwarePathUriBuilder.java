@@ -1,15 +1,14 @@
 package it.smartcommunitylab.aac.core.entrypoint;
 
 import java.net.URI;
-
 import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 public class RealmAwarePathUriBuilder implements RealmAwareUriBuilder {
+
     public static final String REALM_URI_PATH_SEPARATOR = "-";
 
     private final String baseUrl;
@@ -37,7 +36,6 @@ public class RealmAwarePathUriBuilder implements RealmAwareUriBuilder {
     }
 
     public UriComponents buildUri(String realm, String path) {
-
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(baseUrl);
         if (StringUtils.hasText(realm) && isRealmPath(path)) {
             builder.pathSegment(REALM_URI_PATH_SEPARATOR, realm);
@@ -55,5 +53,4 @@ public class RealmAwarePathUriBuilder implements RealmAwareUriBuilder {
     public boolean isRealmPath(String path) {
         return true;
     }
-
 }

@@ -1,11 +1,10 @@
 package it.smartcommunitylab.aac.core.model;
 
 /*
- * A realm scoped resource, provided by an authority 
+ * A realm scoped resource, provided by an authority
  */
 
 public interface Resource {
-
     public String getRealm();
 
     public String getAuthority();
@@ -21,7 +20,7 @@ public interface Resource {
     // resourceId is local to (type)/authority+provider
     public String getResourceId();
 
-    default public String getUrn() {
+    public default String getUrn() {
         return null;
     }
 }

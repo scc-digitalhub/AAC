@@ -1,15 +1,13 @@
 package it.smartcommunitylab.aac.core.base;
 
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.model.Attribute;
+import it.smartcommunitylab.aac.core.model.AttributeSet;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.springframework.util.Assert;
-
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.model.Attribute;
-import it.smartcommunitylab.aac.core.model.AttributeSet;
 
 /*
  * Default User Attributes is an instantiable bean which contains attributes bound to a user
@@ -28,8 +26,12 @@ public class DefaultUserAttributesImpl extends AbstractAttributes {
     private String description;
 
     public DefaultUserAttributesImpl(
-            String authority, String provider, String realm, String userId,
-            String identifier) {
+        String authority,
+        String provider,
+        String realm,
+        String userId,
+        String identifier
+    ) {
         super(authority, provider);
         Assert.hasText(identifier, "set identifier can not be null");
 
@@ -41,8 +43,12 @@ public class DefaultUserAttributesImpl extends AbstractAttributes {
     }
 
     public DefaultUserAttributesImpl(
-            String authority, String provider, String realm, String userId,
-            AttributeSet attributeSet) {
+        String authority,
+        String provider,
+        String realm,
+        String userId,
+        AttributeSet attributeSet
+    ) {
         super(authority, provider);
         Assert.notNull(attributeSet, "attribute set can not be null");
         Assert.hasText(attributeSet.getIdentifier(), "set identifier can not be null");
@@ -123,5 +129,4 @@ public class DefaultUserAttributesImpl extends AbstractAttributes {
     public void setUuid(String uuid) {
         this.uuid = uuid;
     }
-
 }

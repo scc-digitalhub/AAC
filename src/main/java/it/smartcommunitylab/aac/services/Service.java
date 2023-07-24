@@ -1,26 +1,22 @@
 package it.smartcommunitylab.aac.services;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import it.smartcommunitylab.aac.SystemKeys;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
-
 import org.springframework.util.StringUtils;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
-import it.smartcommunitylab.aac.SystemKeys;
 
 /*
  * A service defines an api composed of a namespace (used as audience)
@@ -120,21 +116,36 @@ public class Service {
         if (claimMapping == null) {
             return null;
         }
-        return claimMapping.entrySet().stream()
-                .filter(e -> StringUtils.hasText(e.getValue()))
-                .collect(Collectors.toMap(e -> e.getKey(), e -> {
-                    return Base64.getEncoder().encodeToString(e.getValue().getBytes());
-                }));
+        return claimMapping
+            .entrySet()
+            .stream()
+            .filter(e -> StringUtils.hasText(e.getValue()))
+            .collect(
+                Collectors.toMap(
+                    e -> e.getKey(),
+                    e -> {
+                        return Base64.getEncoder().encodeToString(e.getValue().getBytes());
+                    }
+                )
+            );
     }
 
     @JsonProperty("claimMapping")
     public void setClaimMappingBase64(Map<String, String> claimMapping) {
         if (claimMapping != null) {
-            this.claimMapping = claimMapping.entrySet().stream()
+            this.claimMapping =
+                claimMapping
+                    .entrySet()
+                    .stream()
                     .filter(e -> StringUtils.hasText(e.getValue()))
-                    .collect(Collectors.toMap(e -> e.getKey(), e -> {
-                        return new String(Base64.getDecoder().decode(e.getValue().getBytes()));
-                    }));
+                    .collect(
+                        Collectors.toMap(
+                            e -> e.getKey(),
+                            e -> {
+                                return new String(Base64.getDecoder().decode(e.getValue().getBytes()));
+                            }
+                        )
+                    );
         }
     }
 

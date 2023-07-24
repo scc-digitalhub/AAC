@@ -1,18 +1,15 @@
 package it.smartcommunitylab.aac.webauthn.auth;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.yubico.webauthn.AssertionRequest;
+import com.yubico.webauthn.AssertionResult;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import java.util.Collection;
-
 import org.springframework.data.util.Pair;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.Assert;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.yubico.webauthn.AssertionRequest;
-import com.yubico.webauthn.AssertionResult;
-
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 
 public class WebAuthnAuthenticationToken extends AbstractAuthenticationToken {
 
@@ -42,8 +39,12 @@ public class WebAuthnAuthenticationToken extends AbstractAuthenticationToken {
         setAuthenticated(false);
     }
 
-    public WebAuthnAuthenticationToken(String userHandle, AssertionRequest assertionRequest, String assertion,
-            AssertionResult assertionResult) {
+    public WebAuthnAuthenticationToken(
+        String userHandle,
+        AssertionRequest assertionRequest,
+        String assertion,
+        AssertionResult assertionResult
+    ) {
         super(null);
         this.userHandle = userHandle;
         this.assertionRequest = assertionRequest;
@@ -52,9 +53,13 @@ public class WebAuthnAuthenticationToken extends AbstractAuthenticationToken {
         setAuthenticated(false);
     }
 
-    public WebAuthnAuthenticationToken(String userHandle, AssertionRequest assertionRequest, String assertion,
-            AssertionResult assertionResult,
-            Collection<? extends GrantedAuthority> authorities) {
+    public WebAuthnAuthenticationToken(
+        String userHandle,
+        AssertionRequest assertionRequest,
+        String assertion,
+        AssertionResult assertionResult,
+        Collection<? extends GrantedAuthority> authorities
+    ) {
         super(authorities);
         this.userHandle = userHandle;
         this.assertionRequest = assertionRequest;
@@ -63,9 +68,14 @@ public class WebAuthnAuthenticationToken extends AbstractAuthenticationToken {
         super.setAuthenticated(true);
     }
 
-    public WebAuthnAuthenticationToken(String userHandle, AssertionRequest assertionRequest, String assertion,
-            AssertionResult assertionResult, InternalUserAccount account,
-            Collection<? extends GrantedAuthority> authorities) {
+    public WebAuthnAuthenticationToken(
+        String userHandle,
+        AssertionRequest assertionRequest,
+        String assertion,
+        AssertionResult assertionResult,
+        InternalUserAccount account,
+        Collection<? extends GrantedAuthority> authorities
+    ) {
         super(authorities);
         this.userHandle = userHandle;
         this.assertionRequest = assertionRequest;
@@ -118,8 +128,10 @@ public class WebAuthnAuthenticationToken extends AbstractAuthenticationToken {
 
     @Override
     public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
-        Assert.isTrue(!isAuthenticated,
-                "Cannot set this token to trusted - use constructor which takes a GrantedAuthority list instead");
+        Assert.isTrue(
+            !isAuthenticated,
+            "Cannot set this token to trusted - use constructor which takes a GrantedAuthority list instead"
+        );
         super.setAuthenticated(false);
     }
 
@@ -131,6 +143,5 @@ public class WebAuthnAuthenticationToken extends AbstractAuthenticationToken {
         if (this.account != null) {
             this.account.eraseCredentials();
         }
-
     }
 }

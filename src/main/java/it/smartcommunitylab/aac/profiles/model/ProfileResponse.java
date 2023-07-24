@@ -1,15 +1,14 @@
 package it.smartcommunitylab.aac.profiles.model;
 
-import java.util.Collection;
-
-import org.springframework.util.Assert;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import java.util.Collection;
+import org.springframework.util.Assert;
 
 @JsonInclude(Include.NON_EMPTY)
 public class ProfileResponse {
+
     private String subject;
     private String realm;
 
@@ -77,7 +76,5 @@ public class ProfileResponse {
         } else {
             this.profiles = profiles;
         }
-
     }
-
 }

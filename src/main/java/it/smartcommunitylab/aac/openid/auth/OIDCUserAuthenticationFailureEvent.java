@@ -1,11 +1,10 @@
 package it.smartcommunitylab.aac.openid.auth;
 
-import java.io.Serializable;
-import java.util.Map;
-
-import org.springframework.security.core.Authentication;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.audit.UserAuthenticationFailureEvent;
+import java.io.Serializable;
+import java.util.Map;
+import org.springframework.security.core.Authentication;
 
 public class OIDCUserAuthenticationFailureEvent extends UserAuthenticationFailureEvent {
 
@@ -14,10 +13,13 @@ public class OIDCUserAuthenticationFailureEvent extends UserAuthenticationFailur
     // TODO evaluate adding fields for error and message
 
     public OIDCUserAuthenticationFailureEvent(
-            String authority, String provider, String realm,
-            Authentication authentication, OIDCAuthenticationException exception) {
+        String authority,
+        String provider,
+        String realm,
+        Authentication authentication,
+        OIDCAuthenticationException exception
+    ) {
         super(authority, provider, realm, null, authentication, exception);
-
     }
 
     @Override
@@ -34,5 +36,4 @@ public class OIDCUserAuthenticationFailureEvent extends UserAuthenticationFailur
 
         return data;
     }
-
 }

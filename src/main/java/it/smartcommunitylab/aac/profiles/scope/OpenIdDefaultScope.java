@@ -21,5 +21,4 @@ public class OpenIdDefaultScope extends AbstractProfileScope {
     public String getDescription() {
         return "Basic user profile data (name, surname, email). Read access only.";
     }
-
 }

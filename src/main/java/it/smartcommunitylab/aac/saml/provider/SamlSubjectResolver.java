@@ -1,18 +1,19 @@
 package it.smartcommunitylab.aac.saml.provider;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 @Transactional
 public class SamlSubjectResolver extends AbstractProvider<SamlUserAccount> implements SubjectResolver<SamlUserAccount> {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final UserAccountService<SamlUserAccount> accountService;
@@ -20,17 +21,22 @@ public class SamlSubjectResolver extends AbstractProvider<SamlUserAccount> imple
 
     private final String repositoryId;
 
-    public SamlSubjectResolver(String providerId, UserAccountService<SamlUserAccount> userAccountService,
-            SamlIdentityProviderConfig config,
-            String realm) {
+    public SamlSubjectResolver(
+        String providerId,
+        UserAccountService<SamlUserAccount> userAccountService,
+        SamlIdentityProviderConfig config,
+        String realm
+    ) {
         this(SystemKeys.AUTHORITY_SAML, providerId, userAccountService, config, realm);
-
     }
 
-    public SamlSubjectResolver(String authority, String providerId,
-            UserAccountService<SamlUserAccount> userAccountService,
-            SamlIdentityProviderConfig config,
-            String realm) {
+    public SamlSubjectResolver(
+        String authority,
+        String providerId,
+        UserAccountService<SamlUserAccount> userAccountService,
+        SamlIdentityProviderConfig config,
+        String realm
+    ) {
         super(authority, providerId, realm);
         Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(config, "provider config is mandatory");
@@ -81,9 +87,11 @@ public class SamlSubjectResolver extends AbstractProvider<SamlUserAccount> imple
     @Transactional(readOnly = true)
     public Subject resolveByUsername(String username) {
         logger.debug("resolve by username {}", String.valueOf(username));
-        SamlUserAccount account = accountService.findAccountByUsername(repositoryId, username).stream()
-                .findFirst()
-                .orElse(null);
+        SamlUserAccount account = accountService
+            .findAccountByUsername(repositoryId, username)
+            .stream()
+            .findFirst()
+            .orElse(null);
         if (account == null) {
             return null;
         }
@@ -100,10 +108,12 @@ public class SamlSubjectResolver extends AbstractProvider<SamlUserAccount> imple
         }
 
         logger.debug("resolve by email {}", String.valueOf(email));
-        SamlUserAccount account = accountService.findAccountByEmail(repositoryId, email).stream()
-                .filter(a -> a.isEmailVerified())
-                .findFirst()
-                .orElse(null);
+        SamlUserAccount account = accountService
+            .findAccountByEmail(repositoryId, email)
+            .stream()
+            .filter(a -> a.isEmailVerified())
+            .findFirst()
+            .orElse(null);
         if (account == null) {
             return null;
         }
@@ -111,5 +121,4 @@ public class SamlSubjectResolver extends AbstractProvider<SamlUserAccount> imple
         // build subject with username
         return new Subject(account.getUserId(), getRealm(), account.getUsername(), SystemKeys.RESOURCE_USER);
     }
-
 }

@@ -5,12 +5,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import org.springframework.util.Assert;
-
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.util.Assert;
 
 public class InMemoryAttributeStore implements AttributeStore {
 
@@ -67,7 +65,6 @@ public class InMemoryAttributeStore implements AttributeStore {
         }
 
         this.attributes.get(entityId).put(key, value);
-
     }
 
     @Override
@@ -81,7 +78,6 @@ public class InMemoryAttributeStore implements AttributeStore {
         }
 
         this.attributes.get(entityId).put(key, value);
-
     }
 
     @Override
@@ -97,5 +93,4 @@ public class InMemoryAttributeStore implements AttributeStore {
             this.attributes.remove(entityId);
         }
     }
-
 }

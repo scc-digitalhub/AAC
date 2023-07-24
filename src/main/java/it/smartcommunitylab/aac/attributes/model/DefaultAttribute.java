@@ -1,19 +1,16 @@
 package it.smartcommunitylab.aac.attributes.model;
 
-import java.io.Serializable;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.Attribute;
 import it.smartcommunitylab.aac.model.AttributeType;
+import java.io.Serializable;
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 @Valid
 @JsonInclude(Include.NON_NULL)
@@ -27,6 +24,7 @@ public class DefaultAttribute implements Attribute, Serializable {
 
     @NotNull
     private AttributeType type;
+
     private String name;
     private String description;
 

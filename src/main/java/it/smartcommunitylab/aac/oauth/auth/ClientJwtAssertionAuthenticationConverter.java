@@ -1,9 +1,7 @@
 package it.smartcommunitylab.aac.oauth.auth;
 
 import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
@@ -11,19 +9,21 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.util.StringUtils;
 
 public class ClientJwtAssertionAuthenticationConverter extends OAuth2ClientAuthenticationConverter {
+
     public static final String JWT_ASSERTION_TYPE = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
 
     @Override
     public OAuth2ClientJwtAssertionAuthenticationToken attemptConvert(HttpServletRequest request) {
-
         // fetch and validate parameters
         // NOTE: we always require clientId, but spec says it's OPTIONAL
         // TODO handle extraction from JWT
         // TODO evaluate security risks
         Map<String, String[]> parameters = request.getParameterMap();
-        if (!parameters.containsKey(OAuth2ParameterNames.CLIENT_ID)
-                || !parameters.containsKey(OAuth2ParameterNames.CLIENT_ASSERTION_TYPE)
-                || !parameters.containsKey(OAuth2ParameterNames.CLIENT_ASSERTION)) {
+        if (
+            !parameters.containsKey(OAuth2ParameterNames.CLIENT_ID) ||
+            !parameters.containsKey(OAuth2ParameterNames.CLIENT_ASSERTION_TYPE) ||
+            !parameters.containsKey(OAuth2ParameterNames.CLIENT_ASSERTION)
+        ) {
             // not a valid request
             return null;
         }
@@ -34,8 +34,10 @@ public class ClientJwtAssertionAuthenticationConverter extends OAuth2ClientAuthe
         }
 
         // make sure we get exactly 1 value per parameter
-        if (parameters.get(OAuth2ParameterNames.CLIENT_ID).length != 1
-                || parameters.get(OAuth2ParameterNames.CLIENT_ASSERTION).length != 1) {
+        if (
+            parameters.get(OAuth2ParameterNames.CLIENT_ID).length != 1 ||
+            parameters.get(OAuth2ParameterNames.CLIENT_ASSERTION).length != 1
+        ) {
             // throw oauth2 exception
             throw new OAuth2AuthenticationException(OAuth2ErrorCodes.INVALID_REQUEST);
         }
@@ -54,9 +56,6 @@ public class ClientJwtAssertionAuthenticationConverter extends OAuth2ClientAuthe
         }
 
         // return our authRequest
-        return new OAuth2ClientJwtAssertionAuthenticationToken(clientId, clientAssertion,
-                authenticationMethod);
-
+        return new OAuth2ClientJwtAssertionAuthenticationToken(clientId, clientAssertion, authenticationMethod);
     }
-
 }

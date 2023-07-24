@@ -1,5 +1,3 @@
 package it.smartcommunitylab.aac.webauthn.model;
 
-public class WebAuthnAuthenticationRequest {
-
-}
+public class WebAuthnAuthenticationRequest {}

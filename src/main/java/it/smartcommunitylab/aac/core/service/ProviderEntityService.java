@@ -1,14 +1,12 @@
 package it.smartcommunitylab.aac.core.service;
 
+import it.smartcommunitylab.aac.common.NoSuchProviderException;
+import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
-import it.smartcommunitylab.aac.common.NoSuchProviderException;
-import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
-
 public interface ProviderEntityService<P extends ProviderEntity> {
-
     public List<P> listProviders();
 
     public List<P> listProvidersByAuthority(String authority);

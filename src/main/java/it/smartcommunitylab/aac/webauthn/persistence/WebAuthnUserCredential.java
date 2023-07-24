@@ -1,5 +1,10 @@
 package it.smartcommunitylab.aac.webauthn.persistence;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.base.AbstractUserCredentials;
+import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
 import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -12,27 +17,24 @@ import javax.persistence.TemporalType;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractUserCredentials;
-import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
 
 @Entity
-@Table(name = "internal_users_webauthn_credentials", uniqueConstraints = {
+@Table(
+    name = "internal_users_webauthn_credentials",
+    uniqueConstraints = {
         @UniqueConstraint(columnNames = { "repository_id", "user_handle", "credential_id" }),
         @UniqueConstraint(columnNames = { "repository_id", "username", "user_handle" }),
-})
+    }
+)
 @EntityListeners(AuditingEntityListener.class)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class WebAuthnUserCredential extends AbstractUserCredentials {
+
     private static final long serialVersionUID = SystemKeys.AAC_WEBAUTHN_SERIAL_VERSION;
-    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_CREDENTIALS + SystemKeys.ID_SEPARATOR
-            + SystemKeys.AUTHORITY_WEBAUTHN;
+    public static final String RESOURCE_TYPE =
+        SystemKeys.RESOURCE_CREDENTIALS + SystemKeys.ID_SEPARATOR + SystemKeys.AUTHORITY_WEBAUTHN;
 
     // id is internal
     // unique uuid
@@ -308,9 +310,26 @@ public class WebAuthnUserCredential extends AbstractUserCredentials {
 
     @Override
     public String toString() {
-        return "WebAuthnUserCredential [id=" + id + ", repositoryId=" + repositoryId + ", username=" + username
-                + ", userHandle=" + userHandle + ", displayName=" + displayName + ", credentialId=" + credentialId
-                + ", status=" + status + ", createDate=" + createDate + ", lastUsedDate=" + lastUsedDate + "]";
+        return (
+            "WebAuthnUserCredential [id=" +
+            id +
+            ", repositoryId=" +
+            repositoryId +
+            ", username=" +
+            username +
+            ", userHandle=" +
+            userHandle +
+            ", displayName=" +
+            displayName +
+            ", credentialId=" +
+            credentialId +
+            ", status=" +
+            status +
+            ", createDate=" +
+            createDate +
+            ", lastUsedDate=" +
+            lastUsedDate +
+            "]"
+        );
     }
-
 }

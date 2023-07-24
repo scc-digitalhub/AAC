@@ -7,16 +7,9 @@ import java.util.TreeSet;
 
 public class SamlKeys {
 
-    static final String[] SAML_ATTRIBUTES_VALUES = {
-            "subject", "issuer", "issueInstant"
-    };
+    static final String[] SAML_ATTRIBUTES_VALUES = { "subject", "issuer", "issueInstant" };
 
-    static final String[] ACCOUNT_ATTRIBUTES_VALUES = {
-            "username",
-            "name",
-            "email",
-            "locale"
-    };
+    static final String[] ACCOUNT_ATTRIBUTES_VALUES = { "username", "name", "email", "locale" };
 
     public static final Set<String> SAML_ATTRIBUTES;
     public static final Set<String> ACCOUNT_ATTRIBUTES;
@@ -24,6 +17,5 @@ public class SamlKeys {
     static {
         SAML_ATTRIBUTES = Collections.unmodifiableSortedSet(new TreeSet<>(Arrays.asList(SAML_ATTRIBUTES_VALUES)));
         ACCOUNT_ATTRIBUTES = Collections.unmodifiableSortedSet(new TreeSet<>(Arrays.asList(ACCOUNT_ATTRIBUTES_VALUES)));
-
     }
 }

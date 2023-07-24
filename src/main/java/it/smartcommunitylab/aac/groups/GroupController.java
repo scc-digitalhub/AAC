@@ -1,7 +1,15 @@
 package it.smartcommunitylab.aac.groups;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.common.InvalidDefinitionException;
+import it.smartcommunitylab.aac.common.NoSuchSubjectException;
+import it.smartcommunitylab.aac.groups.scopes.ClientGroupsScope;
+import it.smartcommunitylab.aac.groups.scopes.UserGroupsScope;
+import it.smartcommunitylab.aac.groups.service.GroupService;
+import it.smartcommunitylab.aac.model.Group;
 import java.util.Collection;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,31 +20,30 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.common.InvalidDefinitionException;
-import it.smartcommunitylab.aac.common.NoSuchSubjectException;
-import it.smartcommunitylab.aac.groups.scopes.ClientGroupsScope;
-import it.smartcommunitylab.aac.groups.scopes.UserGroupsScope;
-import it.smartcommunitylab.aac.groups.service.GroupService;
-import it.smartcommunitylab.aac.model.Group;
-
 @RestController
 @Tag(name = "AAC Groups")
 public class GroupController {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
     private GroupService groupService;
 
     @Operation(summary = "Get groups for the current subject")
-    @PreAuthorize("(hasAuthority('" + Config.R_USER + "') and hasAuthority('SCOPE_" + UserGroupsScope.SCOPE
-            + "')) or (hasAuthority('" + Config.R_CLIENT + "') and hasAuthority('SCOPE_" + ClientGroupsScope.SCOPE
-            + "'))")
+    @PreAuthorize(
+        "(hasAuthority('" +
+        Config.R_USER +
+        "') and hasAuthority('SCOPE_" +
+        UserGroupsScope.SCOPE +
+        "')) or (hasAuthority('" +
+        Config.R_CLIENT +
+        "') and hasAuthority('SCOPE_" +
+        ClientGroupsScope.SCOPE +
+        "'))"
+    )
     @RequestMapping(method = RequestMethod.GET, value = "/groups/me")
     public Collection<Group> getSubjectGroups(BearerTokenAuthentication auth)
-            throws InvalidDefinitionException, NoSuchSubjectException {
+        throws InvalidDefinitionException, NoSuchSubjectException {
         if (auth == null) {
             logger.error("invalid authentication");
             throw new IllegalArgumentException("invalid authentication");
@@ -52,5 +59,4 @@ public class GroupController {
         // return all the subject roles
         return groupService.getSubjectGroups(subject);
     }
-
 }

@@ -7,6 +7,7 @@ import org.springframework.security.access.event.AbstractAuthorizationEvent;
 import org.springframework.security.access.event.AuthorizationFailureEvent;
 
 public class AuthorizationEventListener extends AbstractAuthorizationAuditListener {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     public static final String AUTHORIZATION_FAILURE = "AUTHORIZATION_FAILURE";
@@ -27,10 +28,8 @@ public class AuthorizationEventListener extends AbstractAuthorizationAuditListen
             }
 
             logger.trace("authorization event " + event.toString());
-
         } catch (Exception e) {
             // ignore exceptions on events, we don't want to interfere
         }
     }
-
 }

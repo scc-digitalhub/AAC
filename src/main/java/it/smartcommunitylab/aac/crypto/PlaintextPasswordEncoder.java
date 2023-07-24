@@ -22,7 +22,5 @@ public class PlaintextPasswordEncoder implements PasswordEncoder {
 
     private static final PasswordEncoder INSTANCE = new PlaintextPasswordEncoder();
 
-    private PlaintextPasswordEncoder() {
-    }
-
+    private PlaintextPasswordEncoder() {}
 }

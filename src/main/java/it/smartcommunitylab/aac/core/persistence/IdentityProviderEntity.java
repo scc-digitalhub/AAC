@@ -1,8 +1,9 @@
 package it.smartcommunitylab.aac.core.persistence;
 
+import it.smartcommunitylab.aac.repository.HashMapBase64Converter;
+import it.smartcommunitylab.aac.repository.HashMapConverter;
 import java.io.Serializable;
 import java.util.Map;
-
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
@@ -10,9 +11,6 @@ import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
-
-import it.smartcommunitylab.aac.repository.HashMapBase64Converter;
-import it.smartcommunitylab.aac.repository.HashMapConverter;
 
 @Entity
 @Table(name = "identity_providers")
@@ -77,9 +75,7 @@ public class IdentityProviderEntity implements ProviderEntity {
     @Column(name = "version")
     private Integer version;
 
-    public IdentityProviderEntity() {
-
-    }
+    public IdentityProviderEntity() {}
 
     public IdentityProviderEntity(String providerId) {
         this.provider = providerId;
@@ -204,5 +200,4 @@ public class IdentityProviderEntity implements ProviderEntity {
     public void setVersion(Integer version) {
         this.version = version;
     }
-
 }

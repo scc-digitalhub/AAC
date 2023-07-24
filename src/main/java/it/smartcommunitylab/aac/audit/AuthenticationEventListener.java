@@ -1,9 +1,14 @@
 package it.smartcommunitylab.aac.audit;
 
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.auth.ClientAuthentication;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
+import it.smartcommunitylab.aac.core.auth.WrappedAuthenticationToken;
+import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.service.IdentityProviderService;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.actuate.audit.AuditEvent;
@@ -15,14 +20,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.server.resource.BearerTokenAuthenticationToken;
 
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.auth.ClientAuthentication;
-import it.smartcommunitylab.aac.core.auth.UserAuthentication;
-import it.smartcommunitylab.aac.core.auth.WrappedAuthenticationToken;
-import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.service.IdentityProviderService;
-
 public class AuthenticationEventListener extends AbstractAuthenticationAuditListener {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     public static final String AUTHENTICATION_SUCCESS = "AUTHENTICATION_SUCCESS";
@@ -124,12 +123,10 @@ public class AuthenticationEventListener extends AbstractAuthenticationAuditList
         data.put("realm", realm);
 
         if (SystemKeys.EVENTS_LEVEL_DETAILS.equals(level) || SystemKeys.EVENTS_LEVEL_FULL.equals(level)) {
-
             // persist web details, should be safe to store
             if (auth.getWebAuthenticationDetails() != null) {
                 data.put("details", auth.getWebAuthenticationDetails());
             }
-
         }
 
         if (SystemKeys.EVENTS_LEVEL_FULL.equals(level)) {
@@ -148,7 +145,6 @@ public class AuthenticationEventListener extends AbstractAuthenticationAuditList
     }
 
     private void onAuthenticationFailureEvent(AbstractAuthenticationFailureEvent event) {
-
         AuthenticationException ex = event.getException();
         Authentication auth = event.getAuthentication();
         String principal = "";
@@ -162,7 +158,6 @@ public class AuthenticationEventListener extends AbstractAuthenticationAuditList
             auth = token.getAuthenticationToken();
             principal = auth.getName();
             details = token.getAuthenticationDetails();
-
         }
 
         if (auth instanceof ClientAuthentication) {
@@ -197,7 +192,6 @@ public class AuthenticationEventListener extends AbstractAuthenticationAuditList
     }
 
     private void onAuthenticationSuccessEvent(AuthenticationSuccessEvent event) {
-
         Authentication auth = event.getAuthentication();
         String principal = auth.getName();
         Object details = auth.getDetails();
@@ -223,7 +217,6 @@ public class AuthenticationEventListener extends AbstractAuthenticationAuditList
             eventType = CLIENT_AUTHENTICATION_SUCCESS;
             details = token.getWebAuthenticationDetails();
             data.put("realm", token.getRealm());
-
         }
 
         // build audit

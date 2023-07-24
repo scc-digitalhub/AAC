@@ -1,32 +1,29 @@
 package it.smartcommunitylab.aac.oauth.flow;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
-import org.springframework.security.oauth2.common.OAuth2AccessToken;
-import org.springframework.util.StringUtils;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.dto.UserProfile;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.util.StringUtils;
 
 public class ScriptOAuthFlowExtensions implements OAuthFlowExtensions {
 
     private final ObjectMapper mapper = new ObjectMapper();
-    private final TypeReference<HashMap<String, Serializable>> serMapTypeRef = new TypeReference<HashMap<String, Serializable>>() {
-    };
-    private final TypeReference<HashMap<String, String>> stringMapTypeRef = new TypeReference<HashMap<String, String>>() {
-    };
+    private final TypeReference<HashMap<String, Serializable>> serMapTypeRef =
+        new TypeReference<HashMap<String, Serializable>>() {};
+    private final TypeReference<HashMap<String, String>> stringMapTypeRef =
+        new TypeReference<HashMap<String, String>>() {};
 
     private ScriptExecutionService executionService;
 
@@ -35,8 +32,11 @@ public class ScriptOAuthFlowExtensions implements OAuthFlowExtensions {
     }
 
     @Override
-    public Map<String, String> onBeforeUserApproval(Map<String, String> requestParameters, User user,
-            OAuth2ClientDetails client) throws FlowExecutionException {
+    public Map<String, String> onBeforeUserApproval(
+        Map<String, String> requestParameters,
+        User user,
+        OAuth2ClientDetails client
+    ) throws FlowExecutionException {
         if (executionService == null || client.getHookFunctions() == null) {
             return null;
         }
@@ -59,13 +59,11 @@ public class ScriptOAuthFlowExtensions implements OAuthFlowExtensions {
 
         // execute script
         try {
-            Map<String, Serializable> customParams = executionService.executeFunction(functionName,
-                    functionCode, map);
+            Map<String, Serializable> customParams = executionService.executeFunction(functionName, functionCode, map);
 
             // convert back
             Map<String, String> result = mapper.convertValue(customParams, stringMapTypeRef);
             return result;
-
         } catch (SystemException | InvalidDefinitionException e) {
             throw new FlowExecutionException(e.getMessage());
         }
@@ -73,7 +71,7 @@ public class ScriptOAuthFlowExtensions implements OAuthFlowExtensions {
 
     @Override
     public Optional<Boolean> onAfterUserApproval(Collection<String> scopes, User user, OAuth2ClientDetails client)
-            throws FlowExecutionException {
+        throws FlowExecutionException {
         if (executionService == null || client.getHookFunctions() == null) {
             return Optional.empty();
         }
@@ -96,14 +94,12 @@ public class ScriptOAuthFlowExtensions implements OAuthFlowExtensions {
 
         // execute script
         try {
-            Map<String, Serializable> customParams = executionService.executeFunction(functionName,
-                    functionCode, map);
+            Map<String, Serializable> customParams = executionService.executeFunction(functionName, functionCode, map);
 
             // convert back
             ApprovalResult result = mapper.convertValue(customParams, ApprovalResult.class);
 
             return Optional.ofNullable(result.approved);
-
         } catch (SystemException | InvalidDefinitionException e) {
             throw new FlowExecutionException(e.getMessage());
         }
@@ -111,7 +107,7 @@ public class ScriptOAuthFlowExtensions implements OAuthFlowExtensions {
 
     @Override
     public Map<String, String> onBeforeTokenGrant(Map<String, String> requestParameters, OAuth2ClientDetails client)
-            throws FlowExecutionException {
+        throws FlowExecutionException {
         if (executionService == null || client.getHookFunctions() == null) {
             return null;
         }
@@ -129,13 +125,11 @@ public class ScriptOAuthFlowExtensions implements OAuthFlowExtensions {
 
         // execute script
         try {
-            Map<String, Serializable> customParams = executionService.executeFunction(functionName,
-                    functionCode, map);
+            Map<String, Serializable> customParams = executionService.executeFunction(functionName, functionCode, map);
 
             // convert back
             Map<String, String> result = mapper.convertValue(customParams, stringMapTypeRef);
             return result;
-
         } catch (SystemException | InvalidDefinitionException e) {
             throw new FlowExecutionException(e.getMessage());
         }
@@ -143,13 +137,13 @@ public class ScriptOAuthFlowExtensions implements OAuthFlowExtensions {
 
     @Override
     public void onAfterTokenGrant(OAuth2AccessToken accessToken, OAuth2ClientDetails client)
-            throws FlowExecutionException {
+        throws FlowExecutionException {
         // not supported
 
     }
 
     public class ApprovalResult {
+
         public Boolean approved;
     }
-
 }

@@ -1,9 +1,16 @@
 package it.smartcommunitylab.aac.oauth.request;
 
+import it.smartcommunitylab.aac.model.ScopeType;
+import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
+import it.smartcommunitylab.aac.oauth.model.ClientRegistration;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
+import it.smartcommunitylab.aac.oauth.model.ResponseType;
+import it.smartcommunitylab.aac.scope.Scope;
+import it.smartcommunitylab.aac.scope.ScopeRegistry;
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.oauth2.common.exceptions.InvalidRequestException;
@@ -15,17 +22,9 @@ import org.springframework.security.oauth2.provider.endpoint.RedirectResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.model.ScopeType;
-import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
-import it.smartcommunitylab.aac.oauth.model.ClientRegistration;
-import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
-import it.smartcommunitylab.aac.oauth.model.ResponseType;
-import it.smartcommunitylab.aac.scope.Scope;
-import it.smartcommunitylab.aac.scope.ScopeRegistry;
+public class OAuth2RequestValidator
+    implements OAuth2TokenRequestValidator, OAuth2AuthorizationRequestValidator, OAuth2RegistrationRequestValidator {
 
-public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAuth2AuthorizationRequestValidator,
-        OAuth2RegistrationRequestValidator {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final RedirectResolver redirectResolver;
@@ -43,16 +42,15 @@ public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAut
 
     @Override
     public void validate(TokenRequest tokenRequest, OAuth2ClientDetails clientDetails) throws InvalidRequestException {
-
         // check grant type and act accordingly
         String grantType = tokenRequest.getGrantType();
         AuthorizationGrantType authorizationGrantType = AuthorizationGrantType.parse(grantType);
         if (authorizationGrantType == AUTHORIZATION_CODE) {
             // DISABLED, check in granter if scopes are also in authorized request
-//            if (!tokenRequest.getScope().isEmpty()) {
-//                throw new InvalidRequestException(
-//                        "token request for " + grantType + " should not have scopes associated");
-//            }
+            //            if (!tokenRequest.getScope().isEmpty()) {
+            //                throw new InvalidRequestException(
+            //                        "token request for " + grantType + " should not have scopes associated");
+            //            }
 
             if (tokenRequest instanceof AuthorizationCodeTokenRequest) {
                 AuthorizationCodeTokenRequest request = (AuthorizationCodeTokenRequest) tokenRequest;
@@ -105,16 +103,13 @@ public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAut
                 String refreshToken = request.getRefreshToken();
                 if (!StringUtils.hasText(refreshToken)) {
                     throw new InvalidRequestException("missing or empty refresh_token");
-
                 }
             }
         }
-
     }
 
     @Override
     public void validateScope(TokenRequest tokenRequest, OAuth2ClientDetails client) throws InvalidScopeException {
-
         Set<String> requestScopes = tokenRequest.getScope();
         Set<String> clientScopes = client.getScope();
         boolean isClient = CLIENT_CREDENTIALS.getValue().equals(tokenRequest.getGrantType());
@@ -126,15 +121,16 @@ public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAut
 
     @Override
     public void validate(AuthorizationRequest authorizationRequest, OAuth2ClientDetails clientDetails, User user)
-            throws InvalidRequestException {
-
+        throws InvalidRequestException {
         Set<String> responseType = authorizationRequest.getResponseTypes();
         if (responseType.stream().anyMatch(r -> ResponseType.parse(r) == null)) {
             throw new InvalidRequestException("invalid response types");
         }
 
-        Set<ResponseType> responseTypes = responseType.stream().map(r -> ResponseType.parse(r))
-                .collect(Collectors.toSet());
+        Set<ResponseType> responseTypes = responseType
+            .stream()
+            .map(r -> ResponseType.parse(r))
+            .collect(Collectors.toSet());
 
         String responseMode = (String) authorizationRequest.getExtensions().get("response_mode");
 
@@ -160,17 +156,20 @@ public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAut
         } else if (responseTypes.contains(ResponseType.TOKEN) && responseTypes.contains(ResponseType.CODE)) {
             if (StringUtils.hasText(responseMode) && "query".equals(responseMode)) {
                 throw new InvalidRequestException(
-                        "query response_mode is incompatible with response_type token, use fragment or form_post");
+                    "query response_mode is incompatible with response_type token, use fragment or form_post"
+                );
             }
         } else if (responseTypes.size() > 1 && responseTypes.contains(ResponseType.ID_TOKEN)) {
             if (StringUtils.hasText(responseMode) && "query".equals(responseMode)) {
                 throw new InvalidRequestException(
-                        "query response_mode is incompatible with hybrid flow, use fragment or form_post");
+                    "query response_mode is incompatible with hybrid flow, use fragment or form_post"
+                );
             }
         }
 
-        if (responseTypes.contains(ResponseType.ID_TOKEN)
-                && !authorizationRequest.getExtensions().containsKey("nonce")) {
+        if (
+            responseTypes.contains(ResponseType.ID_TOKEN) && !authorizationRequest.getExtensions().containsKey("nonce")
+        ) {
             throw new InvalidRequestException("nonce is required for implicit and hybrid flows");
         }
 
@@ -182,8 +181,9 @@ public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAut
 
         // validate PKCE
         String codeChallenge = authorizationRequest.getRequestParameters().get(PkceParameterNames.CODE_CHALLENGE);
-        String codeChallengeMethod = authorizationRequest.getRequestParameters()
-                .get(PkceParameterNames.CODE_CHALLENGE_METHOD);
+        String codeChallengeMethod = authorizationRequest
+            .getRequestParameters()
+            .get(PkceParameterNames.CODE_CHALLENGE_METHOD);
         if (StringUtils.hasText(codeChallenge)) {
             if (!StringUtils.hasText(codeChallengeMethod)) {
                 codeChallengeMethod = "plain";
@@ -193,20 +193,17 @@ public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAut
                 throw new InvalidRequestException("challenge method unsupported");
             }
         }
-
     }
 
     @Override
     public void validateScope(AuthorizationRequest authorizationRequest, OAuth2ClientDetails client)
-            throws InvalidScopeException {
-
+        throws InvalidScopeException {
         Set<String> requestScopes = authorizationRequest.getScope();
         Set<String> clientScopes = client.getScope();
 
         if (requestScopes != null && !requestScopes.isEmpty()) {
             validateScope(requestScopes, clientScopes, false);
         }
-
     }
 
     @Override
@@ -216,10 +213,14 @@ public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAut
 
         // check scopes
         if (registration.getScope() != null && scopeRegistry != null) {
-            Set<String> invalidScopes = registration.getScope().stream().filter(s -> {
-                Scope sc = scopeRegistry.findScope(s);
-                return sc == null;
-            }).collect(Collectors.toSet());
+            Set<String> invalidScopes = registration
+                .getScope()
+                .stream()
+                .filter(s -> {
+                    Scope sc = scopeRegistry.findScope(s);
+                    return sc == null;
+                })
+                .collect(Collectors.toSet());
 
             if (!invalidScopes.isEmpty()) {
                 throw new InvalidScopeException("Invalid scope: " + invalidScopes, Collections.emptySet());
@@ -229,8 +230,10 @@ public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAut
         // check type
         if (registration.getGrantType() != null) {
             Set<String> grantType = registration.getGrantType();
-            Set<AuthorizationGrantType> grantTypes = grantType.stream().map(r -> AuthorizationGrantType.parse(r))
-                    .collect(Collectors.toSet());
+            Set<AuthorizationGrantType> grantTypes = grantType
+                .stream()
+                .map(r -> AuthorizationGrantType.parse(r))
+                .collect(Collectors.toSet());
             if (grantTypes.contains(null)) {
                 throw new InvalidRequestException("unsupported grant_type");
             }
@@ -242,7 +245,6 @@ public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAut
             }
         } else {
             throw new InvalidRequestException("at least one grant_type is required");
-
         }
 
         // check auth methods
@@ -258,7 +260,6 @@ public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAut
         if (!StringUtils.hasText(registration.getName())) {
             throw new InvalidRequestException("client_name is required");
         }
-
     }
 
     private void validateRedirectUri(String redirectUri, OAuth2ClientDetails clientDetails) {
@@ -272,22 +273,25 @@ public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAut
     }
 
     private void validateScope(Set<String> requestScopes, Set<String> clientScopes, boolean isClient) {
-
-        logger.trace("validate scopes requested " + String.valueOf(requestScopes.toString())
-                + " against client " + String.valueOf(clientScopes));
+        logger.trace(
+            "validate scopes requested " +
+            String.valueOf(requestScopes.toString()) +
+            " against client " +
+            String.valueOf(clientScopes)
+        );
 
         // check if scopes are valid via registry
-        Set<String> existingScopes = (scopeRegistry == null) ? requestScopes
-                : requestScopes.stream()
-                        .filter(s -> (scopeRegistry.findScope(s) != null))
-                        .collect(Collectors.toSet());
+        Set<String> existingScopes = (scopeRegistry == null)
+            ? requestScopes
+            : requestScopes.stream().filter(s -> (scopeRegistry.findScope(s) != null)).collect(Collectors.toSet());
 
         Set<String> validScopes = (clientScopes != null ? clientScopes : Collections.emptySet());
 
         // each scope has to be pre-authorized
-        Set<String> unauthorizedScopes = requestScopes.stream().filter(
-                s -> (!validScopes.contains(s) || !existingScopes.contains(s)))
-                .collect(Collectors.toSet());
+        Set<String> unauthorizedScopes = requestScopes
+            .stream()
+            .filter(s -> (!validScopes.contains(s) || !existingScopes.contains(s)))
+            .collect(Collectors.toSet());
 
         if (!unauthorizedScopes.isEmpty()) {
             String invalidScopes = String.join(" ", unauthorizedScopes);
@@ -297,27 +301,28 @@ public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAut
         if (scopeRegistry != null) {
             // also check that type matches grant
             ScopeType type = isClient ? ScopeType.CLIENT : ScopeType.USER;
-            Set<String> matchingScopes = clientScopes.stream().filter(
-                    s -> {
-                        Scope sc = scopeRegistry.findScope(s);
-                        if (sc == null) {
-                            return false;
-                        }
+            Set<String> matchingScopes = clientScopes
+                .stream()
+                .filter(s -> {
+                    Scope sc = scopeRegistry.findScope(s);
+                    if (sc == null) {
+                        return false;
+                    }
 
-                        return (sc.getType() == type || sc.getType() == ScopeType.GENERIC);
-                    })
-                    .collect(Collectors.toSet());
+                    return (sc.getType() == type || sc.getType() == ScopeType.GENERIC);
+                })
+                .collect(Collectors.toSet());
 
-            Set<String> wrongScopes = requestScopes.stream().filter(
-                    s -> (!matchingScopes.contains(s)))
-                    .collect(Collectors.toSet());
+            Set<String> wrongScopes = requestScopes
+                .stream()
+                .filter(s -> (!matchingScopes.contains(s)))
+                .collect(Collectors.toSet());
 
             if (!wrongScopes.isEmpty()) {
                 String invalidScopes = String.join(" ", wrongScopes);
                 throw new InvalidScopeException("Invalid scope: " + invalidScopes, matchingScopes);
             }
         }
-
     }
 
     private AuthorizationGrantType AUTHORIZATION_CODE = AuthorizationGrantType.AUTHORIZATION_CODE;
@@ -325,5 +330,4 @@ public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAut
     private AuthorizationGrantType CLIENT_CREDENTIALS = AuthorizationGrantType.CLIENT_CREDENTIALS;
     private AuthorizationGrantType PASSWORD = AuthorizationGrantType.PASSWORD;
     private AuthorizationGrantType REFRESH_TOKEN = AuthorizationGrantType.REFRESH_TOKEN;
-
 }

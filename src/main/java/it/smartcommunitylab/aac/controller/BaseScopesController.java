@@ -1,11 +1,18 @@
 package it.smartcommunitylab.aac.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.NoSuchResourceException;
+import it.smartcommunitylab.aac.common.NoSuchScopeException;
+import it.smartcommunitylab.aac.core.ScopeManager;
+import it.smartcommunitylab.aac.scope.Resource;
+import it.smartcommunitylab.aac.scope.Scope;
 import java.util.Collection;
-
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -16,22 +23,13 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-import io.swagger.v3.oas.annotations.Operation;
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.common.NoSuchRealmException;
-import it.smartcommunitylab.aac.common.NoSuchResourceException;
-import it.smartcommunitylab.aac.common.NoSuchScopeException;
-import it.smartcommunitylab.aac.core.ScopeManager;
-import it.smartcommunitylab.aac.scope.Resource;
-import it.smartcommunitylab.aac.scope.Scope;
-
 /*
  * Base controller for scopes
  */
 
 @PreAuthorize("hasAuthority(this.authority)")
 public class BaseScopesController implements InitializingBean {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     protected ScopeManager scopeManager;
@@ -53,8 +51,8 @@ public class BaseScopesController implements InitializingBean {
     @GetMapping("/scopes/{realm}")
     @Operation(summary = "Get scopes for the given realm")
     public Collection<Scope> listScopes(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
-            throws NoSuchRealmException {
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm
+    ) throws NoSuchRealmException {
         logger.debug("list scopes");
         return scopeManager.listScopes();
     }
@@ -62,11 +60,10 @@ public class BaseScopesController implements InitializingBean {
     @GetMapping("/scopes/{realm}/{scope}")
     @Operation(summary = "Get a specific scope for the given realm")
     public Scope getScope(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SCOPE_PATTERN) String scope)
-            throws NoSuchRealmException, NoSuchScopeException {
-        logger.debug("get scope {}",
-                StringUtils.trimAllWhitespace(scope));
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SCOPE_PATTERN) String scope
+    ) throws NoSuchRealmException, NoSuchScopeException {
+        logger.debug("get scope {}", StringUtils.trimAllWhitespace(scope));
 
         return scopeManager.getScope(scope);
     }
@@ -74,8 +71,8 @@ public class BaseScopesController implements InitializingBean {
     @GetMapping("/resources/{realm}")
     @Operation(summary = "List resources for the given realm")
     public Collection<Resource> listResources(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
-            throws NoSuchRealmException {
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm
+    ) throws NoSuchRealmException {
         logger.debug("list resources");
 
         return scopeManager.listResources();
@@ -84,13 +81,11 @@ public class BaseScopesController implements InitializingBean {
     @GetMapping("/resources/{realm}/{resourceId}")
     @Operation(summary = "Get a resource with all its scopes for the given realm")
     public Resource listResources(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String resourceId)
-            throws NoSuchRealmException, NoSuchResourceException {
-        logger.debug("get resource {}",
-                StringUtils.trimAllWhitespace(resourceId));
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String resourceId
+    ) throws NoSuchRealmException, NoSuchResourceException {
+        logger.debug("get resource {}", StringUtils.trimAllWhitespace(resourceId));
 
         return scopeManager.getResource(resourceId);
     }
-
 }

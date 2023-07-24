@@ -1,22 +1,21 @@
 package it.smartcommunitylab.aac.audit;
 
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
+import it.smartcommunitylab.aac.core.auth.WrappedAuthenticationToken;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.util.Assert;
 
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
-import it.smartcommunitylab.aac.core.auth.WrappedAuthenticationToken;
-
 //TODO add custom serializer
-//TODO add subtype inference 
+//TODO add subtype inference
 
 public class UserAuthenticationFailureEvent extends AbstractAuthenticationFailureEvent {
+
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     private final String authority;
@@ -25,10 +24,14 @@ public class UserAuthenticationFailureEvent extends AbstractAuthenticationFailur
     private final String subject;
 
     public UserAuthenticationFailureEvent(
-            String authority, String provider, String realm, String subject,
-            Authentication authentication, AuthenticationException exception) {
+        String authority,
+        String provider,
+        String realm,
+        String subject,
+        Authentication authentication,
+        AuthenticationException exception
+    ) {
         super(authentication, exception);
-
         Assert.hasText(authority, "authority is required");
         Assert.notNull(realm, "realm is required");
 
@@ -36,7 +39,6 @@ public class UserAuthenticationFailureEvent extends AbstractAuthenticationFailur
         this.provider = provider;
         this.realm = realm;
         this.subject = subject != null ? subject : authentication.getName();
-
     }
 
     public String getAuthority() {
@@ -85,5 +87,4 @@ public class UserAuthenticationFailureEvent extends AbstractAuthenticationFailur
 
         return null;
     }
-
 }

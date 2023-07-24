@@ -1,9 +1,8 @@
 package it.smartcommunitylab.aac.attributes.mapper;
 
+import it.smartcommunitylab.aac.core.model.AttributeSet;
 import java.io.Serializable;
 import java.util.Map;
-
-import it.smartcommunitylab.aac.core.model.AttributeSet;
 
 /*
  * (User) attributes mapper
@@ -11,9 +10,7 @@ import it.smartcommunitylab.aac.core.model.AttributeSet;
  */
 
 public interface AttributesMapper {
-
     public String getIdentifier();
 
     public AttributeSet mapAttributes(Map<String, Serializable> attributes);
-
 }

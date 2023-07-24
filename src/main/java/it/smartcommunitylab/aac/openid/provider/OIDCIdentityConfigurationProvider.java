@@ -1,15 +1,15 @@
 package it.smartcommunitylab.aac.openid.provider;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.config.IdentityAuthoritiesProperties;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 @Service
-public class OIDCIdentityConfigurationProvider extends
-        AbstractIdentityConfigurationProvider<OIDCIdentityProviderConfigMap, OIDCIdentityProviderConfig> {
+public class OIDCIdentityConfigurationProvider
+    extends AbstractIdentityConfigurationProvider<OIDCIdentityProviderConfigMap, OIDCIdentityProviderConfig> {
 
     @Autowired
     public OIDCIdentityConfigurationProvider(IdentityAuthoritiesProperties authoritiesProperties) {
@@ -28,5 +28,4 @@ public class OIDCIdentityConfigurationProvider extends
     protected OIDCIdentityProviderConfig buildConfig(ConfigurableIdentityProvider cp) {
         return new OIDCIdentityProviderConfig(cp, getConfigMap(cp.getConfiguration()));
     }
-
 }

@@ -1,8 +1,7 @@
 package it.smartcommunitylab.aac.openid.persistence;
 
-import java.io.Serializable;
-
 import it.smartcommunitylab.aac.SystemKeys;
+import java.io.Serializable;
 
 public class OIDCUserAccountId implements Serializable {
 
@@ -11,8 +10,7 @@ public class OIDCUserAccountId implements Serializable {
     private String repositoryId;
     private String subject;
 
-    public OIDCUserAccountId() {
-    }
+    public OIDCUserAccountId() {}
 
     public OIDCUserAccountId(String repositoryId, String userId) {
         super();
@@ -47,24 +45,16 @@ public class OIDCUserAccountId implements Serializable {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         OIDCUserAccountId other = (OIDCUserAccountId) obj;
         if (repositoryId == null) {
-            if (other.repositoryId != null)
-                return false;
-        } else if (!repositoryId.equals(other.repositoryId))
-            return false;
+            if (other.repositoryId != null) return false;
+        } else if (!repositoryId.equals(other.repositoryId)) return false;
         if (subject == null) {
-            if (other.subject != null)
-                return false;
-        } else if (!subject.equals(other.subject))
-            return false;
+            if (other.subject != null) return false;
+        } else if (!subject.equals(other.subject)) return false;
         return true;
     }
-
 }

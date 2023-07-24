@@ -1,13 +1,11 @@
 package it.smartcommunitylab.aac.password.auth;
 
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import java.util.Collection;
-
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.Assert;
-
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 
 public class ResetKeyAuthenticationToken extends AbstractAuthenticationToken {
 
@@ -25,16 +23,23 @@ public class ResetKeyAuthenticationToken extends AbstractAuthenticationToken {
         setAuthenticated(false);
     }
 
-    public ResetKeyAuthenticationToken(String username, String key,
-            Collection<? extends GrantedAuthority> authorities) {
+    public ResetKeyAuthenticationToken(
+        String username,
+        String key,
+        Collection<? extends GrantedAuthority> authorities
+    ) {
         super(authorities);
         this.username = username;
         this.key = key;
         super.setAuthenticated(true);
     }
 
-    public ResetKeyAuthenticationToken(String username, String key, InternalUserAccount account,
-            Collection<? extends GrantedAuthority> authorities) {
+    public ResetKeyAuthenticationToken(
+        String username,
+        String key,
+        InternalUserAccount account,
+        Collection<? extends GrantedAuthority> authorities
+    ) {
         super(authorities);
         this.username = username;
         this.key = key;
@@ -71,8 +76,10 @@ public class ResetKeyAuthenticationToken extends AbstractAuthenticationToken {
 
     @Override
     public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
-        Assert.isTrue(!isAuthenticated,
-                "Cannot set this token to trusted - use constructor which takes a GrantedAuthority list instead");
+        Assert.isTrue(
+            !isAuthenticated,
+            "Cannot set this token to trusted - use constructor which takes a GrantedAuthority list instead"
+        );
         super.setAuthenticated(false);
     }
 

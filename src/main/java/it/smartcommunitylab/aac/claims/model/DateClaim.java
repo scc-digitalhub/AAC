@@ -1,8 +1,7 @@
 package it.smartcommunitylab.aac.claims.model;
 
-import java.util.Date;
-
 import it.smartcommunitylab.aac.model.AttributeType;
+import java.util.Date;
 
 public class DateClaim extends AbstractClaim {
 
@@ -30,5 +29,4 @@ public class DateClaim extends AbstractClaim {
     public void setValue(Date value) {
         this.value = value;
     }
-
 }

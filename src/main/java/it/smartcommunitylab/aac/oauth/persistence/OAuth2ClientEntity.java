@@ -1,8 +1,8 @@
 package it.smartcommunitylab.aac.oauth.persistence;
 
+import it.smartcommunitylab.aac.repository.HashMapConverter;
 import java.io.Serializable;
 import java.util.Map;
-
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
@@ -11,10 +11,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.Table;
-
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import it.smartcommunitylab.aac.repository.HashMapConverter;
 
 @Entity
 @Table(name = "oauth2_clients")
@@ -79,10 +76,10 @@ public class OAuth2ClientEntity {
 
     /*
      * OAuth2 flows - related info
-     * 
+     *
      * we persist these here to feed the clientDetailsService without the need to
      * access additionalInfo
-     * 
+     *
      * TODO re-evaluate after dropping legacy compatibility
      */
     @Column(name = "id_token_validity")
@@ -282,5 +279,4 @@ public class OAuth2ClientEntity {
     public void setIdTokenClaims(Boolean idTokenClaims) {
         this.idTokenClaims = idTokenClaims;
     }
-
 }

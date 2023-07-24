@@ -1,27 +1,6 @@
 package it.smartcommunitylab.aac.core.service;
 
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-import org.springframework.validation.DataBinder;
-import org.springframework.validation.SmartValidator;
-
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
@@ -35,10 +14,31 @@ import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
 import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
+import org.springframework.validation.DataBinder;
+import org.springframework.validation.SmartValidator;
 
 @Transactional
-public abstract class ConfigurableProviderService<A extends ConfigurableProviderAuthority<?, ?, C, ?, ?>, C extends ConfigurableProvider, E extends ProviderEntity>
-        implements InitializingBean {
+public abstract class ConfigurableProviderService<
+    A extends ConfigurableProviderAuthority<?, ?, C, ?, ?>, C extends ConfigurableProvider, E extends ProviderEntity
+>
+    implements InitializingBean {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     protected final ProviderEntityService<E> providerService;
@@ -53,8 +53,10 @@ public abstract class ConfigurableProviderService<A extends ConfigurableProvider
     protected Converter<C, E> configConverter;
     protected Converter<E, C> entityConverter;
 
-    public ConfigurableProviderService(ConfigurableAuthorityService<A> providerAuthorityService,
-            ProviderEntityService<E> providerService) {
+    public ConfigurableProviderService(
+        ConfigurableAuthorityService<A> providerAuthorityService,
+        ProviderEntityService<E> providerService
+    ) {
         Assert.notNull(providerAuthorityService, "authority service is required");
         Assert.notNull(providerService, "provider entity service is required");
 
@@ -82,7 +84,7 @@ public abstract class ConfigurableProviderService<A extends ConfigurableProvider
     }
 
     protected ConfigurationProvider<?, ?, ?> getConfigurationProvider(String authority)
-            throws NoSuchAuthorityException {
+        throws NoSuchAuthorityException {
         return authorityService.getAuthority(authority).getConfigurationProvider();
     }
 
@@ -103,9 +105,7 @@ public abstract class ConfigurableProviderService<A extends ConfigurableProvider
         }
 
         List<E> providers = providerService.listProvidersByRealm(realm);
-        return providers.stream()
-                .map(p -> entityConverter.convert(p))
-                .collect(Collectors.toList());
+        return providers.stream().map(p -> entityConverter.convert(p)).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -124,8 +124,7 @@ public abstract class ConfigurableProviderService<A extends ConfigurableProvider
     }
 
     @Transactional(readOnly = true)
-    public C getProvider(String providerId)
-            throws NoSuchProviderException {
+    public C getProvider(String providerId) throws NoSuchProviderException {
         logger.debug("get provider {}", StringUtils.trimAllWhitespace(providerId));
 
         // lookup in global map first
@@ -137,8 +136,7 @@ public abstract class ConfigurableProviderService<A extends ConfigurableProvider
         return entityConverter.convert(pe);
     }
 
-    public C addProvider(String realm, C cp)
-            throws RegistrationException, SystemException, NoSuchAuthorityException {
+    public C addProvider(String realm, C cp) throws RegistrationException, SystemException, NoSuchAuthorityException {
         logger.debug("add provider for realm {}", StringUtils.trimAllWhitespace(realm));
         if (logger.isTraceEnabled()) {
             logger.trace("provider bean: {}", StringUtils.trimAllWhitespace(cp.toString()));
@@ -160,7 +158,6 @@ public abstract class ConfigurableProviderService<A extends ConfigurableProvider
             if (providerId.length() < 3 || !Pattern.matches(SystemKeys.SLUG_PATTERN, providerId)) {
                 throw new RegistrationException("invalid id");
             }
-
         }
 
         // set initial version to 1
@@ -181,9 +178,12 @@ public abstract class ConfigurableProviderService<A extends ConfigurableProvider
             validator.validate(configurable, binder.getBindingResult());
             if (binder.getBindingResult().hasErrors()) {
                 StringBuilder sb = new StringBuilder();
-                binder.getBindingResult().getFieldErrors().forEach(e -> {
-                    sb.append(e.getField()).append(" ").append(e.getDefaultMessage());
-                });
+                binder
+                    .getBindingResult()
+                    .getFieldErrors()
+                    .forEach(e -> {
+                        sb.append(e.getField()).append(" ").append(e.getDefaultMessage());
+                    });
                 String errorMsg = sb.toString();
                 throw new RegistrationException(errorMsg);
             }
@@ -196,7 +196,7 @@ public abstract class ConfigurableProviderService<A extends ConfigurableProvider
     }
 
     public C updateProvider(String providerId, C cp)
-            throws NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
+        throws NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
         logger.debug("update provider {}", StringUtils.trimAllWhitespace(providerId));
         if (logger.isTraceEnabled()) {
             logger.trace("provider bean: {}", StringUtils.trimAllWhitespace(cp.toString()));
@@ -242,9 +242,12 @@ public abstract class ConfigurableProviderService<A extends ConfigurableProvider
             validator.validate(configurable, binder.getBindingResult());
             if (binder.getBindingResult().hasErrors()) {
                 StringBuilder sb = new StringBuilder();
-                binder.getBindingResult().getFieldErrors().forEach(e -> {
-                    sb.append(e.getField()).append(" ").append(e.getDefaultMessage());
-                });
+                binder
+                    .getBindingResult()
+                    .getFieldErrors()
+                    .forEach(e -> {
+                        sb.append(e.getField()).append(" ").append(e.getDefaultMessage());
+                    });
                 String errorMsg = sb.toString();
                 throw new RegistrationException(errorMsg);
             }
@@ -256,8 +259,7 @@ public abstract class ConfigurableProviderService<A extends ConfigurableProvider
         return entityConverter.convert(npe);
     }
 
-    public void deleteProvider(String providerId)
-            throws SystemException, NoSuchProviderException {
+    public void deleteProvider(String providerId) throws SystemException, NoSuchProviderException {
         logger.debug("delete provider {}", StringUtils.trimAllWhitespace(providerId));
 
         E pe = providerService.getProvider(providerId);
@@ -269,7 +271,7 @@ public abstract class ConfigurableProviderService<A extends ConfigurableProvider
      */
 
     public void registerProvider(String providerId)
-            throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
+        throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
         logger.debug("register provider {}", StringUtils.trimAllWhitespace(providerId));
 
         // fetch, only persisted configurations can be registered
@@ -280,7 +282,7 @@ public abstract class ConfigurableProviderService<A extends ConfigurableProvider
     }
 
     public void unregisterProvider(String providerId)
-            throws NoSuchProviderException, SystemException, NoSuchAuthorityException {
+        throws NoSuchProviderException, SystemException, NoSuchAuthorityException {
         logger.debug("unregister provider {}", StringUtils.trimAllWhitespace(providerId));
 
         // fetch, only persisted configurations can be registered
@@ -296,7 +298,6 @@ public abstract class ConfigurableProviderService<A extends ConfigurableProvider
 
         // ask authority
         return authorityService.getAuthority(cp.getAuthority()).hasProvider(cp.getProvider());
-
     }
 
     /*
@@ -314,5 +315,4 @@ public abstract class ConfigurableProviderService<A extends ConfigurableProvider
         ConfigurationProvider<?, ?, ?> configProvider = getConfigurationProvider(authority);
         return configProvider.getSchema();
     }
-
 }

@@ -1,17 +1,5 @@
 package it.smartcommunitylab.aac.audit;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.ApplicationEventPublisherAware;
-import org.springframework.security.authentication.AuthenticationEventPublisher;
-import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.ProviderWrappedAuthenticationToken;
@@ -25,9 +13,21 @@ import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticationException;
 import it.smartcommunitylab.aac.openid.auth.OIDCUserAuthenticationFailureEvent;
 import it.smartcommunitylab.aac.saml.auth.SamlAuthenticationException;
 import it.smartcommunitylab.aac.saml.auth.SamlUserAuthenticationFailureEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.security.authentication.AuthenticationEventPublisher;
+import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 public class ExtendedAuthenticationEventPublisher
-        implements AuthenticationEventPublisher, ApplicationEventPublisherAware, InitializingBean {
+    implements AuthenticationEventPublisher, ApplicationEventPublisherAware, InitializingBean {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private ApplicationEventPublisher applicationEventPublisher;
@@ -43,14 +43,13 @@ public class ExtendedAuthenticationEventPublisher
         this.applicationEventPublisher = applicationEventPublisher;
         // build default to handle exceptions
         defaultPublisher = new DefaultAuthenticationEventPublisher(applicationEventPublisher);
-
         // register authority events
-//        // TODO convert from hardcoded to provider beans
-//        Map<Class<? extends AuthenticationException>, Class<? extends AbstractAuthenticationFailureEvent>> mappings = new HashMap<>();
-//
-//        mappings.put(SpidAuthenticationException.class, SpidUserAuthenticationFailureEvent.class);
-//
-//        defaultPublisher.setAdditionalExceptionMappings(mappings);
+        //        // TODO convert from hardcoded to provider beans
+        //        Map<Class<? extends AuthenticationException>, Class<? extends AbstractAuthenticationFailureEvent>> mappings = new HashMap<>();
+        //
+        //        mappings.put(SpidAuthenticationException.class, SpidUserAuthenticationFailureEvent.class);
+        //
+        //        defaultPublisher.setAdditionalExceptionMappings(mappings);
     }
 
     @Override
@@ -69,11 +68,18 @@ public class ExtendedAuthenticationEventPublisher
     }
 
     public void publishUserAuthenticationSuccess(
-            String authority, String provider, String realm,
-            UserAuthentication authentication) {
+        String authority,
+        String provider,
+        String realm,
+        UserAuthentication authentication
+    ) {
         if (this.applicationEventPublisher != null) {
-            UserAuthenticationSuccessEvent event = new UserAuthenticationSuccessEvent(authority, provider, realm,
-                    authentication);
+            UserAuthenticationSuccessEvent event = new UserAuthenticationSuccessEvent(
+                authority,
+                provider,
+                realm,
+                authentication
+            );
             this.applicationEventPublisher.publishEvent(event);
         }
     }
@@ -90,8 +96,11 @@ public class ExtendedAuthenticationEventPublisher
                 return;
             }
             UserAuthenticationSuccessEvent event = new UserAuthenticationSuccessEvent(
-                    token.getAuthority(), token.getProvider(), token.getRealm(),
-                    userAuth);
+                token.getAuthority(),
+                token.getProvider(),
+                token.getRealm(),
+                userAuth
+            );
             applicationEventPublisher.publishEvent(event);
         } else {
             // generic event, let default handle
@@ -101,7 +110,6 @@ public class ExtendedAuthenticationEventPublisher
 
     @Override
     public void publishAuthenticationFailure(AuthenticationException exception, Authentication authentication) {
-
         // build a custom model to carry realm/provider etc
         if (authentication instanceof ProviderWrappedAuthenticationToken) {
             ProviderWrappedAuthenticationToken token = (ProviderWrappedAuthenticationToken) authentication;
@@ -117,8 +125,12 @@ public class ExtendedAuthenticationEventPublisher
             }
 
             UserAuthenticationFailureEvent event = translateAuthenticationException(
-                    token.getAuthority(), token.getProvider(), realm,
-                    token, exception);
+                token.getAuthority(),
+                token.getProvider(),
+                realm,
+                token,
+                exception
+            );
 
             applicationEventPublisher.publishEvent(event);
 
@@ -129,8 +141,12 @@ public class ExtendedAuthenticationEventPublisher
             RealmWrappedAuthenticationToken token = (RealmWrappedAuthenticationToken) authentication;
 
             UserAuthenticationFailureEvent event = translateAuthenticationException(
-                    token.getAuthority(), null, token.getRealm(),
-                    token, exception);
+                token.getAuthority(),
+                null,
+                token.getRealm(),
+                token,
+                exception
+            );
 
             applicationEventPublisher.publishEvent(event);
             return;
@@ -138,29 +154,44 @@ public class ExtendedAuthenticationEventPublisher
 
         // generic event, let default handle
         defaultPublisher.publishAuthenticationFailure(exception, authentication);
-
     }
 
-    private UserAuthenticationFailureEvent translateAuthenticationException(String authority, String provider,
-            String realm,
-            Authentication authentication, AuthenticationException exception) {
-
+    private UserAuthenticationFailureEvent translateAuthenticationException(
+        String authority,
+        String provider,
+        String realm,
+        Authentication authentication,
+        AuthenticationException exception
+    ) {
         // TODO use converters..
         if (exception instanceof SamlAuthenticationException) {
             return new SamlUserAuthenticationFailureEvent(
-                    authority, provider, realm, authentication, (SamlAuthenticationException) exception);
+                authority,
+                provider,
+                realm,
+                authentication,
+                (SamlAuthenticationException) exception
+            );
         }
         if (exception instanceof OIDCAuthenticationException) {
             return new OIDCUserAuthenticationFailureEvent(
-                    authority, provider, realm, authentication, (OIDCAuthenticationException) exception);
+                authority,
+                provider,
+                realm,
+                authentication,
+                (OIDCAuthenticationException) exception
+            );
         }
         if (exception instanceof InternalAuthenticationException) {
             return new InternalUserAuthenticationFailureEvent(
-                    authority, provider, realm, authentication, (InternalAuthenticationException) exception);
+                authority,
+                provider,
+                realm,
+                authentication,
+                (InternalAuthenticationException) exception
+            );
         }
 
-        return new UserAuthenticationFailureEvent(
-                authority, provider, realm, null, authentication, exception);
+        return new UserAuthenticationFailureEvent(authority, provider, realm, null, authentication, exception);
     }
-
 }

@@ -1,20 +1,17 @@
 package it.smartcommunitylab.aac.password.auth;
 
+import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
+import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
 import java.util.Collections;
 import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponents;
-
-import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
-import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
 
 public class InternalPasswordLoginAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPoint {
 
@@ -53,14 +50,15 @@ public class InternalPasswordLoginAuthenticationEntryPoint extends LoginUrlAuthe
     }
 
     @Override
-    protected String determineUrlToUseForThisRequest(HttpServletRequest request, HttpServletResponse response,
-            AuthenticationException exception) {
-
+    protected String determineUrlToUseForThisRequest(
+        HttpServletRequest request,
+        HttpServletResponse response,
+        AuthenticationException exception
+    ) {
         // check via matcher
         if (providerRequestMatcher.matches(request)) {
             // resolve provider
-            String provider = providerRequestMatcher.matcher(request).getVariables()
-                    .get(PROVIDER_URI_VARIABLE_NAME);
+            String provider = providerRequestMatcher.matcher(request).getVariables().get(PROVIDER_URI_VARIABLE_NAME);
 
             return buildLoginUrl(request, provider);
         }
@@ -79,7 +77,6 @@ public class InternalPasswordLoginAuthenticationEntryPoint extends LoginUrlAuthe
 
         // return global login
         return super.getLoginFormUrl();
-
     }
 
     @Override
@@ -94,11 +91,9 @@ public class InternalPasswordLoginAuthenticationEntryPoint extends LoginUrlAuthe
             UriComponents u2 = u1.expand(params);
             String u = u2.toUriString();
             return u;
-
-//            return realmUriBuilder.buildUri(request, null, getLoginFormUrl()).expand(params).toUriString();
+            //            return realmUriBuilder.buildUri(request, null, getLoginFormUrl()).expand(params).toUriString();
         }
 
         return getLoginFormUrl().replaceAll("\\{" + PROVIDER_URI_VARIABLE_NAME + "\\}", provider);
     }
-
 }

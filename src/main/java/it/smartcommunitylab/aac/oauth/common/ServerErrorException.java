@@ -1,8 +1,7 @@
 package it.smartcommunitylab.aac.oauth.common;
 
-import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
-
 import it.smartcommunitylab.aac.SystemKeys;
+import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 
 public class ServerErrorException extends OAuth2Exception {
 
@@ -25,5 +24,4 @@ public class ServerErrorException extends OAuth2Exception {
     public int getHttpErrorCode() {
         return 500;
     }
-
 }

@@ -1,14 +1,12 @@
 package it.smartcommunitylab.aac.saml.auth;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import java.util.Collection;
-
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.AuthenticatedPrincipal;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal;
 import org.springframework.util.Assert;
-
-import it.smartcommunitylab.aac.SystemKeys;
 
 public class SamlAuthenticationToken extends AbstractAuthenticationToken {
 
@@ -19,10 +17,15 @@ public class SamlAuthenticationToken extends AbstractAuthenticationToken {
     private final Saml2AuthenticatedPrincipal principal;
 
     private final String saml2Response;
-//    private final transient ResponseToken responseToken;
 
-    public SamlAuthenticationToken(String subject, Saml2AuthenticatedPrincipal principal, String saml2Response,
-            Collection<? extends GrantedAuthority> authorities) {
+    //    private final transient ResponseToken responseToken;
+
+    public SamlAuthenticationToken(
+        String subject,
+        Saml2AuthenticatedPrincipal principal,
+        String saml2Response,
+        Collection<? extends GrantedAuthority> authorities
+    ) {
         super(authorities);
         Assert.hasText(subject, "subject cannot be null or empty");
         Assert.notNull(principal, "principal cannot be null");
@@ -30,8 +33,8 @@ public class SamlAuthenticationToken extends AbstractAuthenticationToken {
         this.subject = subject;
         this.principal = principal;
         this.saml2Response = saml2Response;
-//        this.saml2Response = responseToken.getToken().getSaml2Response();
-//        this.responseToken = responseToken;
+        //        this.saml2Response = responseToken.getToken().getSaml2Response();
+        //        this.responseToken = responseToken;
         setAuthenticated(true);
     }
 
@@ -49,13 +52,12 @@ public class SamlAuthenticationToken extends AbstractAuthenticationToken {
         return subject;
     }
 
-//    @JsonIgnore
-//    public ResponseToken getResponseToken() {
-//        return responseToken;
-//    }
+    //    @JsonIgnore
+    //    public ResponseToken getResponseToken() {
+    //        return responseToken;
+    //    }
 
     public String getSaml2Response() {
         return saml2Response;
     }
-
 }

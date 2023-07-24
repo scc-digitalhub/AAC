@@ -1,8 +1,5 @@
 package it.smartcommunitylab.aac.webauthn.model;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -10,6 +7,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yubico.webauthn.AssertionRequest;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)

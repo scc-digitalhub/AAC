@@ -1,20 +1,22 @@
 package it.smartcommunitylab.aac.saml.auth;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import java.io.Serializable;
-
 import org.springframework.util.Assert;
 
-import it.smartcommunitylab.aac.SystemKeys;
-
 public class SerializableSaml2AuthenticationRequestContext implements Serializable {
+
     private static final long serialVersionUID = SystemKeys.AAC_SAML_SERIAL_VERSION;
 
     private String relyingPartyRegistrationId;
     private String issuer;
     private String relayState;
 
-    public SerializableSaml2AuthenticationRequestContext(String relyingPartyRegistrationId,
-            String issuer, String relayState) {
+    public SerializableSaml2AuthenticationRequestContext(
+        String relyingPartyRegistrationId,
+        String issuer,
+        String relayState
+    ) {
         Assert.hasText(relyingPartyRegistrationId, "relyingPartyRegistrationId is required");
         Assert.hasText(relayState, "relayState is required");
         Assert.hasText(issuer, "issuer is required");
@@ -51,5 +53,4 @@ public class SerializableSaml2AuthenticationRequestContext implements Serializab
     public void setRelayState(String relayState) {
         this.relayState = relayState;
     }
-
 }

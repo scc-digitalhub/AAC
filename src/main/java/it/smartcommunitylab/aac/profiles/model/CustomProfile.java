@@ -1,18 +1,15 @@
 package it.smartcommunitylab.aac.profiles.model;
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
 import it.smartcommunitylab.aac.SystemKeys;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 @JsonInclude(Include.NON_EMPTY)
 public class CustomProfile extends AbstractProfile {
@@ -36,7 +33,6 @@ public class CustomProfile extends AbstractProfile {
 
         this.identifier = identifier;
         this.attributes = new HashMap<>();
-
     }
 
     @Override
@@ -54,5 +50,4 @@ public class CustomProfile extends AbstractProfile {
             this.attributes.put(key, value);
         }
     }
-
 }

@@ -1,9 +1,5 @@
 package it.smartcommunitylab.aac.core.base;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.authorities.SingleProviderAuthority;
@@ -11,19 +7,30 @@ import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.Resource;
 import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
-public abstract class AbstractSingleConfigurableProviderAuthority<S extends ConfigurableResourceProvider<R, T, M, C>, R extends Resource, T extends ConfigurableProvider, M extends AbstractConfigMap, C extends AbstractProviderConfig<M, T>>
-        extends AbstractConfigurableProviderAuthority<S, R, T, M, C> implements SingleProviderAuthority<S, R, T, M, C> {
+public abstract class AbstractSingleConfigurableProviderAuthority<
+    S extends ConfigurableResourceProvider<R, T, M, C>,
+    R extends Resource,
+    T extends ConfigurableProvider,
+    M extends AbstractConfigMap,
+    C extends AbstractProviderConfig<M, T>
+>
+    extends AbstractConfigurableProviderAuthority<S, R, T, M, C>
+    implements SingleProviderAuthority<S, R, T, M, C> {
+
     public AbstractSingleConfigurableProviderAuthority(
-            String authorityId,
-            ProviderConfigRepository<C> registrationRepository) {
+        String authorityId,
+        ProviderConfigRepository<C> registrationRepository
+    ) {
         super(authorityId, registrationRepository);
     }
 
     @Override
     public C registerProvider(ConfigurableProvider cp) throws RegistrationException {
-        if (cp != null
-                && getAuthorityId().equals(cp.getAuthority())) {
+        if (cp != null && getAuthorityId().equals(cp.getAuthority())) {
             // enforce single per realm
             String realm = cp.getRealm();
 
@@ -47,9 +54,12 @@ public abstract class AbstractSingleConfigurableProviderAuthority<S extends Conf
         // we need to fetch registrations and get idp from cache, with optional load
         // we expect a single provider per realm, so fetch first
         Collection<C> registrations = registrationRepository.findByRealm(realm);
-        return registrations.stream().map(r -> findProvider(r.getProvider()))
-                .filter(p -> (p != null)).findFirst().orElse(null);
-
+        return registrations
+            .stream()
+            .map(r -> findProvider(r.getProvider()))
+            .filter(p -> (p != null))
+            .findFirst()
+            .orElse(null);
     }
 
     @Override

@@ -1,14 +1,14 @@
 package it.smartcommunitylab.aac.password.provider;
 
-import org.springframework.stereotype.Service;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.config.IdentityAuthoritiesProperties;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import org.springframework.stereotype.Service;
 
 @Service
-public class PasswordIdentityConfigurationProvider extends
-        AbstractIdentityConfigurationProvider<PasswordIdentityProviderConfigMap, PasswordIdentityProviderConfig> {
+public class PasswordIdentityConfigurationProvider
+    extends AbstractIdentityConfigurationProvider<PasswordIdentityProviderConfigMap, PasswordIdentityProviderConfig> {
 
     public PasswordIdentityConfigurationProvider(IdentityAuthoritiesProperties authoritiesProperties) {
         super(SystemKeys.AUTHORITY_PASSWORD);
@@ -17,12 +17,10 @@ public class PasswordIdentityConfigurationProvider extends
         } else {
             setDefaultConfigMap(new PasswordIdentityProviderConfigMap());
         }
-
     }
 
     @Override
     protected PasswordIdentityProviderConfig buildConfig(ConfigurableIdentityProvider cp) {
         return new PasswordIdentityProviderConfig(cp, getConfigMap(cp.getConfiguration()));
     }
-
 }

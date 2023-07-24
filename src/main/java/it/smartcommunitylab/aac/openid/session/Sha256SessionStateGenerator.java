@@ -1,11 +1,10 @@
 package it.smartcommunitylab.aac.openid.session;
 
+import it.smartcommunitylab.aac.common.SystemException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
-
-import it.smartcommunitylab.aac.common.SystemException;
 
 public class Sha256SessionStateGenerator implements SessionStateGenerator {
 
@@ -31,5 +30,4 @@ public class Sha256SessionStateGenerator implements SessionStateGenerator {
             throw new SystemException();
         }
     }
-
 }

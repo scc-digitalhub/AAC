@@ -21,5 +21,4 @@ public class AdminResource extends Resource {
     public String getDescription() {
         return "Access AAC admin api";
     }
-
 }

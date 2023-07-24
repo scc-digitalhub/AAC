@@ -1,11 +1,15 @@
 package it.smartcommunitylab.aac.templates.service;
 
+import it.smartcommunitylab.aac.common.InvalidDataException;
+import it.smartcommunitylab.aac.common.NoSuchTemplateException;
+import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.templates.model.TemplateModel;
+import it.smartcommunitylab.aac.templates.persistence.TemplateEntity;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
@@ -18,21 +22,17 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.common.InvalidDataException;
-import it.smartcommunitylab.aac.common.NoSuchTemplateException;
-import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.templates.model.TemplateModel;
-import it.smartcommunitylab.aac.templates.persistence.TemplateEntity;
-
 @Service
 @Transactional
 public class TemplateService {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // whitelist typography + links
-    private final static Safelist DEFAULT_WHITELIST = Safelist.relaxed()
-            .removeTags("img")
-            .addEnforcedAttribute("a", "rel", "nofollow");
+    private static final Safelist DEFAULT_WHITELIST = Safelist
+        .relaxed()
+        .removeTags("img")
+        .addEnforcedAttribute("a", "rel", "nofollow");
 
     private final TemplateEntityService templateService;
 
@@ -61,9 +61,13 @@ public class TemplateService {
     }
 
     public TemplateModel findTemplate(String authority, String realm, String template, String language) {
-        logger.debug("find template model {} for realm {} from authority {} language {}",
-                StringUtils.trimAllWhitespace(template), StringUtils.trimAllWhitespace(realm),
-                StringUtils.trimAllWhitespace(authority), StringUtils.trimAllWhitespace(language));
+        logger.debug(
+            "find template model {} for realm {} from authority {} language {}",
+            StringUtils.trimAllWhitespace(template),
+            StringUtils.trimAllWhitespace(realm),
+            StringUtils.trimAllWhitespace(authority),
+            StringUtils.trimAllWhitespace(language)
+        );
 
         TemplateEntity e = templateService.findTemplateBy(authority, realm, template, language);
         if (e == null) {
@@ -74,10 +78,14 @@ public class TemplateService {
     }
 
     public TemplateModel getTemplate(String authority, String realm, String template, String language)
-            throws NoSuchTemplateException {
-        logger.debug("get template model {} for realm {} from authority {} language {}",
-                StringUtils.trimAllWhitespace(template), StringUtils.trimAllWhitespace(realm),
-                StringUtils.trimAllWhitespace(authority), StringUtils.trimAllWhitespace(language));
+        throws NoSuchTemplateException {
+        logger.debug(
+            "get template model {} for realm {} from authority {} language {}",
+            StringUtils.trimAllWhitespace(template),
+            StringUtils.trimAllWhitespace(realm),
+            StringUtils.trimAllWhitespace(authority),
+            StringUtils.trimAllWhitespace(language)
+        );
 
         TemplateEntity e = templateService.findTemplateBy(authority, realm, template, language);
         if (e == null) {
@@ -90,36 +98,50 @@ public class TemplateService {
     public Collection<TemplateModel> listTemplatesByRealm(String realm) {
         logger.debug("list template models for realm {} ", StringUtils.trimAllWhitespace(realm));
 
-        return templateService.findTemplatesByRealm(realm).stream().map(t -> toModel(t))
-                .collect(Collectors.toList());
+        return templateService.findTemplatesByRealm(realm).stream().map(t -> toModel(t)).collect(Collectors.toList());
     }
 
     public Collection<TemplateModel> listTemplates(String authority) {
         logger.debug("list template models for authority {}", StringUtils.trimAllWhitespace(authority));
 
-        return templateService.findTemplatesByAuthority(authority).stream().map(t -> toModel(t))
-                .collect(Collectors.toList());
+        return templateService
+            .findTemplatesByAuthority(authority)
+            .stream()
+            .map(t -> toModel(t))
+            .collect(Collectors.toList());
     }
 
     public Collection<TemplateModel> listTemplates(String authority, String realm) {
-        logger.debug("list template models for authority {} realm {}", StringUtils.trimAllWhitespace(authority),
-                StringUtils.trimAllWhitespace(realm));
+        logger.debug(
+            "list template models for authority {} realm {}",
+            StringUtils.trimAllWhitespace(authority),
+            StringUtils.trimAllWhitespace(realm)
+        );
 
-        return templateService.findTemplatesByAuthorityAndRealm(authority, realm).stream().map(t -> toModel(t))
-                .collect(Collectors.toList());
+        return templateService
+            .findTemplatesByAuthorityAndRealm(authority, realm)
+            .stream()
+            .map(t -> toModel(t))
+            .collect(Collectors.toList());
     }
 
     public Collection<TemplateModel> listTemplates(String authority, String realm, String template) {
-        logger.debug("list template {} models for authority {} realm {}", StringUtils.trimAllWhitespace(template),
-                StringUtils.trimAllWhitespace(authority), StringUtils.trimAllWhitespace(realm));
+        logger.debug(
+            "list template {} models for authority {} realm {}",
+            StringUtils.trimAllWhitespace(template),
+            StringUtils.trimAllWhitespace(authority),
+            StringUtils.trimAllWhitespace(realm)
+        );
 
-        return templateService.findTemplatesByAuthorityAndRealmAndTemplate(authority, realm, template).stream()
-                .map(t -> toModel(t))
-                .collect(Collectors.toList());
+        return templateService
+            .findTemplatesByAuthorityAndRealmAndTemplate(authority, realm, template)
+            .stream()
+            .map(t -> toModel(t))
+            .collect(Collectors.toList());
     }
 
     public TemplateModel addTemplate(String id, String authority, String realm, TemplateModel reg)
-            throws RegistrationException {
+        throws RegistrationException {
         if (!StringUtils.hasText(authority) || !StringUtils.hasText(realm)) {
             throw new RegistrationException();
         }
@@ -147,24 +169,33 @@ public class TemplateService {
 
         Map<String, String> content = null;
         if (reg.getContent() != null) {
-            content = reg.getContent().entrySet().stream().map(e -> {
-                String v = e.getValue();
-                if (v == null) {
-                    return e;
-                }
+            content =
+                reg
+                    .getContent()
+                    .entrySet()
+                    .stream()
+                    .map(e -> {
+                        String v = e.getValue();
+                        if (v == null) {
+                            return e;
+                        }
 
-                return Map.entry(e.getKey(), Jsoup.clean(v, DEFAULT_WHITELIST));
-            }).collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+                        return Map.entry(e.getKey(), Jsoup.clean(v, DEFAULT_WHITELIST));
+                    })
+                    .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
         }
 
-        logger.debug("add template {} for realm {}", StringUtils.trimAllWhitespace(id),
-                StringUtils.trimAllWhitespace(realm));
+        logger.debug(
+            "add template {} for realm {}",
+            StringUtils.trimAllWhitespace(id),
+            StringUtils.trimAllWhitespace(realm)
+        );
         TemplateEntity e = templateService.addTemplate(id, authority, realm, template, language, content);
         return toModel(e);
     }
 
     public TemplateModel updateTemplate(String id, TemplateModel reg)
-            throws NoSuchTemplateException, RegistrationException {
+        throws NoSuchTemplateException, RegistrationException {
         String template = reg.getTemplate();
         String language = reg.getLanguage();
 
@@ -195,14 +226,20 @@ public class TemplateService {
     public Map<String, String> sanitizeTemplate(String id, TemplateModel reg) {
         Map<String, String> content = null;
         if (reg.getContent() != null) {
-            content = reg.getContent().entrySet().stream().map(e -> {
-                String v = e.getValue();
-                if (v == null) {
-                    return e;
-                }
+            content =
+                reg
+                    .getContent()
+                    .entrySet()
+                    .stream()
+                    .map(e -> {
+                        String v = e.getValue();
+                        if (v == null) {
+                            return e;
+                        }
 
-                return Map.entry(e.getKey(), Jsoup.clean(v, DEFAULT_WHITELIST));
-            }).collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+                        return Map.entry(e.getKey(), Jsoup.clean(v, DEFAULT_WHITELIST));
+                    })
+                    .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
         }
 
         return content;
@@ -222,12 +259,8 @@ public class TemplateService {
 
     public Page<TemplateModel> searchTemplates(String realm, String query, Pageable pageRequest) {
         Page<TemplateEntity> page = templateService.searchTemplatesByKeywords(realm, query, pageRequest);
-        List<TemplateModel> result = page.getContent().stream().map(t -> toModel(t))
-                .collect(Collectors.toList());
+        List<TemplateModel> result = page.getContent().stream().map(t -> toModel(t)).collect(Collectors.toList());
 
-        return PageableExecutionUtils.getPage(
-                result,
-                pageRequest,
-                () -> page.getTotalElements());
+        return PageableExecutionUtils.getPage(result, pageRequest, () -> page.getTotalElements());
     }
 }

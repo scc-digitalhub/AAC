@@ -1,16 +1,15 @@
 package it.smartcommunitylab.aac.scope;
 
-import java.util.Collection;
-
 import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
+import java.util.Collection;
 
 /*
  * A registry for scopes
- * 
+ *
  * We don't expect providers to be immutable:
  * the registry implementations are supposed to retrieve scopes from providers at each request.
- * 
+ *
  * We expect implementations to enforce the existence of a single provider for a given resourceId
  */
 
@@ -53,5 +52,4 @@ public interface ScopeRegistry {
     public Resource getResource(String resourceId) throws NoSuchResourceException;
 
     public Collection<Resource> listResources();
-
 }

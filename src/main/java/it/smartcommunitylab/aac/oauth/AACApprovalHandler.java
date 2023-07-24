@@ -1,16 +1,14 @@
 package it.smartcommunitylab.aac.oauth;
 
+import it.smartcommunitylab.aac.oauth.approval.ScopeApprovalHandler;
+import it.smartcommunitylab.aac.oauth.approval.SpacesApprovalHandler;
+import it.smartcommunitylab.aac.oauth.flow.OAuthFlowExtensionsHandler;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.security.oauth2.provider.approval.UserApprovalHandler;
 import org.springframework.util.Assert;
-
-import it.smartcommunitylab.aac.oauth.approval.ScopeApprovalHandler;
-import it.smartcommunitylab.aac.oauth.approval.SpacesApprovalHandler;
-import it.smartcommunitylab.aac.oauth.flow.OAuthFlowExtensionsHandler;
 
 public class AACApprovalHandler implements UserApprovalHandler {
 
@@ -49,8 +47,10 @@ public class AACApprovalHandler implements UserApprovalHandler {
     }
 
     @Override
-    public AuthorizationRequest checkForPreApproval(AuthorizationRequest authorizationRequest,
-            Authentication userAuthentication) {
+    public AuthorizationRequest checkForPreApproval(
+        AuthorizationRequest authorizationRequest,
+        Authentication userAuthentication
+    ) {
         AuthorizationRequest request = authorizationRequest;
         if (scopeApprovalHandler != null) {
             // first call scopeApprover to let it modify request *before* user approval
@@ -68,10 +68,14 @@ public class AACApprovalHandler implements UserApprovalHandler {
     }
 
     @Override
-    public AuthorizationRequest updateAfterApproval(AuthorizationRequest authorizationRequest,
-            Authentication userAuthentication) {
-        AuthorizationRequest request = userApprovalHandler.updateAfterApproval(authorizationRequest,
-                userAuthentication);
+    public AuthorizationRequest updateAfterApproval(
+        AuthorizationRequest authorizationRequest,
+        Authentication userAuthentication
+    ) {
+        AuthorizationRequest request = userApprovalHandler.updateAfterApproval(
+            authorizationRequest,
+            userAuthentication
+        );
 
         // update spaces
         if (spacesApprovalHandler != null) {
@@ -88,22 +92,27 @@ public class AACApprovalHandler implements UserApprovalHandler {
     }
 
     @Override
-    public Map<String, Object> getUserApprovalRequest(AuthorizationRequest authorizationRequest,
-            Authentication userAuthentication) {
+    public Map<String, Object> getUserApprovalRequest(
+        AuthorizationRequest authorizationRequest,
+        Authentication userAuthentication
+    ) {
         Map<String, Object> model = new HashMap<>();
 
-        Map<String, Object> userApprovalModel = userApprovalHandler.getUserApprovalRequest(authorizationRequest,
-                userAuthentication);
+        Map<String, Object> userApprovalModel = userApprovalHandler.getUserApprovalRequest(
+            authorizationRequest,
+            userAuthentication
+        );
         model.putAll(userApprovalModel);
 
         // get spaces model
         if (spacesApprovalHandler != null) {
-            Map<String, Object> spacesApprovalModel = spacesApprovalHandler.getUserApprovalRequest(authorizationRequest,
-                    userAuthentication);
+            Map<String, Object> spacesApprovalModel = spacesApprovalHandler.getUserApprovalRequest(
+                authorizationRequest,
+                userAuthentication
+            );
             model.putAll(spacesApprovalModel);
         }
 
         return model;
     }
-
 }

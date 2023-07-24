@@ -1,8 +1,8 @@
 package it.smartcommunitylab.aac.core.persistence;
 
+import it.smartcommunitylab.aac.repository.HashMapConverter;
 import java.io.Serializable;
 import java.util.Map;
-
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
@@ -10,8 +10,6 @@ import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
-
-import it.smartcommunitylab.aac.repository.HashMapConverter;
 
 @Entity
 @Table(name = "template_providers")
@@ -65,9 +63,7 @@ public class TemplateProviderEntity implements ProviderEntity {
     @Column(name = "version")
     private Integer version;
 
-    public TemplateProviderEntity() {
-
-    }
+    public TemplateProviderEntity() {}
 
     public TemplateProviderEntity(String realm) {
         this.realm = realm;

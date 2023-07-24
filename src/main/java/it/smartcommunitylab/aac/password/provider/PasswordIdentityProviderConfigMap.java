@@ -1,13 +1,5 @@
 package it.smartcommunitylab.aac.password.provider;
 
-import java.io.Serializable;
-import java.util.Map;
-
-import javax.validation.Valid;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.Pattern;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -15,15 +7,25 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractConfigMap;
+import java.io.Serializable;
+import java.util.Map;
+import javax.validation.Valid;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.Pattern;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PasswordIdentityProviderConfigMap extends AbstractConfigMap implements Serializable {
+
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
-    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_CONFIG + SystemKeys.ID_SEPARATOR
-            + SystemKeys.RESOURCE_IDENTITY_PROVIDER + SystemKeys.ID_SEPARATOR
-            + SystemKeys.AUTHORITY_PASSWORD;
+    public static final String RESOURCE_TYPE =
+        SystemKeys.RESOURCE_CONFIG +
+        SystemKeys.ID_SEPARATOR +
+        SystemKeys.RESOURCE_IDENTITY_PROVIDER +
+        SystemKeys.ID_SEPARATOR +
+        SystemKeys.AUTHORITY_PASSWORD;
 
     @Max(30 * 24 * 60 * 60)
     private Integer maxSessionDuration;
@@ -40,6 +42,7 @@ public class PasswordIdentityProviderConfigMap extends AbstractConfigMap impleme
      */
 
     private Boolean enablePasswordReset;
+
     @Max(3 * 24 * 60 * 60)
     private Integer passwordResetValidity;
 
@@ -65,8 +68,7 @@ public class PasswordIdentityProviderConfigMap extends AbstractConfigMap impleme
     private Boolean passwordRequireSpecial;
     private Boolean passwordSupportWhitespace;
 
-    public PasswordIdentityProviderConfigMap() {
-    }
+    public PasswordIdentityProviderConfigMap() {}
 
     public String getRepositoryId() {
         return repositoryId;
@@ -215,8 +217,7 @@ public class PasswordIdentityProviderConfigMap extends AbstractConfigMap impleme
     public void setConfiguration(Map<String, Serializable> props) {
         // use mapper for local
         mapper.setSerializationInclusion(Include.NON_EMPTY);
-        PasswordIdentityProviderConfigMap map = mapper.convertValue(props,
-                PasswordIdentityProviderConfigMap.class);
+        PasswordIdentityProviderConfigMap map = mapper.convertValue(props, PasswordIdentityProviderConfigMap.class);
 
         setConfiguration(map);
     }

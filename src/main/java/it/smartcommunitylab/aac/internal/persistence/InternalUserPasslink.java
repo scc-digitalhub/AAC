@@ -1,8 +1,8 @@
 package it.smartcommunitylab.aac.internal.persistence;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import java.io.Serializable;
 import java.util.Date;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
@@ -10,17 +10,15 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
-
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.security.core.CredentialsContainer;
-
-import it.smartcommunitylab.aac.SystemKeys;
 
 @Entity
 @Table(name = "internal_users_passlinks")
 @EntityListeners(AuditingEntityListener.class)
 public class InternalUserPasslink implements CredentialsContainer, Serializable {
+
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     @Id
@@ -108,5 +106,4 @@ public class InternalUserPasslink implements CredentialsContainer, Serializable 
     public void eraseCredentials() {
         this.passcode = null;
     }
-
 }

@@ -1,8 +1,5 @@
 package it.smartcommunitylab.aac.attributes;
 
-import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.provider.MapperAttributeProvider;
 import it.smartcommunitylab.aac.attributes.provider.MapperAttributeProviderConfig;
@@ -15,18 +12,21 @@ import it.smartcommunitylab.aac.attributes.store.NullAttributeStore;
 import it.smartcommunitylab.aac.attributes.store.PersistentAttributeStore;
 import it.smartcommunitylab.aac.core.base.AbstractAttributeAuthority;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 @Service
-public class MapperAttributeAuthority extends
-        AbstractAttributeAuthority<MapperAttributeProvider, MapperAttributeProviderConfigMap, MapperAttributeProviderConfig> {
+public class MapperAttributeAuthority
+    extends AbstractAttributeAuthority<MapperAttributeProvider, MapperAttributeProviderConfigMap, MapperAttributeProviderConfig> {
 
     // system attributes store
     protected final AutoJdbcAttributeStore jdbcAttributeStore;
 
     public MapperAttributeAuthority(
-            AttributeService attributeService,
-            AutoJdbcAttributeStore jdbcAttributeStore,
-            ProviderConfigRepository<MapperAttributeProviderConfig> registrationRepository) {
+        AttributeService attributeService,
+        AutoJdbcAttributeStore jdbcAttributeStore,
+        ProviderConfigRepository<MapperAttributeProviderConfig> registrationRepository
+    ) {
         super(SystemKeys.AUTHORITY_MAPPER, attributeService, registrationRepository);
         Assert.notNull(jdbcAttributeStore, "attribute store is mandatory");
 
@@ -38,10 +38,12 @@ public class MapperAttributeAuthority extends
         AttributeStore attributeStore = getAttributeStore(config.getProvider(), config.getPersistence());
 
         MapperAttributeProvider ap = new MapperAttributeProvider(
-                config.getProvider(),
-                attributeService, attributeStore,
-                config,
-                config.getRealm());
+            config.getProvider(),
+            attributeService,
+            attributeStore,
+            config,
+            config.getRealm()
+        );
 
         return ap;
     }

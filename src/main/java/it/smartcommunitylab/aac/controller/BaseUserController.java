@@ -1,10 +1,27 @@
 package it.smartcommunitylab.aac.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
+import it.smartcommunitylab.aac.common.NoSuchProviderException;
+import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.core.UserManager;
+import it.smartcommunitylab.aac.core.base.AbstractAccount;
+import it.smartcommunitylab.aac.core.base.AbstractEditableAccount;
+import it.smartcommunitylab.aac.core.model.EditableUserAccount;
+import it.smartcommunitylab.aac.core.model.UserAccount;
+import it.smartcommunitylab.aac.dto.UserEmail;
+import it.smartcommunitylab.aac.dto.UserStatus;
+import it.smartcommunitylab.aac.dto.UserSubject;
+import it.smartcommunitylab.aac.model.SubjectStatus;
+import it.smartcommunitylab.aac.model.User;
 import java.util.Collection;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -22,30 +39,12 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import io.swagger.v3.oas.annotations.Operation;
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
-import it.smartcommunitylab.aac.common.NoSuchProviderException;
-import it.smartcommunitylab.aac.common.NoSuchRealmException;
-import it.smartcommunitylab.aac.common.NoSuchUserException;
-import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.core.UserManager;
-import it.smartcommunitylab.aac.core.base.AbstractAccount;
-import it.smartcommunitylab.aac.core.base.AbstractEditableAccount;
-import it.smartcommunitylab.aac.core.model.EditableUserAccount;
-import it.smartcommunitylab.aac.core.model.UserAccount;
-import it.smartcommunitylab.aac.dto.UserEmail;
-import it.smartcommunitylab.aac.dto.UserStatus;
-import it.smartcommunitylab.aac.dto.UserSubject;
-import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.model.SubjectStatus;
-
 /*
  * Base controller for users
  */
 @PreAuthorize("hasAuthority(this.authority)")
 public class BaseUserController implements InitializingBean {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     protected UserManager userManager;
@@ -71,11 +70,11 @@ public class BaseUserController implements InitializingBean {
     @GetMapping("/users/{realm}")
     @Operation(summary = "list users from realm")
     public Page<User> listUser(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestParam(required = false) String q, Pageable pageRequest)
-            throws NoSuchRealmException {
-        logger.debug("list users for realm {}",
-                StringUtils.trimAllWhitespace(realm));
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @RequestParam(required = false) String q,
+        Pageable pageRequest
+    ) throws NoSuchRealmException {
+        logger.debug("list users for realm {}", StringUtils.trimAllWhitespace(realm));
 
         // list users owned or accessible by this realm
         return userManager.searchUsers(realm, q, pageRequest);
@@ -84,12 +83,15 @@ public class BaseUserController implements InitializingBean {
     @GetMapping("/users/{realm}/{userId}")
     @Operation(summary = "fetch a specific user from realm")
     public User getUser(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
-            throws NoSuchRealmException, NoSuchUserException {
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId
+    ) throws NoSuchRealmException, NoSuchUserException {
         // get the user as visible from the given realm
-        logger.debug("get user {} for realm {}",
-                StringUtils.trimAllWhitespace(userId), StringUtils.trimAllWhitespace(realm));
+        logger.debug(
+            "get user {} for realm {}",
+            StringUtils.trimAllWhitespace(userId),
+            StringUtils.trimAllWhitespace(realm)
+        );
 
         return userManager.getUser(realm, userId);
     }
@@ -97,12 +99,15 @@ public class BaseUserController implements InitializingBean {
     @DeleteMapping("/users/{realm}/{userId}")
     @Operation(summary = "delete a specific user from realm")
     public void deleteUser(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
-            throws NoSuchRealmException, NoSuchUserException {
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId
+    ) throws NoSuchRealmException, NoSuchUserException {
         // remove user for this realm, will delete if owned
-        logger.debug("delete user {} for realm {}",
-                StringUtils.trimAllWhitespace(userId), StringUtils.trimAllWhitespace(realm));
+        logger.debug(
+            "delete user {} for realm {}",
+            StringUtils.trimAllWhitespace(userId),
+            StringUtils.trimAllWhitespace(realm)
+        );
 
         userManager.removeUser(realm, userId);
     }
@@ -110,10 +115,10 @@ public class BaseUserController implements InitializingBean {
     @PostMapping("/users/{realm}")
     @Operation(summary = "create a new user in realm")
     public User createUser(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestBody @Valid @NotNull UserSubject reg) throws NoSuchRealmException {
-        logger.debug("register user for realm {}",
-                StringUtils.trimAllWhitespace(realm));
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @RequestBody @Valid @NotNull UserSubject reg
+    ) throws NoSuchRealmException {
+        logger.debug("register user for realm {}", StringUtils.trimAllWhitespace(realm));
 
         if (logger.isTraceEnabled()) {
             logger.trace("registration bean {}", StringUtils.trimAllWhitespace(reg.toString()));
@@ -127,11 +132,14 @@ public class BaseUserController implements InitializingBean {
     @PutMapping("/users/{realm}")
     @Operation(summary = "invite a new user in realm")
     public User inviteUser(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestBody @Valid @NotNull UserEmail reg)
-            throws NoSuchRealmException, RegistrationException, NoSuchProviderException, NoSuchAuthorityException {
-        logger.debug("invite user {} for realm {}", StringUtils.trimAllWhitespace(reg.getEmail()),
-                StringUtils.trimAllWhitespace(realm));
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @RequestBody @Valid @NotNull UserEmail reg
+    ) throws NoSuchRealmException, RegistrationException, NoSuchProviderException, NoSuchAuthorityException {
+        logger.debug(
+            "invite user {} for realm {}",
+            StringUtils.trimAllWhitespace(reg.getEmail()),
+            StringUtils.trimAllWhitespace(realm)
+        );
 
         if (logger.isTraceEnabled()) {
             logger.trace("registration bean {}", StringUtils.trimAllWhitespace(reg.toString()));
@@ -145,12 +153,15 @@ public class BaseUserController implements InitializingBean {
     @PutMapping("/users/{realm}/{userId}/status")
     @Operation(summary = "update the status of a specific user in realm")
     public User updateUserStatus(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
-            @RequestBody @Valid @NotNull UserStatus reg)
-            throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException {
-        logger.debug("update status for user {} for realm {}",
-                StringUtils.trimAllWhitespace(userId), StringUtils.trimAllWhitespace(realm));
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
+        @RequestBody @Valid @NotNull UserStatus reg
+    ) throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException {
+        logger.debug(
+            "update status for user {} for realm {}",
+            StringUtils.trimAllWhitespace(userId),
+            StringUtils.trimAllWhitespace(realm)
+        );
 
         // extract from model
         SubjectStatus status = reg.getStatus();
@@ -167,16 +178,16 @@ public class BaseUserController implements InitializingBean {
 
     /*
      * User accounts
-     * 
+     *
      */
     @PostMapping("/users/{realm}/{userId}/account")
     @Operation(summary = "add a new account to a specific user in realm")
     public UserAccount createUserAccount(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
-            @RequestBody @Valid @NotNull AbstractAccount reg)
-            throws NoSuchRealmException, RegistrationException, NoSuchUserException, NoSuchProviderException,
-            NoSuchAuthorityException {
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
+        @RequestBody @Valid @NotNull AbstractAccount reg
+    )
+        throws NoSuchRealmException, RegistrationException, NoSuchUserException, NoSuchProviderException, NoSuchAuthorityException {
         logger.debug("register user for realm {}", StringUtils.trimAllWhitespace(realm));
 
         if (logger.isTraceEnabled()) {
@@ -193,12 +204,14 @@ public class BaseUserController implements InitializingBean {
     @GetMapping("/users/{realm}/{userId}/account")
     @Operation(summary = "list accounts for a specific user in realm")
     public Collection<UserAccount> listUserAccounts(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
-            throws NoSuchUserException, NoSuchRealmException, NoSuchProviderException,
-            NoSuchAuthorityException {
-        logger.debug("get accounts for user {} for realm {}",
-                StringUtils.trimAllWhitespace(userId), StringUtils.trimAllWhitespace(realm));
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId
+    ) throws NoSuchUserException, NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException {
+        logger.debug(
+            "get accounts for user {} for realm {}",
+            StringUtils.trimAllWhitespace(userId),
+            StringUtils.trimAllWhitespace(realm)
+        );
 
         return userManager.listUserAccounts(realm, userId);
     }
@@ -206,12 +219,16 @@ public class BaseUserController implements InitializingBean {
     @GetMapping("/users/{realm}/{userId}/account/{uuid}")
     @Operation(summary = "get a specific account from a specific user in realm")
     public UserAccount getUserAccount(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid)
-            throws NoSuchUserException, NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException {
-        logger.debug("get user {} account {} for realm {}", StringUtils.trimAllWhitespace(userId),
-                StringUtils.trimAllWhitespace(uuid), StringUtils.trimAllWhitespace(realm));
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid
+    ) throws NoSuchUserException, NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException {
+        logger.debug(
+            "get user {} account {} for realm {}",
+            StringUtils.trimAllWhitespace(userId),
+            StringUtils.trimAllWhitespace(uuid),
+            StringUtils.trimAllWhitespace(realm)
+        );
 
         return userManager.getUserAccount(realm, userId, uuid);
     }
@@ -219,14 +236,18 @@ public class BaseUserController implements InitializingBean {
     @PutMapping("/users/{realm}/{userId}/account/{uuid}")
     @Operation(summary = "update a specific account for a specific user in realm")
     public UserAccount updateUserAccount(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid,
-            @RequestBody @Valid @NotNull AbstractAccount reg)
-            throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException,
-            NoSuchAuthorityException {
-        logger.debug("update user {} account {} for realm {}", StringUtils.trimAllWhitespace(userId),
-                StringUtils.trimAllWhitespace(uuid), StringUtils.trimAllWhitespace(realm));
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid,
+        @RequestBody @Valid @NotNull AbstractAccount reg
+    )
+        throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException, NoSuchAuthorityException {
+        logger.debug(
+            "update user {} account {} for realm {}",
+            StringUtils.trimAllWhitespace(userId),
+            StringUtils.trimAllWhitespace(uuid),
+            StringUtils.trimAllWhitespace(realm)
+        );
 
         return userManager.updateUserAccount(realm, userId, uuid, reg);
     }
@@ -234,55 +255,63 @@ public class BaseUserController implements InitializingBean {
     @DeleteMapping("/users/{realm}/{userId}/account/{uuid}")
     @Operation(summary = "delete a specific account from a specific user in realm")
     public void deleteUserAccount(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid)
-            throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException,
-            NoSuchAuthorityException {
-        logger.debug("update user {} account {} for realm {}", StringUtils.trimAllWhitespace(userId),
-                StringUtils.trimAllWhitespace(uuid), StringUtils.trimAllWhitespace(realm));
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid
+    )
+        throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException, NoSuchAuthorityException {
+        logger.debug(
+            "update user {} account {} for realm {}",
+            StringUtils.trimAllWhitespace(userId),
+            StringUtils.trimAllWhitespace(uuid),
+            StringUtils.trimAllWhitespace(realm)
+        );
 
         userManager.deleteUserAccount(realm, userId, uuid);
     }
 
-//    @GetMapping("/users/{realm}/{userId}/account/{uuid}/edit")
-//    @Operation(summary = "get a specific editable account from a specific user in realm")
-//    public EditableUserAccount getEditableUserAccount(
-//            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-//            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
-//            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid)
-//            throws NoSuchUserException, NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException {
-//        logger.debug("get user {} edit account {} for realm {}", StringUtils.trimAllWhitespace(userId),
-//                StringUtils.trimAllWhitespace(uuid), StringUtils.trimAllWhitespace(realm));
-//
-//        return userManager.getEditableUserAccount(realm, userId, uuid);
-//    }
-//
-//    @PutMapping("/users/{realm}/{userId}/account/{uuid}/edit")
-//    @Operation(summary = "update a specific editable account for a specific user in realm")
-//    public EditableUserAccount updateEditableUserAccount(
-//            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-//            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
-//            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid,
-//            @RequestBody @Valid @NotNull AbstractEditableAccount reg)
-//            throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException,
-//            NoSuchAuthorityException {
-//        logger.debug("update user {} editable account {} for realm {}", StringUtils.trimAllWhitespace(userId),
-//                StringUtils.trimAllWhitespace(uuid), StringUtils.trimAllWhitespace(realm));
-//
-//        return userManager.editUserAccount(realm, userId, uuid, reg);
-//    }
+    //    @GetMapping("/users/{realm}/{userId}/account/{uuid}/edit")
+    //    @Operation(summary = "get a specific editable account from a specific user in realm")
+    //    public EditableUserAccount getEditableUserAccount(
+    //            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+    //            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
+    //            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid)
+    //            throws NoSuchUserException, NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException {
+    //        logger.debug("get user {} edit account {} for realm {}", StringUtils.trimAllWhitespace(userId),
+    //                StringUtils.trimAllWhitespace(uuid), StringUtils.trimAllWhitespace(realm));
+    //
+    //        return userManager.getEditableUserAccount(realm, userId, uuid);
+    //    }
+    //
+    //    @PutMapping("/users/{realm}/{userId}/account/{uuid}/edit")
+    //    @Operation(summary = "update a specific editable account for a specific user in realm")
+    //    public EditableUserAccount updateEditableUserAccount(
+    //            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+    //            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
+    //            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid,
+    //            @RequestBody @Valid @NotNull AbstractEditableAccount reg)
+    //            throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException,
+    //            NoSuchAuthorityException {
+    //        logger.debug("update user {} editable account {} for realm {}", StringUtils.trimAllWhitespace(userId),
+    //                StringUtils.trimAllWhitespace(uuid), StringUtils.trimAllWhitespace(realm));
+    //
+    //        return userManager.editUserAccount(realm, userId, uuid, reg);
+    //    }
 
     @PutMapping("/users/{realm}/{userId}/account/{uuid}/confirm")
     @Operation(summary = "confirm an account for a given user in realm")
     public UserAccount confirmUserAccount(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid)
-            throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException,
-            NoSuchAuthorityException {
-        logger.debug("confirm user {} account {} for realm {}", StringUtils.trimAllWhitespace(userId),
-                StringUtils.trimAllWhitespace(uuid), StringUtils.trimAllWhitespace(realm));
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid
+    )
+        throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException, NoSuchAuthorityException {
+        logger.debug(
+            "confirm user {} account {} for realm {}",
+            StringUtils.trimAllWhitespace(userId),
+            StringUtils.trimAllWhitespace(uuid),
+            StringUtils.trimAllWhitespace(realm)
+        );
 
         return userManager.confirmUserAccount(realm, userId, uuid);
     }
@@ -290,13 +319,17 @@ public class BaseUserController implements InitializingBean {
     @DeleteMapping("/users/{realm}/{userId}/account/{uuid}/confirm")
     @Operation(summary = "unconfirm an account for a given user in realm")
     public UserAccount unconfirmUserAccount(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid)
-            throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException,
-            NoSuchAuthorityException {
-        logger.debug("unconfirm user {} account {} for realm {}", StringUtils.trimAllWhitespace(userId),
-                StringUtils.trimAllWhitespace(uuid), StringUtils.trimAllWhitespace(realm));
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid
+    )
+        throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException, NoSuchAuthorityException {
+        logger.debug(
+            "unconfirm user {} account {} for realm {}",
+            StringUtils.trimAllWhitespace(userId),
+            StringUtils.trimAllWhitespace(uuid),
+            StringUtils.trimAllWhitespace(realm)
+        );
 
         return userManager.unconfirmUserAccount(realm, userId, uuid);
     }
@@ -304,13 +337,17 @@ public class BaseUserController implements InitializingBean {
     @PostMapping("/users/{realm}/{userId}/account/{uuid}/confirm")
     @Operation(summary = "verify an account for a given user in realm")
     public UserAccount verifyUserAccount(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid)
-            throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException,
-            NoSuchAuthorityException {
-        logger.debug("verify user {} account {} for realm {}", StringUtils.trimAllWhitespace(userId),
-                StringUtils.trimAllWhitespace(uuid), StringUtils.trimAllWhitespace(realm));
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid
+    )
+        throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException, NoSuchAuthorityException {
+        logger.debug(
+            "verify user {} account {} for realm {}",
+            StringUtils.trimAllWhitespace(userId),
+            StringUtils.trimAllWhitespace(uuid),
+            StringUtils.trimAllWhitespace(realm)
+        );
 
         return userManager.verifyUserAccount(realm, userId, uuid);
     }
@@ -318,13 +355,17 @@ public class BaseUserController implements InitializingBean {
     @PutMapping("/users/{realm}/{userId}/account/{uuid}/lock")
     @Operation(summary = "lock an account for a given user in realm")
     public UserAccount lockUserAccount(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid)
-            throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException,
-            NoSuchAuthorityException {
-        logger.debug("lock user {} account {} for realm {}", StringUtils.trimAllWhitespace(userId),
-                StringUtils.trimAllWhitespace(uuid), StringUtils.trimAllWhitespace(realm));
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid
+    )
+        throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException, NoSuchAuthorityException {
+        logger.debug(
+            "lock user {} account {} for realm {}",
+            StringUtils.trimAllWhitespace(userId),
+            StringUtils.trimAllWhitespace(uuid),
+            StringUtils.trimAllWhitespace(realm)
+        );
 
         return userManager.lockUserAccount(realm, userId, uuid);
     }
@@ -332,62 +373,65 @@ public class BaseUserController implements InitializingBean {
     @DeleteMapping("/users/{realm}/{userId}/account/{uuid}/lock")
     @Operation(summary = "unlock an account for a given user in realm")
     public UserAccount unlockUserAccount(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid)
-            throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException,
-            NoSuchAuthorityException {
-        logger.debug("unlock user {} account {} for realm {}", StringUtils.trimAllWhitespace(userId),
-                StringUtils.trimAllWhitespace(uuid), StringUtils.trimAllWhitespace(realm));
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid
+    )
+        throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException, NoSuchAuthorityException {
+        logger.debug(
+            "unlock user {} account {} for realm {}",
+            StringUtils.trimAllWhitespace(userId),
+            StringUtils.trimAllWhitespace(uuid),
+            StringUtils.trimAllWhitespace(realm)
+        );
 
         return userManager.unlockUserAccount(realm, userId, uuid);
     }
-
     /*
      * User Attributes management
-     * 
+     *
      * TODO
      */
 
-//    @GetMapping("/users/{realm}/{userId}/attributes")
-//    public Collection<UserAttributes> getUserAttributes(
-//            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-//            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
-//            throws NoSuchRealmException, NoSuchUserException {
-//        logger.debug("get attributes for user {} for realm {}",
-//                StringUtils.trimAllWhitespace(userId), StringUtils.trimAllWhitespace(realm));
-//
-//        Collection<UserAttributes> attributes = userManager.getUserAttributes(realm, userId);
-//        return attributes;
-//    }
-//
-//    @PostMapping("/users/{realm}/{userId}/attributes")
-//    public UserAttributes addUserAttributes(
-//            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-//            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
-//            @RequestBody @Valid @NotNull AttributesRegistrationDTO reg)
-//            throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException, NoSuchAttributeSetException {
-//        logger.debug("update attributes for user {} for realm {}",
-//                StringUtils.trimAllWhitespace(userId), StringUtils.trimAllWhitespace(realm));
-//
-//        // extract registration
-//        String identifier = reg.getIdentifier();
-//        String provider = reg.getProvider();
-//        if (!StringUtils.hasText(provider)) {
-//            throw new IllegalArgumentException("a valid provider is required");
-//        }
-//
-//        if (reg.getAttributes() == null) {
-//            throw new IllegalArgumentException("attributes can not be null");
-//        }
-//
-//        Map<String, Serializable> attributes = reg.getAttributes().stream()
-//                .filter(a -> a.getValue() != null)
-//                .collect(Collectors.toMap(a -> a.getKey(), a -> a.getValue()));
-//
-//        // register
-//        UserAttributes ua = userManager.setUserAttributes(realm, userId, provider, identifier, attributes);
-//        return ua;
-//    }
+    //    @GetMapping("/users/{realm}/{userId}/attributes")
+    //    public Collection<UserAttributes> getUserAttributes(
+    //            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+    //            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
+    //            throws NoSuchRealmException, NoSuchUserException {
+    //        logger.debug("get attributes for user {} for realm {}",
+    //                StringUtils.trimAllWhitespace(userId), StringUtils.trimAllWhitespace(realm));
+    //
+    //        Collection<UserAttributes> attributes = userManager.getUserAttributes(realm, userId);
+    //        return attributes;
+    //    }
+    //
+    //    @PostMapping("/users/{realm}/{userId}/attributes")
+    //    public UserAttributes addUserAttributes(
+    //            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+    //            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
+    //            @RequestBody @Valid @NotNull AttributesRegistrationDTO reg)
+    //            throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException, NoSuchAttributeSetException {
+    //        logger.debug("update attributes for user {} for realm {}",
+    //                StringUtils.trimAllWhitespace(userId), StringUtils.trimAllWhitespace(realm));
+    //
+    //        // extract registration
+    //        String identifier = reg.getIdentifier();
+    //        String provider = reg.getProvider();
+    //        if (!StringUtils.hasText(provider)) {
+    //            throw new IllegalArgumentException("a valid provider is required");
+    //        }
+    //
+    //        if (reg.getAttributes() == null) {
+    //            throw new IllegalArgumentException("attributes can not be null");
+    //        }
+    //
+    //        Map<String, Serializable> attributes = reg.getAttributes().stream()
+    //                .filter(a -> a.getValue() != null)
+    //                .collect(Collectors.toMap(a -> a.getKey(), a -> a.getValue()));
+    //
+    //        // register
+    //        UserAttributes ua = userManager.setUserAttributes(realm, userId, provider, identifier, attributes);
+    //        return ua;
+    //    }
 
 }

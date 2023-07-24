@@ -1,18 +1,5 @@
 package it.smartcommunitylab.aac.jwt;
 
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.util.StringUtils;
-
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSSigner;
@@ -29,10 +16,21 @@ import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.OctetSequenceKey;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jwt.SignedJWT;
-
 import it.smartcommunitylab.aac.jose.JWKSetKeyStore;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
 
 public class DefaultJWTSigningAndValidationService implements JWTSigningAndValidationService {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // map of identifier to signer
@@ -59,7 +57,7 @@ public class DefaultJWTSigningAndValidationService implements JWTSigningAndValid
      *                                  the keys to.
      */
     public DefaultJWTSigningAndValidationService(Map<String, JWK> keys)
-            throws NoSuchAlgorithmException, InvalidKeySpecException {
+        throws NoSuchAlgorithmException, InvalidKeySpecException {
         this.keys = keys;
         buildSignersAndVerifiers();
     }
@@ -75,7 +73,7 @@ public class DefaultJWTSigningAndValidationService implements JWTSigningAndValid
      *                                  the keys to.
      */
     public DefaultJWTSigningAndValidationService(JWKSetKeyStore keyStore)
-            throws NoSuchAlgorithmException, InvalidKeySpecException {
+        throws NoSuchAlgorithmException, InvalidKeySpecException {
         // convert all keys in the keystore to a map based on key id
         if (keyStore != null && keyStore.getJwkSet() != null) {
             for (JWK key : keyStore.getKeys()) {
@@ -139,14 +137,13 @@ public class DefaultJWTSigningAndValidationService implements JWTSigningAndValid
 
     /**
      * Build all of the signers and verifiers for this based on the key map.
-     * 
+     *
      * @throws InvalidKeySpecException  If the keys in the JWKs are not valid
      * @throws NoSuchAlgorithmException If there is no appropriate algorithm to tie
      *                                  the keys to.
      */
     private void buildSignersAndVerifiers() throws NoSuchAlgorithmException, InvalidKeySpecException {
         for (Map.Entry<String, JWK> jwkEntry : keys.entrySet()) {
-
             String id = jwkEntry.getKey();
             JWK jwk = jwkEntry.getValue();
 
@@ -161,7 +158,6 @@ public class DefaultJWTSigningAndValidationService implements JWTSigningAndValid
 
                     RSASSAVerifier verifier = new RSASSAVerifier((RSAKey) jwk);
                     verifiers.put(id, verifier);
-
                 } else if (jwk instanceof ECKey) {
                     // build EC signers & verifiers
 
@@ -172,7 +168,6 @@ public class DefaultJWTSigningAndValidationService implements JWTSigningAndValid
 
                     ECDSAVerifier verifier = new ECDSAVerifier((ECKey) jwk);
                     verifiers.put(id, verifier);
-
                 } else if (jwk instanceof OctetSequenceKey) {
                     // build HMAC signers & verifiers
 
@@ -183,7 +178,6 @@ public class DefaultJWTSigningAndValidationService implements JWTSigningAndValid
 
                     MACVerifier verifier = new MACVerifier((OctetSequenceKey) jwk);
                     verifiers.put(id, verifier);
-
                 } else {
                     logger.warn("Unknown key type: " + jwk);
                 }
@@ -215,15 +209,12 @@ public class DefaultJWTSigningAndValidationService implements JWTSigningAndValid
         try {
             jwt.sign(signer);
         } catch (JOSEException e) {
-
             logger.error("Failed to sign JWT, error was: ", e);
         }
-
     }
 
     @Override
     public void signJwt(SignedJWT jwt, JWSAlgorithm alg) {
-
         JWSSigner signer = null;
 
         for (JWSSigner s : signers.values()) {
@@ -236,28 +227,23 @@ public class DefaultJWTSigningAndValidationService implements JWTSigningAndValid
         if (signer == null) {
             // If we can't find an algorithm that matches, we can't sign
             logger.error("No matching algirthm found for alg=" + alg);
-
         }
 
         try {
             jwt.sign(signer);
         } catch (JOSEException e) {
-
             logger.error("Failed to sign JWT, error was: ", e);
         }
-
     }
 
     @Override
     public boolean validateSignature(SignedJWT jwt) {
-
         for (JWSVerifier verifier : verifiers.values()) {
             try {
                 if (jwt.verify(verifier)) {
                     return true;
                 }
             } catch (JOSEException e) {
-
                 logger.error("Failed to validate signature with " + verifier + " error message: " + e.getMessage());
             }
         }
@@ -282,13 +268,12 @@ public class DefaultJWTSigningAndValidationService implements JWTSigningAndValid
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.mitre.jwt.signer.service.JwtSigningAndValidationService#
      * getAllSigningAlgsSupported()
      */
     @Override
     public Collection<JWSAlgorithm> getAllSigningAlgsSupported() {
-
         Set<JWSAlgorithm> algs = new HashSet<>();
 
         for (JWSSigner signer : signers.values()) {
@@ -300,7 +285,5 @@ public class DefaultJWTSigningAndValidationService implements JWTSigningAndValid
         }
 
         return algs;
-
     }
-
 }

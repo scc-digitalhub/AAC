@@ -31,5 +31,4 @@ public class SpacesScope extends Scope {
     public String getDescription() {
         return "Read spaces of the current platform user. Read access only.";
     }
-
 }

@@ -1,7 +1,7 @@
 package it.smartcommunitylab.aac.webauthn.model;
 
-import javax.validation.Valid;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import javax.validation.Valid;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -16,5 +16,4 @@ public class AttestationResponse {
     public void setAttestation(String attestation) {
         this.attestation = attestation;
     }
-
 }

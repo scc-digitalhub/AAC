@@ -1,16 +1,5 @@
 package it.smartcommunitylab.aac.webauthn.service;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.validation.constraints.NotNull;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
-
 import it.smartcommunitylab.aac.common.DuplicatedDataException;
 import it.smartcommunitylab.aac.common.NoSuchCredentialException;
 import it.smartcommunitylab.aac.common.RegistrationException;
@@ -18,14 +7,23 @@ import it.smartcommunitylab.aac.core.provider.UserCredentialsService;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredential;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredentialsRepository;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.validation.constraints.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 /*
  * An internal service which handles credential persistence for internal user accounts, via JPA.
- * 
- * We enforce detach on fetch to keep internal datasource isolated. 
+ *
+ * We enforce detach on fetch to keep internal datasource isolated.
  */
 @Transactional
 public class WebAuthnUserCredentialsService implements UserCredentialsService<WebAuthnUserCredential> {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final WebAuthnUserCredentialsRepository credentialRepository;
@@ -41,9 +39,12 @@ public class WebAuthnUserCredentialsService implements UserCredentialsService<We
         logger.debug("find credentials for realm {}", String.valueOf(realm));
 
         List<WebAuthnUserCredential> credentials = credentialRepository.findByRealm(realm);
-        return credentials.stream().map(a -> {
-            return credentialRepository.detach(a);
-        }).collect(Collectors.toList());
+        return credentials
+            .stream()
+            .map(a -> {
+                return credentialRepository.detach(a);
+            })
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -79,36 +80,57 @@ public class WebAuthnUserCredentialsService implements UserCredentialsService<We
 
     @Override
     @Transactional(readOnly = true)
-    public List<WebAuthnUserCredential> findCredentialsByAccount(@NotNull String repository,
-            @NotNull String accountId) {
-        logger.debug("find credentials for account {} in repository {}", String.valueOf(accountId),
-                String.valueOf(repository));
+    public List<WebAuthnUserCredential> findCredentialsByAccount(
+        @NotNull String repository,
+        @NotNull String accountId
+    ) {
+        logger.debug(
+            "find credentials for account {} in repository {}",
+            String.valueOf(accountId),
+            String.valueOf(repository)
+        );
 
-        List<WebAuthnUserCredential> credentials = credentialRepository.findByRepositoryIdAndUsername(repository,
-                accountId);
-        return credentials.stream().map(a -> {
-            return credentialRepository.detach(a);
-        }).collect(Collectors.toList());
+        List<WebAuthnUserCredential> credentials = credentialRepository.findByRepositoryIdAndUsername(
+            repository,
+            accountId
+        );
+        return credentials
+            .stream()
+            .map(a -> {
+                return credentialRepository.detach(a);
+            })
+            .collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<WebAuthnUserCredential> findCredentialsByUser(@NotNull String repository, @NotNull String userId) {
-        logger.debug("find credentials for user {} in repository {}", String.valueOf(userId),
-                String.valueOf(repository));
+        logger.debug(
+            "find credentials for user {} in repository {}",
+            String.valueOf(userId),
+            String.valueOf(repository)
+        );
 
         List<WebAuthnUserCredential> credentials = credentialRepository.findByRepositoryIdAndUserId(repository, userId);
-        return credentials.stream().map(a -> {
-            return credentialRepository.detach(a);
-        }).collect(Collectors.toList());
+        return credentials
+            .stream()
+            .map(a -> {
+                return credentialRepository.detach(a);
+            })
+            .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public WebAuthnUserCredential findCredentialByUserHandleAndCredentialId(String repositoryId, String userHandle,
-            String credentialId) {
-        WebAuthnUserCredential c = credentialRepository.findByRepositoryIdAndUserHandleAndCredentialId(repositoryId,
-                userHandle,
-                credentialId);
+    public WebAuthnUserCredential findCredentialByUserHandleAndCredentialId(
+        String repositoryId,
+        String userHandle,
+        String credentialId
+    ) {
+        WebAuthnUserCredential c = credentialRepository.findByRepositoryIdAndUserHandleAndCredentialId(
+            repositoryId,
+            userHandle,
+            credentialId
+        );
         if (c == null) {
             return null;
         }
@@ -117,8 +139,11 @@ public class WebAuthnUserCredentialsService implements UserCredentialsService<We
     }
 
     @Override
-    public WebAuthnUserCredential addCredentials(@NotNull String repository, @NotNull String id,
-            @NotNull WebAuthnUserCredential reg) throws RegistrationException {
+    public WebAuthnUserCredential addCredentials(
+        @NotNull String repository,
+        @NotNull String id,
+        @NotNull WebAuthnUserCredential reg
+    ) throws RegistrationException {
         logger.debug("add credentials with id {} in repository {}", String.valueOf(id), String.valueOf(repository));
 
         if (reg == null) {
@@ -179,8 +204,11 @@ public class WebAuthnUserCredentialsService implements UserCredentialsService<We
     }
 
     @Override
-    public WebAuthnUserCredential updateCredentials(@NotNull String repository, @NotNull String id,
-            @NotNull WebAuthnUserCredential reg) throws NoSuchCredentialException, RegistrationException {
+    public WebAuthnUserCredential updateCredentials(
+        @NotNull String repository,
+        @NotNull String id,
+        @NotNull WebAuthnUserCredential reg
+    ) throws NoSuchCredentialException, RegistrationException {
         logger.debug("update credentials with id {} in repository {}", String.valueOf(id), String.valueOf(repository));
 
         if (reg == null) {
@@ -240,7 +268,6 @@ public class WebAuthnUserCredentialsService implements UserCredentialsService<We
             logger.debug("delete credential with id {} repository {}", String.valueOf(id), String.valueOf(repository));
             credentialRepository.delete(credential);
         }
-
     }
 
     @Override
@@ -251,8 +278,11 @@ public class WebAuthnUserCredentialsService implements UserCredentialsService<We
 
     @Override
     public void deleteAllCredentialsByUser(@NotNull String repository, @NotNull String userId) {
-        logger.debug("delete credentials for user {} in repository {}", String.valueOf(userId),
-                String.valueOf(repository));
+        logger.debug(
+            "delete credentials for user {} in repository {}",
+            String.valueOf(userId),
+            String.valueOf(repository)
+        );
 
         List<WebAuthnUserCredential> credentials = credentialRepository.findByRepositoryIdAndUserId(repository, userId);
         credentialRepository.deleteAllInBatch(credentials);
@@ -260,12 +290,16 @@ public class WebAuthnUserCredentialsService implements UserCredentialsService<We
 
     @Override
     public void deleteAllCredentialsByAccount(@NotNull String repository, @NotNull String username) {
-        logger.debug("delete credentials for account {} in repository {}", String.valueOf(username),
-                String.valueOf(repository));
+        logger.debug(
+            "delete credentials for account {} in repository {}",
+            String.valueOf(username),
+            String.valueOf(repository)
+        );
 
-        List<WebAuthnUserCredential> credentials = credentialRepository.findByRepositoryIdAndUsername(repository,
-                username);
+        List<WebAuthnUserCredential> credentials = credentialRepository.findByRepositoryIdAndUsername(
+            repository,
+            username
+        );
         credentialRepository.deleteAllInBatch(credentials);
     }
-
 }

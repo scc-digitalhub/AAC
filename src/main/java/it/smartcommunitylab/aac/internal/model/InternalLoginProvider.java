@@ -36,5 +36,4 @@ public class InternalLoginProvider extends AbstractLoginProvider {
     public void setFormUrl(String formUrl) {
         this.formUrl = formUrl;
     }
-
 }

@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2015 Fondazione Bruno Kessler
- * 
+ *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
  *    You may obtain a copy of the License at
- * 
+ *
  *        http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  *    Unless required by applicable law or agreed to in writing, software
  *    distributed under the License is distributed on an "AS IS" BASIS,
  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,33 +15,6 @@
  ******************************************************************************/
 
 package it.smartcommunitylab.aac.internal.controller;
-
-import java.util.Collections;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-import javax.validation.constraints.Pattern;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
-import org.springframework.security.authentication.InsufficientAuthenticationException;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.util.StringUtils;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.SystemKeys;
@@ -63,6 +36,30 @@ import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
 import it.smartcommunitylab.aac.password.model.PasswordPolicy;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.password.provider.PasswordCredentialsService;
+import java.util.Collections;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+import javax.validation.constraints.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 /**
  * @author raman
@@ -71,6 +68,7 @@ import it.smartcommunitylab.aac.password.provider.PasswordCredentialsService;
 @Controller
 @RequestMapping
 public class InternalRegistrationController {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
@@ -87,12 +85,12 @@ public class InternalRegistrationController {
      */
     @GetMapping("/changeaccount/{providerId}/{uuid}")
     public String changeaccount(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid,
-            HttpServletRequest request,
-            Model model, Locale locale)
-            throws NoSuchProviderException, NoSuchUserException, NoSuchRealmException {
-
+        @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
+        @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid,
+        HttpServletRequest request,
+        Model model,
+        Locale locale
+    ) throws NoSuchProviderException, NoSuchUserException, NoSuchRealmException {
         // first check userid vs user
         UserDetails user = authHelper.getUserDetails();
         if (user == null) {
@@ -100,16 +98,19 @@ public class InternalRegistrationController {
         }
 
         // fetch internal identities matching provider
-        Set<InternalUserIdentity> identities = user.getIdentities().stream()
-                .filter(i -> SystemKeys.AUTHORITY_INTERNAL.equals(i.getAuthority())
-                        && i.getProvider().equals(providerId))
-                .map(i -> (InternalUserIdentity) i)
-                .collect(Collectors.toSet());
+        Set<InternalUserIdentity> identities = user
+            .getIdentities()
+            .stream()
+            .filter(i -> SystemKeys.AUTHORITY_INTERNAL.equals(i.getAuthority()) && i.getProvider().equals(providerId))
+            .map(i -> (InternalUserIdentity) i)
+            .collect(Collectors.toSet());
 
         // pick matching by uuid
-        InternalUserIdentity identity = identities.stream()
-                .filter(i -> i.getAccount().getUuid().equals(uuid))
-                .findFirst().orElse(null);
+        InternalUserIdentity identity = identities
+            .stream()
+            .filter(i -> i.getAccount().getUuid().equals(uuid))
+            .findFirst()
+            .orElse(null);
         if (identity == null) {
             throw new IllegalArgumentException("error.invalid_user");
         }
@@ -150,13 +151,14 @@ public class InternalRegistrationController {
 
     @PostMapping("/changeaccount/{providerId}/{uuid}")
     public String changeaccount(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid,
-            Model model, Locale locale,
-            @ModelAttribute("reg") @Valid UserRegistrationBean reg, BindingResult result,
-            HttpServletRequest request)
-            throws NoSuchProviderException, NoSuchUserException {
-
+        @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
+        @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid,
+        Model model,
+        Locale locale,
+        @ModelAttribute("reg") @Valid UserRegistrationBean reg,
+        BindingResult result,
+        HttpServletRequest request
+    ) throws NoSuchProviderException, NoSuchUserException {
         try {
             // first check userid vs user
             UserDetails user = authHelper.getUserDetails();
@@ -165,16 +167,21 @@ public class InternalRegistrationController {
             }
 
             // fetch internal identities matching provider
-            Set<InternalUserIdentity> identities = user.getIdentities().stream()
-                    .filter(i -> SystemKeys.AUTHORITY_INTERNAL.equals(i.getAuthority())
-                            && i.getProvider().equals(providerId))
-                    .map(i -> (InternalUserIdentity) i)
-                    .collect(Collectors.toSet());
+            Set<InternalUserIdentity> identities = user
+                .getIdentities()
+                .stream()
+                .filter(i ->
+                    SystemKeys.AUTHORITY_INTERNAL.equals(i.getAuthority()) && i.getProvider().equals(providerId)
+                )
+                .map(i -> (InternalUserIdentity) i)
+                .collect(Collectors.toSet());
 
             // pick matching by username
-            InternalUserIdentity identity = identities.stream()
-                    .filter(i -> i.getAccount().getUuid().equals(uuid))
-                    .findFirst().orElse(null);
+            InternalUserIdentity identity = identities
+                .stream()
+                .filter(i -> i.getAccount().getUuid().equals(uuid))
+                .findFirst()
+                .orElse(null);
             if (identity == null) {
                 throw new IllegalArgumentException("error.invalid_user");
             }
@@ -235,14 +242,12 @@ public class InternalRegistrationController {
 
     /**
      * Redirect to registration page
-     * @throws RegistrationException 
+     * @throws RegistrationException
      */
     @Hidden
     @RequestMapping(value = "/auth/internal/register/{providerId}", method = RequestMethod.GET)
-    public String registrationPage(
-            @PathVariable("providerId") String providerId,
-            Model model, Locale locale) throws NoSuchProviderException, NoSuchRealmException, RegistrationException {
-
+    public String registrationPage(@PathVariable("providerId") String providerId, Model model, Locale locale)
+        throws NoSuchProviderException, NoSuchRealmException, RegistrationException {
         // resolve provider
         InternalIdentityService idp = internalAuthority.getProvider(providerId);
         if (!idp.getConfig().isEnableRegistration()) {
@@ -259,13 +264,13 @@ public class InternalRegistrationController {
         // build model
         model.addAttribute("reg", new UserRegistrationBean());
 
-//        // check if we have a clientId
-//        String clientId = (String) req.getSession().getAttribute(OAuth2Utils.CLIENT_ID);
-//        if (clientId != null) {
-//            // fetch client customizations for login screen
-//            Map<String, String> customizations = clientDetailsAdapter.getClientCustomizations(clientId);
-//            model.addAllAttributes(customizations);
-//        }
+        //        // check if we have a clientId
+        //        String clientId = (String) req.getSession().getAttribute(OAuth2Utils.CLIENT_ID);
+        //        if (clientId != null) {
+        //            // fetch client customizations for login screen
+        //            Map<String, String> customizations = clientDetailsAdapter.getClientCustomizations(clientId);
+        //            model.addAllAttributes(customizations);
+        //        }
 
         // fetch password service if available
         AccountCredentialsService<?, ?, ?, ?> cs = idp.getCredentialsService(SystemKeys.AUTHORITY_PASSWORD);
@@ -290,10 +295,14 @@ public class InternalRegistrationController {
      */
     @Hidden
     @RequestMapping(value = "/auth/internal/register/{providerId}", method = RequestMethod.POST)
-    public String register(Model model, Locale locale,
-            @PathVariable("providerId") String providerId,
-            @ModelAttribute("reg") @Valid UserRegistrationBean reg, BindingResult result,
-            HttpServletRequest req) {
+    public String register(
+        Model model,
+        Locale locale,
+        @PathVariable("providerId") String providerId,
+        @ModelAttribute("reg") @Valid UserRegistrationBean reg,
+        BindingResult result,
+        HttpServletRequest req
+    ) {
         try {
             // resolve provider
             InternalIdentityService idp = internalAuthority.getProvider(providerId);
@@ -368,8 +377,12 @@ public class InternalRegistrationController {
             String subjectId = null;
 
             // build reg model
-            InternalUserIdentity identity = new InternalUserIdentity(idp.getAuthority(), idp.getProvider(),
-                    idp.getRealm(), account);
+            InternalUserIdentity identity = new InternalUserIdentity(
+                idp.getAuthority(),
+                idp.getProvider(),
+                idp.getRealm(),
+                account
+            );
 
             // register password
             if (service != null && StringUtils.hasText(password)) {
@@ -408,5 +421,4 @@ public class InternalRegistrationController {
             return "internal/registeraccount";
         }
     }
-
 }

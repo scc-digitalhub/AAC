@@ -1,18 +1,19 @@
 package it.smartcommunitylab.aac.openid.provider;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 @Transactional
 public class OIDCSubjectResolver extends AbstractProvider<OIDCUserAccount> implements SubjectResolver<OIDCUserAccount> {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final UserAccountService<OIDCUserAccount> accountService;
@@ -20,16 +21,22 @@ public class OIDCSubjectResolver extends AbstractProvider<OIDCUserAccount> imple
 
     private final String repositoryId;
 
-    public OIDCSubjectResolver(String providerId, UserAccountService<OIDCUserAccount> userAccountService,
-            String repositoryId,
-            String realm) {
+    public OIDCSubjectResolver(
+        String providerId,
+        UserAccountService<OIDCUserAccount> userAccountService,
+        String repositoryId,
+        String realm
+    ) {
         this(SystemKeys.AUTHORITY_OIDC, providerId, userAccountService, repositoryId, realm);
     }
 
-    public OIDCSubjectResolver(String authority, String providerId,
-            UserAccountService<OIDCUserAccount> userAccountService,
-            String repositoryId,
-            String realm) {
+    public OIDCSubjectResolver(
+        String authority,
+        String providerId,
+        UserAccountService<OIDCUserAccount> userAccountService,
+        String repositoryId,
+        String realm
+    ) {
         super(authority, providerId, realm);
         Assert.notNull(userAccountService, "account service is mandatory");
         Assert.hasText(repositoryId, "repository id is mandatory");
@@ -84,9 +91,11 @@ public class OIDCSubjectResolver extends AbstractProvider<OIDCUserAccount> imple
     @Transactional(readOnly = true)
     public Subject resolveByUsername(String username) {
         logger.debug("resolve by username {}", String.valueOf(username));
-        OIDCUserAccount account = accountService.findAccountByUsername(repositoryId, username).stream()
-                .findFirst()
-                .orElse(null);
+        OIDCUserAccount account = accountService
+            .findAccountByUsername(repositoryId, username)
+            .stream()
+            .findFirst()
+            .orElse(null);
         if (account == null) {
             return null;
         }
@@ -103,10 +112,12 @@ public class OIDCSubjectResolver extends AbstractProvider<OIDCUserAccount> imple
         }
 
         logger.debug("resolve by email {}", String.valueOf(email));
-        OIDCUserAccount account = accountService.findAccountByEmail(repositoryId, email).stream()
-                .filter(a -> a.isEmailVerified())
-                .findFirst()
-                .orElse(null);
+        OIDCUserAccount account = accountService
+            .findAccountByEmail(repositoryId, email)
+            .stream()
+            .filter(a -> a.isEmailVerified())
+            .findFirst()
+            .orElse(null);
 
         if (account == null) {
             return null;
@@ -115,5 +126,4 @@ public class OIDCSubjectResolver extends AbstractProvider<OIDCUserAccount> imple
         // build subject with username
         return new Subject(account.getUserId(), getRealm(), account.getUsername(), SystemKeys.RESOURCE_USER);
     }
-
 }

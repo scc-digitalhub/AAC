@@ -17,7 +17,6 @@ public class YamlUtils {
         } else {
             return new Yaml(getRepresenter(classes), options);
         }
-
     }
 
     public static DumperOptions getDefaultOptions() {
@@ -28,7 +27,6 @@ public class YamlUtils {
         options.setExplicitStart(false);
 
         return options;
-
     }
 
     public static Representer getRepresenter(Class<?>... classes) {
@@ -48,8 +46,12 @@ public class YamlUtils {
     public static Representer getNotNullRepresenter(Class<?>... classes) {
         Representer representer = new Representer() {
             @Override
-            protected NodeTuple representJavaBeanProperty(Object javaBean, Property property, Object propertyValue,
-                    Tag customTag) {
+            protected NodeTuple representJavaBeanProperty(
+                Object javaBean,
+                Property property,
+                Object propertyValue,
+                Tag customTag
+            ) {
                 // if value of property is null, ignore it.
                 if (propertyValue == null) {
                     return null;

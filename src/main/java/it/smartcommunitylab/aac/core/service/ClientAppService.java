@@ -1,11 +1,9 @@
 package it.smartcommunitylab.aac.core.service;
 
-import java.util.Collection;
-
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.model.ClientApp;
+import java.util.Collection;
 
 /*
  * Client App serves UI and API
@@ -30,9 +28,8 @@ public interface ClientAppService {
 
     /*
      * Configuration schema
-     * 
+     *
      * TODO move to configurableProperties, which contains a schema
      */
     public JsonSchema getConfigurationSchema();
-
 }

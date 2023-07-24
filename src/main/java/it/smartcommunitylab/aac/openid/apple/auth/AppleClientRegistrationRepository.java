@@ -1,11 +1,10 @@
 package it.smartcommunitylab.aac.openid.apple.auth;
 
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfig;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.util.Assert;
-
-import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfig;
 
 public class AppleClientRegistrationRepository implements ClientRegistrationRepository {
 
@@ -13,7 +12,8 @@ public class AppleClientRegistrationRepository implements ClientRegistrationRepo
     private final ProviderConfigRepository<AppleIdentityProviderConfig> registrationRepository;
 
     public AppleClientRegistrationRepository(
-            ProviderConfigRepository<AppleIdentityProviderConfig> registrationRepository) {
+        ProviderConfigRepository<AppleIdentityProviderConfig> registrationRepository
+    ) {
         Assert.notNull(registrationRepository, "provider registration repository can not be null");
         this.registrationRepository = registrationRepository;
     }
@@ -36,5 +36,4 @@ public class AppleClientRegistrationRepository implements ClientRegistrationRepo
         // TODO evaluate loading cache
         return providerConfig.getClientRegistration();
     }
-
 }

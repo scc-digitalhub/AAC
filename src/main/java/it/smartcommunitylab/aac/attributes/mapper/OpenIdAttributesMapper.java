@@ -1,12 +1,12 @@
 package it.smartcommunitylab.aac.attributes.mapper;
 
-import java.util.ArrayList;
-import java.util.List;
 import it.smartcommunitylab.aac.attributes.OpenIdAttributesSet;
 import it.smartcommunitylab.aac.attributes.model.BooleanAttribute;
 import it.smartcommunitylab.aac.attributes.model.DateAttribute;
 import it.smartcommunitylab.aac.attributes.model.StringAttribute;
 import it.smartcommunitylab.aac.core.model.Attribute;
+import java.util.ArrayList;
+import java.util.List;
 
 public class OpenIdAttributesMapper extends DefaultAttributesMapper {
 
@@ -43,5 +43,4 @@ public class OpenIdAttributesMapper extends DefaultAttributesMapper {
 
         set = new OpenIdAttributesSet(attributes);
     }
-
 }

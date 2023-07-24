@@ -1,17 +1,16 @@
 package it.smartcommunitylab.aac.api.scopes;
 
+import it.smartcommunitylab.aac.scope.AuthorityScopeApprover;
+import it.smartcommunitylab.aac.scope.Resource;
+import it.smartcommunitylab.aac.scope.Scope;
+import it.smartcommunitylab.aac.scope.ScopeApprover;
+import it.smartcommunitylab.aac.scope.ScopeProvider;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import org.springframework.stereotype.Component;
-
-import it.smartcommunitylab.aac.scope.AuthorityScopeApprover;
-import it.smartcommunitylab.aac.scope.Resource;
-import it.smartcommunitylab.aac.scope.Scope;
-import it.smartcommunitylab.aac.scope.ScopeApprover;
-import it.smartcommunitylab.aac.scope.ScopeProvider;
 
 @Component
 public class ApiScopeProvider implements ScopeProvider {
@@ -75,5 +74,4 @@ public class ApiScopeProvider implements ScopeProvider {
     public ApiScope getScope(String scope) {
         return scopes.get(scope);
     }
-
 }

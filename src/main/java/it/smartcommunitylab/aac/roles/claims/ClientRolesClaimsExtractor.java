@@ -1,14 +1,5 @@
 package it.smartcommunitylab.aac.roles.claims;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.claims.Claim;
 import it.smartcommunitylab.aac.claims.ClaimsSet;
@@ -22,6 +13,14 @@ import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.User;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class ClientRolesClaimsExtractor implements ScopeClaimsExtractor {
 
@@ -36,18 +35,24 @@ public class ClientRolesClaimsExtractor implements ScopeClaimsExtractor {
     }
 
     @Override
-    public ClaimsSet extractUserClaims(String scope, User user, ClientDetails client, Collection<String> scopes,
-            Map<String, Serializable> extensions)
-            throws InvalidDefinitionException, SystemException {
+    public ClaimsSet extractUserClaims(
+        String scope,
+        User user,
+        ClientDetails client,
+        Collection<String> scopes,
+        Map<String, Serializable> extensions
+    ) throws InvalidDefinitionException, SystemException {
         // not supported
         return null;
     }
 
     @Override
-    public ClaimsSet extractClientClaims(String scope, ClientDetails client, Collection<String> scopes,
-            Map<String, Serializable> extensions)
-            throws InvalidDefinitionException, SystemException {
-
+    public ClaimsSet extractClientClaims(
+        String scope,
+        ClientDetails client,
+        Collection<String> scopes,
+        Map<String, Serializable> extensions
+    ) throws InvalidDefinitionException, SystemException {
         // we get roles from client, it should be up-to-date
         Set<SpaceRole> spaceRoles = client.getSpaceRoles();
 
@@ -56,9 +61,12 @@ public class ClientRolesClaimsExtractor implements ScopeClaimsExtractor {
 
         // fetch authorities
         // TODO evaluate dropping export of internal AAC authorities
-        Set<RealmGrantedAuthority> authorities = client.getAuthorities().stream()
-                .filter(r -> r instanceof RealmGrantedAuthority).map(r -> (RealmGrantedAuthority) r)
-                .collect(Collectors.toSet());
+        Set<RealmGrantedAuthority> authorities = client
+            .getAuthorities()
+            .stream()
+            .filter(r -> r instanceof RealmGrantedAuthority)
+            .map(r -> (RealmGrantedAuthority) r)
+            .collect(Collectors.toSet());
 
         // convert to a claims list flattening roles
         List<Claim> claims = new ArrayList<>();
@@ -92,12 +100,10 @@ public class ClientRolesClaimsExtractor implements ScopeClaimsExtractor {
         claimsSet.setClaims(claims);
 
         return claimsSet;
-
     }
 
     @Override
     public String getRealm() {
         return null;
     }
-
 }

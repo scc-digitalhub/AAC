@@ -1,5 +1,9 @@
 package it.smartcommunitylab.aac.templates;
 
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchProviderException;
+import it.smartcommunitylab.aac.internal.templates.InternalRegisterAccountTemplate;
+import it.smartcommunitylab.aac.templates.model.LoginTemplate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -9,10 +13,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,19 +26,16 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.common.NoSuchProviderException;
-import it.smartcommunitylab.aac.internal.templates.InternalRegisterAccountTemplate;
-import it.smartcommunitylab.aac.templates.model.LoginTemplate;
-
 @Component
 public class LanguageHandlerInterceptor implements HandlerInterceptor {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private static final Set<String> WHITELIST_VIEWS;
     private static final String[] WHITELIST_VIEWS_VALUES = {
-            LoginTemplate.TEMPLATE,
-            SystemKeys.AUTHORITY_INTERNAL + "/" + InternalRegisterAccountTemplate.TEMPLATE };
+        LoginTemplate.TEMPLATE,
+        SystemKeys.AUTHORITY_INTERNAL + "/" + InternalRegisterAccountTemplate.TEMPLATE,
+    };
 
     static {
         WHITELIST_VIEWS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(WHITELIST_VIEWS_VALUES)));
@@ -47,8 +46,11 @@ public class LanguageHandlerInterceptor implements HandlerInterceptor {
 
     @Override
     public void postHandle(
-            HttpServletRequest request, HttpServletResponse response,
-            Object handler, ModelAndView modelAndView) throws Exception {
+        HttpServletRequest request,
+        HttpServletResponse response,
+        Object handler,
+        ModelAndView modelAndView
+    ) throws Exception {
         if (modelAndView == null || !modelAndView.hasView()) {
             return;
         }
@@ -90,24 +92,27 @@ public class LanguageHandlerInterceptor implements HandlerInterceptor {
                 List<LanguageValue> languages = new ArrayList<>();
                 try {
                     // load realm languages
-                    templateAuthority.getProviderByRealm(realm).getConfig().getLanguages()
-                            .forEach(l -> {
-                                Locale loc = StringUtils.parseLocale(l);
-                                if (loc == null) {
-                                    return;
-                                }
+                    templateAuthority
+                        .getProviderByRealm(realm)
+                        .getConfig()
+                        .getLanguages()
+                        .forEach(l -> {
+                            Locale loc = StringUtils.parseLocale(l);
+                            if (loc == null) {
+                                return;
+                            }
 
-                                // build url with param
-                                builder.replaceQueryParam("lang", l);
-                                String url = builder.build().toString();
-                                String label = loc.getDisplayLanguage(locale);
-                                LanguageValue lv = new LanguageValue();
-                                lv.setCode(l);
-                                lv.setLabel(label);
-                                lv.setUrl(url);
+                            // build url with param
+                            builder.replaceQueryParam("lang", l);
+                            String url = builder.build().toString();
+                            String label = loc.getDisplayLanguage(locale);
+                            LanguageValue lv = new LanguageValue();
+                            lv.setCode(l);
+                            lv.setLabel(label);
+                            lv.setUrl(url);
 
-                                languages.add(lv);
-                            });
+                            languages.add(lv);
+                        });
                 } catch (NoSuchProviderException e) {
                     // skip on error
                 }
@@ -125,6 +130,7 @@ public class LanguageHandlerInterceptor implements HandlerInterceptor {
     }
 
     static class LanguageValue {
+
         private String code;
         private String label;
         private String url;
@@ -157,7 +163,5 @@ public class LanguageHandlerInterceptor implements HandlerInterceptor {
         public String toString() {
             return "LanguageValue [code=" + code + "]";
         }
-
     }
-
 }

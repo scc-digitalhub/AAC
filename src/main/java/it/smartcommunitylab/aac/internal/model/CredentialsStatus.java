@@ -1,8 +1,7 @@
 package it.smartcommunitylab.aac.internal.model;
 
-import org.springframework.util.Assert;
-
 import com.fasterxml.jackson.annotation.JsonValue;
+import org.springframework.util.Assert;
 
 public enum CredentialsStatus {
     ACTIVE("active"),

@@ -1,5 +1,23 @@
 package it.smartcommunitylab.aac.console;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import io.swagger.v3.oas.annotations.Hidden;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
+import it.smartcommunitylab.aac.common.NoSuchProviderException;
+import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.controller.BaseAttributeProviderController;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
+import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.core.provider.AttributeProvider;
+import it.smartcommunitylab.aac.core.service.AttributeProviderAuthorityService;
+import it.smartcommunitylab.aac.dto.FunctionValidationBean;
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
@@ -11,13 +29,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,33 +54,14 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.yaml.snakeyaml.Yaml;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-
-import io.swagger.v3.oas.annotations.Hidden;
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
-import it.smartcommunitylab.aac.common.NoSuchProviderException;
-import it.smartcommunitylab.aac.common.NoSuchRealmException;
-import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.controller.BaseAttributeProviderController;
-import it.smartcommunitylab.aac.core.auth.UserAuthentication;
-import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.core.provider.AttributeProvider;
-import it.smartcommunitylab.aac.core.service.AttributeProviderAuthorityService;
-import it.smartcommunitylab.aac.dto.FunctionValidationBean;
-
 @RestController
 @Hidden
 @RequestMapping("/console/dev")
 public class DevAttributeProviderController extends BaseAttributeProviderController {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final TypeReference<Map<String, List<ConfigurableAttributeProvider>>> typeRef = new TypeReference<Map<String, List<ConfigurableAttributeProvider>>>() {
-    };
+    private final TypeReference<Map<String, List<ConfigurableAttributeProvider>>> typeRef =
+        new TypeReference<Map<String, List<ConfigurableAttributeProvider>>>() {};
     private final String LIST_KEY = "providers";
 
     // TODO replace with authorityManager to handle permissions
@@ -82,9 +79,9 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
     @Override
     @GetMapping("/aps/{realm}/{providerId}")
     public ConfigurableAttributeProvider getAp(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
-            throws NoSuchProviderException, NoSuchRealmException, NoSuchAuthorityException {
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId
+    ) throws NoSuchProviderException, NoSuchRealmException, NoSuchAuthorityException {
         ConfigurableAttributeProvider provider = super.getAp(realm, providerId);
 
         // fetch also configuration schema
@@ -101,9 +98,9 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
     @Override
     @PostMapping("/aps/{realm}")
     public ConfigurableAttributeProvider addAp(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration)
-            throws NoSuchRealmException, NoSuchAuthorityException, RegistrationException, NoSuchProviderException {
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration
+    ) throws NoSuchRealmException, NoSuchAuthorityException, RegistrationException, NoSuchProviderException {
         ConfigurableAttributeProvider provider = super.addAp(realm, registration);
 
         // fetch also configuration schema
@@ -116,11 +113,11 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
     @Override
     @PutMapping("/aps/{realm}/{providerId}")
     public ConfigurableAttributeProvider updateAp(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration,
-            @RequestParam(required = false, defaultValue = "false") Optional<Boolean> force)
-            throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
+        @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration,
+        @RequestParam(required = false, defaultValue = "false") Optional<Boolean> force
+    ) throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
         ConfigurableAttributeProvider provider = super.updateAp(realm, providerId, registration, Optional.of(false));
 
         // fetch also configuration schema
@@ -135,12 +132,11 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
      */
     @GetMapping("/aps/{realm}/{providerId}/test")
     public ResponseEntity<FunctionValidationBean> testRealmProvider(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            Authentication auth, HttpServletResponse res)
-            throws NoSuchProviderException, NoSuchRealmException, SystemException, IOException,
-            NoSuchAuthorityException {
-
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
+        Authentication auth,
+        HttpServletResponse res
+    ) throws NoSuchProviderException, NoSuchRealmException, SystemException, IOException, NoSuchAuthorityException {
         ConfigurableAttributeProvider provider = providerManager.getProvider(realm, providerId);
 
         // check if registered
@@ -149,8 +145,9 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
             throw new IllegalArgumentException("provider is not active");
         }
 
-        AttributeProvider<?, ?> ap = attributeProviderAuthorityService.getAuthority(provider.getAuthority())
-                .getProvider(providerId);
+        AttributeProvider<?, ?> ap = attributeProviderAuthorityService
+            .getAuthority(provider.getAuthority())
+            .getProvider(providerId);
 
         // authentication should be a user authentication
         if (!(auth instanceof UserAuthentication)) {
@@ -168,8 +165,9 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
         // get all attributes from principal
         Map<String, Serializable> attributes = principal.getAttributes();
         // TODO handle all attributes not only strings.
-        principalAttributes.putAll(attributes.entrySet().stream()
-                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue())));
+        principalAttributes.putAll(
+            attributes.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()))
+        );
 
         // we use also name from principal
         String name = principal.getName();
@@ -182,8 +180,10 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
         function.setContext(principalAttributes);
 
         try {
-            Collection<UserAttributes> userAttributes = ap.convertPrincipalAttributes(principal,
-                    userAuth.getSubjectId());
+            Collection<UserAttributes> userAttributes = ap.convertPrincipalAttributes(
+                principal,
+                userAuth.getSubjectId()
+            );
             if (userAttributes == null) {
                 userAttributes = Collections.emptyList();
             }
@@ -196,11 +196,9 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
         } catch (RuntimeException e) {
             // translate error
             function.addError(e.getMessage());
-
         }
 
         return ResponseEntity.ok(function);
-
     }
 
     /*
@@ -209,11 +207,11 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
 
     @PutMapping("/aps/{realm}")
     public Collection<ConfigurableAttributeProvider> importRealmProvider(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestParam(required = false, defaultValue = "false") boolean reset,
-            @RequestPart(name = "yaml", required = false) @Valid String yaml,
-            @RequestPart(name = "file", required = false) @Valid MultipartFile file)
-            throws NoSuchRealmException, RegistrationException, NoSuchProviderException, NoSuchAuthorityException {
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @RequestParam(required = false, defaultValue = "false") boolean reset,
+        @RequestPart(name = "yaml", required = false) @Valid String yaml,
+        @RequestPart(name = "file", required = false) @Valid MultipartFile file
+    ) throws NoSuchRealmException, RegistrationException, NoSuchProviderException, NoSuchAuthorityException {
         logger.debug("import ap(s) to realm {}", StringUtils.trimAllWhitespace(realm));
 
         if (!StringUtils.hasText(yaml) && (file == null || file.isEmpty())) {
@@ -227,9 +225,11 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
                     throw new IllegalArgumentException("invalid file");
                 }
 
-                if (!SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType())
-                        && !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType())
-                        && !SystemKeys.MEDIA_TYPE_XYAML.toString().equals(file.getContentType())) {
+                if (
+                    !SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType()) &&
+                    !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType()) &&
+                    !SystemKeys.MEDIA_TYPE_XYAML.toString().equals(file.getContentType())
+                ) {
                     throw new IllegalArgumentException("invalid file");
                 }
 
@@ -252,8 +252,10 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
                 }
             } else {
                 // try single element
-                ConfigurableAttributeProvider reg = yamlObjectMapper.readValue(yaml,
-                        ConfigurableAttributeProvider.class);
+                ConfigurableAttributeProvider reg = yamlObjectMapper.readValue(
+                    yaml,
+                    ConfigurableAttributeProvider.class
+                );
                 regs.add(reg);
             }
 
@@ -292,18 +294,19 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
 
             throw new RegistrationException(e.getMessage());
         }
-
     }
 
     @GetMapping("/aps/{realm}/{providerId}/export")
     public void exportRealmProvider(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            HttpServletResponse res)
-            throws NoSuchProviderException, NoSuchRealmException, SystemException, IOException,
-            NoSuchAuthorityException {
-        logger.debug("export ap {} for realm {}",
-                StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
+        HttpServletResponse res
+    ) throws NoSuchProviderException, NoSuchRealmException, SystemException, IOException, NoSuchAuthorityException {
+        logger.debug(
+            "export ap {} for realm {}",
+            StringUtils.trimAllWhitespace(providerId),
+            StringUtils.trimAllWhitespace(realm)
+        );
 
         ConfigurableAttributeProvider provider = providerManager.getProvider(realm, providerId);
         String s = yamlObjectMapper.writeValueAsString(provider);
@@ -315,7 +318,5 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
         out.write(s.getBytes(StandardCharsets.UTF_8));
         out.flush();
         out.close();
-
     }
-
 }

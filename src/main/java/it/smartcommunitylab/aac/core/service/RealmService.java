@@ -1,21 +1,5 @@
 package it.smartcommunitylab.aac.core.service;
 
-import java.io.Serializable;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.support.PageableExecutionUtils;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.InvalidDataException;
@@ -25,6 +9,20 @@ import it.smartcommunitylab.aac.core.persistence.RealmEntity;
 import it.smartcommunitylab.aac.core.persistence.RealmEntityRepository;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ConfigurationMap;
+import java.io.Serializable;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 @Service
 @Transactional
@@ -62,7 +60,6 @@ public class RealmService implements InitializingBean {
             re.setPublic(false);
             realmRepository.save(re);
         }
-
     }
 
     @Override
@@ -70,8 +67,7 @@ public class RealmService implements InitializingBean {
         Assert.notNull(systemRealm, "system realm can not be null");
     }
 
-    public Realm addRealm(String slug, String name, boolean isEditable, boolean isPublic)
-            throws RegistrationException {
+    public Realm addRealm(String slug, String name, boolean isEditable, boolean isPublic) throws RegistrationException {
         if (!StringUtils.hasText(slug)) {
             throw new InvalidDataException("slug");
         }
@@ -102,7 +98,6 @@ public class RealmService implements InitializingBean {
         r = realmRepository.save(r);
 
         return toRealm(r);
-
     }
 
     @Transactional(readOnly = true)
@@ -133,9 +128,13 @@ public class RealmService implements InitializingBean {
         return realm;
     }
 
-    public Realm updateRealm(String slug, String name, boolean isEditable, boolean isPublic,
-            Map<String, Serializable> oauthConfigurationMap)
-            throws NoSuchRealmException {
+    public Realm updateRealm(
+        String slug,
+        String name,
+        boolean isEditable,
+        boolean isPublic,
+        Map<String, Serializable> oauthConfigurationMap
+    ) throws NoSuchRealmException {
         if (SystemKeys.REALM_GLOBAL.equals(slug) || SystemKeys.REALM_SYSTEM.equals(slug)) {
             throw new IllegalArgumentException("system realms are immutable");
         }
@@ -153,7 +152,6 @@ public class RealmService implements InitializingBean {
         r = realmRepository.save(r);
 
         return toRealm(r);
-
     }
 
     public void deleteRealm(String slug) {
@@ -176,15 +174,21 @@ public class RealmService implements InitializingBean {
     @Transactional(readOnly = true)
     public List<Realm> listSystemRealms() {
         List<RealmEntity> realms = realmRepository.findAll();
-        return realms.stream().filter(r -> SystemKeys.REALM_SYSTEM.equals(r.getSlug())).map(r -> toRealm(r))
-                .collect(Collectors.toList());
+        return realms
+            .stream()
+            .filter(r -> SystemKeys.REALM_SYSTEM.equals(r.getSlug()))
+            .map(r -> toRealm(r))
+            .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public List<Realm> listUserRealms() {
         List<RealmEntity> realms = realmRepository.findAll();
-        return realms.stream().filter(r -> !SystemKeys.REALM_SYSTEM.equals(r.getSlug())).map(r -> toRealm(r))
-                .collect(Collectors.toList());
+        return realms
+            .stream()
+            .filter(r -> !SystemKeys.REALM_SYSTEM.equals(r.getSlug()))
+            .map(r -> toRealm(r))
+            .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -204,12 +208,14 @@ public class RealmService implements InitializingBean {
 
     @Transactional(readOnly = true)
     public Page<Realm> searchRealms(String keywords, Pageable pageRequest) {
-        Page<RealmEntity> page = StringUtils.hasText(keywords) ? realmRepository.findByKeywords(keywords, pageRequest)
-                : realmRepository.findAll(pageRequest);
+        Page<RealmEntity> page = StringUtils.hasText(keywords)
+            ? realmRepository.findByKeywords(keywords, pageRequest)
+            : realmRepository.findAll(pageRequest);
         return PageableExecutionUtils.getPage(
-                page.getContent().stream().map(r -> toRealm(r)).collect(Collectors.toList()),
-                pageRequest,
-                () -> page.getTotalElements());
+            page.getContent().stream().map(r -> toRealm(r)).collect(Collectors.toList()),
+            pageRequest,
+            () -> page.getTotalElements()
+        );
     }
 
     /*

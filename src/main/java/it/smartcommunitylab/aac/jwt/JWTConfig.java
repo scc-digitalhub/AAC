@@ -5,6 +5,7 @@ import it.smartcommunitylab.aac.oauth.model.JWEAlgorithm;
 import it.smartcommunitylab.aac.oauth.model.JWSAlgorithm;
 
 public class JWTConfig {
+
     private JWSAlgorithm signAlgorithm;
     private JWEAlgorithm encAlgorithm;
     private EncryptionMethod encMethod;
@@ -32,5 +33,4 @@ public class JWTConfig {
     public void setEncMethod(EncryptionMethod encMethod) {
         this.encMethod = encMethod;
     }
-
 }

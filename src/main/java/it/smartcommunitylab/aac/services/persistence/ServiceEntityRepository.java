@@ -15,21 +15,18 @@
  */
 package it.smartcommunitylab.aac.services.persistence;
 
+import it.smartcommunitylab.aac.repository.CustomJpaRepository;
 import java.util.List;
-
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import it.smartcommunitylab.aac.repository.CustomJpaRepository;
-
 /**
- * 
+ *
  * @author raman
  *
  */
 @Repository
 public interface ServiceEntityRepository extends CustomJpaRepository<ServiceEntity, String> {
-
     List<ServiceEntity> findByNameContainingIgnoreCase(String name);
 
     List<ServiceEntity> findByRealm(String realm);

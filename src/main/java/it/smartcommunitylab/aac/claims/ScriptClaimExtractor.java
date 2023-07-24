@@ -1,16 +1,15 @@
 package it.smartcommunitylab.aac.claims;
 
+import it.smartcommunitylab.aac.common.InvalidDefinitionException;
+import it.smartcommunitylab.aac.common.SystemException;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.Map;
-
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.common.InvalidDefinitionException;
-import it.smartcommunitylab.aac.common.SystemException;
-
 public class ScriptClaimExtractor {
+
     public static final String CLAIM_MAPPING_FUNCTION = "claimMapping";
 
     private final ScriptExecutionService executionService;
@@ -37,18 +36,14 @@ public class ScriptClaimExtractor {
     }
 
     public Map<String, Serializable> execute(Map<String, Serializable> input)
-            throws SystemException, InvalidDefinitionException {
+        throws SystemException, InvalidDefinitionException {
         if (!StringUtils.hasText(functionCode)) {
             return Collections.emptyMap();
         }
 
         // execute script
-        Map<String, Serializable> claimsMap = executionService.executeFunction(functionName,
-                functionCode,
-                input);
+        Map<String, Serializable> claimsMap = executionService.executeFunction(functionName, functionCode, input);
 
         return claimsMap;
-
     }
-
 }

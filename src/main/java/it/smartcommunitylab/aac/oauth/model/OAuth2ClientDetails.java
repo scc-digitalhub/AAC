@@ -1,24 +1,21 @@
 package it.smartcommunitylab.aac.oauth.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.repository.StringArraySerializer;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.client.Jackson2ArrayOrStringDeserializer;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.repository.StringArraySerializer;
 
 @JsonInclude(Include.NON_NULL)
 public class OAuth2ClientDetails implements ClientDetails {
@@ -139,14 +136,14 @@ public class OAuth2ClientDetails implements ClientDetails {
     // hooks
     @JsonIgnore
     private Map<String, String> hookFunctions;
+
     @JsonIgnore
     private Map<String, String> hookWebUrls;
+
     @JsonIgnore
     private String hookUniqueSpaces;
 
-    public OAuth2ClientDetails() {
-
-    }
+    public OAuth2ClientDetails() {}
 
     public String getClientId() {
         return clientId;
@@ -398,5 +395,4 @@ public class OAuth2ClientDetails implements ClientDetails {
         // we use firstParty to mark internal clients with autoApprove
         return false;
     }
-
 }

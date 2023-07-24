@@ -1,26 +1,24 @@
 package it.smartcommunitylab.aac.core.model;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import java.io.Serializable;
 import java.util.Collection;
-
-import it.smartcommunitylab.aac.SystemKeys;
 
 /*
  *  An identity, bounded to a realm, is:
  *  - managed by an authority
- *  - built by a provider 
+ *  - built by a provider
  *  and contains
  *  - an account (from a provider)
  *  - a set of attributes (from a provider)
  *  - an authenticated principal when user performed auth via this provider
- *  
+ *
  *  core implementations will always match account and attributes providers
  *  i.e. attributes will be fetched from identity provider
- *  
+ *
  *  do note that identities *may* contain credentials in accounts OR principal.
  */
 public interface UserIdentity extends UserResource, Serializable {
-
     // authenticated principal (if available)
     public UserAuthenticatedPrincipal getPrincipal();
 
@@ -53,5 +51,4 @@ public interface UserIdentity extends UserResource, Serializable {
     default String getIdentityId() {
         return getAccount() == null ? null : getAccount().getAccountId();
     }
-
 }

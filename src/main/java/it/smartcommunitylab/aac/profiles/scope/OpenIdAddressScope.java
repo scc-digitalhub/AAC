@@ -21,5 +21,4 @@ public class OpenIdAddressScope extends AbstractProfileScope {
     public String getDescription() {
         return "Basic user's address.";
     }
-
 }

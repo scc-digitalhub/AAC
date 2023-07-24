@@ -1,17 +1,15 @@
 package it.smartcommunitylab.aac.core.service;
 
+import it.smartcommunitylab.aac.core.base.AbstractProviderConfig;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-
 import org.springframework.util.Assert;
 
-import it.smartcommunitylab.aac.core.base.AbstractProviderConfig;
-import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-
 public class InMemoryProviderConfigRepository<U extends AbstractProviderConfig<?, ?>>
-        implements ProviderConfigRepository<U> {
+    implements ProviderConfigRepository<U> {
 
     private final Map<String, U> registrations;
 
@@ -49,5 +47,4 @@ public class InMemoryProviderConfigRepository<U extends AbstractProviderConfig<?
     public Collection<U> findByRealm(String realm) {
         return registrations.values().stream().filter(p -> p.getRealm().equals(realm)).collect(Collectors.toList());
     }
-
 }

@@ -1,10 +1,8 @@
 package it.smartcommunitylab.aac.oauth.request;
 
-import org.springframework.util.Assert;
-
 import com.nimbusds.jwt.SignedJWT;
-
 import it.smartcommunitylab.aac.oauth.model.ClientRegistration;
+import org.springframework.util.Assert;
 
 public class ClientRegistrationRequest {
 
@@ -35,5 +33,4 @@ public class ClientRegistrationRequest {
     public SignedJWT getSoftwareStatement() {
         return softwareStatement;
     }
-
 }

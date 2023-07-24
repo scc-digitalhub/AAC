@@ -7,7 +7,6 @@ public class StringBase64Converter implements AttributeConverter<String, String>
 
     @Override
     public String convertToDatabaseColumn(String input) {
-
         String result = null;
         if (input != null) {
             result = Base64.getEncoder().withoutPadding().encodeToString(input.getBytes());
@@ -17,13 +16,10 @@ public class StringBase64Converter implements AttributeConverter<String, String>
 
     @Override
     public String convertToEntityAttribute(String input) {
-
         String result = null;
         if (input != null) {
             result = new String(Base64.getDecoder().decode(input.getBytes()));
         }
         return result;
-
     }
-
 }

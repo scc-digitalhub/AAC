@@ -1,11 +1,9 @@
 package it.smartcommunitylab.aac.core.auth;
 
-import java.util.Collection;
-
-import org.springframework.security.core.GrantedAuthority;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.ClientDetails;
+import java.util.Collection;
+import org.springframework.security.core.GrantedAuthority;
 
 public abstract class DefaultClientAuthenticationToken extends ClientAuthentication {
 
@@ -23,8 +21,7 @@ public abstract class DefaultClientAuthenticationToken extends ClientAuthenticat
         super(clientId);
     }
 
-    public DefaultClientAuthenticationToken(String clientId,
-            Collection<? extends GrantedAuthority> authorities) {
+    public DefaultClientAuthenticationToken(String clientId, Collection<? extends GrantedAuthority> authorities) {
         super(clientId, authorities);
     }
 

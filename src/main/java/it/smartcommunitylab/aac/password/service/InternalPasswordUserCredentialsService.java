@@ -1,16 +1,5 @@
 package it.smartcommunitylab.aac.password.service;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.validation.constraints.NotNull;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
-
 import it.smartcommunitylab.aac.common.DuplicatedDataException;
 import it.smartcommunitylab.aac.common.NoSuchCredentialException;
 import it.smartcommunitylab.aac.common.RegistrationException;
@@ -18,14 +7,23 @@ import it.smartcommunitylab.aac.core.provider.UserCredentialsService;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.validation.constraints.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 /*
  * An internal service which handles password persistence for internal user accounts, via JPA.
- * 
- * We enforce detach on fetch to keep internal datasource isolated. 
+ *
+ * We enforce detach on fetch to keep internal datasource isolated.
  */
 @Transactional
 public class InternalPasswordUserCredentialsService implements UserCredentialsService<InternalUserPassword> {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final InternalUserPasswordRepository passwordRepository;
@@ -41,9 +39,12 @@ public class InternalPasswordUserCredentialsService implements UserCredentialsSe
         logger.debug("find credentials for realm {}", String.valueOf(realm));
 
         List<InternalUserPassword> passwords = passwordRepository.findByRealm(realm);
-        return passwords.stream().map(a -> {
-            return passwordRepository.detach(a);
-        }).collect(Collectors.toList());
+        return passwords
+            .stream()
+            .map(a -> {
+                return passwordRepository.detach(a);
+            })
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -63,8 +64,11 @@ public class InternalPasswordUserCredentialsService implements UserCredentialsSe
 
     @Transactional(readOnly = true)
     public InternalUserPassword findCredentialsByResetKey(@NotNull String repository, @NotNull String key) {
-        logger.debug("find credentials with reset key {} in repository {}", String.valueOf(key),
-                String.valueOf(repository));
+        logger.debug(
+            "find credentials with reset key {} in repository {}",
+            String.valueOf(key),
+            String.valueOf(repository)
+        );
 
         InternalUserPassword password = passwordRepository.findByRepositoryIdAndResetKey(repository, key);
         if (password == null) {
@@ -95,31 +99,48 @@ public class InternalPasswordUserCredentialsService implements UserCredentialsSe
     @Override
     @Transactional(readOnly = true)
     public List<InternalUserPassword> findCredentialsByAccount(@NotNull String repository, @NotNull String accountId) {
-        logger.debug("find credentials for account {} in repository {}", String.valueOf(accountId),
-                String.valueOf(repository));
+        logger.debug(
+            "find credentials for account {} in repository {}",
+            String.valueOf(accountId),
+            String.valueOf(repository)
+        );
 
-        List<InternalUserPassword> passwords = passwordRepository
-                .findByRepositoryIdAndUsernameOrderByCreateDateDesc(repository, accountId);
-        return passwords.stream().map(a -> {
-            return passwordRepository.detach(a);
-        }).collect(Collectors.toList());
+        List<InternalUserPassword> passwords = passwordRepository.findByRepositoryIdAndUsernameOrderByCreateDateDesc(
+            repository,
+            accountId
+        );
+        return passwords
+            .stream()
+            .map(a -> {
+                return passwordRepository.detach(a);
+            })
+            .collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<InternalUserPassword> findCredentialsByUser(@NotNull String repository, @NotNull String userId) {
-        logger.debug("find credentials for user {} in repository {}", String.valueOf(userId),
-                String.valueOf(repository));
+        logger.debug(
+            "find credentials for user {} in repository {}",
+            String.valueOf(userId),
+            String.valueOf(repository)
+        );
 
         List<InternalUserPassword> passwords = passwordRepository.findByRepositoryIdAndUserId(repository, userId);
-        return passwords.stream().map(a -> {
-            return passwordRepository.detach(a);
-        }).collect(Collectors.toList());
+        return passwords
+            .stream()
+            .map(a -> {
+                return passwordRepository.detach(a);
+            })
+            .collect(Collectors.toList());
     }
 
     @Override
-    public InternalUserPassword addCredentials(@NotNull String repository, @NotNull String id,
-            @NotNull InternalUserPassword reg) throws RegistrationException {
+    public InternalUserPassword addCredentials(
+        @NotNull String repository,
+        @NotNull String id,
+        @NotNull InternalUserPassword reg
+    ) throws RegistrationException {
         logger.debug("add credentials with id {} in repository {}", String.valueOf(id), String.valueOf(repository));
 
         if (reg == null) {
@@ -176,8 +197,11 @@ public class InternalPasswordUserCredentialsService implements UserCredentialsSe
     }
 
     @Override
-    public InternalUserPassword updateCredentials(@NotNull String repository, @NotNull String id,
-            @NotNull InternalUserPassword reg) throws NoSuchCredentialException, RegistrationException {
+    public InternalUserPassword updateCredentials(
+        @NotNull String repository,
+        @NotNull String id,
+        @NotNull InternalUserPassword reg
+    ) throws NoSuchCredentialException, RegistrationException {
         logger.debug("update credentials with id {} in repository {}", String.valueOf(id), String.valueOf(repository));
 
         if (reg == null) {
@@ -243,8 +267,11 @@ public class InternalPasswordUserCredentialsService implements UserCredentialsSe
 
     @Override
     public void deleteAllCredentialsByUser(@NotNull String repository, @NotNull String userId) {
-        logger.debug("delete credentials for user {} in repository {}", String.valueOf(userId),
-                String.valueOf(repository));
+        logger.debug(
+            "delete credentials for user {} in repository {}",
+            String.valueOf(userId),
+            String.valueOf(repository)
+        );
 
         List<InternalUserPassword> passwords = passwordRepository.findByRepositoryIdAndUserId(repository, userId);
         passwordRepository.deleteAllInBatch(passwords);
@@ -252,12 +279,16 @@ public class InternalPasswordUserCredentialsService implements UserCredentialsSe
 
     @Override
     public void deleteAllCredentialsByAccount(@NotNull String repository, @NotNull String accountId) {
-        logger.debug("delete credentials for account {} in repository {}", String.valueOf(accountId),
-                String.valueOf(repository));
+        logger.debug(
+            "delete credentials for account {} in repository {}",
+            String.valueOf(accountId),
+            String.valueOf(repository)
+        );
 
-        List<InternalUserPassword> passwords = passwordRepository
-                .findByRepositoryIdAndUsernameOrderByCreateDateDesc(repository, accountId);
+        List<InternalUserPassword> passwords = passwordRepository.findByRepositoryIdAndUsernameOrderByCreateDateDesc(
+            repository,
+            accountId
+        );
         passwordRepository.deleteAllInBatch(passwords);
-
     }
 }

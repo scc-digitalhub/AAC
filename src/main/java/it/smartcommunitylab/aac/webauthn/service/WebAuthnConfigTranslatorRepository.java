@@ -5,15 +5,18 @@ import it.smartcommunitylab.aac.core.service.TranslatorProviderConfigRepository;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsServiceConfig;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 
-public class WebAuthnConfigTranslatorRepository extends
-        TranslatorProviderConfigRepository<WebAuthnIdentityProviderConfig, WebAuthnCredentialsServiceConfig> {
+public class WebAuthnConfigTranslatorRepository
+    extends TranslatorProviderConfigRepository<WebAuthnIdentityProviderConfig, WebAuthnCredentialsServiceConfig> {
 
     public WebAuthnConfigTranslatorRepository(
-            ProviderConfigRepository<WebAuthnIdentityProviderConfig> externalRepository) {
+        ProviderConfigRepository<WebAuthnIdentityProviderConfig> externalRepository
+    ) {
         super(externalRepository);
-        setConverter((source) -> {
-            WebAuthnCredentialsServiceConfig config = new WebAuthnCredentialsServiceConfig(source.getProvider(),
-                    source.getRealm());
+        setConverter(source -> {
+            WebAuthnCredentialsServiceConfig config = new WebAuthnCredentialsServiceConfig(
+                source.getProvider(),
+                source.getRealm()
+            );
             config.setName(source.getName());
             config.setTitleMap(source.getTitleMap());
             config.setDescriptionMap(source.getDescriptionMap());
@@ -25,5 +28,4 @@ public class WebAuthnConfigTranslatorRepository extends
             return config;
         });
     }
-
 }

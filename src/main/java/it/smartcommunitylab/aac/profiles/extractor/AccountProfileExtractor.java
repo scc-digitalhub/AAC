@@ -1,12 +1,5 @@
 package it.smartcommunitylab.aac.profiles.extractor;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import it.smartcommunitylab.aac.attributes.AccountAttributesSet;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.core.model.UserAccount;
@@ -15,6 +8,12 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.model.AttributeType;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.profiles.model.AccountProfile;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class AccountProfileExtractor extends AbstractUserProfileExtractor {
 
@@ -24,9 +23,7 @@ public class AccountProfileExtractor extends AbstractUserProfileExtractor {
     }
 
     @Override
-    public AccountProfile extractUserProfile(User user)
-            throws InvalidDefinitionException {
-
+    public AccountProfile extractUserProfile(User user) throws InvalidDefinitionException {
         // fetch identities
         Collection<UserIdentity> identities = user.getIdentities();
 
@@ -76,23 +73,28 @@ public class AccountProfileExtractor extends AbstractUserProfileExtractor {
 
         // look for accountProfile extra attributes
         Map<String, String> extra = new HashMap<>();
-        Optional<UserAttributes> attrs = attributes.stream()
-                .filter(a -> a.getIdentifier().equals(AccountAttributesSet.IDENTIFIER)).findFirst();
+        Optional<UserAttributes> attrs = attributes
+            .stream()
+            .filter(a -> a.getIdentifier().equals(AccountAttributesSet.IDENTIFIER))
+            .findFirst();
         if (attrs.isPresent()) {
             // add every extra property
-            attrs.get().getAttributes().forEach(attr -> {
-                if (!AccountAttributesSet.USER_ID.equals(attr.getKey()) &&
+            attrs
+                .get()
+                .getAttributes()
+                .forEach(attr -> {
+                    if (
+                        !AccountAttributesSet.USER_ID.equals(attr.getKey()) &&
                         !AccountAttributesSet.USERNAME.equals(attr.getKey()) &&
-                        attr.getType() == AttributeType.STRING) {
-                    extra.put(attr.getKey(), attr.getValue().toString());
-                }
-            });
+                        attr.getType() == AttributeType.STRING
+                    ) {
+                        extra.put(attr.getKey(), attr.getValue().toString());
+                    }
+                });
         }
 
         profile.setAttributes(extra);
 
         return profile;
-
     }
-
 }

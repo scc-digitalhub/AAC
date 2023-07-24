@@ -8,6 +8,7 @@ import org.springframework.core.annotation.Order;
 @Configuration
 @Order(0)
 public class PropertiesConfig {
+
     @Bean
     @ConfigurationProperties(prefix = "application")
     public ApplicationProperties applicationProps() {
@@ -43,5 +44,4 @@ public class PropertiesConfig {
     public AttributeSetsProperties systemAttributeSets() {
         return new AttributeSetsProperties();
     }
-
 }

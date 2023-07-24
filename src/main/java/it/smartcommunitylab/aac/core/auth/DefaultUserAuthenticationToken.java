@@ -1,20 +1,17 @@
 package it.smartcommunitylab.aac.core.auth;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.util.Assert;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.model.Subject;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.util.Assert;
 
 public class DefaultUserAuthenticationToken extends UserAuthentication {
 
@@ -38,11 +35,13 @@ public class DefaultUserAuthenticationToken extends UserAuthentication {
     // TODO
 
     public DefaultUserAuthenticationToken(
-            Subject principal, String realm,
-            ExtendedAuthenticationToken auth,
-            UserIdentity identity,
-            Collection<UserAttributes> attributeSets,
-            Collection<? extends GrantedAuthority> authorities) {
+        Subject principal,
+        String realm,
+        ExtendedAuthenticationToken auth,
+        UserIdentity identity,
+        Collection<UserAttributes> attributeSets,
+        Collection<? extends GrantedAuthority> authorities
+    ) {
         // we set authorities via super
         // we don't support null authorities list
         super(principal, realm, authorities, auth != null ? auth.isAuthenticated() : false);
@@ -56,12 +55,17 @@ public class DefaultUserAuthenticationToken extends UserAuthentication {
     }
 
     public DefaultUserAuthenticationToken(
-            Subject principal, String realm,
-            Collection<? extends GrantedAuthority> authorities,
-            UserAuthentication... authenticationTokens) {
-        super(principal, realm, authorities,
-                authenticationTokens.length > 0 ? authenticationTokens[0].isAuthenticated() : false);
-
+        Subject principal,
+        String realm,
+        Collection<? extends GrantedAuthority> authorities,
+        UserAuthentication... authenticationTokens
+    ) {
+        super(
+            principal,
+            realm,
+            authorities,
+            authenticationTokens.length > 0 ? authenticationTokens[0].isAuthenticated() : false
+        );
         Assert.notEmpty(authorities, "authorities can not be empty");
         Assert.notEmpty(authenticationTokens, "at least one authentication token is required");
 
@@ -69,28 +73,36 @@ public class DefaultUserAuthenticationToken extends UserAuthentication {
 
         // use first token as base
         UserAuthentication token = authenticationTokens[0];
-        this.details = new UserDetails(principal.getSubjectId(), realm, token.getUser().getIdentities(),
-                token.getUser().getAttributeSets(true), authorities);
+        this.details =
+            new UserDetails(
+                principal.getSubjectId(),
+                realm,
+                token.getUser().getIdentities(),
+                token.getUser().getAttributeSets(true),
+                authorities
+            );
 
         // add auth tokens
         this.tokens.addAll(token.getAuthentications());
 
         // process additional tokens
-        Arrays.stream(authenticationTokens).skip(1).forEach(t -> {
-            // identities
-            for (UserIdentity i : t.getUser().getIdentities()) {
-                details.addIdentity(i);
-            }
+        Arrays
+            .stream(authenticationTokens)
+            .skip(1)
+            .forEach(t -> {
+                // identities
+                for (UserIdentity i : t.getUser().getIdentities()) {
+                    details.addIdentity(i);
+                }
 
-            // attributes
-            for (UserAttributes ras : t.getUser().getAttributeSets(true)) {
-                details.addAttributeSet(ras);
-            }
+                // attributes
+                for (UserAttributes ras : t.getUser().getAttributeSets(true)) {
+                    details.addAttributeSet(ras);
+                }
 
-            // tokens
-            tokens.addAll(t.getAuthentications());
-        });
-
+                // tokens
+                tokens.addAll(t.getAuthentications());
+            });
     }
 
     @Override
@@ -118,15 +130,14 @@ public class DefaultUserAuthenticationToken extends UserAuthentication {
         }
     }
 
-    public ExtendedAuthenticationToken getAuthentication(
-            String authority,
-            String provider,
-            String userId) {
+    public ExtendedAuthenticationToken getAuthentication(String authority, String provider, String userId) {
         ExtendedAuthenticationToken token = null;
         for (ExtendedAuthenticationToken t : tokens) {
-            if (t.getAuthority().equals(authority)
-                    && t.getProvider().equals(provider)
-                    && t.getPrincipal().getUserId().equals(userId)) {
+            if (
+                t.getAuthority().equals(authority) &&
+                t.getProvider().equals(provider) &&
+                t.getPrincipal().getUserId().equals(userId)
+            ) {
                 token = t;
                 break;
             }

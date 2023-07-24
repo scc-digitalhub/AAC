@@ -2,10 +2,9 @@ package it.smartcommunitylab.aac.core.base;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.victools.jsonschema.generator.SchemaGenerator;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-
 import it.smartcommunitylab.aac.core.model.EditableUserAccount;
 import it.smartcommunitylab.aac.internal.model.InternalEditableUserAccount;
 import it.smartcommunitylab.aac.openid.model.OIDCEditableUserAccount;
@@ -16,22 +15,26 @@ import it.smartcommunitylab.aac.saml.model.SamlEditableUserAccount;
 
 /*
  * Abstract class for editable user accounts
- * 
+ *
  * all implementations should derive from this
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
-@JsonSubTypes({
+@JsonSubTypes(
+    {
         @Type(value = InternalEditableUserAccount.class, name = InternalEditableUserAccount.RESOURCE_TYPE),
         @Type(value = OIDCEditableUserAccount.class, name = OIDCEditableUserAccount.RESOURCE_TYPE),
-        @Type(value = SamlEditableUserAccount.class, name = SamlEditableUserAccount.RESOURCE_TYPE)
-})
+        @Type(value = SamlEditableUserAccount.class, name = SamlEditableUserAccount.RESOURCE_TYPE),
+    }
+)
 public abstract class AbstractEditableAccount extends AbstractBaseUserResource implements EditableUserAccount {
-    protected final static SchemaGenerator generator;
+
+    protected static final SchemaGenerator generator;
 
     static {
         ObjectMapper schemaMapper = new ObjectMapper()
-                .setAnnotationIntrospector(new SchemaAnnotationIntrospector(
-                        AbstractEditableAccount.class, AbstractBaseUserResource.class));
+            .setAnnotationIntrospector(
+                new SchemaAnnotationIntrospector(AbstractEditableAccount.class, AbstractBaseUserResource.class)
+            );
         generator = SchemaGeneratorFactory.build(schemaMapper);
     }
 
@@ -86,5 +89,4 @@ public abstract class AbstractEditableAccount extends AbstractBaseUserResource i
     @Override
     @JsonSchemaIgnore
     public abstract String getAccountId();
-
 }

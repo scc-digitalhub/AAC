@@ -1,11 +1,10 @@
 package it.smartcommunitylab.aac.saml.auth;
 
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
 import org.springframework.util.Assert;
-
-import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
 
 public class SamlRelyingPartyRegistrationRepository implements RelyingPartyRegistrationRepository {
 
@@ -13,7 +12,8 @@ public class SamlRelyingPartyRegistrationRepository implements RelyingPartyRegis
     private final ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository;
 
     public SamlRelyingPartyRegistrationRepository(
-            ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository) {
+        ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository
+    ) {
         Assert.notNull(registrationRepository, "provider registration repository can not be null");
         this.registrationRepository = registrationRepository;
     }
@@ -36,5 +36,4 @@ public class SamlRelyingPartyRegistrationRepository implements RelyingPartyRegis
         // TODO registrationId loading cache
         return providerConfig.getRelyingPartyRegistration();
     }
-
 }

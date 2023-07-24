@@ -1,30 +1,30 @@
 package it.smartcommunitylab.aac.core;
 
+import it.smartcommunitylab.aac.common.NoSuchResourceException;
+import it.smartcommunitylab.aac.common.NoSuchScopeException;
+import it.smartcommunitylab.aac.scope.Resource;
+import it.smartcommunitylab.aac.scope.Scope;
+import it.smartcommunitylab.aac.scope.ScopeRegistry;
 import java.util.Collection;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.common.NoSuchResourceException;
-import it.smartcommunitylab.aac.common.NoSuchScopeException;
-import it.smartcommunitylab.aac.scope.Resource;
-import it.smartcommunitylab.aac.scope.Scope;
-import it.smartcommunitylab.aac.scope.ScopeRegistry;
-
 //TODO evaluate split scopes *per realm*
 //TODO permissions
 @Service
 public class ScopeManager {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
     private ScopeRegistry scopeRegistry;
-//
-//    @Autowired
-//    private SearchableApprovalStore approvalStore;
+
+    //
+    //    @Autowired
+    //    private SearchableApprovalStore approvalStore;
 
     public Collection<Scope> listScopes() {
         logger.debug("list scopes");
@@ -69,5 +69,4 @@ public class ScopeManager {
         // from registry
         return scopeRegistry.getResource(resourceId);
     }
-
 }

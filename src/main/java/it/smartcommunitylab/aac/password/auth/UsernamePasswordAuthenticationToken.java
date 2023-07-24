@@ -1,15 +1,12 @@
 package it.smartcommunitylab.aac.password.auth;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import java.util.Collection;
-
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.Assert;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 
 public class UsernamePasswordAuthenticationToken extends AbstractAuthenticationToken {
 
@@ -27,16 +24,23 @@ public class UsernamePasswordAuthenticationToken extends AbstractAuthenticationT
         setAuthenticated(false);
     }
 
-    public UsernamePasswordAuthenticationToken(String username, String password,
-            Collection<? extends GrantedAuthority> authorities) {
+    public UsernamePasswordAuthenticationToken(
+        String username,
+        String password,
+        Collection<? extends GrantedAuthority> authorities
+    ) {
         super(authorities);
         this.username = username;
         this.password = password;
         super.setAuthenticated(true);
     }
 
-    public UsernamePasswordAuthenticationToken(String username, String password, InternalUserAccount account,
-            Collection<? extends GrantedAuthority> authorities) {
+    public UsernamePasswordAuthenticationToken(
+        String username,
+        String password,
+        InternalUserAccount account,
+        Collection<? extends GrantedAuthority> authorities
+    ) {
         super(authorities);
         this.username = username;
         this.password = password;
@@ -74,8 +78,10 @@ public class UsernamePasswordAuthenticationToken extends AbstractAuthenticationT
 
     @Override
     public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
-        Assert.isTrue(!isAuthenticated,
-                "Cannot set this token to trusted - use constructor which takes a GrantedAuthority list instead");
+        Assert.isTrue(
+            !isAuthenticated,
+            "Cannot set this token to trusted - use constructor which takes a GrantedAuthority list instead"
+        );
         super.setAuthenticated(false);
     }
 

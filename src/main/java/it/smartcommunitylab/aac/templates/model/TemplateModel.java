@@ -1,25 +1,21 @@
 package it.smartcommunitylab.aac.templates.model;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
-
-import org.springframework.util.Assert;
-
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.Template;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
+import org.springframework.util.Assert;
 
 @Valid
 @JsonInclude(Include.NON_NULL)
@@ -58,9 +54,7 @@ public class TemplateModel implements Template {
     @JsonIgnore
     private Map<String, Object> modelAttributes;
 
-    public TemplateModel() {
-
-    }
+    public TemplateModel() {}
 
     public TemplateModel(String authority, String realm, String provider, String template) {
         this.authority = authority;
@@ -191,8 +185,22 @@ public class TemplateModel implements Template {
 
     @Override
     public String toString() {
-        return "TemplateModel [id=" + id + ", authority=" + authority + ", provider=" + provider + ", template="
-                + template + ", realm=" + realm + ", language=" + language + ", content=" + content + "]";
+        return (
+            "TemplateModel [id=" +
+            id +
+            ", authority=" +
+            authority +
+            ", provider=" +
+            provider +
+            ", template=" +
+            template +
+            ", realm=" +
+            realm +
+            ", language=" +
+            language +
+            ", content=" +
+            content +
+            "]"
+        );
     }
-
 }

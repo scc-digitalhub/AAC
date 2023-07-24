@@ -32,5 +32,4 @@ public class CustomProfileScope extends AbstractProfileScope {
     public String getDescription() {
         return StringUtils.capitalize(identifier) + " profile of the current platform user. Read access only.";
     }
-
 }

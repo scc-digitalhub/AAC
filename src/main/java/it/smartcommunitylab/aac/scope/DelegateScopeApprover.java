@@ -1,21 +1,19 @@
 package it.smartcommunitylab.aac.scope;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-
-import org.springframework.security.oauth2.provider.approval.Approval;
-import org.springframework.util.Assert;
-
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.model.User;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import org.springframework.security.oauth2.provider.approval.Approval;
+import org.springframework.util.Assert;
 
 /*
  * A scope approver which requires at least one of the provided approvers to respond with an authorization result.
- * 
+ *
  * Do note that any valid response (approve or deny) is accepted and returned as result.
  */
 
@@ -47,7 +45,7 @@ public class DelegateScopeApprover implements ScopeApprover {
 
     @Override
     public Approval approveUserScope(String scope, User user, ClientDetails client, Collection<String> scopes)
-            throws InvalidDefinitionException, SystemException {
+        throws InvalidDefinitionException, SystemException {
         if (!this.scope.equals(scope)) {
             return null;
         }
@@ -67,7 +65,7 @@ public class DelegateScopeApprover implements ScopeApprover {
 
     @Override
     public Approval approveClientScope(String scope, ClientDetails client, Collection<String> scopes)
-            throws InvalidDefinitionException, SystemException {
+        throws InvalidDefinitionException, SystemException {
         if (!this.scope.equals(scope)) {
             return null;
         }
@@ -84,7 +82,7 @@ public class DelegateScopeApprover implements ScopeApprover {
 
         return appr;
     }
-    
+
     @Override
     public String getRealm() {
         return realm;

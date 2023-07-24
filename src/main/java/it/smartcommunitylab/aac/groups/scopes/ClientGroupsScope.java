@@ -33,5 +33,4 @@ public class ClientGroupsScope extends Scope {
     public String getDescription() {
         return "Groups of the current client. Read access only.";
     }
-
 }

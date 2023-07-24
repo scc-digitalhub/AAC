@@ -1,8 +1,5 @@
 package it.smartcommunitylab.aac.webauthn;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractCredentialsAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
@@ -18,15 +15,18 @@ import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsServiceConf
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnRegistrationRpService;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserCredentialsService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 /*
  * WebAuthn service depends on webauthn identity provider
- * 
+ *
  * every idp will expose a matching service with the same configuration for credentials handling
  */
 @Service
-public class WebAuthnCredentialsAuthority extends
-        AbstractCredentialsAuthority<WebAuthnCredentialsService, WebAuthnUserCredential, WebAuthnEditableUserCredential, WebAuthnIdentityProviderConfigMap, WebAuthnCredentialsServiceConfig> {
+public class WebAuthnCredentialsAuthority
+    extends AbstractCredentialsAuthority<WebAuthnCredentialsService, WebAuthnUserCredential, WebAuthnEditableUserCredential, WebAuthnIdentityProviderConfigMap, WebAuthnCredentialsServiceConfig> {
 
     public static final String AUTHORITY_URL = "/auth/webauthn/";
 
@@ -41,10 +41,11 @@ public class WebAuthnCredentialsAuthority extends
     private final WebAuthnRegistrationRpService rpService;
 
     public WebAuthnCredentialsAuthority(
-            UserAccountService<InternalUserAccount> userAccountService,
-            WebAuthnUserCredentialsService credentialsService,
-            WebAuthnRegistrationRpService rpService,
-            ProviderConfigRepository<WebAuthnCredentialsServiceConfig> registrationRepository) {
+        UserAccountService<InternalUserAccount> userAccountService,
+        WebAuthnUserCredentialsService credentialsService,
+        WebAuthnRegistrationRpService rpService,
+        ProviderConfigRepository<WebAuthnCredentialsServiceConfig> registrationRepository
+    ) {
         super(SystemKeys.AUTHORITY_WEBAUTHN, registrationRepository);
         Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(credentialsService, "credentials service is mandatory");
@@ -69,9 +70,13 @@ public class WebAuthnCredentialsAuthority extends
     @Override
     public WebAuthnCredentialsService buildProvider(WebAuthnCredentialsServiceConfig config) {
         WebAuthnCredentialsService service = new WebAuthnCredentialsService(
-                config.getProvider(),
-                accountService, credentialsService, rpService,
-                config, config.getRealm());
+            config.getProvider(),
+            accountService,
+            credentialsService,
+            rpService,
+            config,
+            config.getRealm()
+        );
 
         service.setResourceService(resourceService);
 
@@ -82,5 +87,4 @@ public class WebAuthnCredentialsAuthority extends
     public WebAuthnCredentialsServiceConfig registerProvider(ConfigurableProvider cp) {
         throw new IllegalArgumentException("direct registration not supported");
     }
-
 }

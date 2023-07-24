@@ -5,6 +5,7 @@ import it.smartcommunitylab.aac.profiles.claims.ProfileClaimsSet;
 import it.smartcommunitylab.aac.scope.Scope;
 
 public abstract class AbstractProfileScope extends Scope {
+
     @Override
     public String getResourceId() {
         return ProfileClaimsSet.RESOURCE_ID;

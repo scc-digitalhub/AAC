@@ -1,8 +1,7 @@
 package it.smartcommunitylab.aac.webauthn.model;
 
-import org.springframework.util.Assert;
-
 import com.yubico.webauthn.RegistrationResult;
+import org.springframework.util.Assert;
 
 public class WebAuthnRegistrationRequest {
 
@@ -56,5 +55,4 @@ public class WebAuthnRegistrationRequest {
     public void setRegistrationResult(RegistrationResult registrationResult) {
         this.registrationResult = registrationResult;
     }
-
 }

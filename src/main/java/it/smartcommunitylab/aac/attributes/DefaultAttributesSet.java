@@ -1,22 +1,19 @@
 package it.smartcommunitylab.aac.attributes;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.attributes.model.DefaultAttribute;
+import it.smartcommunitylab.aac.core.model.Attribute;
+import it.smartcommunitylab.aac.core.model.AttributeSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.stream.Collectors;
-
 import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.attributes.model.DefaultAttribute;
-import it.smartcommunitylab.aac.core.model.Attribute;
-import it.smartcommunitylab.aac.core.model.AttributeSet;
 
 @Valid
 @JsonInclude(Include.NON_NULL)
@@ -25,6 +22,7 @@ public class DefaultAttributesSet implements AttributeSet {
 
     @Pattern(regexp = SystemKeys.SLUG_PATTERN)
     private String identifier;
+
     private String realm;
 
     private String name;
@@ -85,15 +83,20 @@ public class DefaultAttributesSet implements AttributeSet {
     public void addAttributes(Collection<Attribute> attributes) {
         this.attributes = new HashSet<>();
         if (attributes != null) {
-            this.attributes.addAll(attributes.stream().map(a -> {
-                DefaultAttribute attr = new DefaultAttribute();
-                attr.setKey(a.getKey());
-                attr.setType(a.getType());
-                attr.setName(a.getName());
-                attr.setDescription(a.getDescription());
-                attr.setIsMultiple(a.getIsMultiple());
-                return attr;
-            }).collect(Collectors.toSet()));
+            this.attributes.addAll(
+                    attributes
+                        .stream()
+                        .map(a -> {
+                            DefaultAttribute attr = new DefaultAttribute();
+                            attr.setKey(a.getKey());
+                            attr.setType(a.getType());
+                            attr.setName(a.getName());
+                            attr.setDescription(a.getDescription());
+                            attr.setIsMultiple(a.getIsMultiple());
+                            return attr;
+                        })
+                        .collect(Collectors.toSet())
+                );
         }
     }
 
@@ -117,15 +120,20 @@ public class DefaultAttributesSet implements AttributeSet {
         aset.name = set.getName();
         aset.description = set.getDescription();
         if (set.getAttributes() != null) {
-            aset.attributes = set.getAttributes().stream().map(a -> {
-                DefaultAttribute attr = new DefaultAttribute();
-                attr.setKey(a.getKey());
-                attr.setType(a.getType());
-                attr.setName(a.getName());
-                attr.setDescription(a.getDescription());
-                attr.setIsMultiple(a.getIsMultiple());
-                return attr;
-            }).collect(Collectors.toSet());
+            aset.attributes =
+                set
+                    .getAttributes()
+                    .stream()
+                    .map(a -> {
+                        DefaultAttribute attr = new DefaultAttribute();
+                        attr.setKey(a.getKey());
+                        attr.setType(a.getType());
+                        attr.setName(a.getName());
+                        attr.setDescription(a.getDescription());
+                        attr.setIsMultiple(a.getIsMultiple());
+                        return attr;
+                    })
+                    .collect(Collectors.toSet());
         }
 
         return aset;
@@ -133,8 +141,18 @@ public class DefaultAttributesSet implements AttributeSet {
 
     @Override
     public String toString() {
-        return "DefaultAttributesSet [identifier=" + identifier + ", realm=" + realm + ", name=" + name
-                + ", description=" + description + ", attributes=" + attributes + "]";
+        return (
+            "DefaultAttributesSet [identifier=" +
+            identifier +
+            ", realm=" +
+            realm +
+            ", name=" +
+            name +
+            ", description=" +
+            description +
+            ", attributes=" +
+            attributes +
+            "]"
+        );
     }
-
 }

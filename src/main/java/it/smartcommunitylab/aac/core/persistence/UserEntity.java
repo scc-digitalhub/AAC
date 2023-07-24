@@ -1,19 +1,16 @@
 package it.smartcommunitylab.aac.core.persistence;
 
+import it.smartcommunitylab.aac.model.SubjectStatus;
 import java.util.Date;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
-
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import it.smartcommunitylab.aac.model.SubjectStatus;
 
 @Entity
 @Table(name = "users")
@@ -69,8 +66,7 @@ public class UserEntity {
     @Column(name = "last_login_provider")
     private String loginProvider;
 
-    protected UserEntity() {
-    }
+    protected UserEntity() {}
 
     public UserEntity(@NotNull String uuid, @NotNull String realm) {
         super();
@@ -78,13 +74,13 @@ public class UserEntity {
         this.realm = realm;
     }
 
-//    public Long getId() {
-//        return id;
-//    }
-//
-//    public void setId(Long id) {
-//        this.id = id;
-//    }
+    //    public Long getId() {
+    //        return id;
+    //    }
+    //
+    //    public void setId(Long id) {
+    //        this.id = id;
+    //    }
 
     public String getUuid() {
         return uuid;
@@ -205,9 +201,26 @@ public class UserEntity {
 
     @Override
     public String toString() {
-        return "UserEntity [uuid=" + uuid + ", realm=" + realm + ", username=" + username + ", emailAddress="
-                + emailAddress + ", emailVerified=" + emailVerified + ", status=" + status + ", expirationDate="
-                + expirationDate + ", createDate=" + createDate + ", modifiedDate=" + modifiedDate + "]";
+        return (
+            "UserEntity [uuid=" +
+            uuid +
+            ", realm=" +
+            realm +
+            ", username=" +
+            username +
+            ", emailAddress=" +
+            emailAddress +
+            ", emailVerified=" +
+            emailVerified +
+            ", status=" +
+            status +
+            ", expirationDate=" +
+            expirationDate +
+            ", createDate=" +
+            createDate +
+            ", modifiedDate=" +
+            modifiedDate +
+            "]"
+        );
     }
-
 }

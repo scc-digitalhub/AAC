@@ -1,9 +1,5 @@
 package it.smartcommunitylab.aac.saml;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.authorities.AccountServiceAuthority;
 import it.smartcommunitylab.aac.core.base.AbstractEditableAccount;
@@ -19,12 +15,14 @@ import it.smartcommunitylab.aac.saml.provider.SamlAccountServiceConfig;
 import it.smartcommunitylab.aac.saml.provider.SamlAccountServiceConfigConverter;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfigMap;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 @Service
 public class SamlAccountServiceAuthority
-        extends
-        AbstractProviderAuthority<SamlAccountService, SamlUserAccount, ConfigurableAccountProvider, SamlIdentityProviderConfigMap, SamlAccountServiceConfig>
-        implements
+    extends AbstractProviderAuthority<SamlAccountService, SamlUserAccount, ConfigurableAccountProvider, SamlIdentityProviderConfigMap, SamlAccountServiceConfig>
+    implements
         AccountServiceAuthority<SamlAccountService, SamlUserAccount, AbstractEditableAccount, SamlIdentityProviderConfigMap, SamlAccountServiceConfig> {
 
     // account service
@@ -33,15 +31,17 @@ public class SamlAccountServiceAuthority
 
     @Autowired
     public SamlAccountServiceAuthority(
-            UserAccountService<SamlUserAccount> userAccountService,
-            ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository) {
+        UserAccountService<SamlUserAccount> userAccountService,
+        ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository
+    ) {
         this(SystemKeys.AUTHORITY_SAML, userAccountService, registrationRepository);
     }
 
     public SamlAccountServiceAuthority(
-            String authority,
-            UserAccountService<SamlUserAccount> userAccountService,
-            ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository) {
+        String authority,
+        UserAccountService<SamlUserAccount> userAccountService,
+        ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository
+    ) {
         super(authority, new SamlConfigTranslatorRepository(registrationRepository));
         Assert.notNull(userAccountService, "account service is mandatory");
 
@@ -60,22 +60,22 @@ public class SamlAccountServiceAuthority
 
     protected SamlAccountService buildProvider(SamlAccountServiceConfig config) {
         SamlAccountService service = new SamlAccountService(
-                config.getProvider(),
-                accountService,
-                config, config.getRealm());
+            config.getProvider(),
+            accountService,
+            config,
+            config.getRealm()
+        );
         service.setResourceService(resourceService);
 
         return service;
     }
 
-    static class SamlConfigTranslatorRepository extends
-            TranslatorProviderConfigRepository<SamlIdentityProviderConfig, SamlAccountServiceConfig> {
+    static class SamlConfigTranslatorRepository
+        extends TranslatorProviderConfigRepository<SamlIdentityProviderConfig, SamlAccountServiceConfig> {
 
-        public SamlConfigTranslatorRepository(
-                ProviderConfigRepository<SamlIdentityProviderConfig> externalRepository) {
+        public SamlConfigTranslatorRepository(ProviderConfigRepository<SamlIdentityProviderConfig> externalRepository) {
             super(externalRepository);
             setConverter(new SamlAccountServiceConfigConverter());
         }
-
     }
 }

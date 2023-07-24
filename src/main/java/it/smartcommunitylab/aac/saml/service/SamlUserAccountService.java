@@ -1,14 +1,5 @@
 package it.smartcommunitylab.aac.saml.service;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.DuplicatedDataException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
@@ -20,14 +11,22 @@ import it.smartcommunitylab.aac.model.SubjectStatus;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountId;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
+import java.util.List;
+import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /*
  * An internal service which handles persistence for SAML2 user accounts, via JPA
- * 
+ *
  *  We enforce detach on fetch to keep internal datasource isolated.
  */
 @Transactional
 public class SamlUserAccountService implements UserAccountService<SamlUserAccount> {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final SamlUserAccountRepository accountRepository;
@@ -46,15 +45,21 @@ public class SamlUserAccountService implements UserAccountService<SamlUserAccoun
         logger.debug("find account for realm {}", String.valueOf(realm));
 
         List<SamlUserAccount> accounts = accountRepository.findByRealm(realm);
-        return accounts.stream().map(a -> {
-            return accountRepository.detach(a);
-        }).collect(Collectors.toList());
+        return accounts
+            .stream()
+            .map(a -> {
+                return accountRepository.detach(a);
+            })
+            .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public SamlUserAccount findAccountById(String repository, String subjectId) {
-        logger.debug("find account with subjectId {} in repository {}", String.valueOf(subjectId),
-                String.valueOf(repository));
+        logger.debug(
+            "find account with subjectId {} in repository {}",
+            String.valueOf(subjectId),
+            String.valueOf(repository)
+        );
 
         SamlUserAccount account = accountRepository.findOne(new SamlUserAccountId(repository, subjectId));
         if (account == null) {
@@ -68,24 +73,32 @@ public class SamlUserAccountService implements UserAccountService<SamlUserAccoun
 
     @Transactional(readOnly = true)
     public List<SamlUserAccount> findAccountByUsername(String repository, String username) {
-        logger.debug("find account with username {} in repository {}", String.valueOf(username),
-                String.valueOf(repository));
+        logger.debug(
+            "find account with username {} in repository {}",
+            String.valueOf(username),
+            String.valueOf(repository)
+        );
 
         List<SamlUserAccount> accounts = accountRepository.findByRepositoryIdAndUsername(repository, username);
-        return accounts.stream().map(a -> {
-            return accountRepository.detach(a);
-        }).collect(Collectors.toList());
+        return accounts
+            .stream()
+            .map(a -> {
+                return accountRepository.detach(a);
+            })
+            .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public List<SamlUserAccount> findAccountByEmail(String repository, String email) {
-        logger.debug("find account with email {} in repository {}", String.valueOf(email),
-                String.valueOf(repository));
+        logger.debug("find account with email {} in repository {}", String.valueOf(email), String.valueOf(repository));
 
         List<SamlUserAccount> accounts = accountRepository.findByRepositoryIdAndEmail(repository, email);
-        return accounts.stream().map(a -> {
-            return accountRepository.detach(a);
-        }).collect(Collectors.toList());
+        return accounts
+            .stream()
+            .map(a -> {
+                return accountRepository.detach(a);
+            })
+            .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -104,20 +117,25 @@ public class SamlUserAccountService implements UserAccountService<SamlUserAccoun
 
     @Transactional(readOnly = true)
     public List<SamlUserAccount> findAccountByUser(String repository, String userId) {
-        logger.debug("find account for user {} in repository {}", String.valueOf(userId),
-                String.valueOf(repository));
+        logger.debug("find account for user {} in repository {}", String.valueOf(userId), String.valueOf(repository));
 
         List<SamlUserAccount> accounts = accountRepository.findByUserIdAndRepositoryId(userId, repository);
-        return accounts.stream().map(a -> {
-            return accountRepository.detach(a);
-        }).collect(Collectors.toList());
+        return accounts
+            .stream()
+            .map(a -> {
+                return accountRepository.detach(a);
+            })
+            .collect(Collectors.toList());
     }
 
     @Override
     public SamlUserAccount addAccount(String repository, String subjectId, SamlUserAccount reg)
-            throws RegistrationException {
-        logger.debug("add account with subjectId {} in repository {}", String.valueOf(subjectId),
-                String.valueOf(repository));
+        throws RegistrationException {
+        logger.debug(
+            "add account with subjectId {} in repository {}",
+            String.valueOf(subjectId),
+            String.valueOf(repository)
+        );
 
         if (reg == null) {
             throw new RegistrationException();
@@ -145,9 +163,11 @@ public class SamlUserAccountService implements UserAccountService<SamlUserAccoun
                 logger.debug("create new subject for sub {}", String.valueOf(subjectId));
                 s = subjectService.addSubject(uuid, reg.getRealm(), SystemKeys.RESOURCE_ACCOUNT, subjectId);
             } else {
-                if (!s.getRealm().equals(reg.getRealm())
-                        || !SystemKeys.RESOURCE_ACCOUNT.equals(s.getType())
-                        || !subjectId.equals(s.getSubjectId())) {
+                if (
+                    !s.getRealm().equals(reg.getRealm()) ||
+                    !SystemKeys.RESOURCE_ACCOUNT.equals(s.getType()) ||
+                    !subjectId.equals(s.getSubjectId())
+                ) {
                     throw new RegistrationException("subject-mismatch");
                 }
             }
@@ -193,9 +213,12 @@ public class SamlUserAccountService implements UserAccountService<SamlUserAccoun
 
     @Override
     public SamlUserAccount updateAccount(String repository, String subjectId, SamlUserAccount reg)
-            throws NoSuchUserException, RegistrationException {
-        logger.debug("update account with subjectId {} in repository {}", String.valueOf(subjectId),
-                String.valueOf(repository));
+        throws NoSuchUserException, RegistrationException {
+        logger.debug(
+            "update account with subjectId {} in repository {}",
+            String.valueOf(subjectId),
+            String.valueOf(repository)
+        );
 
         if (reg == null) {
             throw new RegistrationException();
@@ -215,9 +238,9 @@ public class SamlUserAccountService implements UserAccountService<SamlUserAccoun
             account.setSubjectId(reg.getSubjectId());
 
             // DISABLED support uuid change if provided
-//            if (StringUtils.hasText(reg.getUuid())) {
-//                account.setUuid(reg.getUuid());
-//            }
+            //            if (StringUtils.hasText(reg.getUuid())) {
+            //                account.setUuid(reg.getUuid());
+            //            }
 
             // extract attributes and update model
             account.setUserId(reg.getUserId());
@@ -261,10 +284,12 @@ public class SamlUserAccountService implements UserAccountService<SamlUserAccoun
                 subjectService.deleteSubject(uuid);
             }
 
-            logger.debug("delete account with subjectId {} repository {}", String.valueOf(subjectId),
-                    String.valueOf(repository));
+            logger.debug(
+                "delete account with subjectId {} repository {}",
+                String.valueOf(subjectId),
+                String.valueOf(repository)
+            );
             accountRepository.delete(account);
         }
     }
-
 }

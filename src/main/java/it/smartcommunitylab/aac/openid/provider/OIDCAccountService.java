@@ -1,6 +1,5 @@
 package it.smartcommunitylab.aac.openid.provider;
 
-import org.springframework.transaction.annotation.Transactional;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.base.AbstractAccountService;
@@ -8,20 +7,28 @@ import it.smartcommunitylab.aac.core.base.AbstractEditableAccount;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.openid.model.OIDCEditableUserAccount;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
+import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
-public class OIDCAccountService extends
-        AbstractAccountService<OIDCUserAccount, AbstractEditableAccount, OIDCIdentityProviderConfigMap, OIDCAccountServiceConfig> {
+public class OIDCAccountService
+    extends AbstractAccountService<OIDCUserAccount, AbstractEditableAccount, OIDCIdentityProviderConfigMap, OIDCAccountServiceConfig> {
 
-    public OIDCAccountService(String providerId,
-            UserAccountService<OIDCUserAccount> accountService,
-            OIDCAccountServiceConfig config, String realm) {
+    public OIDCAccountService(
+        String providerId,
+        UserAccountService<OIDCUserAccount> accountService,
+        OIDCAccountServiceConfig config,
+        String realm
+    ) {
         this(SystemKeys.AUTHORITY_OIDC, providerId, accountService, config, realm);
     }
 
-    public OIDCAccountService(String authority, String providerId,
-            UserAccountService<OIDCUserAccount> accountService,
-            OIDCAccountServiceConfig config, String realm) {
+    public OIDCAccountService(
+        String authority,
+        String providerId,
+        UserAccountService<OIDCUserAccount> accountService,
+        OIDCAccountServiceConfig config,
+        String realm
+    ) {
         super(authority, providerId, accountService, config, realm);
     }
 
@@ -42,8 +49,12 @@ public class OIDCAccountService extends
     private OIDCEditableUserAccount toEditableAccount(OIDCUserAccount account) {
         // build editable model
         OIDCEditableUserAccount ea = new OIDCEditableUserAccount(
-                getAuthority(), getProvider(), getRealm(),
-                account.getUserId(), account.getUuid());
+            getAuthority(),
+            getProvider(),
+            getRealm(),
+            account.getUserId(),
+            account.getUuid()
+        );
         ea.setSubject(account.getSubject());
         ea.setUsername(account.getUsername());
 
@@ -58,5 +69,4 @@ public class OIDCAccountService extends
 
         return ea;
     }
-
 }

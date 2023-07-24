@@ -1,10 +1,8 @@
 package it.smartcommunitylab.aac.attributes.persistence;
 
-import java.util.List;
-
-import org.springframework.stereotype.Repository;
-
 import it.smartcommunitylab.aac.repository.CustomJpaRepository;
+import java.util.List;
+import org.springframework.stereotype.Repository;
 
 @Repository
 public interface AttributeSetEntityRepository extends CustomJpaRepository<AttributeSetEntity, Long> {

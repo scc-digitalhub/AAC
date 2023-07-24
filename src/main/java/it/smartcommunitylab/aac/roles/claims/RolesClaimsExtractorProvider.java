@@ -1,14 +1,12 @@
 package it.smartcommunitylab.aac.roles.claims;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.springframework.stereotype.Component;
-
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.claims.ScopeClaimsExtractor;
 import it.smartcommunitylab.aac.claims.ScopeClaimsExtractorProvider;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import org.springframework.stereotype.Component;
 
 @Component
 public class RolesClaimsExtractorProvider implements ScopeClaimsExtractorProvider {
@@ -32,10 +30,11 @@ public class RolesClaimsExtractorProvider implements ScopeClaimsExtractorProvide
     public Collection<String> getScopes() {
         return extractors.keySet();
     }
-//    @Override
-//    public Collection<ScopeClaimsExtractor> getExtractors() {
-//        return Collections.singleton(extractor);
-//    }
+
+    //    @Override
+    //    public Collection<ScopeClaimsExtractor> getExtractors() {
+    //        return Collections.singleton(extractor);
+    //    }
 
     @Override
     public ScopeClaimsExtractor getExtractor(String scope) {
@@ -46,5 +45,4 @@ public class RolesClaimsExtractorProvider implements ScopeClaimsExtractorProvide
 
         return extractor;
     }
-
 }

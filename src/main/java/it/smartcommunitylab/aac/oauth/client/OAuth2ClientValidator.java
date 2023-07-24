@@ -1,5 +1,3 @@
 package it.smartcommunitylab.aac.oauth.client;
 
-public class OAuth2ClientValidator {
-
-}
+public class OAuth2ClientValidator {}

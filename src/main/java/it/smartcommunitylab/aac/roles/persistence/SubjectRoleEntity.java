@@ -11,6 +11,7 @@ import javax.validation.constraints.NotNull;
 @Entity
 @Table(name = "subject_roles", uniqueConstraints = @UniqueConstraint(columnNames = { "subject_id", "realm", "role" }))
 public class SubjectRoleEntity {
+
     @Id
     @GeneratedValue
     private Long id;
@@ -58,8 +59,7 @@ public class SubjectRoleEntity {
         this.role = role;
     }
 
-    protected SubjectRoleEntity() {
-    }
+    protected SubjectRoleEntity() {}
 
     public SubjectRoleEntity(String subject) {
         super();
@@ -78,28 +78,19 @@ public class SubjectRoleEntity {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         SubjectRoleEntity other = (SubjectRoleEntity) obj;
         if (realm == null) {
-            if (other.realm != null)
-                return false;
-        } else if (!realm.equals(other.realm))
-            return false;
+            if (other.realm != null) return false;
+        } else if (!realm.equals(other.realm)) return false;
         if (role == null) {
-            if (other.role != null)
-                return false;
-        } else if (!role.equals(other.role))
-            return false;
+            if (other.role != null) return false;
+        } else if (!role.equals(other.role)) return false;
         if (subject == null) {
-            if (other.subject != null)
-                return false;
-        } else if (!subject.equals(other.subject))
-            return false;
+            if (other.subject != null) return false;
+        } else if (!subject.equals(other.subject)) return false;
         return true;
     }
 
@@ -107,5 +98,4 @@ public class SubjectRoleEntity {
     public String toString() {
         return "SubjectRoleEntity [id=" + id + ", subject=" + subject + ", realm=" + realm + ", role=" + role + "]";
     }
-
 }

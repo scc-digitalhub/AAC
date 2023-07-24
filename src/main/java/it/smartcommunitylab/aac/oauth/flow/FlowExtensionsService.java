@@ -1,14 +1,12 @@
 package it.smartcommunitylab.aac.oauth.flow;
 
+import it.smartcommunitylab.aac.claims.ScriptExecutionService;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import it.smartcommunitylab.aac.claims.ScriptExecutionService;
-import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 
 @Service
 public class FlowExtensionsService implements InitializingBean {
@@ -20,13 +18,15 @@ public class FlowExtensionsService implements InitializingBean {
     private WebhookOAuthFlowExtensions webhookFlowExtensions;
 
     public OAuthFlowExtensions getOAuthFlowExtensions(OAuth2ClientDetails clientDetails) {
-
         // always use delegateFlowExtensions to support multiple extensions
         List<OAuthFlowExtensions> extensions = new ArrayList<>();
 
         // first hook is script
-        if (scriptFlowExtensions != null && clientDetails.getHookFunctions() != null
-                && !clientDetails.getHookFunctions().isEmpty()) {
+        if (
+            scriptFlowExtensions != null &&
+            clientDetails.getHookFunctions() != null &&
+            !clientDetails.getHookFunctions().isEmpty()
+        ) {
             extensions.add(scriptFlowExtensions);
         }
 
@@ -40,7 +40,6 @@ public class FlowExtensionsService implements InitializingBean {
         }
 
         return null;
-
     }
 
     @Override
@@ -50,7 +49,5 @@ public class FlowExtensionsService implements InitializingBean {
             scriptFlowExtensions = new ScriptOAuthFlowExtensions();
             scriptFlowExtensions.setExecutionService(executionService);
         }
-
     }
-
 }

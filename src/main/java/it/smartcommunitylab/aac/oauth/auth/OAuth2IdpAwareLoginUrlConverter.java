@@ -1,12 +1,5 @@
 package it.smartcommunitylab.aac.oauth.auth;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.core.auth.LoginUrlRequestConverter;
@@ -14,6 +7,11 @@ import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.service.IdentityProviderAuthorityService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderService;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 public class OAuth2IdpAwareLoginUrlConverter implements LoginUrlRequestConverter {
 
@@ -22,20 +20,23 @@ public class OAuth2IdpAwareLoginUrlConverter implements LoginUrlRequestConverter
     private final IdentityProviderService providerService;
     private final IdentityProviderAuthorityService authorityService;
 
-    public OAuth2IdpAwareLoginUrlConverter(IdentityProviderService providerService,
-            IdentityProviderAuthorityService authorityService) {
+    public OAuth2IdpAwareLoginUrlConverter(
+        IdentityProviderService providerService,
+        IdentityProviderAuthorityService authorityService
+    ) {
         Assert.notNull(providerService, "provider service is required");
         Assert.notNull(authorityService, "authority service is required");
 
         this.authorityService = authorityService;
         this.providerService = providerService;
-
     }
 
     @Override
-    public String convert(HttpServletRequest request, HttpServletResponse response,
-            AuthenticationException authException) {
-
+    public String convert(
+        HttpServletRequest request,
+        HttpServletResponse response,
+        AuthenticationException authException
+    ) {
         // check if idp hint via param
         String idpHint = null;
         if (request.getParameter(IDP_PARAMETER_NAME) != null) {
@@ -56,15 +57,14 @@ public class OAuth2IdpAwareLoginUrlConverter implements LoginUrlRequestConverter
                 // TODO check if active
 
                 // fetch providers for given realm
-                IdentityProvider<?, ?, ?, ?, ?> provider = authorityService.getAuthority(idp.getAuthority())
-                        .getProvider(
-                                idp.getProvider());
+                IdentityProvider<?, ?, ?, ?, ?> provider = authorityService
+                    .getAuthority(idp.getAuthority())
+                    .getProvider(idp.getProvider());
                 if (provider == null) {
                     throw new NoSuchProviderException();
                 }
 
                 return provider.getAuthenticationUrl();
-
             } catch (NoSuchAuthorityException | NoSuchProviderException e) {
                 // no valid response
                 return null;
@@ -73,6 +73,5 @@ public class OAuth2IdpAwareLoginUrlConverter implements LoginUrlRequestConverter
 
         // not found
         return null;
-
     }
 }

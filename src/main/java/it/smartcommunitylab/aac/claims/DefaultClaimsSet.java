@@ -61,5 +61,4 @@ public class DefaultClaimsSet implements ClaimsSet {
     public void setClaims(List<Claim> claims) {
         this.claims = claims;
     }
-
 }

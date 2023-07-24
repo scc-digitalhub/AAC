@@ -1,10 +1,5 @@
 package it.smartcommunitylab.aac.internal.provider;
 
-import java.io.Serializable;
-import java.util.Map;
-
-import javax.validation.Valid;
-import javax.validation.constraints.Max;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -12,14 +7,22 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractConfigMap;
+import java.io.Serializable;
+import java.util.Map;
+import javax.validation.Valid;
+import javax.validation.constraints.Max;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class InternalIdentityProviderConfigMap extends AbstractConfigMap {
+
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
-    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_CONFIG + SystemKeys.ID_SEPARATOR
-            + SystemKeys.RESOURCE_IDENTITY_PROVIDER + SystemKeys.ID_SEPARATOR
-            + SystemKeys.AUTHORITY_INTERNAL;
+    public static final String RESOURCE_TYPE =
+        SystemKeys.RESOURCE_CONFIG +
+        SystemKeys.ID_SEPARATOR +
+        SystemKeys.RESOURCE_IDENTITY_PROVIDER +
+        SystemKeys.ID_SEPARATOR +
+        SystemKeys.AUTHORITY_INTERNAL;
 
     @Max(3 * 24 * 60 * 60)
     protected Integer maxSessionDuration;
@@ -33,8 +36,7 @@ public class InternalIdentityProviderConfigMap extends AbstractConfigMap {
     @Max(3 * 24 * 60 * 60)
     private Integer confirmationValidity;
 
-    public InternalIdentityProviderConfigMap() {
-    }
+    public InternalIdentityProviderConfigMap() {}
 
     public Integer getMaxSessionDuration() {
         return maxSessionDuration;
@@ -110,5 +112,4 @@ public class InternalIdentityProviderConfigMap extends AbstractConfigMap {
     public JsonSchema getSchema() throws JsonMappingException {
         return schemaGen.generateSchema(InternalIdentityProviderConfigMap.class);
     }
-
 }

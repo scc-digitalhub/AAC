@@ -1,21 +1,18 @@
 package it.smartcommunitylab.aac.core.base;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
-
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 
 /*
  * Abstract class for user attributes
- * 
+ *
  * all implementations should derive from this
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
-@JsonSubTypes({
-        @Type(value = DefaultAttributesImpl.class, name = SystemKeys.RESOURCE_ATTRIBUTES)
-})
+@JsonSubTypes({ @Type(value = DefaultAttributesImpl.class, name = SystemKeys.RESOURCE_ATTRIBUTES) })
 public abstract class AbstractAttributes extends AbstractBaseUserResource implements UserAttributes {
 
     private String userId;
@@ -59,5 +56,4 @@ public abstract class AbstractAttributes extends AbstractBaseUserResource implem
     public void setRealm(String realm) {
         this.realm = realm;
     }
-
 }

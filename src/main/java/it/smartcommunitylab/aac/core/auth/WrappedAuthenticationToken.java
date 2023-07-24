@@ -1,17 +1,14 @@
 package it.smartcommunitylab.aac.core.auth;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import java.util.Collection;
-
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.Assert;
 
-import it.smartcommunitylab.aac.SystemKeys;
-
-public abstract class WrappedAuthenticationToken implements Authentication,
-        CredentialsContainer {
+public abstract class WrappedAuthenticationToken implements Authentication, CredentialsContainer {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 

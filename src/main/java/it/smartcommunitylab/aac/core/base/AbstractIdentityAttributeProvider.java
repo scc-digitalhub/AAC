@@ -1,19 +1,19 @@
 package it.smartcommunitylab.aac.core.base;
 
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.IdentityAttributeProvider;
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 public abstract class AbstractIdentityAttributeProvider<P extends UserAuthenticatedPrincipal, U extends UserAccount>
-        extends AbstractProvider<UserAttributes>
-        implements IdentityAttributeProvider<P, U> {
+    extends AbstractProvider<UserAttributes>
+    implements IdentityAttributeProvider<P, U> {
 
     protected AbstractIdentityAttributeProvider(String authority, String provider, String realm) {
         super(authority, provider, realm);
@@ -36,7 +36,6 @@ public abstract class AbstractIdentityAttributeProvider<P extends UserAuthentica
 
         // call extract to transform
         return extractUserAttributes(account, attributes);
-
     }
 
     @Override
@@ -61,7 +60,8 @@ public abstract class AbstractIdentityAttributeProvider<P extends UserAuthentica
     /*
      * Extract operation to be implemented by subclasses
      */
-    protected abstract List<UserAttributes> extractUserAttributes(U account,
-            Map<String, Serializable> principalAttributes);
-
+    protected abstract List<UserAttributes> extractUserAttributes(
+        U account,
+        Map<String, Serializable> principalAttributes
+    );
 }

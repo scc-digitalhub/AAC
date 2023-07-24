@@ -1,21 +1,20 @@
 package it.smartcommunitylab.aac.openid.model;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
-import org.springframework.util.Assert;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractIdentity;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import org.springframework.util.Assert;
 
 public class OIDCUserIdentity extends AbstractIdentity {
+
     private static final long serialVersionUID = SystemKeys.AAC_OIDC_SERIAL_VERSION;
-    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_IDENTITY + SystemKeys.ID_SEPARATOR
-            + SystemKeys.AUTHORITY_OIDC;
+    public static final String RESOURCE_TYPE =
+        SystemKeys.RESOURCE_IDENTITY + SystemKeys.ID_SEPARATOR + SystemKeys.AUTHORITY_OIDC;
 
     // authentication principal (if available)
     private final OIDCUserAuthenticatedPrincipal principal;
@@ -40,8 +39,12 @@ public class OIDCUserIdentity extends AbstractIdentity {
     }
 
     public OIDCUserIdentity(
-            String authority, String provider, String realm,
-            OIDCUserAccount account, OIDCUserAuthenticatedPrincipal principal) {
+        String authority,
+        String provider,
+        String realm,
+        OIDCUserAccount account,
+        OIDCUserAuthenticatedPrincipal principal
+    ) {
         super(authority, provider);
         Assert.notNull(account, "account can not be null");
 
@@ -88,5 +91,4 @@ public class OIDCUserIdentity extends AbstractIdentity {
             this.attributes.addAll(attributes);
         }
     }
-
 }

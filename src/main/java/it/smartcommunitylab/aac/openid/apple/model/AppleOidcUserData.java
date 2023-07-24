@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.openid.apple.model;
 
 public class AppleOidcUserData {
+
     private String email;
     private AppleOidcUserDataName name;
 
@@ -38,6 +39,7 @@ public class AppleOidcUserData {
 }
 
 class AppleOidcUserDataName {
+
     public String firstName;
     public String lastName;
 }

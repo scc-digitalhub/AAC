@@ -1,15 +1,18 @@
 package it.smartcommunitylab.aac.saml.auth;
 
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.saml.SamlIdentityAuthority;
+import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
+import it.smartcommunitylab.aac.saml.service.HttpSessionSaml2AuthenticationRequestRepository;
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.http.MediaType;
 import org.springframework.lang.Nullable;
@@ -33,16 +36,10 @@ import org.springframework.web.util.HtmlUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriUtils;
 
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.saml.SamlIdentityAuthority;
-import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
-import it.smartcommunitylab.aac.saml.service.HttpSessionSaml2AuthenticationRequestRepository;
-
 public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter {
 
-    public static final String DEFAULT_FILTER_URI = SamlIdentityAuthority.AUTHORITY_URL
-            + "authenticate/{registrationId}";
+    public static final String DEFAULT_FILTER_URI =
+        SamlIdentityAuthority.AUTHORITY_URL + "authenticate/{registrationId}";
 
     private final String authorityId;
 
@@ -50,31 +47,36 @@ public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter 
 
     private final Saml2AuthenticationRequestContextResolver authenticationRequestContextResolver;
     private final Saml2AuthenticationRequestFactory authenticationRequestFactory;
-//    private final ProviderRepository<SamlIdentityProviderConfig> registrationRepository;
+    //    private final ProviderRepository<SamlIdentityProviderConfig> registrationRepository;
 
-    private Saml2AuthenticationRequestRepository<SerializableSaml2AuthenticationRequestContext> authenticationRequestRepository = new HttpSessionSaml2AuthenticationRequestRepository();
+    private Saml2AuthenticationRequestRepository<SerializableSaml2AuthenticationRequestContext> authenticationRequestRepository =
+        new HttpSessionSaml2AuthenticationRequestRepository();
 
     public SamlWebSsoAuthenticationRequestFilter(
-            ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository,
-            RelyingPartyRegistrationRepository relyingPartyRegistrationRepository) {
+        ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository,
+        RelyingPartyRegistrationRepository relyingPartyRegistrationRepository
+    ) {
         this(SystemKeys.AUTHORITY_SAML, registrationRepository, relyingPartyRegistrationRepository, DEFAULT_FILTER_URI);
     }
 
     public SamlWebSsoAuthenticationRequestFilter(
-            String authority,
-            ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository,
-            RelyingPartyRegistrationRepository relyingPartyRegistrationRepository,
-            String filterProcessingUrl) {
+        String authority,
+        ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository,
+        RelyingPartyRegistrationRepository relyingPartyRegistrationRepository,
+        String filterProcessingUrl
+    ) {
         Assert.hasText(authority, "authority can not be null or empty");
         Assert.notNull(registrationRepository, "registration repository cannot be null");
         Assert.notNull(relyingPartyRegistrationRepository, "relying party repository cannot be null");
 
-//        this.registrationRepository = registrationRepository;
+        //        this.registrationRepository = registrationRepository;
         this.authorityId = authority;
 
         // use custom implementation to add secure relayState param
-        this.authenticationRequestContextResolver = new CustomSaml2AuthenticationRequestContextResolver(
-                new DefaultRelyingPartyRegistrationResolver(relyingPartyRegistrationRepository));
+        this.authenticationRequestContextResolver =
+            new CustomSaml2AuthenticationRequestContextResolver(
+                new DefaultRelyingPartyRegistrationResolver(relyingPartyRegistrationRepository)
+            );
         this.authenticationRequestFactory = getRequestFactory(registrationRepository);
 
         // set redirect to filterUrl
@@ -88,7 +90,7 @@ public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter 
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
+        throws ServletException, IOException {
         if (!requestMatcher.matches(request)) {
             filterChain.doFilter(request, response);
             return;
@@ -103,8 +105,10 @@ public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter 
         // translate context to a serializable version
         // TODO drop and adopt resolver+request as per spring 5.6+
         SerializableSaml2AuthenticationRequestContext ctx = new SerializableSaml2AuthenticationRequestContext(
-                context.getRelyingPartyRegistration().getRegistrationId(), context.getIssuer(),
-                context.getRelayState());
+            context.getRelyingPartyRegistration().getRegistrationId(),
+            context.getIssuer(),
+            context.getRelayState()
+        );
 
         // persist request if relayState is set
         if (StringUtils.hasText(context.getRelayState())) {
@@ -121,11 +125,12 @@ public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter 
     }
 
     private void sendRedirect(HttpServletResponse response, Saml2AuthenticationRequestContext context)
-            throws IOException {
-        Saml2RedirectAuthenticationRequest authenticationRequest = this.authenticationRequestFactory
-                .createRedirectAuthenticationRequest(context);
-        UriComponentsBuilder uriBuilder = UriComponentsBuilder
-                .fromUriString(authenticationRequest.getAuthenticationRequestUri());
+        throws IOException {
+        Saml2RedirectAuthenticationRequest authenticationRequest =
+            this.authenticationRequestFactory.createRedirectAuthenticationRequest(context);
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(
+            authenticationRequest.getAuthenticationRequestUri()
+        );
         addParameter("SAMLRequest", authenticationRequest.getSamlRequest(), uriBuilder);
         addParameter("RelayState", authenticationRequest.getRelayState(), uriBuilder);
         addParameter("SigAlg", authenticationRequest.getSigAlg(), uriBuilder);
@@ -137,14 +142,16 @@ public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter 
     private void addParameter(String name, String value, UriComponentsBuilder builder) {
         Assert.hasText(name, "name cannot be empty or null");
         if (StringUtils.hasText(value)) {
-            builder.queryParam(UriUtils.encode(name, StandardCharsets.ISO_8859_1),
-                    UriUtils.encode(value, StandardCharsets.ISO_8859_1));
+            builder.queryParam(
+                UriUtils.encode(name, StandardCharsets.ISO_8859_1),
+                UriUtils.encode(value, StandardCharsets.ISO_8859_1)
+            );
         }
     }
 
     private void sendPost(HttpServletResponse response, Saml2AuthenticationRequestContext context) throws IOException {
-        Saml2PostAuthenticationRequest authenticationRequest = this.authenticationRequestFactory
-                .createPostAuthenticationRequest(context);
+        Saml2PostAuthenticationRequest authenticationRequest =
+            this.authenticationRequestFactory.createPostAuthenticationRequest(context);
         String html = createSamlPostRequestFormData(authenticationRequest);
         response.setContentType(MediaType.TEXT_HTML_VALUE);
         response.getWriter().write(html);
@@ -193,27 +200,31 @@ public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter 
     }
 
     private static Saml2AuthenticationRequestFactory getRequestFactory(
-            ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository) {
-        org.springframework.security.saml2.provider.service.authentication.OpenSamlAuthenticationRequestFactory factory = new org.springframework.security.saml2.provider.service.authentication.OpenSamlAuthenticationRequestFactory();
+        ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository
+    ) {
+        org.springframework.security.saml2.provider.service.authentication.OpenSamlAuthenticationRequestFactory factory =
+            new org.springframework.security.saml2.provider.service.authentication.OpenSamlAuthenticationRequestFactory();
         factory.setAuthenticationRequestContextConverter(
-                new SamlAuthenticationRequestContextConverter(registrationRepository));
+            new SamlAuthenticationRequestContextConverter(registrationRepository)
+        );
 
         return factory;
     }
 
     public void setAuthenticationRequestRepository(
-            Saml2AuthenticationRequestRepository<SerializableSaml2AuthenticationRequestContext> authenticationRequestRepository) {
+        Saml2AuthenticationRequestRepository<SerializableSaml2AuthenticationRequestContext> authenticationRequestRepository
+    ) {
         this.authenticationRequestRepository = authenticationRequestRepository;
     }
 
-    private class CustomSaml2AuthenticationRequestContextResolver
-            implements Saml2AuthenticationRequestContextResolver {
+    private class CustomSaml2AuthenticationRequestContextResolver implements Saml2AuthenticationRequestContextResolver {
 
         private final Converter<HttpServletRequest, RelyingPartyRegistration> relyingPartyRegistrationResolver;
         private final StringKeyGenerator stateGenerator = new Base64StringKeyGenerator(Base64.getUrlEncoder());
 
         public CustomSaml2AuthenticationRequestContextResolver(
-                Converter<HttpServletRequest, RelyingPartyRegistration> relyingPartyRegistrationResolver) {
+            Converter<HttpServletRequest, RelyingPartyRegistration> relyingPartyRegistrationResolver
+        ) {
             this.relyingPartyRegistrationResolver = relyingPartyRegistrationResolver;
         }
 
@@ -228,14 +239,17 @@ public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter 
             return createRedirectAuthenticationRequestContext(request, relyingParty);
         }
 
-        private Saml2AuthenticationRequestContext createRedirectAuthenticationRequestContext(HttpServletRequest request,
-                RelyingPartyRegistration relyingParty) {
-
-            return Saml2AuthenticationRequestContext.builder().issuer(relyingParty.getEntityId())
-                    .relyingPartyRegistration(relyingParty)
-                    .assertionConsumerServiceUrl(relyingParty.getAssertionConsumerServiceLocation())
-                    .relayState(stateGenerator.generateKey()).build();
+        private Saml2AuthenticationRequestContext createRedirectAuthenticationRequestContext(
+            HttpServletRequest request,
+            RelyingPartyRegistration relyingParty
+        ) {
+            return Saml2AuthenticationRequestContext
+                .builder()
+                .issuer(relyingParty.getEntityId())
+                .relyingPartyRegistration(relyingParty)
+                .assertionConsumerServiceUrl(relyingParty.getAssertionConsumerServiceLocation())
+                .relayState(stateGenerator.generateKey())
+                .build();
         }
     }
-
 }

@@ -1,16 +1,15 @@
 package it.smartcommunitylab.aac.config;
 
+import it.smartcommunitylab.aac.webauthn.store.InMemoryWebAuthnAssertionRequestStore;
+import it.smartcommunitylab.aac.webauthn.store.InMemoryWebAuthnRegistrationRequestStore;
+import it.smartcommunitylab.aac.webauthn.store.WebAuthnAssertionRequestStore;
+import it.smartcommunitylab.aac.webauthn.store.WebAuthnRegistrationRequestStore;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.core.annotation.Order;
 import org.springframework.web.context.WebApplicationContext;
-
-import it.smartcommunitylab.aac.webauthn.store.InMemoryWebAuthnAssertionRequestStore;
-import it.smartcommunitylab.aac.webauthn.store.InMemoryWebAuthnRegistrationRequestStore;
-import it.smartcommunitylab.aac.webauthn.store.WebAuthnAssertionRequestStore;
-import it.smartcommunitylab.aac.webauthn.store.WebAuthnRegistrationRequestStore;
 
 @Configuration
 @Order(6)

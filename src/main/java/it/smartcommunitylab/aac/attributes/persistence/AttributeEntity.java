@@ -9,8 +9,10 @@ import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 
 @Entity
-@Table(name = "attribute_entities", uniqueConstraints = @UniqueConstraint(columnNames = { "attribute_set",
-        "attr_key" }))
+@Table(
+    name = "attribute_entities",
+    uniqueConstraints = @UniqueConstraint(columnNames = { "attribute_set", "attr_key" })
+)
 public class AttributeEntity {
 
     @Id
@@ -93,5 +95,4 @@ public class AttributeEntity {
     public void setDescription(String description) {
         this.description = description;
     }
-
 }

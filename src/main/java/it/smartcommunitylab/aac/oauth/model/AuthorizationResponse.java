@@ -1,21 +1,18 @@
 package it.smartcommunitylab.aac.oauth.model;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import it.smartcommunitylab.aac.repository.StringArraySerializer;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.util.Assert;
-
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
-import it.smartcommunitylab.aac.repository.StringArraySerializer;
 
 @JsonInclude(Include.NON_NULL)
 public class AuthorizationResponse {
@@ -48,8 +45,7 @@ public class AuthorizationResponse {
     @JsonIgnore
     private Map<String, Serializable> additionalInformation;
 
-    public AuthorizationResponse() {
-    }
+    public AuthorizationResponse() {}
 
     public AuthorizationResponse(String code) {
         Assert.notNull(code, "code can not be null");
@@ -65,11 +61,14 @@ public class AuthorizationResponse {
 
         if (accessToken.getAdditionalInformation() != null) {
             // keep only serializable properties
-            this.additionalInformation = accessToken.getAdditionalInformation().entrySet().stream()
+            this.additionalInformation =
+                accessToken
+                    .getAdditionalInformation()
+                    .entrySet()
+                    .stream()
                     .filter(e -> (e.getValue() instanceof Serializable))
                     .collect(Collectors.toMap(e -> e.getKey(), e -> (Serializable) e.getValue()));
         }
-
     }
 
     public String getCode() {
@@ -148,5 +147,4 @@ public class AuthorizationResponse {
     public Map<String, Serializable> getMap() {
         return additionalInformation;
     }
-
 }

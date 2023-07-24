@@ -14,5 +14,4 @@ public interface ResourceProvider<R extends Resource> {
 
     // TODO replace with proper typing <T> on resource
     public String getType();
-
 }

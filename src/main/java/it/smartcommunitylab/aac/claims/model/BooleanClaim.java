@@ -28,5 +28,4 @@ public class BooleanClaim extends AbstractClaim {
     public void setValue(Boolean value) {
         this.value = value;
     }
-
 }

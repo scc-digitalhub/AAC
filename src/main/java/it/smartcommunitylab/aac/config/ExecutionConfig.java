@@ -1,10 +1,9 @@
 package it.smartcommunitylab.aac.config;
 
+import it.smartcommunitylab.aac.claims.LocalGraalExecutionService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-
-import it.smartcommunitylab.aac.claims.LocalGraalExecutionService;
 
 @Configuration
 @Order(9)
@@ -14,5 +13,4 @@ public class ExecutionConfig {
     public LocalGraalExecutionService localGraalExecutionService() {
         return new LocalGraalExecutionService();
     }
-
 }

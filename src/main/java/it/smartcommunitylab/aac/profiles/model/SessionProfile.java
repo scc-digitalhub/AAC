@@ -1,9 +1,8 @@
 package it.smartcommunitylab.aac.profiles.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 import it.smartcommunitylab.aac.SystemKeys;
 
 @JsonInclude(Include.NON_EMPTY)
@@ -36,13 +35,13 @@ public class SessionProfile extends AbstractProfile {
 
     /*
      * Authentication context info.
-     * 
+     *
      * see openId profile
      * https://openid.net/specs/openid-connect-modrna-authentication-1_0.html
-     * 
+     *
      * we don't follow the spec here but provide our representation. A dedicated
      * profile should be developed to adhere to standard
-     * 
+     *
      */
 
     // TODO derive from security context claims
@@ -114,5 +113,4 @@ public class SessionProfile extends AbstractProfile {
     public void setAcr(Integer acr) {
         this.acr = acr;
     }
-
 }

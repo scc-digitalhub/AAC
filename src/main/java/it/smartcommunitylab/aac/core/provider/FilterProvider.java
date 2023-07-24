@@ -1,7 +1,6 @@
 package it.smartcommunitylab.aac.core.provider;
 
 import java.util.Collection;
-
 import javax.servlet.Filter;
 
 public interface FilterProvider {
@@ -12,5 +11,4 @@ public interface FilterProvider {
     public Collection<Filter> getChainFilters();
 
     public Collection<String> getCorsIgnoringAntMatchers();
-
 }

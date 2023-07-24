@@ -1,9 +1,5 @@
 package it.smartcommunitylab.aac.core.base;
 
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.Assert;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
 import it.smartcommunitylab.aac.core.authorities.AttributeProviderAuthority;
@@ -14,10 +10,15 @@ import it.smartcommunitylab.aac.core.provider.AttributeConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.AttributeProviderConfig;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.Assert;
 
-public abstract class AbstractAttributeAuthority<S extends AttributeProvider<M, C>, M extends AbstractConfigMap, C extends AbstractAttributeProviderConfig<M>>
-        extends AbstractConfigurableProviderAuthority<S, UserAttributes, ConfigurableAttributeProvider, M, C>
-        implements AttributeProviderAuthority<S, M, C>, InitializingBean {
+public abstract class AbstractAttributeAuthority<
+    S extends AttributeProvider<M, C>, M extends AbstractConfigMap, C extends AbstractAttributeProviderConfig<M>
+>
+    extends AbstractConfigurableProviderAuthority<S, UserAttributes, ConfigurableAttributeProvider, M, C>
+    implements AttributeProviderAuthority<S, M, C>, InitializingBean {
 
     // attributes sets service
     protected final AttributeService attributeService;
@@ -26,9 +27,10 @@ public abstract class AbstractAttributeAuthority<S extends AttributeProvider<M, 
     protected AttributeConfigurationProvider<M, C> configProvider;
 
     public AbstractAttributeAuthority(
-            String authorityId,
-            AttributeService attributeService,
-            ProviderConfigRepository<C> registrationRepository) {
+        String authorityId,
+        AttributeService attributeService,
+        ProviderConfigRepository<C> registrationRepository
+    ) {
         super(authorityId, registrationRepository);
         Assert.notNull(attributeService, "attribute service is mandatory");
 
@@ -55,5 +57,4 @@ public abstract class AbstractAttributeAuthority<S extends AttributeProvider<M, 
     public void afterPropertiesSet() throws Exception {
         Assert.notNull(configProvider, "config provider is mandatory");
     }
-
 }

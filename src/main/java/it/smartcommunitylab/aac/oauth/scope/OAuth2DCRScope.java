@@ -33,5 +33,4 @@ public class OAuth2DCRScope extends Scope {
     public String getDescription() {
         return "Dynamic client registration for OAuth2/OIDC";
     }
-
 }

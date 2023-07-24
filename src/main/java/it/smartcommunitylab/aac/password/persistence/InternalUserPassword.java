@@ -1,7 +1,11 @@
 package it.smartcommunitylab.aac.password.persistence;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.base.AbstractUserCredentials;
+import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
 import java.util.Date;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
@@ -10,25 +14,21 @@ import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractUserCredentials;
-import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
 
 @Entity
-@Table(name = "internal_users_passwords", uniqueConstraints = @UniqueConstraint(columnNames = {
-        "repository_id", "reset_key" }))
+@Table(
+    name = "internal_users_passwords",
+    uniqueConstraints = @UniqueConstraint(columnNames = { "repository_id", "reset_key" })
+)
 @EntityListeners(AuditingEntityListener.class)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class InternalUserPassword extends AbstractUserCredentials {
+
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
-    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_CREDENTIALS + SystemKeys.ID_SEPARATOR
-            + SystemKeys.AUTHORITY_PASSWORD;
+    public static final String RESOURCE_TYPE =
+        SystemKeys.RESOURCE_CREDENTIALS + SystemKeys.ID_SEPARATOR + SystemKeys.AUTHORITY_PASSWORD;
 
     // unique uuid
     @Id
@@ -240,9 +240,24 @@ public class InternalUserPassword extends AbstractUserCredentials {
 
     @Override
     public String toString() {
-        return "InternalUserPassword [id=" + id + ", repositoryId=" + repositoryId + ", username=" + username
-                + ", status=" + status + ", createDate=" + createDate + ", expirationDate=" + expirationDate
-                + ", resetDeadline=" + resetDeadline + ", changeOnFirstAccess=" + changeOnFirstAccess + "]";
+        return (
+            "InternalUserPassword [id=" +
+            id +
+            ", repositoryId=" +
+            repositoryId +
+            ", username=" +
+            username +
+            ", status=" +
+            status +
+            ", createDate=" +
+            createDate +
+            ", expirationDate=" +
+            expirationDate +
+            ", resetDeadline=" +
+            resetDeadline +
+            ", changeOnFirstAccess=" +
+            changeOnFirstAccess +
+            "]"
+        );
     }
-
 }

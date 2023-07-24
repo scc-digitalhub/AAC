@@ -1,13 +1,5 @@
 package it.smartcommunitylab.aac.internal.provider;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-
-import javax.servlet.Filter;
-
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.RequestAwareAuthenticationSuccessHandler;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
@@ -16,6 +8,12 @@ import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.auth.ConfirmKeyAuthenticationFilter;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import javax.servlet.Filter;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.util.Assert;
 
 public class InternalIdentityFilterProvider implements FilterProvider {
 
@@ -23,9 +21,11 @@ public class InternalIdentityFilterProvider implements FilterProvider {
     private final InternalUserConfirmKeyService confirmKeyService;
     private AuthenticationManager authManager;
 
-    public InternalIdentityFilterProvider(UserAccountService<InternalUserAccount> userAccountService,
-            InternalUserConfirmKeyService confirmKeyService,
-            ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository) {
+    public InternalIdentityFilterProvider(
+        UserAccountService<InternalUserAccount> userAccountService,
+        InternalUserConfirmKeyService confirmKeyService,
+        ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository
+    ) {
         Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(confirmKeyService, "confirm key service is mandatory");
         Assert.notNull(registrationRepository, "registration repository is mandatory");
@@ -47,7 +47,9 @@ public class InternalIdentityFilterProvider implements FilterProvider {
     public Collection<Filter> getAuthFilters() {
         // we expose only the confirmKey auth filter with default config
         ConfirmKeyAuthenticationFilter confirmKeyFilter = new ConfirmKeyAuthenticationFilter(
-                confirmKeyService, registrationRepository);
+            confirmKeyService,
+            registrationRepository
+        );
         confirmKeyFilter.setAuthenticationSuccessHandler(successHandler());
 
         if (authManager != null) {
@@ -67,8 +69,7 @@ public class InternalIdentityFilterProvider implements FilterProvider {
         return Arrays.asList(NO_CORS_ENDPOINTS);
     }
 
-    private static String[] NO_CORS_ENDPOINTS = {
-    };
+    private static String[] NO_CORS_ENDPOINTS = {};
 
     private RequestAwareAuthenticationSuccessHandler successHandler() {
         return new RequestAwareAuthenticationSuccessHandler();

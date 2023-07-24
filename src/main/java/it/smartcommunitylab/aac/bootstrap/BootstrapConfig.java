@@ -1,21 +1,17 @@
 package it.smartcommunitylab.aac.bootstrap;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import it.smartcommunitylab.aac.dto.RealmConfig;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.validation.Valid;
-
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.validation.annotation.Validated;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
-import it.smartcommunitylab.aac.dto.RealmConfig;
 
 //@Configuration
 //@PropertySource(factory = JacksonPropertySourceFactory.class, ignoreResourceNotFound = true, value = "${bootstrap.file}")
@@ -30,7 +26,6 @@ public class BootstrapConfig {
 
     public BootstrapConfig() {
         this.realms = new ArrayList<>();
-
     }
 
     public List<RealmConfig> getRealms() {
@@ -40,5 +35,4 @@ public class BootstrapConfig {
     public void setRealms(List<RealmConfig> realms) {
         this.realms = realms;
     }
-
 }

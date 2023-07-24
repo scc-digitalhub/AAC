@@ -1,10 +1,5 @@
 package it.smartcommunitylab.aac.core.base;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.util.Assert;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.authorities.ConfigurableProviderAuthority;
@@ -13,15 +8,27 @@ import it.smartcommunitylab.aac.core.model.Resource;
 import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
 import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.util.Assert;
 
-public abstract class AbstractConfigurableProviderAuthority<S extends ConfigurableResourceProvider<R, T, M, C>, R extends Resource, T extends ConfigurableProvider, M extends AbstractConfigMap, C extends AbstractProviderConfig<M, T>>
-        extends AbstractProviderAuthority<S, R, T, M, C>
-        implements ConfigurableProviderAuthority<S, R, T, M, C>, InitializingBean {
+public abstract class AbstractConfigurableProviderAuthority<
+    S extends ConfigurableResourceProvider<R, T, M, C>,
+    R extends Resource,
+    T extends ConfigurableProvider,
+    M extends AbstractConfigMap,
+    C extends AbstractProviderConfig<M, T>
+>
+    extends AbstractProviderAuthority<S, R, T, M, C>
+    implements ConfigurableProviderAuthority<S, R, T, M, C>, InitializingBean {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     public AbstractConfigurableProviderAuthority(
-            String authorityId,
-            ProviderConfigRepository<C> registrationRepository) {
+        String authorityId,
+        ProviderConfigRepository<C> registrationRepository
+    ) {
         super(authorityId, registrationRepository);
     }
 
@@ -63,7 +70,8 @@ public abstract class AbstractConfigurableProviderAuthority<S extends Configurab
                     if (!realm.equals(e.getRealm())) {
                         // name clash
                         throw new RegistrationException(
-                                "a provider with the same id already exists under a different realm");
+                            "a provider with the same id already exists under a different realm"
+                        );
                     }
 
                     // evaluate version against current
@@ -84,10 +92,13 @@ public abstract class AbstractConfigurableProviderAuthority<S extends Configurab
                 // build config
                 C providerConfig = getConfigurationProvider().getConfig(tcp);
                 if (logger.isTraceEnabled()) {
-                    logger.trace("provider active config v{}: {}", providerConfig.getVersion(),
-                            String.valueOf(providerConfig.getConfigMap().getConfiguration()));
+                    logger.trace(
+                        "provider active config v{}: {}",
+                        providerConfig.getVersion(),
+                        String.valueOf(providerConfig.getConfigMap().getConfiguration())
+                    );
                 }
-                
+
                 //TODO add validation
 
                 // register, we defer loading
@@ -130,5 +141,4 @@ public abstract class AbstractConfigurableProviderAuthority<S extends Configurab
             registrationRepository.removeRegistration(providerId);
         }
     }
-
 }

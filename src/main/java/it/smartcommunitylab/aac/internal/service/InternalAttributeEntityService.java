@@ -1,5 +1,8 @@
 package it.smartcommunitylab.aac.internal.service;
 
+import it.smartcommunitylab.aac.core.model.Attribute;
+import it.smartcommunitylab.aac.internal.persistence.InternalAttributeEntity;
+import it.smartcommunitylab.aac.internal.persistence.InternalAttributeEntityRepository;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -8,10 +11,6 @@ import java.util.NoSuchElementException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
-
-import it.smartcommunitylab.aac.core.model.Attribute;
-import it.smartcommunitylab.aac.internal.persistence.InternalAttributeEntity;
-import it.smartcommunitylab.aac.internal.persistence.InternalAttributeEntityRepository;
 
 @Service
 @Transactional
@@ -29,15 +28,19 @@ public class InternalAttributeEntityService {
      */
 
     public List<InternalAttributeEntity> setAttributes(
-            String provider,
-            String subjectId,
-            String setId,
-            Collection<Attribute> attributes) {
+        String provider,
+        String subjectId,
+        String setId,
+        Collection<Attribute> attributes
+    ) {
         List<InternalAttributeEntity> result = new ArrayList<>();
 
         // we sync attributes with those received by deleting missing
-        List<InternalAttributeEntity> oldAttributes = attributeRepository.findByProviderAndSubjectIdAndSet(provider,
-                subjectId, setId);
+        List<InternalAttributeEntity> oldAttributes = attributeRepository.findByProviderAndSubjectIdAndSet(
+            provider,
+            subjectId,
+            setId
+        );
 
         List<InternalAttributeEntity> toRemove = new ArrayList<>();
         toRemove.addAll(oldAttributes);
@@ -56,23 +59,38 @@ public class InternalAttributeEntityService {
         attributeRepository.deleteAll(toRemove);
 
         return result;
-
     }
 
     public InternalAttributeEntity addOrUpdateAttribute(
-            String provider,
-            String subjectId, String setId,
-            Attribute attr) {
-        return addOrUpdateAttribute(provider, subjectId, setId,
-                attr.getKey(), attr.getType().getValue(), attr.getValue());
+        String provider,
+        String subjectId,
+        String setId,
+        Attribute attr
+    ) {
+        return addOrUpdateAttribute(
+            provider,
+            subjectId,
+            setId,
+            attr.getKey(),
+            attr.getType().getValue(),
+            attr.getValue()
+        );
     }
 
     public InternalAttributeEntity addOrUpdateAttribute(
-            String provider,
-            String subjectId, String setId,
-            String key, String type, Serializable value) {
-        InternalAttributeEntity a = attributeRepository.findByProviderAndSubjectIdAndSetAndKey(provider,
-                subjectId, setId, key);
+        String provider,
+        String subjectId,
+        String setId,
+        String key,
+        String type,
+        Serializable value
+    ) {
+        InternalAttributeEntity a = attributeRepository.findByProviderAndSubjectIdAndSetAndKey(
+            provider,
+            subjectId,
+            setId,
+            key
+        );
         if (a == null) {
             a = new InternalAttributeEntity();
             a.setProvider(provider);
@@ -90,12 +108,19 @@ public class InternalAttributeEntityService {
     }
 
     public InternalAttributeEntity addAttribute(
-            String provider, String subjectId,
-            String setId, String key, String type, String value) {
-
+        String provider,
+        String subjectId,
+        String setId,
+        String key,
+        String type,
+        String value
+    ) {
         InternalAttributeEntity a = attributeRepository.findByProviderAndSubjectIdAndSetAndKey(
-                provider, subjectId,
-                setId, key);
+            provider,
+            subjectId,
+            setId,
+            key
+        );
         if (a != null) {
             throw new IllegalArgumentException("duplicate key");
         }
@@ -115,15 +140,22 @@ public class InternalAttributeEntityService {
         a = attributeRepository.save(a);
 
         return a;
-
     }
 
     public InternalAttributeEntity updateAttribute(
-            String provider, String subjectId,
-            String setId, String key, String type, String value) {
+        String provider,
+        String subjectId,
+        String setId,
+        String key,
+        String type,
+        String value
+    ) {
         InternalAttributeEntity a = attributeRepository.findByProviderAndSubjectIdAndSetAndKey(
-                provider, subjectId,
-                setId, key);
+            provider,
+            subjectId,
+            setId,
+            key
+        );
         if (a == null) {
             throw new NoSuchElementException();
         }
@@ -135,28 +167,27 @@ public class InternalAttributeEntityService {
         return a;
     }
 
-    public void deleteAttribute(
-            String provider, String subjectId,
-            String setId, String key) {
-
-        InternalAttributeEntity a = attributeRepository.findByProviderAndSubjectIdAndSetAndKey(provider,
-                subjectId, setId, key);
+    public void deleteAttribute(String provider, String subjectId, String setId, String key) {
+        InternalAttributeEntity a = attributeRepository.findByProviderAndSubjectIdAndSetAndKey(
+            provider,
+            subjectId,
+            setId,
+            key
+        );
         if (a != null) {
             attributeRepository.delete(a);
         }
-
     }
 
-    public void deleteAttribute(
-            String provider, String subjectId,
-            String setId) {
-
-        List<InternalAttributeEntity> attributes = attributeRepository.findByProviderAndSubjectIdAndSet(provider,
-                subjectId, setId);
+    public void deleteAttribute(String provider, String subjectId, String setId) {
+        List<InternalAttributeEntity> attributes = attributeRepository.findByProviderAndSubjectIdAndSet(
+            provider,
+            subjectId,
+            setId
+        );
         if (!attributes.isEmpty()) {
             attributeRepository.deleteAll(attributes);
         }
-
     }
 
     public void deleteAttributes(String provider, String subjectId) {
@@ -164,7 +195,6 @@ public class InternalAttributeEntityService {
         if (!attributes.isEmpty()) {
             attributeRepository.deleteAll(attributes);
         }
-
     }
 
     @Transactional(readOnly = true)
@@ -186,5 +216,4 @@ public class InternalAttributeEntityService {
     public InternalAttributeEntity findAttribute(String provider, String subjectId, String setId, String key) {
         return attributeRepository.findByProviderAndSubjectIdAndSetAndKey(provider, subjectId, setId, key);
     }
-
 }

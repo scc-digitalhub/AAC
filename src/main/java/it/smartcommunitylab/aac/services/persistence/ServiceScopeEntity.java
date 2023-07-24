@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2015 Fondazione Bruno Kessler
- * 
+ *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
  *    You may obtain a copy of the License at
- * 
+ *
  *        http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  *    Unless required by applicable law or agreed to in writing, software
  *    distributed under the License is distributed on an "AS IS" BASIS,
  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.services.persistence;
 
+import it.smartcommunitylab.aac.repository.StringBase64Converter;
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
@@ -23,8 +24,6 @@ import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
-
-import it.smartcommunitylab.aac.repository.StringBase64Converter;
 
 /**
  * @author raman
@@ -41,10 +40,10 @@ public class ServiceScopeEntity {
     /**
      * ServiceDescriptor ID
      */
-//    @ManyToOne(optional = false)
-//    @OnDelete(action = OnDeleteAction.CASCADE)
-//    @JoinColumn(nullable = false, name = "service_id", referencedColumnName = "service_id")
-//    private ServiceEntity service;
+    //    @ManyToOne(optional = false)
+    //    @OnDelete(action = OnDeleteAction.CASCADE)
+    //    @JoinColumn(nullable = false, name = "service_id", referencedColumnName = "service_id")
+    //    private ServiceEntity service;
 
     @NotNull
     @Column(name = "service_id", length = 128)
@@ -83,11 +82,11 @@ public class ServiceScopeEntity {
     @Column(name = "approval_space_roles")
     private String approvalSpaceRoles;
 
-//    /**
-//     * Authority that can access this resource
-//     */
-//    @Enumerated(EnumType.STRING)
-//    private AUTHORITY authority;
+    //    /**
+    //     * Authority that can access this resource
+    //     */
+    //    @Enumerated(EnumType.STRING)
+    //    private AUTHORITY authority;
 
     /**
      * Whether explicit manual approval required
@@ -114,13 +113,13 @@ public class ServiceScopeEntity {
         this.scope = scope;
     }
 
-//    public ServiceEntity getService() {
-//        return service;
-//    }
-//
-//    public void setService(ServiceEntity service) {
-//        this.service = service;
-//    }
+    //    public ServiceEntity getService() {
+    //        return service;
+    //    }
+    //
+    //    public void setService(ServiceEntity service) {
+    //        this.service = service;
+    //    }
 
     public String getServiceId() {
         return serviceId;
@@ -201,5 +200,4 @@ public class ServiceScopeEntity {
     public void setType(String type) {
         this.type = type;
     }
-
 }

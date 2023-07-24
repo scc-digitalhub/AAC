@@ -1,7 +1,5 @@
 package it.smartcommunitylab.aac.core.provider;
 
-import java.util.Collection;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
@@ -11,24 +9,30 @@ import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
+import java.util.Collection;
 
 /*
  * Identity providers handle authentication for users and produce a valid user identity
- * 
+ *
  * Authentication is handled with AuthenticationTokens which carry authentication details along with
- * UserPrincipal details. 
+ * UserPrincipal details.
  * An identity is composed by an account, bounded to the provider, and one or more attribute sets.
  * At minimum, we expect every provider to fulfill core attribute sets (basic, email, openid, account).
  */
 
-public interface IdentityProvider<I extends UserIdentity, U extends UserAccount, P extends UserAuthenticatedPrincipal, M extends ConfigMap, C extends IdentityProviderConfig<M>>
-        extends ConfigurableResourceProvider<I, ConfigurableIdentityProvider, M, C> {
-
+public interface IdentityProvider<
+    I extends UserIdentity,
+    U extends UserAccount,
+    P extends UserAuthenticatedPrincipal,
+    M extends ConfigMap,
+    C extends IdentityProviderConfig<M>
+>
+    extends ConfigurableResourceProvider<I, ConfigurableIdentityProvider, M, C> {
     public static final String ATTRIBUTE_MAPPING_FUNCTION = "attributeMapping";
 
     /*
      * Authoritative for the given identity model
-     * 
+     *
      * only authoritative providers should edit accounts, expose resolvers etc,
      * while non-authoritative should handle only authentication + credentials +
      * attributes when available
@@ -52,37 +56,36 @@ public interface IdentityProvider<I extends UserIdentity, U extends UserAccount,
 
     /*
      * Convert identities from authenticatedPrincipal. Used for login only.
-     * 
+     *
      * If given a subjectId the provider should either update the account to link
      * the user, or reject the conversion.
      */
 
     public I convertIdentity(UserAuthenticatedPrincipal principal, String userId)
-            throws NoSuchUserException, RegistrationException;
+        throws NoSuchUserException, RegistrationException;
 
     /*
      * Fetch identities from this provider
-     * 
+     *
      * Do note that implementations are not required to support this.
      */
 
-//    // uuid is global
-//    public I findIdentityByUuid(String uuid);
+    //    // uuid is global
+    //    public I findIdentityByUuid(String uuid);
 
     // identityId is provider-specific
     public I findIdentity(String userId, String identityId);
 
     public I getIdentity(String userId, String identityId) throws NoSuchUserException;
 
-    public I getIdentity(String userId, String identityId, boolean fetchAttributes)
-            throws NoSuchUserException;
+    public I getIdentity(String userId, String identityId, boolean fetchAttributes) throws NoSuchUserException;
 
     /*
      * fetch for user
-     * 
+     *
      * opt-in, loads identities outside login for persisted accounts linked to the
      * subject
-     * 
+     *
      * providers implementing this will enable the managers to fetch identities
      * outside the login flow!
      */
@@ -93,14 +96,14 @@ public interface IdentityProvider<I extends UserIdentity, U extends UserAccount,
 
     /*
      * Link account
-     * 
+     *
      * Providers must expose the ability to link/relink identities to a given user
      */
     public I linkIdentity(String userId, String identityId) throws NoSuchUserException, RegistrationException;
 
     /*
      * Delete accounts.
-     * 
+     *
      * Implementations are required to implement this, even as a no-op. At minimum
      * we expect providers to clean up any local registration or cache.
      */
@@ -110,7 +113,7 @@ public interface IdentityProvider<I extends UserIdentity, U extends UserAccount,
 
     /*
      * Login
-     * 
+     *
      * Url is required to be presented in login forms, while authEntrypoint can
      * handle different kind of requests.
      */
@@ -119,14 +122,14 @@ public interface IdentityProvider<I extends UserIdentity, U extends UserAccount,
 
     public LoginProvider getLoginProvider();
 
-//    public AuthenticationEntryPoint getAuthenticationEntryPoint();
+    //    public AuthenticationEntryPoint getAuthenticationEntryPoint();
 
-//    /*
-//     * Additional action urls
-//     */
-//    public Map<String, String> getActionUrls();
+    //    /*
+    //     * Additional action urls
+    //     */
+    //    public Map<String, String> getActionUrls();
 
-    default public String getType() {
+    public default String getType() {
         return SystemKeys.RESOURCE_IDENTITY;
     }
 }

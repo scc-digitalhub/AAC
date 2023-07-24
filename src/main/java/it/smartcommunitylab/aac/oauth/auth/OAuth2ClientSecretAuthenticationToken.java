@@ -1,9 +1,8 @@
 package it.smartcommunitylab.aac.oauth.auth;
 
-import java.util.Collection;
-
-import org.springframework.security.core.GrantedAuthority;
 import it.smartcommunitylab.aac.SystemKeys;
+import java.util.Collection;
+import org.springframework.security.core.GrantedAuthority;
 
 /*
  * A usernamePassword auth token to be used for clientId+secret auth
@@ -20,11 +19,14 @@ public class OAuth2ClientSecretAuthenticationToken extends OAuth2ClientAuthentic
         this.credentials = clientSecret;
         this.authenticationMethod = authenticationMethod;
         setAuthenticated(false);
-
     }
 
-    public OAuth2ClientSecretAuthenticationToken(String clientId, String clientSecret, String authenticationMethod,
-            Collection<? extends GrantedAuthority> authorities) {
+    public OAuth2ClientSecretAuthenticationToken(
+        String clientId,
+        String clientSecret,
+        String authenticationMethod,
+        Collection<? extends GrantedAuthority> authorities
+    ) {
         super(clientId, authorities);
         this.credentials = clientSecret;
         this.authenticationMethod = authenticationMethod;

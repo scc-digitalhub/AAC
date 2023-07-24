@@ -1,8 +1,7 @@
 package it.smartcommunitylab.aac.oauth.model;
 
-import org.springframework.util.Assert;
-
 import com.fasterxml.jackson.annotation.JsonValue;
+import org.springframework.util.Assert;
 
 public enum ApplicationType {
     NATIVE("native"),

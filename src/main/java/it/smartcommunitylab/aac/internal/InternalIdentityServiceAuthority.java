@@ -1,10 +1,5 @@
 package it.smartcommunitylab.aac.internal;
 
-import java.util.Collection;
-
-import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.authorities.CredentialsServiceAuthority;
 import it.smartcommunitylab.aac.core.authorities.IdentityServiceAuthority;
@@ -17,16 +12,18 @@ import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.internal.model.InternalEditableUserAccount;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
-import it.smartcommunitylab.aac.internal.provider.InternalIdentityServiceConfig;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityServiceConfig;
+import java.util.Collection;
+import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 @Service
 public class InternalIdentityServiceAuthority
-        extends
-        AbstractProviderAuthority<InternalIdentityService, InternalUserIdentity, ConfigurableIdentityService, InternalIdentityProviderConfigMap, InternalIdentityServiceConfig>
-        implements
+    extends AbstractProviderAuthority<InternalIdentityService, InternalUserIdentity, ConfigurableIdentityService, InternalIdentityProviderConfigMap, InternalIdentityServiceConfig>
+    implements
         IdentityServiceAuthority<InternalIdentityService, InternalUserIdentity, InternalUserAccount, InternalEditableUserAccount, InternalIdentityProviderConfigMap, InternalIdentityServiceConfig> {
 
     public static final String AUTHORITY_URL = "/auth/internal/";
@@ -39,10 +36,11 @@ public class InternalIdentityServiceAuthority
     private final UserEntityService userEntityService;
 
     public InternalIdentityServiceAuthority(
-            UserEntityService userEntityService,
-            InternalAccountServiceAuthority accountServiceAuthority,
-            Collection<CredentialsServiceAuthority<?, ?, ?, ?, ?>> credentialsServiceAuthorities,
-            ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository) {
+        UserEntityService userEntityService,
+        InternalAccountServiceAuthority accountServiceAuthority,
+        Collection<CredentialsServiceAuthority<?, ?, ?, ?, ?>> credentialsServiceAuthorities,
+        ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository
+    ) {
         super(SystemKeys.AUTHORITY_INTERNAL, new InternalConfigTranslatorRepository(registrationRepository));
         Assert.notNull(userEntityService, "user service is mandatory");
         Assert.notNull(accountServiceAuthority, "account service authority is mandatory");
@@ -60,8 +58,11 @@ public class InternalIdentityServiceAuthority
 
     protected InternalIdentityService buildProvider(InternalIdentityServiceConfig config) {
         InternalIdentityService idp = new InternalIdentityService(
-                config.getProvider(), userEntityService,
-                config, config.getRealm());
+            config.getProvider(),
+            userEntityService,
+            config,
+            config.getRealm()
+        );
 
         idp.setAccountServiceAuthority(accountServiceAuthority);
         idp.setCredentialsServiceAuthorities(credentialsServiceAuthorities);
@@ -74,15 +75,18 @@ public class InternalIdentityServiceAuthority
         return null;
     }
 
-    static class InternalConfigTranslatorRepository extends
-            TranslatorProviderConfigRepository<InternalIdentityProviderConfig, InternalIdentityServiceConfig> {
+    static class InternalConfigTranslatorRepository
+        extends TranslatorProviderConfigRepository<InternalIdentityProviderConfig, InternalIdentityServiceConfig> {
 
         public InternalConfigTranslatorRepository(
-                ProviderConfigRepository<InternalIdentityProviderConfig> externalRepository) {
+            ProviderConfigRepository<InternalIdentityProviderConfig> externalRepository
+        ) {
             super(externalRepository);
-            setConverter((source) -> {
-                InternalIdentityServiceConfig config = new InternalIdentityServiceConfig(source.getProvider(),
-                        source.getRealm());
+            setConverter(source -> {
+                InternalIdentityServiceConfig config = new InternalIdentityServiceConfig(
+                    source.getProvider(),
+                    source.getRealm()
+                );
                 config.setName(source.getName());
                 config.setTitleMap(source.getTitleMap());
                 config.setDescriptionMap(source.getDescriptionMap());
@@ -90,10 +94,7 @@ public class InternalIdentityServiceAuthority
                 // we share the same configMap
                 config.setConfigMap(source.getConfigMap());
                 return config;
-
             });
         }
-
     }
-
 }

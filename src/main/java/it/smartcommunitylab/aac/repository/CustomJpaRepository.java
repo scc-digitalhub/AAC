@@ -5,7 +5,6 @@ import org.springframework.data.repository.NoRepositoryBean;
 
 @NoRepositoryBean
 public interface CustomJpaRepository<T, ID> extends JpaRepository<T, ID> {
-
     // add findOne method as workaround
     // TODO update all services/methods
 

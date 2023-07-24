@@ -16,12 +16,12 @@
 
 package it.smartcommunitylab.aac.oauth.store.jdbc;
 
+import it.smartcommunitylab.aac.oauth.common.SecureStringKeyGenerator;
+import it.smartcommunitylab.aac.oauth.provider.PeekableAuthorizationCodeServices;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
-
 import javax.sql.DataSource;
-
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.util.Pair;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -35,29 +35,28 @@ import org.springframework.security.oauth2.provider.code.AuthorizationCodeServic
 import org.springframework.security.oauth2.provider.code.JdbcAuthorizationCodeServices;
 import org.springframework.util.Assert;
 
-import it.smartcommunitylab.aac.oauth.common.SecureStringKeyGenerator;
-import it.smartcommunitylab.aac.oauth.provider.PeekableAuthorizationCodeServices;
-
 /**
  * Authorization code services with DB table creation on startup. Also supports
  * lifetime limit as per RFC6749
  * https://tools.ietf.org/html/rfc6749#section-4.1.1
- * 
+ *
  * @see {@link JdbcAuthorizationCodeServices}
  * @author raman
  *
  */
-public class AutoJdbcAuthorizationCodeServices
-        implements AuthorizationCodeServices, PeekableAuthorizationCodeServices {
+public class AutoJdbcAuthorizationCodeServices implements AuthorizationCodeServices, PeekableAuthorizationCodeServices {
 
-//    private static final StringKeyGenerator TOKEN_GENERATOR = new HumanStringKeyGenerator(6);
+    //    private static final StringKeyGenerator TOKEN_GENERATOR = new HumanStringKeyGenerator(6);
     private static final StringKeyGenerator TOKEN_GENERATOR = new SecureStringKeyGenerator(16);
 
     private static final int DEFAULT_CODE_VALIDITY_SECONDS = 10 * 60;
 
-    private static final String DEFAULT_CREATE_TABLE_STATEMENT = "CREATE TABLE IF NOT EXISTS oauth_code (code VARCHAR(256), client_id VARCHAR(256), expiresAt TIMESTAMP, authentication BLOB);";
-    private static final String DEFAULT_SELECT_STATEMENT = "select code, client_id, expiresAt, authentication from oauth_code where code = ?";
-    private static final String DEFAULT_INSERT_STATEMENT = "insert into oauth_code (code, client_id, expiresAt, authentication) values (?, ?, ?, ?)";
+    private static final String DEFAULT_CREATE_TABLE_STATEMENT =
+        "CREATE TABLE IF NOT EXISTS oauth_code (code VARCHAR(256), client_id VARCHAR(256), expiresAt TIMESTAMP, authentication BLOB);";
+    private static final String DEFAULT_SELECT_STATEMENT =
+        "select code, client_id, expiresAt, authentication from oauth_code where code = ?";
+    private static final String DEFAULT_INSERT_STATEMENT =
+        "insert into oauth_code (code, client_id, expiresAt, authentication) values (?, ?, ?, ?)";
     private static final String DEFAULT_DELETE_STATEMENT = "delete from oauth_code where code = ?";
 
     private String createAuthenticationSql = DEFAULT_CREATE_TABLE_STATEMENT;
@@ -96,8 +95,7 @@ public class AutoJdbcAuthorizationCodeServices
         return code;
     }
 
-    public OAuth2Authentication consumeAuthorizationCode(String code)
-            throws InvalidGrantException {
+    public OAuth2Authentication consumeAuthorizationCode(String code) throws InvalidGrantException {
         OAuth2Authentication auth = remove(code);
         if (auth == null) {
             throw new InvalidGrantException("Invalid authorization code: " + code);
@@ -106,8 +104,7 @@ public class AutoJdbcAuthorizationCodeServices
         return auth;
     }
 
-    public OAuth2Authentication peekAuthorizationCode(String code)
-            throws InvalidGrantException {
+    public OAuth2Authentication peekAuthorizationCode(String code) throws InvalidGrantException {
         OAuth2Authentication auth = this.load(code);
         // we can return null if missing
         return auth;
@@ -117,25 +114,33 @@ public class AutoJdbcAuthorizationCodeServices
         // extract clientId
         String clientId = authentication.getOAuth2Request().getClientId();
 
-        jdbcTemplate.update(insertAuthenticationSql,
-                new Object[] {
-                        code, clientId,
-                        new java.sql.Timestamp(System.currentTimeMillis() + codeValidityMillis),
-                        new SqlLobValue(SerializationUtils.serialize(authentication))
-                }, new int[] { Types.VARCHAR, Types.VARCHAR, Types.TIMESTAMP, Types.BLOB });
+        jdbcTemplate.update(
+            insertAuthenticationSql,
+            new Object[] {
+                code,
+                clientId,
+                new java.sql.Timestamp(System.currentTimeMillis() + codeValidityMillis),
+                new SqlLobValue(SerializationUtils.serialize(authentication)),
+            },
+            new int[] { Types.VARCHAR, Types.VARCHAR, Types.TIMESTAMP, Types.BLOB }
+        );
     }
 
     public OAuth2Authentication load(String code) {
         Pair<OAuth2Authentication, Long> authentication;
         try {
-            authentication = jdbcTemplate.queryForObject(selectAuthenticationSql,
+            authentication =
+                jdbcTemplate.queryForObject(
+                    selectAuthenticationSql,
                     new RowMapper<Pair<OAuth2Authentication, Long>>() {
                         public Pair<OAuth2Authentication, Long> mapRow(ResultSet rs, int rowNum) throws SQLException {
                             OAuth2Authentication a = SerializationUtils.deserialize(rs.getBytes("authentication"));
                             Long e = rs.getTimestamp("expiresAt").getTime();
                             return Pair.of(a, e);
                         }
-                    }, code);
+                    },
+                    code
+                );
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
@@ -156,14 +161,18 @@ public class AutoJdbcAuthorizationCodeServices
     public OAuth2Authentication remove(String code) {
         Pair<OAuth2Authentication, Long> authentication;
         try {
-            authentication = jdbcTemplate.queryForObject(selectAuthenticationSql,
+            authentication =
+                jdbcTemplate.queryForObject(
+                    selectAuthenticationSql,
                     new RowMapper<Pair<OAuth2Authentication, Long>>() {
                         public Pair<OAuth2Authentication, Long> mapRow(ResultSet rs, int rowNum) throws SQLException {
                             OAuth2Authentication a = SerializationUtils.deserialize(rs.getBytes("authentication"));
                             Long e = rs.getTimestamp("expiresAt").getTime();
                             return Pair.of(a, e);
                         }
-                    }, code);
+                    },
+                    code
+                );
         } catch (EmptyResultDataAccessException e) {
             return null;
         }

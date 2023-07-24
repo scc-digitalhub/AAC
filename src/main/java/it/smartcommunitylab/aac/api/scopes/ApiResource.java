@@ -21,5 +21,4 @@ public class ApiResource extends Resource {
     public String getDescription() {
         return "Access AAC api";
     }
-
 }

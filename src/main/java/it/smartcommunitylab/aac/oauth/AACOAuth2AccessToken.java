@@ -1,22 +1,18 @@
 package it.smartcommunitylab.aac.oauth;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.nimbusds.jwt.JWT;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.oauth.common.AACOAuth2AccessTokenSerializer;
+import it.smartcommunitylab.aac.oauth.model.TokenType;
 import java.io.Serializable;
-
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
-
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2RefreshToken;
 import org.springframework.util.Assert;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.nimbusds.jwt.JWT;
-
-import it.smartcommunitylab.aac.oauth.model.TokenType;
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.oauth.common.AACOAuth2AccessTokenSerializer;
 
 @com.fasterxml.jackson.databind.annotation.JsonSerialize(using = AACOAuth2AccessTokenSerializer.class)
 public class AACOAuth2AccessToken implements OAuth2AccessToken, Serializable {
@@ -96,12 +92,11 @@ public class AACOAuth2AccessToken implements OAuth2AccessToken, Serializable {
 
     /**
      * Copy constructor for access token.
-     * 
+     *
      * @param accessToken
      */
     public AACOAuth2AccessToken(AACOAuth2AccessToken accessToken) {
         this(accessToken.getValue(), accessToken.getToken());
-
         setSubject(accessToken.getSubject());
         setAuthorizedParty(accessToken.getAuthorizedParty());
         setAudience(accessToken.getAudience());
@@ -123,12 +118,10 @@ public class AACOAuth2AccessToken implements OAuth2AccessToken, Serializable {
 
         // idToken
         setIdToken(accessToken.getIdToken());
-
     }
 
     public AACOAuth2AccessToken(OAuth2AccessToken accessToken) {
         this(accessToken.getValue());
-
         setRefreshToken(accessToken.getRefreshToken());
         setExpiration(accessToken.getExpiration());
         setScope(accessToken.getScope());
@@ -155,7 +148,6 @@ public class AACOAuth2AccessToken implements OAuth2AccessToken, Serializable {
 
         // additional info
         setAdditionalInformation(accessToken.getAdditionalInformation());
-
     }
 
     public void setValue(String value) {
@@ -207,8 +199,9 @@ public class AACOAuth2AccessToken implements OAuth2AccessToken, Serializable {
     }
 
     public int getExpiresIn() {
-        return expiration != null ? Long.valueOf((expiration.getTime() - System.currentTimeMillis()) / 1000L)
-                .intValue() : 0;
+        return expiration != null
+            ? Long.valueOf((expiration.getTime() - System.currentTimeMillis()) / 1000L).intValue()
+            : 0;
     }
 
     protected void setExpiresIn(int delta) {
@@ -301,8 +294,18 @@ public class AACOAuth2AccessToken implements OAuth2AccessToken, Serializable {
 
     @Override
     public String toString() {
-        return "AACOAuth2AccessToken [value=" + value + ", expiration=" + expiration + ", tokenType=" + tokenType
-                + ", scope=" + scope + ", issuedAt=" + issuedAt + "]";
+        return (
+            "AACOAuth2AccessToken [value=" +
+            value +
+            ", expiration=" +
+            expiration +
+            ", tokenType=" +
+            tokenType +
+            ", scope=" +
+            scope +
+            ", issuedAt=" +
+            issuedAt +
+            "]"
+        );
     }
-
 }

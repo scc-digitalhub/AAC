@@ -1,15 +1,15 @@
 package it.smartcommunitylab.aac.profiles.claims;
 
-import java.util.Collection;
-import java.util.Collections;
-
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.profiles.extractor.BasicProfileExtractor;
 import it.smartcommunitylab.aac.profiles.model.BasicProfile;
+import java.util.Collection;
+import java.util.Collections;
 
 public class BasicProfileClaimsExtractor extends ProfileClaimsExtractor {
+
     private final BasicProfileExtractor extractor;
 
     public BasicProfileClaimsExtractor() {
@@ -28,12 +28,9 @@ public class BasicProfileClaimsExtractor extends ProfileClaimsExtractor {
     }
 
     @Override
-    protected BasicProfile buildUserProfile(User user, Collection<String> scopes)
-            throws InvalidDefinitionException {
-
+    protected BasicProfile buildUserProfile(User user, Collection<String> scopes) throws InvalidDefinitionException {
         BasicProfile profile = extractor.extractUserProfile(user);
 
         return profile;
     }
-
 }

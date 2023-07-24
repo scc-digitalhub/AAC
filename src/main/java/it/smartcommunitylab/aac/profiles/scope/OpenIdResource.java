@@ -4,6 +4,7 @@ import it.smartcommunitylab.aac.profiles.claims.ProfileClaimsSet;
 import it.smartcommunitylab.aac.scope.Resource;
 
 public class OpenIdResource extends Resource {
+
     @Override
     public String getResourceId() {
         return ProfileClaimsSet.RESOURCE_ID + ".openid";

@@ -1,10 +1,9 @@
 package it.smartcommunitylab.aac.oauth.event;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.util.Assert;
-
-import it.smartcommunitylab.aac.SystemKeys;
 
 public class TokenGrantEvent extends OAuth2Event {
 
@@ -27,5 +26,4 @@ public class TokenGrantEvent extends OAuth2Event {
     public OAuth2Authentication getAuthentication() {
         return authentication;
     }
-
 }

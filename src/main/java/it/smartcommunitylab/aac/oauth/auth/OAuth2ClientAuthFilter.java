@@ -1,15 +1,14 @@
 package it.smartcommunitylab.aac.oauth.auth;
 
+import it.smartcommunitylab.aac.core.auth.DelegatingAuthenticationConverter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -31,9 +30,8 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import it.smartcommunitylab.aac.core.auth.DelegatingAuthenticationConverter;
-
 public class OAuth2ClientAuthFilter extends OncePerRequestFilter {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private AuthenticationEntryPoint authenticationEntryPoint = new OAuth2AuthenticationEntryPoint();
@@ -45,19 +43,20 @@ public class OAuth2ClientAuthFilter extends OncePerRequestFilter {
 
     private final String name;
 
-    public OAuth2ClientAuthFilter(AuthenticationManager authenticationManager,
-            String filterProcessingUrl) {
+    public OAuth2ClientAuthFilter(AuthenticationManager authenticationManager, String filterProcessingUrl) {
         Assert.notNull(authenticationManager, "auth manager is required");
         Assert.hasText(filterProcessingUrl, "filterProcessingUrl can not be null or empty");
         this.authenticationManager = authenticationManager;
 
         // build auth converters ordered by priority
-        this.authenticationConverter = new DelegatingAuthenticationConverter(
+        this.authenticationConverter =
+            new DelegatingAuthenticationConverter(
                 new ClientJwtAssertionAuthenticationConverter(),
                 new ClientPKCEAuthenticationConverter(),
                 new ClientRefreshAuthenticationConverter(),
                 new ClientSecretBasicAuthenticationConverter(),
-                new ClientSecretPostAuthenticationConverter());
+                new ClientSecretPostAuthenticationConverter()
+            );
 
         // build request matcher
         requestMatcher = new AntPathRequestMatcher(filterProcessingUrl);
@@ -66,9 +65,11 @@ public class OAuth2ClientAuthFilter extends OncePerRequestFilter {
         name = filterProcessingUrl;
     }
 
-    public OAuth2ClientAuthFilter(AuthenticationManager authenticationManager,
-            AuthenticationConverter authenticationConverter,
-            String filterProcessingUrl) {
+    public OAuth2ClientAuthFilter(
+        AuthenticationManager authenticationManager,
+        AuthenticationConverter authenticationConverter,
+        String filterProcessingUrl
+    ) {
         Assert.notNull(authenticationManager, "auth manager is required");
         Assert.notNull(authenticationConverter, "auth converter is required");
         Assert.hasText(filterProcessingUrl, "filterProcessingUrl can not be null or empty");
@@ -82,9 +83,11 @@ public class OAuth2ClientAuthFilter extends OncePerRequestFilter {
         name = filterProcessingUrl;
     }
 
-    public OAuth2ClientAuthFilter(AuthenticationManager authenticationManager,
-            AuthenticationConverter authenticationConverter,
-            String... filterProcessingUrl) {
+    public OAuth2ClientAuthFilter(
+        AuthenticationManager authenticationManager,
+        AuthenticationConverter authenticationConverter,
+        String... filterProcessingUrl
+    ) {
         Assert.notNull(authenticationManager, "auth manager is required");
         Assert.notNull(authenticationConverter, "auth converter is required");
         Assert.notEmpty(filterProcessingUrl, "filterProcessingUrl can not be null or empty");
@@ -92,10 +95,11 @@ public class OAuth2ClientAuthFilter extends OncePerRequestFilter {
         this.authenticationConverter = authenticationConverter;
 
         // configure OR request matcher, we want to support global AND realm paths
-        List<RequestMatcher> antMatchers = Arrays.stream(filterProcessingUrl)
-                .filter(u -> StringUtils.hasText(u))
-                .map(u -> new AntPathRequestMatcher(u))
-                .collect(Collectors.toList());
+        List<RequestMatcher> antMatchers = Arrays
+            .stream(filterProcessingUrl)
+            .filter(u -> StringUtils.hasText(u))
+            .map(u -> new AntPathRequestMatcher(u))
+            .collect(Collectors.toList());
         Assert.notEmpty(antMatchers, "filterProcessingUrl can not be null or empty");
 
         requestMatcher = new OrRequestMatcher(antMatchers);
@@ -111,7 +115,7 @@ public class OAuth2ClientAuthFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
+        throws ServletException, IOException {
         if (!this.requestMatcher.matches(request)) {
             filterChain.doFilter(request, response);
             return;
@@ -154,12 +158,10 @@ public class OAuth2ClientAuthFilter extends OncePerRequestFilter {
             // delegate response
             authenticationEntryPoint.commence(request, response, ex);
         }
-
     }
 
-    public Authentication attemptAuthentication(HttpServletRequest request,
-            HttpServletResponse response) throws AuthenticationException, IOException, ServletException {
-
+    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
+        throws AuthenticationException, IOException, ServletException {
         // try conversion
         Authentication authRequest = this.authenticationConverter.convert(request);
         if (authRequest == null) {
@@ -175,5 +177,4 @@ public class OAuth2ClientAuthFilter extends OncePerRequestFilter {
         // let authManager process request
         return this.authenticationManager.authenticate(authRequest);
     }
-
 }

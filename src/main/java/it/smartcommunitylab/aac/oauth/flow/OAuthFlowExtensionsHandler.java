@@ -1,9 +1,14 @@
 package it.smartcommunitylab.aac.oauth.flow;
 
+import it.smartcommunitylab.aac.core.UserDetails;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
+import it.smartcommunitylab.aac.core.service.UserService;
+import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -13,22 +18,18 @@ import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.security.oauth2.provider.approval.UserApprovalHandler;
 import org.springframework.util.Assert;
 
-import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.auth.UserAuthentication;
-import it.smartcommunitylab.aac.core.service.UserService;
-import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
-import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
-
 public class OAuthFlowExtensionsHandler implements UserApprovalHandler {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final FlowExtensionsService flowExtensionsService;
     private final OAuth2ClientDetailsService clientService;
     private UserService userService;
 
-    public OAuthFlowExtensionsHandler(FlowExtensionsService flowExtensionsService,
-            OAuth2ClientDetailsService clientService) {
+    public OAuthFlowExtensionsHandler(
+        FlowExtensionsService flowExtensionsService,
+        OAuth2ClientDetailsService clientService
+    ) {
         Assert.notNull(flowExtensionsService, "flow extensions service is required");
         Assert.notNull(clientService, "client details service is required");
         this.flowExtensionsService = flowExtensionsService;
@@ -42,7 +43,6 @@ public class OAuthFlowExtensionsHandler implements UserApprovalHandler {
     @Override
     public boolean isApproved(AuthorizationRequest authorizationRequest, Authentication userAuth) {
         try {
-
             // short circuit for not approved, we don't want to flip
             if (!authorizationRequest.isApproved()) {
                 return authorizationRequest.isApproved();
@@ -63,7 +63,6 @@ public class OAuthFlowExtensionsHandler implements UserApprovalHandler {
                 } else {
                     user = new User(userDetails);
                 }
-
             }
 
             // get extension if set
@@ -79,33 +78,36 @@ public class OAuthFlowExtensionsHandler implements UserApprovalHandler {
             }
 
             return approved.get().booleanValue();
-
         } catch (ClientRegistrationException e) {
             // block the request
             throw new OAuth2AccessDeniedException();
         }
-
     }
 
     @Override
-    public AuthorizationRequest checkForPreApproval(AuthorizationRequest authorizationRequest,
-            Authentication userAuthentication) {
+    public AuthorizationRequest checkForPreApproval(
+        AuthorizationRequest authorizationRequest,
+        Authentication userAuthentication
+    ) {
         // nothing to do here
         return null;
     }
 
     @Override
-    public AuthorizationRequest updateAfterApproval(AuthorizationRequest authorizationRequest,
-            Authentication userAuthentication) {
+    public AuthorizationRequest updateAfterApproval(
+        AuthorizationRequest authorizationRequest,
+        Authentication userAuthentication
+    ) {
         // nothing to do here
         return authorizationRequest;
     }
 
     @Override
-    public Map<String, Object> getUserApprovalRequest(AuthorizationRequest authorizationRequest,
-            Authentication userAuthentication) {
+    public Map<String, Object> getUserApprovalRequest(
+        AuthorizationRequest authorizationRequest,
+        Authentication userAuthentication
+    ) {
         // nothing to do here
         return null;
     }
-
 }

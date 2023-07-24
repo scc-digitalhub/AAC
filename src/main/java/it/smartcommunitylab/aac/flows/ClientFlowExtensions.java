@@ -1,5 +1,3 @@
 package it.smartcommunitylab.aac.flows;
 
-public class ClientFlowExtensions {
-
-}
+public class ClientFlowExtensions {}

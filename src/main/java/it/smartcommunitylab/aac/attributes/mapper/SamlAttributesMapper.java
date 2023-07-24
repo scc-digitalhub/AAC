@@ -1,11 +1,11 @@
 package it.smartcommunitylab.aac.attributes.mapper;
 
-import java.util.ArrayList;
-import java.util.List;
 import it.smartcommunitylab.aac.attributes.SamlAttributesSet;
 import it.smartcommunitylab.aac.attributes.model.BooleanAttribute;
 import it.smartcommunitylab.aac.attributes.model.StringAttribute;
 import it.smartcommunitylab.aac.core.model.Attribute;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SamlAttributesMapper extends DefaultAttributesMapper {
 
@@ -30,5 +30,4 @@ public class SamlAttributesMapper extends DefaultAttributesMapper {
 
         set = new SamlAttributesSet(attributes);
     }
-
 }

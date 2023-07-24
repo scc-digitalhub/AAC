@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2015-2019 Smart Community Lab, FBK
- * 
+ *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
  *    You may obtain a copy of the License at
- * 
+ *
  *        http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  *    Unless required by applicable law or agreed to in writing, software
  *    distributed under the License is distributed on an "AS IS" BASIS,
  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,16 +16,14 @@
 
 package it.smartcommunitylab.aac.profiles.model;
 
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
 import it.smartcommunitylab.aac.SystemKeys;
+import java.util.Map;
 
 /**
  * User registration information (different account of the registered user)
- * 
+ *
  * @author raman
  *
  */
@@ -50,8 +48,7 @@ public class AccountProfile extends AbstractProfile {
     // do not expose private data!
     private Map<String, String> attributes;
 
-    public AccountProfile() {
-    }
+    public AccountProfile() {}
 
     @Override
     public String getIdentifier() {
@@ -121,5 +118,4 @@ public class AccountProfile extends AbstractProfile {
     public void setRealm(String realm) {
         this.realm = realm;
     }
-
 }

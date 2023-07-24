@@ -1,16 +1,14 @@
 package it.smartcommunitylab.aac.scope;
 
-import java.util.Collection;
-import java.util.Collections;
-
-import org.springframework.security.oauth2.provider.approval.Approval;
-import org.springframework.util.Assert;
-
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.store.SearchableApprovalStore;
+import java.util.Collection;
+import java.util.Collections;
+import org.springframework.security.oauth2.provider.approval.Approval;
+import org.springframework.util.Assert;
 
 public class StoreScopeApprover implements ScopeApprover {
 
@@ -45,7 +43,7 @@ public class StoreScopeApprover implements ScopeApprover {
 
     @Override
     public Approval approveUserScope(String scope, User user, ClientDetails client, Collection<String> scopes)
-            throws InvalidDefinitionException, SystemException {
+        throws InvalidDefinitionException, SystemException {
         if (approvalStore == null) {
             return null;
         }
@@ -67,12 +65,11 @@ public class StoreScopeApprover implements ScopeApprover {
         }
 
         return approval;
-
     }
 
     @Override
     public Approval approveClientScope(String scope, ClientDetails client, Collection<String> scopes)
-            throws InvalidDefinitionException, SystemException {
+        throws InvalidDefinitionException, SystemException {
         if (approvalStore == null) {
             return null;
         }
@@ -94,7 +91,6 @@ public class StoreScopeApprover implements ScopeApprover {
         }
 
         return approval;
-
     }
 
     @Override

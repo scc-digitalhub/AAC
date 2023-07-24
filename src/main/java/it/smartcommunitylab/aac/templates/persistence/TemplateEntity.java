@@ -1,8 +1,9 @@
 package it.smartcommunitylab.aac.templates.persistence;
 
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.repository.HashMapConverter;
 import java.io.Serializable;
 import java.util.Map;
-
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
@@ -12,13 +13,13 @@ import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotBlank;
 
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.repository.HashMapConverter;
-
 @Entity
-@Table(name = "templates", uniqueConstraints = @UniqueConstraint(columnNames = {
-        "authority", "realm", "template", "language" }))
+@Table(
+    name = "templates",
+    uniqueConstraints = @UniqueConstraint(columnNames = { "authority", "realm", "template", "language" })
+)
 public class TemplateEntity implements Serializable {
+
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     // id is internal
@@ -49,8 +50,7 @@ public class TemplateEntity implements Serializable {
     @Convert(converter = HashMapConverter.class)
     private Map<String, String> content;
 
-    public TemplateEntity() {
-    }
+    public TemplateEntity() {}
 
     public TemplateEntity(String id, String authority, String realm) {
         this.id = id;
@@ -108,8 +108,20 @@ public class TemplateEntity implements Serializable {
 
     @Override
     public String toString() {
-        return "TemplateEntity [id=" + id + ", authority=" + authority + ", realm=" + realm + ", template=" + template
-                + ", language=" + language + ", content=" + content + "]";
+        return (
+            "TemplateEntity [id=" +
+            id +
+            ", authority=" +
+            authority +
+            ", realm=" +
+            realm +
+            ", template=" +
+            template +
+            ", language=" +
+            language +
+            ", content=" +
+            content +
+            "]"
+        );
     }
-
 }

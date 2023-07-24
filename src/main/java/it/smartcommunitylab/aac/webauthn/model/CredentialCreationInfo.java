@@ -30,5 +30,4 @@ public class CredentialCreationInfo {
     public String toString() {
         return "CredentialCreationInfo [userHandle=" + userHandle + ", options=" + options + "]";
     }
-
 }

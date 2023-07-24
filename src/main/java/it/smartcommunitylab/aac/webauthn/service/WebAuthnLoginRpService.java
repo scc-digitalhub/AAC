@@ -1,11 +1,5 @@
 package it.smartcommunitylab.aac.webauthn.service;
 
-import java.net.URL;
-import java.util.Collections;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -20,13 +14,6 @@ import com.yubico.webauthn.data.ClientAssertionExtensionOutputs;
 import com.yubico.webauthn.data.PublicKeyCredential;
 import com.yubico.webauthn.data.RelyingPartyIdentity;
 import com.yubico.webauthn.exception.AssertionFailedException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
@@ -35,9 +22,22 @@ import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.webauthn.auth.WebAuthnAuthenticationException;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredentialsRepository;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
+import java.net.URL;
+import java.util.Collections;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 @Service
 public class WebAuthnLoginRpService {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Value("${application.url}")
@@ -49,10 +49,12 @@ public class WebAuthnLoginRpService {
 
     // leverage a local cache for fetching rps
     // TODO cache invalidation or check on load or drop cache
-    private final LoadingCache<String, RelyingParty> registrations = CacheBuilder.newBuilder()
-            .expireAfterWrite(5, TimeUnit.MINUTES)
-            .maximumSize(100)
-            .build(new CacheLoader<String, RelyingParty>() {
+    private final LoadingCache<String, RelyingParty> registrations = CacheBuilder
+        .newBuilder()
+        .expireAfterWrite(5, TimeUnit.MINUTES)
+        .maximumSize(100)
+        .build(
+            new CacheLoader<String, RelyingParty>() {
                 @Override
                 public RelyingParty load(final String providerId) throws Exception {
                     WebAuthnIdentityProviderConfig config = registrationRepository.findByProviderId(providerId);
@@ -65,31 +67,38 @@ public class WebAuthnLoginRpService {
                     URL publicAppUrl = new URL(applicationUrl);
                     Set<String> origins = Collections.singleton(applicationUrl);
 
-                    RelyingPartyIdentity rpIdentity = RelyingPartyIdentity.builder()
-                            .id(publicAppUrl.getHost())
-                            .name(config.getRealm())
-                            .build();
+                    RelyingPartyIdentity rpIdentity = RelyingPartyIdentity
+                        .builder()
+                        .id(publicAppUrl.getHost())
+                        .name(config.getRealm())
+                        .build();
 
                     WebAuthnYubicoCredentialsRepository webauthnRepository = new WebAuthnYubicoCredentialsRepository(
-                            config.getRepositoryId(), userAccountService, credentialsRepository);
+                        config.getRepositoryId(),
+                        userAccountService,
+                        credentialsRepository
+                    );
 
-                    RelyingParty rp = RelyingParty.builder()
-                            .identity(rpIdentity)
-                            .credentialRepository(webauthnRepository)
-                            .allowUntrustedAttestation(config.isAllowedUnstrustedAttestation())
-                            .allowOriginPort(false)
-                            .allowOriginSubdomain(false)
-                            .origins(origins)
-                            .build();
+                    RelyingParty rp = RelyingParty
+                        .builder()
+                        .identity(rpIdentity)
+                        .credentialRepository(webauthnRepository)
+                        .allowUntrustedAttestation(config.isAllowedUnstrustedAttestation())
+                        .allowOriginPort(false)
+                        .allowOriginSubdomain(false)
+                        .origins(origins)
+                        .build();
 
                     return rp;
-
                 }
-            });
+            }
+        );
 
-    public WebAuthnLoginRpService(UserAccountService<InternalUserAccount> userAccountService,
-            WebAuthnUserCredentialsRepository credentialsRepository,
-            ProviderConfigRepository<WebAuthnIdentityProviderConfig> registrationRepository) {
+    public WebAuthnLoginRpService(
+        UserAccountService<InternalUserAccount> userAccountService,
+        WebAuthnUserCredentialsRepository credentialsRepository,
+        ProviderConfigRepository<WebAuthnIdentityProviderConfig> registrationRepository
+    ) {
         Assert.notNull(userAccountService, "user account service is mandatory");
         Assert.notNull(credentialsRepository, "credentials repository is mandatory");
         Assert.notNull(registrationRepository, "provider registration repository is mandatory");
@@ -114,9 +123,12 @@ public class WebAuthnLoginRpService {
      */
 
     public AssertionRequest startLogin(String registrationId, String username)
-            throws NoSuchUserException, NoSuchProviderException {
-        logger.debug("start login for {} with provider {}", StringUtils.trimAllWhitespace(username),
-                StringUtils.trimAllWhitespace(registrationId));
+        throws NoSuchUserException, NoSuchProviderException {
+        logger.debug(
+            "start login for {} with provider {}",
+            StringUtils.trimAllWhitespace(username),
+            StringUtils.trimAllWhitespace(registrationId)
+        );
 
         WebAuthnIdentityProviderConfig config = registrationRepository.findByProviderId(registrationId);
         RelyingParty rp = getRelyingParty(registrationId);
@@ -132,36 +144,39 @@ public class WebAuthnLoginRpService {
         int timeout = config.getLoginTimeout() * 1000;
 
         // build assertion
-        StartAssertionOptions startAssertionOptions = StartAssertionOptions.builder()
-                .userHandle(userHandle)
-                .timeout(timeout)
-                .userVerification(config.getRequireUserVerification())
-                .username(username)
-                .build();
+        StartAssertionOptions startAssertionOptions = StartAssertionOptions
+            .builder()
+            .userHandle(userHandle)
+            .timeout(timeout)
+            .userVerification(config.getRequireUserVerification())
+            .username(username)
+            .build();
 
         AssertionRequest assertionRequest = rp.startAssertion(startAssertionOptions);
         return assertionRequest;
     }
 
     public AssertionResult finishLogin(
-            String registrationId, AssertionRequest assertionRequest,
-            PublicKeyCredential<AuthenticatorAssertionResponse, ClientAssertionExtensionOutputs> pkc)
-            throws NoSuchUserException, WebAuthnAuthenticationException, NoSuchProviderException,
-            AssertionFailedException {
-
+        String registrationId,
+        AssertionRequest assertionRequest,
+        PublicKeyCredential<AuthenticatorAssertionResponse, ClientAssertionExtensionOutputs> pkc
+    ) throws NoSuchUserException, WebAuthnAuthenticationException, NoSuchProviderException, AssertionFailedException {
         WebAuthnIdentityProviderConfig config = registrationRepository.findByProviderId(registrationId);
         RelyingParty rp = getRelyingParty(registrationId);
         if (config == null || rp == null) {
             throw new NoSuchProviderException();
         }
 
-        logger.debug("finish login for {} with provider {}",
-                StringUtils.trimAllWhitespace(assertionRequest.getUsername().orElse(null)),
-                StringUtils.trimAllWhitespace(registrationId));
+        logger.debug(
+            "finish login for {} with provider {}",
+            StringUtils.trimAllWhitespace(assertionRequest.getUsername().orElse(null)),
+            StringUtils.trimAllWhitespace(registrationId)
+        );
 
         // build result
-        AssertionResult result = rp.finishAssertion(FinishAssertionOptions.builder().request(assertionRequest)
-                .response(pkc).build());
+        AssertionResult result = rp.finishAssertion(
+            FinishAssertionOptions.builder().request(assertionRequest).response(pkc).build()
+        );
         logger.debug("login assertion is success: {}", String.valueOf(result.isSuccess()));
 
         if (!(result.isSuccess() && result.isSignatureCounterValid())) {
@@ -169,7 +184,5 @@ public class WebAuthnLoginRpService {
         }
 
         return result;
-
     }
-
 }

@@ -1,12 +1,9 @@
 package it.smartcommunitylab.aac.core.base;
 
-import java.io.Serializable;
-
-import javax.persistence.Transient;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
-
 import it.smartcommunitylab.aac.core.model.UserResource;
+import java.io.Serializable;
+import javax.persistence.Transient;
 
 public abstract class AbstractBaseUserResource implements UserResource, Serializable {
 
@@ -25,7 +22,7 @@ public abstract class AbstractBaseUserResource implements UserResource, Serializ
 
     /**
      * Private constructor for JPA and other serialization tools.
-     * 
+     *
      * We need to implement this to enable deserialization of resources via
      * reflection
      */
@@ -58,5 +55,4 @@ public abstract class AbstractBaseUserResource implements UserResource, Serializ
     public String getProvider() {
         return provider;
     }
-
 }

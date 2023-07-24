@@ -1,17 +1,14 @@
 package it.smartcommunitylab.aac.model;
 
-import java.util.List;
-import java.util.Set;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
-
-import org.springframework.util.StringUtils;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import java.util.List;
+import java.util.Set;
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
+import org.springframework.util.StringUtils;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -21,7 +18,7 @@ public class RealmRole {
     @Size(max = 128)
     private String roleId;
 
-//    @NotBlank
+    //    @NotBlank
     @Size(max = 128)
     private String realm;
 
@@ -41,8 +38,7 @@ public class RealmRole {
     private List<String> subjects;
     private Long size;
 
-    public RealmRole() {
-    }
+    public RealmRole() {}
 
     public RealmRole(String realm, String role) {
         this.realm = realm;
@@ -128,24 +124,16 @@ public class RealmRole {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         RealmRole other = (RealmRole) obj;
         if (realm == null) {
-            if (other.realm != null)
-                return false;
-        } else if (!realm.equals(other.realm))
-            return false;
+            if (other.realm != null) return false;
+        } else if (!realm.equals(other.realm)) return false;
         if (role == null) {
-            if (other.role != null)
-                return false;
-        } else if (!role.equals(other.role))
-            return false;
+            if (other.role != null) return false;
+        } else if (!role.equals(other.role)) return false;
         return true;
     }
-
 }

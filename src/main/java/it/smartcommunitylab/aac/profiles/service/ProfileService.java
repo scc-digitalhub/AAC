@@ -1,18 +1,8 @@
 package it.smartcommunitylab.aac.profiles.service;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
-import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
-
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
@@ -27,6 +17,13 @@ import it.smartcommunitylab.aac.profiles.extractor.EmailProfileExtractor;
 import it.smartcommunitylab.aac.profiles.extractor.OpenIdProfileExtractor;
 import it.smartcommunitylab.aac.profiles.extractor.UserProfileExtractor;
 import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 @Service
 public class ProfileService {
@@ -45,47 +42,49 @@ public class ProfileService {
     // TODO add custom extractors
     private Map<String, UserProfileExtractor> customExtractors;
 
-//    // loading cache for set extractors
-//    private final LoadingCache<String, UserProfileExtractor> mappingExtractors = CacheBuilder.newBuilder()
-//            .expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
-//            .maximumSize(100)
-//            .build(new CacheLoader<String, UserProfileExtractor>() {
-//                @Override
-//                public UserProfileExtractor load(final String id) throws Exception {
-//                    AttributeSetEntity set = attributeService.findAttributeSet(id);
-//                    if (set == null) {
-//                        throw new IllegalArgumentException("no attribute set matching the given identifier");
-//
-//                    }
-//                    List<AttributeEntity> attributes = attributeService.listAttributes(id);
-//
-//                    // build a attribute extractor with keys matching the given set
-//                    Map<String, Collection<String>> mapping = new HashMap<>();
-//                    attributes.forEach(a -> {
-//                        mapping.put(a.getKey(), Collections.singleton(id));
-//                    });
-//
-//                    return new AttributesProfileExtractor(id, mapping);
-//                }
-//            });
+    //    // loading cache for set extractors
+    //    private final LoadingCache<String, UserProfileExtractor> mappingExtractors = CacheBuilder.newBuilder()
+    //            .expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
+    //            .maximumSize(100)
+    //            .build(new CacheLoader<String, UserProfileExtractor>() {
+    //                @Override
+    //                public UserProfileExtractor load(final String id) throws Exception {
+    //                    AttributeSetEntity set = attributeService.findAttributeSet(id);
+    //                    if (set == null) {
+    //                        throw new IllegalArgumentException("no attribute set matching the given identifier");
+    //
+    //                    }
+    //                    List<AttributeEntity> attributes = attributeService.listAttributes(id);
+    //
+    //                    // build a attribute extractor with keys matching the given set
+    //                    Map<String, Collection<String>> mapping = new HashMap<>();
+    //                    attributes.forEach(a -> {
+    //                        mapping.put(a.getKey(), Collections.singleton(id));
+    //                    });
+    //
+    //                    return new AttributesProfileExtractor(id, mapping);
+    //                }
+    //            });
 
     // loading cache for set dump extractors
-    private final LoadingCache<String, UserProfileExtractor> setExtractors = CacheBuilder.newBuilder()
-            .expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
-            .maximumSize(100)
-            .build(new CacheLoader<String, UserProfileExtractor>() {
+    private final LoadingCache<String, UserProfileExtractor> setExtractors = CacheBuilder
+        .newBuilder()
+        .expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
+        .maximumSize(100)
+        .build(
+            new CacheLoader<String, UserProfileExtractor>() {
                 @Override
                 public UserProfileExtractor load(final String id) throws Exception {
                     AttributeSet set = attributeService.findAttributeSet(id);
                     if (set == null) {
                         throw new IllegalArgumentException("no attribute set matching the given identifier");
-
                     }
 
                     // build an extractor matching the set via provided name (not unique)
                     return new AttributeSetProfileExtractor(id);
                 }
-            });
+            }
+        );
 
     public ProfileService(UserService userService, AttributeService attributeService) {
         Assert.notNull(userService, "user service is required");
@@ -106,7 +105,6 @@ public class ProfileService {
         systemExtractors.put(emailProfileExtractor.getIdentifier(), emailProfileExtractor);
 
         customExtractors = Collections.emptyMap();
-
     }
 
     /*
@@ -118,7 +116,7 @@ public class ProfileService {
     }
 
     public Collection<? extends AbstractProfile> getProfiles(UserDetails userDetails, String identifier)
-            throws InvalidDefinitionException {
+        throws InvalidDefinitionException {
         return getProfiles(userService.getUser(userDetails), identifier);
     }
 
@@ -139,11 +137,10 @@ public class ProfileService {
     }
 
     private Collection<? extends AbstractProfile> getProfiles(User user, String identifier)
-            throws InvalidDefinitionException {
+        throws InvalidDefinitionException {
         UserProfileExtractor ext = getExtractor(identifier);
 
         return ext.extractUserProfiles(user);
-
     }
 
     /*
@@ -151,13 +148,13 @@ public class ProfileService {
      */
 
     public AbstractProfile getProfile(String realm, String subjectId, String identifier)
-            throws NoSuchUserException, InvalidDefinitionException {
+        throws NoSuchUserException, InvalidDefinitionException {
         User user = userService.getUser(subjectId, realm);
         return getProfile(user, identifier);
     }
 
     public Collection<? extends AbstractProfile> getProfiles(String realm, String subjectId, String identifier)
-            throws NoSuchUserException, InvalidDefinitionException {
+        throws NoSuchUserException, InvalidDefinitionException {
         User user = userService.getUser(subjectId, realm);
         return getProfiles(user, identifier);
     }
@@ -184,21 +181,19 @@ public class ProfileService {
             }
         }
 
-//        // try to build a default extractor for a generic set
-//        if (ext == null) {
-//            try {
-//                ext = setExtractors.get(identifier);
-//            } catch (Exception e) {
-//                ext = null;
-//            }
-//        }
+        //        // try to build a default extractor for a generic set
+        //        if (ext == null) {
+        //            try {
+        //                ext = setExtractors.get(identifier);
+        //            } catch (Exception e) {
+        //                ext = null;
+        //            }
+        //        }
 
         if (ext == null) {
             throw new InvalidDefinitionException("no such profile defined");
         }
 
         return ext;
-
     }
-
 }

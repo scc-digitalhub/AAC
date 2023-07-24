@@ -1,15 +1,12 @@
 package it.smartcommunitylab.aac.core.provider;
 
-import java.util.List;
-
-import javax.validation.constraints.NotNull;
-
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.model.UserAccount;
+import java.util.List;
+import javax.validation.constraints.NotNull;
 
 public interface UserAccountService<U extends UserAccount> {
-
     public List<U> findAccountByRealm(@NotNull String realm);
 
     public U findAccountById(@NotNull String repository, @NotNull String id);
@@ -25,7 +22,7 @@ public interface UserAccountService<U extends UserAccount> {
     public U addAccount(@NotNull String repository, @NotNull String id, @NotNull U reg) throws RegistrationException;
 
     public U updateAccount(@NotNull String repository, @NotNull String id, @NotNull U reg)
-            throws NoSuchUserException, RegistrationException;
+        throws NoSuchUserException, RegistrationException;
 
     public void deleteAccount(@NotNull String repository, @NotNull String id);
 }

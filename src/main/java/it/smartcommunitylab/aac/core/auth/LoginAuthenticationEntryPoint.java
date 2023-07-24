@@ -2,7 +2,6 @@ package it.smartcommunitylab.aac.core.auth;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 
@@ -22,14 +21,15 @@ public class LoginAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPo
     }
 
     @Override
-    protected String determineUrlToUseForThisRequest(HttpServletRequest request,
-            HttpServletResponse response, AuthenticationException exception) {
-
+    protected String determineUrlToUseForThisRequest(
+        HttpServletRequest request,
+        HttpServletResponse response,
+        AuthenticationException exception
+    ) {
         String loginUrl = getLoginFormUrl();
 
         // extract context (realm, client etc)
 
         return loginUrl;
     }
-
 }

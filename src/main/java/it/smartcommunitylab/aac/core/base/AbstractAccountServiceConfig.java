@@ -1,14 +1,11 @@
 package it.smartcommunitylab.aac.core.base;
 
-import org.springframework.util.StringUtils;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
-
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ConfigurableAccountProvider;
 import it.smartcommunitylab.aac.core.provider.AccountServiceConfig;
@@ -17,19 +14,23 @@ import it.smartcommunitylab.aac.model.PersistenceMode;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleAccountServiceConfig;
 import it.smartcommunitylab.aac.openid.provider.OIDCAccountServiceConfig;
 import it.smartcommunitylab.aac.saml.provider.SamlAccountServiceConfig;
+import org.springframework.util.StringUtils;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-@JsonSubTypes({
+@JsonSubTypes(
+    {
         @Type(value = InternalAccountServiceConfig.class, name = InternalAccountServiceConfig.RESOURCE_TYPE),
         @Type(value = AppleAccountServiceConfig.class, name = AppleAccountServiceConfig.RESOURCE_TYPE),
         @Type(value = OIDCAccountServiceConfig.class, name = OIDCAccountServiceConfig.RESOURCE_TYPE),
         @Type(value = SamlAccountServiceConfig.class, name = SamlAccountServiceConfig.RESOURCE_TYPE),
-})
+    }
+)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(Include.ALWAYS)
 public abstract class AbstractAccountServiceConfig<M extends AbstractConfigMap>
-        extends AbstractProviderConfig<M, ConfigurableAccountProvider>
-        implements AccountServiceConfig<M> {
+    extends AbstractProviderConfig<M, ConfigurableAccountProvider>
+    implements AccountServiceConfig<M> {
+
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     protected String repositoryId;
@@ -62,5 +63,4 @@ public abstract class AbstractAccountServiceConfig<M extends AbstractConfigMap>
     public void setPersistence(PersistenceMode persistence) {
         this.persistence = persistence;
     }
-
 }

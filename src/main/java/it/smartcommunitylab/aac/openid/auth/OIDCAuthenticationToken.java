@@ -1,15 +1,13 @@
 package it.smartcommunitylab.aac.openid.auth;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import java.util.Collection;
-
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2RefreshToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.util.Assert;
-
-import it.smartcommunitylab.aac.SystemKeys;
 
 public class OIDCAuthenticationToken extends AbstractAuthenticationToken {
 
@@ -29,9 +27,13 @@ public class OIDCAuthenticationToken extends AbstractAuthenticationToken {
         this.setAuthenticated(false);
     }
 
-    public OIDCAuthenticationToken(String subject, OAuth2User principal,
-            OAuth2AccessToken accessToken, OAuth2RefreshToken refreshToken,
-            Collection<? extends GrantedAuthority> authorities) {
+    public OIDCAuthenticationToken(
+        String subject,
+        OAuth2User principal,
+        OAuth2AccessToken accessToken,
+        OAuth2RefreshToken refreshToken,
+        Collection<? extends GrantedAuthority> authorities
+    ) {
         super(authorities);
         Assert.hasText(subject, "sub can not be null or empty");
         Assert.notNull(principal, "principal cannot be null");
@@ -64,5 +66,4 @@ public class OIDCAuthenticationToken extends AbstractAuthenticationToken {
     public OAuth2RefreshToken getRefreshToken() {
         return refreshToken;
     }
-
 }

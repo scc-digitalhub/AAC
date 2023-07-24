@@ -7,11 +7,11 @@ import it.smartcommunitylab.aac.core.model.Template;
 import it.smartcommunitylab.aac.core.provider.TemplateProvider;
 import it.smartcommunitylab.aac.core.provider.TemplateProviderConfig;
 
-public interface TemplateProviderAuthority<S extends TemplateProvider<T, M, C>, T extends Template, M extends ConfigMap, C extends TemplateProviderConfig<M>>
-        extends ConfigurableProviderAuthority<S, T, ConfigurableTemplateProvider, M, C> {
-
+public interface TemplateProviderAuthority<
+    S extends TemplateProvider<T, M, C>, T extends Template, M extends ConfigMap, C extends TemplateProviderConfig<M>
+>
+    extends ConfigurableProviderAuthority<S, T, ConfigurableTemplateProvider, M, C> {
     public S findProviderByRealm(String realm);
 
     public S getProviderByRealm(String realm) throws NoSuchProviderException;
-
 }

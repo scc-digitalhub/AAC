@@ -1,22 +1,18 @@
 package it.smartcommunitylab.aac.core.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import it.smartcommunitylab.aac.SystemKeys;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import javax.validation.Valid;
-
 import org.springframework.boot.context.properties.ConstructorBinding;
 import org.springframework.util.StringUtils;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
-import it.smartcommunitylab.aac.SystemKeys;
 
 @Valid
 @JsonInclude(Include.NON_NULL)
@@ -40,7 +36,7 @@ public class ConfigurableIdentityProvider extends ConfigurableProvider {
 
     /**
      * Private constructor for JPA and other serialization tools.
-     * 
+     *
      * We need to implement this to enable deserialization of resources via
      * reflection
      */
@@ -94,22 +90,36 @@ public class ConfigurableIdentityProvider extends ConfigurableProvider {
         if (hookFunctions == null) {
             return null;
         }
-        return hookFunctions.entrySet().stream()
-                .filter(e -> StringUtils.hasText(e.getValue()))
-                .collect(Collectors.toMap(e -> e.getKey(), e -> {
-                    return Base64.getEncoder().withoutPadding().encodeToString(e.getValue().getBytes());
-                }));
+        return hookFunctions
+            .entrySet()
+            .stream()
+            .filter(e -> StringUtils.hasText(e.getValue()))
+            .collect(
+                Collectors.toMap(
+                    e -> e.getKey(),
+                    e -> {
+                        return Base64.getEncoder().withoutPadding().encodeToString(e.getValue().getBytes());
+                    }
+                )
+            );
     }
 
     @JsonProperty("hookFunctions")
     public void setHookFunctionsBase64(Map<String, String> hookFunctions) {
         if (hookFunctions != null) {
-            this.hookFunctions = hookFunctions.entrySet().stream()
+            this.hookFunctions =
+                hookFunctions
+                    .entrySet()
+                    .stream()
                     .filter(e -> StringUtils.hasText(e.getValue()))
-                    .collect(Collectors.toMap(e -> e.getKey(), e -> {
-                        return new String(Base64.getDecoder().decode(e.getValue().getBytes()));
-                    }));
+                    .collect(
+                        Collectors.toMap(
+                            e -> e.getKey(),
+                            e -> {
+                                return new String(Base64.getDecoder().decode(e.getValue().getBytes()));
+                            }
+                        )
+                    );
         }
     }
-
 }

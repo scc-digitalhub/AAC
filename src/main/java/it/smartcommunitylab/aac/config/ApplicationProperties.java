@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.config;
 
 public class ApplicationProperties {
+
     private String url;
 
     // TODO i18n
@@ -59,5 +60,4 @@ public class ApplicationProperties {
     public void setFooter(String footer) {
         this.footer = footer;
     }
-
 }

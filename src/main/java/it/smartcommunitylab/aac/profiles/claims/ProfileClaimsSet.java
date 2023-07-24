@@ -1,16 +1,15 @@
 package it.smartcommunitylab.aac.profiles.claims;
 
+import it.smartcommunitylab.aac.claims.Claim;
+import it.smartcommunitylab.aac.claims.ClaimsSet;
+import it.smartcommunitylab.aac.claims.model.SerializableClaim;
+import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import it.smartcommunitylab.aac.claims.Claim;
-import it.smartcommunitylab.aac.claims.ClaimsSet;
-import it.smartcommunitylab.aac.claims.model.SerializableClaim;
-import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
 
 public class ProfileClaimsSet implements ClaimsSet {
 
@@ -71,14 +70,14 @@ public class ProfileClaimsSet implements ClaimsSet {
         return namespace;
     }
 
-//    @Override
-//    public Map<String, Serializable> getClaims() {
-//        if (profile == null) {
-//            return Collections.emptyMap();
-//        }
-//
-//        return profile.toMap();
-//    }
+    //    @Override
+    //    public Map<String, Serializable> getClaims() {
+    //        if (profile == null) {
+    //            return Collections.emptyMap();
+    //        }
+    //
+    //        return profile.toMap();
+    //    }
 
     @Override
     public String getResourceId() {
@@ -91,10 +90,10 @@ public class ProfileClaimsSet implements ClaimsSet {
             return Collections.emptyList();
         }
 
-//        SerializableClaim claim = new SerializableClaim(key);
-//        claim.setValue(profile.toMap());
-//
-//        return Collections.singleton(claim);
+        //        SerializableClaim claim = new SerializableClaim(key);
+        //        claim.setValue(profile.toMap());
+        //
+        //        return Collections.singleton(claim);
 
         // serialize each property as claim
         List<Claim> claims = new ArrayList<>();
@@ -107,7 +106,5 @@ public class ProfileClaimsSet implements ClaimsSet {
         }
 
         return claims;
-
     }
-
 }

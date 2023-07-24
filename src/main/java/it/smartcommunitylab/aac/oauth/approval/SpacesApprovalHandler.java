@@ -1,12 +1,20 @@
 package it.smartcommunitylab.aac.oauth.approval;
 
+import it.smartcommunitylab.aac.common.NoSuchClientException;
+import it.smartcommunitylab.aac.core.ClientDetails;
+import it.smartcommunitylab.aac.core.UserDetails;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
+import it.smartcommunitylab.aac.core.service.ClientDetailsService;
+import it.smartcommunitylab.aac.core.service.UserService;
+import it.smartcommunitylab.aac.model.SpaceRole;
+import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.roles.claims.SpacesClaimsExtractor;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -17,17 +25,8 @@ import org.springframework.security.oauth2.provider.approval.UserApprovalHandler
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.common.NoSuchClientException;
-import it.smartcommunitylab.aac.core.ClientDetails;
-import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.auth.UserAuthentication;
-import it.smartcommunitylab.aac.core.service.ClientDetailsService;
-import it.smartcommunitylab.aac.core.service.UserService;
-import it.smartcommunitylab.aac.model.SpaceRole;
-import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.roles.claims.SpacesClaimsExtractor;
-
 public class SpacesApprovalHandler implements UserApprovalHandler {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final ClientDetailsService clientDetailsService;
@@ -46,9 +45,10 @@ public class SpacesApprovalHandler implements UserApprovalHandler {
     }
 
     @Override
-    public AuthorizationRequest checkForPreApproval(AuthorizationRequest authorizationRequest,
-            Authentication userAuth) {
-
+    public AuthorizationRequest checkForPreApproval(
+        AuthorizationRequest authorizationRequest,
+        Authentication userAuth
+    ) {
         if (userAuth == null || !(userAuth instanceof UserAuthentication)) {
             throw new InvalidRequestException("approval requires a valid user authentication");
         }
@@ -71,14 +71,14 @@ public class SpacesApprovalHandler implements UserApprovalHandler {
             // fetch spaces list from context
             Set<String> spaces = getUniqueSpaces(userDetails, uniqueSpaces);
             if (!spaces.isEmpty()) {
-//                // reset params since these are supposed to be immutable
-//                Map<String, String> params = new HashMap<>();
-//                params.putAll(authorizationRequest.getApprovalParameters());
-//                params.put(SPACE_SELECTION_APPROVAL_REQUIRED, "true");
-////                params.put(SPACE_SELECTION_APPROVAL_DONE, "false");
-//
-//                // TODO evaluate usage of extension instead of mangling with approvalParameters
-//                authorizationRequest.setApprovalParameters(params);
+                //                // reset params since these are supposed to be immutable
+                //                Map<String, String> params = new HashMap<>();
+                //                params.putAll(authorizationRequest.getApprovalParameters());
+                //                params.put(SPACE_SELECTION_APPROVAL_REQUIRED, "true");
+                ////                params.put(SPACE_SELECTION_APPROVAL_DONE, "false");
+                //
+                //                // TODO evaluate usage of extension instead of mangling with approvalParameters
+                //                authorizationRequest.setApprovalParameters(params);
 
                 // we also reset approved status to ensure approval endpoint is invoked
                 authorizationRequest.setApproved(false);
@@ -89,9 +89,10 @@ public class SpacesApprovalHandler implements UserApprovalHandler {
     }
 
     @Override
-    public AuthorizationRequest updateAfterApproval(AuthorizationRequest authorizationRequest,
-            Authentication userAuth) {
-
+    public AuthorizationRequest updateAfterApproval(
+        AuthorizationRequest authorizationRequest,
+        Authentication userAuth
+    ) {
         // we don't actually care about what client asked, we check if user has
         // performed selection, we could reject authorization if client asked for space
         // selection but that would break base flow and we treat this as an extension
@@ -128,17 +129,16 @@ public class SpacesApprovalHandler implements UserApprovalHandler {
                     authorizationRequest.setExtensions(extensions);
                 }
             }
-
         }
 
         return authorizationRequest;
-
     }
 
     @Override
-    public Map<String, Object> getUserApprovalRequest(AuthorizationRequest authorizationRequest,
-            Authentication userAuth) {
-
+    public Map<String, Object> getUserApprovalRequest(
+        AuthorizationRequest authorizationRequest,
+        Authentication userAuth
+    ) {
         // build view model, need to return non null
         Map<String, Object> model = new HashMap<String, Object>();
 
@@ -172,7 +172,6 @@ public class SpacesApprovalHandler implements UserApprovalHandler {
         }
 
         return model;
-
     }
 
     private Set<String> getUniqueSpaces(UserDetails userDetails, String uniqueSpaces) {
@@ -180,12 +179,12 @@ public class SpacesApprovalHandler implements UserApprovalHandler {
         Set<SpaceRole> roles = user.getSpaceRoles();
 
         // filter and flatmap everything under context
-        Set<String> spaces = roles.stream()
-                .filter(r -> (r.getContext() != null && r.getContext().startsWith(uniqueSpaces))).map(r -> r.getSpace())
-                .collect(Collectors.toSet());
+        Set<String> spaces = roles
+            .stream()
+            .filter(r -> (r.getContext() != null && r.getContext().startsWith(uniqueSpaces)))
+            .map(r -> r.getSpace())
+            .collect(Collectors.toSet());
 
         return spaces;
-
     }
-
 }

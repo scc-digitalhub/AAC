@@ -1,5 +1,9 @@
 package it.smartcommunitylab.aac.services;
 
+import it.smartcommunitylab.aac.scope.Resource;
+import it.smartcommunitylab.aac.scope.Scope;
+import it.smartcommunitylab.aac.scope.ScopeApprover;
+import it.smartcommunitylab.aac.scope.ScopeProvider;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -8,13 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.springframework.util.Assert;
-
-import it.smartcommunitylab.aac.scope.Resource;
-import it.smartcommunitylab.aac.scope.Scope;
-import it.smartcommunitylab.aac.scope.ScopeApprover;
-import it.smartcommunitylab.aac.scope.ScopeProvider;
 
 public class ServiceScopeProvider implements ScopeProvider {
 
@@ -40,12 +38,14 @@ public class ServiceScopeProvider implements ScopeProvider {
         Set<String> audience = new HashSet<>();
         audience.add(service.getNamespace());
 
-        List<Scope> scopes = service.getScopes().stream()
-                .map(s -> {
-                    s.setAudience(audience);
-                    return s;
-                })
-                .collect(Collectors.toList());
+        List<Scope> scopes = service
+            .getScopes()
+            .stream()
+            .map(s -> {
+                s.setAudience(audience);
+                return s;
+            })
+            .collect(Collectors.toList());
         resource.setScopes(scopes);
     }
 
@@ -67,7 +67,6 @@ public class ServiceScopeProvider implements ScopeProvider {
 
         // we return null if no approver is defined
         return approvers.get(scope);
-
     }
 
     public void addApprover(String scope, ScopeApprover approver) {
@@ -86,5 +85,4 @@ public class ServiceScopeProvider implements ScopeProvider {
     public Resource getResource() {
         return resource;
     }
-
 }

@@ -1,8 +1,13 @@
 package it.smartcommunitylab.aac.oauth.token;
 
+import it.smartcommunitylab.aac.oauth.event.OAuth2EventPublisher;
+import it.smartcommunitylab.aac.oauth.flow.FlowExtensionsService;
+import it.smartcommunitylab.aac.oauth.flow.OAuthFlowExtensions;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
+import it.smartcommunitylab.aac.scope.ScopeRegistry;
 import java.util.Collection;
 import java.util.Set;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
@@ -14,13 +19,6 @@ import org.springframework.security.oauth2.provider.OAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.TokenGranter;
 import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
-
-import it.smartcommunitylab.aac.oauth.event.OAuth2EventPublisher;
-import it.smartcommunitylab.aac.oauth.flow.FlowExtensionsService;
-import it.smartcommunitylab.aac.oauth.flow.OAuthFlowExtensions;
-import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
-import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
-import it.smartcommunitylab.aac.scope.ScopeRegistry;
 
 public abstract class AbstractTokenGranter implements TokenGranter {
 
@@ -40,8 +38,12 @@ public abstract class AbstractTokenGranter implements TokenGranter {
 
     private final String grantType;
 
-    protected AbstractTokenGranter(AuthorizationServerTokenServices tokenServices,
-            OAuth2ClientDetailsService clientDetailsService, OAuth2RequestFactory requestFactory, String grantType) {
+    protected AbstractTokenGranter(
+        AuthorizationServerTokenServices tokenServices,
+        OAuth2ClientDetailsService clientDetailsService,
+        OAuth2RequestFactory requestFactory,
+        String grantType
+    ) {
         this.clientDetailsService = clientDetailsService;
         this.grantType = grantType;
         this.tokenServices = tokenServices;
@@ -49,7 +51,6 @@ public abstract class AbstractTokenGranter implements TokenGranter {
     }
 
     public OAuth2AccessToken grant(String grantType, TokenRequest tokenRequest) {
-
         if (!this.grantType.equals(grantType)) {
             return null;
         }
@@ -83,15 +84,16 @@ public abstract class AbstractTokenGranter implements TokenGranter {
                 // call extension with token
                 ext.onAfterTokenGrant(accessToken, client);
             }
-
         }
 
         return accessToken;
-
     }
 
-    protected OAuth2AccessToken getAccessToken(ClientDetails client, TokenRequest tokenRequest,
-            OAuth2Authentication authentication) {
+    protected OAuth2AccessToken getAccessToken(
+        ClientDetails client,
+        TokenRequest tokenRequest,
+        OAuth2Authentication authentication
+    ) {
         return tokenServices.createAccessToken(authentication);
     }
 
@@ -102,15 +104,14 @@ public abstract class AbstractTokenGranter implements TokenGranter {
 
     protected void validateGrantType(String grantType, ClientDetails clientDetails) {
         Collection<String> authorizedGrantTypes = clientDetails.getAuthorizedGrantTypes();
-        if (authorizedGrantTypes == null || authorizedGrantTypes.isEmpty()
-                || !authorizedGrantTypes.contains(grantType)) {
+        if (
+            authorizedGrantTypes == null || authorizedGrantTypes.isEmpty() || !authorizedGrantTypes.contains(grantType)
+        ) {
             throw new UnsupportedGrantTypeException("Unauthorized grant type: " + grantType);
         }
     }
 
-    protected void validateScope(Set<String> scope, OAuth2Authentication authentication) {
-
-    }
+    protected void validateScope(Set<String> scope, OAuth2Authentication authentication) {}
 
     protected AuthorizationServerTokenServices getTokenServices() {
         return tokenServices;
@@ -135,5 +136,4 @@ public abstract class AbstractTokenGranter implements TokenGranter {
     public void setScopeRegistry(ScopeRegistry scopeRegistry) {
         this.scopeRegistry = scopeRegistry;
     }
-
 }

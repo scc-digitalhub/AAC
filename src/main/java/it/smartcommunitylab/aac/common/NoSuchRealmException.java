@@ -21,5 +21,4 @@ public class NoSuchRealmException extends Exception {
     public NoSuchRealmException(String message, Throwable cause) {
         super(message, cause);
     }
-
 }

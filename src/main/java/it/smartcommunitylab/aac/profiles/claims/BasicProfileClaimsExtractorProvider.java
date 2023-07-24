@@ -1,10 +1,9 @@
 package it.smartcommunitylab.aac.profiles.claims;
 
-import java.util.Collection;
-import org.springframework.stereotype.Component;
-
 import it.smartcommunitylab.aac.claims.ScopeClaimsExtractor;
 import it.smartcommunitylab.aac.claims.ScopeClaimsExtractorProvider;
+import java.util.Collection;
+import org.springframework.stereotype.Component;
 
 @Component
 public class BasicProfileClaimsExtractorProvider implements ScopeClaimsExtractorProvider {
@@ -25,10 +24,10 @@ public class BasicProfileClaimsExtractorProvider implements ScopeClaimsExtractor
         return extractor.getScopes();
     }
 
-//    @Override
-//    public Collection<ScopeClaimsExtractor> getExtractors() {
-//        return Collections.singleton(extractor);
-//    }
+    //    @Override
+    //    public Collection<ScopeClaimsExtractor> getExtractors() {
+    //        return Collections.singleton(extractor);
+    //    }
 
     @Override
     public ScopeClaimsExtractor getExtractor(String scope) {
@@ -38,5 +37,4 @@ public class BasicProfileClaimsExtractorProvider implements ScopeClaimsExtractor
 
         throw new IllegalArgumentException("invalid scope");
     }
-
 }

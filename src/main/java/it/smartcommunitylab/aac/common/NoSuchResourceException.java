@@ -21,5 +21,4 @@ public class NoSuchResourceException extends Exception {
     public NoSuchResourceException(String message, Throwable cause) {
         super(message, cause);
     }
-
 }

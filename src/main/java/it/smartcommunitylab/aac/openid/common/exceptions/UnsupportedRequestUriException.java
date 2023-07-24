@@ -1,8 +1,7 @@
 package it.smartcommunitylab.aac.openid.common.exceptions;
 
-import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
-
 import it.smartcommunitylab.aac.SystemKeys;
+import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 
 public class UnsupportedRequestUriException extends OAuth2Exception {
 
@@ -20,5 +19,4 @@ public class UnsupportedRequestUriException extends OAuth2Exception {
     public String getOAuth2ErrorCode() {
         return "request_uri_not_supported";
     }
-
 }

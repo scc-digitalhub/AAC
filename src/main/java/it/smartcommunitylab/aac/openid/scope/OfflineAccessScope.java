@@ -33,5 +33,4 @@ public class OfflineAccessScope extends Scope {
     public String getDescription() {
         return "Offline access for obtaining refresh tokens";
     }
-
 }

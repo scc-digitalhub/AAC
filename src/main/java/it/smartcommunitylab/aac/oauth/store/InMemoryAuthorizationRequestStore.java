@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
-
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.util.Assert;
 import org.springframework.util.DigestUtils;
@@ -56,13 +55,17 @@ public class InMemoryAuthorizationRequestStore implements AuthorizationRequestSt
         Map<String, String> values = new TreeMap<String, String>();
 
         values.put("client_id", request.getClientId());
-        values.put("response_type",
-                StringUtils.collectionToCommaDelimitedString(new TreeSet<String>(request.getResponseTypes())));
+        values.put(
+            "response_type",
+            StringUtils.collectionToCommaDelimitedString(new TreeSet<String>(request.getResponseTypes()))
+        );
         values.put("scope", StringUtils.collectionToCommaDelimitedString(new TreeSet<String>(request.getScope())));
         values.put("redirect_uri", request.getRedirectUri());
         values.put("state", request.getState());
-        values.put("resource",
-                StringUtils.collectionToCommaDelimitedString(new TreeSet<String>(request.getResourceIds())));
+        values.put(
+            "resource",
+            StringUtils.collectionToCommaDelimitedString(new TreeSet<String>(request.getResourceIds()))
+        );
 
         // build key and reduce to md5hash
         StringBuilder sb = new StringBuilder();
@@ -77,6 +80,5 @@ public class InMemoryAuthorizationRequestStore implements AuthorizationRequestSt
         } catch (UnsupportedEncodingException e) {
             throw new IllegalStateException("error building key");
         }
-
     }
 }

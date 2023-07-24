@@ -1,12 +1,11 @@
 package it.smartcommunitylab.aac.api.scopes;
 
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.model.ScopeType;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.model.ScopeType;
 
 public class ApiClientAppScope extends ApiScope {
 
@@ -35,8 +34,6 @@ public class ApiClientAppScope extends ApiScope {
 
     @Override
     public Set<String> getAuthorities() {
-        return Stream.of(Config.R_ADMIN, Config.R_DEVELOPER)
-                .collect(Collectors.toCollection(HashSet::new));
+        return Stream.of(Config.R_ADMIN, Config.R_DEVELOPER).collect(Collectors.toCollection(HashSet::new));
     }
-
 }

@@ -1,5 +1,7 @@
 package it.smartcommunitylab.aac.core.auth;
 
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
@@ -9,12 +11,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
-
 /*
  * An authenticationToken holding both the provider token and a resolved identity
- * 
+ *
  */
 
 public class ExtendedAuthenticationToken extends AbstractAuthenticationToken {
@@ -31,11 +30,16 @@ public class ExtendedAuthenticationToken extends AbstractAuthenticationToken {
 
     private final Instant issuedAt;
     private final Instant expiresAt;
+
     // TODO add validity checks
 
-    public ExtendedAuthenticationToken(String authority, String provider, String realm,
-            UserAuthenticatedPrincipal principal,
-            Authentication token) {
+    public ExtendedAuthenticationToken(
+        String authority,
+        String provider,
+        String realm,
+        UserAuthenticatedPrincipal principal,
+        Authentication token
+    ) {
         super(Collections.emptyList());
         this.token = token;
         this.principal = principal;
@@ -47,9 +51,14 @@ public class ExtendedAuthenticationToken extends AbstractAuthenticationToken {
         this.expiresAt = null;
     }
 
-    public ExtendedAuthenticationToken(String authority, String provider, String realm,
-            UserAuthenticatedPrincipal principal,
-            Authentication token, Instant expiresAt) {
+    public ExtendedAuthenticationToken(
+        String authority,
+        String provider,
+        String realm,
+        UserAuthenticatedPrincipal principal,
+        Authentication token,
+        Instant expiresAt
+    ) {
         super(Collections.emptyList());
         this.token = token;
         this.principal = principal;
@@ -65,10 +74,14 @@ public class ExtendedAuthenticationToken extends AbstractAuthenticationToken {
         }
     }
 
-    public ExtendedAuthenticationToken(String authority, String provider, String realm,
-            UserAuthenticatedPrincipal principal,
-            Authentication token,
-            Collection<GrantedAuthority> authorities) {
+    public ExtendedAuthenticationToken(
+        String authority,
+        String provider,
+        String realm,
+        UserAuthenticatedPrincipal principal,
+        Authentication token,
+        Collection<GrantedAuthority> authorities
+    ) {
         super(authorities);
         this.token = token;
         this.principal = principal;
@@ -80,10 +93,15 @@ public class ExtendedAuthenticationToken extends AbstractAuthenticationToken {
         this.expiresAt = null;
     }
 
-    public ExtendedAuthenticationToken(String authority, String provider, String realm,
-            UserAuthenticatedPrincipal principal,
-            Authentication token, Instant expiresAt,
-            Collection<GrantedAuthority> authorities) {
+    public ExtendedAuthenticationToken(
+        String authority,
+        String provider,
+        String realm,
+        UserAuthenticatedPrincipal principal,
+        Authentication token,
+        Instant expiresAt,
+        Collection<GrantedAuthority> authorities
+    ) {
         super(authorities);
         this.token = token;
         this.principal = principal;
@@ -120,7 +138,7 @@ public class ExtendedAuthenticationToken extends AbstractAuthenticationToken {
 
     @Override
     public Object getCredentials() {
-// no credentials exposed, refer to embedded token
+        // no credentials exposed, refer to embedded token
         return null;
     }
 
@@ -193,28 +211,19 @@ public class ExtendedAuthenticationToken extends AbstractAuthenticationToken {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (!super.equals(obj))
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (!super.equals(obj)) return false;
+        if (getClass() != obj.getClass()) return false;
         ExtendedAuthenticationToken other = (ExtendedAuthenticationToken) obj;
         if (authority == null) {
-            if (other.authority != null)
-                return false;
-        } else if (!authority.equals(other.authority))
-            return false;
+            if (other.authority != null) return false;
+        } else if (!authority.equals(other.authority)) return false;
         if (provider == null) {
-            if (other.provider != null)
-                return false;
-        } else if (!provider.equals(other.provider))
-            return false;
+            if (other.provider != null) return false;
+        } else if (!provider.equals(other.provider)) return false;
         if (token == null) {
-            if (other.token != null)
-                return false;
-        } else if (!token.equals(other.token))
-            return false;
+            if (other.token != null) return false;
+        } else if (!token.equals(other.token)) return false;
         return true;
     }
 
@@ -225,7 +234,7 @@ public class ExtendedAuthenticationToken extends AbstractAuthenticationToken {
 
         sb.append("Authority: ").append(this.getAuthority()).append("; ");
         sb.append("Provider: ").append(this.getProvider()).append("; ");
-// token
+        // token
         sb.append("Principal: ").append(this.getPrincipal()).append("; ");
         sb.append("Credentials: [PROTECTED]; ");
         sb.append("Authenticated: ").append(this.isAuthenticated()).append("; ");

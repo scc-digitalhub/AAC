@@ -1,15 +1,5 @@
 package it.smartcommunitylab.aac.webauthn.provider;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
-import javax.servlet.Filter;
-
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.util.Assert;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.RequestAwareAuthenticationSuccessHandler;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
@@ -18,6 +8,13 @@ import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
 import it.smartcommunitylab.aac.webauthn.auth.WebAuthnAuthenticationFilter;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnLoginRpService;
 import it.smartcommunitylab.aac.webauthn.store.WebAuthnAssertionRequestStore;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import javax.servlet.Filter;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.util.Assert;
 
 public class WebAuthnIdentityFilterProvider implements FilterProvider {
 
@@ -29,9 +26,10 @@ public class WebAuthnIdentityFilterProvider implements FilterProvider {
     private AuthenticationManager authManager;
 
     public WebAuthnIdentityFilterProvider(
-            WebAuthnLoginRpService rpService,
-            ProviderConfigRepository<WebAuthnIdentityProviderConfig> registrationRepository,
-            WebAuthnAssertionRequestStore requestStore) {
+        WebAuthnLoginRpService rpService,
+        ProviderConfigRepository<WebAuthnIdentityProviderConfig> registrationRepository,
+        WebAuthnAssertionRequestStore requestStore
+    ) {
         Assert.notNull(rpService, "webauthn rp service is mandatory");
         Assert.notNull(registrationRepository, "registration repository is mandatory");
         Assert.notNull(requestStore, "webauthn request store is mandatory");
@@ -53,9 +51,11 @@ public class WebAuthnIdentityFilterProvider implements FilterProvider {
 
     @Override
     public List<Filter> getAuthFilters() {
-
-        WebAuthnAuthenticationFilter loginFilter = new WebAuthnAuthenticationFilter(rpService, requestStore,
-                registrationRepository);
+        WebAuthnAuthenticationFilter loginFilter = new WebAuthnAuthenticationFilter(
+            rpService,
+            requestStore,
+            registrationRepository
+        );
         loginFilter.setAuthenticationSuccessHandler(successHandler());
 
         if (authManager != null) {
@@ -76,12 +76,9 @@ public class WebAuthnIdentityFilterProvider implements FilterProvider {
     }
 
     // TODO define in detail urls
-    private static String[] NO_CORS_ENDPOINTS = {
-            WebAuthnIdentityAuthority.AUTHORITY_URL + "**"
-    };
+    private static String[] NO_CORS_ENDPOINTS = { WebAuthnIdentityAuthority.AUTHORITY_URL + "**" };
 
     private RequestAwareAuthenticationSuccessHandler successHandler() {
         return new RequestAwareAuthenticationSuccessHandler();
     }
-
 }

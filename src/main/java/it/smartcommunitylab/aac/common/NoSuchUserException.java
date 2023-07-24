@@ -21,5 +21,4 @@ public class NoSuchUserException extends Exception {
     public NoSuchUserException(String message, Throwable cause) {
         super(message, cause);
     }
-
 }

@@ -1,15 +1,13 @@
 package it.smartcommunitylab.aac.oauth.auth;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
-
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
 import org.springframework.util.Assert;
-
-import it.smartcommunitylab.aac.SystemKeys;
 
 public class DefaultOAuth2AuthenticatedPrincipal implements OAuth2AuthenticatedPrincipal, Serializable {
 
@@ -23,8 +21,12 @@ public class DefaultOAuth2AuthenticatedPrincipal implements OAuth2AuthenticatedP
 
     private final Collection<GrantedAuthority> authorities;
 
-    public DefaultOAuth2AuthenticatedPrincipal(String realm, String name, Map<String, Object> attributes,
-            Collection<GrantedAuthority> authorities) {
+    public DefaultOAuth2AuthenticatedPrincipal(
+        String realm,
+        String name,
+        Map<String, Object> attributes,
+        Collection<GrantedAuthority> authorities
+    ) {
         Assert.notEmpty(attributes, "attributes cannot be empty");
 
         this.realm = (realm != null ? realm : (String) attributes.get("realm"));
@@ -52,5 +54,4 @@ public class DefaultOAuth2AuthenticatedPrincipal implements OAuth2AuthenticatedP
     public String getRealm() {
         return realm;
     }
-
 }

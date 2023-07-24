@@ -1,15 +1,13 @@
 package it.smartcommunitylab.aac.core.model;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import java.util.Collection;
 import java.util.Map;
 
-import it.smartcommunitylab.aac.SystemKeys;
-
 /*
- * A template handles localizable and customizable content for the UI 
+ * A template handles localizable and customizable content for the UI
  */
 public interface Template extends Resource {
-
     public String getTemplate();
 
     public String getLanguage();

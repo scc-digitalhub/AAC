@@ -1,14 +1,11 @@
 package it.smartcommunitylab.aac.model;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import java.io.Serializable;
-
 import javax.validation.constraints.Size;
-
 import org.springframework.security.core.AuthenticatedPrincipal;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
-import it.smartcommunitylab.aac.SystemKeys;
 
 //TODO remove authPrincipal from here and split to SubjectAuthenticatedPrincipal
 public class Subject implements AuthenticatedPrincipal, Serializable {
@@ -64,18 +61,13 @@ public class Subject implements AuthenticatedPrincipal, Serializable {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         Subject other = (Subject) obj;
         if (subjectId == null) {
-            if (other.subjectId != null)
-                return false;
-        } else if (!subjectId.equals(other.subjectId))
-            return false;
+            if (other.subjectId != null) return false;
+        } else if (!subjectId.equals(other.subjectId)) return false;
         return true;
     }
 
@@ -83,5 +75,4 @@ public class Subject implements AuthenticatedPrincipal, Serializable {
     public String toString() {
         return "Subject [subjectId=" + subjectId + ", realm=" + realm + ", name=" + name + "]";
     }
-
 }

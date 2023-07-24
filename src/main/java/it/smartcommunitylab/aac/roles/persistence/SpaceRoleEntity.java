@@ -9,10 +9,12 @@ import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 
 @Entity
-@Table(name = "space_roles", uniqueConstraints = @UniqueConstraint(columnNames = { "subject_id", "context", "space",
-        "role",
-}))
+@Table(
+    name = "space_roles",
+    uniqueConstraints = @UniqueConstraint(columnNames = { "subject_id", "context", "space", "role" })
+)
 public class SpaceRoleEntity {
+
     @Id
     @GeneratedValue
     private Long id;
@@ -86,34 +88,22 @@ public class SpaceRoleEntity {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         SpaceRoleEntity other = (SpaceRoleEntity) obj;
         if (context == null) {
-            if (other.context != null)
-                return false;
-        } else if (!context.equals(other.context))
-            return false;
+            if (other.context != null) return false;
+        } else if (!context.equals(other.context)) return false;
         if (role == null) {
-            if (other.role != null)
-                return false;
-        } else if (!role.equals(other.role))
-            return false;
+            if (other.role != null) return false;
+        } else if (!role.equals(other.role)) return false;
         if (space == null) {
-            if (other.space != null)
-                return false;
-        } else if (!space.equals(other.space))
-            return false;
+            if (other.space != null) return false;
+        } else if (!space.equals(other.space)) return false;
         if (subject == null) {
-            if (other.subject != null)
-                return false;
-        } else if (!subject.equals(other.subject))
-            return false;
+            if (other.subject != null) return false;
+        } else if (!subject.equals(other.subject)) return false;
         return true;
     }
-
 }

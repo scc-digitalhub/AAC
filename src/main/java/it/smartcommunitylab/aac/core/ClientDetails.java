@@ -1,18 +1,16 @@
 package it.smartcommunitylab.aac.core;
 
+import it.smartcommunitylab.aac.core.model.ClientAttributes;
+import it.smartcommunitylab.aac.model.Group;
+import it.smartcommunitylab.aac.model.RealmRole;
+import it.smartcommunitylab.aac.model.SpaceRole;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.Assert;
-
-import it.smartcommunitylab.aac.core.model.ClientAttributes;
-import it.smartcommunitylab.aac.model.Group;
-import it.smartcommunitylab.aac.model.RealmRole;
-import it.smartcommunitylab.aac.model.SpaceRole;
 
 public class ClientDetails {
 
@@ -70,9 +68,11 @@ public class ClientDetails {
     private final boolean enabled;
 
     public ClientDetails(
-            String clientId, String realm,
-            String type,
-            Collection<? extends GrantedAuthority> authorities) {
+        String clientId,
+        String realm,
+        String type,
+        Collection<? extends GrantedAuthority> authorities
+    ) {
         Assert.notNull(clientId, "clientId can not be null");
         Assert.notNull(realm, "realm can not be null");
         Assert.notNull(type, "type is required");
@@ -86,7 +86,6 @@ public class ClientDetails {
 
         this.realmRoles = new HashSet<>();
         this.spaceRoles = new HashSet<>();
-
     }
 
     public Collection<String> getProviders() {
@@ -217,5 +216,4 @@ public class ClientDetails {
         this.groups = new HashSet<>();
         this.groups.addAll(groups);
     }
-
 }

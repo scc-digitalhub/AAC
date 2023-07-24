@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2015 Fondazione Bruno Kessler
- * 
+ *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
  *    You may obtain a copy of the License at
- * 
+ *
  *        http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  *    Unless required by applicable law or agreed to in writing, software
  *    distributed under the License is distributed on an "AS IS" BASIS,
  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,6 +16,14 @@
 
 package it.smartcommunitylab.aac.oauth.model;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import it.smartcommunitylab.aac.repository.StringArraySerializer;
+import it.smartcommunitylab.aac.repository.StringOrArraySerializer;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
@@ -25,20 +33,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
-import it.smartcommunitylab.aac.repository.StringArraySerializer;
-import it.smartcommunitylab.aac.repository.StringOrArraySerializer;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
  * IETF RFC7662 Token Introspection model
- * 
+ *
  * @author raman
  *
  */
@@ -225,7 +222,10 @@ public class TokenIntrospection {
     }
 
     public void setClaims(Map<String, Serializable> claims) {
-        this.claims = claims.entrySet().stream()
+        this.claims =
+            claims
+                .entrySet()
+                .stream()
                 .filter(c -> !RESERVED_CLAIM_NAMES.contains(c.getKey()))
                 .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
     }

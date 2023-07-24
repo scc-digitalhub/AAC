@@ -1,14 +1,14 @@
 package it.smartcommunitylab.aac.common;
 
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.util.Assert;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.internal.auth.InternalAuthenticationException;
 import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticationException;
 import it.smartcommunitylab.aac.saml.auth.SamlAuthenticationException;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.util.Assert;
 
 public class LoginException extends AuthenticationException {
+
     private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
 
     private final String error;
@@ -45,7 +45,6 @@ public class LoginException extends AuthenticationException {
     }
 
     public static LoginException translate(AuthenticationException e) {
-
         if (e instanceof SamlAuthenticationException) {
             return translate((SamlAuthenticationException) e);
         }
@@ -63,12 +62,10 @@ public class LoginException extends AuthenticationException {
             error = error.substring(0, error.length() - R_SUFFIX.length());
         }
         return new LoginException(error, e);
-
     }
 
     // regex to convert camelCase to snake_case
-    private final static String R_REGEX = "([a-z])([A-Z]+)";
-    private final static String R_REPL = "$1_$2";
-    private final static String R_SUFFIX = "_exception";
-
+    private static final String R_REGEX = "([a-z])([A-Z]+)";
+    private static final String R_REPL = "$1_$2";
+    private static final String R_SUFFIX = "_exception";
 }

@@ -1,18 +1,16 @@
 package it.smartcommunitylab.aac.webauthn.store;
 
+import com.yubico.webauthn.AssertionRequest;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-
 import org.springframework.util.Assert;
-
-import com.yubico.webauthn.AssertionRequest;
 
 /*
  * In memory local request store
- * 
+ *
  */
 public class InMemoryWebAuthnAssertionRequestStore implements WebAuthnAssertionRequestStore {
 
@@ -60,5 +58,4 @@ public class InMemoryWebAuthnAssertionRequestStore implements WebAuthnAssertionR
         // TODO evaluate consistent hashing for key generation
         return UUID.randomUUID().toString();
     }
-
 }

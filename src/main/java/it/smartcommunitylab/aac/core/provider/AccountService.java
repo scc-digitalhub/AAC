@@ -1,7 +1,5 @@
 package it.smartcommunitylab.aac.core.provider;
 
-import org.springframework.lang.Nullable;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
@@ -9,42 +7,44 @@ import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableAccountProvider;
 import it.smartcommunitylab.aac.core.model.EditableUserAccount;
 import it.smartcommunitylab.aac.core.model.UserAccount;
+import org.springframework.lang.Nullable;
 
 //TODO split editable into own service
-public interface AccountService<U extends UserAccount, E extends EditableUserAccount, M extends ConfigMap, C extends AccountServiceConfig<M>>
-        extends ConfigurableResourceProvider<U, ConfigurableAccountProvider, M, C>, AccountProvider<U> {
-
+public interface AccountService<
+    U extends UserAccount, E extends EditableUserAccount, M extends ConfigMap, C extends AccountServiceConfig<M>
+>
+    extends ConfigurableResourceProvider<U, ConfigurableAccountProvider, M, C>, AccountProvider<U> {
     /*
      * Editable accounts from this provider
-     * 
+     *
      * accountId is local to provider.
      * Editable account are user-editable
      */
     public E getEditableAccount(String userId, String accountId) throws NoSuchUserException;
 
     public E registerAccount(@Nullable String userId, EditableUserAccount account)
-            throws NoSuchUserException, RegistrationException;
+        throws NoSuchUserException, RegistrationException;
 
     public E editAccount(String userId, String accountId, EditableUserAccount account)
-            throws NoSuchUserException, RegistrationException;
+        throws NoSuchUserException, RegistrationException;
 
     /*
      * Manage accounts from this provider
-     * 
+     *
      * accountId is local to provider.
      * Editable account are user-editable
      */
     public U createAccount(@Nullable String userId, @Nullable String accountId, UserAccount account)
-            throws NoSuchUserException, RegistrationException;
+        throws NoSuchUserException, RegistrationException;
 
     public U updateAccount(String userId, String accountId, UserAccount account)
-            throws NoSuchUserException, RegistrationException;
+        throws NoSuchUserException, RegistrationException;
 
     /*
      * Account confirmation
-     * 
+     *
      * verify will trigger account verification via provider
-     * 
+     *
      * confirm/unconfirm directly change status
      */
 
@@ -60,9 +60,9 @@ public interface AccountService<U extends UserAccount, E extends EditableUserAcc
 
     public String getRegistrationUrl();
 
-//    public RegistrationProvider getRegistrationProvider();
+    //    public RegistrationProvider getRegistrationProvider();
 
-    default public String getType() {
+    public default String getType() {
         return SystemKeys.RESOURCE_ACCOUNT;
     }
 }

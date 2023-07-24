@@ -1,11 +1,11 @@
 package it.smartcommunitylab.aac.oauth.auth;
 
-import javax.servlet.http.HttpServletRequest;
-
 import it.smartcommunitylab.aac.core.auth.ClientAuthenticationConverter;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
+import javax.servlet.http.HttpServletRequest;
 
 public abstract class OAuth2ClientAuthenticationConverter implements ClientAuthenticationConverter {
+
     @Override
     public OAuth2ClientAuthenticationToken convert(HttpServletRequest request) {
         OAuth2ClientAuthenticationToken token = attemptConvert(request);
@@ -18,7 +18,6 @@ public abstract class OAuth2ClientAuthenticationConverter implements ClientAuthe
         token.setDetails(webAuthenticationDetails);
 
         return token;
-
     }
 
     protected abstract OAuth2ClientAuthenticationToken attemptConvert(HttpServletRequest request);

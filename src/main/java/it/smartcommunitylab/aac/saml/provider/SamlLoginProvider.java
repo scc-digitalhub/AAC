@@ -1,9 +1,8 @@
 package it.smartcommunitylab.aac.saml.provider;
 
-import org.apache.commons.lang3.ArrayUtils;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractLoginProvider;
+import org.apache.commons.lang3.ArrayUtils;
 
 public class SamlLoginProvider extends AbstractLoginProvider {
 
@@ -13,7 +12,6 @@ public class SamlLoginProvider extends AbstractLoginProvider {
 
     public SamlLoginProvider(String authority, String provider, String realm, String name) {
         super(authority, provider, realm, name);
-
         // default config
         setTemplate("button");
 
@@ -31,8 +29,5 @@ public class SamlLoginProvider extends AbstractLoginProvider {
         setIconUrl(iconUrl);
     }
 
-    public static final String[] ICONS = {
-            "google", "facebook", "github", "microsoft", "apple", "instagram"
-    };
-
+    public static final String[] ICONS = { "google", "facebook", "github", "microsoft", "apple", "instagram" };
 }

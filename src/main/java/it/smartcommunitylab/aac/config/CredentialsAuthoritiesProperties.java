@@ -1,11 +1,11 @@
 package it.smartcommunitylab.aac.config;
 
-import org.springframework.boot.context.properties.NestedConfigurationProperty;
-
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfigMap;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 public class CredentialsAuthoritiesProperties {
+
     // TODO add enable//disable flag on authorities
 
     @NestedConfigurationProperty
@@ -29,5 +29,4 @@ public class CredentialsAuthoritiesProperties {
     public void setWebauthn(WebAuthnIdentityProviderConfigMap webauthn) {
         this.webauthn = webauthn;
     }
-
 }

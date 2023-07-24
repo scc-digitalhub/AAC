@@ -1,8 +1,5 @@
 package it.smartcommunitylab.aac.attributes;
 
-import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.provider.WebhookAttributeProvider;
 import it.smartcommunitylab.aac.attributes.provider.WebhookAttributeProviderConfig;
@@ -15,18 +12,21 @@ import it.smartcommunitylab.aac.attributes.store.NullAttributeStore;
 import it.smartcommunitylab.aac.attributes.store.PersistentAttributeStore;
 import it.smartcommunitylab.aac.core.base.AbstractAttributeAuthority;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 @Service
-public class WebhookAttributeAuthority extends
-        AbstractAttributeAuthority<WebhookAttributeProvider, WebhookAttributeProviderConfigMap, WebhookAttributeProviderConfig> {
+public class WebhookAttributeAuthority
+    extends AbstractAttributeAuthority<WebhookAttributeProvider, WebhookAttributeProviderConfigMap, WebhookAttributeProviderConfig> {
 
     // system attributes store
     protected final AutoJdbcAttributeStore jdbcAttributeStore;
 
     public WebhookAttributeAuthority(
-            AttributeService attributeService,
-            AutoJdbcAttributeStore jdbcAttributeStore,
-            ProviderConfigRepository<WebhookAttributeProviderConfig> registrationRepository) {
+        AttributeService attributeService,
+        AutoJdbcAttributeStore jdbcAttributeStore,
+        ProviderConfigRepository<WebhookAttributeProviderConfig> registrationRepository
+    ) {
         super(SystemKeys.AUTHORITY_WEBHOOK, attributeService, registrationRepository);
         Assert.notNull(jdbcAttributeStore, "attribute store is mandatory");
 
@@ -38,10 +38,12 @@ public class WebhookAttributeAuthority extends
         AttributeStore attributeStore = getAttributeStore(config.getProvider(), config.getPersistence());
 
         WebhookAttributeProvider ap = new WebhookAttributeProvider(
-                config.getProvider(),
-                attributeService, attributeStore,
-                config,
-                config.getRealm());
+            config.getProvider(),
+            attributeService,
+            attributeStore,
+            config,
+            config.getRealm()
+        );
 
         return ap;
     }
@@ -61,5 +63,4 @@ public class WebhookAttributeAuthority extends
 
         return store;
     }
-
 }

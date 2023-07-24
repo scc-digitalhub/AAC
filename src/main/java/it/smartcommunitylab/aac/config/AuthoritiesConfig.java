@@ -1,11 +1,5 @@
 package it.smartcommunitylab.aac.config;
 
-import java.util.Collection;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
-import org.springframework.util.StringUtils;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
@@ -20,6 +14,12 @@ import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
+import java.util.Collection;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.util.StringUtils;
 
 /*
  * Authorities configuration
@@ -42,17 +42,15 @@ public class AuthoritiesConfig {
 
     @Bean
     public IdentityProviderAuthorityService identityProviderAuthorityService(
-            Collection<IdentityProviderAuthority<?, ?, ?, ?>> authorities,
-            IdentityAuthoritiesProperties authsProps) {
-
+        Collection<IdentityProviderAuthority<?, ?, ?, ?>> authorities,
+        IdentityAuthoritiesProperties authsProps
+    ) {
         // build a service with default from autowiring
         IdentityProviderAuthorityService service = new IdentityProviderAuthorityService(authorities);
 
         // load custom authorities and build
         if (authsProps.getCustom() != null) {
-
             for (CustomAuthoritiesProperties authProp : authsProps.getCustom()) {
-
                 // read props
                 String id = authProp.getId();
                 String name = authProp.getName();
@@ -65,16 +63,20 @@ public class AuthoritiesConfig {
                     if (authProp.getOidc() != null) {
                         // build oidc config provider
                         OIDCIdentityProviderConfigMap configMap = authProp.getOidc();
-                        OIDCIdentityConfigurationProvider configProvider = new OIDCIdentityConfigurationProvider(id,
-                                configMap);
+                        OIDCIdentityConfigurationProvider configProvider = new OIDCIdentityConfigurationProvider(
+                            id,
+                            configMap
+                        );
 
                         // build config repositories
-                        ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository = new InMemoryProviderConfigRepository<>();
+                        ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository =
+                            new InMemoryProviderConfigRepository<>();
                         // instantiate authority
                         OIDCIdentityAuthority auth = new OIDCIdentityAuthority(
-                                id,
-                                oidcUserAccountService,
-                                registrationRepository);
+                            id,
+                            oidcUserAccountService,
+                            registrationRepository
+                        );
 
                         auth.setConfigProvider(configProvider);
                         auth.setExecutionService(executionService);
@@ -85,18 +87,17 @@ public class AuthoritiesConfig {
 
                         // also register connected account service
                         OIDCAccountServiceAuthority aauth = new OIDCAccountServiceAuthority(
-                                id, oidcUserAccountService, registrationRepository);
+                            id,
+                            oidcUserAccountService,
+                            registrationRepository
+                        );
                         aauth.setResourceService(resourceService);
                         accountServiceAuthorityService.registerAuthority(aauth);
-
                     }
                 }
             }
-
         }
 
         return service;
-
     }
-
 }

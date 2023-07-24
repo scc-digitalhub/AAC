@@ -1,8 +1,5 @@
 package it.smartcommunitylab.aac.templates.provider;
 
-import java.util.HashMap;
-import java.util.UUID;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractTemplateProvider;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
@@ -15,18 +12,23 @@ import it.smartcommunitylab.aac.templates.model.LoginTemplate;
 import it.smartcommunitylab.aac.templates.model.TemplateModel;
 import it.smartcommunitylab.aac.templates.model.UserApprovalTemplate;
 import it.smartcommunitylab.aac.templates.service.TemplateService;
+import java.util.HashMap;
+import java.util.UUID;
 
 public class TemplateTemplateProvider
-        extends
-        AbstractTemplateProvider<TemplateModel, TemplateProviderConfigMap, RealmTemplateProviderConfig> {
+    extends AbstractTemplateProvider<TemplateModel, TemplateProviderConfigMap, RealmTemplateProviderConfig> {
 
     private final Resource resource;
     private final InternalUserAccount account;
     private final OAuth2ClientDetails clientDetails;
 
-    public TemplateTemplateProvider(String providerId,
-            TemplateService templateService, Resource oauthResource,
-            RealmTemplateProviderConfig providerConfig, String realm) {
+    public TemplateTemplateProvider(
+        String providerId,
+        TemplateService templateService,
+        Resource oauthResource,
+        RealmTemplateProviderConfig providerConfig,
+        String realm
+    ) {
         super(SystemKeys.AUTHORITY_TEMPLATE, providerId, templateService, providerConfig, realm);
         // TODO mock user from props
         this.resource = oauthResource != null ? oauthResource : new OpenIdResource();
@@ -47,20 +49,24 @@ public class TemplateTemplateProvider
 
         factories = new HashMap<>();
         factories.put(LoginTemplate.TEMPLATE, () -> new LoginTemplate(realm));
-        factories.put(EndSessionTemplate.TEMPLATE, () -> {
-            TemplateModel m = new EndSessionTemplate(realm);
-            m.setModelAttribute("account", account);
-            return m;
-        });
-        factories.put(UserApprovalTemplate.TEMPLATE, () -> {
-            TemplateModel m = new UserApprovalTemplate(realm);
-            m.setModelAttribute("account", account);
-            m.setModelAttribute("client", clientDetails);
-            m.setModelAttribute("resources", resource.getScopes());
-            return m;
-        });
+        factories.put(
+            EndSessionTemplate.TEMPLATE,
+            () -> {
+                TemplateModel m = new EndSessionTemplate(realm);
+                m.setModelAttribute("account", account);
+                return m;
+            }
+        );
+        factories.put(
+            UserApprovalTemplate.TEMPLATE,
+            () -> {
+                TemplateModel m = new UserApprovalTemplate(realm);
+                m.setModelAttribute("account", account);
+                m.setModelAttribute("client", clientDetails);
+                m.setModelAttribute("resources", resource.getScopes());
+                return m;
+            }
+        );
         factories.put(FooterTemplate.TEMPLATE, () -> new FooterTemplate(realm));
-
     }
-
 }

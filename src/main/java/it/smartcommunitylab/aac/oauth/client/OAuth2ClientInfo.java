@@ -1,26 +1,25 @@
 package it.smartcommunitylab.aac.oauth.client;
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import it.smartcommunitylab.aac.SystemKeys;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 /*
- * Additional information holder with mapping 
- * 
+ * Additional information holder with mapping
+ *
  * Stores extra information about oauth2 clients
  */
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class OAuth2ClientInfo implements Serializable {
+
     private static final long serialVersionUID = SystemKeys.AAC_OAUTH2_SERIAL_VERSION;
 
     private static ObjectMapper mapper = new ObjectMapper();
@@ -31,9 +30,9 @@ public class OAuth2ClientInfo implements Serializable {
     private String displayName;
 
     // TODO add extra configuration
-//    static {
-//        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-//    }
+    //    static {
+    //        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    //    }
 
     @SuppressWarnings("unchecked")
     public static Map<String, Serializable> read(String additionalInformation) {
@@ -74,5 +73,4 @@ public class OAuth2ClientInfo implements Serializable {
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
     }
-
 }

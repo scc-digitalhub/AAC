@@ -1,9 +1,5 @@
 package it.smartcommunitylab.aac.profiles.extractor;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.stream.Collectors;
-
 import it.smartcommunitylab.aac.attributes.BasicAttributesSet;
 import it.smartcommunitylab.aac.attributes.EmailAttributesSet;
 import it.smartcommunitylab.aac.attributes.OpenIdAttributesSet;
@@ -13,6 +9,9 @@ import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.profiles.model.EmailProfile;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.stream.Collectors;
 
 public class EmailProfileExtractor extends AbstractUserProfileExtractor {
 
@@ -22,9 +21,7 @@ public class EmailProfileExtractor extends AbstractUserProfileExtractor {
     }
 
     @Override
-    public EmailProfile extractUserProfile(User user)
-            throws InvalidDefinitionException {
-
+    public EmailProfile extractUserProfile(User user) throws InvalidDefinitionException {
         // fetch identities
         Collection<UserIdentity> identities = user.getIdentities();
 
@@ -64,14 +61,26 @@ public class EmailProfileExtractor extends AbstractUserProfileExtractor {
         EmailProfile profile = new EmailProfile();
 
         String email = getStringAttribute(
-                getAttribute(attributes, EmailAttributesSet.EMAIL, EmailAttributesSet.IDENTIFIER,
-                        BasicAttributesSet.IDENTIFIER, OpenIdAttributesSet.IDENTIFIER,
-                        "profile"));
+            getAttribute(
+                attributes,
+                EmailAttributesSet.EMAIL,
+                EmailAttributesSet.IDENTIFIER,
+                BasicAttributesSet.IDENTIFIER,
+                OpenIdAttributesSet.IDENTIFIER,
+                "profile"
+            )
+        );
         profile.setEmail(email);
 
         Boolean emailVerified = getBooleanAttribute(
-                getAttribute(attributes, EmailAttributesSet.EMAIL_VERIFIED, EmailAttributesSet.IDENTIFIER,
-                        OpenIdAttributesSet.IDENTIFIER, "profile"));
+            getAttribute(
+                attributes,
+                EmailAttributesSet.EMAIL_VERIFIED,
+                EmailAttributesSet.IDENTIFIER,
+                OpenIdAttributesSet.IDENTIFIER,
+                "profile"
+            )
+        );
         profile.setEmailVerified(emailVerified);
 
         return profile;

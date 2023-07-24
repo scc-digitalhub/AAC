@@ -28,5 +28,4 @@ public class NumberClaim extends AbstractClaim {
     public void setValue(Number value) {
         this.value = value;
     }
-
 }

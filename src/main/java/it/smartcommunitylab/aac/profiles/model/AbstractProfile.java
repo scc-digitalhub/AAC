@@ -1,14 +1,13 @@
 package it.smartcommunitylab.aac.profiles.model;
 
-import java.io.Serializable;
-import java.util.HashMap;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import it.smartcommunitylab.aac.SystemKeys;
+import java.io.Serializable;
+import java.util.HashMap;
 
 @JsonInclude(Include.NON_EMPTY)
 public abstract class AbstractProfile implements Serializable {
@@ -16,8 +15,8 @@ public abstract class AbstractProfile implements Serializable {
     private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
 
     private static ObjectMapper mapper = new ObjectMapper();
-    private final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
-    };
+    private static final TypeReference<HashMap<String, Serializable>> typeRef =
+        new TypeReference<HashMap<String, Serializable>>() {};
 
     static {
         mapper.setSerializationInclusion(Include.NON_EMPTY);
@@ -53,5 +52,4 @@ public abstract class AbstractProfile implements Serializable {
             throw new IllegalArgumentException(e.getMessage());
         }
     }
-
 }

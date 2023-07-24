@@ -1,40 +1,40 @@
 package it.smartcommunitylab.aac.internal.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.databind.JsonNode;
+import io.swagger.v3.oas.annotations.media.Schema;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.base.AbstractEditableAccount;
+import it.smartcommunitylab.aac.repository.JsonSchemaIgnore;
 import java.util.Date;
-
 import javax.validation.Valid;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.databind.JsonNode;
-
-import io.swagger.v3.oas.annotations.media.Schema;
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractEditableAccount;
-import it.smartcommunitylab.aac.repository.JsonSchemaIgnore;
-
 @Valid
 @JsonInclude(Include.ALWAYS)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonPropertyOrder({ "username", "email", "name", "surname", "lang" })
 public class InternalEditableUserAccount extends AbstractEditableAccount {
+
     private static final long serialVersionUID = SystemKeys.AAC_INTERNAL_SERIAL_VERSION;
-    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_ACCOUNT + SystemKeys.ID_SEPARATOR
-            + SystemKeys.AUTHORITY_INTERNAL;
+    public static final String RESOURCE_TYPE =
+        SystemKeys.RESOURCE_ACCOUNT + SystemKeys.ID_SEPARATOR + SystemKeys.AUTHORITY_INTERNAL;
 
     private static final JsonNode schema;
+
     static {
         schema = generator.generateSchema(InternalEditableUserAccount.class);
     }
+
     // properties
-//    @Schema(name = "username", title = "field.username", description = "description.username")
-//    @NotBlank
+    //    @Schema(name = "username", title = "field.username", description = "description.username")
+    //    @NotBlank
     // NOT editable for now
     @JsonSchemaIgnore
     private String username;
@@ -146,5 +146,4 @@ public class InternalEditableUserAccount extends AbstractEditableAccount {
     public void setModifiedDate(Date modifiedDate) {
         this.modifiedDate = modifiedDate;
     }
-
 }

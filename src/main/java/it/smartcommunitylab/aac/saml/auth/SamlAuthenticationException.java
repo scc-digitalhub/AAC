@@ -1,10 +1,11 @@
 package it.smartcommunitylab.aac.saml.auth;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.saml2.core.Saml2Error;
-import it.smartcommunitylab.aac.SystemKeys;
 
 public class SamlAuthenticationException extends AuthenticationException {
+
     private static final long serialVersionUID = SystemKeys.AAC_SAML_SERIAL_VERSION;
 
     private final Saml2Error error;
@@ -20,7 +21,6 @@ public class SamlAuthenticationException extends AuthenticationException {
         this.error = error;
         saml2Request = null;
         saml2Response = null;
-
     }
 
     public SamlAuthenticationException(Saml2Error error, String message, String saml2Request, String saml2Response) {
@@ -45,5 +45,4 @@ public class SamlAuthenticationException extends AuthenticationException {
     public String getSaml2Response() {
         return saml2Response;
     }
-
 }

@@ -29,9 +29,7 @@ public class RealmRoleEntity {
     private String name;
     private String description;
 
-    public RealmRoleEntity() {
-
-    }
+    public RealmRoleEntity() {}
 
     public RealmRoleEntity(String id) {
         this.id = id;
@@ -76,5 +74,4 @@ public class RealmRoleEntity {
     public void setDescription(String description) {
         this.description = description;
     }
-
 }

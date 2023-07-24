@@ -1,14 +1,11 @@
 package it.smartcommunitylab.aac.model;
 
-import java.util.Collections;
-import java.util.Set;
-
-import javax.validation.constraints.NotBlank;
-
-import org.springframework.security.core.GrantedAuthority;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import java.util.Collections;
+import java.util.Set;
+import javax.validation.constraints.NotBlank;
+import org.springframework.security.core.GrantedAuthority;
 
 @JsonInclude(Include.NON_NULL)
 public class Developer {
@@ -85,39 +82,25 @@ public class Developer {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         Developer other = (Developer) obj;
         if (authorities == null) {
-            if (other.authorities != null)
-                return false;
-        } else if (!authorities.equals(other.authorities))
-            return false;
+            if (other.authorities != null) return false;
+        } else if (!authorities.equals(other.authorities)) return false;
         if (email == null) {
-            if (other.email != null)
-                return false;
-        } else if (!email.equals(other.email))
-            return false;
+            if (other.email != null) return false;
+        } else if (!email.equals(other.email)) return false;
         if (realm == null) {
-            if (other.realm != null)
-                return false;
-        } else if (!realm.equals(other.realm))
-            return false;
+            if (other.realm != null) return false;
+        } else if (!realm.equals(other.realm)) return false;
         if (subjectId == null) {
-            if (other.subjectId != null)
-                return false;
-        } else if (!subjectId.equals(other.subjectId))
-            return false;
+            if (other.subjectId != null) return false;
+        } else if (!subjectId.equals(other.subjectId)) return false;
         if (username == null) {
-            if (other.username != null)
-                return false;
-        } else if (!username.equals(other.username))
-            return false;
+            if (other.username != null) return false;
+        } else if (!username.equals(other.username)) return false;
         return true;
     }
-
 }

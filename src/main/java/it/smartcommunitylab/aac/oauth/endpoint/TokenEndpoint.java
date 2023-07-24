@@ -1,9 +1,21 @@
 package it.smartcommunitylab.aac.oauth.endpoint;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientAuthenticationToken;
+import it.smartcommunitylab.aac.oauth.common.ServerErrorException;
+import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
+import it.smartcommunitylab.aac.oauth.model.TokenResponse;
+import it.smartcommunitylab.aac.oauth.request.OAuth2TokenRequestFactory;
+import it.smartcommunitylab.aac.oauth.request.OAuth2TokenRequestValidator;
+import it.smartcommunitylab.aac.openid.common.IdToken;
+import it.smartcommunitylab.aac.openid.token.IdTokenServices;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -36,20 +48,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientAuthenticationToken;
-import it.smartcommunitylab.aac.oauth.common.ServerErrorException;
-import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
-import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
-import it.smartcommunitylab.aac.oauth.model.TokenResponse;
-import it.smartcommunitylab.aac.oauth.request.OAuth2TokenRequestFactory;
-import it.smartcommunitylab.aac.oauth.request.OAuth2TokenRequestValidator;
-import it.smartcommunitylab.aac.openid.common.IdToken;
-import it.smartcommunitylab.aac.openid.token.IdTokenServices;
-
 @Controller
 @Tag(name = "OAuth 2.0 Token Endpoint")
 public class TokenEndpoint implements InitializingBean {
@@ -80,14 +78,24 @@ public class TokenEndpoint implements InitializingBean {
         Assert.notNull(oauth2RequestValidator, "token request validator is required");
     }
 
-    @Operation(summary = "Get token", parameters = {}, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = {
-            @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = it.smartcommunitylab.aac.oauth.request.TokenRequest.class)) }))
+    @Operation(
+        summary = "Get token",
+        parameters = {},
+        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            content = {
+                @io.swagger.v3.oas.annotations.media.Content(
+                    schema = @io.swagger.v3.oas.annotations.media.Schema(
+                        implementation = it.smartcommunitylab.aac.oauth.request.TokenRequest.class
+                    )
+                ),
+            }
+        )
+    )
     @RequestMapping(value = { TOKEN_URL }, method = RequestMethod.POST)
     public ResponseEntity<TokenResponse> postAccessToken(
-            @RequestParam Map<String, String> parameters,
-            Authentication authentication)
-            throws ClientRegistrationException, OAuth2Exception, SystemException {
-
+        @RequestParam Map<String, String> parameters,
+        Authentication authentication
+    ) throws ClientRegistrationException, OAuth2Exception, SystemException {
         if (!(authentication instanceof OAuth2ClientAuthenticationToken) || !authentication.isAuthenticated()) {
             throw new InsufficientAuthenticationException("Invalid client authentication");
         }
@@ -109,10 +117,10 @@ public class TokenEndpoint implements InitializingBean {
             throw new InvalidClientException("Client id does not match authentication");
         }
 
-//        // validate realm accessibility for client
-//        if (!realm.equals(clientDetails.getRealm()) && !realm.equals(SystemKeys.REALM_COMMON)) {
-//            throw new UnauthorizedClientException("client is not authorized for realm " + realm);
-//        }
+        //        // validate realm accessibility for client
+        //        if (!realm.equals(clientDetails.getRealm()) && !realm.equals(SystemKeys.REALM_COMMON)) {
+        //            throw new UnauthorizedClientException("client is not authorized for realm " + realm);
+        //        }
 
         // check grantType
         AuthorizationGrantType authorizationGrantType = AuthorizationGrantType.parse(tokenRequest.getGrantType());
@@ -147,8 +155,9 @@ public class TokenEndpoint implements InitializingBean {
         // TODO check scopes in tokenrequest, but we need to fetch authorizationRequest
         // via factory
         // otherwise for authcode scope will be empty
-        if (authorizationGrantType == AuthorizationGrantType.AUTHORIZATION_CODE
-                && token.getScope().contains("openid")) {
+        if (
+            authorizationGrantType == AuthorizationGrantType.AUTHORIZATION_CODE && token.getScope().contains("openid")
+        ) {
             // we build id token independently of response_type
             // TODO make sure idToken is a match for the one returned in
             // authorizationResponse, except at_hash
@@ -161,7 +170,6 @@ public class TokenEndpoint implements InitializingBean {
             OAuth2Authentication oauth2Authentication = tokenServices.loadAuthentication(token.getValue());
 
             idToken = idTokenServices.createIdToken(oauth2Authentication, token);
-
         }
 
         // invalidate session now
@@ -232,7 +240,5 @@ public class TokenEndpoint implements InitializingBean {
         // exceptions have a predefined message
         ResponseEntity<OAuth2Exception> response = new ResponseEntity<OAuth2Exception>(e, headers, status);
         return response;
-
     }
-
 }

@@ -6,7 +6,6 @@ import javax.persistence.EntityListeners;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
-
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
@@ -26,11 +25,10 @@ public class SubjectEntity {
     // base
     @Column(length = 32)
     private String type;
+
     private String name;
 
-    protected SubjectEntity() {
-
-    }
+    protected SubjectEntity() {}
 
     public SubjectEntity(String subjectId) {
         super();
@@ -68,5 +66,4 @@ public class SubjectEntity {
     public void setType(String type) {
         this.type = type;
     }
-
 }

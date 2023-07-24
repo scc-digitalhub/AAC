@@ -1,9 +1,8 @@
 package it.smartcommunitylab.aac.core.base;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import java.util.Map;
 import java.util.Set;
-
-import it.smartcommunitylab.aac.SystemKeys;
 
 public abstract class BaseClient extends AbstractClient {
 
@@ -25,7 +24,6 @@ public abstract class BaseClient extends AbstractClient {
 
     public BaseClient(String realm, String clientId) {
         super(realm, clientId);
-
     }
 
     public String getName() {
@@ -91,5 +89,4 @@ public abstract class BaseClient extends AbstractClient {
     public void setHookUniqueSpaces(String hookUniqueSpaces) {
         this.hookUniqueSpaces = hookUniqueSpaces;
     }
-
 }

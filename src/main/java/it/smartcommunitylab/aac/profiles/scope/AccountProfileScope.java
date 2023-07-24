@@ -21,5 +21,4 @@ public class AccountProfileScope extends AbstractProfileScope {
     public String getDescription() {
         return "Account profile of the current platform user. Read access only.";
     }
-
 }

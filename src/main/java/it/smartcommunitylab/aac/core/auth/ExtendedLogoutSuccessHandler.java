@@ -1,14 +1,12 @@
 package it.smartcommunitylab.aac.core.auth;
 
+import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
-import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
 
 public class ExtendedLogoutSuccessHandler extends SimpleUrlLogoutSuccessHandler {
 
@@ -34,9 +32,11 @@ public class ExtendedLogoutSuccessHandler extends SimpleUrlLogoutSuccessHandler 
      * Redirect user to realm login, ignoring parameters referrals etc
      */
     @Override
-    protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response,
-            Authentication authentication) {
-
+    protected String determineTargetUrl(
+        HttpServletRequest request,
+        HttpServletResponse response,
+        Authentication authentication
+    ) {
         // check if attribute
         if (request.getAttribute(REDIRECT_ATTRIBUTE) != null) {
             String redirectUrl = (String) request.getAttribute(REDIRECT_ATTRIBUTE);
@@ -54,7 +54,6 @@ public class ExtendedLogoutSuccessHandler extends SimpleUrlLogoutSuccessHandler 
         }
 
         return super.determineTargetUrl(request, response, authentication);
-
     }
 
     private String buildLoginUrl(HttpServletRequest request, String realm) {

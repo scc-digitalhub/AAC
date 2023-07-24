@@ -1,12 +1,5 @@
 package it.smartcommunitylab.aac.attributes.service;
 
-import java.util.List;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
 import it.smartcommunitylab.aac.attributes.persistence.AttributeEntity;
 import it.smartcommunitylab.aac.attributes.persistence.AttributeEntityRepository;
 import it.smartcommunitylab.aac.attributes.persistence.AttributeSetEntity;
@@ -14,6 +7,11 @@ import it.smartcommunitylab.aac.attributes.persistence.AttributeSetEntityReposit
 import it.smartcommunitylab.aac.common.NoSuchAttributeException;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
 import it.smartcommunitylab.aac.model.AttributeType;
+import java.util.List;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 @Service
 @Transactional
@@ -22,14 +20,15 @@ public class AttributeEntityService {
     private final AttributeEntityRepository attributeRepository;
     private final AttributeSetEntityRepository attributeSetRepository;
 
-    public AttributeEntityService(AttributeSetEntityRepository attributeSetRepository,
-            AttributeEntityRepository attributeRepository) {
+    public AttributeEntityService(
+        AttributeSetEntityRepository attributeSetRepository,
+        AttributeEntityRepository attributeRepository
+    ) {
         Assert.notNull(attributeSetRepository, "attributeSet repository is mandatory");
         Assert.notNull(attributeRepository, "attributes repository is mandatory");
 
         this.attributeSetRepository = attributeSetRepository;
         this.attributeRepository = attributeRepository;
-
     }
 
     /*
@@ -61,10 +60,7 @@ public class AttributeEntityService {
         return set;
     }
 
-    public AttributeSetEntity addAttributeSet(
-            String realm,
-            String identifier,
-            String name, String description) {
+    public AttributeSetEntity addAttributeSet(String realm, String identifier, String name, String description) {
         if (!StringUtils.hasText(identifier)) {
             throw new IllegalArgumentException("empty set identifier");
         }
@@ -84,9 +80,8 @@ public class AttributeEntityService {
         return set;
     }
 
-    public AttributeSetEntity updateAttributeSet(
-            String identifier,
-            String name, String description) throws NoSuchAttributeSetException {
+    public AttributeSetEntity updateAttributeSet(String identifier, String name, String description)
+        throws NoSuchAttributeSetException {
         if (!StringUtils.hasText(identifier)) {
             throw new IllegalArgumentException("empty set identifier");
         }
@@ -140,9 +135,13 @@ public class AttributeEntityService {
     }
 
     public AttributeEntity addAttribute(
-            String set, String key,
-            AttributeType type, Boolean isMultiple,
-            String name, String description) throws NoSuchAttributeSetException {
+        String set,
+        String key,
+        AttributeType type,
+        Boolean isMultiple,
+        String name,
+        String description
+    ) throws NoSuchAttributeSetException {
         if (!StringUtils.hasText(key)) {
             throw new IllegalArgumentException("empty attribute key");
         }
@@ -170,9 +169,13 @@ public class AttributeEntityService {
     }
 
     public AttributeEntity updateAttribute(
-            String set, String key,
-            AttributeType type, Boolean isMultiple,
-            String name, String description) throws NoSuchAttributeException, NoSuchAttributeSetException {
+        String set,
+        String key,
+        AttributeType type,
+        Boolean isMultiple,
+        String name,
+        String description
+    ) throws NoSuchAttributeException, NoSuchAttributeSetException {
         if (!StringUtils.hasText(key)) {
             throw new IllegalArgumentException("empty attribute key");
         }
@@ -196,7 +199,6 @@ public class AttributeEntityService {
     }
 
     public AttributeEntity deleteAttribute(String set, String key) throws NoSuchAttributeSetException {
-
         AttributeEntity a = attributeRepository.findBySetAndKey(set, key);
         if (a != null) {
             attributeRepository.delete(a);

@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2015 Fondazione Bruno Kessler
- * 
+ *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
  *    You may obtain a copy of the License at
- * 
+ *
  *        http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  *    Unless required by applicable law or agreed to in writing, software
  *    distributed under the License is distributed on an "AS IS" BASIS,
  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,13 +16,14 @@
 
 package it.smartcommunitylab.aac.oauth.token;
 
+import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -42,9 +43,6 @@ import org.springframework.security.oauth2.provider.code.AuthorizationCodeServic
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
-import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
-
 /**
  * @author raman
  *
@@ -59,15 +57,22 @@ public class PKCEAwareTokenGranter extends AbstractTokenGranter {
 
     private boolean allowRefresh = false;
 
-    public PKCEAwareTokenGranter(AuthorizationServerTokenServices tokenServices,
-            AuthorizationCodeServices authorizationCodeServices, OAuth2ClientDetailsService clientDetailsService,
-            OAuth2RequestFactory requestFactory) {
+    public PKCEAwareTokenGranter(
+        AuthorizationServerTokenServices tokenServices,
+        AuthorizationCodeServices authorizationCodeServices,
+        OAuth2ClientDetailsService clientDetailsService,
+        OAuth2RequestFactory requestFactory
+    ) {
         this(tokenServices, authorizationCodeServices, clientDetailsService, requestFactory, GRANT_TYPE);
     }
 
-    protected PKCEAwareTokenGranter(AuthorizationServerTokenServices tokenServices,
-            AuthorizationCodeServices authorizationCodeServices,
-            OAuth2ClientDetailsService clientDetailsService, OAuth2RequestFactory requestFactory, String grantType) {
+    protected PKCEAwareTokenGranter(
+        AuthorizationServerTokenServices tokenServices,
+        AuthorizationCodeServices authorizationCodeServices,
+        OAuth2ClientDetailsService clientDetailsService,
+        OAuth2RequestFactory requestFactory,
+        String grantType
+    ) {
         super(tokenServices, clientDetailsService, requestFactory, grantType);
         this.authorizationCodeServices = authorizationCodeServices;
     }
@@ -87,8 +92,12 @@ public class PKCEAwareTokenGranter extends AbstractTokenGranter {
         OAuth2AccessToken token = super.grant(grantType, tokenRequest);
 
         if (token != null) {
-            logger.trace("grant access token for client " + tokenRequest.getClientId() + " request "
-                    + tokenRequest.getRequestParameters().toString());
+            logger.trace(
+                "grant access token for client " +
+                tokenRequest.getClientId() +
+                " request " +
+                tokenRequest.getRequestParameters().toString()
+            );
 
             if (!allowRefresh) {
                 AACOAuth2AccessToken norefresh = new AACOAuth2AccessToken(token);
@@ -104,7 +113,6 @@ public class PKCEAwareTokenGranter extends AbstractTokenGranter {
 
     @Override
     protected OAuth2Authentication getOAuth2Authentication(ClientDetails client, TokenRequest tokenRequest) {
-
         Map<String, String> parameters = tokenRequest.getRequestParameters();
         String authorizationCode = parameters.get("code");
         String redirectUri = parameters.get(OAuth2Utils.REDIRECT_URI);
@@ -127,11 +135,12 @@ public class PKCEAwareTokenGranter extends AbstractTokenGranter {
         // https://jira.springsource.org/browse/SECOAUTH-333
         // This might be null, if the authorization was done without the redirect_uri
         // parameter
-        String redirectUriApprovalParameter = pendingOAuth2Request.getRequestParameters().get(
-                OAuth2Utils.REDIRECT_URI);
+        String redirectUriApprovalParameter = pendingOAuth2Request.getRequestParameters().get(OAuth2Utils.REDIRECT_URI);
 
-        if ((redirectUri != null || redirectUriApprovalParameter != null)
-                && !pendingOAuth2Request.getRedirectUri().equals(redirectUri)) {
+        if (
+            (redirectUri != null || redirectUriApprovalParameter != null) &&
+            !pendingOAuth2Request.getRedirectUri().equals(redirectUri)
+        ) {
             throw new RedirectMismatchException("Redirect URI mismatch.");
         }
 
@@ -145,8 +154,9 @@ public class PKCEAwareTokenGranter extends AbstractTokenGranter {
         // validate code verifier by extracting code challenge from authorization
         // request
         String codeChallenge = pendingOAuth2Request.getRequestParameters().get(PkceParameterNames.CODE_CHALLENGE);
-        String codeChallengeMethod = pendingOAuth2Request.getRequestParameters()
-                .get(PkceParameterNames.CODE_CHALLENGE_METHOD);
+        String codeChallengeMethod = pendingOAuth2Request
+            .getRequestParameters()
+            .get(PkceParameterNames.CODE_CHALLENGE_METHOD);
         String codeVerifier = tokenRequest.getRequestParameters().get(PkceParameterNames.CODE_VERIFIER);
 
         // we need to be sure this is a PKCE request
@@ -166,29 +176,29 @@ public class PKCEAwareTokenGranter extends AbstractTokenGranter {
         // provided
         // in the token request, but that happens elsewhere.
 
-        Map<String, String> combinedParameters = new HashMap<String, String>(pendingOAuth2Request
-                .getRequestParameters());
+        Map<String, String> combinedParameters = new HashMap<String, String>(
+            pendingOAuth2Request.getRequestParameters()
+        );
         // Combine the parameters adding the new ones last so they override if there are
         // any clashes
         combinedParameters.putAll(parameters);
 
-//		Authentication oldAuth = SecurityContextHolder.getContext().getAuthentication();
+        //		Authentication oldAuth = SecurityContextHolder.getContext().getAuthentication();
         Authentication userAuth = storedAuth.getUserAuthentication();
 
-//		SecurityContextHolder.getContext().setAuthentication(userAuth);
+        //		SecurityContextHolder.getContext().setAuthentication(userAuth);
         // Make a new stored request with the combined parameters
         OAuth2Request finalStoredOAuth2Request = pendingOAuth2Request.createOAuth2Request(combinedParameters);
 
-//		SecurityContextHolder.getContext().setAuthentication(oldAuth);
+        //		SecurityContextHolder.getContext().setAuthentication(oldAuth);
 
         return new OAuth2Authentication(finalStoredOAuth2Request, userAuth);
-
     }
 
     /**
      * Generates the code challenge from a given code verifier and code challenge
      * method.
-     * 
+     *
      * @param codeVerifier
      * @param codeChallengeMethod allowed values are only <code>plain</code> and
      *                            <code>S256</code>
@@ -213,5 +223,4 @@ public class PKCEAwareTokenGranter extends AbstractTokenGranter {
         byte[] digest = md.digest(value.getBytes(StandardCharsets.US_ASCII));
         return Base64.getUrlEncoder().withoutPadding().encodeToString(digest);
     }
-
 }

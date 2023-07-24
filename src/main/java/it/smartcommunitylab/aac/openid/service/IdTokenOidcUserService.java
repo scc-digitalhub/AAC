@@ -26,7 +26,8 @@ public class IdTokenOidcUserService implements OAuth2UserService<OidcUserRequest
 
     // define claim converter for oidc standard values
     private static final Converter<Map<String, Object>, Map<String, Object>> claimConverter = new ClaimTypeConverter(
-            OidcUserService.createDefaultClaimTypeConverters());
+        OidcUserService.createDefaultClaimTypeConverters()
+    );
 
     @Override
     public OidcUser loadUser(OidcUserRequest userRequest) throws OAuth2AuthenticationException {
@@ -61,7 +62,5 @@ public class IdTokenOidcUserService implements OAuth2UserService<OidcUserRequest
             return new DefaultOidcUser(authorities, userRequest.getIdToken(), userInfo, userNameAttributeName);
         }
         return new DefaultOidcUser(authorities, userRequest.getIdToken(), userInfo);
-
     }
-
 }

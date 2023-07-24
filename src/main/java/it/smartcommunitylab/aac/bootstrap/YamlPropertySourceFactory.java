@@ -3,7 +3,6 @@ package it.smartcommunitylab.aac.bootstrap;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Properties;
-
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.env.PropertySource;
@@ -32,8 +31,7 @@ public class YamlPropertySourceFactory implements PropertySourceFactory {
         } catch (IllegalStateException e) {
             // for ignoreResourceNotFound
             Throwable cause = e.getCause();
-            if (cause instanceof FileNotFoundException)
-                throw (FileNotFoundException) e.getCause();
+            if (cause instanceof FileNotFoundException) throw (FileNotFoundException) e.getCause();
             throw e;
         }
     }

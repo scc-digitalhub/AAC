@@ -6,7 +6,11 @@ import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.provider.AccountService;
 import it.smartcommunitylab.aac.core.provider.AccountServiceConfig;
 
-public interface AccountServiceAuthority<S extends AccountService<U, E, M, C>, U extends UserAccount, E extends EditableUserAccount, M extends ConfigMap, C extends AccountServiceConfig<M>>
-        extends ProviderAuthority<S, U> {
-
-}
+public interface AccountServiceAuthority<
+    S extends AccountService<U, E, M, C>,
+    U extends UserAccount,
+    E extends EditableUserAccount,
+    M extends ConfigMap,
+    C extends AccountServiceConfig<M>
+>
+    extends ProviderAuthority<S, U> {}

@@ -1,14 +1,12 @@
 package it.smartcommunitylab.aac.profiles.claims;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.springframework.stereotype.Component;
-
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.claims.ScopeClaimsExtractor;
 import it.smartcommunitylab.aac.claims.ScopeClaimsExtractorProvider;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import org.springframework.stereotype.Component;
 
 @Component
 public class OpenIdClaimsExtractorProvider implements ScopeClaimsExtractorProvider {
@@ -35,10 +33,10 @@ public class OpenIdClaimsExtractorProvider implements ScopeClaimsExtractorProvid
         return extractors.keySet();
     }
 
-//    @Override
-//    public Collection<ScopeClaimsExtractor> getExtractors() {
-//        return extractors.values();
-//    }
+    //    @Override
+    //    public Collection<ScopeClaimsExtractor> getExtractors() {
+    //        return extractors.values();
+    //    }
 
     @Override
     public ScopeClaimsExtractor getExtractor(String scope) {
@@ -49,5 +47,4 @@ public class OpenIdClaimsExtractorProvider implements ScopeClaimsExtractorProvid
 
         return extractor;
     }
-
 }

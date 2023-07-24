@@ -1,11 +1,10 @@
 package it.smartcommunitylab.aac.oauth.model;
 
-import org.springframework.util.Assert;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import org.springframework.util.Assert;
 
 @JsonInclude(Include.NON_NULL)
 public class ClientRegistrationResponse {
@@ -43,5 +42,4 @@ public class ClientRegistrationResponse {
     public void setRegistrationToken(String registrationToken) {
         this.registrationToken = registrationToken;
     }
-
 }

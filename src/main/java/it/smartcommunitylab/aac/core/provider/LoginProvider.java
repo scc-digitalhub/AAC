@@ -1,7 +1,6 @@
 package it.smartcommunitylab.aac.core.provider;
 
 public interface LoginProvider {
-
     public String getAuthority();
 
     public String getProvider();

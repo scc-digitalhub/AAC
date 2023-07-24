@@ -1,11 +1,10 @@
 package it.smartcommunitylab.aac.claims.model;
 
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.claims.Claim;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
-
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.claims.Claim;
 
 @Valid
 public abstract class AbstractClaim implements Claim {
@@ -13,6 +12,7 @@ public abstract class AbstractClaim implements Claim {
     @Pattern(regexp = SystemKeys.KEY_PATTERN)
     @NotBlank
     protected String key;
+
     protected String namespace;
 
     protected String name;
@@ -64,18 +64,13 @@ public abstract class AbstractClaim implements Claim {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         AbstractClaim other = (AbstractClaim) obj;
         if (key == null) {
-            if (other.key != null)
-                return false;
-        } else if (!key.equals(other.key))
-            return false;
+            if (other.key != null) return false;
+        } else if (!key.equals(other.key)) return false;
         return true;
     }
 
@@ -83,5 +78,4 @@ public abstract class AbstractClaim implements Claim {
     public String toString() {
         return "AbstractClaim [key=" + key + "]";
     }
-
 }

@@ -1,29 +1,35 @@
 package it.smartcommunitylab.aac.internal.provider;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.util.Assert;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.model.Subject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.Assert;
 
-public class InternalSubjectResolver extends AbstractProvider<InternalUserAccount>
-        implements SubjectResolver<InternalUserAccount> {
+public class InternalSubjectResolver
+    extends AbstractProvider<InternalUserAccount>
+    implements SubjectResolver<InternalUserAccount> {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    public final static String[] ATTRIBUTES = { "email" };
+    public static final String[] ATTRIBUTES = { "email" };
 
     private final UserAccountService<InternalUserAccount> accountService;
 
     private final boolean isLinkable;
     private final String repositoryId;
 
-    public InternalSubjectResolver(String providerId, UserAccountService<InternalUserAccount> userAccountService,
-            String repositoryId, boolean isLinkable, String realm) {
+    public InternalSubjectResolver(
+        String providerId,
+        UserAccountService<InternalUserAccount> userAccountService,
+        String repositoryId,
+        boolean isLinkable,
+        String realm
+    ) {
         super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
         Assert.notNull(userAccountService, "user account service is mandatory");
         Assert.hasText(repositoryId, "repository id is mandatory");
@@ -75,10 +81,12 @@ public class InternalSubjectResolver extends AbstractProvider<InternalUserAccoun
         }
 
         logger.debug("resolve by email " + email);
-        InternalUserAccount account = accountService.findAccountByEmail(repositoryId, email).stream()
-                .filter(a -> a.isEmailVerified())
-                .findFirst()
-                .orElse(null);
+        InternalUserAccount account = accountService
+            .findAccountByEmail(repositoryId, email)
+            .stream()
+            .filter(a -> a.isEmailVerified())
+            .findFirst()
+            .orElse(null);
 
         if (account == null) {
             return null;
@@ -87,5 +95,4 @@ public class InternalSubjectResolver extends AbstractProvider<InternalUserAccoun
         // build subject with username
         return new Subject(account.getUserId(), getRealm(), account.getUsername(), SystemKeys.RESOURCE_USER);
     }
-
 }

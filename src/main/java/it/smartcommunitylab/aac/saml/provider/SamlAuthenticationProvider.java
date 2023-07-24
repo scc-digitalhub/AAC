@@ -1,10 +1,22 @@
 package it.smartcommunitylab.aac.saml.provider;
 
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.claims.ScriptExecutionService;
+import it.smartcommunitylab.aac.common.InvalidDefinitionException;
+import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
+import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.saml.SamlKeys;
+import it.smartcommunitylab.aac.saml.auth.SamlAuthenticationException;
+import it.smartcommunitylab.aac.saml.auth.SamlAuthenticationToken;
+import it.smartcommunitylab.aac.saml.model.SamlUserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
+import it.smartcommunitylab.aac.saml.service.SamlUserAccountService;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.apache.commons.lang.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,25 +33,12 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.claims.ScriptExecutionService;
-import it.smartcommunitylab.aac.common.InvalidDefinitionException;
-import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
-import it.smartcommunitylab.aac.core.provider.IdentityProvider;
-import it.smartcommunitylab.aac.core.provider.UserAccountService;
-import it.smartcommunitylab.aac.saml.auth.SamlAuthenticationToken;
-import it.smartcommunitylab.aac.saml.SamlKeys;
-import it.smartcommunitylab.aac.saml.auth.SamlAuthenticationException;
-import it.smartcommunitylab.aac.saml.model.SamlUserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
-import it.smartcommunitylab.aac.saml.service.SamlUserAccountService;
-
 public class SamlAuthenticationProvider
-        extends ExtendedAuthenticationProvider<SamlUserAuthenticatedPrincipal, SamlUserAccount> {
+    extends ExtendedAuthenticationProvider<SamlUserAuthenticatedPrincipal, SamlUserAccount> {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final static String SUBJECT_ATTRIBUTE = "subject";
+    private static final String SUBJECT_ATTRIBUTE = "subject";
 
     private final UserAccountService<SamlUserAccount> accountService;
     private final SamlIdentityProviderConfig config;
@@ -52,16 +51,22 @@ public class SamlAuthenticationProvider
     private String customMappingFunction;
     private ScriptExecutionService executionService;
 
-    public SamlAuthenticationProvider(String providerId,
-            UserAccountService<SamlUserAccount> accountService, SamlIdentityProviderConfig config,
-            String realm) {
+    public SamlAuthenticationProvider(
+        String providerId,
+        UserAccountService<SamlUserAccount> accountService,
+        SamlIdentityProviderConfig config,
+        String realm
+    ) {
         this(SystemKeys.AUTHORITY_SAML, providerId, accountService, config, realm);
     }
 
     public SamlAuthenticationProvider(
-            String authority, String providerId,
-            UserAccountService<SamlUserAccount> accountService, SamlIdentityProviderConfig config,
-            String realm) {
+        String authority,
+        String providerId,
+        UserAccountService<SamlUserAccount> accountService,
+        SamlIdentityProviderConfig config,
+        String realm
+    ) {
         super(authority, providerId, realm);
         Assert.notNull(accountService, "account service is mandatory");
         Assert.notNull(config, "provider config is mandatory");
@@ -72,48 +77,49 @@ public class SamlAuthenticationProvider
         // repositoryId is always providerId, saml isolates data per provider
         this.repositoryId = providerId;
 
-        this.usernameAttributeName = StringUtils.hasText(config.getConfigMap().getUserNameAttributeName())
+        this.usernameAttributeName =
+            StringUtils.hasText(config.getConfigMap().getUserNameAttributeName())
                 ? config.getConfigMap().getUserNameAttributeName()
                 : SUBJECT_ATTRIBUTE;
 
         // build a default saml provider with a clock skew of 5 minutes
         openSamlProvider = new OpenSamlAuthenticationProvider();
-//        openSamlProvider.setAssertionValidator(OpenSamlAuthenticationProvider
-//                .createDefaultAssertionValidator(assertionToken -> {
-//                    Map<String, Object> params = new HashMap<>();
-//                    params.put(SAML2AssertionValidationParameters.CLOCK_SKEW, Duration.ofMinutes(5).toMillis());
-//                    return new ValidationContext(params);
-//                }));
+        //        openSamlProvider.setAssertionValidator(OpenSamlAuthenticationProvider
+        //                .createDefaultAssertionValidator(assertionToken -> {
+        //                    Map<String, Object> params = new HashMap<>();
+        //                    params.put(SAML2AssertionValidationParameters.CLOCK_SKEW, Duration.ofMinutes(5).toMillis());
+        //                    return new ValidationContext(params);
+        //                }));
 
         // TODO rework response converter to extract additional assertions as attributes
         //
-//        Converter<ResponseToken, Saml2Authentication> authenticationConverter = OpenSamlAuthenticationProvider
-//                .createDefaultResponseAuthenticationConverter();
-//        openSamlProvider.setResponseAuthenticationConverter((responseToken) -> {
-//            Response response = responseToken.getResponse();
-////            Saml2AuthenticationToken token = responseToken.getToken();
-//            Assertion assertion = CollectionUtils.firstElement(response.getAssertions());
-//            Saml2Authentication auth = authenticationConverter.convert(responseToken);
-//
-//            // integrate assertions as attributes
-//            Map<String, List<Object>> attributes = new HashMap<>();
-//            attributes.putAll(((DefaultSaml2AuthenticatedPrincipal) auth.getPrincipal()).getAttributes());
-//            if (assertion.getIssuer() != null) {
-//                attributes.put("issuer", Collections.singletonList(assertion.getIssuer().getValue()));
-//            }
-//            if (assertion.getIssueInstant() != null) {
-//                attributes.put("issueInstant", Collections.singletonList(assertion.getIssueInstant().toString()));
-//            }
-//
-//            attributes.put(SUBJECT_ATTRIBUTE, Collections.singletonList(assertion.getSubject().getNameID().getValue()));
-//
-//            return new SamlAuthentication(new DefaultSaml2AuthenticatedPrincipal(auth.getName(), attributes),
-//                    responseToken, Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
-//        });
+        //        Converter<ResponseToken, Saml2Authentication> authenticationConverter = OpenSamlAuthenticationProvider
+        //                .createDefaultResponseAuthenticationConverter();
+        //        openSamlProvider.setResponseAuthenticationConverter((responseToken) -> {
+        //            Response response = responseToken.getResponse();
+        ////            Saml2AuthenticationToken token = responseToken.getToken();
+        //            Assertion assertion = CollectionUtils.firstElement(response.getAssertions());
+        //            Saml2Authentication auth = authenticationConverter.convert(responseToken);
+        //
+        //            // integrate assertions as attributes
+        //            Map<String, List<Object>> attributes = new HashMap<>();
+        //            attributes.putAll(((DefaultSaml2AuthenticatedPrincipal) auth.getPrincipal()).getAttributes());
+        //            if (assertion.getIssuer() != null) {
+        //                attributes.put("issuer", Collections.singletonList(assertion.getIssuer().getValue()));
+        //            }
+        //            if (assertion.getIssueInstant() != null) {
+        //                attributes.put("issueInstant", Collections.singletonList(assertion.getIssueInstant().toString()));
+        //            }
+        //
+        //            attributes.put(SUBJECT_ATTRIBUTE, Collections.singletonList(assertion.getSubject().getNameID().getValue()));
+        //
+        //            return new SamlAuthentication(new DefaultSaml2AuthenticatedPrincipal(auth.getName(), attributes),
+        //                    responseToken, Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
+        //        });
 
         // use a custom authorities mapper to cleanup authorities
         // replaced with converter
-//        openSamlProvider.setAuthoritiesMapper(nullAuthoritiesMapper);
+        //        openSamlProvider.setAuthoritiesMapper(nullAuthoritiesMapper);
     }
 
     public void setExecutionService(ScriptExecutionService executionService) {
@@ -140,7 +146,7 @@ public class SamlAuthenticationProvider
         // delegate to openSaml, and leverage default converter
         try {
             Authentication auth = openSamlProvider.authenticate(authentication);
-//            SamlAuthentication auth = (SamlAuthentication) token;
+            //            SamlAuthentication auth = (SamlAuthentication) token;
             if (auth != null) {
                 // convert to our authToken
                 Saml2Authentication authToken = (Saml2Authentication) auth;
@@ -148,22 +154,28 @@ public class SamlAuthenticationProvider
                 String subject = authToken.getName();
                 if (!StringUtils.hasText(subject)) {
                     throw new SamlAuthenticationException(
-                            new Saml2Error(Saml2ErrorCodes.USERNAME_NOT_FOUND, "username_not_found"));
+                        new Saml2Error(Saml2ErrorCodes.USERNAME_NOT_FOUND, "username_not_found")
+                    );
                 }
 
                 // check if account is present and locked
                 SamlUserAccount account = accountService.findAccountById(repositoryId, subject);
                 if (account != null && account.isLocked()) {
                     throw new SamlAuthenticationException(
-                            new Saml2Error(Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR, "account_unavailable"),
-                            "account not available",
-                            null, saml2Response);
+                        new Saml2Error(Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR, "account_unavailable"),
+                        "account not available",
+                        null,
+                        saml2Response
+                    );
                 }
 
-                auth = new SamlAuthenticationToken(subject,
+                auth =
+                    new SamlAuthenticationToken(
+                        subject,
                         (Saml2AuthenticatedPrincipal) authToken.getPrincipal(),
                         saml2Response,
-                        Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
+                        Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
+                    );
             }
 
             // TODO wrap response token and erase credentials etc
@@ -185,9 +197,9 @@ public class SamlAuthenticationProvider
         Saml2AuthenticatedPrincipal samlDetails = (Saml2AuthenticatedPrincipal) principal;
 
         // upstream subject identifier
-//        String subjectId = StringUtils.hasText(samlDetails.getFirstAttribute(SUBJECT_ATTRIBUTE))
-//                ? samlDetails.getFirstAttribute(SUBJECT_ATTRIBUTE)
-//                : samlDetails.getName();
+        //        String subjectId = StringUtils.hasText(samlDetails.getFirstAttribute(SUBJECT_ATTRIBUTE))
+        //                ? samlDetails.getFirstAttribute(SUBJECT_ATTRIBUTE)
+        //                : samlDetails.getName();
         String subjectId = samlDetails.getName();
 
         // name is always available, by default is subjectId
@@ -195,15 +207,19 @@ public class SamlAuthenticationProvider
 
         // username mapping, default name always set
         String username = StringUtils.hasText(samlDetails.getFirstAttribute(usernameAttributeName))
-                ? samlDetails.getFirstAttribute(usernameAttributeName)
-                : name;
+            ? samlDetails.getFirstAttribute(usernameAttributeName)
+            : name;
 
         // we still don't have userId
         String userId = null;
 
         // bind principal to ourselves
-        SamlUserAuthenticatedPrincipal user = new SamlUserAuthenticatedPrincipal(getProvider(), getRealm(),
-                userId, subjectId);
+        SamlUserAuthenticatedPrincipal user = new SamlUserAuthenticatedPrincipal(
+            getProvider(),
+            getRealm(),
+            userId,
+            subjectId
+        );
         user.setUsername(username);
         user.setPrincipal(samlDetails);
 
@@ -212,19 +228,27 @@ public class SamlAuthenticationProvider
             try {
                 // get all attributes from principal except jwt attrs
                 // TODO handle all attributes not only strings.
-                Map<String, Serializable> principalAttributes = user.getAttributes().entrySet().stream()
-                        .filter(e -> e.getValue() != null)
-                        .filter(e -> !SamlKeys.SAML_ATTRIBUTES.contains(e.getKey()))
-                        .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+                Map<String, Serializable> principalAttributes = user
+                    .getAttributes()
+                    .entrySet()
+                    .stream()
+                    .filter(e -> e.getValue() != null)
+                    .filter(e -> !SamlKeys.SAML_ATTRIBUTES.contains(e.getKey()))
+                    .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
                 // execute script
                 Map<String, Serializable> customAttributes = executionService.executeFunction(
-                        IdentityProvider.ATTRIBUTE_MAPPING_FUNCTION,
-                        customMappingFunction, principalAttributes);
+                    IdentityProvider.ATTRIBUTE_MAPPING_FUNCTION,
+                    customMappingFunction,
+                    principalAttributes
+                );
 
                 // update map
                 if (customAttributes != null) {
                     // replace map
-                    principalAttributes = customAttributes.entrySet().stream()
+                    principalAttributes =
+                        customAttributes
+                            .entrySet()
+                            .stream()
                             .filter(e -> e.getValue() != null)
                             .filter(e -> !SamlKeys.SAML_ATTRIBUTES.contains(e.getKey()))
                             .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
@@ -237,25 +261,29 @@ public class SamlAuthenticationProvider
 
         // re-read attributes as-is, transform to strings
         // TODO evaluate using a custom mapper to given profile
-        Map<String, String> samlAttributes = user.getAttributes().entrySet().stream()
-                .filter(e -> e.getValue() != null)
-                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().toString()));
+        Map<String, String> samlAttributes = user
+            .getAttributes()
+            .entrySet()
+            .stream()
+            .filter(e -> e.getValue() != null)
+            .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().toString()));
 
         // fetch email when available
         String email = samlAttributes.get("email");
         boolean defaultVerifiedStatus = config.getConfigMap().getTrustEmailAddress() != null
-                ? config.getConfigMap().getTrustEmailAddress()
-                : false;
+            ? config.getConfigMap().getTrustEmailAddress()
+            : false;
         boolean emailVerified = StringUtils.hasText(samlAttributes.get("emailVerified"))
-                ? Boolean.parseBoolean(samlAttributes.get("emailVerified"))
-                : defaultVerifiedStatus;
+            ? Boolean.parseBoolean(samlAttributes.get("emailVerified"))
+            : defaultVerifiedStatus;
 
         if (Boolean.TRUE.equals(config.getConfigMap().getAlwaysTrustEmailAddress())) {
             emailVerified = true;
         }
 
         // read username from attributes, mapper can replace it
-        username = StringUtils.hasText(samlAttributes.get(usernameAttributeName))
+        username =
+            StringUtils.hasText(samlAttributes.get(usernameAttributeName))
                 ? samlAttributes.get(usernameAttributeName)
                 : user.getUsername();
 
@@ -266,7 +294,6 @@ public class SamlAuthenticationProvider
 
         return user;
     }
-
-//    private final GrantedAuthoritiesMapper nullAuthoritiesMapper = (authorities -> Collections.emptyList());
+    //    private final GrantedAuthoritiesMapper nullAuthoritiesMapper = (authorities -> Collections.emptyList());
 
 }

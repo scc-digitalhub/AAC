@@ -1,22 +1,20 @@
 package it.smartcommunitylab.aac.oauth.model;
 
-import javax.validation.Valid;
-
-import org.springframework.util.Assert;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ClientCredentials;
 import it.smartcommunitylab.aac.oauth.persistence.AbstractOAuth2ClientResource;
+import javax.validation.Valid;
+import org.springframework.util.Assert;
 
 @Valid
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ClientSecret extends AbstractOAuth2ClientResource implements ClientCredentials {
+
     private static final long serialVersionUID = SystemKeys.AAC_OAUTH2_SERIAL_VERSION;
 
     private String secret;
@@ -51,5 +49,4 @@ public class ClientSecret extends AbstractOAuth2ClientResource implements Client
     public void eraseCredentials() {
         this.secret = null;
     }
-
 }

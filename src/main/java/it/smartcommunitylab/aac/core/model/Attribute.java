@@ -1,17 +1,15 @@
 package it.smartcommunitylab.aac.core.model;
 
-import java.io.Serializable;
-
 import it.smartcommunitylab.aac.model.AttributeType;
+import java.io.Serializable;
 
 /*
  * An attribute is a typed property describing a value for a given resource.
- * 
- * While unusual, attributes may assume multiple values. 
+ *
+ * While unusual, attributes may assume multiple values.
  */
 
 public interface Attribute extends Serializable {
-
     public String getKey();
 
     public AttributeType getType();

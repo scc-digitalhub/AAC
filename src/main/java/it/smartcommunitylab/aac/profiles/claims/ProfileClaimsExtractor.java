@@ -1,16 +1,15 @@
 package it.smartcommunitylab.aac.profiles.claims;
 
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.Map;
-
-import it.smartcommunitylab.aac.claims.ScopeClaimsExtractor;
 import it.smartcommunitylab.aac.claims.ClaimsSet;
+import it.smartcommunitylab.aac.claims.ScopeClaimsExtractor;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.Map;
 
 public abstract class ProfileClaimsExtractor implements ScopeClaimsExtractor {
 
@@ -22,22 +21,24 @@ public abstract class ProfileClaimsExtractor implements ScopeClaimsExtractor {
     public abstract String getKey();
 
     @Override
-    public ClaimsSet extractUserClaims(String scope, User user, ClientDetails client, Collection<String> scopes,
-            Map<String, Serializable> extensions)
-            throws InvalidDefinitionException, SystemException {
-
+    public ClaimsSet extractUserClaims(
+        String scope,
+        User user,
+        ClientDetails client,
+        Collection<String> scopes,
+        Map<String, Serializable> extensions
+    ) throws InvalidDefinitionException, SystemException {
         AbstractProfile profile = buildUserProfile(user, scopes);
 
         // build a claimsSet
         ClaimsSet claimsSet = buildClaimsSet(scope, getKey(), profile, true);
 
         return claimsSet;
-
     }
 
     // subclasses need to provide the profile
     protected abstract AbstractProfile buildUserProfile(User user, Collection<String> scopes)
-            throws InvalidDefinitionException;
+        throws InvalidDefinitionException;
 
     protected ClaimsSet buildClaimsSet(String scope, String key, AbstractProfile profile, boolean isUser) {
         ProfileClaimsSet claimsSet = new ProfileClaimsSet();
@@ -60,9 +61,12 @@ public abstract class ProfileClaimsExtractor implements ScopeClaimsExtractor {
     }
 
     @Override
-    public ClaimsSet extractClientClaims(String scope, ClientDetails client, Collection<String> scopes,
-            Map<String, Serializable> extensions)
-            throws InvalidDefinitionException, SystemException {
+    public ClaimsSet extractClientClaims(
+        String scope,
+        ClientDetails client,
+        Collection<String> scopes,
+        Map<String, Serializable> extensions
+    ) throws InvalidDefinitionException, SystemException {
         // not supported now but subclasses can override
         return null;
     }
@@ -71,5 +75,4 @@ public abstract class ProfileClaimsExtractor implements ScopeClaimsExtractor {
     public String getRealm() {
         return null;
     }
-
 }

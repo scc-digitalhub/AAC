@@ -1,9 +1,12 @@
 package it.smartcommunitylab.aac.attributes;
 
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.attributes.service.AttributeService;
+import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
+import it.smartcommunitylab.aac.core.model.AttributeSet;
 import java.util.Collection;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,24 +14,19 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.attributes.service.AttributeService;
-import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
-import it.smartcommunitylab.aac.core.model.AttributeSet;
-
 /*
- * Attribute manager 
- * 
+ * Attribute manager
+ *
  * handles attribute sets definition
  * TODO handle attribute sets per *realm*
- * 
- * TODO handle attribute mapping 
+ *
+ * TODO handle attribute mapping
  */
 
 @Service
-@PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')"
-        + " or hasAuthority(#realm+':" + Config.R_ADMIN + "')")
+@PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')" + " or hasAuthority(#realm+':" + Config.R_ADMIN + "')")
 public class AttributeSetsManager {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
@@ -57,15 +55,15 @@ public class AttributeSetsManager {
         // TODO add static (internal) attribute sets to list
         Stream<AttributeSet> sets = attributeService.listAttributeSets(realm).stream();
         if (includeSystem) {
-            return Stream.concat(attributeService.listSystemAttributeSets().stream(), sets)
-                    .collect(Collectors.toList());
+            return Stream
+                .concat(attributeService.listSystemAttributeSets().stream(), sets)
+                .collect(Collectors.toList());
         } else {
             return sets.collect(Collectors.toList());
         }
     }
 
     public AttributeSet addAttributeSet(String realm, AttributeSet set) {
-
         String identifier = set.getIdentifier();
         if (!StringUtils.hasText(identifier) || isReserved(identifier)) {
             throw new IllegalArgumentException("invalid set identifier");
@@ -75,12 +73,10 @@ public class AttributeSetsManager {
         // TODO move back here registration of attributes for the set
         AttributeSet se = attributeService.addAttributeSet(realm, set);
         return se;
-
     }
 
     public AttributeSet updateAttributeSet(String realm, String identifier, AttributeSet set)
-            throws NoSuchAttributeSetException {
-
+        throws NoSuchAttributeSetException {
         if (!StringUtils.hasText(identifier) || isReserved(identifier)) {
             throw new IllegalArgumentException("invalid set identifier");
         }
@@ -90,7 +86,6 @@ public class AttributeSetsManager {
         // TODO move back here registration of attributes for the set
         AttributeSet se = attributeService.updateAttributeSet(identifier, set);
         return se;
-
     }
 
     public void deleteAttributeSet(String realm, String identifier) throws NoSuchAttributeSetException {
@@ -99,21 +94,20 @@ public class AttributeSetsManager {
         }
 
         attributeService.deleteAttributeSet(identifier);
-
     }
 
     /*
      * Attributes
      */
-//    public Collection<Attribute> listAttributes(String realm, String identifier) throws NoSuchAttributeSetException {
-//
-//        AttributeSet se = attributeService.getAttributeSet(identifier);
-//        if (se.getAttributes() != null && !se.getAttributes().isEmpty()) {
-//            return se.getAttributes();
-//        }
-//
-//        return attributeService.listAttributes(identifier);
-//    }
+    //    public Collection<Attribute> listAttributes(String realm, String identifier) throws NoSuchAttributeSetException {
+    //
+    //        AttributeSet se = attributeService.getAttributeSet(identifier);
+    //        if (se.getAttributes() != null && !se.getAttributes().isEmpty()) {
+    //            return se.getAttributes();
+    //        }
+    //
+    //        return attributeService.listAttributes(identifier);
+    //    }
 
     /*
      * Helpers
@@ -129,8 +123,5 @@ public class AttributeSetsManager {
         return false;
     }
 
-    private static final String[] RESERVED_PREFIXES = {
-            "aac.", "idp.", "adp.", "openid", "default."
-    };
-
+    private static final String[] RESERVED_PREFIXES = { "aac.", "idp.", "adp.", "openid", "default." };
 }

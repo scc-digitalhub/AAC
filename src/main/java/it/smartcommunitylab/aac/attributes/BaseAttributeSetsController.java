@@ -1,11 +1,15 @@
 package it.smartcommunitylab.aac.attributes;
 
+import io.swagger.v3.oas.annotations.Operation;
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
+import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.core.model.AttributeSet;
 import java.util.Collection;
-
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -21,18 +25,12 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import io.swagger.v3.oas.annotations.Operation;
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
-import it.smartcommunitylab.aac.common.NoSuchRealmException;
-import it.smartcommunitylab.aac.core.model.AttributeSet;
-
 /*
  * Base controller for attributeSets
  */
 @PreAuthorize("hasAuthority(this.authority)")
 public abstract class BaseAttributeSetsController implements InitializingBean {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     protected AttributeSetsManager attributeManager;
@@ -53,7 +51,7 @@ public abstract class BaseAttributeSetsController implements InitializingBean {
 
     /*
      * Attribute sets
-     * 
+     *
      * When provided with a fully populated service model, related entities will be
      * updated accordingly.
      */
@@ -61,11 +59,10 @@ public abstract class BaseAttributeSetsController implements InitializingBean {
     @GetMapping("/attributeset/{realm}")
     @Operation(summary = "list attribute sets from a given realm")
     public Collection<AttributeSet> listAttributeSets(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestParam(name = "system", required = false, defaultValue = "false") boolean includeSystem)
-            throws NoSuchRealmException {
-        logger.debug("list attribute sets for realm {}",
-                StringUtils.trimAllWhitespace(realm));
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @RequestParam(name = "system", required = false, defaultValue = "false") boolean includeSystem
+    ) throws NoSuchRealmException {
+        logger.debug("list attribute sets for realm {}", StringUtils.trimAllWhitespace(realm));
 
         return attributeManager.listAttributeSets(realm, includeSystem);
     }
@@ -73,11 +70,14 @@ public abstract class BaseAttributeSetsController implements InitializingBean {
     @GetMapping("/attributeset/{realm}/{setId}")
     @Operation(summary = "get a specific attribute set from a given realm")
     public AttributeSet getAttributeSet(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String setId)
-            throws NoSuchAttributeSetException, NoSuchRealmException {
-        logger.debug("get attribute set {} for realm {}",
-                StringUtils.trimAllWhitespace(setId), StringUtils.trimAllWhitespace(realm));
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String setId
+    ) throws NoSuchAttributeSetException, NoSuchRealmException {
+        logger.debug(
+            "get attribute set {} for realm {}",
+            StringUtils.trimAllWhitespace(setId),
+            StringUtils.trimAllWhitespace(realm)
+        );
 
         return attributeManager.getAttributeSet(realm, setId);
     }
@@ -85,10 +85,10 @@ public abstract class BaseAttributeSetsController implements InitializingBean {
     @PostMapping("/attributeset/{realm}")
     @Operation(summary = "add a new attribute set to a given realm")
     public AttributeSet addAttributeSet(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestBody @Valid @NotNull DefaultAttributesSet s) throws NoSuchRealmException {
-        logger.debug("add attribute set for realm {}",
-                StringUtils.trimAllWhitespace(realm));
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @RequestBody @Valid @NotNull DefaultAttributesSet s
+    ) throws NoSuchRealmException {
+        logger.debug("add attribute set for realm {}", StringUtils.trimAllWhitespace(realm));
 
         if (logger.isTraceEnabled()) {
             logger.trace("attribute set bean {}", StringUtils.trimAllWhitespace(s.toString()));
@@ -99,12 +99,15 @@ public abstract class BaseAttributeSetsController implements InitializingBean {
     @PutMapping("/attributeset/{realm}/{setId}")
     @Operation(summary = "update a specific attribute set in a given realm")
     public AttributeSet updateAttributeSet(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String setId,
-            @RequestBody @Valid @NotNull DefaultAttributesSet s)
-            throws NoSuchAttributeSetException, NoSuchRealmException {
-        logger.debug("update attribute set {} for realm {}",
-                StringUtils.trimAllWhitespace(setId), StringUtils.trimAllWhitespace(realm));
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String setId,
+        @RequestBody @Valid @NotNull DefaultAttributesSet s
+    ) throws NoSuchAttributeSetException, NoSuchRealmException {
+        logger.debug(
+            "update attribute set {} for realm {}",
+            StringUtils.trimAllWhitespace(setId),
+            StringUtils.trimAllWhitespace(realm)
+        );
 
         if (logger.isTraceEnabled() && s != null) {
             logger.trace("attribute set bean {}", StringUtils.trimAllWhitespace(s.toString()));
@@ -115,13 +118,15 @@ public abstract class BaseAttributeSetsController implements InitializingBean {
     @DeleteMapping("/attributeset/{realm}/{setId}")
     @Operation(summary = "delete a specific attribute set from a given realm")
     public void deleteAttributeSet(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String setId)
-            throws NoSuchAttributeSetException {
-        logger.debug("delete attribute set {} for realm {}",
-                StringUtils.trimAllWhitespace(setId), StringUtils.trimAllWhitespace(realm));
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String setId
+    ) throws NoSuchAttributeSetException {
+        logger.debug(
+            "delete attribute set {} for realm {}",
+            StringUtils.trimAllWhitespace(setId),
+            StringUtils.trimAllWhitespace(realm)
+        );
 
         attributeManager.deleteAttributeSet(realm, setId);
     }
-
 }

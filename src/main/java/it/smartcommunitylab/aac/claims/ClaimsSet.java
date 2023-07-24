@@ -6,7 +6,6 @@ import java.util.Collection;
  * A claims set describing an entity
  */
 public interface ClaimsSet {
-
     // a claimset is produced by a resource
     public String getResourceId();
 
@@ -26,5 +25,4 @@ public interface ClaimsSet {
     // each claim should be translated to a single value.
     // Multiple claims under the same key will be merged into a collection
     public Collection<Claim> getClaims();
-
 }

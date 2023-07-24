@@ -28,24 +28,25 @@ import org.springframework.util.StringUtils;
 /**
  * {@link RedirectResolver} implementation with a hook to allow redirects to the
  * authorization server for testing purposes
- * 
+ *
  * @author raman
  *
  */
 public class ExtRedirectResolver extends DefaultRedirectResolver {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-//    private static final String URL_TEST = "/testtoken";
+    //    private static final String URL_TEST = "/testtoken";
     private static final String LOCALHOST = "http://localhost";
 
-//    @Value("${security.redirects.matchports}")
-//    private boolean configMatchPorts;
+    //    @Value("${security.redirects.matchports}")
+    //    private boolean configMatchPorts;
 
-//    @Value("${security.redirects.matchsubdomains}")
-//    private boolean configMatchSubDomains;
+    //    @Value("${security.redirects.matchsubdomains}")
+    //    private boolean configMatchSubDomains;
 
-//    @Value("${application.url}")
-//    private final String applicationURL;
+    //    @Value("${application.url}")
+    //    private final String applicationURL;
 
     private static LocalhostRedirectResolver localResolver;
 
@@ -53,11 +54,12 @@ public class ExtRedirectResolver extends DefaultRedirectResolver {
      * @param context
      */
     public ExtRedirectResolver(
-//            String applicationURL,
-            boolean configMatchPorts,
-            boolean configMatchSubDomains) {
+        //            String applicationURL,
+        boolean configMatchPorts,
+        boolean configMatchSubDomains
+    ) {
         super();
-//        this.applicationURL = applicationURL;
+        //        this.applicationURL = applicationURL;
         this.setMatchPorts(configMatchPorts);
         this.setMatchSubdomains(configMatchSubDomains);
 
@@ -73,14 +75,14 @@ public class ExtRedirectResolver extends DefaultRedirectResolver {
         // match localhost first
         try {
             return localResolver.resolveRedirect(requestedRedirect, client);
-        } catch (RedirectMismatchException e) {
-        }
+        } catch (RedirectMismatchException e) {}
 
         logger.trace("check " + requestedRedirect + " against client redirects");
         return super.resolveRedirect(requestedRedirect, client);
     }
 
     public static class LocalhostRedirectResolver extends DefaultRedirectResolver {
+
         public LocalhostRedirectResolver() {
             super();
             setMatchPorts(false);
@@ -94,6 +96,5 @@ public class ExtRedirectResolver extends DefaultRedirectResolver {
 
             return false;
         }
-
     }
 }

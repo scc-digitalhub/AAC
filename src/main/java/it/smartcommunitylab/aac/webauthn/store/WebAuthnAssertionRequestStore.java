@@ -1,11 +1,9 @@
 package it.smartcommunitylab.aac.webauthn.store;
 
+import com.yubico.webauthn.AssertionRequest;
 import java.util.Collection;
 
-import com.yubico.webauthn.AssertionRequest;
-
 public interface WebAuthnAssertionRequestStore {
-
     public AssertionRequest find(String key);
 
     public AssertionRequest consume(String key);
@@ -17,5 +15,4 @@ public interface WebAuthnAssertionRequestStore {
     public void store(AssertionRequest request, String key);
 
     public void remove(String key);
-
 }

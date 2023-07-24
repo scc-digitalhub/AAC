@@ -1,15 +1,15 @@
 package it.smartcommunitylab.aac.core.base;
 
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.provider.ProviderConfig;
 import java.io.Serializable;
 import java.util.Locale;
 import java.util.Map;
 
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
-import it.smartcommunitylab.aac.core.provider.ProviderConfig;
-
 public abstract class AbstractProviderConfig<M extends AbstractConfigMap, T extends ConfigurableProvider>
-        implements ProviderConfig<M>, Serializable {
+    implements ProviderConfig<M>, Serializable {
+
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     private final String authority;
@@ -42,7 +42,7 @@ public abstract class AbstractProviderConfig<M extends AbstractConfigMap, T exte
 
     /**
      * Private constructor for JPA and other serialization tools.
-     * 
+     *
      * We need to implement this to enable deserialization of resources via
      * reflection
      */
@@ -120,5 +120,4 @@ public abstract class AbstractProviderConfig<M extends AbstractConfigMap, T exte
     public void setVersion(int version) {
         this.version = version;
     }
-
 }

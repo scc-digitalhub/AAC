@@ -21,5 +21,4 @@ public class NoSuchSubjectException extends Exception {
     public NoSuchSubjectException(String message, Throwable cause) {
         super(message, cause);
     }
-
 }

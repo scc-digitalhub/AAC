@@ -1,11 +1,16 @@
 package it.smartcommunitylab.aac.oauth.endpoint;
 
+import com.nimbusds.jose.JWSAlgorithm;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
+import it.smartcommunitylab.aac.openid.endpoint.OpenIDMetadataEndpoint;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -14,19 +19,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.nimbusds.jose.JWSAlgorithm;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
-import it.smartcommunitylab.aac.openid.endpoint.OpenIDMetadataEndpoint;
-
 /*
  * OAuth2 Authorization Server Metadata
  * https://tools.ietf.org/html/rfc8414
- * 
- * extends OIDC discovery metadata 
+ *
+ * extends OIDC discovery metadata
  */
 @Controller
 @Tag(name = "OAuth 2.0 Authorization Server Metadata")
@@ -43,7 +40,11 @@ public class OAuth2MetadataEndpoint {
     OpenIDMetadataEndpoint oidcMetadataEndpoint;
 
     @Operation(summary = "Get authorization server metadata")
-    @RequestMapping(method = RequestMethod.GET, value = OAUTH2_CONFIGURATION_URL, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(
+        method = RequestMethod.GET,
+        value = OAUTH2_CONFIGURATION_URL,
+        produces = MediaType.APPLICATION_JSON_VALUE
+    )
     public @ResponseBody Map<String, Object> serverMetadata() {
         return getConfiguration();
     }
@@ -104,17 +105,27 @@ public class OAuth2MetadataEndpoint {
         // static list of base algs supported
         // TODO check support
         // note: this does NOT depend on signService but on auth converters
-        List<String> authSigninAlgorithms = Stream.of(
-                JWSAlgorithm.HS256, JWSAlgorithm.HS384, JWSAlgorithm.HS512,
-                JWSAlgorithm.RS256, JWSAlgorithm.RS384, JWSAlgorithm.RS512)
-                .map(a -> a.getName()).collect(Collectors.toList());
+        List<String> authSigninAlgorithms = Stream
+            .of(
+                JWSAlgorithm.HS256,
+                JWSAlgorithm.HS384,
+                JWSAlgorithm.HS512,
+                JWSAlgorithm.RS256,
+                JWSAlgorithm.RS384,
+                JWSAlgorithm.RS512
+            )
+            .map(a -> a.getName())
+            .collect(Collectors.toList());
 
-        List<String> authMethods = Stream.of(
+        List<String> authMethods = Stream
+            .of(
                 AuthenticationMethod.CLIENT_SECRET_BASIC,
                 AuthenticationMethod.CLIENT_SECRET_POST,
                 AuthenticationMethod.CLIENT_SECRET_JWT,
-                AuthenticationMethod.PRIVATE_KEY_JWT)
-                .map(t -> t.getValue()).collect(Collectors.toList());
+                AuthenticationMethod.PRIVATE_KEY_JWT
+            )
+            .map(t -> t.getValue())
+            .collect(Collectors.toList());
 
         m.put("revocation_endpoint", baseUrl + TokenRevocationEndpoint.TOKEN_REVOCATION_URL);
 
@@ -131,5 +142,4 @@ public class OAuth2MetadataEndpoint {
         m.put("authorization_response_iss_parameter_supported", true);
         return m;
     }
-
 }

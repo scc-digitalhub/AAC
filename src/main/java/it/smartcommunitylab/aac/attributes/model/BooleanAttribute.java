@@ -1,10 +1,9 @@
 package it.smartcommunitylab.aac.attributes.model;
 
-import java.io.Serializable;
-import java.text.ParseException;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.model.AttributeType;
+import java.io.Serializable;
+import java.text.ParseException;
 
 public class BooleanAttribute extends AbstractAttribute {
 
@@ -48,5 +47,4 @@ public class BooleanAttribute extends AbstractAttribute {
 
         return Boolean.valueOf(stringValue);
     }
-
 }

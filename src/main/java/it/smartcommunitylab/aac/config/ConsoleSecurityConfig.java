@@ -1,13 +1,12 @@
 package it.smartcommunitylab.aac.config;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-
+import it.smartcommunitylab.aac.core.auth.Http401UnauthorizedEntryPoint;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -22,11 +21,9 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import it.smartcommunitylab.aac.core.auth.Http401UnauthorizedEntryPoint;
-
 /*
  * Security context for console endpoints
- * 
+ *
  * Builds a stateful context with no auth entrypoint
  */
 
@@ -44,22 +41,22 @@ public class ConsoleSecurityConfig {
     @Bean("consoleSecurityFilterChain")
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         // match only console endpoints and require user access
-        http.requestMatcher(getRequestMatcher())
-                .authorizeRequests((authorizeRequests) -> authorizeRequests
-                        .anyRequest().hasAnyAuthority("ROLE_USER"))
-                // disable request cache, we override redirects but still better enforce it
-                .requestCache((requestCache) -> requestCache.disable())
-                .exceptionHandling()
-                // use 401
-                .authenticationEntryPoint(new Http401UnauthorizedEntryPoint())
-//                .accessDeniedPage("/accesserror")
-                .and()
-                // disable crsf for spa console
-                .csrf()
-                .disable()
-                // we want a session for console
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
+        http
+            .requestMatcher(getRequestMatcher())
+            .authorizeRequests(authorizeRequests -> authorizeRequests.anyRequest().hasAnyAuthority("ROLE_USER"))
+            // disable request cache, we override redirects but still better enforce it
+            .requestCache(requestCache -> requestCache.disable())
+            .exceptionHandling()
+            // use 401
+            .authenticationEntryPoint(new Http401UnauthorizedEntryPoint())
+            //                .accessDeniedPage("/accesserror")
+            .and()
+            // disable crsf for spa console
+            .csrf()
+            .disable()
+            // we want a session for console
+            .sessionManagement()
+            .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
 
         if (StringUtils.hasText(corsOrigins)) {
             // allow cors
@@ -71,15 +68,15 @@ public class ConsoleSecurityConfig {
 
     public RequestMatcher getRequestMatcher() {
         // skip index.html to let auth entry point enforce login
-        List<RequestMatcher> matchers = Arrays.stream(CONSOLES)
-                .map(c -> new NegatedRequestMatcher(new AntPathRequestMatcher(CONSOLE_PREFIX + "/" + c)))
-                .collect(Collectors.toList());
+        List<RequestMatcher> matchers = Arrays
+            .stream(CONSOLES)
+            .map(c -> new NegatedRequestMatcher(new AntPathRequestMatcher(CONSOLE_PREFIX + "/" + c)))
+            .collect(Collectors.toList());
 
         List<RequestMatcher> antMatchers = new ArrayList<>(matchers);
         antMatchers.add(new AntPathRequestMatcher(CONSOLE_PREFIX + "/**"));
 
         return new AndRequestMatcher(antMatchers);
-
     }
 
     private CorsConfigurationSource corsConfigurationSource(String origins) {
@@ -96,8 +93,5 @@ public class ConsoleSecurityConfig {
 
     public static final String CONSOLE_PREFIX = "/console";
 
-    public static String[] CONSOLES = {
-            "user", "dev", "admin"
-    };
-
+    public static String[] CONSOLES = { "user", "dev", "admin" };
 }

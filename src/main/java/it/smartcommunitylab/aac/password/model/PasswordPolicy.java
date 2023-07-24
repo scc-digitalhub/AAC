@@ -1,14 +1,14 @@
 package it.smartcommunitylab.aac.password.model;
 
-import java.io.Serializable;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import java.io.Serializable;
 
 @JsonInclude(Include.ALWAYS)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PasswordPolicy implements Serializable {
+
     private int passwordMinLength = 5;
     private int passwordMaxLength = 12;
     private boolean passwordRequireAlpha = true;
@@ -100,10 +100,20 @@ public class PasswordPolicy implements Serializable {
     @Override
     // TODO replace with proper description supporting i18n
     public String toString() {
-        return "PasswordPolicy [passwordMinLength=" + passwordMinLength + ", passwordMaxLength=" + passwordMaxLength
-                + ", passwordRequireAlpha=" + passwordRequireAlpha + ", passwordRequireNumber=" + passwordRequireNumber
-                + ", passwordRequireSpecial=" + passwordRequireSpecial + ", passwordSupportWhitespace="
-                + passwordSupportWhitespace + "]";
+        return (
+            "PasswordPolicy [passwordMinLength=" +
+            passwordMinLength +
+            ", passwordMaxLength=" +
+            passwordMaxLength +
+            ", passwordRequireAlpha=" +
+            passwordRequireAlpha +
+            ", passwordRequireNumber=" +
+            passwordRequireNumber +
+            ", passwordRequireSpecial=" +
+            passwordRequireSpecial +
+            ", passwordSupportWhitespace=" +
+            passwordSupportWhitespace +
+            "]"
+        );
     }
-
 }

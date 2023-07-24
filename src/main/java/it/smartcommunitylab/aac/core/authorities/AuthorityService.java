@@ -1,10 +1,9 @@
 package it.smartcommunitylab.aac.core.authorities;
 
-import java.util.Collection;
-
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.core.model.Resource;
 import it.smartcommunitylab.aac.core.provider.ResourceProvider;
+import java.util.Collection;
 
 public interface AuthorityService<A extends ProviderAuthority<? extends ResourceProvider<?>, ? extends Resource>> {
     /*

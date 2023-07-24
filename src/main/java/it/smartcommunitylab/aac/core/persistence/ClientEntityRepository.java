@@ -1,16 +1,13 @@
 package it.smartcommunitylab.aac.core.persistence;
 
+import it.smartcommunitylab.aac.repository.CustomJpaRepository;
 import java.util.List;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-import it.smartcommunitylab.aac.repository.CustomJpaRepository;
-
 @Repository
 public interface ClientEntityRepository extends CustomJpaRepository<ClientEntity, String> {
-
     ClientEntity findByClientId(String clientId);
 
     List<ClientEntity> findByRealmAndName(String realm, String name);
@@ -23,10 +20,13 @@ public interface ClientEntityRepository extends CustomJpaRepository<ClientEntity
 
     Page<ClientEntity> findByRealmAndNameContainingIgnoreCase(String realm, String name, Pageable page);
 
-    Page<ClientEntity> findByRealmAndNameContainingIgnoreCaseOrRealmAndClientIdContainingIgnoreCase(String realmn,
-            String name,
-            String realmc, String clientId, Pageable page);
+    Page<ClientEntity> findByRealmAndNameContainingIgnoreCaseOrRealmAndClientIdContainingIgnoreCase(
+        String realmn,
+        String name,
+        String realmc,
+        String clientId,
+        Pageable page
+    );
 
     long countByRealm(String realm);
-
 }

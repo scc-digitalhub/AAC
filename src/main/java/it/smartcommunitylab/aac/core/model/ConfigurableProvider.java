@@ -1,5 +1,15 @@
 package it.smartcommunitylab.aac.core.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import it.smartcommunitylab.aac.SystemKeys;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -7,32 +17,21 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
-
 import org.springframework.util.StringUtils;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.annotation.JsonProperty.Access;
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-
-import it.smartcommunitylab.aac.SystemKeys;
 
 @Valid
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
-@JsonSubTypes({
+@JsonSubTypes(
+    {
         @Type(value = ConfigurableAccountProvider.class, name = SystemKeys.RESOURCE_ACCOUNT),
         @Type(value = ConfigurableAttributeProvider.class, name = SystemKeys.RESOURCE_ATTRIBUTES),
         @Type(value = ConfigurableCredentialsProvider.class, name = SystemKeys.RESOURCE_CREDENTIALS),
         @Type(value = ConfigurableIdentityProvider.class, name = SystemKeys.RESOURCE_IDENTITY),
-        @Type(value = ConfigurableTemplateProvider.class, name = SystemKeys.RESOURCE_TEMPLATE)
-})
+        @Type(value = ConfigurableTemplateProvider.class, name = SystemKeys.RESOURCE_TEMPLATE),
+    }
+)
 public class ConfigurableProvider implements ConfigurableProperties {
 
     @NotBlank
@@ -49,6 +48,7 @@ public class ConfigurableProvider implements ConfigurableProperties {
 
     @NotBlank
     private String type;
+
     private boolean enabled;
     private Boolean registered;
 
@@ -79,7 +79,7 @@ public class ConfigurableProvider implements ConfigurableProperties {
 
     /**
      * Private constructor for JPA and other serialization tools.
-     * 
+     *
      * We need to implement this to enable deserialization of resources via
      * reflection
      */
@@ -197,10 +197,28 @@ public class ConfigurableProvider implements ConfigurableProperties {
 
     @Override
     public String toString() {
-        return "ConfigurableProvider [authority=" + authority + ", realm=" + realm + ", provider=" + provider
-                + ", type=" + type + ", enabled=" + enabled + ", registered=" + registered + ", name=" + name
-                + ", titleMap=" + titleMap + ", descriptionMap=" + descriptionMap + ", configuration=" + configuration
-                + "]";
+        return (
+            "ConfigurableProvider [authority=" +
+            authority +
+            ", realm=" +
+            realm +
+            ", provider=" +
+            provider +
+            ", type=" +
+            type +
+            ", enabled=" +
+            enabled +
+            ", registered=" +
+            registered +
+            ", name=" +
+            name +
+            ", titleMap=" +
+            titleMap +
+            ", descriptionMap=" +
+            descriptionMap +
+            ", configuration=" +
+            configuration +
+            "]"
+        );
     }
-
 }

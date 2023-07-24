@@ -1,16 +1,22 @@
 package it.smartcommunitylab.aac.oauth.auth;
 
+import it.smartcommunitylab.aac.core.auth.ComposedAuthenticationToken;
+import it.smartcommunitylab.aac.core.auth.ExtendedLoginUrlAuthenticationEntryPoint;
+import it.smartcommunitylab.aac.core.auth.LoginUrlRequestConverter;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
+import it.smartcommunitylab.aac.oauth.client.OAuth2Client;
+import it.smartcommunitylab.aac.oauth.model.PromptMode;
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientService;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -21,15 +27,6 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
-
-import it.smartcommunitylab.aac.core.auth.ComposedAuthenticationToken;
-import it.smartcommunitylab.aac.core.auth.ExtendedLoginUrlAuthenticationEntryPoint;
-import it.smartcommunitylab.aac.core.auth.LoginUrlRequestConverter;
-import it.smartcommunitylab.aac.core.auth.UserAuthentication;
-import it.smartcommunitylab.aac.oauth.client.OAuth2Client;
-import it.smartcommunitylab.aac.oauth.model.PromptMode;
-import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
-import it.smartcommunitylab.aac.oauth.service.OAuth2ClientService;
 
 public class AuthorizationEndpointFilter extends OncePerRequestFilter {
 
@@ -43,13 +40,18 @@ public class AuthorizationEndpointFilter extends OncePerRequestFilter {
     // we need access to client
     private final OAuth2ClientService clientService;
 
-    public AuthorizationEndpointFilter(OAuth2ClientService clientService,
-            OAuth2ClientDetailsService clientDetailsService) {
+    public AuthorizationEndpointFilter(
+        OAuth2ClientService clientService,
+        OAuth2ClientDetailsService clientDetailsService
+    ) {
         this(clientService, clientDetailsService, DEFAULT_FILTER_URI);
     }
 
-    public AuthorizationEndpointFilter(OAuth2ClientService clientService,
-            OAuth2ClientDetailsService clientDetailsService, String filterProcessingUrl) {
+    public AuthorizationEndpointFilter(
+        OAuth2ClientService clientService,
+        OAuth2ClientDetailsService clientDetailsService,
+        String filterProcessingUrl
+    ) {
         Assert.notNull(clientService, "client service is required");
         Assert.hasText(filterProcessingUrl, "filter url can not be null or empty");
         this.clientService = clientService;
@@ -57,10 +59,14 @@ public class AuthorizationEndpointFilter extends OncePerRequestFilter {
 
         // build an auth entry point
         // TODO build a select account entrypoint
-        LoginUrlRequestConverter clientAwareConverter = new OAuth2ClientAwareLoginUrlConverter(clientDetailsService,
-                "/login");
-        ExtendedLoginUrlAuthenticationEntryPoint entryPoint = new ExtendedLoginUrlAuthenticationEntryPoint("/login",
-                clientAwareConverter);
+        LoginUrlRequestConverter clientAwareConverter = new OAuth2ClientAwareLoginUrlConverter(
+            clientDetailsService,
+            "/login"
+        );
+        ExtendedLoginUrlAuthenticationEntryPoint entryPoint = new ExtendedLoginUrlAuthenticationEntryPoint(
+            "/login",
+            clientAwareConverter
+        );
 
         this.authenticationEntryPoint = entryPoint;
     }
@@ -71,25 +77,22 @@ public class AuthorizationEndpointFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-            throws ServletException, IOException {
-
+        throws ServletException, IOException {
         if (requestMatcher.matches(request) && requiresProcessing(request)) {
-
             // fetch params
             String clientId = request.getParameter("client_id");
             Set<String> prompt = delimitedStringToSet(request.getParameter("prompt"));
             String maxAge = request.getParameter("max_age");
 
             if (prompt.contains(PromptMode.LOGIN.getValue())) {
-
                 // if prompt login redirect but keep session
                 // we need to store request for after auth success
                 // TODO remove prompt to avoid looping..
                 // we need a way to bind reauth to requests, to avoid messing with context
                 // disabled for now
-//                this.requestCache.saveRequest(request, response);
-//                this.authenticationEntryPoint.commence(request, response, null);
-//                return;
+                //                this.requestCache.saveRequest(request, response);
+                //                this.authenticationEntryPoint.commence(request, response, null);
+                //                return;
             }
 
             UserAuthentication userAuth = getUserAuthentication();
@@ -122,26 +125,26 @@ public class AuthorizationEndpointFilter extends OncePerRequestFilter {
                 // user auth needs to contain at least one token from a client approved idp
                 // TODO handle COMMON realm requests, for now only same realm is supported
 
-                Set<String> userIdps = userAuth.getAuthentications().stream()
-                        .map(e -> e.getProvider())
-                        .filter(p -> providers.contains(p))
-                        .collect(Collectors.toSet());
+                Set<String> userIdps = userAuth
+                    .getAuthentications()
+                    .stream()
+                    .map(e -> e.getProvider())
+                    .filter(p -> providers.contains(p))
+                    .collect(Collectors.toSet());
 
                 if (userIdps.isEmpty()) {
                     // user has no matching auth, we save request and ask for relogin
-//                    SecurityContextHolder.clearContext();
+                    //                    SecurityContextHolder.clearContext();
                     this.requestCache.saveRequest(request, response);
                     this.authenticationEntryPoint.commence(request, response, null);
                     return;
                 }
-
             }
         }
 
         // continue processing
         chain.doFilter(request, response);
         return;
-
     }
 
     private boolean requiresProcessing(HttpServletRequest request) {
@@ -161,7 +164,6 @@ public class AuthorizationEndpointFilter extends OncePerRequestFilter {
         } else {
             return null;
         }
-
     }
 
     private Set<String> delimitedStringToSet(String str) {

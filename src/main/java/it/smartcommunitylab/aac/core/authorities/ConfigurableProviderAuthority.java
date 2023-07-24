@@ -12,17 +12,22 @@ import it.smartcommunitylab.aac.core.provider.ProviderConfig;
 /*
  * Provider authorities handle (configurable) resource providers by managing registrations and configuration
  */
-public interface ConfigurableProviderAuthority<S extends ConfigurableResourceProvider<R, T, M, C>, R extends Resource, T extends ConfigurableProvider, M extends ConfigMap, C extends ProviderConfig<M>>
-        extends ProviderAuthority<S, R> {
-
+public interface ConfigurableProviderAuthority<
+    S extends ConfigurableResourceProvider<R, T, M, C>,
+    R extends Resource,
+    T extends ConfigurableProvider,
+    M extends ConfigMap,
+    C extends ProviderConfig<M>
+>
+    extends ProviderAuthority<S, R> {
     /*
      * Registration
-     * 
+     *
      * TODO remove and make interface RO
      */
 
     public C registerProvider(ConfigurableProvider config)
-            throws IllegalArgumentException, RegistrationException, SystemException;
+        throws IllegalArgumentException, RegistrationException, SystemException;
 
     public void unregisterProvider(String providerId) throws SystemException;
 

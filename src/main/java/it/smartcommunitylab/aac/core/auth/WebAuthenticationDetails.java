@@ -1,13 +1,10 @@
 package it.smartcommunitylab.aac.core.auth;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import java.util.Calendar;
 import java.util.Locale;
-
 import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.http.HttpHeaders;
-
-import it.smartcommunitylab.aac.SystemKeys;
 
 public class WebAuthenticationDetails extends org.springframework.security.web.authentication.WebAuthenticationDetails {
 
@@ -54,5 +51,4 @@ public class WebAuthenticationDetails extends org.springframework.security.web.a
     public String getUserAgent() {
         return userAgent;
     }
-
 }

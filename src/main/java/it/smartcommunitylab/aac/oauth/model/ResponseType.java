@@ -1,12 +1,11 @@
 package it.smartcommunitylab.aac.oauth.model;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import org.springframework.util.Assert;
 
-import com.fasterxml.jackson.annotation.JsonValue;
-
 /*
- * Response types according to 
- * 
+ * Response types according to
+ *
  * OAuth 2.0 Multiple Response Type Encoding Practices
  * https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html
  */
@@ -42,5 +41,4 @@ public enum ResponseType {
 
         return null;
     }
-
 }

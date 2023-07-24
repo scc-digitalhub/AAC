@@ -1,10 +1,11 @@
 package it.smartcommunitylab.aac.openid.auth;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
-import it.smartcommunitylab.aac.SystemKeys;
 
 public class OIDCAuthenticationException extends AuthenticationException {
+
     private static final long serialVersionUID = SystemKeys.AAC_OIDC_SERIAL_VERSION;
 
     private final OAuth2Error error;
@@ -24,12 +25,16 @@ public class OIDCAuthenticationException extends AuthenticationException {
         authorizationResponse = null;
         tokenRequest = null;
         tokenResponse = null;
-
     }
 
-    public OIDCAuthenticationException(OAuth2Error error, String message,
-            String authorizationRequest, String authorizationResponse,
-            String tokenRequest, String tokenResponse) {
+    public OIDCAuthenticationException(
+        OAuth2Error error,
+        String message,
+        String authorizationRequest,
+        String authorizationResponse,
+        String tokenRequest,
+        String tokenResponse
+    ) {
         super(message);
         this.error = error;
         this.authorizationRequest = authorizationRequest;
@@ -61,5 +66,4 @@ public class OIDCAuthenticationException extends AuthenticationException {
     public String getTokenResponse() {
         return tokenResponse;
     }
-
 }

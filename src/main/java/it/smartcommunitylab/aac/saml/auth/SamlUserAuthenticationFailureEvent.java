@@ -1,11 +1,10 @@
 package it.smartcommunitylab.aac.saml.auth;
 
-import java.io.Serializable;
-import java.util.Map;
-
-import org.springframework.security.core.Authentication;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.audit.UserAuthenticationFailureEvent;
+import java.io.Serializable;
+import java.util.Map;
+import org.springframework.security.core.Authentication;
 
 public class SamlUserAuthenticationFailureEvent extends UserAuthenticationFailureEvent {
 
@@ -14,10 +13,13 @@ public class SamlUserAuthenticationFailureEvent extends UserAuthenticationFailur
     // TODO evaluate adding fields for error and message
 
     public SamlUserAuthenticationFailureEvent(
-            String authority, String provider, String realm,
-            Authentication authentication, SamlAuthenticationException exception) {
+        String authority,
+        String provider,
+        String realm,
+        Authentication authentication,
+        SamlAuthenticationException exception
+    ) {
         super(authority, provider, realm, null, authentication, exception);
-
     }
 
     @Override
@@ -31,5 +33,4 @@ public class SamlUserAuthenticationFailureEvent extends UserAuthenticationFailur
 
         return data;
     }
-
 }

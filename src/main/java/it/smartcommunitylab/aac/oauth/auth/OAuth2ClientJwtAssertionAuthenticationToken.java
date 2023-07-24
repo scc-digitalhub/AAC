@@ -1,10 +1,8 @@
 package it.smartcommunitylab.aac.oauth.auth;
 
-import java.util.Collection;
-
-import org.springframework.security.core.GrantedAuthority;
-
 import it.smartcommunitylab.aac.SystemKeys;
+import java.util.Collection;
+import org.springframework.security.core.GrantedAuthority;
 
 public class OAuth2ClientJwtAssertionAuthenticationToken extends OAuth2ClientAuthenticationToken {
 
@@ -14,17 +12,23 @@ public class OAuth2ClientJwtAssertionAuthenticationToken extends OAuth2ClientAut
 
     private String clientAssertion;
 
-    public OAuth2ClientJwtAssertionAuthenticationToken(String clientId, String clientAssertion,
-            String authenticationMethod) {
+    public OAuth2ClientJwtAssertionAuthenticationToken(
+        String clientId,
+        String clientAssertion,
+        String authenticationMethod
+    ) {
         super(clientId);
         this.clientAssertion = clientAssertion;
         this.authenticationMethod = authenticationMethod;
         setAuthenticated(false);
     }
 
-    public OAuth2ClientJwtAssertionAuthenticationToken(String clientId, String clientAssertion,
-            String authenticationMethod,
-            Collection<? extends GrantedAuthority> authorities) {
+    public OAuth2ClientJwtAssertionAuthenticationToken(
+        String clientId,
+        String clientAssertion,
+        String authenticationMethod,
+        Collection<? extends GrantedAuthority> authorities
+    ) {
         super(clientId, authorities);
         this.clientAssertion = clientAssertion;
         this.authenticationMethod = authenticationMethod;
@@ -44,5 +48,4 @@ public class OAuth2ClientJwtAssertionAuthenticationToken extends OAuth2ClientAut
         super.eraseCredentials();
         this.clientAssertion = null;
     }
-
 }

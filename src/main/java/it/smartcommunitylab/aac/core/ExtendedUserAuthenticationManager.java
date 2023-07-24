@@ -1,37 +1,5 @@
 package it.smartcommunitylab.aac.core;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.authentication.AccountExpiredException;
-import org.springframework.security.authentication.AuthenticationEventPublisher;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationServiceException;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.DisabledException;
-import org.springframework.security.authentication.LockedException;
-import org.springframework.security.authentication.ProviderNotFoundException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.CredentialsContainer;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
@@ -60,35 +28,68 @@ import it.smartcommunitylab.aac.core.service.IdentityProviderAuthorityService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.model.Subject;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.authentication.AccountExpiredException;
+import org.springframework.security.authentication.AuthenticationEventPublisher;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationServiceException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
+import org.springframework.security.authentication.ProviderNotFoundException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.CredentialsContainer;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /*
  * Authentication manager
- * 
+ *
  * handles authentication process by dispatching authRequests to specific providers
  * expects all provider to be registered to an external registry
- * 
+ *
  * we don't want retries, a request should be handled only by the correct provider, or dropped
- * 
+ *
  */
 
 public class ExtendedUserAuthenticationManager implements AuthenticationManager {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final IdentityProviderAuthorityService identityProviderAuthorityService;
     private final AttributeProviderAuthorityService attributeProviderAuthorityService;
     // TODO replace manager with services for idp and ap
-//    private final AuthorityManager authorityManager;
+    //    private final AuthorityManager authorityManager;
     private final UserEntityService userService;
     private final SubjectService subjectService;
 
     private AuthenticationEventPublisher eventPublisher;
 
     public ExtendedUserAuthenticationManager(
-//            AuthorityManager authorityManager,
-            IdentityProviderAuthorityService identityProviderAuthorityService,
-            AttributeProviderAuthorityService attributeProviderAuthorityService,
-            UserEntityService userService, SubjectService subjectService) {
-//        Assert.notNull(authorityManager, "authority manager is required");
+        //            AuthorityManager authorityManager,
+        IdentityProviderAuthorityService identityProviderAuthorityService,
+        AttributeProviderAuthorityService attributeProviderAuthorityService,
+        UserEntityService userService,
+        SubjectService subjectService
+    ) {
+        //        Assert.notNull(authorityManager, "authority manager is required");
         Assert.notNull(identityProviderAuthorityService, "idp authority service is required");
         Assert.notNull(attributeProviderAuthorityService, "attribute provider authority service is required");
         Assert.notNull(userService, "user service is required");
@@ -129,12 +130,17 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
 
             if (request instanceof ProviderWrappedAuthenticationToken) {
                 // resolve provider and then process auth
-                ProviderWrappedAuthenticationToken providerRequest = (ProviderWrappedAuthenticationToken) authentication;
+                ProviderWrappedAuthenticationToken providerRequest =
+                    (ProviderWrappedAuthenticationToken) authentication;
                 String authorityId = providerRequest.getAuthority();
                 String providerId = providerRequest.getProvider();
 
-                logger.debug("authentication token for provider " + String.valueOf(authorityId) + ":"
-                        + String.valueOf(providerId));
+                logger.debug(
+                    "authentication token for provider " +
+                    String.valueOf(authorityId) +
+                    ":" +
+                    String.valueOf(providerId)
+                );
                 logger.trace(String.valueOf(token));
 
                 // validate
@@ -150,8 +156,8 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
                 } else {
                     // disabled, we don't want auth request for unloaded idps
                     // TODO handle pending requests on unload
-//                    // from db
-//                    idp = authorityManager.findIdentityProvider(providerId);
+                    //                    // from db
+                    //                    idp = authorityManager.findIdentityProvider(providerId);
                 }
 
                 if (idp == null) {
@@ -159,8 +165,8 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
                     throw new ProviderNotFoundException("provider not found for " + providerId);
                 }
 
-                ExtendedAuthenticationProvider<? extends UserAuthenticatedPrincipal, ? extends UserAccount> eap = idp
-                        .getAuthenticationProvider();
+                ExtendedAuthenticationProvider<? extends UserAuthenticatedPrincipal, ? extends UserAccount> eap =
+                    idp.getAuthenticationProvider();
                 if (eap == null) {
                     logger.error("auth provider not found for " + providerId);
                     throw new ProviderNotFoundException("provider not found for " + providerId);
@@ -175,7 +181,8 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
                 String realm = realmRequest.getRealm();
 
                 logger.debug(
-                        "authentication token for realm " + String.valueOf(realm) + ":" + String.valueOf(authorityId));
+                    "authentication token for realm " + String.valueOf(realm) + ":" + String.valueOf(authorityId)
+                );
                 logger.trace(String.valueOf(token));
 
                 // validate
@@ -193,16 +200,20 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
                     providers = fetchIdentityProviders(authorityId, realm);
                 } else {
                     // load all
-                    providers = identityProviderAuthorityService.getAuthorities().stream()
-                            .flatMap(a -> a.getProvidersByRealm(realm).stream()).collect(Collectors.toList());
+                    providers =
+                        identityProviderAuthorityService
+                            .getAuthorities()
+                            .stream()
+                            .flatMap(a -> a.getProvidersByRealm(realm).stream())
+                            .collect(Collectors.toList());
                 }
 
                 UserAuthentication result = null;
 
                 // TODO rework loop
                 for (IdentityProvider<? extends UserIdentity, ?, ?, ?, ?> idp : providers) {
-                    ExtendedAuthenticationProvider<? extends UserAuthenticatedPrincipal, ? extends UserAccount> eap = idp
-                            .getAuthenticationProvider();
+                    ExtendedAuthenticationProvider<? extends UserAuthenticatedPrincipal, ? extends UserAccount> eap =
+                        idp.getAuthenticationProvider();
                     if (eap == null) {
                         continue;
                     }
@@ -218,7 +229,6 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
                 }
 
                 return result;
-
             } else {
                 throw new ProviderNotFoundException("provider not found");
             }
@@ -232,12 +242,13 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
     /*
      * Attemp authentication, returns null if request is not supported or if invalid
      */
-    protected UserAuthentication attempAuthenticate(WrappedAuthenticationToken request,
-            ExtendedAuthenticationProvider<? extends UserAuthenticatedPrincipal, ? extends UserAccount> provider)
-            throws AuthenticationException {
+    protected UserAuthentication attempAuthenticate(
+        WrappedAuthenticationToken request,
+        ExtendedAuthenticationProvider<? extends UserAuthenticatedPrincipal, ? extends UserAccount> provider
+    ) throws AuthenticationException {
         /*
          * Extended authentication:
-         * 
+         *
          * process auth request via specific provider and obtain a valid userAuth
          * containing a principal
          */
@@ -269,13 +280,13 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
     /*
      * Perform authentication, throws error
      */
-    protected UserAuthentication doAuthenticate(WrappedAuthenticationToken request,
-            ExtendedAuthenticationProvider<? extends UserAuthenticatedPrincipal, ? extends UserAccount> eap)
-            throws AuthenticationException {
-
+    protected UserAuthentication doAuthenticate(
+        WrappedAuthenticationToken request,
+        ExtendedAuthenticationProvider<? extends UserAuthenticatedPrincipal, ? extends UserAccount> eap
+    ) throws AuthenticationException {
         /*
          * Extended authentication:
-         * 
+         *
          * process auth request via specific provider and obtain a valid userAuth
          * containing a principal
          */
@@ -298,11 +309,12 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
         }
 
         return createSuccessAuthentication(request, auth);
-
     }
 
-    protected UserAuthentication createSuccessAuthentication(WrappedAuthenticationToken request,
-            ExtendedAuthenticationToken auth) throws AuthenticationException {
+    protected UserAuthentication createSuccessAuthentication(
+        WrappedAuthenticationToken request,
+        ExtendedAuthenticationToken auth
+    ) throws AuthenticationException {
         logger.trace("auth token is " + auth.toString());
         WebAuthenticationDetails webAuthDetails = request.getAuthenticationDetails();
         String authorityId = auth.getAuthority();
@@ -332,7 +344,7 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
         }
         /*
          * Subject resolution:
-         * 
+         *
          * from the principal we ask providers to resolve a subject
          */
 
@@ -371,7 +383,6 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
                     break;
                 }
             }
-
         }
 
         if (subjectId == null) {
@@ -414,8 +425,7 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
         if (currentSession != null && currentSession instanceof UserAuthentication) {
             currentAuth = (UserAuthentication) currentSession;
             // also enforce realm match on subject
-            if (!subjectId.equals(currentAuth.getSubject().getSubjectId()) ||
-                    !realm.equals((currentAuth.getRealm()))) {
+            if (!subjectId.equals(currentAuth.getSubject().getSubjectId()) || !realm.equals((currentAuth.getRealm()))) {
                 // not the same subject or not same realm, drop
                 currentAuth = null;
             }
@@ -423,7 +433,7 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
 
         /*
          * Login identity:
-         * 
+         *
          * we ask the IdP to convert the authentication to a valid identity bound to the
          * subject. If desired, the IdP can persist the account <=> subject association
          */
@@ -450,23 +460,26 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
             }
 
             // TODO attribute providers outside idp
-//            // fetch attributes
-//            // could be a no-op, we expect attributes mapped to the shared schema
-//            Collection<UserAttributes> attributeSets = idp.getAttributeProvider()
-//                    .convertAttributes(identity.getAttributes());
+            //            // fetch attributes
+            //            // could be a no-op, we expect attributes mapped to the shared schema
+            //            Collection<UserAttributes> attributeSets = idp.getAttributeProvider()
+            //                    .convertAttributes(identity.getAttributes());
             Collection<UserAttributes> attributeSets = Collections.emptyList();
 
             /*
              * Build complete subject
-             * 
+             *
              * we got a login identity, update subject
              */
 
             // always override username with last login
             if (StringUtils.hasText(identity.getAccount().getUsername())) {
-                user = userService.updateUser(subjectId,
+                user =
+                    userService.updateUser(
+                        subjectId,
                         identity.getAccount().getUsername(),
-                        identity.getAccount().getEmailAddress());
+                        identity.getAccount().getEmailAddress()
+                    );
             }
 
             if (identity.getAccount().isEmailVerified() && !user.isEmailVerified()) {
@@ -492,7 +505,7 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
 
             // convert to subject
             // fetch subject from service
-//            Subject subject = new Subject(subjectId, realm, user.getUsername(), SystemKeys.RESOURCE_USER);
+            //            Subject subject = new Subject(subjectId, realm, user.getUsername(), SystemKeys.RESOURCE_USER);
             Subject subject = subjectService.getSubject(subjectId);
             // update
             subject = subjectService.updateSubject(subjectId, user.getUsername());
@@ -518,19 +531,24 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
 
             // we can build the user authentication
             DefaultUserAuthenticationToken userAuth = new DefaultUserAuthenticationToken(
-                    subject, realm,
-                    auth,
-                    identity, attributeSets,
-                    authorities);
+                subject,
+                realm,
+                auth,
+                identity,
+                attributeSets,
+                authorities
+            );
 
             // set webAuth details matching this request
             userAuth.setWebAuthenticationDetails(webAuthDetails);
 
             // load additional attributes from providers
             UserDetails userDetails = userAuth.getUser();
-            Collection<AttributeProvider<?, ?>> attributeProviders = attributeProviderAuthorityService.getAuthorities()
-                    .stream().flatMap(a -> a.getProvidersByRealm(realm).stream())
-                    .collect(Collectors.toList());
+            Collection<AttributeProvider<?, ?>> attributeProviders = attributeProviderAuthorityService
+                .getAuthorities()
+                .stream()
+                .flatMap(a -> a.getProvidersByRealm(realm).stream())
+                .collect(Collectors.toList());
 
             for (AttributeProvider<?, ?> ap : attributeProviders) {
                 // try to fetch attributes, don't stop authentication on errors
@@ -565,7 +583,6 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
 
                 // current authentication is first, new extends
                 result = new DefaultUserAuthenticationToken(subject, realm, grantedAuthorities, currentAuth, userAuth);
-
             }
 
             // load additional identities from same realm providers
@@ -596,43 +613,42 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
 
             // audit trail for result
             // DISABLED, for now audit single login events
-//            if (eventPublisher != null) {
-//                // publish as is, listener will resolve realm
-//                eventPublisher.publishAuthenticationSuccess(result);
-//            }
+            //            if (eventPublisher != null) {
+            //                // publish as is, listener will resolve realm
+            //                eventPublisher.publishAuthenticationSuccess(result);
+            //            }
 
             return result;
-
         } catch (NoSuchUserException | NoSuchSubjectException | RegistrationException e) {
             logger.error("idp could not resolve identity for user " + subjectId);
             throw new UsernameNotFoundException("no identity for user from provider");
         }
-
     }
 
-//    private Collection<GrantedAuthority> convertUserRoles(List<UserRoleEntity> userRoles,
-//            List<UserRoleEntity> realmRoles) {
-//        Set<GrantedAuthority> authorities = new HashSet<>();
-//        // always grant user role
-//        authorities.add(new SimpleGrantedAuthority(Config.R_USER));
-//
-//        for (UserRoleEntity role : userRoles) {
-//            authorities.add(new SimpleGrantedAuthority(role.getRole()));
-//        }
-//
-//        for (UserRoleEntity role : realmRoles) {
-//            authorities.add(new RealmGrantedAuthority(role.getRealm(), role.getRole()));
-//        }
-//
-//        return authorities;
-//    }
+    //    private Collection<GrantedAuthority> convertUserRoles(List<UserRoleEntity> userRoles,
+    //            List<UserRoleEntity> realmRoles) {
+    //        Set<GrantedAuthority> authorities = new HashSet<>();
+    //        // always grant user role
+    //        authorities.add(new SimpleGrantedAuthority(Config.R_USER));
+    //
+    //        for (UserRoleEntity role : userRoles) {
+    //            authorities.add(new SimpleGrantedAuthority(role.getRole()));
+    //        }
+    //
+    //        for (UserRoleEntity role : realmRoles) {
+    //            authorities.add(new RealmGrantedAuthority(role.getRealm(), role.getRole()));
+    //        }
+    //
+    //        return authorities;
+    //    }
 
     public boolean supports(Class<?> authentication) {
         // we support only requests with provider ids
         // TODO extend to support lookup providerId or realm in details as parameter map
-        return (ProviderWrappedAuthenticationToken.class
-                .isAssignableFrom(authentication) ||
-                RealmWrappedAuthenticationToken.class.isAssignableFrom(authentication));
+        return (
+            ProviderWrappedAuthenticationToken.class.isAssignableFrom(authentication) ||
+            RealmWrappedAuthenticationToken.class.isAssignableFrom(authentication)
+        );
     }
 
     private void auditException(AuthenticationException ex, Authentication auth) {
@@ -645,14 +661,15 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
 
     /*
      * Idp helpers
-     * 
+     *
      * TODO refactor and remove
      */
-    private IdentityProvider<? extends UserIdentity, ?, ?, ?, ?> fetchIdentityProvider(String authorityId,
-            String providerId) {
+    private IdentityProvider<? extends UserIdentity, ?, ?, ?, ?> fetchIdentityProvider(
+        String authorityId,
+        String providerId
+    ) {
         // lookup in authority
-        IdentityProviderAuthority<?, ?, ?, ?> ia = identityProviderAuthorityService
-                .findAuthority(authorityId);
+        IdentityProviderAuthority<?, ?, ?, ?> ia = identityProviderAuthorityService.findAuthority(authorityId);
         if (ia == null) {
             return null;
         }
@@ -663,37 +680,34 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
         }
     }
 
-    private Collection<IdentityProvider<? extends UserIdentity, ?, ?, ?, ?>> fetchIdentityProviders(String authorityId,
-            String realm) {
+    private Collection<IdentityProvider<? extends UserIdentity, ?, ?, ?, ?>> fetchIdentityProviders(
+        String authorityId,
+        String realm
+    ) {
         List<IdentityProvider<? extends UserIdentity, ?, ?, ?, ?>> providers = new ArrayList<>();
         // lookup in authority
-        IdentityProviderAuthority<?, ?, ?, ?> ia = identityProviderAuthorityService
-                .findAuthority(authorityId);
+        IdentityProviderAuthority<?, ?, ?, ?> ia = identityProviderAuthorityService.findAuthority(authorityId);
         if (ia != null) {
             providers.addAll(ia.getProvidersByRealm(realm));
         }
 
         return providers;
-
     }
 
     private Collection<IdentityProvider<? extends UserIdentity, ?, ?, ?, ?>> fetchIdentityProviders(String realm) {
         List<IdentityProvider<? extends UserIdentity, ?, ?, ?, ?>> providers = new ArrayList<>();
 
-        for (IdentityProviderAuthority<?, ?, ?, ?> ia : identityProviderAuthorityService
-                .getAuthorities()) {
+        for (IdentityProviderAuthority<?, ?, ?, ?> ia : identityProviderAuthorityService.getAuthorities()) {
             providers.addAll(ia.getProvidersByRealm(realm));
         }
 
         return providers;
-
     }
-
-//    private void auditSuccess(UserAuthentication auth) {
-//        if (eventPublisher != null) {
-//            // publish as is, listener will resolve realm
-//            eventPublisher.publishAuthenticationSuccess(auth);
-//        }
-//    }
+    //    private void auditSuccess(UserAuthentication auth) {
+    //        if (eventPublisher != null) {
+    //            // publish as is, listener will resolve realm
+    //            eventPublisher.publishAuthenticationSuccess(auth);
+    //        }
+    //    }
 
 }

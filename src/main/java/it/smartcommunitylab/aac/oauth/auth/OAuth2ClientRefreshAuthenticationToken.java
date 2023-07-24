@@ -1,9 +1,8 @@
 package it.smartcommunitylab.aac.oauth.auth;
 
-import java.util.Collection;
-
-import org.springframework.security.core.GrantedAuthority;
 import it.smartcommunitylab.aac.SystemKeys;
+import java.util.Collection;
+import org.springframework.security.core.GrantedAuthority;
 
 /*
  * A usernamePassword auth token to be used for clientId+verifier auth
@@ -15,21 +14,22 @@ public class OAuth2ClientRefreshAuthenticationToken extends OAuth2ClientAuthenti
 
     private String refreshToken;
 
-    public OAuth2ClientRefreshAuthenticationToken(String clientId, String refreshToken,
-            String authenticationMethod) {
+    public OAuth2ClientRefreshAuthenticationToken(String clientId, String refreshToken, String authenticationMethod) {
         super(clientId);
         this.refreshToken = refreshToken;
         this.authenticationMethod = authenticationMethod;
         setAuthenticated(false);
     }
 
-    public OAuth2ClientRefreshAuthenticationToken(String clientId, String refreshToken,
-            String authenticationMethod,
-            Collection<? extends GrantedAuthority> authorities) {
+    public OAuth2ClientRefreshAuthenticationToken(
+        String clientId,
+        String refreshToken,
+        String authenticationMethod,
+        Collection<? extends GrantedAuthority> authorities
+    ) {
         super(clientId, authorities);
         this.refreshToken = refreshToken;
         this.authenticationMethod = authenticationMethod;
-
     }
 
     @Override
@@ -46,5 +46,4 @@ public class OAuth2ClientRefreshAuthenticationToken extends OAuth2ClientAuthenti
         super.eraseCredentials();
         this.refreshToken = null;
     }
-
 }

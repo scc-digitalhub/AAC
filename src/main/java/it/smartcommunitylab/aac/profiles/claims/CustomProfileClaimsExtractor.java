@@ -1,16 +1,15 @@
 package it.smartcommunitylab.aac.profiles.claims;
 
-import java.util.Collection;
-import java.util.Collections;
-
-import org.springframework.util.Assert;
-
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.profiles.extractor.UserProfileExtractor;
 import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
+import java.util.Collection;
+import java.util.Collections;
+import org.springframework.util.Assert;
 
 public class CustomProfileClaimsExtractor extends ProfileClaimsExtractor {
+
     private final UserProfileExtractor extractor;
     private final String identifier;
 
@@ -19,7 +18,6 @@ public class CustomProfileClaimsExtractor extends ProfileClaimsExtractor {
         Assert.hasText(extractor.getIdentifier(), "identifier can not be null");
         this.extractor = extractor;
         this.identifier = extractor.getIdentifier();
-
     }
 
     private String getScope() {
@@ -38,11 +36,8 @@ public class CustomProfileClaimsExtractor extends ProfileClaimsExtractor {
     }
 
     @Override
-    protected AbstractProfile buildUserProfile(User user, Collection<String> scopes)
-            throws InvalidDefinitionException {
-
+    protected AbstractProfile buildUserProfile(User user, Collection<String> scopes) throws InvalidDefinitionException {
         AbstractProfile profile = extractor.extractUserProfile(user);
         return profile;
     }
-
 }

@@ -1,26 +1,5 @@
 package it.smartcommunitylab.aac.config;
 
-import java.io.IOException;
-import java.io.Writer;
-import java.util.Collection;
-import javax.sql.DataSource;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-import org.springframework.core.annotation.Order;
-import org.springframework.security.core.session.SessionRegistry;
-import org.springframework.security.core.session.SessionRegistryImpl;
-import org.springframework.session.web.http.CookieSerializer;
-import org.springframework.session.web.http.DefaultCookieSerializer;
-import org.springframework.util.StringUtils;
-import org.yaml.snakeyaml.DumperOptions;
-import org.yaml.snakeyaml.DumperOptions.FlowStyle;
-import org.yaml.snakeyaml.DumperOptions.ScalarStyle;
-
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.core.io.IOContext;
@@ -29,7 +8,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.provider.MapperAttributeProviderConfig;
 import it.smartcommunitylab.aac.attributes.provider.ScriptAttributeProviderConfig;
@@ -77,6 +55,25 @@ import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsServiceConf
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnConfigTranslatorRepository;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserCredentialsService;
+import java.io.IOException;
+import java.io.Writer;
+import java.util.Collection;
+import javax.sql.DataSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
+import org.springframework.session.web.http.CookieSerializer;
+import org.springframework.session.web.http.DefaultCookieSerializer;
+import org.springframework.util.StringUtils;
+import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.DumperOptions.FlowStyle;
+import org.yaml.snakeyaml.DumperOptions.ScalarStyle;
 
 @Configuration
 @Order(2)
@@ -112,9 +109,9 @@ public class PersistenceConfig {
     @Bean
     @Qualifier("yamlObjectMapper")
     public ObjectMapper yamlObjectMapper() {
-//        YAMLFactory factory = new YAMLFactory()
-//                .configure(YAMLGenerator.Feature.WRITE_DOC_START_MARKER, false)
-//                .configure(YAMLGenerator.Feature.MINIMIZE_QUOTES, true);
+        //        YAMLFactory factory = new YAMLFactory()
+        //                .configure(YAMLGenerator.Feature.WRITE_DOC_START_MARKER, false)
+        //                .configure(YAMLGenerator.Feature.MINIMIZE_QUOTES, true);
 
         YAMLFactory factory = yamlFactory();
         ObjectMapper yamlObjectMapper = new ObjectMapper(factory);
@@ -124,41 +121,53 @@ public class PersistenceConfig {
         return yamlObjectMapper;
     }
 
-//    @Bean
+    //    @Bean
     public YAMLFactory yamlFactory() {
         class CustomYAMLFactory extends YAMLFactory {
+
             private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
 
             @Override
             protected YAMLGenerator _createGenerator(Writer out, IOContext ctxt) throws IOException {
                 int feats = _yamlGeneratorFeatures;
-                return yamlGenerator(ctxt, _generatorFeatures, feats,
-                        _objectCodec, out, _version);
+                return yamlGenerator(ctxt, _generatorFeatures, feats, _objectCodec, out, _version);
             }
         }
 
         return new CustomYAMLFactory()
-                .configure(YAMLGenerator.Feature.WRITE_DOC_START_MARKER, false)
-                .configure(YAMLGenerator.Feature.MINIMIZE_QUOTES, false)
-                .configure(YAMLGenerator.Feature.LITERAL_BLOCK_STYLE, true)
-                .configure(YAMLGenerator.Feature.USE_NATIVE_TYPE_ID, false);
+            .configure(YAMLGenerator.Feature.WRITE_DOC_START_MARKER, false)
+            .configure(YAMLGenerator.Feature.MINIMIZE_QUOTES, false)
+            .configure(YAMLGenerator.Feature.LITERAL_BLOCK_STYLE, true)
+            .configure(YAMLGenerator.Feature.USE_NATIVE_TYPE_ID, false);
     }
 
-    private YAMLGenerator yamlGenerator(IOContext ctxt, int jsonFeatures, int yamlFeatures,
-            ObjectCodec codec, Writer out,
-            org.yaml.snakeyaml.DumperOptions.Version version) throws IOException {
-
+    private YAMLGenerator yamlGenerator(
+        IOContext ctxt,
+        int jsonFeatures,
+        int yamlFeatures,
+        ObjectCodec codec,
+        Writer out,
+        org.yaml.snakeyaml.DumperOptions.Version version
+    ) throws IOException {
         class MyYAMLGenerator extends YAMLGenerator {
 
-            public MyYAMLGenerator(IOContext ctxt, int jsonFeatures, int yamlFeatures,
-                    ObjectCodec codec, Writer out, org.yaml.snakeyaml.DumperOptions.Version version)
-                    throws IOException {
+            public MyYAMLGenerator(
+                IOContext ctxt,
+                int jsonFeatures,
+                int yamlFeatures,
+                ObjectCodec codec,
+                Writer out,
+                org.yaml.snakeyaml.DumperOptions.Version version
+            ) throws IOException {
                 super(ctxt, jsonFeatures, yamlFeatures, null, codec, out, version);
             }
 
             @Override
-            protected DumperOptions buildDumperOptions(int jsonFeatures, int yamlFeatures,
-                    org.yaml.snakeyaml.DumperOptions.Version version) {
+            protected DumperOptions buildDumperOptions(
+                int jsonFeatures,
+                int yamlFeatures,
+                org.yaml.snakeyaml.DumperOptions.Version version
+            ) {
                 DumperOptions opt = super.buildDumperOptions(jsonFeatures, yamlFeatures, version);
                 // override opts
                 opt.setDefaultScalarStyle(ScalarStyle.LITERAL);
@@ -169,11 +178,9 @@ public class PersistenceConfig {
                 opt.setCanonical(false);
                 return opt;
             }
-
         }
 
-        return new MyYAMLGenerator(ctxt, jsonFeatures, yamlFeatures, codec,
-                out, version);
+        return new MyYAMLGenerator(ctxt, jsonFeatures, yamlFeatures, codec, out, version);
     }
 
     /*
@@ -212,55 +219,67 @@ public class PersistenceConfig {
     public SessionRegistry sessionRegistry() {
         return new SessionRegistryImpl();
     }
+
     /*
      * Wire persistence services bound to dataSource
      */
 
     @Bean
     public UserAccountService<OIDCUserAccount> oidcUserAccountService(
-            OIDCUserAccountRepository accountRepository, SubjectService subjectService) {
+        OIDCUserAccountRepository accountRepository,
+        SubjectService subjectService
+    ) {
         return new OIDCUserAccountService(accountRepository, subjectService);
     }
 
     @Bean
     public UserAccountService<SamlUserAccount> samlUserAccountService(
-            SamlUserAccountRepository accountRepository, SubjectService subjectService) {
+        SamlUserAccountRepository accountRepository,
+        SubjectService subjectService
+    ) {
         return new SamlUserAccountService(accountRepository, subjectService);
     }
 
     @Bean
     public UserAccountService<InternalUserAccount> internalUserAccountService(
-            InternalUserAccountRepository accountRepository, SubjectService subjectService) {
+        InternalUserAccountRepository accountRepository,
+        SubjectService subjectService
+    ) {
         return new InternalUserAccountService(accountRepository, subjectService);
     }
 
     @Bean
     public InternalPasswordUserCredentialsService internalUserPasswordService(
-            InternalUserPasswordRepository passwordRepository) {
+        InternalUserPasswordRepository passwordRepository
+    ) {
         return new InternalPasswordUserCredentialsService(passwordRepository);
     }
 
     @Bean
     public WebAuthnUserCredentialsService webAuthnCredentialsService(
-            WebAuthnUserCredentialsRepository credentialsRepository) {
+        WebAuthnUserCredentialsRepository credentialsRepository
+    ) {
         return new WebAuthnUserCredentialsService(credentialsRepository);
     }
 
     @Bean
     public ConfigurableProviderEntityService<AttributeProviderEntity> attributeProviderEntityService(
-            AttributeProviderEntityRepository attributeProviderRepository) {
+        AttributeProviderEntityRepository attributeProviderRepository
+    ) {
         return new ConfigurableProviderEntityService<>(attributeProviderRepository);
     }
 
     @Bean
     public ConfigurableProviderEntityService<IdentityProviderEntity> identityProviderEntityService(
-            IdentityProviderEntityRepository identityProviderRepository) {
+        IdentityProviderEntityRepository identityProviderRepository
+    ) {
         return new ConfigurableProviderEntityService<>(identityProviderRepository);
     }
 
     @Bean
     public ConfigurableProviderEntityService<TemplateProviderEntity> templateProviderEntityService(
-            TemplateProviderEntityRepository templateProviderRepository) {
+        TemplateProviderEntityRepository templateProviderRepository
+    ) {
         return new ConfigurableProviderEntityService<>(templateProviderRepository);
     }
 
@@ -275,18 +294,20 @@ public class PersistenceConfig {
     }
 
     @Bean(name = "extractorsRegistry")
-    public ExtractorsRegistry extractorsRegistry(Collection<ScopeClaimsExtractorProvider> scopeExtractorsProviders,
-            Collection<ResourceClaimsExtractorProvider> resourceExtractorsProviders) {
+    public ExtractorsRegistry extractorsRegistry(
+        Collection<ScopeClaimsExtractorProvider> scopeExtractorsProviders,
+        Collection<ResourceClaimsExtractorProvider> resourceExtractorsProviders
+    ) {
         return new InMemoryExtractorsRegistry(scopeExtractorsProviders, resourceExtractorsProviders);
     }
 
     /*
      * TODO use a proper builder to obtain implementation
      */
-//    @Bean
-//    public ProviderConfigRepository<InternalAccountServiceConfig> internalServiceConfigRepository() {
-//        return new InMemoryProviderConfigRepository<InternalAccountServiceConfig>();
-//    }
+    //    @Bean
+    //    public ProviderConfigRepository<InternalAccountServiceConfig> internalServiceConfigRepository() {
+    //        return new InMemoryProviderConfigRepository<InternalAccountServiceConfig>();
+    //    }
 
     @Bean
     public ProviderConfigRepository<InternalIdentityProviderConfig> internalProviderConfigRepository() {
@@ -338,23 +359,24 @@ public class PersistenceConfig {
         return buildProviderConfigRepository(WebhookAttributeProviderConfig.class);
     }
 
-//    @Bean
-//    public ProviderConfigRepository<InternalIdentityServiceConfig> internalIdentityServiceConfigRepository() {
-//        return new InMemoryProviderConfigRepository<InternalIdentityServiceConfig>();
-//    }
-//
-//    @Bean
-//    public ProviderConfigRepository<PasswordCredentialsServiceConfig> passwordCredentialsServiceConfigRepository() {
-//        return new InMemoryProviderConfigRepository<PasswordCredentialsServiceConfig>();
-//    }
-//
-//    @Bean
-//    public ProviderConfigRepository<WebAuthnCredentialsServiceConfig> webauthnCredentialsServiceConfigRepository() {
-//        return new InMemoryProviderConfigRepository<WebAuthnCredentialsServiceConfig>();
-//    }
+    //    @Bean
+    //    public ProviderConfigRepository<InternalIdentityServiceConfig> internalIdentityServiceConfigRepository() {
+    //        return new InMemoryProviderConfigRepository<InternalIdentityServiceConfig>();
+    //    }
+    //
+    //    @Bean
+    //    public ProviderConfigRepository<PasswordCredentialsServiceConfig> passwordCredentialsServiceConfigRepository() {
+    //        return new InMemoryProviderConfigRepository<PasswordCredentialsServiceConfig>();
+    //    }
+    //
+    //    @Bean
+    //    public ProviderConfigRepository<WebAuthnCredentialsServiceConfig> webauthnCredentialsServiceConfigRepository() {
+    //        return new InMemoryProviderConfigRepository<WebAuthnCredentialsServiceConfig>();
+    //    }
     @Bean
     public ProviderConfigRepository<WebAuthnCredentialsServiceConfig> webauthnCredentialsServiceConfigRepository(
-            ProviderConfigRepository<WebAuthnIdentityProviderConfig> externalRepository) {
+        ProviderConfigRepository<WebAuthnIdentityProviderConfig> externalRepository
+    ) {
         return new WebAuthnConfigTranslatorRepository(externalRepository);
     }
 
@@ -364,12 +386,12 @@ public class PersistenceConfig {
     }
 
     private <U extends AbstractProviderConfig<?, ?>> ProviderConfigRepository<U> buildProviderConfigRepository(
-            Class<U> clazz) {
+        Class<U> clazz
+    ) {
         if ("jdbc".equals(providerConfigRepository)) {
             return new AutoJDBCProviderConfigRepository<U>(dataSource, clazz);
         }
 
         return new InMemoryProviderConfigRepository<U>();
     }
-
 }

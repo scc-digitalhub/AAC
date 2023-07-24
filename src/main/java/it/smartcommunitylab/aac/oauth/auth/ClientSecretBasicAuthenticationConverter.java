@@ -1,13 +1,12 @@
 package it.smartcommunitylab.aac.oauth.auth;
 
+import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Optional;
-
 import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.data.util.Pair;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -15,9 +14,8 @@ import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
-
 public class ClientSecretBasicAuthenticationConverter extends OAuth2ClientAuthenticationConverter {
+
     public static final String AUTHORIZATION_HEADER_BASIC = "Basic";
     public static final String AUTHORIZATION_HEADER_SEPARATOR = ":";
 
@@ -39,17 +37,19 @@ public class ClientSecretBasicAuthenticationConverter extends OAuth2ClientAuthen
             }
 
             // return our authRequest
-            return new OAuth2ClientSecretAuthenticationToken(clientId, clientSecret,
-                    AuthenticationMethod.CLIENT_SECRET_BASIC.getValue());
+            return new OAuth2ClientSecretAuthenticationToken(
+                clientId,
+                clientSecret,
+                AuthenticationMethod.CLIENT_SECRET_BASIC.getValue()
+            );
         } catch (IllegalArgumentException | UnsupportedEncodingException e) {
             // throw oauth2 exception
             throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST), e);
         }
-
     }
 
     public static Pair<String, Optional<String>> extractBasicAuth(HttpServletRequest request)
-            throws IllegalArgumentException, UnsupportedEncodingException {
+        throws IllegalArgumentException, UnsupportedEncodingException {
         // read from header
         String header = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (header == null) {
@@ -83,5 +83,4 @@ public class ClientSecretBasicAuthenticationConverter extends OAuth2ClientAuthen
 
         return Pair.of(clientId, Optional.ofNullable(clientSecret));
     }
-
 }

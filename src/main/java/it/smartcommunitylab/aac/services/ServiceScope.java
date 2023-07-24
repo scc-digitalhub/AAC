@@ -1,22 +1,18 @@
 package it.smartcommunitylab.aac.services;
 
-import java.util.Base64;
-import java.util.Set;
-
-import javax.validation.Valid;
-import javax.validation.constraints.Size;
-
-import org.springframework.util.StringUtils;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.services.persistence.ServiceScopeEntity;
+import java.util.Base64;
+import java.util.Set;
+import javax.validation.Valid;
+import javax.validation.constraints.Size;
+import org.springframework.util.StringUtils;
 
 @Valid
 @JsonInclude(Include.NON_NULL)
@@ -29,6 +25,7 @@ public class ServiceScope extends Scope {
     private Set<String> claims;
     private Set<String> approvalRoles;
     private Set<String> approvalSpaceRoles;
+
     @JsonIgnore
     private String approvalFunction;
 

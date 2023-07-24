@@ -1,8 +1,5 @@
 package it.smartcommunitylab.aac.attributes;
 
-import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.provider.ScriptAttributeProvider;
 import it.smartcommunitylab.aac.attributes.provider.ScriptAttributeProviderConfig;
@@ -16,10 +13,12 @@ import it.smartcommunitylab.aac.attributes.store.PersistentAttributeStore;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.core.base.AbstractAttributeAuthority;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 @Service
-public class ScriptAttributeAuthority extends
-        AbstractAttributeAuthority<ScriptAttributeProvider, ScriptAttributeProviderConfigMap, ScriptAttributeProviderConfig> {
+public class ScriptAttributeAuthority
+    extends AbstractAttributeAuthority<ScriptAttributeProvider, ScriptAttributeProviderConfigMap, ScriptAttributeProviderConfig> {
 
     // execution service for custom attributes mapping
     private final ScriptExecutionService executionService;
@@ -28,9 +27,11 @@ public class ScriptAttributeAuthority extends
     protected final AutoJdbcAttributeStore jdbcAttributeStore;
 
     public ScriptAttributeAuthority(
-            AttributeService attributeService, ScriptExecutionService executionService,
-            AutoJdbcAttributeStore jdbcAttributeStore,
-            ProviderConfigRepository<ScriptAttributeProviderConfig> registrationRepository) {
+        AttributeService attributeService,
+        ScriptExecutionService executionService,
+        AutoJdbcAttributeStore jdbcAttributeStore,
+        ProviderConfigRepository<ScriptAttributeProviderConfig> registrationRepository
+    ) {
         super(SystemKeys.AUTHORITY_SCRIPT, attributeService, registrationRepository);
         Assert.notNull(executionService, "script execution service is mandatory");
         Assert.notNull(jdbcAttributeStore, "attribute store is mandatory");
@@ -44,10 +45,12 @@ public class ScriptAttributeAuthority extends
         AttributeStore attributeStore = getAttributeStore(config.getProvider(), config.getPersistence());
 
         ScriptAttributeProvider ap = new ScriptAttributeProvider(
-                config.getProvider(),
-                attributeService, attributeStore,
-                config,
-                config.getRealm());
+            config.getProvider(),
+            attributeService,
+            attributeStore,
+            config,
+            config.getRealm()
+        );
         ap.setExecutionService(executionService);
 
         return ap;

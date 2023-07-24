@@ -31,5 +31,4 @@ public class UserRolesScope extends Scope {
     public String getDescription() {
         return "Roles and authorities of the current platform user. Read access only.";
     }
-
 }

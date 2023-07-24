@@ -8,8 +8,10 @@ import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 
 @Entity
-@Table(name = "resources", uniqueConstraints = @UniqueConstraint(columnNames = { "type", "authority", "provider_id",
-        "resource_id" }))
+@Table(
+    name = "resources",
+    uniqueConstraints = @UniqueConstraint(columnNames = { "type", "authority", "provider_id", "resource_id" })
+)
 public class ResourceEntity {
 
     @Id
@@ -33,8 +35,7 @@ public class ResourceEntity {
     @Column(name = "resource_id", length = 128)
     private String resourceId;
 
-    public ResourceEntity() {
-    }
+    public ResourceEntity() {}
 
     public ResourceEntity(String id) {
         this.id = id;
@@ -79,5 +80,4 @@ public class ResourceEntity {
     public void setType(String type) {
         this.type = type;
     }
-
 }

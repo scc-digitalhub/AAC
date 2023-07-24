@@ -2,10 +2,8 @@ package it.smartcommunitylab.aac.oauth.endpoint;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -18,9 +16,11 @@ public class FormPostView extends AbstractView {
     public static final String VIEWNAME = "oauthFormPostView";
 
     @Override
-    protected void renderMergedOutputModel(Map<String, Object> model, HttpServletRequest request,
-            HttpServletResponse response) throws Exception {
-
+    protected void renderMergedOutputModel(
+        Map<String, Object> model,
+        HttpServletRequest request,
+        HttpServletResponse response
+    ) throws Exception {
         String actionUri = (String) model.get("redirectUri");
 
         Map<String, String> data = new HashMap<>();
@@ -68,8 +68,7 @@ public class FormPostView extends AbstractView {
         html.append("\" method=\"post\">\n");
         for (Map.Entry<String, String> e : data.entrySet()) {
             if (StringUtils.hasText(e.getValue())) {
-                html.append(
-                        "         <input type=\"hidden\" name=\"").append(e.getKey()).append("\" value=\"");
+                html.append("         <input type=\"hidden\" name=\"").append(e.getKey()).append("\" value=\"");
                 html.append(HtmlUtils.htmlEscape(e.getValue())).append("\">\n");
             }
         }
@@ -84,5 +83,4 @@ public class FormPostView extends AbstractView {
 
         return html.toString();
     }
-
 }

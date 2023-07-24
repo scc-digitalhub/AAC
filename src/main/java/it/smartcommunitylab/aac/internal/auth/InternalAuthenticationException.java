@@ -1,9 +1,10 @@
 package it.smartcommunitylab.aac.internal.auth;
 
-import org.springframework.security.core.AuthenticationException;
 import it.smartcommunitylab.aac.SystemKeys;
+import org.springframework.security.core.AuthenticationException;
 
 public class InternalAuthenticationException extends AuthenticationException {
+
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     private final String subject;
@@ -21,8 +22,13 @@ public class InternalAuthenticationException extends AuthenticationException {
         this.exception = null;
     }
 
-    public InternalAuthenticationException(String subject, String username, String credentials, String flow,
-            AuthenticationException ex) {
+    public InternalAuthenticationException(
+        String subject,
+        String username,
+        String credentials,
+        String flow,
+        AuthenticationException ex
+    ) {
         super(ex.getMessage(), ex.getCause());
         this.subject = subject;
         this.username = username;
@@ -31,9 +37,14 @@ public class InternalAuthenticationException extends AuthenticationException {
         this.exception = ex;
     }
 
-    public InternalAuthenticationException(String subject, String username, String credentials, String flow,
-            AuthenticationException ex,
-            String message) {
+    public InternalAuthenticationException(
+        String subject,
+        String username,
+        String credentials,
+        String flow,
+        AuthenticationException ex,
+        String message
+    ) {
         super(message, ex.getCause());
         this.subject = subject;
         this.username = username;
@@ -67,7 +78,6 @@ public class InternalAuthenticationException extends AuthenticationException {
     }
 
     public String getErrorMessage() {
-
         String err = getError();
         if (err == null) {
             return "internal_error";
@@ -82,8 +92,7 @@ public class InternalAuthenticationException extends AuthenticationException {
     }
 
     // regex to convert camelCase to snake_case
-    private final static String R_REGEX = "([a-z])([A-Z]+)";
-    private final static String R_REPL = "$1_$2";
-    private final static String R_SUFFIX = "_exception";
-
+    private static final String R_REGEX = "([a-z])([A-Z]+)";
+    private static final String R_REPL = "$1_$2";
+    private static final String R_SUFFIX = "_exception";
 }

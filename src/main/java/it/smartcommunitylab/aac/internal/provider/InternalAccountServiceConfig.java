@@ -5,13 +5,18 @@ import it.smartcommunitylab.aac.core.base.AbstractAccountServiceConfig;
 import it.smartcommunitylab.aac.core.model.ConfigurableAccountProvider;
 
 public class InternalAccountServiceConfig extends AbstractAccountServiceConfig<InternalIdentityProviderConfigMap> {
-    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
-    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_PROVIDER + SystemKeys.ID_SEPARATOR
-            + SystemKeys.RESOURCE_CONFIG + SystemKeys.ID_SEPARATOR
-            + SystemKeys.RESOURCE_ACCOUNT_SERVICE + SystemKeys.ID_SEPARATOR
-            + SystemKeys.AUTHORITY_INTERNAL;
 
-    private final static int DEFAULT_CONFIRM_DURATION = 24 * 60 * 60; // 24h
+    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
+    public static final String RESOURCE_TYPE =
+        SystemKeys.RESOURCE_PROVIDER +
+        SystemKeys.ID_SEPARATOR +
+        SystemKeys.RESOURCE_CONFIG +
+        SystemKeys.ID_SEPARATOR +
+        SystemKeys.RESOURCE_ACCOUNT_SERVICE +
+        SystemKeys.ID_SEPARATOR +
+        SystemKeys.AUTHORITY_INTERNAL;
+
+    private static final int DEFAULT_CONFIRM_DURATION = 24 * 60 * 60; // 24h
 
     public InternalAccountServiceConfig(String provider, String realm) {
         super(SystemKeys.AUTHORITY_INTERNAL, provider, realm, new InternalIdentityProviderConfigMap());
@@ -49,8 +54,8 @@ public class InternalAccountServiceConfig extends AbstractAccountServiceConfig<I
      * default config
      */
     public int getConfirmationValidity() {
-        return configMap.getConfirmationValidity() != null ? configMap.getConfirmationValidity().intValue()
-                : DEFAULT_CONFIRM_DURATION;
+        return configMap.getConfirmationValidity() != null
+            ? configMap.getConfirmationValidity().intValue()
+            : DEFAULT_CONFIRM_DURATION;
     }
-
 }

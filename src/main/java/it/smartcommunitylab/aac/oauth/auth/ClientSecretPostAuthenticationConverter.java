@@ -1,15 +1,13 @@
 package it.smartcommunitylab.aac.oauth.auth;
 
+import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.util.StringUtils;
-import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 
 public class ClientSecretPostAuthenticationConverter extends OAuth2ClientAuthenticationConverter {
 
@@ -22,15 +20,19 @@ public class ClientSecretPostAuthenticationConverter extends OAuth2ClientAuthent
 
         // fetch and validate parameters
         Map<String, String[]> parameters = request.getParameterMap();
-        if (!parameters.containsKey(OAuth2ParameterNames.CLIENT_ID)
-                || !parameters.containsKey(OAuth2ParameterNames.CLIENT_SECRET)) {
+        if (
+            !parameters.containsKey(OAuth2ParameterNames.CLIENT_ID) ||
+            !parameters.containsKey(OAuth2ParameterNames.CLIENT_SECRET)
+        ) {
             // not a valid request
             return null;
         }
 
         // make sure we get only 1 clientId and 1 secret in post
-        if (parameters.get(OAuth2ParameterNames.CLIENT_ID).length != 1
-                || parameters.get(OAuth2ParameterNames.CLIENT_SECRET).length != 1) {
+        if (
+            parameters.get(OAuth2ParameterNames.CLIENT_ID).length != 1 ||
+            parameters.get(OAuth2ParameterNames.CLIENT_SECRET).length != 1
+        ) {
             // throw oauth2 exception
             throw new OAuth2AuthenticationException(OAuth2ErrorCodes.INVALID_REQUEST);
         }
@@ -46,8 +48,10 @@ public class ClientSecretPostAuthenticationConverter extends OAuth2ClientAuthent
         }
 
         // return our authRequest
-        return new OAuth2ClientSecretAuthenticationToken(clientId, clientSecret,
-                AuthenticationMethod.CLIENT_SECRET_POST.getValue());
+        return new OAuth2ClientSecretAuthenticationToken(
+            clientId,
+            clientSecret,
+            AuthenticationMethod.CLIENT_SECRET_POST.getValue()
+        );
     }
-
 }

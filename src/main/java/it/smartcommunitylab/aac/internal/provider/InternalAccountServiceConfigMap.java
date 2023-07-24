@@ -1,10 +1,5 @@
 package it.smartcommunitylab.aac.internal.provider;
 
-import java.io.Serializable;
-import java.util.Map;
-
-import javax.validation.Valid;
-import javax.validation.constraints.Max;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -12,10 +7,15 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractConfigMap;
+import java.io.Serializable;
+import java.util.Map;
+import javax.validation.Valid;
+import javax.validation.constraints.Max;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class InternalAccountServiceConfigMap extends AbstractConfigMap implements Serializable {
+
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     private Boolean enableRegistration;
@@ -27,8 +27,7 @@ public class InternalAccountServiceConfigMap extends AbstractConfigMap implement
     @Max(3 * 24 * 60 * 60)
     private Integer confirmationValidity;
 
-    public InternalAccountServiceConfigMap() {
-    }
+    public InternalAccountServiceConfigMap() {}
 
     public Boolean getEnableRegistration() {
         return enableRegistration;

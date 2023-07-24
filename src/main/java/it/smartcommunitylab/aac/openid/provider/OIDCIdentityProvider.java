@@ -1,11 +1,5 @@
 package it.smartcommunitylab.aac.openid.provider;
 
-import java.util.Collection;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityProvider;
@@ -16,11 +10,16 @@ import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.openid.model.OIDCUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.openid.model.OIDCUserIdentity;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
+import java.util.Collection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Transactional
 public class OIDCIdentityProvider
-        extends
-        AbstractIdentityProvider<OIDCUserIdentity, OIDCUserAccount, OIDCUserAuthenticatedPrincipal, OIDCIdentityProviderConfigMap, OIDCIdentityProviderConfig> {
+    extends AbstractIdentityProvider<OIDCUserIdentity, OIDCUserAccount, OIDCUserAuthenticatedPrincipal, OIDCIdentityProviderConfigMap, OIDCIdentityProviderConfig> {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // providers
@@ -31,47 +30,54 @@ public class OIDCIdentityProvider
     private final OIDCSubjectResolver subjectResolver;
 
     public OIDCIdentityProvider(
-            String providerId,
-            UserAccountService<OIDCUserAccount> userAccountService,
-            OIDCIdentityProviderConfig config,
-            String realm) {
+        String providerId,
+        UserAccountService<OIDCUserAccount> userAccountService,
+        OIDCIdentityProviderConfig config,
+        String realm
+    ) {
         this(SystemKeys.AUTHORITY_OIDC, providerId, userAccountService, config, realm);
     }
 
     public OIDCIdentityProvider(
-            String authority, String providerId,
-            UserAccountService<OIDCUserAccount> userAccountService,
-            OIDCIdentityProviderConfig config,
-            String realm) {
+        String authority,
+        String providerId,
+        UserAccountService<OIDCUserAccount> userAccountService,
+        OIDCIdentityProviderConfig config,
+        String realm
+    ) {
         super(authority, providerId, config, realm);
-
-        logger.debug("create oidc provider for authority {} with id {}", String.valueOf(authority),
-                String.valueOf(providerId));
+        logger.debug(
+            "create oidc provider for authority {} with id {}",
+            String.valueOf(authority),
+            String.valueOf(providerId)
+        );
 
         // build resource providers, we use our providerId to ensure consistency
         OIDCAccountServiceConfigConverter configConverter = new OIDCAccountServiceConfigConverter();
-        this.accountService = new OIDCAccountService(authority, providerId, userAccountService,
-                configConverter.convert(config), realm);
+        this.accountService =
+            new OIDCAccountService(authority, providerId, userAccountService, configConverter.convert(config), realm);
 
         this.principalConverter = new OIDCAccountPrincipalConverter(authority, providerId, userAccountService, realm);
         this.principalConverter.setTrustEmailAddress(config.trustEmailAddress());
         this.principalConverter.setAlwaysTrustEmailAddress(config.alwaysTrustEmailAddress());
 
         this.attributeProvider = new OIDCAttributeProvider(authority, providerId, realm);
-        this.authenticationProvider = new OIDCAuthenticationProvider(authority, providerId, userAccountService, config,
-                realm);
+        this.authenticationProvider =
+            new OIDCAuthenticationProvider(authority, providerId, userAccountService, config, realm);
 
-        this.subjectResolver = new OIDCSubjectResolver(authority, providerId, userAccountService,
-                config.getRepositoryId(), realm);
+        this.subjectResolver =
+            new OIDCSubjectResolver(authority, providerId, userAccountService, config.getRepositoryId(), realm);
         this.subjectResolver.setLinkable(config.isLinkable());
 
         // function hooks from config
-        if (config.getHookFunctions() != null
-                && StringUtils.hasText(config.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION))) {
-            this.authenticationProvider
-                    .setCustomMappingFunction(config.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION));
+        if (
+            config.getHookFunctions() != null &&
+            StringUtils.hasText(config.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION))
+        ) {
+            this.authenticationProvider.setCustomMappingFunction(
+                    config.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION)
+                );
         }
-
     }
 
     public void setExecutionService(ScriptExecutionService executionService) {
@@ -113,11 +119,13 @@ public class OIDCIdentityProvider
     }
 
     @Override
-    protected OIDCUserIdentity buildIdentity(OIDCUserAccount account, OIDCUserAuthenticatedPrincipal principal,
-            Collection<UserAttributes> attributes) {
+    protected OIDCUserIdentity buildIdentity(
+        OIDCUserAccount account,
+        OIDCUserAuthenticatedPrincipal principal,
+        Collection<UserAttributes> attributes
+    ) {
         // build identity
-        OIDCUserIdentity identity = new OIDCUserIdentity(getAuthority(), getProvider(), getRealm(), account,
-                principal);
+        OIDCUserIdentity identity = new OIDCUserIdentity(getAuthority(), getProvider(), getRealm(), account, principal);
         identity.setAttributes(attributes);
 
         return identity;
@@ -141,5 +149,4 @@ public class OIDCIdentityProvider
 
         return lp;
     }
-
 }

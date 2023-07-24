@@ -21,5 +21,4 @@ public class RolesResource extends Resource {
     public String getDescription() {
         return "Access roles and authorities";
     }
-
 }

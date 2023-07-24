@@ -1,11 +1,9 @@
 package it.smartcommunitylab.aac.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import it.smartcommunitylab.aac.model.SubjectStatus;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-import it.smartcommunitylab.aac.model.SubjectStatus;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -21,5 +19,4 @@ public class UserStatus {
     public void setStatus(SubjectStatus status) {
         this.status = status;
     }
-
 }

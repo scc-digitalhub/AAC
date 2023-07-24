@@ -1,18 +1,15 @@
 package it.smartcommunitylab.aac.oauth.model;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import org.springframework.util.Assert;
 
-import com.fasterxml.jackson.annotation.JsonValue;
-
 public enum AuthorizationGrantType {
-
     AUTHORIZATION_CODE("authorization_code"),
     IMPLICIT("implicit"),
     REFRESH_TOKEN("refresh_token"),
     CLIENT_CREDENTIALS("client_credentials"),
     PASSWORD("password"),
-    DEVICE_CODE(
-            "urn:ietf:params:oauth:grant-type:device_code");
+    DEVICE_CODE("urn:ietf:params:oauth:grant-type:device_code");
 
     private final String value;
 
@@ -25,7 +22,7 @@ public enum AuthorizationGrantType {
     public String getValue() {
         return value;
     }
-    
+
     public String toString() {
         return value;
     }
@@ -39,5 +36,4 @@ public enum AuthorizationGrantType {
 
         return null;
     }
-
 }

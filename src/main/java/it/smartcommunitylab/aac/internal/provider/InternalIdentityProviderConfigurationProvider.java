@@ -1,15 +1,14 @@
 package it.smartcommunitylab.aac.internal.provider;
 
-import org.springframework.stereotype.Service;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.config.IdentityAuthoritiesProperties;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import org.springframework.stereotype.Service;
 
 @Service
 public class InternalIdentityProviderConfigurationProvider
-        extends
-        AbstractIdentityConfigurationProvider<InternalIdentityProviderConfigMap, InternalIdentityProviderConfig> {
+    extends AbstractIdentityConfigurationProvider<InternalIdentityProviderConfigMap, InternalIdentityProviderConfig> {
 
     public InternalIdentityProviderConfigurationProvider(IdentityAuthoritiesProperties authoritiesProperties) {
         super(SystemKeys.AUTHORITY_INTERNAL);
@@ -25,5 +24,4 @@ public class InternalIdentityProviderConfigurationProvider
         // build configMap and then config
         return new InternalIdentityProviderConfig(cp, getConfigMap(cp.getConfiguration()));
     }
-
 }

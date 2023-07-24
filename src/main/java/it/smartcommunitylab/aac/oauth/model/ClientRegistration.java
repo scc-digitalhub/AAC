@@ -1,21 +1,19 @@
 package it.smartcommunitylab.aac.oauth.model;
 
-import java.util.Set;
-
-import org.springframework.security.oauth2.provider.client.Jackson2ArrayOrStringDeserializer;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
 import it.smartcommunitylab.aac.repository.StringArraySerializer;
+import java.util.Set;
+import org.springframework.security.oauth2.provider.client.Jackson2ArrayOrStringDeserializer;
 
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ClientRegistration {
+
     @JsonProperty("client_id")
     private String clientId;
 
@@ -458,5 +456,4 @@ public class ClientRegistration {
     public void setRequestUris(Set<String> requestUris) {
         this.requestUris = requestUris;
     }
-
 }

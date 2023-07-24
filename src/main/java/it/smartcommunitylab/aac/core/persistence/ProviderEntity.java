@@ -27,5 +27,4 @@ public interface ProviderEntity {
     public void setRealm(String realm);
 
     public void setConfigurationMap(Map<String, Serializable> configurationMap);
-
 }

@@ -21,5 +21,4 @@ public class NoSuchClaimException extends Exception {
     public NoSuchClaimException(String message, Throwable cause) {
         super(message, cause);
     }
-
 }

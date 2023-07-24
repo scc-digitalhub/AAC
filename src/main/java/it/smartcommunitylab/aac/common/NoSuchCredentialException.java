@@ -21,5 +21,4 @@ public class NoSuchCredentialException extends Exception {
     public NoSuchCredentialException(String message, Throwable cause) {
         super(message, cause);
     }
-
 }

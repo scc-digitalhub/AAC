@@ -1,12 +1,10 @@
 package it.smartcommunitylab.aac.repository;
 
-import java.io.IOException;
-import java.util.Map;
-
-import javax.persistence.AttributeConverter;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.util.Map;
+import javax.persistence.AttributeConverter;
 
 public class HashMapConverter implements AttributeConverter<Map<String, String>, String> {
 
@@ -14,13 +12,11 @@ public class HashMapConverter implements AttributeConverter<Map<String, String>,
 
     @Override
     public String convertToDatabaseColumn(Map<String, String> map) {
-
         String json = null;
         if (map != null) {
             try {
                 json = objectMapper.writeValueAsString(map);
-            } catch (final JsonProcessingException e) {
-            }
+            } catch (final JsonProcessingException e) {}
         }
         return json;
     }
@@ -28,16 +24,12 @@ public class HashMapConverter implements AttributeConverter<Map<String, String>,
     @SuppressWarnings("unchecked")
     @Override
     public Map<String, String> convertToEntityAttribute(String json) {
-
         Map<String, String> map = null;
         if (json != null) {
             try {
                 map = objectMapper.readValue(json, Map.class);
-            } catch (final IOException e) {
-            }
-
+            } catch (final IOException e) {}
         }
         return map;
     }
-
 }

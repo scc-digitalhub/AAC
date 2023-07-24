@@ -1,7 +1,6 @@
 package it.smartcommunitylab.aac.internal.persistence;
 
 import java.io.Serializable;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -12,8 +11,10 @@ import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 
 @Entity
-@Table(name = "internal_attributes", uniqueConstraints = @UniqueConstraint(columnNames = { "provider",
-        "subject_id", "attribute_set", "attr_key" }))
+@Table(
+    name = "internal_attributes",
+    uniqueConstraints = @UniqueConstraint(columnNames = { "provider", "subject_id", "attribute_set", "attr_key" })
+)
 public class InternalAttributeEntity {
 
     @Id
@@ -97,5 +98,4 @@ public class InternalAttributeEntity {
     public void setValue(Serializable value) {
         this.value = value;
     }
-
 }

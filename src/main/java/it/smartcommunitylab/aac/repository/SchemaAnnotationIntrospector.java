@@ -1,15 +1,13 @@
 package it.smartcommunitylab.aac.repository;
 
+import com.fasterxml.jackson.databind.introspect.AnnotatedMember;
+import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-
 import org.springframework.util.Assert;
-
-import com.fasterxml.jackson.databind.introspect.AnnotatedMember;
-import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 
 public class SchemaAnnotationIntrospector extends JacksonAnnotationIntrospector {
 
@@ -44,5 +42,4 @@ public class SchemaAnnotationIntrospector extends JacksonAnnotationIntrospector 
         // delegate
         return super.hasIgnoreMarker(m);
     }
-
 }

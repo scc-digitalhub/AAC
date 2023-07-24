@@ -1,22 +1,18 @@
 package it.smartcommunitylab.aac.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import it.smartcommunitylab.aac.core.model.AttributeSet;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-
 import org.springframework.util.StringUtils;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
-import it.smartcommunitylab.aac.core.model.AttributeSet;
 
 @Valid
 @JsonInclude(Include.NON_NULL)
@@ -87,6 +83,7 @@ public class AttributesRegistration {
         @Size(max = 128)
         @NotBlank
         private String key;
+
         private String type;
         private Serializable value;
 
@@ -132,7 +129,6 @@ public class AttributesRegistration {
         public void setDescription(String description) {
             this.description = description;
         }
-
     }
 
     public static AttributesRegistration from(AttributeSet attributeSet) {
@@ -142,15 +138,19 @@ public class AttributesRegistration {
         reg.name = attributeSet.getName();
         reg.description = attributeSet.getDescription();
 
-        List<AttributeRegistration> attributes = attributeSet.getAttributes().stream().map(a -> {
-            AttributeRegistration dto = new AttributeRegistration();
-            dto.key = a.getKey();
-            dto.type = getFormType(a.getKey(), a.getType().getValue());
-            dto.name = StringUtils.hasText(a.getName()) ? a.getName() : a.getKey();
-            dto.description = a.getDescription();
+        List<AttributeRegistration> attributes = attributeSet
+            .getAttributes()
+            .stream()
+            .map(a -> {
+                AttributeRegistration dto = new AttributeRegistration();
+                dto.key = a.getKey();
+                dto.type = getFormType(a.getKey(), a.getType().getValue());
+                dto.name = StringUtils.hasText(a.getName()) ? a.getName() : a.getKey();
+                dto.description = a.getDescription();
 
-            return dto;
-        }).collect(Collectors.toList());
+                return dto;
+            })
+            .collect(Collectors.toList());
         reg.setAttributes(attributes);
 
         return reg;
@@ -171,8 +171,9 @@ public class AttributesRegistration {
 
         if ("string".equals(type) && key.toLowerCase().startsWith("email")) {
             return "email";
-        } else if ("string".equals(type)
-                && (key.toLowerCase().startsWith("tel") || key.toLowerCase().startsWith("phone"))) {
+        } else if (
+            "string".equals(type) && (key.toLowerCase().startsWith("tel") || key.toLowerCase().startsWith("phone"))
+        ) {
             return "tel";
         }
 

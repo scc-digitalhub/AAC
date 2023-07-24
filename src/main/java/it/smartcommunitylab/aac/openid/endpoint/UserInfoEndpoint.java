@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2015 Fondazione Bruno Kessler
- * 
+ *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
  *    You may obtain a copy of the License at
- * 
+ *
  *        http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  *    Unless required by applicable law or agreed to in writing, software
  *    distributed under the License is distributed on an "AS IS" BASIS,
  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,10 +16,24 @@
 
 package it.smartcommunitylab.aac.openid.endpoint;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.common.NoSuchClientException;
+import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.core.ClientDetails;
+import it.smartcommunitylab.aac.core.service.ClientDetailsService;
+import it.smartcommunitylab.aac.core.service.UserService;
+import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
+import it.smartcommunitylab.aac.oauth.store.ExtTokenStore;
+import it.smartcommunitylab.aac.oauth.token.ClaimsTokenEnhancer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,21 +56,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.common.NoSuchClientException;
-import it.smartcommunitylab.aac.common.NoSuchRealmException;
-import it.smartcommunitylab.aac.common.NoSuchUserException;
-import it.smartcommunitylab.aac.core.ClientDetails;
-import it.smartcommunitylab.aac.core.service.ClientDetailsService;
-import it.smartcommunitylab.aac.core.service.UserService;
-import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
-import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
-import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
-import it.smartcommunitylab.aac.oauth.store.ExtTokenStore;
-import it.smartcommunitylab.aac.oauth.token.ClaimsTokenEnhancer;
 
 /**
  * @author raman
@@ -65,6 +64,7 @@ import it.smartcommunitylab.aac.oauth.token.ClaimsTokenEnhancer;
 @Controller
 @Tag(name = "OpenID Connect Core")
 public class UserInfoEndpoint {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     public static final String USERINFO_URL = "/userinfo";
@@ -91,15 +91,17 @@ public class UserInfoEndpoint {
      * Get information about the user as specified in the accessToken included in
      * this request
      */
-//	@PreAuthorize("hasRole('ROLE_USER') and #oauth2.hasScope('" + Config.OPENID_SCOPE + "')")
+    //	@PreAuthorize("hasRole('ROLE_USER') and #oauth2.hasScope('" + Config.OPENID_SCOPE + "')")
     @Operation(summary = "Get info about the authenticated End-User")
-    @RequestMapping(value = USERINFO_URL, method = { RequestMethod.GET, RequestMethod.POST }, produces = {
-            MediaType.APPLICATION_JSON_VALUE, JOSE_MEDIA_TYPE_VALUE })
+    @RequestMapping(
+        value = USERINFO_URL,
+        method = { RequestMethod.GET, RequestMethod.POST },
+        produces = { MediaType.APPLICATION_JSON_VALUE, JOSE_MEDIA_TYPE_VALUE }
+    )
     public @ResponseBody Map<String, Object> getUserInfo(
-            @RequestHeader(value = HttpHeaders.ACCEPT, required = false) String acceptHeader,
-            BearerTokenAuthentication auth)
-            throws NoSuchUserException, NoSuchRealmException, ClientRegistrationException, NoSuchClientException {
-
+        @RequestHeader(value = HttpHeaders.ACCEPT, required = false) String acceptHeader,
+        BearerTokenAuthentication auth
+    ) throws NoSuchUserException, NoSuchRealmException, ClientRegistrationException, NoSuchClientException {
         if (auth == null) {
             logger.error("getInfo failed; no principal. Requester is not authorized.");
             throw new InvalidTokenException("invalid_token");
@@ -148,9 +150,11 @@ public class UserInfoEndpoint {
         MediaType.sortBySpecificityAndQuality(mediaTypes);
 
         // TODO rework
-        if (StringUtils.hasText(signedResponseAlg)
-                || (StringUtils.hasText(encResponseAlg)) && StringUtils.hasText(encResponseEnc)) {
-
+        if (
+            StringUtils.hasText(signedResponseAlg) ||
+            (StringUtils.hasText(encResponseAlg)) &&
+            StringUtils.hasText(encResponseEnc)
+        ) {
             // client has a preference, see if they ask for plain JSON specifically on this
             // request
             for (MediaType m : mediaTypes) {
@@ -189,7 +193,6 @@ public class UserInfoEndpoint {
         // TODO handle jwt/jwe response types
 
         return userInfo;
-
     }
 
     @ExceptionHandler(ClientAuthenticationException.class)
@@ -203,10 +206,9 @@ public class UserInfoEndpoint {
         }
 
         return ResponseEntity
-                .status(exception.getHttpErrorCode())
-                .header(HttpHeaders.WWW_AUTHENTICATE, msg.toString())
-                .build();
-
+            .status(exception.getHttpErrorCode())
+            .header(HttpHeaders.WWW_AUTHENTICATE, msg.toString())
+            .build();
     }
 
     @ExceptionHandler(OAuth2Exception.class)
@@ -215,9 +217,6 @@ public class UserInfoEndpoint {
         response.put("error", exception.getOAuth2ErrorCode());
         response.put("error_description", exception.getMessage());
 
-        return ResponseEntity
-                .status(exception.getHttpErrorCode())
-                .body(response);
+        return ResponseEntity.status(exception.getHttpErrorCode()).body(response);
     }
-
 }

@@ -1,23 +1,21 @@
 package it.smartcommunitylab.aac.scope;
 
+import it.smartcommunitylab.aac.common.InvalidDefinitionException;
+import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.core.ClientDetails;
+import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
+import it.smartcommunitylab.aac.model.User;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.security.oauth2.provider.approval.Approval.ApprovalStatus;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
-import it.smartcommunitylab.aac.common.InvalidDefinitionException;
-import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.core.ClientDetails;
-import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
-import it.smartcommunitylab.aac.model.User;
 
 public class AuthorityScopeApprover implements ScopeApprover {
 
@@ -61,7 +59,7 @@ public class AuthorityScopeApprover implements ScopeApprover {
 
     @Override
     public Approval approveUserScope(String scope, User user, ClientDetails client, Collection<String> scopes)
-            throws InvalidDefinitionException, SystemException {
+        throws InvalidDefinitionException, SystemException {
         if (!this.scope.equals(scope)) {
             return null;
         }
@@ -78,7 +76,6 @@ public class AuthorityScopeApprover implements ScopeApprover {
                 // we look for at least one
                 approved = grantedAuthorities.stream().anyMatch(a -> userAuthorities.contains(a));
             }
-
         } else {
             // fetch authorities from user, in relation to realm
             // if we have a realm set, read only global or realm matching
@@ -101,7 +98,7 @@ public class AuthorityScopeApprover implements ScopeApprover {
 
     @Override
     public Approval approveClientScope(String scope, ClientDetails client, Collection<String> scopes)
-            throws InvalidDefinitionException, SystemException {
+        throws InvalidDefinitionException, SystemException {
         if (!this.scope.equals(scope)) {
             return null;
         }
@@ -118,7 +115,6 @@ public class AuthorityScopeApprover implements ScopeApprover {
                 // we look for at least one
                 approved = grantedAuthorities.stream().anyMatch(a -> clientAuthorities.contains(a));
             }
-
         } else {
             String rlm = realm != null ? realm : client.getRealm();
             Set<String> clientAuthorities = exportRealmAuthorities(rlm, client.getAuthorities());
@@ -142,19 +138,20 @@ public class AuthorityScopeApprover implements ScopeApprover {
     }
 
     private Set<String> exportRealmAuthorities(String realm, Collection<GrantedAuthority> authorities) {
-        return authorities.stream()
-                .map(a -> {
-                    if (a instanceof SimpleGrantedAuthority) {
-                        return a.getAuthority();
-                    } else if (a instanceof RealmGrantedAuthority) {
-                        if (((RealmGrantedAuthority) a).getRealm().equals(realm)) {
-                            return ((RealmGrantedAuthority) a).getRole();
-                        }
+        return authorities
+            .stream()
+            .map(a -> {
+                if (a instanceof SimpleGrantedAuthority) {
+                    return a.getAuthority();
+                } else if (a instanceof RealmGrantedAuthority) {
+                    if (((RealmGrantedAuthority) a).getRealm().equals(realm)) {
+                        return ((RealmGrantedAuthority) a).getRole();
                     }
+                }
 
-                    return null;
-                })
-                .filter(a -> StringUtils.hasText(a))
-                .collect(Collectors.toSet());
+                return null;
+            })
+            .filter(a -> StringUtils.hasText(a))
+            .collect(Collectors.toSet());
     }
-};
+}

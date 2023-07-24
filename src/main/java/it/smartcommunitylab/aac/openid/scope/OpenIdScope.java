@@ -33,5 +33,4 @@ public class OpenIdScope extends Scope {
     public String getDescription() {
         return "User identity information (username and identifier). Read access only.";
     }
-
 }

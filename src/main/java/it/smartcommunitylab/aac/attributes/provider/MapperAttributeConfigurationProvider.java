@@ -1,13 +1,13 @@
 package it.smartcommunitylab.aac.attributes.provider;
 
-import org.springframework.stereotype.Service;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractAttributeConfigurationProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
+import org.springframework.stereotype.Service;
 
 @Service
-public class MapperAttributeConfigurationProvider extends
-        AbstractAttributeConfigurationProvider<MapperAttributeProviderConfigMap, MapperAttributeProviderConfig> {
+public class MapperAttributeConfigurationProvider
+    extends AbstractAttributeConfigurationProvider<MapperAttributeProviderConfigMap, MapperAttributeProviderConfig> {
 
     public MapperAttributeConfigurationProvider() {
         super(SystemKeys.AUTHORITY_MAPPER);
@@ -18,5 +18,4 @@ public class MapperAttributeConfigurationProvider extends
     protected MapperAttributeProviderConfig buildConfig(ConfigurableAttributeProvider cp) {
         return new MapperAttributeProviderConfig(cp, getConfigMap(cp.getConfiguration()));
     }
-
 }

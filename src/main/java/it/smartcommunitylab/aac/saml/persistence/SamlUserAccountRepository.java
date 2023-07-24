@@ -1,16 +1,13 @@
 package it.smartcommunitylab.aac.saml.persistence;
 
-import java.util.List;
-
-import org.springframework.stereotype.Repository;
-
 import it.smartcommunitylab.aac.repository.CustomJpaRepository;
 import it.smartcommunitylab.aac.repository.DetachableJpaRepository;
+import java.util.List;
+import org.springframework.stereotype.Repository;
 
 @Repository
-public interface SamlUserAccountRepository extends CustomJpaRepository<SamlUserAccount, SamlUserAccountId>,
-        DetachableJpaRepository<SamlUserAccount> {
-
+public interface SamlUserAccountRepository
+    extends CustomJpaRepository<SamlUserAccount, SamlUserAccountId>, DetachableJpaRepository<SamlUserAccount> {
     SamlUserAccount findByUuid(String uuid);
 
     List<SamlUserAccount> findByRepositoryIdAndEmail(String repositoryId, String email);
@@ -26,5 +23,4 @@ public interface SamlUserAccountRepository extends CustomJpaRepository<SamlUserA
     List<SamlUserAccount> findByUserIdAndRealm(String userId, String realm);
 
     List<SamlUserAccount> findByUserIdAndRepositoryId(String userId, String repositoryId);
-
 }

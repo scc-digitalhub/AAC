@@ -1,8 +1,7 @@
 package it.smartcommunitylab.aac.internal.persistence;
 
-import java.io.Serializable;
-
 import it.smartcommunitylab.aac.SystemKeys;
+import java.io.Serializable;
 
 public class InternalUserAccountId implements Serializable {
 
@@ -11,8 +10,7 @@ public class InternalUserAccountId implements Serializable {
     private String repositoryId;
     private String username;
 
-    public InternalUserAccountId() {
-    }
+    public InternalUserAccountId() {}
 
     public InternalUserAccountId(String provider, String username) {
         super();
@@ -47,24 +45,16 @@ public class InternalUserAccountId implements Serializable {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         InternalUserAccountId other = (InternalUserAccountId) obj;
         if (repositoryId == null) {
-            if (other.repositoryId != null)
-                return false;
-        } else if (!repositoryId.equals(other.repositoryId))
-            return false;
+            if (other.repositoryId != null) return false;
+        } else if (!repositoryId.equals(other.repositoryId)) return false;
         if (username == null) {
-            if (other.username != null)
-                return false;
-        } else if (!username.equals(other.username))
-            return false;
+            if (other.username != null) return false;
+        } else if (!username.equals(other.username)) return false;
         return true;
     }
-
 }

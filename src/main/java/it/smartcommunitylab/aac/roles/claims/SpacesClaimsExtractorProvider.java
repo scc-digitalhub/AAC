@@ -1,12 +1,11 @@
 package it.smartcommunitylab.aac.roles.claims;
 
-import java.util.Collection;
-import java.util.Collections;
-import org.springframework.stereotype.Component;
-
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.claims.ScopeClaimsExtractor;
 import it.smartcommunitylab.aac.claims.ScopeClaimsExtractorProvider;
+import java.util.Collection;
+import java.util.Collections;
+import org.springframework.stereotype.Component;
 
 @Component
 public class SpacesClaimsExtractorProvider implements ScopeClaimsExtractorProvider {
@@ -27,10 +26,10 @@ public class SpacesClaimsExtractorProvider implements ScopeClaimsExtractorProvid
         return Collections.singleton(Config.SCOPE_USER_SPACES);
     }
 
-//    @Override
-//    public Collection<ScopeClaimsExtractor> getExtractors() {
-//        return Collections.singleton(extractor);
-//    }
+    //    @Override
+    //    public Collection<ScopeClaimsExtractor> getExtractors() {
+    //        return Collections.singleton(extractor);
+    //    }
 
     @Override
     public ScopeClaimsExtractor getExtractor(String scope) {
@@ -40,5 +39,4 @@ public class SpacesClaimsExtractorProvider implements ScopeClaimsExtractorProvid
 
         return extractor;
     }
-
 }

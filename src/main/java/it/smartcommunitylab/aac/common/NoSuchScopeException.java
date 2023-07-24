@@ -21,5 +21,4 @@ public class NoSuchScopeException extends Exception {
     public NoSuchScopeException(String message, Throwable cause) {
         super(message, cause);
     }
-
 }

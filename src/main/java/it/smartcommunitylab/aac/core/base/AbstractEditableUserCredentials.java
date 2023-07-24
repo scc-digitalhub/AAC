@@ -1,8 +1,8 @@
 package it.smartcommunitylab.aac.core.base;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.victools.jsonschema.generator.SchemaGenerator;
 import it.smartcommunitylab.aac.core.model.EditableUserCredentials;
@@ -14,23 +14,27 @@ import it.smartcommunitylab.aac.webauthn.model.WebAuthnEditableUserCredential;
 
 /*
  * Abstract class for editable user credentials
- * 
+ *
  * all implementations should derive from this
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
-@JsonSubTypes({
+@JsonSubTypes(
+    {
         @Type(value = WebAuthnEditableUserCredential.class, name = WebAuthnEditableUserCredential.RESOURCE_TYPE),
-        @Type(value = InternalEditableUserPassword.class, name = InternalEditableUserPassword.RESOURCE_TYPE)
-})
-public abstract class AbstractEditableUserCredentials extends AbstractBaseUserResource
-        implements EditableUserCredentials {
+        @Type(value = InternalEditableUserPassword.class, name = InternalEditableUserPassword.RESOURCE_TYPE),
+    }
+)
+public abstract class AbstractEditableUserCredentials
+    extends AbstractBaseUserResource
+    implements EditableUserCredentials {
 
-    protected final static SchemaGenerator generator;
+    protected static final SchemaGenerator generator;
 
     static {
         ObjectMapper schemaMapper = new ObjectMapper()
-                .setAnnotationIntrospector(new SchemaAnnotationIntrospector(
-                        AbstractEditableUserCredentials.class, AbstractBaseUserResource.class));
+            .setAnnotationIntrospector(
+                new SchemaAnnotationIntrospector(AbstractEditableUserCredentials.class, AbstractBaseUserResource.class)
+            );
         generator = SchemaGeneratorFactory.build(schemaMapper);
     }
 

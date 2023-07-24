@@ -1,15 +1,13 @@
 package it.smartcommunitylab.aac.attributes.mapper;
 
+import it.smartcommunitylab.aac.core.base.DefaultAttributesImpl;
+import it.smartcommunitylab.aac.core.model.Attribute;
+import it.smartcommunitylab.aac.core.model.AttributeSet;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 import org.springframework.util.Assert;
-
-import it.smartcommunitylab.aac.core.base.DefaultAttributesImpl;
-import it.smartcommunitylab.aac.core.model.Attribute;
-import it.smartcommunitylab.aac.core.model.AttributeSet;
 
 public abstract class BaseAttributesMapper implements AttributesMapper {
 
@@ -27,7 +25,6 @@ public abstract class BaseAttributesMapper implements AttributesMapper {
 
     @Override
     public AttributeSet mapAttributes(Map<String, Serializable> attributesMap) {
-
         // create new set
 
         List<Attribute> attributes = new ArrayList<>();
@@ -43,9 +40,7 @@ public abstract class BaseAttributesMapper implements AttributesMapper {
         ua.setName(model.getName());
         ua.setDescription(model.getDescription());
         return ua;
-
     }
 
     protected abstract Attribute getAttribute(Attribute attribute, Map<String, Serializable> attributes);
-
 }

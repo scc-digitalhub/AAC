@@ -1,5 +1,9 @@
 package it.smartcommunitylab.aac.attributes.model;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.model.AttributeType;
 import java.io.Serializable;
 import java.text.ParseException;
 import java.time.Instant;
@@ -9,12 +13,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collection;
-
-import com.fasterxml.jackson.annotation.JsonGetter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.model.AttributeType;
 
 public class TimeAttribute extends AbstractAttribute {
 
@@ -71,8 +69,7 @@ public class TimeAttribute extends AbstractAttribute {
                 if (time != null) {
                     return time;
                 }
-            } catch (DateTimeParseException e) {
-            }
+            } catch (DateTimeParseException e) {}
         }
 
         throw new ParseException("Unable to parse the date", 0);
@@ -108,5 +105,4 @@ public class TimeAttribute extends AbstractAttribute {
         formatters.add(DateTimeFormatter.RFC_1123_DATE_TIME);
         return formatters;
     }
-
 }

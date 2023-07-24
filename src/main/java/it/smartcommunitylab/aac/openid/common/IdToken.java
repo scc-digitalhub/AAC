@@ -1,5 +1,8 @@
 package it.smartcommunitylab.aac.openid.common;
 
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.openid.connect.sdk.claims.IDTokenClaimsSet;
+import it.smartcommunitylab.aac.SystemKeys;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -8,14 +11,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.util.Assert;
-
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.openid.connect.sdk.claims.IDTokenClaimsSet;
-
-import it.smartcommunitylab.aac.SystemKeys;
 
 public class IdToken extends OidcIdToken {
 
@@ -33,11 +30,15 @@ public class IdToken extends OidcIdToken {
     private String value;
 
     public IdToken(
-            String issuer,
-            String subject, String[] audience,
-            String tokenValue,
-            Instant issuedAt, Instant expiresAt, Instant notBefore,
-            Map<String, Object> claims) {
+        String issuer,
+        String subject,
+        String[] audience,
+        String tokenValue,
+        Instant issuedAt,
+        Instant expiresAt,
+        Instant notBefore,
+        Map<String, Object> claims
+    ) {
         super(tokenValue, issuedAt, expiresAt, claims);
         Assert.hasText(issuer, "issuer can not be null or empty");
         Assert.hasText(subject, "subject can not be null or empty");
@@ -79,11 +80,13 @@ public class IdToken extends OidcIdToken {
 
         // set all claims from map, then set reserved
         Map<String, Object> claims = getClaims();
-        claims.entrySet().stream()
-                .filter(c -> !REGISTERED_CLAIM_NAMES.contains(c.getKey()))
-                .forEach(c -> {
-                    idClaims.claim(c.getKey(), c.getValue());
-                });
+        claims
+            .entrySet()
+            .stream()
+            .filter(c -> !REGISTERED_CLAIM_NAMES.contains(c.getKey()))
+            .forEach(c -> {
+                idClaims.claim(c.getKey(), c.getValue());
+            });
 
         // reserved claims
         idClaims.issuer(issuer);
@@ -108,7 +111,5 @@ public class IdToken extends OidcIdToken {
         }
 
         return idClaims.build();
-
     }
-
 }

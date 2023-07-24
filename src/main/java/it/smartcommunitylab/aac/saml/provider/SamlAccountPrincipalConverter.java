@@ -1,17 +1,5 @@
 package it.smartcommunitylab.aac.saml.provider;
 
-import java.io.Serializable;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import org.jsoup.Jsoup;
-import org.jsoup.safety.Safelist;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.SamlAttributesSet;
 import it.smartcommunitylab.aac.attributes.mapper.SamlAttributesMapper;
@@ -22,10 +10,22 @@ import it.smartcommunitylab.aac.core.provider.AccountPrincipalConverter;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.saml.model.SamlUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
+import java.io.Serializable;
+import java.util.Map;
+import java.util.stream.Collectors;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 @Transactional
-public class SamlAccountPrincipalConverter extends AbstractProvider<SamlUserAccount>
-        implements AccountPrincipalConverter<SamlUserAccount> {
+public class SamlAccountPrincipalConverter
+    extends AbstractProvider<SamlUserAccount>
+    implements AccountPrincipalConverter<SamlUserAccount> {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     protected final UserAccountService<SamlUserAccount> accountService;
@@ -36,17 +36,22 @@ public class SamlAccountPrincipalConverter extends AbstractProvider<SamlUserAcco
     // attributes
     private final SamlAttributesMapper samlMapper;
 
-    public SamlAccountPrincipalConverter(String providerId,
-            UserAccountService<SamlUserAccount> accountService,
-            SamlIdentityProviderConfig config,
-            String realm) {
+    public SamlAccountPrincipalConverter(
+        String providerId,
+        UserAccountService<SamlUserAccount> accountService,
+        SamlIdentityProviderConfig config,
+        String realm
+    ) {
         this(SystemKeys.AUTHORITY_SAML, providerId, accountService, config, realm);
     }
 
-    public SamlAccountPrincipalConverter(String authority, String providerId,
-            UserAccountService<SamlUserAccount> accountService,
-            SamlIdentityProviderConfig config,
-            String realm) {
+    public SamlAccountPrincipalConverter(
+        String authority,
+        String providerId,
+        UserAccountService<SamlUserAccount> accountService,
+        SamlIdentityProviderConfig config,
+        String realm
+    ) {
         super(authority, providerId, realm);
         Assert.notNull(accountService, "account service is mandatory");
         Assert.notNull(config, "provider config is mandatory");
@@ -69,8 +74,11 @@ public class SamlAccountPrincipalConverter extends AbstractProvider<SamlUserAcco
     @Override
     public SamlUserAccount convertAccount(UserAuthenticatedPrincipal userPrincipal, String userId) {
         // we expect an instance of our model
-        Assert.isInstanceOf(SamlUserAuthenticatedPrincipal.class, userPrincipal,
-                "principal must be an instance of saml authenticated principal");
+        Assert.isInstanceOf(
+            SamlUserAuthenticatedPrincipal.class,
+            userPrincipal,
+            "principal must be an instance of saml authenticated principal"
+        );
         SamlUserAuthenticatedPrincipal principal = (SamlUserAuthenticatedPrincipal) userPrincipal;
 
         // we use upstream subject for accounts
@@ -84,14 +92,14 @@ public class SamlAccountPrincipalConverter extends AbstractProvider<SamlUserAcco
         // map attributes to saml set and flatten to string
         // we also clean every attribute and allow only plain text
         AttributeSet samlAttributeSet = samlMapper.mapAttributes(attributes);
-        Map<String, String> samlAttributes = samlAttributeSet.getAttributes()
-                .stream()
-                .collect(Collectors.toMap(
-                        a -> a.getKey(),
-                        a -> a.exportValue()));
+        Map<String, String> samlAttributes = samlAttributeSet
+            .getAttributes()
+            .stream()
+            .collect(Collectors.toMap(a -> a.getKey(), a -> a.exportValue()));
 
         String email = clean(samlAttributes.get(SamlAttributesSet.EMAIL));
-        username = StringUtils.hasText(samlAttributes.get(SamlAttributesSet.USERNAME))
+        username =
+            StringUtils.hasText(samlAttributes.get(SamlAttributesSet.USERNAME))
                 ? clean(samlAttributes.get(SamlAttributesSet.USERNAME))
                 : principal.getUsername();
 
@@ -102,16 +110,16 @@ public class SamlAccountPrincipalConverter extends AbstractProvider<SamlUserAcco
         }
 
         String name = StringUtils.hasText(samlAttributes.get(SamlAttributesSet.NAME))
-                ? clean(samlAttributes.get(SamlAttributesSet.NAME))
-                : username;
+            ? clean(samlAttributes.get(SamlAttributesSet.NAME))
+            : username;
         String surname = clean(samlAttributes.get(SamlAttributesSet.SURNAME));
 
         boolean defaultVerifiedStatus = config.getConfigMap().getTrustEmailAddress() != null
-                ? config.getConfigMap().getTrustEmailAddress()
-                : false;
+            ? config.getConfigMap().getTrustEmailAddress()
+            : false;
         boolean emailVerified = StringUtils.hasText(samlAttributes.get(SamlAttributesSet.EMAIL_VERIFIED))
-                ? Boolean.parseBoolean(samlAttributes.get(SamlAttributesSet.EMAIL_VERIFIED))
-                : defaultVerifiedStatus;
+            ? Boolean.parseBoolean(samlAttributes.get(SamlAttributesSet.EMAIL_VERIFIED))
+            : defaultVerifiedStatus;
 
         if (Boolean.TRUE.equals(config.getConfigMap().getAlwaysTrustEmailAddress())) {
             emailVerified = true;
@@ -148,6 +156,5 @@ public class SamlAccountPrincipalConverter extends AbstractProvider<SamlUserAcco
             return Jsoup.clean(input, safe);
         }
         return null;
-
     }
 }

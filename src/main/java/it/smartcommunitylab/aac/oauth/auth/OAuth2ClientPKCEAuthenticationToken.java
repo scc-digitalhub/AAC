@@ -1,9 +1,8 @@
 package it.smartcommunitylab.aac.oauth.auth;
 
-import java.util.Collection;
-
-import org.springframework.security.core.GrantedAuthority;
 import it.smartcommunitylab.aac.SystemKeys;
+import java.util.Collection;
+import org.springframework.security.core.GrantedAuthority;
 
 /*
  * A usernamePassword auth token to be used for clientId+verifier auth
@@ -17,8 +16,12 @@ public class OAuth2ClientPKCEAuthenticationToken extends OAuth2ClientAuthenticat
 
     private String code;
 
-    public OAuth2ClientPKCEAuthenticationToken(String clientId, String code, String codeVerifier,
-            String authenticationMethod) {
+    public OAuth2ClientPKCEAuthenticationToken(
+        String clientId,
+        String code,
+        String codeVerifier,
+        String authenticationMethod
+    ) {
         super(clientId);
         this.codeVerifier = codeVerifier;
         this.code = code;
@@ -26,14 +29,17 @@ public class OAuth2ClientPKCEAuthenticationToken extends OAuth2ClientAuthenticat
         setAuthenticated(false);
     }
 
-    public OAuth2ClientPKCEAuthenticationToken(String clientId, String code, String codeVerifier,
-            String authenticationMethod,
-            Collection<? extends GrantedAuthority> authorities) {
+    public OAuth2ClientPKCEAuthenticationToken(
+        String clientId,
+        String code,
+        String codeVerifier,
+        String authenticationMethod,
+        Collection<? extends GrantedAuthority> authorities
+    ) {
         super(clientId, authorities);
         this.codeVerifier = codeVerifier;
         this.code = code;
         this.authenticationMethod = authenticationMethod;
-
     }
 
     @Override
@@ -55,5 +61,4 @@ public class OAuth2ClientPKCEAuthenticationToken extends OAuth2ClientAuthenticat
         this.codeVerifier = null;
         this.code = null;
     }
-
 }

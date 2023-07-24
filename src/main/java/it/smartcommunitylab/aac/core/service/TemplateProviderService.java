@@ -1,8 +1,10 @@
 package it.smartcommunitylab.aac.core.service;
 
+import it.smartcommunitylab.aac.core.authorities.TemplateProviderAuthority;
+import it.smartcommunitylab.aac.core.model.ConfigurableTemplateProvider;
+import it.smartcommunitylab.aac.core.persistence.TemplateProviderEntity;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.springframework.core.convert.converter.Converter;
@@ -10,20 +12,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.core.authorities.TemplateProviderAuthority;
-import it.smartcommunitylab.aac.core.model.ConfigurableTemplateProvider;
-import it.smartcommunitylab.aac.core.persistence.TemplateProviderEntity;
-
 @Service
 @Transactional
 public class TemplateProviderService
-        extends
-        ConfigurableProviderService<TemplateProviderAuthority<?, ?, ?, ?>, ConfigurableTemplateProvider, TemplateProviderEntity> {
+    extends ConfigurableProviderService<TemplateProviderAuthority<?, ?, ?, ?>, ConfigurableTemplateProvider, TemplateProviderEntity> {
 
-    public TemplateProviderService(TemplateProviderAuthorityService authorityService,
-            ConfigurableProviderEntityService<TemplateProviderEntity> providerService) {
+    public TemplateProviderService(
+        TemplateProviderAuthorityService authorityService,
+        ConfigurableProviderEntityService<TemplateProviderEntity> providerService
+    ) {
         super(authorityService, providerService);
-
         // set converters
         setConfigConverter(new TemplateProviderConfigConverter());
         setEntityConverter(new TemplateProviderEntityConverter());
@@ -48,7 +46,11 @@ public class TemplateProviderService
             Map<String, String> titleMap = null;
             if (reg.getTitleMap() != null) {
                 // cleanup every field via safelist
-                titleMap = reg.getTitleMap().entrySet().stream()
+                titleMap =
+                    reg
+                        .getTitleMap()
+                        .entrySet()
+                        .stream()
                         .filter(e -> e.getValue() != null)
                         .map(e -> Map.entry(e.getKey(), Jsoup.clean(e.getValue(), Safelist.none())))
                         .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
@@ -58,7 +60,11 @@ public class TemplateProviderService
             Map<String, String> descriptionMap = null;
             if (reg.getDescriptionMap() != null) {
                 // cleanup every field via safelist
-                descriptionMap = reg.getDescriptionMap().entrySet().stream()
+                descriptionMap =
+                    reg
+                        .getDescriptionMap()
+                        .entrySet()
+                        .stream()
                         .filter(e -> e.getValue() != null)
                         .map(e -> Map.entry(e.getKey(), Jsoup.clean(e.getValue(), Safelist.none())))
                         .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
@@ -74,15 +80,17 @@ public class TemplateProviderService
 
             return pe;
         }
-
     }
 
     class TemplateProviderEntityConverter implements Converter<TemplateProviderEntity, ConfigurableTemplateProvider> {
 
         @Override
         public ConfigurableTemplateProvider convert(TemplateProviderEntity pe) {
-            ConfigurableTemplateProvider cp = new ConfigurableTemplateProvider(pe.getAuthority(), pe.getProvider(),
-                    pe.getRealm());
+            ConfigurableTemplateProvider cp = new ConfigurableTemplateProvider(
+                pe.getAuthority(),
+                pe.getProvider(),
+                pe.getRealm()
+            );
 
             cp.setName(pe.getName());
             cp.setTitleMap(pe.getTitleMap());
@@ -92,7 +100,7 @@ public class TemplateProviderService
             cp.setCustomStyle(pe.getCustomStyle());
 
             cp.setEnabled(pe.isEnabled());
-            
+
             cp.setConfiguration(pe.getConfigurationMap());
             cp.setVersion(pe.getVersion());
 

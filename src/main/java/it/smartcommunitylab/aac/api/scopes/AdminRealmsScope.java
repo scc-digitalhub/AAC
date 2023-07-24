@@ -32,5 +32,4 @@ public class AdminRealmsScope extends Scope {
     public String getDescription() {
         return "Manage all realms.";
     }
-
 }

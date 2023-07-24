@@ -1,14 +1,5 @@
 package it.smartcommunitylab.aac.groups.claims;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import it.smartcommunitylab.aac.claims.Claim;
 import it.smartcommunitylab.aac.claims.ClaimsSet;
 import it.smartcommunitylab.aac.claims.DefaultClaimsSet;
@@ -21,6 +12,14 @@ import it.smartcommunitylab.aac.groups.scopes.ClientGroupsScope;
 import it.smartcommunitylab.aac.groups.scopes.GroupsResource;
 import it.smartcommunitylab.aac.model.Group;
 import it.smartcommunitylab.aac.model.User;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class ClientGroupsClaimsExtractor implements ScopeClaimsExtractor {
 
@@ -35,18 +34,24 @@ public class ClientGroupsClaimsExtractor implements ScopeClaimsExtractor {
     }
 
     @Override
-    public ClaimsSet extractUserClaims(String scope, User user, ClientDetails client, Collection<String> scopes,
-            Map<String, Serializable> extensions)
-            throws InvalidDefinitionException, SystemException {
+    public ClaimsSet extractUserClaims(
+        String scope,
+        User user,
+        ClientDetails client,
+        Collection<String> scopes,
+        Map<String, Serializable> extensions
+    ) throws InvalidDefinitionException, SystemException {
         // not supported
         return null;
     }
 
     @Override
-    public ClaimsSet extractClientClaims(String scope, ClientDetails client, Collection<String> scopes,
-            Map<String, Serializable> extensions)
-            throws InvalidDefinitionException, SystemException {
-
+    public ClaimsSet extractClientClaims(
+        String scope,
+        ClientDetails client,
+        Collection<String> scopes,
+        Map<String, Serializable> extensions
+    ) throws InvalidDefinitionException, SystemException {
         // we get groups from client, it should be up-to-date
         Set<Group> groups = client.getGroups();
 
@@ -68,12 +73,10 @@ public class ClientGroupsClaimsExtractor implements ScopeClaimsExtractor {
         claimsSet.setClaims(claims);
 
         return claimsSet;
-
     }
 
     @Override
     public String getRealm() {
         return null;
     }
-
 }

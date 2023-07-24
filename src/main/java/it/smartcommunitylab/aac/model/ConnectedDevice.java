@@ -1,13 +1,11 @@
 package it.smartcommunitylab.aac.model;
 
+import it.smartcommunitylab.aac.scope.Scope;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-
 import javax.validation.constraints.NotBlank;
-
-import it.smartcommunitylab.aac.scope.Scope;
 
 public class ConnectedDevice {
 
@@ -29,8 +27,7 @@ public class ConnectedDevice {
 
     private Date expiration;
 
-    public ConnectedDevice() {
-    }
+    public ConnectedDevice() {}
 
     public ConnectedDevice(String subjectId, String clientId, String realm, Collection<Scope> scopes) {
         this.subjectId = subjectId;
@@ -104,5 +101,4 @@ public class ConnectedDevice {
     public void setExpiration(Date expiration) {
         this.expiration = expiration;
     }
-
 }

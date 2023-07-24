@@ -1,13 +1,11 @@
 package it.smartcommunitylab.aac.repository;
 
-import java.io.IOException;
-import java.util.Set;
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-
 import it.smartcommunitylab.aac.SystemKeys;
+import java.io.IOException;
+import java.util.Set;
 
 public class StringOrArraySerializer extends StdSerializer<Set<String>> {
 
@@ -20,7 +18,6 @@ public class StringOrArraySerializer extends StdSerializer<Set<String>> {
     @Override
     public void serialize(Set<String> value, JsonGenerator gen, SerializerProvider provider) throws IOException {
         if (value != null) {
-
             if (value.size() == 1) {
                 gen.writeString(value.iterator().next());
             } else {
@@ -30,9 +27,6 @@ public class StringOrArraySerializer extends StdSerializer<Set<String>> {
                 }
                 gen.writeEndArray();
             }
-
         }
-
     }
-
 }

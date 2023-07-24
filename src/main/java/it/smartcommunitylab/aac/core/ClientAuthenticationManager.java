@@ -1,9 +1,12 @@
 package it.smartcommunitylab.aac.core;
 
+import it.smartcommunitylab.aac.common.NoSuchClientException;
+import it.smartcommunitylab.aac.core.auth.ClientAuthentication;
+import it.smartcommunitylab.aac.core.auth.ClientAuthenticationProvider;
+import it.smartcommunitylab.aac.core.service.ClientDetailsService;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -15,18 +18,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.util.Assert;
 
-import it.smartcommunitylab.aac.common.NoSuchClientException;
-import it.smartcommunitylab.aac.core.auth.ClientAuthenticationProvider;
-import it.smartcommunitylab.aac.core.auth.ClientAuthentication;
-import it.smartcommunitylab.aac.core.service.ClientDetailsService;
-
 /*
  * Authentication manager for client
- * 
- * handles authentication process via authentication providers resolving authTokens, and 
+ *
+ * handles authentication process via authentication providers resolving authTokens, and
  * enhances the result with a complete ClientAuthenticationToken with client details
  */
 public class ClientAuthenticationManager implements AuthenticationManager, InitializingBean {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private ClientDetailsService clientService;
@@ -81,12 +80,10 @@ public class ClientAuthenticationManager implements AuthenticationManager, Initi
         } catch (NoSuchClientException e) {
             throw new BadCredentialsException("invalid authentication request");
         }
-
     }
 
     @Override
     public void afterPropertiesSet() throws Exception {
         Assert.notNull(clientService, "client details service is required");
     }
-
 }

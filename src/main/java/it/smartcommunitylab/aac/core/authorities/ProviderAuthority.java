@@ -1,16 +1,14 @@
 package it.smartcommunitylab.aac.core.authorities;
 
-import java.util.List;
-
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.core.model.Resource;
 import it.smartcommunitylab.aac.core.provider.ResourceProvider;
+import java.util.List;
 
 /*
  * Provider authorities handle resource providers
  */
 public interface ProviderAuthority<S extends ResourceProvider<R>, R extends Resource> {
-
     /*
      * Details
      */
@@ -30,5 +28,4 @@ public interface ProviderAuthority<S extends ResourceProvider<R>, R extends Reso
     public S getProvider(String providerId) throws NoSuchProviderException;
 
     public List<S> getProvidersByRealm(String realm);
-
 }

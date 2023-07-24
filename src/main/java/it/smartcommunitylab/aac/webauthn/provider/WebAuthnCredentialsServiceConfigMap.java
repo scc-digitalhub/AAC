@@ -1,12 +1,5 @@
 package it.smartcommunitylab.aac.webauthn.provider;
 
-import java.io.Serializable;
-import java.util.Map;
-
-import javax.validation.Valid;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.Pattern;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -14,13 +7,18 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.yubico.webauthn.data.ResidentKeyRequirement;
 import com.yubico.webauthn.data.UserVerificationRequirement;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractConfigMap;
+import java.io.Serializable;
+import java.util.Map;
+import javax.validation.Valid;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.Pattern;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class WebAuthnCredentialsServiceConfigMap extends AbstractConfigMap implements Serializable {
+
     private static final long serialVersionUID = SystemKeys.AAC_WEBAUTHN_SERIAL_VERSION;
 
     @Pattern(regexp = SystemKeys.SLUG_PATTERN)
@@ -35,8 +33,7 @@ public class WebAuthnCredentialsServiceConfigMap extends AbstractConfigMap imple
 
     private Boolean requireAccountConfirmation;
 
-    public WebAuthnCredentialsServiceConfigMap() {
-    }
+    public WebAuthnCredentialsServiceConfigMap() {}
 
     public String getRepositoryId() {
         return repositoryId;
@@ -112,5 +109,4 @@ public class WebAuthnCredentialsServiceConfigMap extends AbstractConfigMap imple
     public JsonSchema getSchema() throws JsonMappingException {
         return schemaGen.generateSchema(WebAuthnCredentialsServiceConfigMap.class);
     }
-
 }

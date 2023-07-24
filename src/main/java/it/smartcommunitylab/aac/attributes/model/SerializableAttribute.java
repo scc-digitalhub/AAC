@@ -1,13 +1,12 @@
 package it.smartcommunitylab.aac.attributes.model;
 
-import java.io.Serializable;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.model.AttributeType;
+import java.io.Serializable;
 
 /*
  * An attribute type supporting OBJECT in serializable form.
- * 
+ *
  * We let type resettable but we expect the definition to match the content.
  * Changing the type will render this attribute opaque for service.
  */

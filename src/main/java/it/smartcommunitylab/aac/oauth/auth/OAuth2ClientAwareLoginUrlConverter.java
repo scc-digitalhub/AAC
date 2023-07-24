@@ -1,16 +1,14 @@
 package it.smartcommunitylab.aac.oauth.auth;
 
+import it.smartcommunitylab.aac.core.auth.LoginUrlRequestConverter;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
-import it.smartcommunitylab.aac.core.auth.LoginUrlRequestConverter;
-import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
-import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 
 public class OAuth2ClientAwareLoginUrlConverter implements LoginUrlRequestConverter {
 
@@ -26,9 +24,11 @@ public class OAuth2ClientAwareLoginUrlConverter implements LoginUrlRequestConver
     }
 
     @Override
-    public String convert(HttpServletRequest request, HttpServletResponse response,
-            AuthenticationException authException) {
-
+    public String convert(
+        HttpServletRequest request,
+        HttpServletResponse response,
+        AuthenticationException authException
+    ) {
         // check if clientId via param
         String clientId = null;
         if (request.getParameter(CLIENT_ID_PARAMETER_NAME) != null) {
@@ -46,7 +46,6 @@ public class OAuth2ClientAwareLoginUrlConverter implements LoginUrlRequestConver
                 String realm = clientDetails.getRealm();
 
                 return "/-/" + realm + loginUrl + "?" + CLIENT_ID_PARAMETER_NAME + "=" + clientId;
-
             } catch (ClientRegistrationException e) {
                 return null;
             }

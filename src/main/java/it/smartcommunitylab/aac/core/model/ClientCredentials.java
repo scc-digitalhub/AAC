@@ -1,25 +1,22 @@
 package it.smartcommunitylab.aac.core.model;
 
+import it.smartcommunitylab.aac.model.Credentials;
 import org.springframework.security.core.CredentialsContainer;
 
-import it.smartcommunitylab.aac.model.Credentials;
-
 public interface ClientCredentials extends Credentials, CredentialsContainer {
-
     public String getClientId();
 
     // by default client credentials are active
     // TODO handle at implementation level
-    default public boolean isActive() {
+    public default boolean isActive() {
         return true;
     }
 
-    default public boolean isExpired() {
+    public default boolean isExpired() {
         return false;
     }
 
-    default public boolean isRevoked() {
+    public default boolean isRevoked() {
         return false;
     }
-
 }

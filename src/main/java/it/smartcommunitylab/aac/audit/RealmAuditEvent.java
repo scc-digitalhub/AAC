@@ -1,12 +1,10 @@
 package it.smartcommunitylab.aac.audit;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import java.time.Instant;
 import java.util.Map;
-
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.util.Assert;
-
-import it.smartcommunitylab.aac.SystemKeys;
 
 public class RealmAuditEvent extends AuditEvent {
 
@@ -26,8 +24,19 @@ public class RealmAuditEvent extends AuditEvent {
 
     @Override
     public String toString() {
-        return "RealmAuditEvent [realm=" + realm + ", timestamp=" + getTimestamp() + ", principal="
-                + getPrincipal() + ", type=" + getType() + ", data=" + getData() + "]";
+        return (
+            "RealmAuditEvent [realm=" +
+            realm +
+            ", timestamp=" +
+            getTimestamp() +
+            ", principal=" +
+            getPrincipal() +
+            ", type=" +
+            getType() +
+            ", data=" +
+            getData() +
+            "]"
+        );
     }
 
     public String getId() {
@@ -42,5 +51,4 @@ public class RealmAuditEvent extends AuditEvent {
     public long getTime() {
         return getTimestamp() != null ? getTimestamp().getEpochSecond() * 1000 : -1;
     }
-
 }

@@ -1,10 +1,10 @@
 package it.smartcommunitylab.aac.webauthn.auth;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import org.springframework.security.core.AuthenticationException;
 
-import it.smartcommunitylab.aac.SystemKeys;
-
 public class WebAuthnAuthenticationException extends AuthenticationException {
+
     private static final long serialVersionUID = SystemKeys.AAC_WEBAUTHN_SERIAL_VERSION;
 
     private final String subject;
@@ -20,8 +20,12 @@ public class WebAuthnAuthenticationException extends AuthenticationException {
         this.exception = null;
     }
 
-    public WebAuthnAuthenticationException(String subject, String username, String assertion,
-            AuthenticationException ex) {
+    public WebAuthnAuthenticationException(
+        String subject,
+        String username,
+        String assertion,
+        AuthenticationException ex
+    ) {
         super(ex.getMessage(), ex.getCause());
         this.subject = subject;
         this.username = username;
@@ -29,9 +33,13 @@ public class WebAuthnAuthenticationException extends AuthenticationException {
         this.exception = ex;
     }
 
-    public WebAuthnAuthenticationException(String subject, String username, String assertion,
-            AuthenticationException ex,
-            String message) {
+    public WebAuthnAuthenticationException(
+        String subject,
+        String username,
+        String assertion,
+        AuthenticationException ex,
+        String message
+    ) {
         super(message, ex.getCause());
         this.subject = subject;
         this.username = username;

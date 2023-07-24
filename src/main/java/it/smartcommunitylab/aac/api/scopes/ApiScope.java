@@ -1,8 +1,7 @@
 package it.smartcommunitylab.aac.api.scopes;
 
-import java.util.Set;
-
 import it.smartcommunitylab.aac.scope.Scope;
+import java.util.Set;
 
 public abstract class ApiScope extends Scope {
 
@@ -12,5 +11,4 @@ public abstract class ApiScope extends Scope {
     }
 
     public abstract Set<String> getAuthorities();
-
 }

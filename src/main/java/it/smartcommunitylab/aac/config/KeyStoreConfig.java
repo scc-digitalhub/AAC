@@ -1,18 +1,16 @@
 package it.smartcommunitylab.aac.config;
 
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.JWKSet;
+import it.smartcommunitylab.aac.jose.JWKSetKeyStore;
+import it.smartcommunitylab.aac.jwt.JWKUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.Resource;
-
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.JWKSet;
-
-import it.smartcommunitylab.aac.jose.JWKSetKeyStore;
-import it.smartcommunitylab.aac.jwt.JWKUtils;
 
 /*
  * Keystore is @2, we need this to build security services and config
@@ -65,12 +63,10 @@ public class KeyStoreConfig {
             JWK jwk = JWKUtils.generateRsaJWK("rsa1", "sig", "RS256", 2048);
             JWKSet jwks = new JWKSet(jwk);
             keystore.setJwkSet(jwks);
-
         } catch (IllegalArgumentException | JOSEException e) {
             // ignore, will return an empty keystore
         }
 
         return keystore;
-
     }
 }

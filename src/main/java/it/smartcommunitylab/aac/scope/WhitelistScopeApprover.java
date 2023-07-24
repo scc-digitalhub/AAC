@@ -1,15 +1,13 @@
 package it.smartcommunitylab.aac.scope;
 
-import java.util.Collection;
-
-import org.springframework.security.oauth2.provider.approval.Approval;
-import org.springframework.security.oauth2.provider.approval.Approval.ApprovalStatus;
-import org.springframework.util.Assert;
-
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.model.User;
+import java.util.Collection;
+import org.springframework.security.oauth2.provider.approval.Approval;
+import org.springframework.security.oauth2.provider.approval.Approval.ApprovalStatus;
+import org.springframework.util.Assert;
 
 public class WhitelistScopeApprover implements ScopeApprover {
 
@@ -35,7 +33,7 @@ public class WhitelistScopeApprover implements ScopeApprover {
 
     @Override
     public Approval approveUserScope(String scope, User user, ClientDetails client, Collection<String> scopes)
-            throws InvalidDefinitionException, SystemException {
+        throws InvalidDefinitionException, SystemException {
         if (!this.scope.equals(scope)) {
             return null;
         }
@@ -45,7 +43,7 @@ public class WhitelistScopeApprover implements ScopeApprover {
 
     @Override
     public Approval approveClientScope(String scope, ClientDetails client, Collection<String> scopes)
-            throws InvalidDefinitionException, SystemException {
+        throws InvalidDefinitionException, SystemException {
         if (!this.scope.equals(scope)) {
             return null;
         }
@@ -57,5 +55,4 @@ public class WhitelistScopeApprover implements ScopeApprover {
     public String getRealm() {
         return realm;
     }
-
-};
+}

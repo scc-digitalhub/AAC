@@ -8,5 +8,4 @@ public interface Credentials {
     public boolean isExpired();
 
     public boolean isRevoked();
-
 }

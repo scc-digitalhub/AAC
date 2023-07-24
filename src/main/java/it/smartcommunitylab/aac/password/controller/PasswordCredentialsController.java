@@ -1,24 +1,5 @@
 package it.smartcommunitylab.aac.password.controller;
 
-import java.util.Locale;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-import javax.validation.constraints.Pattern;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.InsufficientAuthenticationException;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.util.StringUtils;
-import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
@@ -31,13 +12,30 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.dto.UserEmail;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.password.PasswordCredentialsAuthority;
 import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.auth.ResetKeyAuthenticationToken;
-import it.smartcommunitylab.aac.password.PasswordCredentialsAuthority;
 import it.smartcommunitylab.aac.password.model.InternalEditableUserPassword;
 import it.smartcommunitylab.aac.password.model.PasswordPolicy;
-import it.smartcommunitylab.aac.password.provider.PasswordIdentityProvider;
 import it.smartcommunitylab.aac.password.provider.PasswordCredentialsService;
+import it.smartcommunitylab.aac.password.provider.PasswordIdentityProvider;
+import java.util.Locale;
+import java.util.Set;
+import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+import javax.validation.constraints.Pattern;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
 @RequestMapping
@@ -54,17 +52,18 @@ public class PasswordCredentialsController {
 
     /*
      * Password change
-     * 
+     *
      * via credentials service
      */
 
     @GetMapping("/changepwd/{providerId}/{uuid}")
     public String changepwd(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid,
-            HttpServletRequest request, Model model, Locale locale)
-            throws NoSuchProviderException, NoSuchUserException, NoSuchRealmException {
-
+        @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
+        @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid,
+        HttpServletRequest request,
+        Model model,
+        Locale locale
+    ) throws NoSuchProviderException, NoSuchUserException, NoSuchRealmException {
         // first check userid vs user
         UserDetails user = authHelper.getUserDetails();
         if (user == null) {
@@ -72,13 +71,18 @@ public class PasswordCredentialsController {
         }
 
         // fetch internal identities
-        Set<UserIdentity> identities = user.getIdentities().stream()
-                .filter(i -> (i instanceof InternalUserIdentity))
-                .collect(Collectors.toSet());
+        Set<UserIdentity> identities = user
+            .getIdentities()
+            .stream()
+            .filter(i -> (i instanceof InternalUserIdentity))
+            .collect(Collectors.toSet());
 
         // pick matching by uuid
-        UserIdentity identity = identities.stream().filter(i -> i.getAccount().getUuid().equals(uuid))
-                .findFirst().orElse(null);
+        UserIdentity identity = identities
+            .stream()
+            .filter(i -> i.getAccount().getUuid().equals(uuid))
+            .findFirst()
+            .orElse(null);
         if (identity == null) {
             throw new IllegalArgumentException("error.invalid_user");
         }
@@ -93,8 +97,8 @@ public class PasswordCredentialsController {
         String username = account.getAccountId();
         InternalEditableUserPassword reg = new InternalEditableUserPassword();
         reg.setUsername(username);
-//        reg.setPassword("");
-//        reg.setVerifyPassword(null);
+        //        reg.setPassword("");
+        //        reg.setVerifyPassword(null);
 
         // expose password policy by passing idp config
         PasswordPolicy policy = service.getPasswordPolicy();
@@ -109,8 +113,11 @@ public class PasswordCredentialsController {
         model.addAttribute("changeUrl", "/changepwd/" + providerId + "/" + uuid);
 
         // check if session is reset code originated
-        boolean resetCode = authHelper.getUserAuthentication().getAuthentications().stream()
-                .anyMatch(e -> ResetKeyAuthenticationToken.class.isInstance(e.getToken()));
+        boolean resetCode = authHelper
+            .getUserAuthentication()
+            .getAuthentications()
+            .stream()
+            .anyMatch(e -> ResetKeyAuthenticationToken.class.isInstance(e.getToken()));
         model.addAttribute("resetCode", resetCode);
 
         // load realm props
@@ -119,18 +126,18 @@ public class PasswordCredentialsController {
         model.addAttribute("displayName", realm);
 
         return "password/changepwd";
-
     }
 
     @PostMapping("/changepwd/{providerId}/{uuid}")
     public String changepwd(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid,
-            Model model, Locale locale,
-            @ModelAttribute("reg") @Valid InternalEditableUserPassword reg, BindingResult result,
-            HttpServletRequest request)
-            throws NoSuchProviderException, NoSuchUserException {
-
+        @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
+        @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid,
+        Model model,
+        Locale locale,
+        @ModelAttribute("reg") @Valid InternalEditableUserPassword reg,
+        BindingResult result,
+        HttpServletRequest request
+    ) throws NoSuchProviderException, NoSuchUserException {
         try {
             // first check userid vs user
             UserDetails user = authHelper.getUserDetails();
@@ -139,18 +146,26 @@ public class PasswordCredentialsController {
             }
 
             // check if session is reset code originated
-            boolean resetCode = authHelper.getUserAuthentication().getAuthentications().stream()
-                    .anyMatch(e -> ResetKeyAuthenticationToken.class.isInstance(e.getToken()));
+            boolean resetCode = authHelper
+                .getUserAuthentication()
+                .getAuthentications()
+                .stream()
+                .anyMatch(e -> ResetKeyAuthenticationToken.class.isInstance(e.getToken()));
             model.addAttribute("resetCode", resetCode);
 
             // fetch internal identities
-            Set<UserIdentity> identities = user.getIdentities().stream()
-                    .filter(i -> (i instanceof InternalUserIdentity))
-                    .collect(Collectors.toSet());
+            Set<UserIdentity> identities = user
+                .getIdentities()
+                .stream()
+                .filter(i -> (i instanceof InternalUserIdentity))
+                .collect(Collectors.toSet());
 
             // pick matching by username
-            UserIdentity identity = identities.stream().filter(i -> i.getAccount().getUuid().equals(uuid))
-                    .findFirst().orElse(null);
+            UserIdentity identity = identities
+                .stream()
+                .filter(i -> i.getAccount().getUuid().equals(uuid))
+                .findFirst()
+                .orElse(null);
             if (identity == null) {
                 throw new IllegalArgumentException("error.invalid_user");
             }
@@ -206,13 +221,13 @@ public class PasswordCredentialsController {
                 throw new RegistrationException("mismatch_passwords");
             }
 
-//            // if cur has changeOnFirstAccess we skip verification
-//            if (!cur.isChangeOnFirstAccess()) {
-//                boolean valid = service.verifyPassword(userId, reg.getCurPassword());
-//                if (!valid) {
-//                    throw new RegistrationException("invalid verification password");
-//                }
-//            }
+            //            // if cur has changeOnFirstAccess we skip verification
+            //            if (!cur.isChangeOnFirstAccess()) {
+            //                boolean valid = service.verifyPassword(userId, reg.getCurPassword());
+            //                if (!valid) {
+            //                    throw new RegistrationException("invalid verification password");
+            //                }
+            //            }
 
             // update
             service.setPassword(username, password, false);
@@ -229,15 +244,16 @@ public class PasswordCredentialsController {
 
     /*
      * Password reset
-     * 
+     *
      * via idp
      */
 
     @GetMapping("/auth/password/reset/{providerId}")
     public String resetPage(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            Model model, Locale locale) throws NoSuchProviderException, NoSuchRealmException {
-
+        @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
+        Model model,
+        Locale locale
+    ) throws NoSuchProviderException, NoSuchRealmException {
         // fetch provider
         PasswordIdentityProvider idp = identityAuthority.getProvider(providerId);
         if (!idp.getConfig().isEnablePasswordReset()) {
@@ -265,10 +281,12 @@ public class PasswordCredentialsController {
 
     @PostMapping("/auth/password/reset/{providerId}")
     public String reset(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            Model model, Locale locale,
-            @ModelAttribute("reg") @Valid UserEmail reg, BindingResult result) {
-
+        @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
+        Model model,
+        Locale locale,
+        @ModelAttribute("reg") @Valid UserEmail reg,
+        BindingResult result
+    ) {
         try {
             // fetch provider
             PasswordIdentityProvider idp = identityAuthority.getProvider(providerId);
@@ -304,8 +322,8 @@ public class PasswordCredentialsController {
             InternalUserAccount account = idp.getAccountProvider().findAccountByEmail(email);
             if (account == null) {
                 // don't leak error
-//                result.rejectValue("email", "error.invalid_email");
-//                return "password/resetpwd";
+                //                result.rejectValue("email", "error.invalid_email");
+                //                return "password/resetpwd";
                 throw new RegistrationException("invalid_email");
             }
 
@@ -327,5 +345,4 @@ public class PasswordCredentialsController {
             return "password/resetpwd";
         }
     }
-
 }

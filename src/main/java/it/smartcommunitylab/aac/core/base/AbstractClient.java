@@ -1,13 +1,10 @@
 package it.smartcommunitylab.aac.core.base;
 
-import java.io.Serializable;
-
-import org.springframework.util.Assert;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.Client;
+import java.io.Serializable;
+import org.springframework.util.Assert;
 
 public abstract class AbstractClient implements Client, Serializable {
 
@@ -26,7 +23,7 @@ public abstract class AbstractClient implements Client, Serializable {
 
     /**
      * Private constructor for JPA and other serialization tools.
-     * 
+     *
      * We need to implement this to enable deserialization of resources via
      * reflection
      */
@@ -45,5 +42,4 @@ public abstract class AbstractClient implements Client, Serializable {
     public String getClientId() {
         return clientId;
     }
-
 }

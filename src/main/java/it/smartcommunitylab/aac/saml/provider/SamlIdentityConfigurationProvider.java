@@ -1,15 +1,15 @@
 package it.smartcommunitylab.aac.saml.provider;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.config.IdentityAuthoritiesProperties;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 @Service
 public class SamlIdentityConfigurationProvider
-        extends AbstractIdentityConfigurationProvider<SamlIdentityProviderConfigMap, SamlIdentityProviderConfig> {
+    extends AbstractIdentityConfigurationProvider<SamlIdentityProviderConfigMap, SamlIdentityProviderConfig> {
 
     @Autowired
     public SamlIdentityConfigurationProvider(IdentityAuthoritiesProperties authoritiesProperties) {
@@ -30,5 +30,4 @@ public class SamlIdentityConfigurationProvider
     protected SamlIdentityProviderConfig buildConfig(ConfigurableIdentityProvider cp) {
         return new SamlIdentityProviderConfig(cp, getConfigMap(cp.getConfiguration()));
     }
-
 }

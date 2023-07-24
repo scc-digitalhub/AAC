@@ -1,11 +1,11 @@
 package it.smartcommunitylab.aac.webauthn.auth;
 
+import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
+import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
 import java.util.Collections;
 import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -13,15 +13,18 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponents;
 
-import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
-import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
-
 public class WebAuthnLoginAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPoint {
 
-    public static final String DEFAULT_FILTER_URI = WebAuthnIdentityAuthority.AUTHORITY_URL
-            + "startRegistration/{" + WebAuthnLoginAuthenticationEntryPoint.PROVIDER_URI_VARIABLE_NAME + "}";
-    public static final String DEFAULT_LOGIN_URI = WebAuthnIdentityAuthority.AUTHORITY_URL + "form/{"
-            + WebAuthnLoginAuthenticationEntryPoint.PROVIDER_URI_VARIABLE_NAME + "}";
+    public static final String DEFAULT_FILTER_URI =
+        WebAuthnIdentityAuthority.AUTHORITY_URL +
+        "startRegistration/{" +
+        WebAuthnLoginAuthenticationEntryPoint.PROVIDER_URI_VARIABLE_NAME +
+        "}";
+    public static final String DEFAULT_LOGIN_URI =
+        WebAuthnIdentityAuthority.AUTHORITY_URL +
+        "form/{" +
+        WebAuthnLoginAuthenticationEntryPoint.PROVIDER_URI_VARIABLE_NAME +
+        "}";
     public static final String SUPER_LOGIN_URI = "/webauthn/authenticate";
 
     public static final String PROVIDER_URI_VARIABLE_NAME = "registrationId";
@@ -55,14 +58,15 @@ public class WebAuthnLoginAuthenticationEntryPoint extends LoginUrlAuthenticatio
     }
 
     @Override
-    protected String determineUrlToUseForThisRequest(HttpServletRequest request, HttpServletResponse response,
-            AuthenticationException exception) {
-
+    protected String determineUrlToUseForThisRequest(
+        HttpServletRequest request,
+        HttpServletResponse response,
+        AuthenticationException exception
+    ) {
         // check via matcher
         if (providerRequestMatcher.matches(request)) {
             // resolve provider
-            String provider = providerRequestMatcher.matcher(request).getVariables()
-                    .get(PROVIDER_URI_VARIABLE_NAME);
+            String provider = providerRequestMatcher.matcher(request).getVariables().get(PROVIDER_URI_VARIABLE_NAME);
 
             return buildLoginUrl(request, provider);
         }
@@ -81,7 +85,6 @@ public class WebAuthnLoginAuthenticationEntryPoint extends LoginUrlAuthenticatio
 
         // return global login
         return super.getLoginFormUrl();
-
     }
 
     @Override
@@ -96,12 +99,10 @@ public class WebAuthnLoginAuthenticationEntryPoint extends LoginUrlAuthenticatio
             UriComponents u2 = u1.expand(params);
             String u = u2.toUriString();
             return u;
-
             // return realmUriBuilder.buildUri(request, null,
             // getLoginFormUrl()).expand(params).toUriString();
         }
 
         return getLoginFormUrl().replaceAll("\\{" + PROVIDER_URI_VARIABLE_NAME + "\\}", provider);
     }
-
 }

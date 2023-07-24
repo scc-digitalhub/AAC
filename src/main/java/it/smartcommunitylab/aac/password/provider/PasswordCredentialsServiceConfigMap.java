@@ -1,13 +1,5 @@
 package it.smartcommunitylab.aac.password.provider;
 
-import java.io.Serializable;
-import java.util.Map;
-
-import javax.validation.Valid;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.Pattern;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -15,10 +7,17 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractConfigMap;
+import java.io.Serializable;
+import java.util.Map;
+import javax.validation.Valid;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.Pattern;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PasswordCredentialsServiceConfigMap extends AbstractConfigMap implements Serializable {
+
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     @Pattern(regexp = SystemKeys.SLUG_PATTERN)
@@ -58,8 +57,7 @@ public class PasswordCredentialsServiceConfigMap extends AbstractConfigMap imple
     private Boolean passwordRequireSpecial;
     private Boolean passwordSupportWhitespace;
 
-    public PasswordCredentialsServiceConfigMap() {
-    }
+    public PasswordCredentialsServiceConfigMap() {}
 
     public String getRepositoryId() {
         return repositoryId;
@@ -199,8 +197,7 @@ public class PasswordCredentialsServiceConfigMap extends AbstractConfigMap imple
     public void setConfiguration(Map<String, Serializable> props) {
         // use mapper for local
         mapper.setSerializationInclusion(Include.NON_EMPTY);
-        PasswordCredentialsServiceConfigMap map = mapper.convertValue(props,
-                PasswordCredentialsServiceConfigMap.class);
+        PasswordCredentialsServiceConfigMap map = mapper.convertValue(props, PasswordCredentialsServiceConfigMap.class);
 
         setConfiguration(map);
     }

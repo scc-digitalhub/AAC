@@ -43,5 +43,4 @@ public class CustomAuthoritiesProperties {
     public void setOidc(OIDCIdentityProviderConfigMap oidc) {
         this.oidc = oidc;
     }
-
 }

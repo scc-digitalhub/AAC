@@ -10,7 +10,6 @@ public class HumanStringKeyGenerator implements StringKeyGenerator {
 
     public HumanStringKeyGenerator() {
         this(DEFAULT_KEY_LENGTH);
-
     }
 
     public HumanStringKeyGenerator(int keyLength) {
@@ -23,5 +22,4 @@ public class HumanStringKeyGenerator implements StringKeyGenerator {
 
         return key;
     }
-
 }

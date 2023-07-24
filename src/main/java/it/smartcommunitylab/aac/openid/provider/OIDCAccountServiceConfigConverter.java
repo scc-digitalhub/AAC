@@ -3,13 +3,15 @@ package it.smartcommunitylab.aac.openid.provider;
 import org.springframework.core.convert.converter.Converter;
 
 public class OIDCAccountServiceConfigConverter
-        implements Converter<OIDCIdentityProviderConfig, OIDCAccountServiceConfig> {
+    implements Converter<OIDCIdentityProviderConfig, OIDCAccountServiceConfig> {
 
     @Override
     public OIDCAccountServiceConfig convert(OIDCIdentityProviderConfig source) {
-        OIDCAccountServiceConfig config = new OIDCAccountServiceConfig(source.getAuthority(),
-                source.getProvider(),
-                source.getRealm());
+        OIDCAccountServiceConfig config = new OIDCAccountServiceConfig(
+            source.getAuthority(),
+            source.getProvider(),
+            source.getRealm()
+        );
         config.setName(source.getName());
         config.setTitleMap(source.getTitleMap());
         config.setDescriptionMap(source.getDescriptionMap());
@@ -20,5 +22,4 @@ public class OIDCAccountServiceConfigConverter
         config.setPersistence(source.getPersistence());
         return config;
     }
-
 }

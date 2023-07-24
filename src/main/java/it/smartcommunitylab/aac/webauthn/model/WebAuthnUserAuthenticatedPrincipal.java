@@ -1,20 +1,20 @@
 package it.smartcommunitylab.aac.webauthn.model;
 
-import java.io.Serializable;
-import java.util.Map;
-
-import org.springframework.security.core.CredentialsContainer;
-import org.springframework.util.StringUtils;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import java.io.Serializable;
+import java.util.Map;
+import org.springframework.security.core.CredentialsContainer;
+import org.springframework.util.StringUtils;
 
-public class WebAuthnUserAuthenticatedPrincipal extends InternalUserAuthenticatedPrincipal
-        implements CredentialsContainer {
+public class WebAuthnUserAuthenticatedPrincipal
+    extends InternalUserAuthenticatedPrincipal
+    implements CredentialsContainer {
+
     private static final long serialVersionUID = SystemKeys.AAC_WEBAUTHN_SERIAL_VERSION;
-    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_PRINCIPAL + SystemKeys.ID_SEPARATOR
-            + SystemKeys.AUTHORITY_WEBAUTHN;
+    public static final String RESOURCE_TYPE =
+        SystemKeys.RESOURCE_PRINCIPAL + SystemKeys.ID_SEPARATOR + SystemKeys.AUTHORITY_WEBAUTHN;
 
     private String userHandle;
 
@@ -50,5 +50,4 @@ public class WebAuthnUserAuthenticatedPrincipal extends InternalUserAuthenticate
     public void eraseCredentials() {
         // nothing to do
     }
-
 }

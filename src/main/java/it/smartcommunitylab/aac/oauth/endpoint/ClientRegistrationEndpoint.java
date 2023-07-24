@@ -1,5 +1,24 @@
 package it.smartcommunitylab.aac.oauth.endpoint;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.core.service.RealmService;
+import it.smartcommunitylab.aac.model.Realm;
+import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
+import it.smartcommunitylab.aac.oauth.common.ServerErrorException;
+import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
+import it.smartcommunitylab.aac.oauth.model.ClientRegistration;
+import it.smartcommunitylab.aac.oauth.model.ClientRegistrationResponse;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
+import it.smartcommunitylab.aac.oauth.provider.ClientRegistrationServices;
+import it.smartcommunitylab.aac.oauth.request.ClientRegistrationRequest;
+import it.smartcommunitylab.aac.oauth.request.OAuth2RegistrationRequestFactory;
+import it.smartcommunitylab.aac.oauth.request.OAuth2RegistrationRequestValidator;
+import it.smartcommunitylab.aac.oauth.request.OAuth2TokenRequestFactory;
+import it.smartcommunitylab.aac.oauth.scope.OAuth2DCRResource;
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Arrays;
@@ -10,7 +29,6 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,30 +61,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.core.service.RealmService;
-import it.smartcommunitylab.aac.model.Realm;
-import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
-import it.smartcommunitylab.aac.oauth.common.ServerErrorException;
-import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
-import it.smartcommunitylab.aac.oauth.model.ClientRegistration;
-import it.smartcommunitylab.aac.oauth.model.ClientRegistrationResponse;
-import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
-import it.smartcommunitylab.aac.oauth.provider.ClientRegistrationServices;
-import it.smartcommunitylab.aac.oauth.request.ClientRegistrationRequest;
-import it.smartcommunitylab.aac.oauth.request.OAuth2RegistrationRequestFactory;
-import it.smartcommunitylab.aac.oauth.request.OAuth2RegistrationRequestValidator;
-import it.smartcommunitylab.aac.oauth.request.OAuth2TokenRequestFactory;
-import it.smartcommunitylab.aac.oauth.scope.OAuth2DCRResource;
-import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
-
 /*
- * OAuth2/OIDC 
+ * OAuth2/OIDC
  * supports
- * 
+ *
  * https://datatracker.ietf.org/doc/html/rfc7591
  * https://datatracker.ietf.org/doc/html/rfc7592
  * https://openid.net/specs/openid-connect-registration-1_0.html
@@ -75,6 +73,7 @@ import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 @Controller
 @Tag(name = "OAuth 2.0 Dynamic client registration")
 public class ClientRegistrationEndpoint {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     public static final String REGISTRATION_URL = "/oauth/register";
@@ -103,14 +102,23 @@ public class ClientRegistrationEndpoint {
     @Autowired
     private TokenStore tokenStore;
 
-    @Operation(summary = "Register a new client", parameters = {}, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = {
-            @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = ClientRegistration.class)) }))
+    @Operation(
+        summary = "Register a new client",
+        parameters = {},
+        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            content = {
+                @io.swagger.v3.oas.annotations.media.Content(
+                    schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = ClientRegistration.class)
+                ),
+            }
+        )
+    )
     @RequestMapping(value = REGISTRATION_URL, method = RequestMethod.POST)
     public ResponseEntity<ClientRegistrationResponse> registerClient(
-            @RequestBody Map<String, Serializable> parameters,
-            Authentication authentication, HttpServletRequest request)
-            throws OAuth2Exception, SystemException {
-
+        @RequestBody Map<String, Serializable> parameters,
+        Authentication authentication,
+        HttpServletRequest request
+    ) throws OAuth2Exception, SystemException {
         // we require realm to be set
         String realm = (String) parameters.get("realm");
 
@@ -119,7 +127,6 @@ public class ClientRegistrationEndpoint {
         }
 
         try {
-
             if (!StringUtils.hasText(realm)) {
                 throw new ClientRegistrationException("realm is required");
             }
@@ -141,20 +148,24 @@ public class ClientRegistrationEndpoint {
                     // we need a valid auth, matching this realm with dcr scope
                     if (authentication instanceof BearerTokenAuthentication) {
                         String authRealm = (String) ((BearerTokenAuthentication) authentication).getTokenAttributes()
-                                .get("realm");
+                            .get("realm");
                         if (!realm.equals(authRealm)) {
                             throw new BadClientCredentialsException();
                         }
 
                         // DISABLED, we don't have access to scopes via introspector
-//                        if (!((BearerTokenAuthentication) authentication).getToken().getScopes()
-//                                .contains(Config.SCOPE_DYNAMIC_CLIENT_REGISTRATION)) {
-//                            throw new InsufficientAuthenticationException("missing dcr scope");
-//                        }
+                        //                        if (!((BearerTokenAuthentication) authentication).getToken().getScopes()
+                        //                                .contains(Config.SCOPE_DYNAMIC_CLIENT_REGISTRATION)) {
+                        //                            throw new InsufficientAuthenticationException("missing dcr scope");
+                        //                        }
 
                         // check via authorities
-                        if (authentication.getAuthorities().stream()
-                                .noneMatch(a -> "SCOPE_dcr".equals(a.getAuthority()))) {
+                        if (
+                            authentication
+                                .getAuthorities()
+                                .stream()
+                                .noneMatch(a -> "SCOPE_dcr".equals(a.getAuthority()))
+                        ) {
                             throw new InsufficientAuthenticationException("missing dcr scope");
                         }
 
@@ -162,7 +173,6 @@ public class ClientRegistrationEndpoint {
                         approved = true;
                     }
                 }
-
             }
 
             if (!enabled) {
@@ -173,8 +183,8 @@ public class ClientRegistrationEndpoint {
             }
 
             // build via factory
-            ClientRegistrationRequest registrationRequest = oauth2RegistrationRequestFactory
-                    .createClientRegistrationRequest(parameters);
+            ClientRegistrationRequest registrationRequest =
+                oauth2RegistrationRequestFactory.createClientRegistrationRequest(parameters);
 
             // validate
             oauth2RegistrationRequestValidator.validate(registrationRequest);
@@ -193,20 +203,23 @@ public class ClientRegistrationEndpoint {
                 if (token != null) {
                     registrationToken = token.getValue();
                 }
-
             }
 
             // build registration url for updates
-            String registrationUrl = ServletUriComponentsBuilder.fromServletMapping(request)
-                    .path(REGISTRATION_URL + "/{id}").build()
-                    .expand(registration.getClientId()).encode().toUriString();
+            String registrationUrl = ServletUriComponentsBuilder
+                .fromServletMapping(request)
+                .path(REGISTRATION_URL + "/{id}")
+                .build()
+                .expand(registration.getClientId())
+                .encode()
+                .toUriString();
 
-//            if (realmKey.isPresent()) {
-//                // build a realm specific url
-//                registrationUrl = ServletUriComponentsBuilder.fromServletMapping(request)
-//                        .path("/-/{realm}" + REGISTRATION_URL + "/{id}").build()
-//                        .expand(realm, registration.getClientId()).encode().toUriString();
-//            }
+            //            if (realmKey.isPresent()) {
+            //                // build a realm specific url
+            //                registrationUrl = ServletUriComponentsBuilder.fromServletMapping(request)
+            //                        .path("/-/{realm}" + REGISTRATION_URL + "/{id}").build()
+            //                        .expand(realm, registration.getClientId()).encode().toUriString();
+            //            }
 
             ClientRegistrationResponse response = new ClientRegistrationResponse(registration);
             response.setRegistrationUri(registrationUrl);
@@ -226,16 +239,15 @@ public class ClientRegistrationEndpoint {
             logger.error("Exception " + e.getMessage());
             throw new ServerErrorException("Error", e);
         }
-
     }
 
     @Operation(summary = "Get an existing client")
     @RequestMapping(value = REGISTRATION_URL + "/{clientId}", method = RequestMethod.GET)
     public ResponseEntity<ClientRegistrationResponse> getClient(
-            @PathVariable("clientId") @Valid @NotNull String clientId,
-            BearerTokenAuthentication authentication, HttpServletRequest request)
-            throws OAuth2Exception, SystemException {
-
+        @PathVariable("clientId") @Valid @NotNull String clientId,
+        BearerTokenAuthentication authentication,
+        HttpServletRequest request
+    ) throws OAuth2Exception, SystemException {
         if (authentication == null) {
             throw new InsufficientAuthenticationException("authentication is required");
         }
@@ -262,19 +274,21 @@ public class ClientRegistrationEndpoint {
                 } else {
                     // we need a valid auth, matching this realm with dcr scope
                     String authRealm = (String) ((BearerTokenAuthentication) authentication).getTokenAttributes()
-                            .get("realm");
+                        .get("realm");
                     if (!realm.equals(authRealm)) {
                         throw new BadClientCredentialsException();
                     }
 
-                    if (!((BearerTokenAuthentication) authentication).getToken().getScopes()
-                            .contains(Config.SCOPE_DYNAMIC_CLIENT_REGISTRATION)) {
+                    if (
+                        !((BearerTokenAuthentication) authentication).getToken()
+                            .getScopes()
+                            .contains(Config.SCOPE_DYNAMIC_CLIENT_REGISTRATION)
+                    ) {
                         throw new InsufficientAuthenticationException("missing dcr scope");
                     }
                     // same realm, valid bearer with dcr scope
                     approved = true;
                 }
-
             }
 
             if (!enabled) {
@@ -300,23 +314,26 @@ public class ClientRegistrationEndpoint {
             // TODO registration token renewal
 
             // build registration url for updates
-            String registrationUrl = ServletUriComponentsBuilder.fromServletMapping(request)
-                    .path(REGISTRATION_URL + "/{id}").build()
-                    .expand(registration.getClientId()).encode().toUriString();
+            String registrationUrl = ServletUriComponentsBuilder
+                .fromServletMapping(request)
+                .path(REGISTRATION_URL + "/{id}")
+                .build()
+                .expand(registration.getClientId())
+                .encode()
+                .toUriString();
 
-//            if (realmKey.isPresent()) {
-//                // build a realm specific url
-//                registrationUrl = ServletUriComponentsBuilder.fromServletMapping(request)
-//                        .path("/-/{realm}" + REGISTRATION_URL + "/{id}").build()
-//                        .expand(realm, registration.getClientId()).encode().toUriString();
-//            }
+            //            if (realmKey.isPresent()) {
+            //                // build a realm specific url
+            //                registrationUrl = ServletUriComponentsBuilder.fromServletMapping(request)
+            //                        .path("/-/{realm}" + REGISTRATION_URL + "/{id}").build()
+            //                        .expand(realm, registration.getClientId()).encode().toUriString();
+            //            }
 
             ClientRegistrationResponse response = new ClientRegistrationResponse(registration);
             response.setRegistrationUri(registrationUrl);
             response.setRegistrationToken(null);
 
             return ResponseEntity.ok(response);
-
         } catch (ClientRegistrationException e) {
             logger.error("OAuth2 error " + e.getMessage());
             throw new InvalidRequestException(e.getMessage());
@@ -332,15 +349,24 @@ public class ClientRegistrationEndpoint {
         }
     }
 
-    @Operation(summary = "Update an existing client", parameters = {}, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = {
-            @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = ClientRegistration.class)) }))
+    @Operation(
+        summary = "Update an existing client",
+        parameters = {},
+        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            content = {
+                @io.swagger.v3.oas.annotations.media.Content(
+                    schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = ClientRegistration.class)
+                ),
+            }
+        )
+    )
     @RequestMapping(value = REGISTRATION_URL + "/{clientId}", method = RequestMethod.PUT)
     public ResponseEntity<ClientRegistrationResponse> updateClient(
-            @PathVariable("clientId") @Valid @NotNull String clientId,
-            @RequestBody Map<String, Serializable> parameters,
-            BearerTokenAuthentication authentication, HttpServletRequest request)
-            throws OAuth2Exception, SystemException {
-
+        @PathVariable("clientId") @Valid @NotNull String clientId,
+        @RequestBody Map<String, Serializable> parameters,
+        BearerTokenAuthentication authentication,
+        HttpServletRequest request
+    ) throws OAuth2Exception, SystemException {
         if (authentication == null) {
             throw new InsufficientAuthenticationException("authentication is required");
         }
@@ -367,19 +393,21 @@ public class ClientRegistrationEndpoint {
                 } else {
                     // we need a valid auth, matching this realm with dcr scope
                     String authRealm = (String) ((BearerTokenAuthentication) authentication).getTokenAttributes()
-                            .get("realm");
+                        .get("realm");
                     if (!realm.equals(authRealm)) {
                         throw new BadClientCredentialsException();
                     }
 
-                    if (!((BearerTokenAuthentication) authentication).getToken().getScopes()
-                            .contains(Config.SCOPE_DYNAMIC_CLIENT_REGISTRATION)) {
+                    if (
+                        !((BearerTokenAuthentication) authentication).getToken()
+                            .getScopes()
+                            .contains(Config.SCOPE_DYNAMIC_CLIENT_REGISTRATION)
+                    ) {
                         throw new InsufficientAuthenticationException("missing dcr scope");
                     }
                     // same realm, valid bearer with dcr scope
                     approved = true;
                 }
-
             }
 
             if (!enabled) {
@@ -400,8 +428,8 @@ public class ClientRegistrationEndpoint {
             validateRegistrationToken(authentication, clientDetails);
 
             // build via factory
-            ClientRegistrationRequest registrationRequest = oauth2RegistrationRequestFactory
-                    .createClientRegistrationRequest(parameters);
+            ClientRegistrationRequest registrationRequest =
+                oauth2RegistrationRequestFactory.createClientRegistrationRequest(parameters);
 
             // validate
             oauth2RegistrationRequestValidator.validate(registrationRequest);
@@ -412,23 +440,26 @@ public class ClientRegistrationEndpoint {
             // TODO registration token renewal
 
             // build registration url for updates
-            String registrationUrl = ServletUriComponentsBuilder.fromServletMapping(request)
-                    .path(REGISTRATION_URL + "/{id}").build()
-                    .expand(registration.getClientId()).encode().toUriString();
+            String registrationUrl = ServletUriComponentsBuilder
+                .fromServletMapping(request)
+                .path(REGISTRATION_URL + "/{id}")
+                .build()
+                .expand(registration.getClientId())
+                .encode()
+                .toUriString();
 
-//            if (realmKey.isPresent()) {
-//                // build a realm specific url
-//                registrationUrl = ServletUriComponentsBuilder.fromServletMapping(request)
-//                        .path("/-/{realm}" + REGISTRATION_URL + "/{id}").build()
-//                        .expand(realm, registration.getClientId()).encode().toUriString();
-//            }
+            //            if (realmKey.isPresent()) {
+            //                // build a realm specific url
+            //                registrationUrl = ServletUriComponentsBuilder.fromServletMapping(request)
+            //                        .path("/-/{realm}" + REGISTRATION_URL + "/{id}").build()
+            //                        .expand(realm, registration.getClientId()).encode().toUriString();
+            //            }
 
             ClientRegistrationResponse response = new ClientRegistrationResponse(registration);
             response.setRegistrationUri(registrationUrl);
             response.setRegistrationToken(null);
 
             return ResponseEntity.ok(response);
-
         } catch (ClientRegistrationException e) {
             logger.error("OAuth2 error " + e.getMessage());
             throw new InvalidRequestException(e.getMessage());
@@ -448,10 +479,10 @@ public class ClientRegistrationEndpoint {
     @RequestMapping(value = REGISTRATION_URL + "/{clientId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
     public void deleteClient(
-            @PathVariable("clientId") @Valid @NotNull String clientId,
-            BearerTokenAuthentication authentication, HttpServletRequest request)
-            throws OAuth2Exception, SystemException {
-
+        @PathVariable("clientId") @Valid @NotNull String clientId,
+        BearerTokenAuthentication authentication,
+        HttpServletRequest request
+    ) throws OAuth2Exception, SystemException {
         if (authentication == null) {
             throw new InsufficientAuthenticationException("authentication is required");
         }
@@ -478,19 +509,21 @@ public class ClientRegistrationEndpoint {
                 } else {
                     // we need a valid auth, matching this realm with dcr scope
                     String authRealm = (String) ((BearerTokenAuthentication) authentication).getTokenAttributes()
-                            .get("realm");
+                        .get("realm");
                     if (!realm.equals(authRealm)) {
                         throw new BadClientCredentialsException();
                     }
 
-                    if (!((BearerTokenAuthentication) authentication).getToken().getScopes()
-                            .contains(Config.SCOPE_DYNAMIC_CLIENT_REGISTRATION)) {
+                    if (
+                        !((BearerTokenAuthentication) authentication).getToken()
+                            .getScopes()
+                            .contains(Config.SCOPE_DYNAMIC_CLIENT_REGISTRATION)
+                    ) {
                         throw new InsufficientAuthenticationException("missing dcr scope");
                     }
                     // same realm, valid bearer with dcr scope
                     approved = true;
                 }
-
             }
 
             if (!enabled) {
@@ -519,7 +552,6 @@ public class ClientRegistrationEndpoint {
             if (token != null) {
                 tokenStore.removeAccessToken(token);
             }
-
         } catch (ClientRegistrationException e) {
             logger.error("OAuth2 error " + e.getMessage());
             throw new InvalidRequestException(e.getMessage());
@@ -545,8 +577,7 @@ public class ClientRegistrationEndpoint {
         tokenParameters.put("scope", Config.SCOPE_DYNAMIC_CLIENT_REGISTRATION);
         tokenParameters.put("resource", OAuth2DCRResource.RESOURCE_ID);
 
-        TokenRequest tokenRequest = oauth2TokenRequestFactory.createTokenRequest(tokenParameters,
-                clientDetails);
+        TokenRequest tokenRequest = oauth2TokenRequestFactory.createTokenRequest(tokenParameters, clientDetails);
         OAuth2Request storedOAuth2Request = tokenRequest.createOAuth2Request(clientDetails);
         OAuth2Authentication tokenAuthentication = new OAuth2Authentication(storedOAuth2Request, null);
 
@@ -556,9 +587,10 @@ public class ClientRegistrationEndpoint {
         return token;
     }
 
-    private void validateRegistrationToken(BearerTokenAuthentication authentication,
-            OAuth2ClientDetails clientDetails) {
-
+    private void validateRegistrationToken(
+        BearerTokenAuthentication authentication,
+        OAuth2ClientDetails clientDetails
+    ) {
         String clientId = clientDetails.getClientId();
 
         // validate token
@@ -585,8 +617,10 @@ public class ClientRegistrationEndpoint {
         }
 
         // scope
-        if (!accessToken.getScope().contains(Config.SCOPE_DYNAMIC_CLIENT_REGISTRATION)
-                || accessToken.getScope().size() != 1) {
+        if (
+            !accessToken.getScope().contains(Config.SCOPE_DYNAMIC_CLIENT_REGISTRATION) ||
+            accessToken.getScope().size() != 1
+        ) {
             throw new InsufficientAuthenticationException("a valid authentication is required");
         }
 
@@ -637,7 +671,5 @@ public class ClientRegistrationEndpoint {
         // exceptions have a predefined message
         ResponseEntity<OAuth2Exception> response = new ResponseEntity<OAuth2Exception>(e, headers, status);
         return response;
-
     }
-
 }

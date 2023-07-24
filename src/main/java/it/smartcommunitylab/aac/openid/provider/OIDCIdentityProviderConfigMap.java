@@ -1,10 +1,5 @@
 package it.smartcommunitylab.aac.openid.provider;
 
-import java.io.Serializable;
-import java.util.Map;
-import java.util.Set;
-
-import javax.validation.Valid;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -14,15 +9,23 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractConfigMap;
 import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.oauth.model.PromptMode;
+import java.io.Serializable;
+import java.util.Map;
+import java.util.Set;
+import javax.validation.Valid;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class OIDCIdentityProviderConfigMap extends AbstractConfigMap {
+
     private static final long serialVersionUID = SystemKeys.AAC_OIDC_SERIAL_VERSION;
 
-    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_CONFIG + SystemKeys.ID_SEPARATOR
-            + SystemKeys.RESOURCE_IDENTITY_PROVIDER + SystemKeys.ID_SEPARATOR
-            + SystemKeys.AUTHORITY_OIDC;
+    public static final String RESOURCE_TYPE =
+        SystemKeys.RESOURCE_CONFIG +
+        SystemKeys.ID_SEPARATOR +
+        SystemKeys.RESOURCE_IDENTITY_PROVIDER +
+        SystemKeys.ID_SEPARATOR +
+        SystemKeys.AUTHORITY_OIDC;
 
     private String clientId;
     private String clientSecret;
@@ -53,8 +56,7 @@ public class OIDCIdentityProviderConfigMap extends AbstractConfigMap {
     private Boolean respectTokenExpiration;
     private Set<PromptMode> promptMode;
 
-    public OIDCIdentityProviderConfigMap() {
-    }
+    public OIDCIdentityProviderConfigMap() {}
 
     public String getClientId() {
         return clientId;
@@ -218,7 +220,6 @@ public class OIDCIdentityProviderConfigMap extends AbstractConfigMap {
 
     @JsonIgnore
     public void setConfiguration(OIDCIdentityProviderConfigMap map) {
-
         this.clientId = map.getClientId();
         this.clientSecret = map.getClientSecret();
         this.clientJwk = map.getClientJwk();
