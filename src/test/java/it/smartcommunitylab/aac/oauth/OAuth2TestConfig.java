@@ -1,19 +1,32 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.oauth;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.util.Assert;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import it.smartcommunitylab.aac.dto.RealmConfig;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.oauth.client.OAuth2ClientConfigMap;
 import it.smartcommunitylab.aac.oauth.model.ClientRegistration;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.util.Assert;
 
 public final class OAuth2TestConfig {
 
@@ -37,11 +50,13 @@ public final class OAuth2TestConfig {
             throw new IllegalArgumentException("missing config");
         }
 
-        this.clients = rc.getClientApps().stream()
+        this.clients =
+            rc
+                .getClientApps()
+                .stream()
                 .map(a -> {
                     // convert from config map and then align
-                    OAuth2ClientConfigMap e = mapper.convertValue(a.getConfiguration(),
-                            OAuth2ClientConfigMap.class);
+                    OAuth2ClientConfigMap e = mapper.convertValue(a.getConfiguration(), OAuth2ClientConfigMap.class);
 
                     ClientRegistration c = clientConverter.convert(e);
                     c.setClientId(a.getClientId());
@@ -54,7 +69,8 @@ public final class OAuth2TestConfig {
                     c.setJwks(clientJwks);
 
                     return c;
-                }).collect(Collectors.toList());
+                })
+                .collect(Collectors.toList());
     }
 
     private void buildUsers() {
@@ -63,11 +79,16 @@ public final class OAuth2TestConfig {
         }
 
         // map only internal users with password
-        Map<String, String> passwords = rc.getCredentials().stream()
-                .filter(c -> (c instanceof InternalUserPassword))
-                .collect(Collectors.toMap(c -> c.getAccountId(), c -> ((InternalUserPassword) c).getPassword()));
+        Map<String, String> passwords = rc
+            .getCredentials()
+            .stream()
+            .filter(c -> (c instanceof InternalUserPassword))
+            .collect(Collectors.toMap(c -> c.getAccountId(), c -> ((InternalUserPassword) c).getPassword()));
 
-        this.users = rc.getUsers().stream()
+        this.users =
+            rc
+                .getUsers()
+                .stream()
                 .map(a -> {
                     UserRegistration r = new UserRegistration(a.getUserId());
                     r.setUsername(a.getUsername());
@@ -79,7 +100,8 @@ public final class OAuth2TestConfig {
                         r.setSurname(ia.getSurname());
                     }
                     return r;
-                }).collect(Collectors.toList());
+                })
+                .collect(Collectors.toList());
     }
 
     public String realm() {
@@ -128,10 +150,10 @@ public final class OAuth2TestConfig {
             // TODO map all fields
             return c;
         }
-
     }
 
     public class UserRegistration {
+
         private String userId;
         private String username;
         private String password;
@@ -193,6 +215,5 @@ public final class OAuth2TestConfig {
         public void setSurname(String surname) {
             this.surname = surname;
         }
-
     }
 }

@@ -1,3 +1,19 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.oauth.token;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -6,10 +22,20 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.oauth2.sdk.ResponseType;
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.auth.WithMockUserAuthentication;
+import it.smartcommunitylab.aac.bootstrap.BootstrapConfig;
+import it.smartcommunitylab.aac.oauth.OAuth2ConfigUtils;
+import it.smartcommunitylab.aac.oauth.OAuth2TestConfig.UserRegistration;
+import it.smartcommunitylab.aac.oauth.endpoint.AuthorizationEndpoint;
+import it.smartcommunitylab.aac.oauth.endpoint.TokenEndpoint;
+import it.smartcommunitylab.aac.oauth.model.ClientRegistration;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,23 +55,10 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nimbusds.oauth2.sdk.ResponseType;
-
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.auth.WithMockUserAuthentication;
-import it.smartcommunitylab.aac.bootstrap.BootstrapConfig;
-import it.smartcommunitylab.aac.oauth.OAuth2ConfigUtils;
-import it.smartcommunitylab.aac.oauth.OAuth2TestConfig.UserRegistration;
-import it.smartcommunitylab.aac.oauth.endpoint.AuthorizationEndpoint;
-import it.smartcommunitylab.aac.oauth.endpoint.TokenEndpoint;
-import it.smartcommunitylab.aac.oauth.model.ClientRegistration;
-
 /*
  * OAuth 2.0 Refresh Token Grant
  * as per RFC6749
- * 
+ *
  * https://www.rfc-editor.org/rfc/rfc6749#section-6
  */
 
@@ -72,8 +85,7 @@ public class RefreshTokenGrantTest {
 
     @BeforeEach
     public void setUp() {
-        if (clientId == null || clientSecret == null || client2Id == null
-                || client2Secret == null) {
+        if (clientId == null || clientSecret == null || client2Id == null || client2Secret == null) {
             List<ClientRegistration> clients = OAuth2ConfigUtils.with(config).clients();
             assertThat(clients.size()).isGreaterThanOrEqualTo(2);
 
@@ -113,14 +125,12 @@ public class RefreshTokenGrantTest {
         // set offline scope to require refresh token
         params.add(OAuth2ParameterNames.SCOPE, Config.SCOPE_OFFLINE_ACCESS);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .get(AUTHORIZE_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a forward in response
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -135,10 +145,7 @@ public class RefreshTokenGrantTest {
         // follow forward to fetch response
         req = MockMvcRequestBuilders.get(forwardedUrl).session(session);
 
-        res = this.mockMvc
-                .perform(req)
-                .andExpect(status().is3xxRedirection())
-                .andReturn();
+        res = this.mockMvc.perform(req).andExpect(status().is3xxRedirection()).andReturn();
 
         // expect a redirect in response with query
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -165,15 +172,14 @@ public class RefreshTokenGrantTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.AUTHORIZATION_CODE.getValue());
         params.add(OAuth2ParameterNames.CODE, code);
 
-        req = MockMvcRequestBuilders.post(TOKEN_URL)
+        req =
+            MockMvcRequestBuilders
+                .post(TOKEN_URL)
                 .with(httpBasic(clientId, clientSecret))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .params(params);
 
-        res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a valid json in response
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
@@ -204,15 +210,14 @@ public class RefreshTokenGrantTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.REFRESH_TOKEN.getValue());
         params.add(OAuth2ParameterNames.REFRESH_TOKEN, refreshToken);
 
-        req = MockMvcRequestBuilders.post(TOKEN_URL)
+        req =
+            MockMvcRequestBuilders
+                .post(TOKEN_URL)
                 .with(httpBasic(clientId, clientSecret))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .params(params);
 
-        res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a valid json in response
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
@@ -236,9 +241,11 @@ public class RefreshTokenGrantTest {
 
         // refresh token is optional
         // when present it could match the previous one
-        assertThat(response.get(OAuth2ParameterNames.REFRESH_TOKEN)).satisfiesAnyOf(
+        assertThat(response.get(OAuth2ParameterNames.REFRESH_TOKEN))
+            .satisfiesAnyOf(
                 token -> assertThat(token).isNull(),
-                token -> assertThat(token).isNotNull().isInstanceOf(String.class));
+                token -> assertThat(token).isNotNull().isInstanceOf(String.class)
+            );
     }
 
     @Test
@@ -253,14 +260,12 @@ public class RefreshTokenGrantTest {
         List<String> scopes = List.of(Config.SCOPE_OFFLINE_ACCESS, Config.SCOPE_PROFILE);
         params.add(OAuth2ParameterNames.SCOPE, String.join(" ", scopes));
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .get(AUTHORIZE_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a forward in response
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -275,10 +280,7 @@ public class RefreshTokenGrantTest {
         // follow forward to fetch response
         req = MockMvcRequestBuilders.get(forwardedUrl).session(session);
 
-        res = this.mockMvc
-                .perform(req)
-                .andExpect(status().is3xxRedirection())
-                .andReturn();
+        res = this.mockMvc.perform(req).andExpect(status().is3xxRedirection()).andReturn();
 
         // expect a redirect in response with query
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -305,15 +307,14 @@ public class RefreshTokenGrantTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.AUTHORIZATION_CODE.getValue());
         params.add(OAuth2ParameterNames.CODE, code);
 
-        req = MockMvcRequestBuilders.post(TOKEN_URL)
+        req =
+            MockMvcRequestBuilders
+                .post(TOKEN_URL)
                 .with(httpBasic(clientId, clientSecret))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .params(params);
 
-        res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a valid json in response
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
@@ -345,15 +346,14 @@ public class RefreshTokenGrantTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.REFRESH_TOKEN.getValue());
         params.add(OAuth2ParameterNames.REFRESH_TOKEN, refreshToken);
 
-        req = MockMvcRequestBuilders.post(TOKEN_URL)
+        req =
+            MockMvcRequestBuilders
+                .post(TOKEN_URL)
                 .with(httpBasic(clientId, clientSecret))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .params(params);
 
-        res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a valid json in response
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
@@ -378,9 +378,11 @@ public class RefreshTokenGrantTest {
 
         // refresh token is optional
         // when present it could match the previous one
-        assertThat(response.get(OAuth2ParameterNames.REFRESH_TOKEN)).satisfiesAnyOf(
+        assertThat(response.get(OAuth2ParameterNames.REFRESH_TOKEN))
+            .satisfiesAnyOf(
                 token -> assertThat(token).isNull(),
-                token -> assertThat(token).isNotNull().isInstanceOf(String.class));
+                token -> assertThat(token).isNotNull().isInstanceOf(String.class)
+            );
     }
 
     @Test
@@ -395,14 +397,12 @@ public class RefreshTokenGrantTest {
         List<String> scopes = List.of(Config.SCOPE_OFFLINE_ACCESS, Config.SCOPE_PROFILE);
         params.add(OAuth2ParameterNames.SCOPE, String.join(" ", scopes));
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .get(AUTHORIZE_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a forward in response
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -417,10 +417,7 @@ public class RefreshTokenGrantTest {
         // follow forward to fetch response
         req = MockMvcRequestBuilders.get(forwardedUrl).session(session);
 
-        res = this.mockMvc
-                .perform(req)
-                .andExpect(status().is3xxRedirection())
-                .andReturn();
+        res = this.mockMvc.perform(req).andExpect(status().is3xxRedirection()).andReturn();
 
         // expect a redirect in response with query
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -447,15 +444,14 @@ public class RefreshTokenGrantTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.AUTHORIZATION_CODE.getValue());
         params.add(OAuth2ParameterNames.CODE, code);
 
-        req = MockMvcRequestBuilders.post(TOKEN_URL)
+        req =
+            MockMvcRequestBuilders
+                .post(TOKEN_URL)
                 .with(httpBasic(clientId, clientSecret))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .params(params);
 
-        res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a valid json in response
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
@@ -489,16 +485,14 @@ public class RefreshTokenGrantTest {
         // narrow scope from original request
         params.add(OAuth2ParameterNames.SCOPE, Config.SCOPE_PROFILE);
 
-        req = MockMvcRequestBuilders.post(TOKEN_URL)
+        req =
+            MockMvcRequestBuilders
+                .post(TOKEN_URL)
                 .with(httpBasic(clientId, clientSecret))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .params(params);
 
-        res = this.mockMvc
-                .perform(req)
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andReturn();
+        res = this.mockMvc.perform(req).andDo(print()).andExpect(status().isOk()).andReturn();
 
         // expect a valid json in response
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
@@ -523,9 +517,11 @@ public class RefreshTokenGrantTest {
 
         // refresh token is optional
         // when present it CAN NOT match the previous one
-        assertThat(response.get(OAuth2ParameterNames.REFRESH_TOKEN)).satisfiesAnyOf(
+        assertThat(response.get(OAuth2ParameterNames.REFRESH_TOKEN))
+            .satisfiesAnyOf(
                 token -> assertThat(token).isNull(),
-                token -> assertThat(token).isNotNull().isInstanceOf(String.class).isNotEqualTo(refreshToken));
+                token -> assertThat(token).isNotNull().isInstanceOf(String.class).isNotEqualTo(refreshToken)
+            );
     }
 
     // TODO refresh token rotation test
@@ -540,14 +536,12 @@ public class RefreshTokenGrantTest {
         // set offline scope to require refresh token
         params.add(OAuth2ParameterNames.SCOPE, Config.SCOPE_OFFLINE_ACCESS);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .get(AUTHORIZE_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a forward in response
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -562,10 +556,7 @@ public class RefreshTokenGrantTest {
         // follow forward to fetch response
         req = MockMvcRequestBuilders.get(forwardedUrl).session(session);
 
-        res = this.mockMvc
-                .perform(req)
-                .andExpect(status().is3xxRedirection())
-                .andReturn();
+        res = this.mockMvc.perform(req).andExpect(status().is3xxRedirection()).andReturn();
 
         // expect a redirect in response with query
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -592,15 +583,14 @@ public class RefreshTokenGrantTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.AUTHORIZATION_CODE.getValue());
         params.add(OAuth2ParameterNames.CODE, code);
 
-        req = MockMvcRequestBuilders.post(TOKEN_URL)
+        req =
+            MockMvcRequestBuilders
+                .post(TOKEN_URL)
                 .with(httpBasic(clientId, clientSecret))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .params(params);
 
-        res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a valid json in response
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
@@ -631,14 +621,9 @@ public class RefreshTokenGrantTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.REFRESH_TOKEN.getValue());
         params.add(OAuth2ParameterNames.REFRESH_TOKEN, refreshToken);
 
-        req = MockMvcRequestBuilders.post(TOKEN_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        req = MockMvcRequestBuilders.post(TOKEN_URL).contentType(MediaType.APPLICATION_FORM_URLENCODED).params(params);
 
-        res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isForbidden())
-                .andReturn();
+        res = this.mockMvc.perform(req).andExpect(status().isForbidden()).andReturn();
 
         // expect a 403 with no error
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -654,14 +639,12 @@ public class RefreshTokenGrantTest {
         // set offline scope to require refresh token
         params.add(OAuth2ParameterNames.SCOPE, Config.SCOPE_OFFLINE_ACCESS);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .get(AUTHORIZE_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a forward in response
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -676,10 +659,7 @@ public class RefreshTokenGrantTest {
         // follow forward to fetch response
         req = MockMvcRequestBuilders.get(forwardedUrl).session(session);
 
-        res = this.mockMvc
-                .perform(req)
-                .andExpect(status().is3xxRedirection())
-                .andReturn();
+        res = this.mockMvc.perform(req).andExpect(status().is3xxRedirection()).andReturn();
 
         // expect a redirect in response with query
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -706,15 +686,14 @@ public class RefreshTokenGrantTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.AUTHORIZATION_CODE.getValue());
         params.add(OAuth2ParameterNames.CODE, code);
 
-        req = MockMvcRequestBuilders.post(TOKEN_URL)
+        req =
+            MockMvcRequestBuilders
+                .post(TOKEN_URL)
                 .with(httpBasic(clientId, clientSecret))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .params(params);
 
-        res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a valid json in response
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
@@ -746,15 +725,14 @@ public class RefreshTokenGrantTest {
         params.add(OAuth2ParameterNames.REFRESH_TOKEN, refreshToken);
 
         // use a different client as before
-        req = MockMvcRequestBuilders.post(TOKEN_URL)
+        req =
+            MockMvcRequestBuilders
+                .post(TOKEN_URL)
                 .with(httpBasic(client2Id, client2Secret))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .params(params);
 
-        res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isBadRequest())
-                .andReturn();
+        res = this.mockMvc.perform(req).andExpect(status().isBadRequest()).andReturn();
 
         // expect a 400 with an error
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
@@ -767,11 +745,9 @@ public class RefreshTokenGrantTest {
         assertThat(response.get(OAuth2ParameterNames.ACCESS_TOKEN)).isNull();
     }
 
-    private final static String AUTHORIZE_URL = AuthorizationEndpoint.AUTHORIZATION_URL;
-    private final static String AUTHORIZED_URL = AuthorizationEndpoint.AUTHORIZED_URL;
-    private final static String TOKEN_URL = TokenEndpoint.TOKEN_URL;
+    private static final String AUTHORIZE_URL = AuthorizationEndpoint.AUTHORIZATION_URL;
+    private static final String AUTHORIZED_URL = AuthorizationEndpoint.AUTHORIZED_URL;
+    private static final String TOKEN_URL = TokenEndpoint.TOKEN_URL;
 
-    private final TypeReference<Map<String, Serializable>> typeRef = new TypeReference<Map<String, Serializable>>() {
-    };
-
+    private final TypeReference<Map<String, Serializable>> typeRef = new TypeReference<Map<String, Serializable>>() {};
 }

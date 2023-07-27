@@ -1,5 +1,43 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.oauth;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.jwt.SignedJWT;
+import com.nimbusds.oauth2.sdk.ResponseType;
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.auth.WithMockUserAuthentication;
+import it.smartcommunitylab.aac.bootstrap.BootstrapConfig;
+import it.smartcommunitylab.aac.oauth.endpoint.AuthorizationEndpoint;
+import it.smartcommunitylab.aac.oauth.model.ClientRegistration;
+import java.io.Serializable;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,33 +56,9 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nimbusds.jwt.SignedJWT;
-import com.nimbusds.oauth2.sdk.ResponseType;
-
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.auth.WithMockUserAuthentication;
-import it.smartcommunitylab.aac.bootstrap.BootstrapConfig;
-import it.smartcommunitylab.aac.oauth.endpoint.AuthorizationEndpoint;
-import it.smartcommunitylab.aac.oauth.model.ClientRegistration;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-import java.io.Serializable;
-import java.net.URL;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-
 /*
  * OAuth 2.0 Authorization Server Issuer Identification
- * as per 
+ * as per
  * https://www.rfc-editor.org/rfc/rfc9207
  */
 
@@ -77,10 +91,7 @@ public class OAuth2AuthorizationServerIssuerTest {
 
     @Test
     public void requiredMetadataIsAvailable() throws Exception {
-        MvcResult res = this.mockMvc
-                .perform(get(METADATA_URL))
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(get(METADATA_URL)).andExpect(status().isOk()).andReturn();
 
         // parse as Map from JSON
         String json = res.getResponse().getContentAsString();
@@ -94,10 +105,7 @@ public class OAuth2AuthorizationServerIssuerTest {
 
     @Test
     public void metadataIssuerIsValid() throws Exception {
-        MvcResult res = this.mockMvc
-                .perform(get(METADATA_URL))
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(get(METADATA_URL)).andExpect(status().isOk()).andReturn();
 
         // parse as Map from JSON
         String json = res.getResponse().getContentAsString();
@@ -117,7 +125,6 @@ public class OAuth2AuthorizationServerIssuerTest {
         URL url = new URL(issuer);
         assertThat(url.getQuery()).isNull();
         assertThat(url.getRef()).isNull();
-
     }
 
     @Test
@@ -130,14 +137,12 @@ public class OAuth2AuthorizationServerIssuerTest {
         // set empty scopes to avoid fall back to predefined
         params.add(OAuth2ParameterNames.SCOPE, "");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .get(AUTHORIZE_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a forward in response
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -152,10 +157,7 @@ public class OAuth2AuthorizationServerIssuerTest {
         // follow forward to fetch response
         req = MockMvcRequestBuilders.get(forwardedUrl).session(session);
 
-        res = this.mockMvc
-                .perform(req)
-                .andExpect(status().is3xxRedirection())
-                .andReturn();
+        res = this.mockMvc.perform(req).andExpect(status().is3xxRedirection()).andReturn();
 
         // expect a redirect in response with query
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -182,10 +184,7 @@ public class OAuth2AuthorizationServerIssuerTest {
     @WithMockUserAuthentication(username = "test", realm = "test")
     public void authorizationResponseIssMatchesMetadata() throws Exception {
         // fetch issuer from meta
-        MvcResult res = this.mockMvc
-                .perform(get(METADATA_URL))
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(get(METADATA_URL)).andExpect(status().isOk()).andReturn();
 
         // parse as Map from JSON
         String json = res.getResponse().getContentAsString();
@@ -203,14 +202,12 @@ public class OAuth2AuthorizationServerIssuerTest {
         // set empty scopes to avoid fall back to predefined
         params.add(OAuth2ParameterNames.SCOPE, "");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .get(AUTHORIZE_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a forward in response
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -225,10 +222,7 @@ public class OAuth2AuthorizationServerIssuerTest {
         // follow forward to fetch response
         req = MockMvcRequestBuilders.get(forwardedUrl).session(session);
 
-        res = this.mockMvc
-                .perform(req)
-                .andExpect(status().is3xxRedirection())
-                .andReturn();
+        res = this.mockMvc.perform(req).andExpect(status().is3xxRedirection()).andReturn();
 
         // expect a redirect in response with query
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -258,10 +252,7 @@ public class OAuth2AuthorizationServerIssuerTest {
     @WithMockUserAuthentication(username = "test", realm = "test")
     public void idTokenIssMatchesMetadata() throws Exception {
         // fetch issuer from meta
-        MvcResult res = this.mockMvc
-                .perform(get(METADATA_URL))
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(get(METADATA_URL)).andExpect(status().isOk()).andReturn();
 
         // parse as Map from JSON
         String json = res.getResponse().getContentAsString();
@@ -282,14 +273,12 @@ public class OAuth2AuthorizationServerIssuerTest {
         String nonce = "random-secure-nonce-value";
         params.add(OidcParameterNames.NONCE, nonce);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .get(AUTHORIZE_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a forward in response
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -304,10 +293,7 @@ public class OAuth2AuthorizationServerIssuerTest {
         // follow forward to fetch response
         req = MockMvcRequestBuilders.get(forwardedUrl).session(session);
 
-        res = this.mockMvc
-                .perform(req)
-                .andExpect(status().is3xxRedirection())
-                .andReturn();
+        res = this.mockMvc.perform(req).andExpect(status().is3xxRedirection()).andReturn();
 
         // expect a redirect in response with query
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -353,26 +339,24 @@ public class OAuth2AuthorizationServerIssuerTest {
 
     /*
      * Metadata endpoint
-     * 
+     *
      * use well-known URI
      */
-    public final static String METADATA_URL = "/.well-known/oauth-authorization-server";
-    private final static String AUTHORIZE_URL = AuthorizationEndpoint.AUTHORIZATION_URL;
-    private final static String AUTHORIZED_URL = AuthorizationEndpoint.AUTHORIZED_URL;
+    public static final String METADATA_URL = "/.well-known/oauth-authorization-server";
+    private static final String AUTHORIZE_URL = AuthorizationEndpoint.AUTHORIZATION_URL;
+    private static final String AUTHORIZED_URL = AuthorizationEndpoint.AUTHORIZED_URL;
 
     /*
      * Claims definition
      */
-    public final static String OAUTH2_PARAM_ISSUER = "issuer";
-    public final static String OAUTH2_PARAM_ISS = "iss";
-    public final static String OAUTH2_METADATA_ISS = "authorization_response_iss_parameter_supported";
+    public static final String OAUTH2_PARAM_ISSUER = "issuer";
+    public static final String OAUTH2_PARAM_ISS = "iss";
+    public static final String OAUTH2_METADATA_ISS = "authorization_response_iss_parameter_supported";
 
     public static final Set<String> METADATA;
     public static final Set<String> REQUIRED_METADATA;
 
-    private static final String[] REQUIRED_METADATA_VALUES = {
-            OAUTH2_METADATA_ISS, OAUTH2_PARAM_ISSUER
-    };
+    private static final String[] REQUIRED_METADATA_VALUES = { OAUTH2_METADATA_ISS, OAUTH2_PARAM_ISSUER };
 
     static {
         REQUIRED_METADATA = Collections.unmodifiableSortedSet(new TreeSet<>(Arrays.asList(REQUIRED_METADATA_VALUES)));
@@ -381,6 +365,6 @@ public class OAuth2AuthorizationServerIssuerTest {
         METADATA = Collections.unmodifiableSortedSet(set);
     }
 
-    private final TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
-    };
+    private final TypeReference<HashMap<String, Serializable>> typeRef =
+        new TypeReference<HashMap<String, Serializable>>() {};
 }

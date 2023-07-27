@@ -1,16 +1,45 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.openid;
 
+import static it.smartcommunitylab.aac.auth.BearerTokenRequestPostProcessor.bearer;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.opaqueToken;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import it.smartcommunitylab.aac.auth.WithMockBearerTokenAuthentication;
+import it.smartcommunitylab.aac.auth.WithMockUserAuthentication;
+import it.smartcommunitylab.aac.bootstrap.BootstrapConfig;
+import it.smartcommunitylab.aac.oauth.OAuth2ConfigUtils;
+import it.smartcommunitylab.aac.oauth.OAuth2TestConfig.UserRegistration;
+import it.smartcommunitylab.aac.oauth.OAuth2TestUtils;
+import it.smartcommunitylab.aac.oauth.model.ClientRegistration;
+import it.smartcommunitylab.aac.openid.endpoint.UserInfoEndpoint;
+import it.smartcommunitylab.aac.openid.scope.OpenIdScope;
+import it.smartcommunitylab.aac.profiles.scope.OpenIdDefaultScope;
+import it.smartcommunitylab.aac.profiles.scope.OpenIdEmailScope;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,27 +60,11 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import it.smartcommunitylab.aac.auth.WithMockBearerTokenAuthentication;
-import it.smartcommunitylab.aac.auth.WithMockUserAuthentication;
-import it.smartcommunitylab.aac.bootstrap.BootstrapConfig;
-import it.smartcommunitylab.aac.oauth.OAuth2ConfigUtils;
-import it.smartcommunitylab.aac.oauth.OAuth2TestUtils;
-import it.smartcommunitylab.aac.oauth.OAuth2TestConfig.UserRegistration;
-import it.smartcommunitylab.aac.oauth.model.ClientRegistration;
-import it.smartcommunitylab.aac.openid.endpoint.UserInfoEndpoint;
-import it.smartcommunitylab.aac.openid.scope.OpenIdScope;
-import it.smartcommunitylab.aac.profiles.scope.OpenIdDefaultScope;
-import it.smartcommunitylab.aac.profiles.scope.OpenIdEmailScope;
-
-import static it.smartcommunitylab.aac.auth.BearerTokenRequestPostProcessor.bearer;
 /*
  * UserInfo endpoint test
  * OpenID Connect Core 1.0
- * 
- * ref 
+ *
+ * ref
  * https://openid.net/specs/openid-connect-core-1_0.html#UserInfo
  */
 
@@ -99,10 +112,7 @@ public class UserInfoTest {
 
     @Test
     public void endpointIsProtected() throws Exception {
-        MvcResult res = this.mockMvc
-                .perform(get(USERINFO_URL))
-                .andExpect(status().isUnauthorized())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(get(USERINFO_URL)).andExpect(status().isUnauthorized()).andReturn();
 
         // expect a 401 with no body
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -115,21 +125,20 @@ public class UserInfoTest {
 
         // fetch a valid user access token with scopes
         // this is required because userinfo loads the token...
-        String accessToken = OAuth2TestUtils.getUserAccessTokenViaAuthCodeWithBasicAuth(mockMvc,
-                String.join(" ", scopes), clientId,
-                clientSecret);
+        String accessToken = OAuth2TestUtils.getUserAccessTokenViaAuthCodeWithBasicAuth(
+            mockMvc,
+            String.join(" ", scopes),
+            clientId,
+            clientSecret
+        );
 
         // userinfo request
         // use bearer token context
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(USERINFO_URL)
-                .with(bearer(accessToken)
-                        .subject(user.getUserId())
-                        .scopes(scopes));
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .get(USERINFO_URL)
+            .with(bearer(accessToken).subject(user.getUserId()).scopes(scopes));
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a valid json in response
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
@@ -140,9 +149,11 @@ public class UserInfoTest {
         // validate userinfo with core fields
 
         // sub is required, should match user
-        assertThat(response.get(StandardClaimNames.SUB)).isNotNull()
-                .isInstanceOf(String.class).asInstanceOf(InstanceOfAssertFactories.STRING)
-                .isEqualTo(user.getUserId());
+        assertThat(response.get(StandardClaimNames.SUB))
+            .isNotNull()
+            .isInstanceOf(String.class)
+            .asInstanceOf(InstanceOfAssertFactories.STRING)
+            .isEqualTo(user.getUserId());
 
         // email should NOT be exposed
         assertThat(response.get(StandardClaimNames.EMAIL)).isNull();
@@ -158,21 +169,20 @@ public class UserInfoTest {
 
         // fetch a valid user access token with scopes
         // this is required because userinfo loads the token...
-        String accessToken = OAuth2TestUtils.getUserAccessTokenViaAuthCodeWithBasicAuth(mockMvc,
-                String.join(" ", scopes), clientId,
-                clientSecret);
+        String accessToken = OAuth2TestUtils.getUserAccessTokenViaAuthCodeWithBasicAuth(
+            mockMvc,
+            String.join(" ", scopes),
+            clientId,
+            clientSecret
+        );
 
         // userinfo request
         // use bearer token context
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(USERINFO_URL)
-                .with(bearer(accessToken)
-                        .subject(user.getUserId())
-                        .scopes(scopes));
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(USERINFO_URL)
+            .with(bearer(accessToken).subject(user.getUserId()).scopes(scopes));
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a valid json in response
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
@@ -183,9 +193,11 @@ public class UserInfoTest {
         // validate userinfo with core fields
 
         // sub is required, should match user
-        assertThat(response.get(StandardClaimNames.SUB)).isNotNull()
-                .isInstanceOf(String.class).asInstanceOf(InstanceOfAssertFactories.STRING)
-                .isEqualTo(user.getUserId());
+        assertThat(response.get(StandardClaimNames.SUB))
+            .isNotNull()
+            .isInstanceOf(String.class)
+            .asInstanceOf(InstanceOfAssertFactories.STRING)
+            .isEqualTo(user.getUserId());
 
         // email should NOT be exposed
         assertThat(response.get(StandardClaimNames.EMAIL)).isNull();
@@ -201,21 +213,20 @@ public class UserInfoTest {
 
         // fetch a valid user access token with scopes
         // this is required because userinfo loads the token...
-        String accessToken = OAuth2TestUtils.getUserAccessTokenViaAuthCodeWithBasicAuth(mockMvc,
-                String.join(" ", scopes), clientId,
-                clientSecret);
+        String accessToken = OAuth2TestUtils.getUserAccessTokenViaAuthCodeWithBasicAuth(
+            mockMvc,
+            String.join(" ", scopes),
+            clientId,
+            clientSecret
+        );
 
         // userinfo request
         // use bearer token context
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(USERINFO_URL)
-                .with(bearer(accessToken)
-                        .subject(user.getUserId())
-                        .scopes(scopes));
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .get(USERINFO_URL)
+            .with(bearer(accessToken).subject(user.getUserId()).scopes(scopes));
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a valid json in response
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
@@ -226,30 +237,45 @@ public class UserInfoTest {
         // validate userinfo with core fields
 
         // sub is required, should match user
-        assertThat(response.get(StandardClaimNames.SUB)).isNotNull()
-                .isInstanceOf(String.class).asInstanceOf(InstanceOfAssertFactories.STRING)
-                .isEqualTo(user.getUserId());
+        assertThat(response.get(StandardClaimNames.SUB))
+            .isNotNull()
+            .isInstanceOf(String.class)
+            .asInstanceOf(InstanceOfAssertFactories.STRING)
+            .isEqualTo(user.getUserId());
 
         // username is required, should match user
-        assertThat(response.get(StandardClaimNames.PREFERRED_USERNAME)).isNotNull()
-                .isInstanceOf(String.class).asInstanceOf(InstanceOfAssertFactories.STRING)
-                .isEqualTo(user.getUsername());
+        assertThat(response.get(StandardClaimNames.PREFERRED_USERNAME))
+            .isNotNull()
+            .isInstanceOf(String.class)
+            .asInstanceOf(InstanceOfAssertFactories.STRING)
+            .isEqualTo(user.getUsername());
 
         // name is optional, if provided it should match request
-        assertThat(response.get(StandardClaimNames.NAME)).satisfiesAnyOf(
+        assertThat(response.get(StandardClaimNames.NAME))
+            .satisfiesAnyOf(
                 s -> assertThat(s).isNull(),
-                s -> assertThat(s).isNotNull().isInstanceOf(String.class)
-                        .asInstanceOf(InstanceOfAssertFactories.STRING).isEqualTo(user.getName()));
+                s ->
+                    assertThat(s)
+                        .isNotNull()
+                        .isInstanceOf(String.class)
+                        .asInstanceOf(InstanceOfAssertFactories.STRING)
+                        .isEqualTo(user.getName())
+            );
 
         // family name is optional, if provided it should match request
-        assertThat(response.get(StandardClaimNames.FAMILY_NAME)).satisfiesAnyOf(
+        assertThat(response.get(StandardClaimNames.FAMILY_NAME))
+            .satisfiesAnyOf(
                 s -> assertThat(s).isNull(),
-                s -> assertThat(s).isNotNull().isInstanceOf(String.class)
-                        .asInstanceOf(InstanceOfAssertFactories.STRING).isEqualTo(user.getSurname()));
+                s ->
+                    assertThat(s)
+                        .isNotNull()
+                        .isInstanceOf(String.class)
+                        .asInstanceOf(InstanceOfAssertFactories.STRING)
+                        .isEqualTo(user.getSurname())
+            );
 
         // email should NOT be exposed
         assertThat(response.get(StandardClaimNames.EMAIL)).isNull();
-
     }
 
     @Test
@@ -259,21 +285,20 @@ public class UserInfoTest {
 
         // fetch a valid user access token with scopes
         // this is required because userinfo loads the token...
-        String accessToken = OAuth2TestUtils.getUserAccessTokenViaAuthCodeWithBasicAuth(mockMvc,
-                String.join(" ", scopes), clientId,
-                clientSecret);
+        String accessToken = OAuth2TestUtils.getUserAccessTokenViaAuthCodeWithBasicAuth(
+            mockMvc,
+            String.join(" ", scopes),
+            clientId,
+            clientSecret
+        );
 
         // userinfo request
         // use bearer token context
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(USERINFO_URL)
-                .with(bearer(accessToken)
-                        .subject(user.getUserId())
-                        .scopes(scopes));
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .get(USERINFO_URL)
+            .with(bearer(accessToken).subject(user.getUserId()).scopes(scopes));
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a valid json in response
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
@@ -284,23 +309,28 @@ public class UserInfoTest {
         // validate userinfo with core fields
 
         // sub is required, should match user
-        assertThat(response.get(StandardClaimNames.SUB)).isNotNull()
-                .isInstanceOf(String.class).asInstanceOf(InstanceOfAssertFactories.STRING)
-                .isEqualTo(user.getUserId());
+        assertThat(response.get(StandardClaimNames.SUB))
+            .isNotNull()
+            .isInstanceOf(String.class)
+            .asInstanceOf(InstanceOfAssertFactories.STRING)
+            .isEqualTo(user.getUserId());
 
         // email is required, should match user
-        assertThat(response.get(StandardClaimNames.EMAIL)).isNotNull()
-                .isInstanceOf(String.class).asInstanceOf(InstanceOfAssertFactories.STRING)
-                .isEqualTo(user.getEmail());
+        assertThat(response.get(StandardClaimNames.EMAIL))
+            .isNotNull()
+            .isInstanceOf(String.class)
+            .asInstanceOf(InstanceOfAssertFactories.STRING)
+            .isEqualTo(user.getEmail());
 
         // email verified is optional
-        assertThat(response.get(StandardClaimNames.EMAIL_VERIFIED)).satisfiesAnyOf(
+        assertThat(response.get(StandardClaimNames.EMAIL_VERIFIED))
+            .satisfiesAnyOf(
                 s -> assertThat(s).isNull(),
-                s -> assertThat(s).asInstanceOf(InstanceOfAssertFactories.BOOLEAN).isNotNull());
+                s -> assertThat(s).asInstanceOf(InstanceOfAssertFactories.BOOLEAN).isNotNull()
+            );
 
         // username should NOT be exposed
         assertThat(response.get(StandardClaimNames.PREFERRED_USERNAME)).isNull();
-
     }
 
     @Test
@@ -310,21 +340,20 @@ public class UserInfoTest {
 
         // fetch a valid user access token with scopes
         // this is required because userinfo loads the token...
-        String accessToken = OAuth2TestUtils.getUserAccessTokenViaAuthCodeWithBasicAuth(mockMvc,
-                String.join(" ", scopes), clientId,
-                clientSecret);
+        String accessToken = OAuth2TestUtils.getUserAccessTokenViaAuthCodeWithBasicAuth(
+            mockMvc,
+            String.join(" ", scopes),
+            clientId,
+            clientSecret
+        );
 
         // userinfo request
         // use bearer token context
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(USERINFO_URL)
-                .with(bearer(accessToken)
-                        .subject(user.getUserId())
-                        .scopes(scopes));
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .get(USERINFO_URL)
+            .with(bearer(accessToken).subject(user.getUserId()).scopes(scopes));
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isForbidden())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isForbidden()).andReturn();
 
         // expect an error in response
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
@@ -340,15 +369,11 @@ public class UserInfoTest {
 
         // userinfo request
         // use bearer token context
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(USERINFO_URL)
-                .with(bearer("token")
-                        .subject(user.getUserId())
-                        .scopes(scopes));
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .get(USERINFO_URL)
+            .with(bearer("token").subject(user.getUserId()).scopes(scopes));
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isUnauthorized())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isUnauthorized()).andReturn();
 
         // expect an error in response
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -361,12 +386,12 @@ public class UserInfoTest {
 
     /*
      * Config
-     * 
+     *
      */
-    public final static String USERINFO_URL = UserInfoEndpoint.USERINFO_URL;
+    public static final String USERINFO_URL = UserInfoEndpoint.USERINFO_URL;
 
     private static final String USER_ID = "test-0000-12345-user";
 
-    private final TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
-    };
+    private final TypeReference<HashMap<String, Serializable>> typeRef =
+        new TypeReference<HashMap<String, Serializable>>() {};
 }

@@ -1,3 +1,19 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.openid;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -8,20 +24,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.io.Serializable;
-import java.security.interfaces.RSAPublicKey;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.Algorithm;
@@ -32,17 +34,29 @@ import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyType;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTParser;
-
 import it.smartcommunitylab.aac.bootstrap.BootstrapConfig;
 import it.smartcommunitylab.aac.oauth.OAuth2ConfigUtils;
 import it.smartcommunitylab.aac.oauth.OAuth2TestUtils;
 import it.smartcommunitylab.aac.oauth.model.ClientRegistration;
 import it.smartcommunitylab.aac.openid.endpoint.JWKSetPublishingEndpoint;
+import java.io.Serializable;
+import java.security.interfaces.RSAPublicKey;
+import java.util.HashMap;
+import java.util.Map;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 /*
  * JWKSet endpoint test
- * 
- * ref 
+ *
+ * ref
  * https://www.rfc-editor.org/rfc/rfc7517
  * https://www.rfc-editor.org/rfc/rfc7519
  */
@@ -63,10 +77,7 @@ public class JWKSetTest {
 
     @Test
     public void endpointIsAvailable() throws Exception {
-        MvcResult res = this.mockMvc
-                .perform(get(JWKS_URL))
-                .andDo(print()).andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(get(JWKS_URL)).andDo(print()).andExpect(status().isOk()).andReturn();
 
         // content type is json
         assertEquals(res.getResponse().getContentType(), MediaType.APPLICATION_JSON_VALUE);
@@ -79,10 +90,7 @@ public class JWKSetTest {
 
     @Test
     public void keysAreAvailable() throws Exception {
-        MvcResult res = this.mockMvc
-                .perform(get(JWKS_URL))
-                .andDo(print()).andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(get(JWKS_URL)).andDo(print()).andExpect(status().isOk()).andReturn();
 
         // content type is json
         assertEquals(res.getResponse().getContentType(), MediaType.APPLICATION_JSON_VALUE);
@@ -104,23 +112,21 @@ public class JWKSetTest {
         assertThat(set.getKeys()).isNotEmpty();
 
         // every key is asymmetric (path is public)
-        assertThat(set.getKeys()).allSatisfy(
-                key -> {
-                    assertThat(key).isNotNull();
-                    // key is either RSA or EC
-                    assertThat(key.getKeyType()).satisfiesAnyOf(
-                            typ -> assertThat(typ).isEqualTo(KeyType.RSA),
-                            typ -> assertThat(typ).isEqualTo(KeyType.EC));
-                });
-
+        assertThat(set.getKeys())
+            .allSatisfy(key -> {
+                assertThat(key).isNotNull();
+                // key is either RSA or EC
+                assertThat(key.getKeyType())
+                    .satisfiesAnyOf(
+                        typ -> assertThat(typ).isEqualTo(KeyType.RSA),
+                        typ -> assertThat(typ).isEqualTo(KeyType.EC)
+                    );
+            });
     }
 
     @Test
     public void privateKeyIsNotExposed() throws Exception {
-        MvcResult res = this.mockMvc
-                .perform(get(JWKS_URL))
-                .andDo(print()).andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(get(JWKS_URL)).andDo(print()).andExpect(status().isOk()).andReturn();
 
         // content type is json
         assertEquals(res.getResponse().getContentType(), MediaType.APPLICATION_JSON_VALUE);
@@ -139,12 +145,11 @@ public class JWKSetTest {
         assertThat(set).isNotNull();
 
         // every key is public
-        assertThat(set.getKeys()).allSatisfy(
-                key -> {
-                    // private key is not exposed
-                    assertThat(key.isPrivate()).isFalse();
-                });
-
+        assertThat(set.getKeys())
+            .allSatisfy(key -> {
+                // private key is not exposed
+                assertThat(key.isPrivate()).isFalse();
+            });
     }
 
     @Test
@@ -152,8 +157,11 @@ public class JWKSetTest {
         ClientRegistration client = OAuth2ConfigUtils.with(config).client();
 
         // fetch a valid client access token
-        String accessToken = OAuth2TestUtils.getClientAccessTokenViaClientCredentialsWithBasicAuth(mockMvc,
-                client.getClientId(), client.getClientSecret());
+        String accessToken = OAuth2TestUtils.getClientAccessTokenViaClientCredentialsWithBasicAuth(
+            mockMvc,
+            client.getClientId(),
+            client.getClientSecret()
+        );
 
         // expect a valid string
         assertThat(accessToken).isNotBlank();
@@ -176,10 +184,7 @@ public class JWKSetTest {
         Algorithm alg = ujwt.getHeader().getAlgorithm();
 
         // validate by fetching keys
-        MvcResult res = this.mockMvc
-                .perform(get(JWKS_URL))
-                .andDo(print()).andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(get(JWKS_URL)).andDo(print()).andExpect(status().isOk()).andReturn();
 
         // read as string
         String json = res.getResponse().getContentAsString();
@@ -213,17 +218,15 @@ public class JWKSetTest {
         assertDoesNotThrow(() -> {
             jwtDecoder.decode(accessToken);
         });
-
     }
 
     /*
      * Keys endpoint
-     * 
+     *
      * use well-known URI
      */
-    public final static String JWKS_URL = JWKSetPublishingEndpoint.JWKS_URL;
+    public static final String JWKS_URL = JWKSetPublishingEndpoint.JWKS_URL;
 
-    private final TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
-    };
-
+    private final TypeReference<HashMap<String, Serializable>> typeRef =
+        new TypeReference<HashMap<String, Serializable>>() {};
 }
