@@ -1,8 +1,20 @@
-package it.smartcommunitylab.aac.templates;
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
+package it.smartcommunitylab.aac.templates;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.authorities.TemplateProviderAuthority;
@@ -17,11 +29,14 @@ import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfigur
 import it.smartcommunitylab.aac.templates.provider.TemplateProviderConfigMap;
 import it.smartcommunitylab.aac.templates.provider.TemplateTemplateProvider;
 import it.smartcommunitylab.aac.templates.service.TemplateService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 @Service
-public class TemplateAuthority extends
-        AbstractSingleConfigurableProviderAuthority<TemplateTemplateProvider, TemplateModel, ConfigurableTemplateProvider, TemplateProviderConfigMap, RealmTemplateProviderConfig>
-        implements
+public class TemplateAuthority
+    extends AbstractSingleConfigurableProviderAuthority<TemplateTemplateProvider, TemplateModel, ConfigurableTemplateProvider, TemplateProviderConfigMap, RealmTemplateProviderConfig>
+    implements
         TemplateProviderAuthority<TemplateTemplateProvider, TemplateModel, TemplateProviderConfigMap, RealmTemplateProviderConfig> {
 
     // services
@@ -32,8 +47,9 @@ public class TemplateAuthority extends
     protected RealmTemplateProviderConfigurationProvider configProvider;
 
     public TemplateAuthority(
-            TemplateService templateService,
-            ProviderConfigRepository<RealmTemplateProviderConfig> registrationRepository) {
+        TemplateService templateService,
+        ProviderConfigRepository<RealmTemplateProviderConfig> registrationRepository
+    ) {
         super(SystemKeys.AUTHORITY_TEMPLATE, registrationRepository);
         Assert.notNull(templateService, "template service is mandatory");
 
@@ -64,10 +80,14 @@ public class TemplateAuthority extends
 
     @Override
     protected TemplateTemplateProvider buildProvider(RealmTemplateProviderConfig config) {
-        TemplateTemplateProvider p = new TemplateTemplateProvider(config.getProvider(), templateService, openIdResource,
-                config, config.getRealm());
+        TemplateTemplateProvider p = new TemplateTemplateProvider(
+            config.getProvider(),
+            templateService,
+            openIdResource,
+            config,
+            config.getRealm()
+        );
 
         return p;
     }
-
 }

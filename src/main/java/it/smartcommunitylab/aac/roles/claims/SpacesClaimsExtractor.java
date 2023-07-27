@@ -1,15 +1,20 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.roles.claims;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.claims.Claim;
@@ -23,6 +28,15 @@ import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.User;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.springframework.util.StringUtils;
 
 public class SpacesClaimsExtractor implements ScopeClaimsExtractor {
 
@@ -39,16 +53,21 @@ public class SpacesClaimsExtractor implements ScopeClaimsExtractor {
     }
 
     @Override
-    public ClaimsSet extractUserClaims(String scope, User user, ClientDetails client, Collection<String> scopes,
-            Map<String, Serializable> extensions)
-            throws InvalidDefinitionException, SystemException {
-
+    public ClaimsSet extractUserClaims(
+        String scope,
+        User user,
+        ClientDetails client,
+        Collection<String> scopes,
+        Map<String, Serializable> extensions
+    ) throws InvalidDefinitionException, SystemException {
         // we get roles from user, it should be up-to-date
         Set<SpaceRole> roles = user.getSpaceRoles();
 
         // filter context if specified by client
         if (StringUtils.hasText(client.getHookUniqueSpaces())) {
-            roles = roles.stream()
+            roles =
+                roles
+                    .stream()
                     .filter(r -> r.getContext() != null && r.getContext().startsWith(client.getHookUniqueSpaces()))
                     .collect(Collectors.toSet());
         }
@@ -96,13 +115,15 @@ public class SpacesClaimsExtractor implements ScopeClaimsExtractor {
         claimsSet.setClaims(claims);
 
         return claimsSet;
-
     }
 
     @Override
-    public ClaimsSet extractClientClaims(String scope, ClientDetails client, Collection<String> scopes,
-            Map<String, Serializable> extensions)
-            throws InvalidDefinitionException, SystemException {
+    public ClaimsSet extractClientClaims(
+        String scope,
+        ClientDetails client,
+        Collection<String> scopes,
+        Map<String, Serializable> extensions
+    ) throws InvalidDefinitionException, SystemException {
         // not supported
         return null;
     }
@@ -111,5 +132,4 @@ public class SpacesClaimsExtractor implements ScopeClaimsExtractor {
     public String getRealm() {
         return null;
     }
-
 }

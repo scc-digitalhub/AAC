@@ -1,9 +1,34 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.oauth.token;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.nimbusds.oauth2.sdk.ResponseType;
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.auth.WithMockUserAuthentication;
+import it.smartcommunitylab.aac.bootstrap.BootstrapConfig;
+import it.smartcommunitylab.aac.oauth.OAuth2ConfigUtils;
+import it.smartcommunitylab.aac.oauth.OAuth2TestConfig.UserRegistration;
+import it.smartcommunitylab.aac.oauth.endpoint.AuthorizationEndpoint;
+import it.smartcommunitylab.aac.oauth.endpoint.ErrorEndpoint;
+import it.smartcommunitylab.aac.oauth.model.ClientRegistration;
 import java.net.URL;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,21 +48,10 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.nimbusds.oauth2.sdk.ResponseType;
-
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.auth.WithMockUserAuthentication;
-import it.smartcommunitylab.aac.bootstrap.BootstrapConfig;
-import it.smartcommunitylab.aac.oauth.OAuth2ConfigUtils;
-import it.smartcommunitylab.aac.oauth.OAuth2TestConfig.UserRegistration;
-import it.smartcommunitylab.aac.oauth.endpoint.AuthorizationEndpoint;
-import it.smartcommunitylab.aac.oauth.endpoint.ErrorEndpoint;
-import it.smartcommunitylab.aac.oauth.model.ClientRegistration;
-
 /*
  * OAuth 2.0 Implicit Grant
  * as per RFC6749
- * 
+ *
  * https://www.rfc-editor.org/rfc/rfc6749#section-4.2
  */
 
@@ -94,14 +108,12 @@ public class ImplicitGrantTest {
         // set empty scopes to avoid fall back to predefined
         params.add(OAuth2ParameterNames.SCOPE, "");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .get(AUTHORIZE_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a forward in response
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -116,10 +128,7 @@ public class ImplicitGrantTest {
         // follow forward to fetch response
         req = MockMvcRequestBuilders.get(forwardedUrl).session(session);
 
-        res = this.mockMvc
-                .perform(req)
-                .andExpect(status().is3xxRedirection())
-                .andReturn();
+        res = this.mockMvc.perform(req).andExpect(status().is3xxRedirection()).andReturn();
 
         // expect a redirect in response with fragment
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -156,10 +165,12 @@ public class ImplicitGrantTest {
         assertThat(accessToken).isNotBlank();
 
         // scopes is null or empty
-        assertThat(response.get(OAuth2ParameterNames.SCOPE)).satisfiesAnyOf(
+        assertThat(response.get(OAuth2ParameterNames.SCOPE))
+            .satisfiesAnyOf(
                 scope -> assertThat(scope).isNull(),
                 scope -> assertThat(scope).isEmpty(),
-                scope -> assertThat(scope.get(0)).isEqualTo(""));
+                scope -> assertThat(scope.get(0)).isEqualTo("")
+            );
 
         // there is no refresh token
         assertThat(response.get(OAuth2ParameterNames.REFRESH_TOKEN)).isNull();
@@ -174,14 +185,12 @@ public class ImplicitGrantTest {
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
         params.add(OAuth2ParameterNames.SCOPE, Config.SCOPE_PROFILE);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .get(AUTHORIZE_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a forward in response
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -196,10 +205,7 @@ public class ImplicitGrantTest {
         // follow forward to fetch response
         req = MockMvcRequestBuilders.get(forwardedUrl).session(session);
 
-        res = this.mockMvc
-                .perform(req)
-                .andExpect(status().is3xxRedirection())
-                .andReturn();
+        res = this.mockMvc.perform(req).andExpect(status().is3xxRedirection()).andReturn();
 
         // expect a redirect in response with fragment
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -256,14 +262,12 @@ public class ImplicitGrantTest {
         params.add(OAuth2ParameterNames.SCOPE, "");
         params.add(OAuth2ParameterNames.STATE, state);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .get(AUTHORIZE_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a forward in response
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -278,10 +282,7 @@ public class ImplicitGrantTest {
         // follow forward to fetch response
         req = MockMvcRequestBuilders.get(forwardedUrl).session(session);
 
-        res = this.mockMvc
-                .perform(req)
-                .andExpect(status().is3xxRedirection())
-                .andReturn();
+        res = this.mockMvc.perform(req).andExpect(status().is3xxRedirection()).andReturn();
 
         // expect a redirect in response with fragment
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -332,14 +333,12 @@ public class ImplicitGrantTest {
         // require offline scope for refresh token
         params.add(OAuth2ParameterNames.SCOPE, Config.SCOPE_OFFLINE_ACCESS);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .get(AUTHORIZE_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a forward in response
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -354,10 +353,7 @@ public class ImplicitGrantTest {
         // follow forward to fetch response
         req = MockMvcRequestBuilders.get(forwardedUrl).session(session);
 
-        res = this.mockMvc
-                .perform(req)
-                .andExpect(status().is3xxRedirection())
-                .andReturn();
+        res = this.mockMvc.perform(req).andExpect(status().is3xxRedirection()).andReturn();
 
         // expect a redirect in response with fragment
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -399,14 +395,12 @@ public class ImplicitGrantTest {
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
         params.add(OAuth2ParameterNames.SCOPE, Config.SCOPE_PROFILE);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .get(AUTHORIZE_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().is3xxRedirection())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().is3xxRedirection()).andReturn();
 
         // expect a redirect in response to login
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -432,14 +426,12 @@ public class ImplicitGrantTest {
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
         params.add(OAuth2ParameterNames.SCOPE, Config.SCOPE_PROFILE);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .get(AUTHORIZE_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().is3xxRedirection())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().is3xxRedirection()).andReturn();
 
         // expect a redirect in response to login
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -464,14 +456,12 @@ public class ImplicitGrantTest {
         params.add(OAuth2ParameterNames.RESPONSE_TYPE, ResponseType.TOKEN.toString());
         params.add(OAuth2ParameterNames.SCOPE, "");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .get(AUTHORIZE_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a forward in response to error
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -486,14 +476,12 @@ public class ImplicitGrantTest {
         params.add(OAuth2ParameterNames.SCOPE, "");
         params.add(OAuth2ParameterNames.CLIENT_ID, "client");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .get(AUTHORIZE_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a forward in response to error
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -509,14 +497,12 @@ public class ImplicitGrantTest {
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
         params.add(OAuth2ParameterNames.SCOPE, "invalid-scope");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .get(AUTHORIZE_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().is3xxRedirection())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().is3xxRedirection()).andReturn();
 
         // expect a redirect in response with fragment
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -561,14 +547,12 @@ public class ImplicitGrantTest {
         params.add(OAuth2ParameterNames.SCOPE, "");
         params.add(OAuth2ParameterNames.REDIRECT_URI, "http123");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .get(AUTHORIZE_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a forward in response to error
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -585,22 +569,19 @@ public class ImplicitGrantTest {
         params.add(OAuth2ParameterNames.SCOPE, "");
         params.add(OAuth2ParameterNames.STATE, "stateWithInvalidChars#\\");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .get(AUTHORIZE_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a forward in response to error
         assertThat(res.getResponse().getContentAsString()).isBlank();
         assertThat(res.getResponse().getForwardedUrl()).isNotNull().isEqualTo(ERROR_URL);
     }
 
-    private final static String AUTHORIZE_URL = AuthorizationEndpoint.AUTHORIZATION_URL;
-    private final static String AUTHORIZED_URL = AuthorizationEndpoint.AUTHORIZED_URL;
-    private final static String ERROR_URL = ErrorEndpoint.ERROR_URL;
-
+    private static final String AUTHORIZE_URL = AuthorizationEndpoint.AUTHORIZATION_URL;
+    private static final String AUTHORIZED_URL = AuthorizationEndpoint.AUTHORIZED_URL;
+    private static final String ERROR_URL = ErrorEndpoint.ERROR_URL;
 }

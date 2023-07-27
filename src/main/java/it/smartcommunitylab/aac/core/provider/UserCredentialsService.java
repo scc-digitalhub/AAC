@@ -1,15 +1,28 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.core.provider;
-
-import java.util.Collection;
-
-import javax.validation.constraints.NotNull;
 
 import it.smartcommunitylab.aac.common.NoSuchCredentialException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
+import java.util.Collection;
+import javax.validation.constraints.NotNull;
 
 public interface UserCredentialsService<C extends UserCredentials> {
-
     public Collection<C> findCredentialsByRealm(@NotNull String realm);
 
     public C findCredentialsById(@NotNull String repository, @NotNull String id);
@@ -21,10 +34,10 @@ public interface UserCredentialsService<C extends UserCredentials> {
     public Collection<C> findCredentialsByUser(@NotNull String repository, @NotNull String userId);
 
     public C addCredentials(@NotNull String repository, @NotNull String id, @NotNull C reg)
-            throws RegistrationException;
+        throws RegistrationException;
 
     public C updateCredentials(@NotNull String repository, @NotNull String id, @NotNull C reg)
-            throws NoSuchCredentialException, RegistrationException;
+        throws NoSuchCredentialException, RegistrationException;
 
     public void deleteCredentials(@NotNull String repository, @NotNull String id);
 
@@ -33,6 +46,4 @@ public interface UserCredentialsService<C extends UserCredentials> {
     public void deleteAllCredentialsByUser(@NotNull String repository, @NotNull String userId);
 
     public void deleteAllCredentialsByAccount(@NotNull String repository, @NotNull String account);
-
-
 }

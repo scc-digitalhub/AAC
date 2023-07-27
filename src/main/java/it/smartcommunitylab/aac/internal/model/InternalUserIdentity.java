@@ -1,31 +1,44 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.internal.model;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.validation.Valid;
-
-import org.springframework.util.Assert;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractIdentity;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.model.UserCredentialsIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.validation.Valid;
+import org.springframework.util.Assert;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class InternalUserIdentity extends AbstractIdentity implements UserCredentialsIdentity {
+
     private static final long serialVersionUID = SystemKeys.AAC_INTERNAL_SERIAL_VERSION;
-    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_IDENTITY + SystemKeys.ID_SEPARATOR
-            + SystemKeys.AUTHORITY_INTERNAL;
+    public static final String RESOURCE_TYPE =
+        SystemKeys.RESOURCE_IDENTITY + SystemKeys.ID_SEPARATOR + SystemKeys.AUTHORITY_INTERNAL;
 
     // authentication principal (if available)
     private final InternalUserAuthenticatedPrincipal principal;
@@ -54,8 +67,12 @@ public class InternalUserIdentity extends AbstractIdentity implements UserCreden
     }
 
     public InternalUserIdentity(
-            String authority, String provider, String realm,
-            InternalUserAccount account, InternalUserAuthenticatedPrincipal principal) {
+        String authority,
+        String provider,
+        String realm,
+        InternalUserAccount account,
+        InternalUserAuthenticatedPrincipal principal
+    ) {
         super(authority, provider);
         Assert.notNull(account, "account can not be null");
 
@@ -116,7 +133,5 @@ public class InternalUserIdentity extends AbstractIdentity implements UserCreden
         if (this.credentials != null) {
             credentials.stream().forEach(c -> c.eraseCredentials());
         }
-
     }
-
 }

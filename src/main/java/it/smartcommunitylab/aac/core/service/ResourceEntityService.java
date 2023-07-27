@@ -1,5 +1,25 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.core.service;
 
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchResourceException;
+import it.smartcommunitylab.aac.core.persistence.ResourceEntity;
+import it.smartcommunitylab.aac.core.persistence.ResourceEntityRepository;
 import java.util.Collection;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -7,11 +27,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.common.NoSuchResourceException;
-import it.smartcommunitylab.aac.core.persistence.ResourceEntity;
-import it.smartcommunitylab.aac.core.persistence.ResourceEntityRepository;
 
 @Service
 @Transactional
@@ -48,8 +63,12 @@ public class ResourceEntityService {
     }
 
     public ResourceEntity addResourceEntity(
-            String id, String type,
-            String authority, String provider, String resourceId) {
+        String id,
+        String type,
+        String authority,
+        String provider,
+        String resourceId
+    ) {
         if (!StringUtils.hasText(id)) {
             throw new IllegalArgumentException("resource id can not be null or empty");
         }
@@ -90,8 +109,7 @@ public class ResourceEntityService {
     }
 
     @Transactional(readOnly = true)
-    public ResourceEntity findResourceEntity(String type, String authority, String provider,
-            String resourceId) {
+    public ResourceEntity findResourceEntity(String type, String authority, String provider, String resourceId) {
         return resourceRepository.findByTypeAndAuthorityAndProviderAndResourceId(type, authority, provider, resourceId);
     }
 
@@ -101,18 +119,20 @@ public class ResourceEntityService {
             resourceRepository.delete(e);
         }
     }
-    
+
     public void deleteAllResourceEntities(Collection<String> ids) {
         resourceRepository.deleteAllById(ids);
     }
 
-    public void deleteResourceEntity(String type, String authority, String provider,
-            String resourceId) {
-        ResourceEntity e = resourceRepository.findByTypeAndAuthorityAndProviderAndResourceId(type, authority, provider,
-                resourceId);
+    public void deleteResourceEntity(String type, String authority, String provider, String resourceId) {
+        ResourceEntity e = resourceRepository.findByTypeAndAuthorityAndProviderAndResourceId(
+            type,
+            authority,
+            provider,
+            resourceId
+        );
         if (e != null) {
             resourceRepository.delete(e);
         }
     }
-
 }

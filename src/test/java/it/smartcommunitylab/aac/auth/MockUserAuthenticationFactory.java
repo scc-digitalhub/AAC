@@ -1,17 +1,20 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.auth;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.test.context.support.WithSecurityContextFactory;
-import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
@@ -26,12 +29,22 @@ import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.auth.UsernamePasswordAuthenticationToken;
 import it.smartcommunitylab.aac.password.model.InternalPasswordUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProvider;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.test.context.support.WithSecurityContextFactory;
+import org.springframework.util.Assert;
 
 /*
  * A factory for building a mock security context from a mock authentication
  */
-public class MockUserAuthenticationFactory
-        implements WithSecurityContextFactory<WithMockUserAuthentication> {
+public class MockUserAuthenticationFactory implements WithSecurityContextFactory<WithMockUserAuthentication> {
 
     private final PasswordIdentityAuthority passwordAuthority;
 
@@ -41,8 +54,11 @@ public class MockUserAuthenticationFactory
     }
 
     private PasswordIdentityProvider getProvider(String realm) throws NoSuchProviderException {
-        return passwordAuthority.getProvidersByRealm(realm).stream().findFirst()
-                .orElseThrow(NoSuchProviderException::new);
+        return passwordAuthority
+            .getProvidersByRealm(realm)
+            .stream()
+            .findFirst()
+            .orElseThrow(NoSuchProviderException::new);
     }
 
     @Override
@@ -56,9 +72,10 @@ public class MockUserAuthenticationFactory
             String realm = annotation.realm();
 
             // map all authorities as-is
-            Set<GrantedAuthority> authorities = Stream.of(annotation.authorities())
-                    .map(a -> new SimpleGrantedAuthority(a))
-                    .collect(Collectors.toSet());
+            Set<GrantedAuthority> authorities = Stream
+                .of(annotation.authorities())
+                .map(a -> new SimpleGrantedAuthority(a))
+                .collect(Collectors.toSet());
 
             // fetch provider
             PasswordIdentityProvider idp = getProvider(realm);
@@ -69,19 +86,30 @@ public class MockUserAuthenticationFactory
 
             // build auth token
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                    username, password,
-                    account, authorities);
+                username,
+                password,
+                account,
+                authorities
+            );
 
             // build principal
             InternalPasswordUserAuthenticatedPrincipal principal = new InternalPasswordUserAuthenticatedPrincipal(
-                    idp.getProvider(), realm, userId, username);
+                idp.getProvider(),
+                realm,
+                userId,
+                username
+            );
             principal.setName(username);
             principal.setAccountAttributes(account);
 
             // build an extended token
             ExtendedAuthenticationToken extToken = new ExtendedAuthenticationToken(
-                    idp.getAuthority(), idp.getProvider(), realm,
-                    principal, authentication);
+                idp.getAuthority(),
+                idp.getProvider(),
+                realm,
+                principal,
+                authentication
+            );
 
             // resolve
             Subject subject = idp.getSubjectResolver().resolveByAccountId(username);
@@ -90,22 +118,24 @@ public class MockUserAuthenticationFactory
 
             // Collection<UserAttributes> attributeSets =
             // idp.getAttributeProvider().convertPrincipalAttributes(principal,
-//                    account);
+            //                    account);
 
             // build user authentication
             DefaultUserAuthenticationToken auth = new DefaultUserAuthenticationToken(
-                    subject, realm,
-                    extToken, identity, attributeSets,
-                    authorities);
+                subject,
+                realm,
+                extToken,
+                identity,
+                attributeSets,
+                authorities
+            );
 
             // set authentication
             context.setAuthentication(auth);
-
         } catch (NoSuchProviderException | NoSuchUserException | RegistrationException e) {
             e.printStackTrace();
         }
 
         return context;
     }
-
 }

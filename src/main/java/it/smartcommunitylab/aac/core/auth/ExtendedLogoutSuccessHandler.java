@@ -1,14 +1,28 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.core.auth;
 
+import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
-import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
 
 public class ExtendedLogoutSuccessHandler extends SimpleUrlLogoutSuccessHandler {
 
@@ -34,9 +48,11 @@ public class ExtendedLogoutSuccessHandler extends SimpleUrlLogoutSuccessHandler 
      * Redirect user to realm login, ignoring parameters referrals etc
      */
     @Override
-    protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response,
-            Authentication authentication) {
-
+    protected String determineTargetUrl(
+        HttpServletRequest request,
+        HttpServletResponse response,
+        Authentication authentication
+    ) {
         // check if attribute
         if (request.getAttribute(REDIRECT_ATTRIBUTE) != null) {
             String redirectUrl = (String) request.getAttribute(REDIRECT_ATTRIBUTE);
@@ -54,7 +70,6 @@ public class ExtendedLogoutSuccessHandler extends SimpleUrlLogoutSuccessHandler 
         }
 
         return super.determineTargetUrl(request, response, authentication);
-
     }
 
     private String buildLoginUrl(HttpServletRequest request, String realm) {

@@ -1,5 +1,37 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.attributes.provider;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.attributes.mapper.ExactAttributesMapper;
+import it.smartcommunitylab.aac.attributes.service.AttributeService;
+import it.smartcommunitylab.aac.attributes.store.AttributeStore;
+import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
+import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
+import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
+import it.smartcommunitylab.aac.core.model.Attribute;
+import it.smartcommunitylab.aac.core.model.AttributeSet;
+import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.core.provider.AttributeProvider;
+import it.smartcommunitylab.aac.oauth.flow.FlowExecutionException;
 import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -12,10 +44,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -31,35 +62,18 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+public class WebhookAttributeProvider
+    extends AbstractConfigurableProvider<UserAttributes, ConfigurableAttributeProvider, WebhookAttributeProviderConfigMap, WebhookAttributeProviderConfig>
+    implements AttributeProvider<WebhookAttributeProviderConfigMap, WebhookAttributeProviderConfig> {
 
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.attributes.mapper.ExactAttributesMapper;
-import it.smartcommunitylab.aac.attributes.service.AttributeService;
-import it.smartcommunitylab.aac.attributes.store.AttributeStore;
-import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
-import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
-import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
-import it.smartcommunitylab.aac.core.model.Attribute;
-import it.smartcommunitylab.aac.core.model.AttributeSet;
-import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.core.provider.AttributeProvider;
-import it.smartcommunitylab.aac.oauth.flow.FlowExecutionException;
-
-public class WebhookAttributeProvider extends
-        AbstractConfigurableProvider<UserAttributes, ConfigurableAttributeProvider, WebhookAttributeProviderConfigMap, WebhookAttributeProviderConfig>
-        implements AttributeProvider<WebhookAttributeProviderConfigMap, WebhookAttributeProviderConfig> {
     private static final Logger logger = LoggerFactory.getLogger(WebhookAttributeProvider.class);
 
     public static final String ATTRIBUTE_MAPPING_FUNCTION = "attributeMapping";
     private static final int DEFAULT_TIMEOUT = 5000;
 
     private final ObjectMapper mapper = new ObjectMapper();
-    private final TypeReference<HashMap<String, Serializable>> serMapTypeRef = new TypeReference<HashMap<String, Serializable>>() {
-    };
+    private final TypeReference<HashMap<String, Serializable>> serMapTypeRef =
+        new TypeReference<HashMap<String, Serializable>>() {};
 
     // services
     private final AttributeService attributeService;
@@ -68,10 +82,12 @@ public class WebhookAttributeProvider extends
     private RestTemplate restTemplate;
 
     public WebhookAttributeProvider(
-            String providerId,
-            AttributeService attributeService, AttributeStore attributeStore,
-            WebhookAttributeProviderConfig providerConfig,
-            String realm) {
+        String providerId,
+        AttributeService attributeService,
+        AttributeStore attributeStore,
+        WebhookAttributeProviderConfig providerConfig,
+        String realm
+    ) {
         super(SystemKeys.AUTHORITY_WEBHOOK, providerId, realm, providerConfig);
         Assert.notNull(attributeService, "attribute service is mandatory");
         Assert.notNull(attributeStore, "attribute store is mandatory");
@@ -98,24 +114,24 @@ public class WebhookAttributeProvider extends
 
         // build client
         int timeout = config.getConfigMap().getTimeout() != null ? config.getConfigMap().getTimeout() : DEFAULT_TIMEOUT;
-        RequestConfig rconfig = RequestConfig.custom()
-                .setConnectTimeout(timeout)
-                .setConnectionRequestTimeout(timeout)
-                .setSocketTimeout(timeout)
-                .build();
-        CloseableHttpClient client = HttpClientBuilder
-                .create()
-                .setDefaultRequestConfig(rconfig)
-                .build();
+        RequestConfig rconfig = RequestConfig
+            .custom()
+            .setConnectTimeout(timeout)
+            .setConnectionRequestTimeout(timeout)
+            .setSocketTimeout(timeout)
+            .build();
+        CloseableHttpClient client = HttpClientBuilder.create().setDefaultRequestConfig(rconfig).build();
         HttpComponentsClientHttpRequestFactory clientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory(
-                client);
+            client
+        );
         restTemplate = new RestTemplate(clientHttpRequestFactory);
-
     }
 
     @Override
-    public Collection<UserAttributes> convertPrincipalAttributes(UserAuthenticatedPrincipal principal,
-            String subjectId) {
+    public Collection<UserAttributes> convertPrincipalAttributes(
+        UserAuthenticatedPrincipal principal,
+        String subjectId
+    ) {
         if (config.getAttributeSets().isEmpty()) {
             return Collections.emptyList();
         }
@@ -125,12 +141,16 @@ public class WebhookAttributeProvider extends
         List<UserAttributes> result = new ArrayList<>();
         Map<String, Serializable> principalAttributes = new HashMap<>();
         // get all attributes from principal
-        Map<String, String> attributes = principal.getAttributes().entrySet().stream()
-                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().toString()));
+        Map<String, String> attributes = principal
+            .getAttributes()
+            .entrySet()
+            .stream()
+            .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().toString()));
 
         // TODO handle all attributes not only strings.
-        principalAttributes.putAll(attributes.entrySet().stream()
-                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue())));
+        principalAttributes.putAll(
+            attributes.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()))
+        );
 
         // we use also name from principal
         String name = principal.getName();
@@ -150,10 +170,7 @@ public class WebhookAttributeProvider extends
 
                 // build exact mapper
                 mappers.put(as.getIdentifier(), new ExactAttributesMapper(as));
-
-            } catch (NoSuchAttributeSetException | RuntimeException e) {
-
-            }
+            } catch (NoSuchAttributeSetException | RuntimeException e) {}
         }
 
         // execute call to webhook and parse result
@@ -172,8 +189,12 @@ public class WebhookAttributeProvider extends
 
             HttpEntity<Map<String, Serializable>> entity = new HttpEntity<>(principalAttributes, headers);
 
-            ResponseEntity<String> response = restTemplate.exchange(url.toString(), HttpMethod.POST, entity,
-                    String.class);
+            ResponseEntity<String> response = restTemplate.exchange(
+                url.toString(),
+                HttpMethod.POST,
+                entity,
+                String.class
+            );
 
             logger.debug("Hook response code: " + response.getStatusCodeValue());
             logger.trace("Hook result: " + response.getBody());
@@ -192,13 +213,12 @@ public class WebhookAttributeProvider extends
                         AttributeSet set = mapper.mapAttributes((Map<String, Serializable>) customAttributes.get(id));
                         if (set.getAttributes() != null && !set.getAttributes().isEmpty()) {
                             // build result
-                            result.add(new DefaultUserAttributesImpl(
-                                    getAuthority(), getProvider(), getRealm(), subjectId,
-                                    set));
+                            result.add(
+                                new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), subjectId, set)
+                            );
                         }
                     }
                 }
-
             }
         } catch (MalformedURLException e) {
             throw new FlowExecutionException("Invalid hook URL " + String.valueOf(configMap.getUrl()));
@@ -238,12 +258,11 @@ public class WebhookAttributeProvider extends
                 AttributeSet set = readAttributes(setId, attributes);
                 if (set.getAttributes() != null && !set.getAttributes().isEmpty()) {
                     // build result
-                    result.add(new DefaultUserAttributesImpl(
-                            getAuthority(), getProvider(), getRealm(), subjectId,
-                            set));
+                    result.add(
+                        new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), subjectId, set)
+                    );
                 }
-            } catch (NoSuchAttributeSetException | RuntimeException e) {
-            }
+            } catch (NoSuchAttributeSetException | RuntimeException e) {}
         }
 
         return result;
@@ -262,10 +281,7 @@ public class WebhookAttributeProvider extends
         }
 
         AttributeSet set = readAttributes(setId, attributes);
-        return new DefaultUserAttributesImpl(
-                getAuthority(), getProvider(), getRealm(), userId,
-                set);
-
+        return new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), userId, set);
     }
 
     @Override
@@ -280,18 +296,19 @@ public class WebhookAttributeProvider extends
     }
 
     private AttributeSet readAttributes(String setId, Map<String, Serializable> attributes)
-            throws NoSuchAttributeSetException {
+        throws NoSuchAttributeSetException {
         AttributeSet as = attributeService.getAttributeSet(setId);
         String prefix = setId + "|";
         // TODO handle repeatable attributes by enum
-        Map<String, Serializable> principalAttributes = attributes.entrySet().stream()
-                .filter(e -> e.getKey().startsWith(prefix))
-                .collect(Collectors.toMap(e -> e.getKey().substring(prefix.length()), e -> e.getValue()));
+        Map<String, Serializable> principalAttributes = attributes
+            .entrySet()
+            .stream()
+            .filter(e -> e.getKey().startsWith(prefix))
+            .collect(Collectors.toMap(e -> e.getKey().substring(prefix.length()), e -> e.getValue()));
 
         // use exact mapper
         ExactAttributesMapper mapper = new ExactAttributesMapper(as);
         AttributeSet set = mapper.mapAttributes(principalAttributes);
         return set;
     }
-
 }

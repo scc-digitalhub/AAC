@@ -1,5 +1,53 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.oauth;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.crypto.MACSigner;
+import com.nimbusds.jose.crypto.RSASSASigner;
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jwt.SignedJWT;
+import com.nimbusds.oauth2.sdk.ResponseType;
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.auth.WithMockUserAuthentication;
+import it.smartcommunitylab.aac.bootstrap.BootstrapConfig;
+import it.smartcommunitylab.aac.oauth.OAuth2TestConfig.UserRegistration;
+import it.smartcommunitylab.aac.oauth.endpoint.AuthorizationEndpoint;
+import it.smartcommunitylab.aac.oauth.endpoint.TokenEndpoint;
+import it.smartcommunitylab.aac.oauth.endpoint.TokenRevocationEndpoint;
+import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
+import it.smartcommunitylab.aac.oauth.model.ClientRegistration;
+import it.smartcommunitylab.aac.oauth.token.ClientCredentialsGrantJwtAssertionAuthTest;
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,43 +68,9 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.crypto.MACSigner;
-import com.nimbusds.jose.crypto.RSASSASigner;
-import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jwt.SignedJWT;
-import com.nimbusds.oauth2.sdk.ResponseType;
-
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.auth.WithMockUserAuthentication;
-import it.smartcommunitylab.aac.bootstrap.BootstrapConfig;
-import it.smartcommunitylab.aac.oauth.OAuth2TestConfig.UserRegistration;
-import it.smartcommunitylab.aac.oauth.endpoint.AuthorizationEndpoint;
-import it.smartcommunitylab.aac.oauth.endpoint.TokenEndpoint;
-import it.smartcommunitylab.aac.oauth.endpoint.TokenRevocationEndpoint;
-import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
-import it.smartcommunitylab.aac.oauth.model.ClientRegistration;
-import it.smartcommunitylab.aac.oauth.token.ClientCredentialsGrantJwtAssertionAuthTest;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-import java.io.Serializable;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 /*
  * OAuth 2.0 Token Revocation
- * as per 
+ * as per
  * https://www.rfc-editor.org/rfc/rfc7009
  */
 
@@ -89,8 +103,9 @@ public class OAuth2TokenRevocationTest {
 
     @BeforeEach
     public void setUp() {
-        if (clientId == null || clientSecret == null || clientJwks == null || client2Id == null
-                || client2Secret == null) {
+        if (
+            clientId == null || clientSecret == null || clientJwks == null || client2Id == null || client2Secret == null
+        ) {
             List<ClientRegistration> clients = OAuth2ConfigUtils.with(config).clients();
             assertThat(clients.size()).isGreaterThanOrEqualTo(2);
 
@@ -124,10 +139,7 @@ public class OAuth2TokenRevocationTest {
 
     @Test
     public void revocationMetadataIsAvailable() throws Exception {
-        MvcResult res = this.mockMvc
-                .perform(get(METADATA_URL))
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(get(METADATA_URL)).andExpect(status().isOk()).andReturn();
 
         // parse as Map from JSON
         String json = res.getResponse().getContentAsString();
@@ -141,10 +153,7 @@ public class OAuth2TokenRevocationTest {
 
     @Test
     public void revocationEndpointMetadataIsValid() throws Exception {
-        MvcResult res = this.mockMvc
-                .perform(get(METADATA_URL))
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(get(METADATA_URL)).andExpect(status().isOk()).andReturn();
 
         // parse as Map from JSON
         String json = res.getResponse().getContentAsString();
@@ -163,69 +172,83 @@ public class OAuth2TokenRevocationTest {
 
     @Test
     public void revocationAuthMethodMetadataIsValid() throws Exception {
-        MvcResult res = this.mockMvc
-                .perform(get(METADATA_URL))
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(get(METADATA_URL)).andExpect(status().isOk()).andReturn();
 
         // parse as Map from JSON
         String json = res.getResponse().getContentAsString();
         Map<String, Serializable> metadata = mapper.readValue(json, typeRef);
 
         // revocation endpoint auth method is set
-        assertThat(metadata.get(OAUTH2_METADATA_REVOCATION_ENDPOINT_AUTH_METHODS)).isNotNull()
-                .isInstanceOf(List.class);
+        assertThat(metadata.get(OAUTH2_METADATA_REVOCATION_ENDPOINT_AUTH_METHODS)).isNotNull().isInstanceOf(List.class);
 
         // it contains expected but not NONE
-        List<String> authMethods = Stream.of(
+        List<String> authMethods = Stream
+            .of(
                 AuthenticationMethod.CLIENT_SECRET_BASIC,
                 AuthenticationMethod.CLIENT_SECRET_POST,
                 AuthenticationMethod.CLIENT_SECRET_JWT,
-                AuthenticationMethod.PRIVATE_KEY_JWT)
-                .map(a -> a.getValue()).collect(Collectors.toList());
+                AuthenticationMethod.PRIVATE_KEY_JWT
+            )
+            .map(a -> a.getValue())
+            .collect(Collectors.toList());
 
         assertThat(metadata.get(OAUTH2_METADATA_REVOCATION_ENDPOINT_AUTH_METHODS))
-                .asInstanceOf(InstanceOfAssertFactories.LIST)
-                .containsAll(authMethods).doesNotContain(AuthenticationMethod.NONE.getValue());
+            .asInstanceOf(InstanceOfAssertFactories.LIST)
+            .containsAll(authMethods)
+            .doesNotContain(AuthenticationMethod.NONE.getValue());
     }
 
     @Test
     public void revocationAuthSignMetadataIsValid() throws Exception {
-        MvcResult res = this.mockMvc
-                .perform(get(METADATA_URL))
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(get(METADATA_URL)).andExpect(status().isOk()).andReturn();
 
         // parse as Map from JSON
         String json = res.getResponse().getContentAsString();
         Map<String, Serializable> metadata = mapper.readValue(json, typeRef);
 
         // revocation endpoint auth sign is set
-        assertThat(metadata.get(OAUTH2_METADATA_REVOCATION_ENDPOINT_AUTH_SIGNIN_ALG)).isNotNull()
-                .isInstanceOf(List.class);
+        assertThat(metadata.get(OAUTH2_METADATA_REVOCATION_ENDPOINT_AUTH_SIGNIN_ALG))
+            .isNotNull()
+            .isInstanceOf(List.class);
 
         // since we expect secret_jwt and private_key to be supported this should be set
         // to contain at minimum base algs
-        List<String> algs = Stream.of(
-                JWSAlgorithm.HS256, JWSAlgorithm.HS384, JWSAlgorithm.HS512,
-                JWSAlgorithm.RS256, JWSAlgorithm.RS384, JWSAlgorithm.RS512)
-                .map(a -> a.getName()).collect(Collectors.toList());
+        List<String> algs = Stream
+            .of(
+                JWSAlgorithm.HS256,
+                JWSAlgorithm.HS384,
+                JWSAlgorithm.HS512,
+                JWSAlgorithm.RS256,
+                JWSAlgorithm.RS384,
+                JWSAlgorithm.RS512
+            )
+            .map(a -> a.getName())
+            .collect(Collectors.toList());
 
         assertThat(metadata.get(OAUTH2_METADATA_REVOCATION_ENDPOINT_AUTH_SIGNIN_ALG))
-                .asInstanceOf(InstanceOfAssertFactories.LIST)
-                .containsAll(algs).doesNotContain(JWSAlgorithm.NONE.getName());
+            .asInstanceOf(InstanceOfAssertFactories.LIST)
+            .containsAll(algs)
+            .doesNotContain(JWSAlgorithm.NONE.getName());
     }
 
     @Test
     @WithMockUserAuthentication(username = "test", realm = "test")
     public void userAccessTokenNoHintWithBasicAuthTest() throws Exception {
         // fetch a valid user access token
-        String accessToken = OAuth2TestUtils.getUserAccessTokenViaAuthCodeWithBasicAuth(mockMvc, clientId,
-                clientSecret);
+        String accessToken = OAuth2TestUtils.getUserAccessTokenViaAuthCodeWithBasicAuth(
+            mockMvc,
+            clientId,
+            clientSecret
+        );
 
         // introspect result should be active
-        Boolean active = OAuth2TestUtils.introspectTokenWithBasicAuth(mockMvc, accessToken, null, clientId,
-                clientSecret);
+        Boolean active = OAuth2TestUtils.introspectTokenWithBasicAuth(
+            mockMvc,
+            accessToken,
+            null,
+            clientId,
+            clientSecret
+        );
         assertThat(active).isEqualTo(true);
 
         // revoke request
@@ -233,15 +256,13 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.TOKEN, accessToken);
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(REVOCATION_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(REVOCATION_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a blank response
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -255,12 +276,20 @@ public class OAuth2TokenRevocationTest {
     @WithMockUserAuthentication(username = "test", realm = "test")
     public void userAccessTokenExactHintWithBasicAuthTest() throws Exception {
         // fetch a valid user access token
-        String accessToken = OAuth2TestUtils.getUserAccessTokenViaAuthCodeWithBasicAuth(mockMvc, clientId,
-                clientSecret);
+        String accessToken = OAuth2TestUtils.getUserAccessTokenViaAuthCodeWithBasicAuth(
+            mockMvc,
+            clientId,
+            clientSecret
+        );
 
         // introspect result should be active
-        Boolean active = OAuth2TestUtils.introspectTokenWithBasicAuth(mockMvc, accessToken, null, clientId,
-                clientSecret);
+        Boolean active = OAuth2TestUtils.introspectTokenWithBasicAuth(
+            mockMvc,
+            accessToken,
+            null,
+            clientId,
+            clientSecret
+        );
         assertThat(active).isEqualTo(true);
 
         // revoke request
@@ -269,15 +298,13 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.TOKEN_TYPE_HINT, OAuth2ParameterNames.ACCESS_TOKEN);
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(REVOCATION_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(REVOCATION_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a blank response
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -291,12 +318,20 @@ public class OAuth2TokenRevocationTest {
     @WithMockUserAuthentication(username = "test", realm = "test")
     public void userAccessTokenWrongHintWithBasicAuthTest() throws Exception {
         // fetch a valid user access token
-        String accessToken = OAuth2TestUtils.getUserAccessTokenViaAuthCodeWithBasicAuth(mockMvc, clientId,
-                clientSecret);
+        String accessToken = OAuth2TestUtils.getUserAccessTokenViaAuthCodeWithBasicAuth(
+            mockMvc,
+            clientId,
+            clientSecret
+        );
 
         // introspect result should be active
-        Boolean active = OAuth2TestUtils.introspectTokenWithBasicAuth(mockMvc, accessToken, null, clientId,
-                clientSecret);
+        Boolean active = OAuth2TestUtils.introspectTokenWithBasicAuth(
+            mockMvc,
+            accessToken,
+            null,
+            clientId,
+            clientSecret
+        );
         assertThat(active).isEqualTo(true);
 
         // revoke request
@@ -305,15 +340,13 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.TOKEN_TYPE_HINT, OAuth2ParameterNames.REFRESH_TOKEN);
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(REVOCATION_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(REVOCATION_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a blank response
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -327,12 +360,20 @@ public class OAuth2TokenRevocationTest {
     @WithMockUserAuthentication(username = "test", realm = "test")
     public void userAccessTokenInvalidHintWithBasicAuthTest() throws Exception {
         // fetch a valid user access token
-        String accessToken = OAuth2TestUtils.getUserAccessTokenViaAuthCodeWithBasicAuth(mockMvc, clientId,
-                clientSecret);
+        String accessToken = OAuth2TestUtils.getUserAccessTokenViaAuthCodeWithBasicAuth(
+            mockMvc,
+            clientId,
+            clientSecret
+        );
 
         // introspect result should be active
-        Boolean active = OAuth2TestUtils.introspectTokenWithBasicAuth(mockMvc, accessToken, null, clientId,
-                clientSecret);
+        Boolean active = OAuth2TestUtils.introspectTokenWithBasicAuth(
+            mockMvc,
+            accessToken,
+            null,
+            clientId,
+            clientSecret
+        );
         assertThat(active).isEqualTo(true);
 
         // revoke request
@@ -341,15 +382,13 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.TOKEN_TYPE_HINT, "invalid-token-type");
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(REVOCATION_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(REVOCATION_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a blank response
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -363,12 +402,20 @@ public class OAuth2TokenRevocationTest {
     @WithMockUserAuthentication(username = "test", realm = "test")
     public void userRefreshTokenNoHintWithBasicAuthTest() throws Exception {
         // fetch a valid user refresh token
-        String refreshToken = OAuth2TestUtils.getUserRefreshTokenViaAuthCodeWithBasicAuth(mockMvc, clientId,
-                clientSecret);
+        String refreshToken = OAuth2TestUtils.getUserRefreshTokenViaAuthCodeWithBasicAuth(
+            mockMvc,
+            clientId,
+            clientSecret
+        );
 
         // introspect result should be active
-        Boolean active = OAuth2TestUtils.introspectTokenWithBasicAuth(mockMvc, refreshToken, null, clientId,
-                clientSecret);
+        Boolean active = OAuth2TestUtils.introspectTokenWithBasicAuth(
+            mockMvc,
+            refreshToken,
+            null,
+            clientId,
+            clientSecret
+        );
         assertThat(active).isEqualTo(true);
 
         // revoke request
@@ -376,15 +423,13 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.TOKEN, refreshToken);
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(REVOCATION_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(REVOCATION_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a blank response
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -398,12 +443,20 @@ public class OAuth2TokenRevocationTest {
     @WithMockUserAuthentication(username = "test", realm = "test")
     public void userRefreshTokenExactHintWithBasicAuthTest() throws Exception {
         // fetch a valid user refresh token
-        String refreshToken = OAuth2TestUtils.getUserRefreshTokenViaAuthCodeWithBasicAuth(mockMvc, clientId,
-                clientSecret);
+        String refreshToken = OAuth2TestUtils.getUserRefreshTokenViaAuthCodeWithBasicAuth(
+            mockMvc,
+            clientId,
+            clientSecret
+        );
 
         // introspect result should be active
-        Boolean active = OAuth2TestUtils.introspectTokenWithBasicAuth(mockMvc, refreshToken, null, clientId,
-                clientSecret);
+        Boolean active = OAuth2TestUtils.introspectTokenWithBasicAuth(
+            mockMvc,
+            refreshToken,
+            null,
+            clientId,
+            clientSecret
+        );
         assertThat(active).isEqualTo(true);
 
         // revoke request
@@ -412,15 +465,13 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.TOKEN_TYPE_HINT, OAuth2ParameterNames.REFRESH_TOKEN);
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(REVOCATION_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(REVOCATION_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a blank response
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -434,12 +485,20 @@ public class OAuth2TokenRevocationTest {
     @WithMockUserAuthentication(username = "test", realm = "test")
     public void userRefreshTokenWrongHintWithBasicAuthTest() throws Exception {
         // fetch a valid user refresh token
-        String refreshToken = OAuth2TestUtils.getUserRefreshTokenViaAuthCodeWithBasicAuth(mockMvc, clientId,
-                clientSecret);
+        String refreshToken = OAuth2TestUtils.getUserRefreshTokenViaAuthCodeWithBasicAuth(
+            mockMvc,
+            clientId,
+            clientSecret
+        );
 
         // introspect result should be active
-        Boolean active = OAuth2TestUtils.introspectTokenWithBasicAuth(mockMvc, refreshToken, null, clientId,
-                clientSecret);
+        Boolean active = OAuth2TestUtils.introspectTokenWithBasicAuth(
+            mockMvc,
+            refreshToken,
+            null,
+            clientId,
+            clientSecret
+        );
         assertThat(active).isEqualTo(true);
 
         // revoke request
@@ -448,15 +507,13 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.TOKEN_TYPE_HINT, OAuth2ParameterNames.ACCESS_TOKEN);
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(REVOCATION_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(REVOCATION_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a blank response
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -470,12 +527,20 @@ public class OAuth2TokenRevocationTest {
     @WithMockUserAuthentication(username = "test", realm = "test")
     public void userRefreshTokenInvalidHintWithBasicAuthTest() throws Exception {
         // fetch a valid user refresh token
-        String refreshToken = OAuth2TestUtils.getUserRefreshTokenViaAuthCodeWithBasicAuth(mockMvc, clientId,
-                clientSecret);
+        String refreshToken = OAuth2TestUtils.getUserRefreshTokenViaAuthCodeWithBasicAuth(
+            mockMvc,
+            clientId,
+            clientSecret
+        );
 
         // introspect result should be active
-        Boolean active = OAuth2TestUtils.introspectTokenWithBasicAuth(mockMvc, refreshToken, null, clientId,
-                clientSecret);
+        Boolean active = OAuth2TestUtils.introspectTokenWithBasicAuth(
+            mockMvc,
+            refreshToken,
+            null,
+            clientId,
+            clientSecret
+        );
         assertThat(active).isEqualTo(true);
 
         // revoke request
@@ -484,15 +549,13 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.TOKEN_TYPE_HINT, "invalid-token-type");
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(REVOCATION_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(REVOCATION_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a blank response
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -505,12 +568,20 @@ public class OAuth2TokenRevocationTest {
     @Test
     public void clientAccessTokenNoHintWithBasicAuthTest() throws Exception {
         // fetch a valid user access token
-        String accessToken = OAuth2TestUtils.getClientAccessTokenViaClientCredentialsWithBasicAuth(mockMvc, clientId,
-                clientSecret);
+        String accessToken = OAuth2TestUtils.getClientAccessTokenViaClientCredentialsWithBasicAuth(
+            mockMvc,
+            clientId,
+            clientSecret
+        );
 
         // introspect result should be active
-        Boolean active = OAuth2TestUtils.introspectTokenWithBasicAuth(mockMvc, accessToken, null, clientId,
-                clientSecret);
+        Boolean active = OAuth2TestUtils.introspectTokenWithBasicAuth(
+            mockMvc,
+            accessToken,
+            null,
+            clientId,
+            clientSecret
+        );
         assertThat(active).isEqualTo(true);
 
         // revoke request
@@ -518,15 +589,13 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.TOKEN, accessToken);
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(REVOCATION_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(REVOCATION_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a blank response
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -540,12 +609,20 @@ public class OAuth2TokenRevocationTest {
     @WithMockUserAuthentication(username = "test", realm = "test")
     public void userRefreshTokenPlusAccessTokenWithBasicAuthTest() throws Exception {
         // fetch a valid user refresh token
-        String refreshToken = OAuth2TestUtils.getUserRefreshTokenViaAuthCodeWithBasicAuth(mockMvc, clientId,
-                clientSecret);
+        String refreshToken = OAuth2TestUtils.getUserRefreshTokenViaAuthCodeWithBasicAuth(
+            mockMvc,
+            clientId,
+            clientSecret
+        );
 
         // introspect result should be active
-        Boolean active = OAuth2TestUtils.introspectTokenWithBasicAuth(mockMvc, refreshToken, null, clientId,
-                clientSecret);
+        Boolean active = OAuth2TestUtils.introspectTokenWithBasicAuth(
+            mockMvc,
+            refreshToken,
+            null,
+            clientId,
+            clientSecret
+        );
         assertThat(active).isEqualTo(true);
 
         // fetch an access token
@@ -553,15 +630,13 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.REFRESH_TOKEN.getValue());
         params.add(OAuth2ParameterNames.REFRESH_TOKEN, refreshToken);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(TOKEN_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         Map<String, Serializable> response = mapper.readValue(res.getResponse().getContentAsString(), typeRef);
 
@@ -578,15 +653,14 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.TOKEN, refreshToken);
 
         // use basic auth for client auth
-        req = MockMvcRequestBuilders.post(REVOCATION_URL)
+        req =
+            MockMvcRequestBuilders
+                .post(REVOCATION_URL)
                 .with(httpBasic(clientId, clientSecret))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .params(params);
 
-        res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a blank response
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -609,14 +683,12 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
         params.add(OAuth2ParameterNames.SCOPE, Config.SCOPE_OFFLINE_ACCESS);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .get(AUTHORIZE_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         String forwardedUrl = res.getResponse().getForwardedUrl();
         assertThat(res.getResponse().getForwardedUrl()).isNotNull().startsWith(AUTHORIZED_URL);
@@ -626,10 +698,7 @@ public class OAuth2TokenRevocationTest {
         assertThat(session).isNotNull();
 
         req = MockMvcRequestBuilders.get(forwardedUrl).session(session);
-        res = mockMvc
-                .perform(req)
-                .andExpect(status().is3xxRedirection())
-                .andReturn();
+        res = mockMvc.perform(req).andExpect(status().is3xxRedirection()).andReturn();
 
         String redirectedUrl = res.getResponse().getRedirectedUrl();
         assertThat(redirectedUrl).isNotNull();
@@ -646,15 +715,14 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.AUTHORIZATION_CODE.getValue());
         params.add(OAuth2ParameterNames.CODE, code);
 
-        req = MockMvcRequestBuilders.post(TOKEN_URL)
+        req =
+            MockMvcRequestBuilders
+                .post(TOKEN_URL)
                 .with(httpBasic(clientId, clientSecret))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .params(params);
 
-        res = mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        res = mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         Map<String, Serializable> response = mapper.readValue(res.getResponse().getContentAsString(), typeRef);
 
@@ -667,11 +735,15 @@ public class OAuth2TokenRevocationTest {
         String refreshToken = (String) response.get(OAuth2ParameterNames.REFRESH_TOKEN);
 
         // introspect result should be active
-        Boolean active = OAuth2TestUtils.introspectTokenWithBasicAuth(mockMvc, accessToken, null, clientId,
-                clientSecret);
+        Boolean active = OAuth2TestUtils.introspectTokenWithBasicAuth(
+            mockMvc,
+            accessToken,
+            null,
+            clientId,
+            clientSecret
+        );
         assertThat(active).isEqualTo(true);
-        active = OAuth2TestUtils.introspectTokenWithBasicAuth(mockMvc, refreshToken, null, clientId,
-                clientSecret);
+        active = OAuth2TestUtils.introspectTokenWithBasicAuth(mockMvc, refreshToken, null, clientId, clientSecret);
         assertThat(active).isEqualTo(true);
 
         // revoke request for refresh
@@ -679,15 +751,14 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.TOKEN, refreshToken);
 
         // use basic auth for client auth
-        req = MockMvcRequestBuilders.post(REVOCATION_URL)
+        req =
+            MockMvcRequestBuilders
+                .post(REVOCATION_URL)
                 .with(httpBasic(clientId, clientSecret))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .params(params);
 
-        res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a blank response
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -710,14 +781,12 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
         params.add(OAuth2ParameterNames.SCOPE, Config.SCOPE_OFFLINE_ACCESS);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .get(AUTHORIZE_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         String forwardedUrl = res.getResponse().getForwardedUrl();
         assertThat(res.getResponse().getForwardedUrl()).isNotNull().startsWith(AUTHORIZED_URL);
@@ -727,10 +796,7 @@ public class OAuth2TokenRevocationTest {
         assertThat(session).isNotNull();
 
         req = MockMvcRequestBuilders.get(forwardedUrl).session(session);
-        res = mockMvc
-                .perform(req)
-                .andExpect(status().is3xxRedirection())
-                .andReturn();
+        res = mockMvc.perform(req).andExpect(status().is3xxRedirection()).andReturn();
 
         String redirectedUrl = res.getResponse().getRedirectedUrl();
         assertThat(redirectedUrl).isNotNull();
@@ -747,15 +813,14 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.AUTHORIZATION_CODE.getValue());
         params.add(OAuth2ParameterNames.CODE, code);
 
-        req = MockMvcRequestBuilders.post(TOKEN_URL)
+        req =
+            MockMvcRequestBuilders
+                .post(TOKEN_URL)
                 .with(httpBasic(clientId, clientSecret))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .params(params);
 
-        res = mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        res = mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         Map<String, Serializable> response = mapper.readValue(res.getResponse().getContentAsString(), typeRef);
 
@@ -768,11 +833,15 @@ public class OAuth2TokenRevocationTest {
         String refreshToken = (String) response.get(OAuth2ParameterNames.REFRESH_TOKEN);
 
         // introspect result should be active
-        Boolean active = OAuth2TestUtils.introspectTokenWithBasicAuth(mockMvc, accessToken, null, clientId,
-                clientSecret);
+        Boolean active = OAuth2TestUtils.introspectTokenWithBasicAuth(
+            mockMvc,
+            accessToken,
+            null,
+            clientId,
+            clientSecret
+        );
         assertThat(active).isEqualTo(true);
-        active = OAuth2TestUtils.introspectTokenWithBasicAuth(mockMvc, refreshToken, null, clientId,
-                clientSecret);
+        active = OAuth2TestUtils.introspectTokenWithBasicAuth(mockMvc, refreshToken, null, clientId, clientSecret);
         assertThat(active).isEqualTo(true);
 
         // fetch another access token
@@ -780,15 +849,14 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.REFRESH_TOKEN.getValue());
         params.add(OAuth2ParameterNames.REFRESH_TOKEN, refreshToken);
 
-        req = MockMvcRequestBuilders.post(TOKEN_URL)
+        req =
+            MockMvcRequestBuilders
+                .post(TOKEN_URL)
                 .with(httpBasic(clientId, clientSecret))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .params(params);
 
-        res = mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        res = mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         response = mapper.readValue(res.getResponse().getContentAsString(), typeRef);
 
@@ -805,15 +873,14 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.TOKEN, accessToken);
 
         // use basic auth for client auth
-        req = MockMvcRequestBuilders.post(REVOCATION_URL)
+        req =
+            MockMvcRequestBuilders
+                .post(REVOCATION_URL)
                 .with(httpBasic(clientId, clientSecret))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .params(params);
 
-        res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a blank response
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -840,15 +907,13 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.TOKEN, accessToken);
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(REVOCATION_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(REVOCATION_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a blank response
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -858,12 +923,20 @@ public class OAuth2TokenRevocationTest {
     @WithMockUserAuthentication(username = "test", realm = "test")
     public void userAccessTokenNoHintWithFormAuthTest() throws Exception {
         // fetch a valid user access token
-        String accessToken = OAuth2TestUtils.getUserAccessTokenViaAuthCodeWithBasicAuth(mockMvc, clientId,
-                clientSecret);
+        String accessToken = OAuth2TestUtils.getUserAccessTokenViaAuthCodeWithBasicAuth(
+            mockMvc,
+            clientId,
+            clientSecret
+        );
 
         // introspect result should be active
-        Boolean active = OAuth2TestUtils.introspectTokenWithBasicAuth(mockMvc, accessToken, null, clientId,
-                clientSecret);
+        Boolean active = OAuth2TestUtils.introspectTokenWithBasicAuth(
+            mockMvc,
+            accessToken,
+            null,
+            clientId,
+            clientSecret
+        );
         assertThat(active).isEqualTo(true);
 
         // revoke request
@@ -872,14 +945,12 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
         params.add(OAuth2ParameterNames.CLIENT_SECRET, clientSecret);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(REVOCATION_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(REVOCATION_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a blank response
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -893,38 +964,51 @@ public class OAuth2TokenRevocationTest {
     @WithMockUserAuthentication(username = "test", realm = "test")
     public void userAccessTokenNoHintWithSecretJwtTest() throws Exception {
         // fetch a valid user access token
-        String accessToken = OAuth2TestUtils.getUserAccessTokenViaAuthCodeWithBasicAuth(mockMvc, clientId,
-                clientSecret);
+        String accessToken = OAuth2TestUtils.getUserAccessTokenViaAuthCodeWithBasicAuth(
+            mockMvc,
+            clientId,
+            clientSecret
+        );
 
         // introspect result should be active
-        Boolean active = OAuth2TestUtils.introspectTokenWithBasicAuth(mockMvc, accessToken, null, clientId,
-                clientSecret);
+        Boolean active = OAuth2TestUtils.introspectTokenWithBasicAuth(
+            mockMvc,
+            accessToken,
+            null,
+            clientId,
+            clientSecret
+        );
         assertThat(active).isEqualTo(true);
 
         // build signer for HMAC SHA-256
         MACSigner signer = new MACSigner(clientSecret);
 
         // build assertion
-        SignedJWT assertion = ClientCredentialsGrantJwtAssertionAuthTest.buildClientAssertion(applicationURL, clientId,
-                signer, JWSAlgorithm.HS256, clientId);
+        SignedJWT assertion = ClientCredentialsGrantJwtAssertionAuthTest.buildClientAssertion(
+            applicationURL,
+            clientId,
+            signer,
+            JWSAlgorithm.HS256,
+            clientId
+        );
 
         // revoke request
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add(OAuth2ParameterNames.TOKEN, accessToken);
-        params.add(OAuth2ParameterNames.CLIENT_ASSERTION_TYPE,
-                ClientCredentialsGrantJwtAssertionAuthTest.JWT_ASSERTION_TYPE);
+        params.add(
+            OAuth2ParameterNames.CLIENT_ASSERTION_TYPE,
+            ClientCredentialsGrantJwtAssertionAuthTest.JWT_ASSERTION_TYPE
+        );
         params.add(OAuth2ParameterNames.CLIENT_ASSERTION, assertion.serialize());
         // add client id because AAC requires it for security reasons
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(REVOCATION_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(REVOCATION_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a blank response
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -938,12 +1022,20 @@ public class OAuth2TokenRevocationTest {
     @WithMockUserAuthentication(username = "test", realm = "test")
     public void userAccessTokenNoHintWithPrivateKeyJwtTest() throws Exception {
         // fetch a valid user access token
-        String accessToken = OAuth2TestUtils.getUserAccessTokenViaAuthCodeWithBasicAuth(mockMvc, clientId,
-                clientSecret);
+        String accessToken = OAuth2TestUtils.getUserAccessTokenViaAuthCodeWithBasicAuth(
+            mockMvc,
+            clientId,
+            clientSecret
+        );
 
         // introspect result should be active
-        Boolean active = OAuth2TestUtils.introspectTokenWithBasicAuth(mockMvc, accessToken, null, clientId,
-                clientSecret);
+        Boolean active = OAuth2TestUtils.introspectTokenWithBasicAuth(
+            mockMvc,
+            accessToken,
+            null,
+            clientId,
+            clientSecret
+        );
         assertThat(active).isEqualTo(true);
 
         // parse keys
@@ -953,26 +1045,31 @@ public class OAuth2TokenRevocationTest {
         RSASSASigner signer = new RSASSASigner(jwk.toRSAKey());
 
         // build assertion
-        SignedJWT assertion = ClientCredentialsGrantJwtAssertionAuthTest.buildClientAssertion(applicationURL, clientId,
-                signer, JWSAlgorithm.RS256, jwk.getKeyID());
+        SignedJWT assertion = ClientCredentialsGrantJwtAssertionAuthTest.buildClientAssertion(
+            applicationURL,
+            clientId,
+            signer,
+            JWSAlgorithm.RS256,
+            jwk.getKeyID()
+        );
 
         // revoke request
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add(OAuth2ParameterNames.TOKEN, accessToken);
-        params.add(OAuth2ParameterNames.CLIENT_ASSERTION_TYPE,
-                ClientCredentialsGrantJwtAssertionAuthTest.JWT_ASSERTION_TYPE);
+        params.add(
+            OAuth2ParameterNames.CLIENT_ASSERTION_TYPE,
+            ClientCredentialsGrantJwtAssertionAuthTest.JWT_ASSERTION_TYPE
+        );
         params.add(OAuth2ParameterNames.CLIENT_ASSERTION, assertion.serialize());
         // add client id because AAC requires it for security reasons
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(REVOCATION_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(REVOCATION_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a blank response
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -986,22 +1083,23 @@ public class OAuth2TokenRevocationTest {
     @WithMockUserAuthentication(username = "test", realm = "test")
     public void userAccessTokenWithNoAuthTest() throws Exception {
         // fetch a valid user access token
-        String accessToken = OAuth2TestUtils.getUserAccessTokenViaAuthCodeWithBasicAuth(mockMvc, clientId,
-                clientSecret);
+        String accessToken = OAuth2TestUtils.getUserAccessTokenViaAuthCodeWithBasicAuth(
+            mockMvc,
+            clientId,
+            clientSecret
+        );
 
         // revoke request
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add(OAuth2ParameterNames.TOKEN, accessToken);
 
         // no client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(REVOCATION_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(REVOCATION_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isForbidden())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isForbidden()).andReturn();
 
         // expect no response
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -1011,23 +1109,24 @@ public class OAuth2TokenRevocationTest {
     @WithMockUserAuthentication(username = "test", realm = "test")
     public void userAccessTokenWithWrongClientBasicAuthTest() throws Exception {
         // fetch a valid user access token
-        String accessToken = OAuth2TestUtils.getUserAccessTokenViaAuthCodeWithBasicAuth(mockMvc, clientId,
-                clientSecret);
+        String accessToken = OAuth2TestUtils.getUserAccessTokenViaAuthCodeWithBasicAuth(
+            mockMvc,
+            clientId,
+            clientSecret
+        );
 
         // revoke request
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add(OAuth2ParameterNames.TOKEN, accessToken);
 
         // use client 2 auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(REVOCATION_URL)
-                .with(httpBasic(client2Id, client2Secret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(REVOCATION_URL)
+            .with(httpBasic(client2Id, client2Secret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isUnauthorized())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isUnauthorized()).andReturn();
 
         // expect an error in response
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
@@ -1043,28 +1142,36 @@ public class OAuth2TokenRevocationTest {
     /*
      * endpoints
      */
-    public final static String METADATA_URL = "/.well-known/oauth-authorization-server";
-    private final static String REVOCATION_URL = TokenRevocationEndpoint.TOKEN_REVOCATION_URL;
-    private final static String TOKEN_URL = TokenEndpoint.TOKEN_URL;
-    private final static String AUTHORIZE_URL = AuthorizationEndpoint.AUTHORIZATION_URL;
-    private final static String AUTHORIZED_URL = AuthorizationEndpoint.AUTHORIZED_URL;
+    public static final String METADATA_URL = "/.well-known/oauth-authorization-server";
+    private static final String REVOCATION_URL = TokenRevocationEndpoint.TOKEN_REVOCATION_URL;
+    private static final String TOKEN_URL = TokenEndpoint.TOKEN_URL;
+    private static final String AUTHORIZE_URL = AuthorizationEndpoint.AUTHORIZATION_URL;
+    private static final String AUTHORIZED_URL = AuthorizationEndpoint.AUTHORIZED_URL;
 
     /*
      * claims
      */
-    public final static Set<String> REQUIRED_METADATA;
-    public final static String OAUTH2_METADATA_ISSUER = "issuer";
-    public final static String OAUTH2_METADATA_REVOCATION_ENDPOINT = "revocation_endpoint";
-    public final static String OAUTH2_METADATA_REVOCATION_ENDPOINT_AUTH_METHODS = "revocation_endpoint_auth_methods_supported";
-    public final static String OAUTH2_METADATA_REVOCATION_ENDPOINT_AUTH_SIGNIN_ALG = "revocation_endpoint_auth_signing_alg_values_supported";
+    public static final Set<String> REQUIRED_METADATA;
+    public static final String OAUTH2_METADATA_ISSUER = "issuer";
+    public static final String OAUTH2_METADATA_REVOCATION_ENDPOINT = "revocation_endpoint";
+    public static final String OAUTH2_METADATA_REVOCATION_ENDPOINT_AUTH_METHODS =
+        "revocation_endpoint_auth_methods_supported";
+    public static final String OAUTH2_METADATA_REVOCATION_ENDPOINT_AUTH_SIGNIN_ALG =
+        "revocation_endpoint_auth_signing_alg_values_supported";
 
     static {
-        REQUIRED_METADATA = Collections.unmodifiableSortedSet(new TreeSet<>(
-                List.of(OAUTH2_METADATA_REVOCATION_ENDPOINT,
+        REQUIRED_METADATA =
+            Collections.unmodifiableSortedSet(
+                new TreeSet<>(
+                    List.of(
+                        OAUTH2_METADATA_REVOCATION_ENDPOINT,
                         OAUTH2_METADATA_REVOCATION_ENDPOINT_AUTH_METHODS,
-                        OAUTH2_METADATA_REVOCATION_ENDPOINT_AUTH_SIGNIN_ALG)));
-
+                        OAUTH2_METADATA_REVOCATION_ENDPOINT_AUTH_SIGNIN_ALG
+                    )
+                )
+            );
     }
-    private final TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
-    };
+
+    private final TypeReference<HashMap<String, Serializable>> typeRef =
+        new TypeReference<HashMap<String, Serializable>>() {};
 }

@@ -1,13 +1,21 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.webauthn.service;
 
-import java.net.URL;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -24,14 +32,6 @@ import com.yubico.webauthn.data.PublicKeyCredentialCreationOptions;
 import com.yubico.webauthn.data.RelyingPartyIdentity;
 import com.yubico.webauthn.data.UserIdentity;
 import com.yubico.webauthn.exception.RegistrationFailedException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
@@ -43,9 +43,24 @@ import it.smartcommunitylab.aac.webauthn.model.CredentialCreationInfo;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationRequest;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredentialsRepository;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsServiceConfig;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 @Service
 public class WebAuthnRegistrationRpService {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Value("${application.url}")
@@ -65,10 +80,12 @@ public class WebAuthnRegistrationRpService {
 
     // leverage a local cache for fetching rps
     // TODO cache invalidation or check on load or drop cache
-    private final LoadingCache<String, RelyingParty> registrations = CacheBuilder.newBuilder()
-            .expireAfterWrite(5, TimeUnit.MINUTES)
-            .maximumSize(100)
-            .build(new CacheLoader<String, RelyingParty>() {
+    private final LoadingCache<String, RelyingParty> registrations = CacheBuilder
+        .newBuilder()
+        .expireAfterWrite(5, TimeUnit.MINUTES)
+        .maximumSize(100)
+        .build(
+            new CacheLoader<String, RelyingParty>() {
                 @Override
                 public RelyingParty load(final String providerId) throws Exception {
                     WebAuthnCredentialsServiceConfig config = registrationRepository.findByProviderId(providerId);
@@ -93,31 +110,38 @@ public class WebAuthnRegistrationRpService {
                         id = rpId;
                     }
 
-                    RelyingPartyIdentity rpIdentity = RelyingPartyIdentity.builder()
-                            .id(id)
-                            .name(config.getRealm())
-                            .build();
+                    RelyingPartyIdentity rpIdentity = RelyingPartyIdentity
+                        .builder()
+                        .id(id)
+                        .name(config.getRealm())
+                        .build();
 
                     WebAuthnYubicoCredentialsRepository webauthnRepository = new WebAuthnYubicoCredentialsRepository(
-                            config.getRepositoryId(), userAccountService, credentialsRepository);
+                        config.getRepositoryId(),
+                        userAccountService,
+                        credentialsRepository
+                    );
 
-                    RelyingParty rp = RelyingParty.builder()
-                            .identity(rpIdentity)
-                            .credentialRepository(webauthnRepository)
-                            .allowUntrustedAttestation(config.isAllowedUnstrustedAttestation())
-                            .allowOriginPort(false)
-                            .allowOriginSubdomain(false)
-                            .origins(origins)
-                            .build();
+                    RelyingParty rp = RelyingParty
+                        .builder()
+                        .identity(rpIdentity)
+                        .credentialRepository(webauthnRepository)
+                        .allowUntrustedAttestation(config.isAllowedUnstrustedAttestation())
+                        .allowOriginPort(false)
+                        .allowOriginSubdomain(false)
+                        .origins(origins)
+                        .build();
 
                     return rp;
-
                 }
-            });
+            }
+        );
 
-    public WebAuthnRegistrationRpService(UserAccountService<InternalUserAccount> userAccountService,
-            WebAuthnUserCredentialsRepository credentialsRepository,
-            ProviderConfigRepository<WebAuthnCredentialsServiceConfig> registrationRepository) {
+    public WebAuthnRegistrationRpService(
+        UserAccountService<InternalUserAccount> userAccountService,
+        WebAuthnUserCredentialsRepository credentialsRepository,
+        ProviderConfigRepository<WebAuthnCredentialsServiceConfig> registrationRepository
+    ) {
         Assert.notNull(userAccountService, "user account service is mandatory");
         Assert.notNull(credentialsRepository, "credentials repository is mandatory");
         Assert.notNull(registrationRepository, "provider registration repository is mandatory");
@@ -139,16 +163,18 @@ public class WebAuthnRegistrationRpService {
 
     /*
      * Registration ceremony
-     * 
+     *
      * an already registered user can add credentials. For first login use either
      * confirmation link or account link via session
      */
 
-    public CredentialCreationInfo startRegistration(String registrationId,
-            String username, String displayName)
-            throws NoSuchUserException, RegistrationException, NoSuchProviderException {
-        logger.debug("start registration for {} with provider {}", StringUtils.trimAllWhitespace(username),
-                StringUtils.trimAllWhitespace(registrationId));
+    public CredentialCreationInfo startRegistration(String registrationId, String username, String displayName)
+        throws NoSuchUserException, RegistrationException, NoSuchProviderException {
+        logger.debug(
+            "start registration for {} with provider {}",
+            StringUtils.trimAllWhitespace(username),
+            StringUtils.trimAllWhitespace(registrationId)
+        );
 
         WebAuthnCredentialsServiceConfig config = registrationRepository.findByProviderId(registrationId);
         RelyingParty rp = getRelyingParty(registrationId);
@@ -156,11 +182,11 @@ public class WebAuthnRegistrationRpService {
             throw new NoSuchProviderException();
         }
 
-//        // load account to check status
-//        InternalUserAccount account = userAccountService.findAccountById(config.getRepositoryId(), username);
-//        if (account == null) {
-//            throw new NoSuchUserException();
-//        }
+        //        // load account to check status
+        //        InternalUserAccount account = userAccountService.findAccountById(config.getRepositoryId(), username);
+        //        if (account == null) {
+        //            throw new NoSuchUserException();
+        //        }
 
         Optional<ByteArray> userHandle = rp.getCredentialRepository().getUserHandleForUsername(username);
         if (userHandle.isEmpty()) {
@@ -169,24 +195,27 @@ public class WebAuthnRegistrationRpService {
 
         // build a new identity for this key
         String userDisplayName = StringUtils.hasText(displayName) ? displayName : username;
-        UserIdentity identity = UserIdentity.builder()
-                .name(username)
-                .displayName(userDisplayName)
-                .id(userHandle.get())
-                .build();
+        UserIdentity identity = UserIdentity
+            .builder()
+            .name(username)
+            .displayName(userDisplayName)
+            .id(userHandle.get())
+            .build();
 
         // build config
-        AuthenticatorSelectionCriteria authenticatorSelection = AuthenticatorSelectionCriteria.builder()
-                .residentKey(config.getRequireResidentKey())
-                .userVerification(config.getRequireUserVerification())
-                .build();
+        AuthenticatorSelectionCriteria authenticatorSelection = AuthenticatorSelectionCriteria
+            .builder()
+            .residentKey(config.getRequireResidentKey())
+            .userVerification(config.getRequireUserVerification())
+            .build();
 
         int timeout = config.getRegistrationTimeout() * 1000;
-        StartRegistrationOptions startRegistrationOptions = StartRegistrationOptions.builder()
-                .user(identity)
-                .authenticatorSelection(authenticatorSelection)
-                .timeout(timeout)
-                .build();
+        StartRegistrationOptions startRegistrationOptions = StartRegistrationOptions
+            .builder()
+            .user(identity)
+            .authenticatorSelection(authenticatorSelection)
+            .timeout(timeout)
+            .build();
 
         PublicKeyCredentialCreationOptions options = rp.startRegistration(startRegistrationOptions);
 
@@ -198,10 +227,10 @@ public class WebAuthnRegistrationRpService {
     }
 
     public RegistrationResult finishRegistration(
-            String registrationId, WebAuthnRegistrationRequest request,
-            PublicKeyCredential<AuthenticatorAttestationResponse, ClientRegistrationExtensionOutputs> pkc)
-            throws RegistrationException, NoSuchUserException,
-            NoSuchProviderException {
+        String registrationId,
+        WebAuthnRegistrationRequest request,
+        PublicKeyCredential<AuthenticatorAttestationResponse, ClientRegistrationExtensionOutputs> pkc
+    ) throws RegistrationException, NoSuchUserException, NoSuchProviderException {
         WebAuthnCredentialsServiceConfig config = registrationRepository.findByProviderId(registrationId);
         RelyingParty rp = getRelyingParty(registrationId);
         if (config == null || rp == null) {
@@ -213,15 +242,19 @@ public class WebAuthnRegistrationRpService {
         }
 
         try {
-            logger.debug("finish registration for {} with provider {}", request.getUserHandle(),
-                    StringUtils.trimAllWhitespace(registrationId));
+            logger.debug(
+                "finish registration for {} with provider {}",
+                request.getUserHandle(),
+                StringUtils.trimAllWhitespace(registrationId)
+            );
 
             CredentialCreationInfo info = request.getCredentialCreationInfo();
 
             // parse response
             PublicKeyCredentialCreationOptions options = info.getOptions();
-            RegistrationResult result = rp
-                    .finishRegistration(FinishRegistrationOptions.builder().request(options).response(pkc).build());
+            RegistrationResult result = rp.finishRegistration(
+                FinishRegistrationOptions.builder().request(options).response(pkc).build()
+            );
 
             boolean attestationIsTrusted = result.isAttestationTrusted();
             logger.debug("registration attestation is trusted: ", String.valueOf(attestationIsTrusted));
@@ -235,5 +268,4 @@ public class WebAuthnRegistrationRpService {
             throw new RegistrationException(e.getMessage());
         }
     }
-
 }

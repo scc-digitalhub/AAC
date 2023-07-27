@@ -1,19 +1,35 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.core.base;
 
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.IdentityAttributeProvider;
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 public abstract class AbstractIdentityAttributeProvider<P extends UserAuthenticatedPrincipal, U extends UserAccount>
-        extends AbstractProvider<UserAttributes>
-        implements IdentityAttributeProvider<P, U> {
+    extends AbstractProvider<UserAttributes>
+    implements IdentityAttributeProvider<P, U> {
 
     protected AbstractIdentityAttributeProvider(String authority, String provider, String realm) {
         super(authority, provider, realm);
@@ -36,7 +52,6 @@ public abstract class AbstractIdentityAttributeProvider<P extends UserAuthentica
 
         // call extract to transform
         return extractUserAttributes(account, attributes);
-
     }
 
     @Override
@@ -61,7 +76,8 @@ public abstract class AbstractIdentityAttributeProvider<P extends UserAuthentica
     /*
      * Extract operation to be implemented by subclasses
      */
-    protected abstract List<UserAttributes> extractUserAttributes(U account,
-            Map<String, Serializable> principalAttributes);
-
+    protected abstract List<UserAttributes> extractUserAttributes(
+        U account,
+        Map<String, Serializable> principalAttributes
+    );
 }

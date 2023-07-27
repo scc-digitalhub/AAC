@@ -1,14 +1,20 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.password.provider;
-
-import java.time.Instant;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
@@ -21,9 +27,18 @@ import it.smartcommunitylab.aac.password.auth.ResetKeyAuthenticationToken;
 import it.smartcommunitylab.aac.password.auth.UsernamePasswordAuthenticationProvider;
 import it.smartcommunitylab.aac.password.auth.UsernamePasswordAuthenticationToken;
 import it.smartcommunitylab.aac.password.model.InternalPasswordUserAuthenticatedPrincipal;
+import java.time.Instant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.util.Assert;
 
 public class PasswordAuthenticationProvider
-        extends ExtendedAuthenticationProvider<InternalPasswordUserAuthenticatedPrincipal, InternalUserAccount> {
+    extends ExtendedAuthenticationProvider<InternalPasswordUserAuthenticatedPrincipal, InternalUserAccount> {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private static final String ACCOUNT_NOT_FOUND_PASSWORD = "internalAccountNotFoundPassword";
@@ -41,10 +56,13 @@ public class PasswordAuthenticationProvider
     private volatile String userNotFoundEncodedPassword;
     private final PasswordEncoder passwordEncoder;
 
-    public PasswordAuthenticationProvider(String providerId,
-            UserAccountService<InternalUserAccount> userAccountService,
-            PasswordIdentityCredentialsService passwordService,
-            PasswordIdentityProviderConfig providerConfig, String realm) {
+    public PasswordAuthenticationProvider(
+        String providerId,
+        UserAccountService<InternalUserAccount> userAccountService,
+        PasswordIdentityCredentialsService passwordService,
+        PasswordIdentityProviderConfig providerConfig,
+        String realm
+    ) {
         super(SystemKeys.AUTHORITY_PASSWORD, providerId, realm);
         Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(passwordService, "password service is mandatory");
@@ -58,15 +76,20 @@ public class PasswordAuthenticationProvider
         this.passwordEncoder = new InternalPasswordEncoder();
 
         // build our internal auth provider
-        authProvider = new UsernamePasswordAuthenticationProvider(providerId, userAccountService, passwordService,
-                repositoryId, realm);
-//        // we use our password encoder
-//        authProvider.setPasswordEncoder(passwordEncoder);
+        authProvider =
+            new UsernamePasswordAuthenticationProvider(
+                providerId,
+                userAccountService,
+                passwordService,
+                repositoryId,
+                realm
+            );
+        //        // we use our password encoder
+        //        authProvider.setPasswordEncoder(passwordEncoder);
 
         // build additional providers
-        resetKeyProvider = new ResetKeyAuthenticationProvider(providerId, userAccountService, passwordService,
-                repositoryId, realm);
-
+        resetKeyProvider =
+            new ResetKeyAuthenticationProvider(providerId, userAccountService, passwordService, repositoryId, realm);
     }
 
     @Override
@@ -84,14 +107,20 @@ public class PasswordAuthenticationProvider
         InternalUserAccount account = userAccountService.findAccountById(repositoryId, username);
         if (account == null) {
             // mitigate timing attacks to encode the provider password if usernamePassword
-            if (authentication instanceof UsernamePasswordAuthenticationToken
-                    && authentication.getCredentials() != null) {
+            if (
+                authentication instanceof UsernamePasswordAuthenticationToken && authentication.getCredentials() != null
+            ) {
                 String password = ((UsernamePasswordAuthenticationToken) authentication).getPassword();
                 this.passwordEncoder.matches(password, this.userNotFoundEncodedPassword);
             }
 
-            throw new InternalAuthenticationException(username, username, credentials, "unknown",
-                    new BadCredentialsException("invalid user or password"));
+            throw new InternalAuthenticationException(
+                username,
+                username,
+                credentials,
+                "unknown",
+                new BadCredentialsException("invalid user or password")
+            );
         }
 
         // userId is equal to subject
@@ -102,8 +131,7 @@ public class PasswordAuthenticationProvider
             logger.debug("account is not verified and confirmation is required to login");
             // throw generic error to avoid account status leak
             AuthenticationException e = new BadCredentialsException("invalid request");
-            throw new InternalAuthenticationException(subject, username, credentials, "password", e,
-                    e.getMessage());
+            throw new InternalAuthenticationException(subject, username, credentials, "password", e, e.getMessage());
         }
 
         // check whether account is locked
@@ -111,33 +139,48 @@ public class PasswordAuthenticationProvider
             logger.debug("account is locked");
             // throw generic error to avoid account status leak
             AuthenticationException e = new BadCredentialsException("invalid request");
-            throw new InternalAuthenticationException(subject, username, credentials, "password", e,
-                    e.getMessage());
+            throw new InternalAuthenticationException(subject, username, credentials, "password", e, e.getMessage());
         }
 
         if (authentication instanceof UsernamePasswordAuthenticationToken) {
             try {
                 return authProvider.authenticate(authentication);
             } catch (AuthenticationException e) {
-                throw new InternalAuthenticationException(subject, username, credentials, "password", e,
-                        e.getMessage());
+                throw new InternalAuthenticationException(
+                    subject,
+                    username,
+                    credentials,
+                    "password",
+                    e,
+                    e.getMessage()
+                );
             }
         } else if (authentication instanceof ResetKeyAuthenticationToken) {
             try {
                 return resetKeyProvider.authenticate(authentication);
             } catch (AuthenticationException e) {
-                throw new InternalAuthenticationException(subject, username, credentials, "resetKey", e,
-                        e.getMessage());
+                throw new InternalAuthenticationException(
+                    subject,
+                    username,
+                    credentials,
+                    "resetKey",
+                    e,
+                    e.getMessage()
+                );
             }
         }
-        throw new InternalAuthenticationException(subject, username, credentials, "unknown",
-                new BadCredentialsException("invalid request"));
+        throw new InternalAuthenticationException(
+            subject,
+            username,
+            credentials,
+            "unknown",
+            new BadCredentialsException("invalid request")
+        );
     }
 
     @Override
     public boolean supports(Class<?> authentication) {
-        return (authProvider.supports(authentication)
-                || resetKeyProvider.supports(authentication));
+        return (authProvider.supports(authentication) || resetKeyProvider.supports(authentication));
     }
 
     @Override
@@ -146,9 +189,12 @@ public class PasswordAuthenticationProvider
         String userId = account.getUserId();
         String username = account.getUsername();
 
-        InternalPasswordUserAuthenticatedPrincipal user = new InternalPasswordUserAuthenticatedPrincipal(getProvider(),
-                getRealm(),
-                userId, username);
+        InternalPasswordUserAuthenticatedPrincipal user = new InternalPasswordUserAuthenticatedPrincipal(
+            getProvider(),
+            getRealm(),
+            userId,
+            username
+        );
         // set principal name as username
         user.setName(username);
         // set attributes to support mapping in idp

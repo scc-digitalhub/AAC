@@ -1,18 +1,20 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.core.base;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import javax.validation.constraints.NotNull;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchCredentialException;
@@ -29,12 +31,28 @@ import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.provider.UserCredentialsService;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import javax.validation.constraints.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
-public abstract class AbstractCredentialsService<UC extends AbstractUserCredentials, EC extends AbstractEditableUserCredentials, U extends AbstractAccount, M extends AbstractConfigMap, C extends AbstractCredentialsServiceConfig<M>>
-        extends
-        AbstractConfigurableProvider<UC, ConfigurableCredentialsProvider, M, C>
-        implements
-        AccountCredentialsService<UC, EC, M, C>, InitializingBean {
+public abstract class AbstractCredentialsService<
+    UC extends AbstractUserCredentials,
+    EC extends AbstractEditableUserCredentials,
+    U extends AbstractAccount,
+    M extends AbstractConfigMap,
+    C extends AbstractCredentialsServiceConfig<M>
+>
+    extends AbstractConfigurableProvider<UC, ConfigurableCredentialsProvider, M, C>
+    implements AccountCredentialsService<UC, EC, M, C>, InitializingBean {
+
     protected static final String STATUS_ACTIVE = CredentialsStatus.ACTIVE.getValue();
     protected static final String STATUS_INACTIVE = CredentialsStatus.INACTIVE.getValue();
     protected static final String STATUS_REVOKED = CredentialsStatus.REVOKED.getValue();
@@ -51,11 +69,13 @@ public abstract class AbstractCredentialsService<UC extends AbstractUserCredenti
     protected final String repositoryId;
 
     public AbstractCredentialsService(
-            String authority, String providerId,
-            UserAccountService<U> userAccountService,
-            UserCredentialsService<UC> credentialsService,
-            C providerConfig,
-            String realm) {
+        String authority,
+        String providerId,
+        UserAccountService<U> userAccountService,
+        UserCredentialsService<UC> credentialsService,
+        C providerConfig,
+        String realm
+    ) {
         super(authority, providerId, realm, providerConfig);
         Assert.notNull(userAccountService, "user account service is mandatory");
         Assert.notNull(credentialsService, "credentials service is mandatory");
@@ -63,9 +83,12 @@ public abstract class AbstractCredentialsService<UC extends AbstractUserCredenti
 
         this.config = providerConfig;
         this.repositoryId = config.getRepositoryId();
-        logger.debug("create {} credentials service with id {} repository {}", String.valueOf(authority),
-                String.valueOf(providerId),
-                repositoryId);
+        logger.debug(
+            "create {} credentials service with id {} repository {}",
+            String.valueOf(authority),
+            String.valueOf(providerId),
+            repositoryId
+        );
 
         this.accountService = userAccountService;
         this.credentialsService = credentialsService;
@@ -94,15 +117,18 @@ public abstract class AbstractCredentialsService<UC extends AbstractUserCredenti
         logger.debug("list credentials for account {}", String.valueOf(accountId));
 
         // fetch all
-        return credentialsService.findCredentialsByAccount(repositoryId, accountId).stream()
-                .map(p -> {
-                    // map to ourselves
-                    p.setProvider(getProvider());
+        return credentialsService
+            .findCredentialsByAccount(repositoryId, accountId)
+            .stream()
+            .map(p -> {
+                // map to ourselves
+                p.setProvider(getProvider());
 
-                    // clear value for extra safety
-                    p.eraseCredentials();
-                    return p;
-                }).collect(Collectors.toList());
+                // clear value for extra safety
+                p.eraseCredentials();
+                return p;
+            })
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -110,15 +136,18 @@ public abstract class AbstractCredentialsService<UC extends AbstractUserCredenti
         logger.debug("list credentials for user {}", String.valueOf(userId));
 
         // fetch all
-        return credentialsService.findCredentialsByUser(repositoryId, userId).stream()
-                .map(p -> {
-                    // map to ourselves
-                    p.setProvider(getProvider());
+        return credentialsService
+            .findCredentialsByUser(repositoryId, userId)
+            .stream()
+            .map(p -> {
+                // map to ourselves
+                p.setProvider(getProvider());
 
-                    // clear value for extra safety
-                    p.eraseCredentials();
-                    return p;
-                }).collect(Collectors.toList());
+                // clear value for extra safety
+                p.eraseCredentials();
+                return p;
+            })
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -153,9 +182,12 @@ public abstract class AbstractCredentialsService<UC extends AbstractUserCredenti
 
     @Override
     public UC addCredential(String accountId, String credentialId, UserCredentials uc)
-            throws NoSuchUserException, RegistrationException {
-        logger.debug("add credential for account {} with id {}", String.valueOf(accountId),
-                String.valueOf(credentialId));
+        throws NoSuchUserException, RegistrationException {
+        logger.debug(
+            "add credential for account {} with id {}",
+            String.valueOf(accountId),
+            String.valueOf(credentialId)
+        );
         if (logger.isTraceEnabled()) {
             logger.trace("credentials: {}", String.valueOf(uc));
         }
@@ -194,8 +226,13 @@ public abstract class AbstractCredentialsService<UC extends AbstractUserCredenti
 
         if (resourceService != null) {
             // register
-            resourceService.addResourceEntity(cred.getUuid(), SystemKeys.RESOURCE_CREDENTIALS,
-                    getAuthority(), getProvider(), id);
+            resourceService.addResourceEntity(
+                cred.getUuid(),
+                SystemKeys.RESOURCE_CREDENTIALS,
+                getAuthority(),
+                getProvider(),
+                id
+            );
         }
 
         // map to ourselves
@@ -209,7 +246,7 @@ public abstract class AbstractCredentialsService<UC extends AbstractUserCredenti
 
     @Override
     public UC setCredential(String credentialsId, UserCredentials uc)
-            throws RegistrationException, NoSuchCredentialException {
+        throws RegistrationException, NoSuchCredentialException {
         logger.debug("set credential {}", String.valueOf(credentialsId));
         if (logger.isTraceEnabled()) {
             logger.trace("credentials: {}", String.valueOf(uc));
@@ -245,7 +282,6 @@ public abstract class AbstractCredentialsService<UC extends AbstractUserCredenti
         cred.eraseCredentials();
 
         return cred;
-
     }
 
     @Override
@@ -358,13 +394,13 @@ public abstract class AbstractCredentialsService<UC extends AbstractUserCredenti
 
     @Override
     public EC registerEditableCredential(String accountId, EditableUserCredentials credentials)
-            throws RegistrationException, NoSuchUserException {
+        throws RegistrationException, NoSuchUserException {
         throw new UnsupportedOperationException();
     }
 
     @Override
     public EC editEditableCredential(String credentialId, EditableUserCredentials credentials)
-            throws RegistrationException, NoSuchCredentialException {
+        throws RegistrationException, NoSuchCredentialException {
         throw new UnsupportedOperationException();
     }
 
@@ -372,5 +408,4 @@ public abstract class AbstractCredentialsService<UC extends AbstractUserCredenti
     public void deleteEditableCredential(@NotNull String credentialId) throws NoSuchCredentialException {
         throw new UnsupportedOperationException();
     }
-
 }

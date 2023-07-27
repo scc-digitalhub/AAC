@@ -1,5 +1,30 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.oauth.service;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import com.nimbusds.jose.jwk.JWKSet;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchClientException;
+import it.smartcommunitylab.aac.core.service.ClientAppService;
+import it.smartcommunitylab.aac.model.ClientApp;
+import it.smartcommunitylab.aac.oauth.client.OAuth2Client;
+import it.smartcommunitylab.aac.oauth.client.OAuth2ClientConfigMap;
 import java.io.Serializable;
 import java.text.ParseException;
 import java.util.Arrays;
@@ -7,7 +32,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.springframework.data.domain.Page;
@@ -16,17 +40,6 @@ import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-import com.nimbusds.jose.jwk.JWKSet;
-
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.common.NoSuchClientException;
-import it.smartcommunitylab.aac.core.service.ClientAppService;
-import it.smartcommunitylab.aac.model.ClientApp;
-import it.smartcommunitylab.aac.oauth.client.OAuth2Client;
-import it.smartcommunitylab.aac.oauth.client.OAuth2ClientConfigMap;
 
 /*
  * OAuth2 clients service
@@ -47,34 +60,33 @@ public class OAuth2ClientAppService implements ClientAppService {
         List<OAuth2Client> clients = clientService.listClients(realm);
 
         // reset credentials, accessible only if single fetch
-        clients.stream()
-                .forEach(c -> {
-                    c.setClientSecret(null);
-                    c.setClientJwks(null);
-                });
+        clients
+            .stream()
+            .forEach(c -> {
+                c.setClientSecret(null);
+                c.setClientJwks(null);
+            });
 
-        return clients.stream()
-                .map(c -> toApp(c))
-                .collect(Collectors.toList());
+        return clients.stream().map(c -> toApp(c)).collect(Collectors.toList());
     }
 
     public Page<ClientApp> searchClients(String realm, String keywords, Pageable pageRequest) {
         Page<OAuth2Client> page = clientService.searchClients(realm, keywords, pageRequest);
 
         // reset credentials, accessible only if single fetch
-        page.getContent().stream()
-                .forEach(c -> {
-                    c.setClientSecret(null);
-                    c.setClientJwks(null);
-                });
+        page
+            .getContent()
+            .stream()
+            .forEach(c -> {
+                c.setClientSecret(null);
+                c.setClientJwks(null);
+            });
 
         return PageableExecutionUtils.getPage(
-                page.getContent().stream()
-                        .map(c -> toApp(c))
-                        .collect(Collectors.toList()),
-                pageRequest,
-                () -> page.getTotalElements());
-
+            page.getContent().stream().map(c -> toApp(c)).collect(Collectors.toList()),
+            pageRequest,
+            () -> page.getTotalElements()
+        );
     }
 
     @Override
@@ -107,7 +119,6 @@ public class OAuth2ClientAppService implements ClientAppService {
 
     @Override
     public ClientApp registerClient(String realm, ClientApp app) {
-
         String name = app.getName();
         String description = app.getDescription();
 
@@ -120,25 +131,37 @@ public class OAuth2ClientAppService implements ClientAppService {
 
         if (app.getConfiguration() == null) {
             // add as new
-            OAuth2Client client = clientService.addClient(realm,
-                    app.getClientId(),
-                    name, description,
-                    Arrays.asList(app.getScopes()), Arrays.asList(app.getResourceIds()),
-                    Arrays.asList(app.getProviders()),
-                    app.getHookFunctions(), app.getHookWebUrls(), app.getHookUniqueSpaces(),
-                    null,
-                    null, null,
-                    null, null, null,
-                    null,
-                    null, null,
-                    null, null,
-                    null, null,
-                    null, null,
-                    null);
+            OAuth2Client client = clientService.addClient(
+                realm,
+                app.getClientId(),
+                name,
+                description,
+                Arrays.asList(app.getScopes()),
+                Arrays.asList(app.getResourceIds()),
+                Arrays.asList(app.getProviders()),
+                app.getHookFunctions(),
+                app.getHookWebUrls(),
+                app.getHookUniqueSpaces(),
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+            );
 
             return toApp(client);
         } else {
-
             // unpack
             Map<String, Serializable> configuration = app.getConfiguration();
 
@@ -149,37 +172,46 @@ public class OAuth2ClientAppService implements ClientAppService {
             // import anyway since we need to preserve secrets on import
             // TODO distinguish 2 flows..
             String clientSecret = configuration.containsKey("clientSecret")
-                    ? String.valueOf(configuration.get("clientSecret"))
-                    : null;
-            String clientJwks = configuration.containsKey("jwks")
-                    ? String.valueOf(configuration.get("jwks"))
-                    : null;
+                ? String.valueOf(configuration.get("clientSecret"))
+                : null;
+            String clientJwks = configuration.containsKey("jwks") ? String.valueOf(configuration.get("jwks")) : null;
             JWKSet jwks = null;
             if (StringUtils.hasText(clientJwks)) {
                 try {
                     jwks = JWKSet.parse(clientJwks);
-                } catch (ParseException e) {
-                }
+                } catch (ParseException e) {}
             }
 
             // register with autogenerated clientId
             // add as new
-            OAuth2Client client = clientService.addClient(realm,
-                    app.getClientId(),
-                    name, description,
-                    Arrays.asList(app.getScopes()), Arrays.asList(app.getResourceIds()),
-                    Arrays.asList(app.getProviders()),
-                    app.getHookFunctions(), app.getHookWebUrls(), app.getHookUniqueSpaces(),
-                    clientSecret,
-                    configMap.getAuthorizedGrantTypes(), configMap.getRedirectUris(),
-                    configMap.getApplicationType(), configMap.getTokenType(), configMap.getSubjectType(),
-                    configMap.getAuthenticationMethods(),
-                    configMap.getIdTokenClaims(), configMap.getFirstParty(),
-                    configMap.getAccessTokenValidity(), configMap.getRefreshTokenValidity(),
-                    configMap.getIdTokenValidity(),
-                    jwks, configMap.getJwksUri(),
-                    configMap.getAdditionalConfig(),
-                    configMap.getAdditionalInformation());
+            OAuth2Client client = clientService.addClient(
+                realm,
+                app.getClientId(),
+                name,
+                description,
+                Arrays.asList(app.getScopes()),
+                Arrays.asList(app.getResourceIds()),
+                Arrays.asList(app.getProviders()),
+                app.getHookFunctions(),
+                app.getHookWebUrls(),
+                app.getHookUniqueSpaces(),
+                clientSecret,
+                configMap.getAuthorizedGrantTypes(),
+                configMap.getRedirectUris(),
+                configMap.getApplicationType(),
+                configMap.getTokenType(),
+                configMap.getSubjectType(),
+                configMap.getAuthenticationMethods(),
+                configMap.getIdTokenClaims(),
+                configMap.getFirstParty(),
+                configMap.getAccessTokenValidity(),
+                configMap.getRefreshTokenValidity(),
+                configMap.getIdTokenValidity(),
+                jwks,
+                configMap.getJwksUri(),
+                configMap.getAdditionalConfig(),
+                configMap.getAdditionalInformation()
+            );
 
             return toApp(client);
         }
@@ -206,23 +238,34 @@ public class OAuth2ClientAppService implements ClientAppService {
         OAuth2ClientConfigMap configMap = new OAuth2ClientConfigMap(configuration);
 
         // update
-        client = clientService.updateClient(clientId,
-                name, description,
-                Arrays.asList(app.getScopes()), Arrays.asList(app.getResourceIds()),
+        client =
+            clientService.updateClient(
+                clientId,
+                name,
+                description,
+                Arrays.asList(app.getScopes()),
+                Arrays.asList(app.getResourceIds()),
                 Arrays.asList(app.getProviders()),
-                app.getHookFunctions(), app.getHookWebUrls(), app.getHookUniqueSpaces(),
-                configMap.getAuthorizedGrantTypes(), configMap.getRedirectUris(),
-                configMap.getApplicationType(), configMap.getTokenType(), configMap.getSubjectType(),
+                app.getHookFunctions(),
+                app.getHookWebUrls(),
+                app.getHookUniqueSpaces(),
+                configMap.getAuthorizedGrantTypes(),
+                configMap.getRedirectUris(),
+                configMap.getApplicationType(),
+                configMap.getTokenType(),
+                configMap.getSubjectType(),
                 configMap.getAuthenticationMethods(),
-                configMap.getIdTokenClaims(), configMap.getFirstParty(),
-                configMap.getAccessTokenValidity(), configMap.getRefreshTokenValidity(),
+                configMap.getIdTokenClaims(),
+                configMap.getFirstParty(),
+                configMap.getAccessTokenValidity(),
+                configMap.getRefreshTokenValidity(),
                 configMap.getIdTokenValidity(),
                 configMap.getJwksUri(),
                 configMap.getAdditionalConfig(),
-                configMap.getAdditionalInformation());
+                configMap.getAdditionalInformation()
+            );
 
         return toApp(client);
-
     }
 
     @Override
@@ -231,7 +274,6 @@ public class OAuth2ClientAppService implements ClientAppService {
         if (client != null) {
             clientService.deleteClient(clientId);
         }
-
     }
 
     /*
@@ -277,5 +319,4 @@ public class OAuth2ClientAppService implements ClientAppService {
             return null;
         }
     }
-
 }

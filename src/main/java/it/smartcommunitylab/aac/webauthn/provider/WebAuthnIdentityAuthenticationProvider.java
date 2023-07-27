@@ -1,21 +1,23 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.webauthn.provider;
-
-import java.time.Instant;
-import java.util.Collections;
-import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.util.Assert;
 
 import com.yubico.webauthn.AssertionRequest;
 import com.yubico.webauthn.AssertionResult;
-
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchCredentialException;
@@ -28,9 +30,21 @@ import it.smartcommunitylab.aac.webauthn.auth.WebAuthnAuthenticationException;
 import it.smartcommunitylab.aac.webauthn.auth.WebAuthnAuthenticationToken;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredential;
+import java.time.Instant;
+import java.util.Collections;
+import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.util.Assert;
 
 public class WebAuthnIdentityAuthenticationProvider
-        extends ExtendedAuthenticationProvider<WebAuthnUserAuthenticatedPrincipal, InternalUserAccount> {
+    extends ExtendedAuthenticationProvider<WebAuthnUserAuthenticatedPrincipal, InternalUserAccount> {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // provider configuration
@@ -40,10 +54,13 @@ public class WebAuthnIdentityAuthenticationProvider
     private final UserAccountService<InternalUserAccount> userAccountService;
     private final WebAuthnIdentityCredentialsService credentialsService;
 
-    public WebAuthnIdentityAuthenticationProvider(String providerId,
-            UserAccountService<InternalUserAccount> userAccountService,
-            WebAuthnIdentityCredentialsService credentialsService,
-            WebAuthnIdentityProviderConfig providerConfig, String realm) {
+    public WebAuthnIdentityAuthenticationProvider(
+        String providerId,
+        UserAccountService<InternalUserAccount> userAccountService,
+        WebAuthnIdentityCredentialsService credentialsService,
+        WebAuthnIdentityProviderConfig providerConfig,
+        String realm
+    ) {
         super(SystemKeys.AUTHORITY_WEBAUTHN, providerId, realm);
         Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(credentialsService, "credentials service is mandatory");
@@ -58,8 +75,11 @@ public class WebAuthnIdentityAuthenticationProvider
 
     @Override
     public Authentication doAuthenticate(Authentication authentication) throws AuthenticationException {
-        Assert.isInstanceOf(WebAuthnAuthenticationToken.class, authentication,
-                "Only WebAuthnAuthenticationToken is supported");
+        Assert.isInstanceOf(
+            WebAuthnAuthenticationToken.class,
+            authentication,
+            "Only WebAuthnAuthenticationToken is supported"
+        );
         WebAuthnAuthenticationToken authRequest = (WebAuthnAuthenticationToken) authentication;
 
         String userHandle = authRequest.getUserHandle();
@@ -104,8 +124,12 @@ public class WebAuthnIdentityAuthenticationProvider
                 }
 
                 // update usage counter
-                credential = credentialsService.updateCredentialCounter(userHandle, credentialId,
-                        assertionResult.getSignatureCount());
+                credential =
+                    credentialsService.updateCredentialCounter(
+                        userHandle,
+                        credentialId,
+                        assertionResult.getSignatureCount()
+                    );
             } catch (RegistrationException | NoSuchCredentialException | NoSuchUserException e) {
                 // don't leak credential is invalid
                 throw new WebAuthnAuthenticationException(account.getUserId(), "invalid credentials");
@@ -120,8 +144,14 @@ public class WebAuthnIdentityAuthenticationProvider
             Set<GrantedAuthority> authorities = Collections.singleton(new SimpleGrantedAuthority(Config.R_USER));
 
             // build a valid token
-            WebAuthnAuthenticationToken auth = new WebAuthnAuthenticationToken(userHandle, assertionRequest, assertion,
-                    assertionResult, account, authorities);
+            WebAuthnAuthenticationToken auth = new WebAuthnAuthenticationToken(
+                userHandle,
+                assertionRequest,
+                assertion,
+                assertionResult,
+                account,
+                authorities
+            );
 
             // copy details
             auth.setDetails(authRequest.getDetails());
@@ -131,11 +161,8 @@ public class WebAuthnIdentityAuthenticationProvider
             throw new BadCredentialsException("invalid user");
         } catch (BadCredentialsException e) {
             logger.debug("invalid request: " + e.getMessage());
-            throw new WebAuthnAuthenticationException(subject, userHandle, assertion, e,
-                    e.getMessage());
-
+            throw new WebAuthnAuthenticationException(subject, userHandle, assertion, e, e.getMessage());
         }
-
     }
 
     @Override
@@ -148,16 +175,20 @@ public class WebAuthnIdentityAuthenticationProvider
         InternalUserAccount account = (InternalUserAccount) principal;
         String userId = account.getUserId();
         String username = account.getUsername();
-//        StringBuilder fullName = new StringBuilder();
-//        fullName.append(account.getName()).append(" ").append(account.getSurname());
-//
-//        String name = fullName.toString();
-//        if (!StringUtils.hasText(name)) {
-//            name = username;
-//        }
+        //        StringBuilder fullName = new StringBuilder();
+        //        fullName.append(account.getName()).append(" ").append(account.getSurname());
+        //
+        //        String name = fullName.toString();
+        //        if (!StringUtils.hasText(name)) {
+        //            name = username;
+        //        }
 
-        WebAuthnUserAuthenticatedPrincipal user = new WebAuthnUserAuthenticatedPrincipal(getProvider(), getRealm(),
-                userId, username);
+        WebAuthnUserAuthenticatedPrincipal user = new WebAuthnUserAuthenticatedPrincipal(
+            getProvider(),
+            getRealm(),
+            userId,
+            username
+        );
         // set principal name as username
         user.setName(username);
         // set attributes to support mapping in idp

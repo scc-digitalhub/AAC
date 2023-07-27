@@ -1,5 +1,42 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.openid;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import it.smartcommunitylab.aac.auth.WithMockUserAuthentication;
+import it.smartcommunitylab.aac.bootstrap.BootstrapConfig;
+import it.smartcommunitylab.aac.oauth.OAuth2ConfigUtils;
+import it.smartcommunitylab.aac.oauth.OAuth2TestConfig.UserRegistration;
+import it.smartcommunitylab.aac.oauth.OAuth2TestUtils;
+import it.smartcommunitylab.aac.oauth.endpoint.TokenIntrospectionEndpoint;
+import it.smartcommunitylab.aac.oauth.model.ClientRegistration;
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,31 +54,10 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import it.smartcommunitylab.aac.auth.WithMockUserAuthentication;
-import it.smartcommunitylab.aac.bootstrap.BootstrapConfig;
-import it.smartcommunitylab.aac.oauth.OAuth2ConfigUtils;
-import it.smartcommunitylab.aac.oauth.OAuth2TestConfig.UserRegistration;
-import it.smartcommunitylab.aac.oauth.OAuth2TestUtils;
-import it.smartcommunitylab.aac.oauth.endpoint.TokenIntrospectionEndpoint;
-import it.smartcommunitylab.aac.oauth.model.ClientRegistration;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-import java.io.Serializable;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
 
 /*
  * OAuth 2.0 Token Introspection
- * as per 
+ * as per
  * https://www.rfc-editor.org/rfc/rfc7662
  */
 
@@ -74,8 +90,9 @@ public class OIDCTokenIntrospectionTest {
 
     @BeforeEach
     public void setUp() {
-        if (clientId == null || clientSecret == null || clientJwks == null || client2Id == null
-                || client2Secret == null) {
+        if (
+            clientId == null || clientSecret == null || clientJwks == null || client2Id == null || client2Secret == null
+        ) {
             List<ClientRegistration> clients = OAuth2ConfigUtils.with(config).clients();
             assertThat(clients.size()).isGreaterThanOrEqualTo(2);
 
@@ -109,10 +126,7 @@ public class OIDCTokenIntrospectionTest {
 
     @Test
     public void introspectMetadataIsAvailable() throws Exception {
-        MvcResult res = this.mockMvc
-                .perform(get(METADATA_URL))
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(get(METADATA_URL)).andExpect(status().isOk()).andReturn();
 
         // parse as Map from JSON
         String json = res.getResponse().getContentAsString();
@@ -135,15 +149,13 @@ public class OIDCTokenIntrospectionTest {
         params.add(OAuth2ParameterNames.TOKEN, idToken);
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(INTROSPECTION_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(INTROSPECTION_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a valid json in response
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
@@ -170,15 +182,13 @@ public class OIDCTokenIntrospectionTest {
         params.add(OAuth2ParameterNames.TOKEN_TYPE_HINT, OidcParameterNames.ID_TOKEN);
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(INTROSPECTION_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(INTROSPECTION_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a valid json in response
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
@@ -205,15 +215,13 @@ public class OIDCTokenIntrospectionTest {
         params.add(OAuth2ParameterNames.TOKEN_TYPE_HINT, OAuth2ParameterNames.ACCESS_TOKEN);
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(INTROSPECTION_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(INTROSPECTION_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a valid json in response
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
@@ -236,15 +244,13 @@ public class OIDCTokenIntrospectionTest {
         params.add(OAuth2ParameterNames.TOKEN, "invalid-id-token");
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(INTROSPECTION_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(INTROSPECTION_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a valid json in response
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
@@ -270,15 +276,13 @@ public class OIDCTokenIntrospectionTest {
         params.add(OAuth2ParameterNames.TOKEN_TYPE_HINT, OidcParameterNames.ID_TOKEN);
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(INTROSPECTION_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(INTROSPECTION_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a valid json in response
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
@@ -304,15 +308,13 @@ public class OIDCTokenIntrospectionTest {
         params.add(OAuth2ParameterNames.TOKEN_TYPE_HINT, OAuth2ParameterNames.ACCESS_TOKEN);
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(INTROSPECTION_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(INTROSPECTION_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a valid json in response
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
@@ -332,25 +334,33 @@ public class OIDCTokenIntrospectionTest {
     /*
      * endpoints
      */
-    public final static String METADATA_URL = "/.well-known/oauth-authorization-server";
-    private final static String INTROSPECTION_URL = TokenIntrospectionEndpoint.TOKEN_INTROSPECTION_URL;
+    public static final String METADATA_URL = "/.well-known/oauth-authorization-server";
+    private static final String INTROSPECTION_URL = TokenIntrospectionEndpoint.TOKEN_INTROSPECTION_URL;
 
     /*
      * claims
      */
-    public final static Set<String> REQUIRED_METADATA;
-    public final static String OAUTH2_METADATA_ISSUER = "issuer";
-    public final static String OAUTH2_METADATA_INTROSPECTION_ENDPOINT = "introspection_endpoint";
-    public final static String OAUTH2_METADATA_INTROSPECTION_ENDPOINT_AUTH_METHODS = "introspection_endpoint_auth_methods_supported";
-    public final static String OAUTH2_METADATA_INTROSPECTION_ENDPOINT_AUTH_SIGNIN_ALG = "introspection_endpoint_auth_signing_alg_values_supported";
+    public static final Set<String> REQUIRED_METADATA;
+    public static final String OAUTH2_METADATA_ISSUER = "issuer";
+    public static final String OAUTH2_METADATA_INTROSPECTION_ENDPOINT = "introspection_endpoint";
+    public static final String OAUTH2_METADATA_INTROSPECTION_ENDPOINT_AUTH_METHODS =
+        "introspection_endpoint_auth_methods_supported";
+    public static final String OAUTH2_METADATA_INTROSPECTION_ENDPOINT_AUTH_SIGNIN_ALG =
+        "introspection_endpoint_auth_signing_alg_values_supported";
 
     static {
-        REQUIRED_METADATA = Collections.unmodifiableSortedSet(new TreeSet<>(
-                List.of(OAUTH2_METADATA_INTROSPECTION_ENDPOINT,
+        REQUIRED_METADATA =
+            Collections.unmodifiableSortedSet(
+                new TreeSet<>(
+                    List.of(
+                        OAUTH2_METADATA_INTROSPECTION_ENDPOINT,
                         OAUTH2_METADATA_INTROSPECTION_ENDPOINT_AUTH_METHODS,
-                        OAUTH2_METADATA_INTROSPECTION_ENDPOINT_AUTH_SIGNIN_ALG)));
-
+                        OAUTH2_METADATA_INTROSPECTION_ENDPOINT_AUTH_SIGNIN_ALG
+                    )
+                )
+            );
     }
-    private final TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
-    };
+
+    private final TypeReference<HashMap<String, Serializable>> typeRef =
+        new TypeReference<HashMap<String, Serializable>>() {};
 }

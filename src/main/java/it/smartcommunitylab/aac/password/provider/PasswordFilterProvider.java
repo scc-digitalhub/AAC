@@ -1,23 +1,37 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.password.provider;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-
-import javax.servlet.Filter;
-
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.RequestAwareAuthenticationSuccessHandler;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.password.auth.UsernamePasswordAuthenticationFilter;
 import it.smartcommunitylab.aac.password.auth.ResetKeyAuthenticationFilter;
+import it.smartcommunitylab.aac.password.auth.UsernamePasswordAuthenticationFilter;
 import it.smartcommunitylab.aac.password.service.InternalPasswordUserCredentialsService;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import javax.servlet.Filter;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.util.Assert;
 
 public class PasswordFilterProvider implements FilterProvider {
 
@@ -28,9 +42,10 @@ public class PasswordFilterProvider implements FilterProvider {
     private AuthenticationManager authManager;
 
     public PasswordFilterProvider(
-            UserAccountService<InternalUserAccount> userAccountService,
-            InternalPasswordUserCredentialsService userPasswordService,
-            ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository) {
+        UserAccountService<InternalUserAccount> userAccountService,
+        InternalPasswordUserCredentialsService userPasswordService,
+        ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository
+    ) {
         Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(userPasswordService, "password service is mandatory");
         Assert.notNull(registrationRepository, "registration repository is mandatory");
@@ -53,11 +68,17 @@ public class PasswordFilterProvider implements FilterProvider {
     public List<Filter> getAuthFilters() {
         // build auth filters for user+password and resetKey
         UsernamePasswordAuthenticationFilter loginFilter = new UsernamePasswordAuthenticationFilter(
-                userAccountService, userPasswordService, registrationRepository);
+            userAccountService,
+            userPasswordService,
+            registrationRepository
+        );
         loginFilter.setAuthenticationSuccessHandler(successHandler());
 
         ResetKeyAuthenticationFilter resetKeyFilter = new ResetKeyAuthenticationFilter(
-                userAccountService, userPasswordService, registrationRepository);
+            userAccountService,
+            userPasswordService,
+            registrationRepository
+        );
         resetKeyFilter.setAuthenticationSuccessHandler(successHandler());
 
         if (authManager != null) {
@@ -71,7 +92,6 @@ public class PasswordFilterProvider implements FilterProvider {
         filters.add(resetKeyFilter);
 
         return filters;
-
     }
 
     @Override
@@ -85,8 +105,7 @@ public class PasswordFilterProvider implements FilterProvider {
         return Arrays.asList(NO_CORS_ENDPOINTS);
     }
 
-    private static String[] NO_CORS_ENDPOINTS = {
-    };
+    private static String[] NO_CORS_ENDPOINTS = {};
 
     private RequestAwareAuthenticationSuccessHandler successHandler() {
         return new RequestAwareAuthenticationSuccessHandler();

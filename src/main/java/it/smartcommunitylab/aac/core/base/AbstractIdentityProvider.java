@@ -1,14 +1,21 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.core.base;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
@@ -26,29 +33,43 @@ import it.smartcommunitylab.aac.core.provider.IdentityAttributeProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProviderConfig;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 @Transactional
-public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends UserAccount, P extends UserAuthenticatedPrincipal, M extends ConfigMap, C extends IdentityProviderConfig<M>>
-        extends AbstractConfigurableProvider<I, ConfigurableIdentityProvider, M, C>
-        implements IdentityProvider<I, U, P, M, C>, InitializingBean {
+public abstract class AbstractIdentityProvider<
+    I extends UserIdentity,
+    U extends UserAccount,
+    P extends UserAuthenticatedPrincipal,
+    M extends ConfigMap,
+    C extends IdentityProviderConfig<M>
+>
+    extends AbstractConfigurableProvider<I, ConfigurableIdentityProvider, M, C>
+    implements IdentityProvider<I, U, P, M, C>, InitializingBean {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    public AbstractIdentityProvider(
-            String authority, String providerId,
-            C config,
-            String realm) {
+    public AbstractIdentityProvider(String authority, String providerId, C config, String realm) {
         super(authority, providerId, realm, config);
         Assert.notNull(config, "provider config is mandatory");
 
-        Assert.isTrue(authority.equals(config.getAuthority()),
-                "configuration does not match this provider");
-        Assert.isTrue(providerId.equals(config.getProvider()),
-                "configuration does not match this provider");
+        Assert.isTrue(authority.equals(config.getAuthority()), "configuration does not match this provider");
+        Assert.isTrue(providerId.equals(config.getProvider()), "configuration does not match this provider");
         Assert.isTrue(realm.equals(config.getRealm()), "configuration does not match this provider");
 
-        logger.debug("create {} idp for realm {} with id {}", String.valueOf(authority), String.valueOf(realm),
-                String.valueOf(providerId));
-
+        logger.debug(
+            "create {} idp for realm {} with id {}",
+            String.valueOf(authority),
+            String.valueOf(realm),
+            String.valueOf(providerId)
+        );
     }
 
     @Override
@@ -110,8 +131,7 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
      */
 
     public I convertIdentity(UserAuthenticatedPrincipal authPrincipal, String userId)
-            throws NoSuchUserException, RegistrationException {
-
+        throws NoSuchUserException, RegistrationException {
         logger.debug("convert principal to identity for user {}", String.valueOf(userId));
         if (logger.isTraceEnabled()) {
             logger.trace("principal {}", String.valueOf(authPrincipal));
@@ -147,8 +167,12 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
         String username = principal.getUsername();
         String emailAddress = principal.getEmailAddress();
 
-        logger.debug("principal for {} is {} email {}", String.valueOf(userId), String.valueOf(username),
-                String.valueOf(emailAddress));
+        logger.debug(
+            "principal for {} is {} email {}",
+            String.valueOf(userId),
+            String.valueOf(username),
+            String.valueOf(emailAddress)
+        );
 
         // convert to account
         U reg = getAccountPrincipalConverter().convertAccount(principal, userId);
@@ -181,10 +205,10 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
         } else {
             // check if userId matches
             if (!userId.equals(account.getUserId())) {
-//              // force link
-//              // TODO re-evaluate
-//              account.setSubject(subjectId);
-//              account = accountRepository.save(account);
+                //              // force link
+                //              // TODO re-evaluate
+                //              account.setSubject(subjectId);
+                //              account = accountRepository.save(account);
                 throw new IllegalArgumentException("user mismatch");
             }
 
@@ -208,8 +232,7 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
 
         // convert attribute sets via provider, will update store
         logger.debug("convert principal and account to attributes via provider for {}", String.valueOf(id));
-        Collection<UserAttributes> attributes = getAttributeProvider().convertPrincipalAttributes(principal,
-                account);
+        Collection<UserAttributes> attributes = getAttributeProvider().convertPrincipalAttributes(principal, account);
         if (logger.isTraceEnabled()) {
             logger.trace("identity attributes: {}", String.valueOf(attributes));
         }
@@ -224,30 +247,30 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
         return identity;
     }
 
-//    @Override
-//    @Transactional(readOnly = true)
-//    public I findIdentityByUuid(String userId, String uuid) {
-//        logger.debug("find identity for uuid {}", String.valueOf(uuid));
-//
-//        // lookup a matching account
-//        U account = getAccountProvider().findAccountByUuid(uuid);
-//        if (account == null) {
-//            return null;
-//        }
-//
-//        // check userId matches
-//        if (!account.getUserId().equals(userId)) {
-//            return null;
-//        }
-//
-//        // build identity without attributes or principal
-//        I identity = buildIdentity(account, null);
-//        if (logger.isTraceEnabled()) {
-//            logger.trace("identity: {}", String.valueOf(identity));
-//        }
-//
-//        return identity;
-//    }
+    //    @Override
+    //    @Transactional(readOnly = true)
+    //    public I findIdentityByUuid(String userId, String uuid) {
+    //        logger.debug("find identity for uuid {}", String.valueOf(uuid));
+    //
+    //        // lookup a matching account
+    //        U account = getAccountProvider().findAccountByUuid(uuid);
+    //        if (account == null) {
+    //            return null;
+    //        }
+    //
+    //        // check userId matches
+    //        if (!account.getUserId().equals(userId)) {
+    //            return null;
+    //        }
+    //
+    //        // build identity without attributes or principal
+    //        I identity = buildIdentity(account, null);
+    //        if (logger.isTraceEnabled()) {
+    //            logger.trace("identity: {}", String.valueOf(identity));
+    //        }
+    //
+    //        return identity;
+    //    }
 
     @Override
     @Transactional(readOnly = true)
@@ -282,10 +305,13 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
 
     @Override
     @Transactional(readOnly = true)
-    public I getIdentity(String userId, String accountId, boolean fetchAttributes)
-            throws NoSuchUserException {
-        logger.debug("get identity for id {} user {} with attributes {}", String.valueOf(accountId),
-                String.valueOf(userId), String.valueOf(fetchAttributes));
+    public I getIdentity(String userId, String accountId, boolean fetchAttributes) throws NoSuchUserException {
+        logger.debug(
+            "get identity for id {} user {} with attributes {}",
+            String.valueOf(accountId),
+            String.valueOf(userId),
+            String.valueOf(fetchAttributes)
+        );
 
         // lookup a matching account
         U account = getAccountProvider().getAccount(accountId);
@@ -319,8 +345,11 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
     @Override
     @Transactional(readOnly = true)
     public Collection<I> listIdentities(String userId, boolean fetchAttributes) {
-        logger.debug("list identities for user {} attributes {}", String.valueOf(userId),
-                String.valueOf(fetchAttributes));
+        logger.debug(
+            "list identities for user {} attributes {}",
+            String.valueOf(userId),
+            String.valueOf(fetchAttributes)
+        );
 
         // lookup for matching accounts
         Collection<U> accounts = getAccountProvider().listAccounts(userId);
@@ -385,9 +414,7 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
 
             // remove account
             getAccountProvider().deleteAccount(accountId);
-
         }
-
     }
 
     @Override
@@ -399,9 +426,7 @@ public abstract class AbstractIdentityProvider<I extends UserIdentity, U extends
         for (U account : accounts) {
             try {
                 deleteIdentity(userId, account.getAccountId());
-            } catch (NoSuchUserException e) {
-            }
+            } catch (NoSuchUserException e) {}
         }
     }
-
 }

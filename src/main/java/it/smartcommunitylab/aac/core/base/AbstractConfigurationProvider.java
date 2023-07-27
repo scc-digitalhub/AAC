@@ -1,32 +1,48 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.core.base;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
+import it.smartcommunitylab.aac.core.provider.ProviderConfig;
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.springframework.util.Assert;
 
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+public abstract class AbstractConfigurationProvider<
+    M extends AbstractConfigMap, T extends ConfigurableProvider, C extends AbstractProviderConfig<M, T>
+>
+    implements ConfigurationProvider<M, T, C> {
 
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
-import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
-import it.smartcommunitylab.aac.core.provider.ProviderConfig;
-
-public abstract class AbstractConfigurationProvider<M extends AbstractConfigMap, T extends ConfigurableProvider, C extends AbstractProviderConfig<M, T>>
-        implements ConfigurationProvider<M, T, C> {
-    protected final static ObjectMapper mapper = new ObjectMapper().addMixIn(AbstractConfigMap.class, NoTypes.class);
+    protected static final ObjectMapper mapper = new ObjectMapper().addMixIn(AbstractConfigMap.class, NoTypes.class);
     private final JavaType type;
-    private final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
-    };
+    private static final TypeReference<HashMap<String, Serializable>> typeRef =
+        new TypeReference<HashMap<String, Serializable>>() {};
 
     protected final String authority;
     protected M defaultConfigMap;
@@ -64,15 +80,16 @@ public abstract class AbstractConfigurationProvider<M extends AbstractConfigMap,
             map.putAll(cp.getConfiguration());
 
             Map<String, Serializable> defaultMap = defaultConfigMap.getConfiguration();
-            defaultMap.entrySet().forEach(e -> {
-                map.putIfAbsent(e.getKey(), e.getValue());
-            });
+            defaultMap
+                .entrySet()
+                .forEach(e -> {
+                    map.putIfAbsent(e.getKey(), e.getValue());
+                });
 
             cp.setConfiguration(map);
         }
 
         return buildConfig(cp);
-
     }
 
     @Override
@@ -114,7 +131,5 @@ public abstract class AbstractConfigurationProvider<M extends AbstractConfigMap,
     }
 
     @JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
-    static class NoTypes {
-    }
-
+    static class NoTypes {}
 }

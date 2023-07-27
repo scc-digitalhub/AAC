@@ -1,18 +1,20 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.jwt;
-
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import javax.annotation.PostConstruct;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.util.StringUtils;
 
 import com.nimbusds.jose.EncryptionMethod;
 import com.nimbusds.jose.JOSEException;
@@ -32,10 +34,21 @@ import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.OctetSequenceKey;
 import com.nimbusds.jose.jwk.RSAKey;
-
 import it.smartcommunitylab.aac.jose.JWKSetKeyStore;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import javax.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
 
 public class DefaultJWTEncryptionAndDecryptionService implements JWTEncryptionAndDecryptionService {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // map of identifier to encrypter
@@ -63,7 +76,7 @@ public class DefaultJWTEncryptionAndDecryptionService implements JWTEncryptionAn
      * @throws JOSEException
      */
     public DefaultJWTEncryptionAndDecryptionService(Map<String, JWK> keys)
-            throws NoSuchAlgorithmException, InvalidKeySpecException, JOSEException {
+        throws NoSuchAlgorithmException, InvalidKeySpecException, JOSEException {
         this.keys = keys;
         buildEncryptersAndDecrypters();
     }
@@ -78,8 +91,7 @@ public class DefaultJWTEncryptionAndDecryptionService implements JWTEncryptionAn
      * @throws JOSEException
      */
     public DefaultJWTEncryptionAndDecryptionService(JWKSetKeyStore keyStore)
-            throws NoSuchAlgorithmException, InvalidKeySpecException, JOSEException {
-
+        throws NoSuchAlgorithmException, InvalidKeySpecException, JOSEException {
         // convert all keys in the keystore to a map based on key id
         for (JWK key : keyStore.getKeys()) {
             if (key.getKeyUse() == null || key.getKeyUse().equals(KeyUse.ENCRYPTION)) {
@@ -87,21 +99,21 @@ public class DefaultJWTEncryptionAndDecryptionService implements JWTEncryptionAn
                     this.keys.put(key.getKeyID(), key);
                 } else {
                     throw new IllegalArgumentException(
-                            "Tried to load a key from a keystore without a 'kid' field: " + key);
+                        "Tried to load a key from a keystore without a 'kid' field: " + key
+                    );
                 }
             }
         }
 
         buildEncryptersAndDecrypters();
-
     }
 
     @PostConstruct
     public void afterPropertiesSet() {
-
         if (keys == null) {
             throw new IllegalArgumentException(
-                    "Encryption and decryption service must have at least one key configured.");
+                "Encryption and decryption service must have at least one key configured."
+            );
         }
         try {
             buildEncryptersAndDecrypters();
@@ -154,7 +166,7 @@ public class DefaultJWTEncryptionAndDecryptionService implements JWTEncryptionAn
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.mitre.jwt.encryption.service.JwtEncryptionAndDecryptionService#encryptJwt
      * (com.nimbusds.jwt.EncryptedJWT)
@@ -170,15 +182,13 @@ public class DefaultJWTEncryptionAndDecryptionService implements JWTEncryptionAn
         try {
             jwt.encrypt(encrypter);
         } catch (JOSEException e) {
-
             logger.error("Failed to encrypt JWT, error was: ", e);
         }
-
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.mitre.jwt.encryption.service.JwtEncryptionAndDecryptionService#decryptJwt
      * (com.nimbusds.jwt.EncryptedJWT)
@@ -194,25 +204,21 @@ public class DefaultJWTEncryptionAndDecryptionService implements JWTEncryptionAn
         try {
             jwt.decrypt(decrypter);
         } catch (JOSEException e) {
-
             logger.error("Failed to decrypt JWT, error was: ", e);
         }
-
     }
 
     /**
      * Builds all the encrypters and decrypters for this service based on the key
      * map.
-     * 
+     *
      * @throws @throws                  InvalidKeySpecException
      * @throws NoSuchAlgorithmException
      * @throws JOSEException
      */
     private void buildEncryptersAndDecrypters()
-            throws NoSuchAlgorithmException, InvalidKeySpecException, JOSEException {
-
+        throws NoSuchAlgorithmException, InvalidKeySpecException, JOSEException {
         for (Map.Entry<String, JWK> jwkEntry : keys.entrySet()) {
-
             String id = jwkEntry.getKey();
             JWK jwk = jwkEntry.getValue();
 
@@ -220,7 +226,7 @@ public class DefaultJWTEncryptionAndDecryptionService implements JWTEncryptionAn
                 // build RSA encrypters and decrypters
 
                 RSAEncrypter encrypter = new RSAEncrypter((RSAKey) jwk); // there should always at least be the public
-                                                                         // key
+                // key
                 encrypter.getJCAContext().setProvider(BouncyCastleProviderSingleton.getInstance());
                 encrypters.put(id, encrypter);
 
@@ -232,7 +238,6 @@ public class DefaultJWTEncryptionAndDecryptionService implements JWTEncryptionAn
                     logger.warn("No private key for key #" + jwk.getKeyID());
                 }
             } else if (jwk instanceof ECKey) {
-
                 // build EC Encrypters and decrypters
 
                 ECDHEncrypter encrypter = new ECDHEncrypter((ECKey) jwk);
@@ -246,7 +251,6 @@ public class DefaultJWTEncryptionAndDecryptionService implements JWTEncryptionAn
                 } else {
                     logger.warn("No private key for key # " + jwk.getKeyID());
                 }
-
             } else if (jwk instanceof OctetSequenceKey) {
                 // build symmetric encrypters and decrypters
 
@@ -257,11 +261,9 @@ public class DefaultJWTEncryptionAndDecryptionService implements JWTEncryptionAn
 
                 encrypters.put(id, encrypter);
                 decrypters.put(id, decrypter);
-
             } else {
                 logger.warn("Unknown key type: " + jwk);
             }
-
         }
     }
 
@@ -298,7 +300,7 @@ public class DefaultJWTEncryptionAndDecryptionService implements JWTEncryptionAn
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.mitre.jwt.encryption.service.JwtEncryptionAndDecryptionService#
      * getAllEncryptionEncsSupported()
      */
@@ -316,5 +318,4 @@ public class DefaultJWTEncryptionAndDecryptionService implements JWTEncryptionAn
 
         return encs;
     }
-
 }

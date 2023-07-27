@@ -1,3 +1,19 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.oauth.token;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -5,6 +21,23 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSSigner;
+import com.nimbusds.jose.crypto.MACSigner;
+import com.nimbusds.jose.crypto.RSASSASigner;
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.KeyType;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
+import it.smartcommunitylab.aac.bootstrap.BootstrapConfig;
+import it.smartcommunitylab.aac.oauth.OAuth2ConfigUtils;
+import it.smartcommunitylab.aac.oauth.endpoint.TokenEndpoint;
+import it.smartcommunitylab.aac.oauth.model.ClientRegistration;
 import java.io.Serializable;
 import java.text.ParseException;
 import java.time.Duration;
@@ -13,7 +46,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,36 +64,17 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.JWSSigner;
-import com.nimbusds.jose.crypto.MACSigner;
-import com.nimbusds.jose.crypto.RSASSASigner;
-import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.KeyType;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.SignedJWT;
-
-import it.smartcommunitylab.aac.bootstrap.BootstrapConfig;
-import it.smartcommunitylab.aac.oauth.OAuth2ConfigUtils;
-import it.smartcommunitylab.aac.oauth.endpoint.TokenEndpoint;
-import it.smartcommunitylab.aac.oauth.model.ClientRegistration;
-
 /*
  * OAuth 2.0 Client Credentials
  * as per RFC6749
- * 
+ *
  * https://www.rfc-editor.org/rfc/rfc6749#section-4.4
- * 
- * authentication as per OpenID connect core 
+ *
+ * authentication as per OpenID connect core
  * https://openid.net/specs/openid-connect-core-1_0.html#ClientAuthentication
- * 
+ *
  * jwt assertion as per JWT for OAuth2.0 RFC7523
- * 
+ *
  * https://www.rfc-editor.org/rfc/rfc7523#section-2.2
  */
 
@@ -111,8 +124,13 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
         RSASSASigner signer = new RSASSASigner(jwk.toRSAKey());
 
         // build assertion
-        SignedJWT assertion = buildClientAssertion(applicationURL, clientId, signer, JWSAlgorithm.RS256,
-                jwk.getKeyID());
+        SignedJWT assertion = buildClientAssertion(
+            applicationURL,
+            clientId,
+            signer,
+            JWSAlgorithm.RS256,
+            jwk.getKeyID()
+        );
 
         // token request
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -123,14 +141,12 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
         params.add(OAuth2ParameterNames.SCOPE, "");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(TOKEN_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req).andDo(print())
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andDo(print()).andExpect(status().isOk()).andReturn();
 
         // expect a valid json in response
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
@@ -170,14 +186,12 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
         params.add(OAuth2ParameterNames.SCOPE, "");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(TOKEN_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a valid json in response
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
@@ -214,14 +228,12 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
         params.add(OAuth2ParameterNames.CLIENT_ASSERTION_TYPE, JWT_ASSERTION_TYPE);
         params.add(OAuth2ParameterNames.CLIENT_ASSERTION, assertion.serialize());
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(TOKEN_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isUnauthorized())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isUnauthorized()).andReturn();
 
         // expect a 401 with an error
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
@@ -247,14 +259,12 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
         // add client id because AAC requires it for security reasons
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(TOKEN_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isUnauthorized())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isUnauthorized()).andReturn();
 
         // expect a 401 with an error
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
@@ -270,22 +280,20 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
         MACSigner signer = new MACSigner(clientSecret);
 
         // build invalid assertion with correct signature
-        JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.HS256)
-                .keyID(clientId)
-                .build();
+        JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.HS256).keyID(clientId).build();
 
         // build claims with time in the past
         Instant issuedAt = Instant.now().minus(Duration.ofDays(1));
         Instant expiresAt = issuedAt.plus(Duration.ofSeconds(DEFAULT_DURATION));
 
         JWTClaimsSet claims = new JWTClaimsSet.Builder()
-                .issuer(clientId)
-                .subject(clientId)
-                .audience(Collections.singletonList(applicationURL))
-                .jwtID(UUID.randomUUID().toString())
-                .issueTime(Date.from(issuedAt))
-                .expirationTime(Date.from(expiresAt))
-                .build();
+            .issuer(clientId)
+            .subject(clientId)
+            .audience(Collections.singletonList(applicationURL))
+            .jwtID(UUID.randomUUID().toString())
+            .issueTime(Date.from(issuedAt))
+            .expirationTime(Date.from(expiresAt))
+            .build();
 
         SignedJWT assertion = buildClientAssertion(clientId, signer, header, claims);
 
@@ -297,14 +305,12 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
         // add client id because AAC requires it for security reasons
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(TOKEN_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isUnauthorized())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isUnauthorized()).andReturn();
 
         // expect a 401 with an error
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
@@ -320,23 +326,21 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
         MACSigner signer = new MACSigner(clientSecret);
 
         // build invalid assertion with correct signature
-        JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.HS256)
-                .keyID(clientId)
-                .build();
+        JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.HS256).keyID(clientId).build();
 
         // build claims with invalid audience
         Instant issuedAt = Instant.now();
         Instant expiresAt = issuedAt.plus(Duration.ofSeconds(DEFAULT_DURATION));
 
         JWTClaimsSet claims = new JWTClaimsSet.Builder()
-                .issuer(clientId)
-                .subject(clientId)
-                // use clientId as audience
-                .audience(Collections.singletonList(clientId))
-                .jwtID(UUID.randomUUID().toString())
-                .issueTime(Date.from(issuedAt))
-                .expirationTime(Date.from(expiresAt))
-                .build();
+            .issuer(clientId)
+            .subject(clientId)
+            // use clientId as audience
+            .audience(Collections.singletonList(clientId))
+            .jwtID(UUID.randomUUID().toString())
+            .issueTime(Date.from(issuedAt))
+            .expirationTime(Date.from(expiresAt))
+            .build();
 
         SignedJWT assertion = buildClientAssertion(clientId, signer, header, claims);
 
@@ -348,14 +352,12 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
         // add client id because AAC requires it for security reasons
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(TOKEN_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isUnauthorized())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isUnauthorized()).andReturn();
 
         // expect a 401 with an error
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
@@ -371,23 +373,21 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
         MACSigner signer = new MACSigner(clientSecret);
 
         // build invalid assertion with correct signature
-        JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.HS256)
-                .keyID(clientId)
-                .build();
+        JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.HS256).keyID(clientId).build();
 
         // build claims with time in the past
         Instant issuedAt = Instant.now();
         Instant expiresAt = issuedAt.plus(Duration.ofSeconds(DEFAULT_DURATION));
 
         JWTClaimsSet claims = new JWTClaimsSet.Builder()
-                // use application as issuer
-                .issuer(applicationURL)
-                .subject(clientId)
-                .audience(Collections.singletonList(applicationURL))
-                .jwtID(UUID.randomUUID().toString())
-                .issueTime(Date.from(issuedAt))
-                .expirationTime(Date.from(expiresAt))
-                .build();
+            // use application as issuer
+            .issuer(applicationURL)
+            .subject(clientId)
+            .audience(Collections.singletonList(applicationURL))
+            .jwtID(UUID.randomUUID().toString())
+            .issueTime(Date.from(issuedAt))
+            .expirationTime(Date.from(expiresAt))
+            .build();
 
         SignedJWT assertion = buildClientAssertion(clientId, signer, header, claims);
 
@@ -399,14 +399,12 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
         // add client id because AAC requires it for security reasons
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(TOKEN_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isUnauthorized())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isUnauthorized()).andReturn();
 
         // expect a 401 with an error
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
@@ -422,23 +420,21 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
         MACSigner signer = new MACSigner(clientSecret);
 
         // build invalid assertion with correct signature
-        JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.HS256)
-                .keyID(clientId)
-                .build();
+        JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.HS256).keyID(clientId).build();
 
         // build claims with time in the past
         Instant issuedAt = Instant.now();
         Instant expiresAt = issuedAt.plus(Duration.ofSeconds(DEFAULT_DURATION));
 
         JWTClaimsSet claims = new JWTClaimsSet.Builder()
-                .issuer(clientId)
-                // use another subject
-                .subject("subject")
-                .audience(Collections.singletonList(applicationURL))
-                .jwtID(UUID.randomUUID().toString())
-                .issueTime(Date.from(issuedAt))
-                .expirationTime(Date.from(expiresAt))
-                .build();
+            .issuer(clientId)
+            // use another subject
+            .subject("subject")
+            .audience(Collections.singletonList(applicationURL))
+            .jwtID(UUID.randomUUID().toString())
+            .issueTime(Date.from(issuedAt))
+            .expirationTime(Date.from(expiresAt))
+            .build();
 
         SignedJWT assertion = buildClientAssertion(clientId, signer, header, claims);
 
@@ -450,14 +446,12 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
         // add client id because AAC requires it for security reasons
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(TOKEN_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isUnauthorized())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isUnauthorized()).andReturn();
 
         // expect a 401 with an error
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
@@ -473,23 +467,21 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
         MACSigner signer = new MACSigner(clientSecret);
 
         // build invalid assertion with correct signature
-        JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.HS256)
-                .keyID(clientId)
-                .build();
+        JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.HS256).keyID(clientId).build();
 
         // build claims with time in the past
         Instant issuedAt = Instant.now();
         Instant expiresAt = issuedAt.plus(Duration.ofSeconds(DEFAULT_DURATION));
 
         JWTClaimsSet claims = new JWTClaimsSet.Builder()
-                .issuer(clientId)
-                .subject(clientId)
-                .audience(Collections.singletonList(applicationURL))
-                // null id
-                // .jwtID()
-                .issueTime(Date.from(issuedAt))
-                .expirationTime(Date.from(expiresAt))
-                .build();
+            .issuer(clientId)
+            .subject(clientId)
+            .audience(Collections.singletonList(applicationURL))
+            // null id
+            // .jwtID()
+            .issueTime(Date.from(issuedAt))
+            .expirationTime(Date.from(expiresAt))
+            .build();
 
         SignedJWT assertion = buildClientAssertion(clientId, signer, header, claims);
 
@@ -501,14 +493,12 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
         // add client id because AAC requires it for security reasons
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(TOKEN_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isUnauthorized())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isUnauthorized()).andReturn();
 
         // expect a 401 with an error
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
@@ -518,8 +508,12 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
         assertThat(response.get("error")).isEqualTo("unauthorized");
     }
 
-    public static SignedJWT buildClientAssertion(String clientId, JWSSigner signer, JWSHeader header,
-            JWTClaimsSet claims) {
+    public static SignedJWT buildClientAssertion(
+        String clientId,
+        JWSSigner signer,
+        JWSHeader header,
+        JWTClaimsSet claims
+    ) {
         try {
             SignedJWT jwt = new SignedJWT(header, claims);
             jwt.sign(signer);
@@ -530,24 +524,27 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
         }
     }
 
-    public static SignedJWT buildClientAssertion(String applicationURL, String clientId, JWSSigner signer,
-            JWSAlgorithm alg, String keyId) {
-        JWSHeader header = new JWSHeader.Builder(alg)
-                .keyID(keyId)
-                .build();
+    public static SignedJWT buildClientAssertion(
+        String applicationURL,
+        String clientId,
+        JWSSigner signer,
+        JWSAlgorithm alg,
+        String keyId
+    ) {
+        JWSHeader header = new JWSHeader.Builder(alg).keyID(keyId).build();
 
         // build claims
         Instant issuedAt = Instant.now();
         Instant expiresAt = issuedAt.plus(Duration.ofSeconds(DEFAULT_DURATION));
 
         JWTClaimsSet claims = new JWTClaimsSet.Builder()
-                .issuer(clientId)
-                .subject(clientId)
-                .audience(Collections.singletonList(applicationURL))
-                .jwtID(UUID.randomUUID().toString())
-                .issueTime(Date.from(issuedAt))
-                .expirationTime(Date.from(expiresAt))
-                .build();
+            .issuer(clientId)
+            .subject(clientId)
+            .audience(Collections.singletonList(applicationURL))
+            .jwtID(UUID.randomUUID().toString())
+            .issueTime(Date.from(issuedAt))
+            .expirationTime(Date.from(expiresAt))
+            .build();
 
         return buildClientAssertion(clientId, signer, header, claims);
     }
@@ -568,7 +565,6 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
     private static final int DEFAULT_DURATION = 180;
     public static final String JWT_ASSERTION_TYPE = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
 
-    private final static String TOKEN_URL = TokenEndpoint.TOKEN_URL;
-    private final TypeReference<Map<String, Serializable>> typeRef = new TypeReference<Map<String, Serializable>>() {
-    };
+    private static final String TOKEN_URL = TokenEndpoint.TOKEN_URL;
+    private final TypeReference<Map<String, Serializable>> typeRef = new TypeReference<Map<String, Serializable>>() {};
 }

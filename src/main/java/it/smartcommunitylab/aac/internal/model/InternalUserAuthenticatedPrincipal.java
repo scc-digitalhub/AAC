@@ -1,23 +1,37 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.internal.model;
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class InternalUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincipal {
+
     private static final long serialVersionUID = SystemKeys.AAC_INTERNAL_SERIAL_VERSION;
-    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_PRINCIPAL + SystemKeys.ID_SEPARATOR
-            + SystemKeys.AUTHORITY_INTERNAL;
+    public static final String RESOURCE_TYPE =
+        SystemKeys.RESOURCE_PRINCIPAL + SystemKeys.ID_SEPARATOR + SystemKeys.AUTHORITY_INTERNAL;
 
     private final String username;
 
@@ -28,14 +42,18 @@ public class InternalUserAuthenticatedPrincipal extends AbstractAuthenticatedPri
     // internal attributes from account
     private Map<String, String> attributes;
 
-    protected InternalUserAuthenticatedPrincipal(String authority, String provider, String realm, String userId,
-            String username) {
+    protected InternalUserAuthenticatedPrincipal(
+        String authority,
+        String provider,
+        String realm,
+        String userId,
+        String username
+    ) {
         super(authority, provider);
         Assert.hasText(username, "username can not be null or empty");
         this.username = username;
         setRealm(realm);
         setUserId(userId);
-
     }
 
     public InternalUserAuthenticatedPrincipal(String provider, String realm, String userId, String username) {
@@ -151,5 +169,4 @@ public class InternalUserAuthenticatedPrincipal extends AbstractAuthenticatedPri
     public void setName(String name) {
         this.name = name;
     }
-
 }

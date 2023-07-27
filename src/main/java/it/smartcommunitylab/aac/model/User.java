@@ -1,5 +1,29 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import it.smartcommunitylab.aac.core.UserDetails;
+import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
+import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.core.model.UserIdentity;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -8,28 +32,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.validation.constraints.NotBlank;
-
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.Assert;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserIdentity;
-
 /*
  * A model describing the user outside the auth/security context.
- * 
- * Can be safely used to manage attributes/properties, and also roles both in 
+ *
+ * Can be safely used to manage attributes/properties, and also roles both in
  * same-realm and cross-realm scenarios.
- * 
- * Do note that in cross realm managers and builders should properly handle private attributes and 
+ *
+ * Do note that in cross realm managers and builders should properly handle private attributes and
  * disclose only appropriate identities/properties to consumers.
  */
 @JsonInclude(Include.NON_NULL)
@@ -60,10 +73,13 @@ public class User {
     // audit
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Date createDate;
+
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Date modifiedDate;
+
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Date loginDate;
+
     private String loginIp;
     private String loginProvider;
 
@@ -117,7 +133,10 @@ public class User {
         this.source = details.getRealm();
         // set consuming realm to source
         this.realm = source;
-        this.authorities = details.getAuthorities().stream()
+        this.authorities =
+            details
+                .getAuthorities()
+                .stream()
                 .filter(a -> (a instanceof RealmGrantedAuthority))
                 .map(a -> (RealmGrantedAuthority) a)
                 .collect(Collectors.toSet());
@@ -128,9 +147,9 @@ public class User {
         this.groups = new HashSet<>();
 
         this.username = details.getUsername();
-//        this.name = details.getFirstName();
-//        this.surname = details.getLastName();
-//        this.email = details.getEmailAddress();
+        //        this.name = details.getFirstName();
+        //        this.surname = details.getLastName();
+        //        this.email = details.getEmailAddress();
 
     }
 
@@ -161,21 +180,21 @@ public class User {
         this.realm = realm;
     }
 
-//    public String getName() {
-//        return name;
-//    }
-//
-//    public void setName(String name) {
-//        this.name = name;
-//    }
-//
-//    public String getSurname() {
-//        return surname;
-//    }
-//
-//    public void setSurname(String surname) {
-//        this.surname = surname;
-//    }
+    //    public String getName() {
+    //        return name;
+    //    }
+    //
+    //    public void setName(String name) {
+    //        this.name = name;
+    //    }
+    //
+    //    public String getSurname() {
+    //        return surname;
+    //    }
+    //
+    //    public void setSurname(String surname) {
+    //        this.surname = surname;
+    //    }
 
     public String getUsername() {
         return username;
@@ -268,7 +287,6 @@ public class User {
             // add all attributes
             identities.forEach(i -> attributes.addAll(i.getAttributes()));
         }
-
     }
 
     public void addIdentity(UserIdentity identity) {
@@ -299,7 +317,7 @@ public class User {
 
     /*
      * Authorities
-     * 
+     *
      */
 
     /*
@@ -342,23 +360,22 @@ public class User {
         this.groups = new HashSet<>();
         this.groups.addAll(groups);
     }
-
-//    public void addSpaceRoles(Collection<SpaceRole> rr) {
-//        if (rr != null) {
-//            spaceRoles.addAll(rr);
-//        }
-//    }
-//
-//    public void removeSpaceRoles(Collection<SpaceRole> rr) {
-//        spaceRoles.removeAll(rr);
-//    }
-//
-//    public void addSpaceRole(SpaceRole r) {
-//        this.spaceRoles.add(r);
-//    }
-//
-//    public void removeSpaceRole(SpaceRole r) {
-//        this.spaceRoles.remove(r);
-//    }
+    //    public void addSpaceRoles(Collection<SpaceRole> rr) {
+    //        if (rr != null) {
+    //            spaceRoles.addAll(rr);
+    //        }
+    //    }
+    //
+    //    public void removeSpaceRoles(Collection<SpaceRole> rr) {
+    //        spaceRoles.removeAll(rr);
+    //    }
+    //
+    //    public void addSpaceRole(SpaceRole r) {
+    //        this.spaceRoles.add(r);
+    //    }
+    //
+    //    public void removeSpaceRole(SpaceRole r) {
+    //        this.spaceRoles.remove(r);
+    //    }
 
 }

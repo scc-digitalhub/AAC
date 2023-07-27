@@ -1,11 +1,21 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.internal.provider;
 
-import java.util.Collection;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityProvider;
@@ -18,9 +28,15 @@ import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipa
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
+import java.util.Collection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
-public class InternalIdentityProvider extends
-        AbstractIdentityProvider<InternalUserIdentity, InternalUserAccount, InternalUserAuthenticatedPrincipal, InternalIdentityProviderConfigMap, InternalIdentityProviderConfig> {
+public class InternalIdentityProvider
+    extends AbstractIdentityProvider<InternalUserIdentity, InternalUserAccount, InternalUserAuthenticatedPrincipal, InternalIdentityProviderConfigMap, InternalIdentityProviderConfig> {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // services
@@ -34,11 +50,12 @@ public class InternalIdentityProvider extends
     private final InternalSubjectResolver subjectResolver;
 
     public InternalIdentityProvider(
-            String providerId,
-            UserAccountService<InternalUserAccount> userAccountService,
-            InternalUserConfirmKeyService confirmKeyService,
-            InternalIdentityProviderConfig config,
-            String realm) {
+        String providerId,
+        UserAccountService<InternalUserAccount> userAccountService,
+        InternalUserConfirmKeyService confirmKeyService,
+        InternalIdentityProviderConfig config,
+        String realm
+    ) {
         super(SystemKeys.AUTHORITY_INTERNAL, providerId, config, realm);
         Assert.notNull(confirmKeyService, "account confirm service is mandatory");
 
@@ -48,14 +65,14 @@ public class InternalIdentityProvider extends
         // build resource providers, we use our providerId to ensure consistency
         this.accountProvider = new InternalAccountProvider(providerId, userAccountService, repositoryId, realm);
         this.attributeProvider = new InternalAttributeProvider<>(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
-        this.principalConverter = new InternalAccountPrincipalConverter(providerId, userAccountService, repositoryId,
-                realm);
+        this.principalConverter =
+            new InternalAccountPrincipalConverter(providerId, userAccountService, repositoryId, realm);
 
         // build providers
-        this.confirmService = new InternalIdentityConfirmService(providerId, userAccountService, confirmKeyService,
-                config, realm);
-        this.authenticationProvider = new InternalAuthenticationProvider(providerId, userAccountService,
-                confirmService, config, realm);
+        this.confirmService =
+            new InternalIdentityConfirmService(providerId, userAccountService, confirmKeyService, config, realm);
+        this.authenticationProvider =
+            new InternalAuthenticationProvider(providerId, userAccountService, confirmService, config, realm);
 
         // always expose a valid resolver to satisfy authenticationManager at post login
         // TODO refactor to avoid fetching via resolver at this stage
@@ -102,12 +119,19 @@ public class InternalIdentityProvider extends
     }
 
     @Override
-    protected InternalUserIdentity buildIdentity(InternalUserAccount account,
-            InternalUserAuthenticatedPrincipal principal,
-            Collection<UserAttributes> attributes) {
+    protected InternalUserIdentity buildIdentity(
+        InternalUserAccount account,
+        InternalUserAuthenticatedPrincipal principal,
+        Collection<UserAttributes> attributes
+    ) {
         // build identity
-        InternalUserIdentity identity = new InternalUserIdentity(getAuthority(), getProvider(), getRealm(), account,
-                principal);
+        InternalUserIdentity identity = new InternalUserIdentity(
+            getAuthority(),
+            getProvider(),
+            getRealm(),
+            account,
+            principal
+        );
         identity.setAttributes(attributes);
 
         return identity;
@@ -117,7 +141,7 @@ public class InternalIdentityProvider extends
     @Override
     @Transactional(readOnly = false)
     public InternalUserIdentity convertIdentity(UserAuthenticatedPrincipal authPrincipal, String userId)
-            throws NoSuchUserException {
+        throws NoSuchUserException {
         Assert.isInstanceOf(InternalUserAuthenticatedPrincipal.class, authPrincipal, "Wrong principal class");
         logger.debug("convert principal to identity for user {}", String.valueOf(userId));
         if (logger.isTraceEnabled()) {
@@ -150,10 +174,10 @@ public class InternalIdentityProvider extends
         String curUserId = account.getUserId();
 
         if (!curUserId.equals(userId)) {
-//            // force link
-//            // TODO re-evaluate
-//            account.setSubject(subjectId);
-//            account = accountRepository.save(account);
+            //            // force link
+            //            // TODO re-evaluate
+            //            account.setSubject(subjectId);
+            //            account = accountRepository.save(account);
             throw new IllegalArgumentException("user mismatch");
         }
 
@@ -161,12 +185,19 @@ public class InternalIdentityProvider extends
         // we shouldn't have additional attributes for internal
 
         // use builder to properly map attributes
-        InternalUserIdentity identity = new InternalUserIdentity(getAuthority(), getProvider(), getRealm(), account,
-                principal);
+        InternalUserIdentity identity = new InternalUserIdentity(
+            getAuthority(),
+            getProvider(),
+            getRealm(),
+            account,
+            principal
+        );
 
         // convert attribute sets
-        Collection<UserAttributes> identityAttributes = attributeProvider.convertPrincipalAttributes(principal,
-                account);
+        Collection<UserAttributes> identityAttributes = attributeProvider.convertPrincipalAttributes(
+            principal,
+            account
+        );
         identity.setAttributes(identityAttributes);
 
         return identity;
@@ -174,7 +205,6 @@ public class InternalIdentityProvider extends
 
     @Override
     public void deleteIdentity(String userId, String username) throws NoSuchUserException {
-
         // call super to remove account
         super.deleteIdentity(userId, username);
     }
@@ -190,5 +220,4 @@ public class InternalIdentityProvider extends
         // no direct login available
         return null;
     }
-
 }

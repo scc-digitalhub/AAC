@@ -1,5 +1,25 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.core.auth;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.UserDetails;
+import it.smartcommunitylab.aac.model.Subject;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
@@ -7,12 +27,6 @@ import java.util.Set;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.Assert;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.model.Subject;
 
 /**
  *
@@ -32,13 +46,14 @@ public abstract class UserAuthentication extends AbstractAuthenticationToken {
     protected final Instant createdAt;
 
     public UserAuthentication(
-            Subject principal, String realm,
-            Collection<? extends GrantedAuthority> authorities,
-            boolean isAuthenticated) {
+        Subject principal,
+        String realm,
+        Collection<? extends GrantedAuthority> authorities,
+        boolean isAuthenticated
+    ) {
         // we set authorities via super
         // we don't support null authorities list
         super(authorities);
-
         Assert.notEmpty(authorities, "authorities can not be empty");
         Assert.notNull(principal, "principal is required");
         Assert.notNull(realm, "realm is required");
@@ -53,7 +68,7 @@ public abstract class UserAuthentication extends AbstractAuthenticationToken {
 
     /**
      * Private constructor for JPA and other serialization tools.
-     * 
+     *
      * We need to implement this to enable deserialization of resources via
      * reflection
      */
@@ -112,7 +127,8 @@ public abstract class UserAuthentication extends AbstractAuthenticationToken {
     public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
         if (isAuthenticated) {
             throw new IllegalArgumentException(
-                    "Cannot set this token to trusted - use constructor which takes a GrantedAuthority list instead");
+                "Cannot set this token to trusted - use constructor which takes a GrantedAuthority list instead"
+            );
         }
 
         super.setAuthenticated(false);
@@ -127,10 +143,7 @@ public abstract class UserAuthentication extends AbstractAuthenticationToken {
      * Auth tokens
      */
 
-    public abstract ExtendedAuthenticationToken getAuthentication(
-            String authority,
-            String provider,
-            String userId);
+    public abstract ExtendedAuthenticationToken getAuthentication(String authority, String provider, String userId);
 
     public abstract void eraseAuthentication(ExtendedAuthenticationToken auth);
 
@@ -145,5 +158,4 @@ public abstract class UserAuthentication extends AbstractAuthenticationToken {
      * web auth details
      */
     public abstract WebAuthenticationDetails getWebAuthenticationDetails();
-
 }

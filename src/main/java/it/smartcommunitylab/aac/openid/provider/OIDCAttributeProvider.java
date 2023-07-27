@@ -1,12 +1,20 @@
-package it.smartcommunitylab.aac.openid.provider;
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import java.io.Serializable;
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import org.springframework.util.StringUtils;
+package it.smartcommunitylab.aac.openid.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.AccountAttributesSet;
@@ -21,30 +29,34 @@ import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.openid.model.OIDCUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
+import java.io.Serializable;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.springframework.util.StringUtils;
 
 public class OIDCAttributeProvider
-        extends AbstractIdentityAttributeProvider<OIDCUserAuthenticatedPrincipal, OIDCUserAccount> {
+    extends AbstractIdentityAttributeProvider<OIDCUserAuthenticatedPrincipal, OIDCUserAccount> {
 
     private final OpenIdAttributesMapper openidMapper;
 
-    public OIDCAttributeProvider(
-            String providerId,
-            String realm) {
+    public OIDCAttributeProvider(String providerId, String realm) {
         this(SystemKeys.AUTHORITY_OIDC, providerId, realm);
     }
 
-    public OIDCAttributeProvider(
-            String authority, String providerId,
-            String realm) {
+    public OIDCAttributeProvider(String authority, String providerId, String realm) {
         super(authority, providerId, realm);
-
         // attributes mapping
         openidMapper = new OpenIdAttributesMapper();
     }
 
     @Override
-    protected List<UserAttributes> extractUserAttributes(OIDCUserAccount account,
-            Map<String, Serializable> principalAttributes) {
+    protected List<UserAttributes> extractUserAttributes(
+        OIDCUserAccount account,
+        Map<String, Serializable> principalAttributes
+    ) {
         List<UserAttributes> attributes = new ArrayList<>();
         // user identifier
         String userId = account.getUserId();
@@ -60,23 +72,20 @@ public class OIDCAttributeProvider
         basicset.setSurname(account.getFamilyName());
         basicset.setEmail(email);
         basicset.setUsername(username);
-        attributes.add(new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), userId,
-                basicset));
+        attributes.add(new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), userId, basicset));
 
         // account
         AccountAttributesSet accountset = new AccountAttributesSet();
         accountset.setUsername(username);
         accountset.setUserId(account.getUserId());
         accountset.setId(account.getSubject());
-        attributes.add(new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), userId,
-                accountset));
+        attributes.add(new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), userId, accountset));
 
         // email
         EmailAttributesSet emailset = new EmailAttributesSet();
         emailset.setEmail(account.getEmail());
         emailset.setEmailVerified(account.getEmailVerified());
-        attributes.add(new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), userId,
-                emailset));
+        attributes.add(new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), userId, emailset));
 
         // merge attributes
         Map<String, Serializable> map = new HashMap<>();
@@ -106,26 +115,27 @@ public class OIDCAttributeProvider
 
         // openid via mapper
         AttributeSet openidset = openidMapper.mapAttributes(map);
-        attributes.add(new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), userId,
-                openidset));
+        attributes.add(new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), userId, openidset));
 
         if (principalAttributes != null) {
             // build an additional attributeSet for additional attributes, specific for this
             // provider, where we export all raw attributes
-            DefaultUserAttributesImpl idpset = new DefaultUserAttributesImpl(getAuthority(), getProvider(),
-                    getRealm(), userId, "idp." + getProvider());
+            DefaultUserAttributesImpl idpset = new DefaultUserAttributesImpl(
+                getAuthority(),
+                getProvider(),
+                getRealm(),
+                userId,
+                "idp." + getProvider()
+            );
             // store everything as string
             for (Map.Entry<String, Serializable> e : principalAttributes.entrySet()) {
                 try {
                     idpset.addAttribute(new StringAttribute(e.getKey(), StringAttribute.parseValue(e.getValue())));
-                } catch (ParseException e1) {
-                }
+                } catch (ParseException e1) {}
             }
             attributes.add(idpset);
         }
 
         return attributes;
-
     }
-
 }

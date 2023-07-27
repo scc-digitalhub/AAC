@@ -1,15 +1,20 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.webauthn.provider;
-
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.InvalidDataException;
@@ -24,9 +29,19 @@ import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredential;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserCredentialsService;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserHandleService;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 @Transactional
 public class WebAuthnIdentityCredentialsService extends AbstractProvider<WebAuthnUserCredential> {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private static final String STATUS_ACTIVE = CredentialsStatus.ACTIVE.getValue();
 
@@ -39,9 +54,13 @@ public class WebAuthnIdentityCredentialsService extends AbstractProvider<WebAuth
 
     private ResourceEntityService resourceService;
 
-    public WebAuthnIdentityCredentialsService(String providerId,
-            UserAccountService<InternalUserAccount> accountService, WebAuthnUserCredentialsService credentialsService,
-            WebAuthnIdentityProviderConfig config, String realm) {
+    public WebAuthnIdentityCredentialsService(
+        String providerId,
+        UserAccountService<InternalUserAccount> accountService,
+        WebAuthnUserCredentialsService credentialsService,
+        WebAuthnIdentityProviderConfig config,
+        String realm
+    ) {
         super(SystemKeys.AUTHORITY_WEBAUTHN, providerId, realm);
         Assert.notNull(accountService, "account service is mandatory");
         Assert.notNull(credentialsService, "webauthn credentials service is mandatory");
@@ -84,7 +103,6 @@ public class WebAuthnIdentityCredentialsService extends AbstractProvider<WebAuth
         }
 
         return account.getUuid();
-
     }
 
     @Transactional(readOnly = true)
@@ -96,14 +114,14 @@ public class WebAuthnIdentityCredentialsService extends AbstractProvider<WebAuth
 
         // fetch all active credentials
         return credentialsService
-                .findCredentialsByAccount(repositoryId, username).stream()
-                .filter(c -> STATUS_ACTIVE.equals(c.getStatus()))
-                .collect(Collectors.toList());
+            .findCredentialsByAccount(repositoryId, username)
+            .stream()
+            .filter(c -> STATUS_ACTIVE.equals(c.getStatus()))
+            .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public WebAuthnUserCredential findCredential(String userHandle, String credentialId)
-            throws NoSuchUserException {
+    public WebAuthnUserCredential findCredential(String userHandle, String credentialId) throws NoSuchUserException {
         InternalUserAccount account = accountService.findAccountByUuid(getUuidFromUserHandle(userHandle));
         if (account == null) {
             throw new NoSuchUserException();
@@ -113,9 +131,12 @@ public class WebAuthnIdentityCredentialsService extends AbstractProvider<WebAuth
     }
 
     public WebAuthnUserCredential updateCredentialCounter(String userHandle, String credentialId, long count)
-            throws RegistrationException, NoSuchCredentialException {
-        WebAuthnUserCredential c = credentialsService.findCredentialByUserHandleAndCredentialId(repositoryId,
-                userHandle, credentialId);
+        throws RegistrationException, NoSuchCredentialException {
+        WebAuthnUserCredential c = credentialsService.findCredentialByUserHandleAndCredentialId(
+            repositoryId,
+            userHandle,
+            credentialId
+        );
         if (c == null) {
             throw new NoSuchCredentialException();
         }
@@ -132,8 +153,12 @@ public class WebAuthnIdentityCredentialsService extends AbstractProvider<WebAuth
         // register usage date
         c.setLastUsedDate(new Date());
 
-        logger.debug("update credential {} signature count to {} on date {}", c.getCredentialId(),
-                String.valueOf(count), String.valueOf(c.getLastUsedDate()));
+        logger.debug(
+            "update credential {} signature count to {} on date {}",
+            c.getCredentialId(),
+            String.valueOf(count),
+            String.valueOf(c.getLastUsedDate())
+        );
 
         c = credentialsService.updateCredentials(repositoryId, c.getId(), c);
         return c;
@@ -159,6 +184,5 @@ public class WebAuthnIdentityCredentialsService extends AbstractProvider<WebAuth
                 logger.error("error removing resources: {}", re.getMessage());
             }
         }
-
     }
 }

@@ -1,23 +1,20 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.password.provider;
-
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import javax.mail.MessagingException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.security.crypto.keygen.StringKeyGenerator;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.InvalidDataException;
@@ -37,9 +34,26 @@ import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.password.service.InternalPasswordUserCredentialsService;
 import it.smartcommunitylab.aac.utils.MailService;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import javax.mail.MessagingException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.crypto.keygen.StringKeyGenerator;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 @Transactional
 public class PasswordIdentityCredentialsService extends AbstractProvider<InternalUserPassword> {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private static final String STATUS_ACTIVE = CredentialsStatus.ACTIVE.getValue();
     private static final String STATUS_INACTIVE = CredentialsStatus.INACTIVE.getValue();
@@ -57,10 +71,13 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
     private RealmAwareUriBuilder uriBuilder;
     private ResourceEntityService resourceService;
 
-    public PasswordIdentityCredentialsService(String providerId,
-            UserAccountService<InternalUserAccount> accountService,
-            InternalPasswordUserCredentialsService passwordService,
-            PasswordIdentityProviderConfig config, String realm) {
+    public PasswordIdentityCredentialsService(
+        String providerId,
+        UserAccountService<InternalUserAccount> accountService,
+        InternalPasswordUserCredentialsService passwordService,
+        PasswordIdentityProviderConfig config,
+        String realm
+    ) {
         super(SystemKeys.AUTHORITY_PASSWORD, providerId, realm);
         Assert.notNull(accountService, "account service is mandatory");
         Assert.notNull(passwordService, "password service is mandatory");
@@ -115,17 +132,18 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
 
         // fetch all active passwords
         return passwordService
-                .findCredentialsByAccount(repositoryId, username).stream()
-                .filter(c -> STATUS_ACTIVE.equals(c.getStatus()))
-                .map(p -> {
-                    // map to ourselves
-                    p.setProvider(getProvider());
+            .findCredentialsByAccount(repositoryId, username)
+            .stream()
+            .filter(c -> STATUS_ACTIVE.equals(c.getStatus()))
+            .map(p -> {
+                // map to ourselves
+                p.setProvider(getProvider());
 
-                    // password are encrypted, but clear value for extra safety
-                    p.eraseCredentials();
-                    return p;
-                }).collect(Collectors.toList());
-
+                // password are encrypted, but clear value for extra safety
+                p.eraseCredentials();
+                return p;
+            })
+            .collect(Collectors.toList());
     }
 
     public boolean verifyPassword(String username, String password) throws NoSuchUserException {
@@ -136,19 +154,21 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
 
         // fetch ALL active + non expired credentials
         List<InternalUserPassword> credentials = passwordService
-                .findCredentialsByAccount(repositoryId, username).stream()
-                .filter(c -> STATUS_ACTIVE.equals(c.getStatus()) && !c.isExpired())
-                .collect(Collectors.toList());
+            .findCredentialsByAccount(repositoryId, username)
+            .stream()
+            .filter(c -> STATUS_ACTIVE.equals(c.getStatus()) && !c.isExpired())
+            .collect(Collectors.toList());
 
         // pick any match on hashed password
-        return credentials.stream()
-                .anyMatch(c -> {
-                    try {
-                        return hasher.validatePassword(password, c.getPassword());
-                    } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-                        throw new SystemException(e.getMessage());
-                    }
-                });
+        return credentials
+            .stream()
+            .anyMatch(c -> {
+                try {
+                    return hasher.validatePassword(password, c.getPassword());
+                } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+                    throw new SystemException(e.getMessage());
+                }
+            });
     }
 
     public InternalUserPassword resetPassword(String username) throws NoSuchUserException {
@@ -159,8 +179,11 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
         try {
             // fetch first active password
             InternalUserPassword pass = passwordService
-                    .findCredentialsByAccount(repositoryId, username).stream()
-                    .filter(c -> STATUS_ACTIVE.equals(c.getStatus())).findFirst().orElse(null);
+                .findCredentialsByAccount(repositoryId, username)
+                .stream()
+                .filter(c -> STATUS_ACTIVE.equals(c.getStatus()))
+                .findFirst()
+                .orElse(null);
 
             if (pass == null) {
                 // generate and set active a temporary password
@@ -185,8 +208,13 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
 
                 if (resourceService != null) {
                     // register
-                    resourceService.addResourceEntity(pass.getUuid(), SystemKeys.RESOURCE_CREDENTIALS,
-                            getAuthority(), getProvider(), pass.getResourceId());
+                    resourceService.addResourceEntity(
+                        pass.getUuid(),
+                        SystemKeys.RESOURCE_CREDENTIALS,
+                        getAuthority(),
+                        getProvider(),
+                        pass.getResourceId()
+                    );
                 }
             }
 
@@ -216,12 +244,12 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
             pass.eraseCredentials();
 
             return pass;
-        } catch (RegistrationException | NoSuchCredentialException | NoSuchAlgorithmException
-                | InvalidKeySpecException e) {
+        } catch (
+            RegistrationException | NoSuchCredentialException | NoSuchAlgorithmException | InvalidKeySpecException e
+        ) {
             logger.error("error resetting password for {}: {}", String.valueOf(username), e.getMessage());
             throw new SystemException(e.getMessage());
         }
-
     }
 
     public InternalUserPassword confirmReset(String resetKey) throws NoSuchCredentialException, RegistrationException {
@@ -401,5 +429,4 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
             mailService.sendEmail(account.getEmail(), template, account.getLang(), vars);
         }
     }
-
 }

@@ -1,33 +1,24 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.oauth.service;
-
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang.ArrayUtils;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.support.PageableExecutionUtils;
-import org.springframework.security.crypto.keygen.BytesKeyGenerator;
-import org.springframework.security.crypto.keygen.KeyGenerators;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.core.base.BaseClient;
@@ -48,10 +39,32 @@ import it.smartcommunitylab.aac.oauth.model.SubjectType;
 import it.smartcommunitylab.aac.oauth.model.TokenType;
 import it.smartcommunitylab.aac.oauth.persistence.OAuth2ClientEntity;
 import it.smartcommunitylab.aac.oauth.persistence.OAuth2ClientEntityRepository;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import org.apache.commons.lang.ArrayUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
+import org.springframework.security.crypto.keygen.BytesKeyGenerator;
+import org.springframework.security.crypto.keygen.KeyGenerators;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /*
  * Client service for internal usage
- * 
+ *
  * Serves the OAuth2 authorization server components
  */
 
@@ -80,7 +93,6 @@ public class OAuth2ClientService implements ClientService {
         s.add(AuthenticationMethod.PRIVATE_KEY_JWT);
         s.add(AuthenticationMethod.NONE);
         VALID_AUTH_METHODS = Collections.unmodifiableSet(s);
-
     }
 
     // we use service since we are outside core
@@ -89,13 +101,11 @@ public class OAuth2ClientService implements ClientService {
     // our client repo
     private final OAuth2ClientEntityRepository oauthClientRepository;
 
-    public OAuth2ClientService(ClientEntityService clientService,
-            OAuth2ClientEntityRepository oauthClientRepository) {
+    public OAuth2ClientService(ClientEntityService clientService, OAuth2ClientEntityRepository oauthClientRepository) {
         Assert.notNull(clientService, "client service is mandatory");
         Assert.notNull(oauthClientRepository, "oauth client repository is mandatory");
         this.clientService = clientService;
         this.oauthClientRepository = oauthClientRepository;
-
     }
 
     @Transactional(readOnly = true)
@@ -108,7 +118,6 @@ public class OAuth2ClientService implements ClientService {
         }
 
         return OAuth2Client.from(client, oauth);
-
     }
 
     @Override
@@ -122,7 +131,6 @@ public class OAuth2ClientService implements ClientService {
         }
 
         return OAuth2Client.from(client, oauth);
-
     }
 
     @Transactional(readOnly = true)
@@ -140,7 +148,7 @@ public class OAuth2ClientService implements ClientService {
         return result;
     }
 
-//    @Override
+    //    @Override
     @Transactional(readOnly = true)
     public Collection<BaseClient> listClients() {
         List<BaseClient> result = new ArrayList<>();
@@ -177,8 +185,11 @@ public class OAuth2ClientService implements ClientService {
         Page<ClientEntity> page = clientService.searchClients(realm, keywords, pageRequest);
 
         // wrong way, totalCount will be off but we have only oauth2 now..
-        List<ClientEntity> clients = page.getContent().stream()
-                .filter(c -> OAuth2Client.CLIENT_TYPE.equals(c.getType())).collect(Collectors.toList());
+        List<ClientEntity> clients = page
+            .getContent()
+            .stream()
+            .filter(c -> OAuth2Client.CLIENT_TYPE.equals(c.getType()))
+            .collect(Collectors.toList());
 
         for (ClientEntity client : clients) {
             OAuth2ClientEntity oauth = oauthClientRepository.findByClientId(client.getClientId());
@@ -187,11 +198,7 @@ public class OAuth2ClientService implements ClientService {
             }
         }
 
-        return PageableExecutionUtils.getPage(
-                result,
-                pageRequest,
-                () -> page.getTotalElements());
-
+        return PageableExecutionUtils.getPage(result, pageRequest, () -> page.getTotalElements());
     }
 
     @Override
@@ -210,7 +217,6 @@ public class OAuth2ClientService implements ClientService {
         }
         if (StringUtils.hasText(oauth.getJwks())) {
             credentials.add(new ClientJwks(client.getRealm(), clientId, oauth.getJwks()));
-
         }
 
         return credentials;
@@ -248,7 +254,7 @@ public class OAuth2ClientService implements ClientService {
      */
     @Override
     public ClientCredentials resetClientCredentials(String clientId, String credentialsId)
-            throws NoSuchClientException {
+        throws NoSuchClientException {
         OAuth2ClientEntity oauth = oauthClientRepository.findByClientId(clientId);
         ClientEntity client = clientService.findClient(clientId);
 
@@ -272,7 +278,6 @@ public class OAuth2ClientService implements ClientService {
             return new ClientSecret(client.getRealm(), clientId, oauth.getClientSecret());
         }
         if (SystemKeys.RESOURCE_CREDENTIALS_JWKS.equals(type)) {
-
             String jwks = generateClientJwks();
 
             oauth.setJwks(jwks);
@@ -282,15 +287,13 @@ public class OAuth2ClientService implements ClientService {
         }
 
         return null;
-
     }
 
     /*
      * remove credentials
      */
     @Override
-    public void removeClientCredentials(String clientId, String credentialsId)
-            throws NoSuchClientException {
+    public void removeClientCredentials(String clientId, String credentialsId) throws NoSuchClientException {
         OAuth2ClientEntity oauth = oauthClientRepository.findByClientId(clientId);
         ClientEntity client = clientService.findClient(clientId);
 
@@ -318,12 +321,12 @@ public class OAuth2ClientService implements ClientService {
 
     /*
      * Set client secret to a given value
-     * 
+     *
      * to be used internally for bootstrap/import etc
      */
     @Override
     public ClientCredentials setClientCredentials(String clientId, String credentialsId, ClientCredentials credentials)
-            throws NoSuchClientException {
+        throws NoSuchClientException {
         OAuth2ClientEntity oauth = oauthClientRepository.findByClientId(clientId);
         ClientEntity client = clientService.findClient(clientId);
 
@@ -357,7 +360,6 @@ public class OAuth2ClientService implements ClientService {
             return new ClientSecret(client.getRealm(), clientId, oauth.getClientSecret());
         }
         if (SystemKeys.RESOURCE_CREDENTIALS_JWKS.equals(type) && StringUtils.hasText(oauth.getClientSecret())) {
-
             // we expect a jwks as secret
             if (!(credentials instanceof ClientJwks)) {
                 throw new IllegalArgumentException("invalid credentials");
@@ -391,71 +393,124 @@ public class OAuth2ClientService implements ClientService {
     }
 
     public OAuth2Client addClient(String realm, String clientId, String name) {
-        return this.addClient(realm, clientId, name,
-                null, null, null, null, null, null,
-                null, null, null, null, null, null,
-                null, null, null,
-                null, null, null, null, null, null, null);
+        return this.addClient(
+                realm,
+                clientId,
+                name,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+            );
     }
 
     public OAuth2Client addClient(
-            String realm,
-            String name, String description,
-            Collection<String> scopes, Collection<String> resourceIds,
-            Collection<String> providers,
-            Map<String, String> hookFunctions, Map<String, String> hookWebUrls, String hookUniqueSpaces,
-            String clientSecret,
-            Collection<AuthorizationGrantType> authorizedGrantTypes,
-            Collection<String> redirectUris,
-            ApplicationType applicationType, TokenType tokenType, SubjectType subjectType,
-            Collection<AuthenticationMethod> authenticationMethods,
-            Boolean idTokenClaims, Boolean firstParty,
-            Integer accessTokenValidity, Integer refreshTokenValidity, Integer idTokenValidity,
-            JWKSet jwks, String jwksUri,
-            OAuth2ClientAdditionalConfig additionalConfig,
-            OAuth2ClientInfo additionalInfo)
-            throws IllegalArgumentException {
-
+        String realm,
+        String name,
+        String description,
+        Collection<String> scopes,
+        Collection<String> resourceIds,
+        Collection<String> providers,
+        Map<String, String> hookFunctions,
+        Map<String, String> hookWebUrls,
+        String hookUniqueSpaces,
+        String clientSecret,
+        Collection<AuthorizationGrantType> authorizedGrantTypes,
+        Collection<String> redirectUris,
+        ApplicationType applicationType,
+        TokenType tokenType,
+        SubjectType subjectType,
+        Collection<AuthenticationMethod> authenticationMethods,
+        Boolean idTokenClaims,
+        Boolean firstParty,
+        Integer accessTokenValidity,
+        Integer refreshTokenValidity,
+        Integer idTokenValidity,
+        JWKSet jwks,
+        String jwksUri,
+        OAuth2ClientAdditionalConfig additionalConfig,
+        OAuth2ClientInfo additionalInfo
+    ) throws IllegalArgumentException {
         // generate a clientId and then add
         ClientEntity client = clientService.createClient();
         String clientId = client.getClientId();
 
         return addClient(
-                realm, clientId,
-                name, description,
-                scopes, resourceIds,
-                providers,
-                hookFunctions, hookWebUrls, hookUniqueSpaces,
-                clientSecret,
-                authorizedGrantTypes,
-                redirectUris,
-                applicationType, tokenType, subjectType,
-                authenticationMethods,
-                idTokenClaims, firstParty,
-                accessTokenValidity, refreshTokenValidity, idTokenValidity,
-                jwks, jwksUri,
-                additionalConfig,
-                additionalInfo);
-
+            realm,
+            clientId,
+            name,
+            description,
+            scopes,
+            resourceIds,
+            providers,
+            hookFunctions,
+            hookWebUrls,
+            hookUniqueSpaces,
+            clientSecret,
+            authorizedGrantTypes,
+            redirectUris,
+            applicationType,
+            tokenType,
+            subjectType,
+            authenticationMethods,
+            idTokenClaims,
+            firstParty,
+            accessTokenValidity,
+            refreshTokenValidity,
+            idTokenValidity,
+            jwks,
+            jwksUri,
+            additionalConfig,
+            additionalInfo
+        );
     }
 
     public OAuth2Client addClient(
-            String realm, String clientId,
-            String name, String description,
-            Collection<String> scopes, Collection<String> resourceIds,
-            Collection<String> providers,
-            Map<String, String> hookFunctions, Map<String, String> hookWebUrls, String hookUniqueSpaces,
-            String clientSecret,
-            Collection<AuthorizationGrantType> authorizedGrantTypes,
-            Collection<String> redirectUris,
-            ApplicationType applicationType, TokenType tokenType, SubjectType subjectType,
-            Collection<AuthenticationMethod> authenticationMethods,
-            Boolean idTokenClaims, Boolean firstParty,
-            Integer accessTokenValidity, Integer refreshTokenValidity, Integer idTokenValidity,
-            JWKSet jwks, String jwksUri,
-            OAuth2ClientAdditionalConfig additionalConfig,
-            OAuth2ClientInfo additionalInfo) throws IllegalArgumentException {
-
+        String realm,
+        String clientId,
+        String name,
+        String description,
+        Collection<String> scopes,
+        Collection<String> resourceIds,
+        Collection<String> providers,
+        Map<String, String> hookFunctions,
+        Map<String, String> hookWebUrls,
+        String hookUniqueSpaces,
+        String clientSecret,
+        Collection<AuthorizationGrantType> authorizedGrantTypes,
+        Collection<String> redirectUris,
+        ApplicationType applicationType,
+        TokenType tokenType,
+        SubjectType subjectType,
+        Collection<AuthenticationMethod> authenticationMethods,
+        Boolean idTokenClaims,
+        Boolean firstParty,
+        Integer accessTokenValidity,
+        Integer refreshTokenValidity,
+        Integer idTokenValidity,
+        JWKSet jwks,
+        String jwksUri,
+        OAuth2ClientAdditionalConfig additionalConfig,
+        OAuth2ClientInfo additionalInfo
+    ) throws IllegalArgumentException {
         // TODO add custom validator for class
         // manual validation for now
         if (StringUtils.hasText(clientId)) {
@@ -473,14 +528,13 @@ public class OAuth2ClientService implements ClientService {
 
         // TODO validate secret
         if (!StringUtils.hasText(clientSecret)) {
-//            clientSecret = generateClientSecret();
+            //            clientSecret = generateClientSecret();
             clientSecret = null;
         }
 
         if (authorizedGrantTypes != null) {
             // check if valid grants
-            if (authorizedGrantTypes.stream()
-                    .anyMatch(gt -> !VALID_GRANT_TYPES.contains(gt))) {
+            if (authorizedGrantTypes.stream().anyMatch(gt -> !VALID_GRANT_TYPES.contains(gt))) {
                 throw new IllegalArgumentException("Invalid grant type");
             }
         } else {
@@ -558,12 +612,18 @@ public class OAuth2ClientService implements ClientService {
         }
 
         ClientEntity client = clientService.addClient(
-                clientId, realm, OAuth2Client.CLIENT_TYPE,
-                name, description,
-                scopes, resourceIds,
-                providers,
-                hookFunctions,
-                hookWebUrls, hookUniqueSpaces);
+            clientId,
+            realm,
+            OAuth2Client.CLIENT_TYPE,
+            name,
+            description,
+            scopes,
+            resourceIds,
+            providers,
+            hookFunctions,
+            hookWebUrls,
+            hookUniqueSpaces
+        );
 
         OAuth2ClientEntity oauth = new OAuth2ClientEntity();
         oauth.setClientId(clientId);
@@ -597,21 +657,30 @@ public class OAuth2ClientService implements ClientService {
     }
 
     public OAuth2Client updateClient(
-            String clientId,
-            String name, String description,
-            Collection<String> scopes, Collection<String> resourceIds,
-            Collection<String> providers,
-            Map<String, String> hookFunctions, Map<String, String> hookWebUrls, String hookUniqueSpaces,
-            Collection<AuthorizationGrantType> authorizedGrantTypes,
-            Collection<String> redirectUris,
-            ApplicationType applicationType, TokenType tokenType, SubjectType subjectType,
-            Collection<AuthenticationMethod> authenticationMethods,
-            Boolean idTokenClaims, Boolean firstParty,
-            Integer accessTokenValidity, Integer refreshTokenValidity, Integer idTokenValidity,
-            String jwksUri,
-            OAuth2ClientAdditionalConfig additionalConfig,
-            OAuth2ClientInfo additionalInfo) throws NoSuchClientException, IllegalArgumentException {
-
+        String clientId,
+        String name,
+        String description,
+        Collection<String> scopes,
+        Collection<String> resourceIds,
+        Collection<String> providers,
+        Map<String, String> hookFunctions,
+        Map<String, String> hookWebUrls,
+        String hookUniqueSpaces,
+        Collection<AuthorizationGrantType> authorizedGrantTypes,
+        Collection<String> redirectUris,
+        ApplicationType applicationType,
+        TokenType tokenType,
+        SubjectType subjectType,
+        Collection<AuthenticationMethod> authenticationMethods,
+        Boolean idTokenClaims,
+        Boolean firstParty,
+        Integer accessTokenValidity,
+        Integer refreshTokenValidity,
+        Integer idTokenValidity,
+        String jwksUri,
+        OAuth2ClientAdditionalConfig additionalConfig,
+        OAuth2ClientInfo additionalInfo
+    ) throws NoSuchClientException, IllegalArgumentException {
         // TODO add custom validator for class
         // manual validation for now
         if (!StringUtils.hasText(clientId)) {
@@ -620,8 +689,7 @@ public class OAuth2ClientService implements ClientService {
 
         if (authorizedGrantTypes != null) {
             // check if valid grants
-            if (authorizedGrantTypes.stream()
-                    .anyMatch(gt -> !VALID_GRANT_TYPES.contains(gt))) {
+            if (authorizedGrantTypes.stream().anyMatch(gt -> !VALID_GRANT_TYPES.contains(gt))) {
                 throw new IllegalArgumentException("Invalid grant type");
             }
         }
@@ -680,10 +748,10 @@ public class OAuth2ClientService implements ClientService {
         boolean copyIdTokenClaims = idTokenClaims != null ? idTokenClaims.booleanValue() : false;
         boolean isFirstParty = firstParty != null ? firstParty.booleanValue() : false;
 
-//        String jwksSet = null;
-//        if (jwks != null) {
-//            jwksSet = jwks.toString(false);
-//        }
+        //        String jwksSet = null;
+        //        if (jwks != null) {
+        //            jwksSet = jwks.toString(false);
+        //        }
 
         ClientEntity client = clientService.findClient(clientId);
         OAuth2ClientEntity oauth = oauthClientRepository.findByClientId(clientId);
@@ -692,8 +760,18 @@ public class OAuth2ClientService implements ClientService {
             throw new NoSuchClientException();
         }
 
-        client = clientService.updateClient(clientId, name, description, scopes, resourceIds, providers, hookFunctions,
-                hookWebUrls, hookUniqueSpaces);
+        client =
+            clientService.updateClient(
+                clientId,
+                name,
+                description,
+                scopes,
+                resourceIds,
+                providers,
+                hookFunctions,
+                hookWebUrls,
+                hookUniqueSpaces
+            );
 
         oauth.setAuthorizedGrantTypes(StringUtils.collectionToCommaDelimitedString(authorizedGrantTypes));
         oauth.setRedirectUris(StringUtils.collectionToCommaDelimitedString(redirectUris));
@@ -710,7 +788,7 @@ public class OAuth2ClientService implements ClientService {
         oauth.setAccessTokenValidity(accessTokenValidity);
         oauth.setRefreshTokenValidity(refreshTokenValidity);
 
-//        oauth.setJwks(jwksSet);
+        //        oauth.setJwks(jwksSet);
         oauth.setJwksUri(jwksUri);
         if (additionalConfig != null) {
             oauth.setAdditionalConfiguration(additionalConfig.toMap());
@@ -742,7 +820,7 @@ public class OAuth2ClientService implements ClientService {
 
     /**
      * Generate new value to be used as client secret (String)
-     * 
+     *
      * @return
      */
     private synchronized String generateClientSecret() {
@@ -755,7 +833,6 @@ public class OAuth2ClientService implements ClientService {
             JWK jwk = JWKUtils.generateRsaJWK(UUID.randomUUID().toString(), "sig", "RS256", 2048);
             JWKSet jwks = new JWKSet(jwk);
             return jwks.toString(false);
-
         } catch (IllegalArgumentException | JOSEException e) {
             // ignore, will return an empty key
             return null;
@@ -764,5 +841,4 @@ public class OAuth2ClientService implements ClientService {
 
     private static final BytesKeyGenerator tokenGenerator = KeyGenerators.secureRandom(32);
     private static final Charset ENCODE_CHARSET = Charset.forName("UTF-8");
-
 }

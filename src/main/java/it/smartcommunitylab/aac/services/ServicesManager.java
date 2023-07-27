@@ -1,27 +1,20 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.services;
-
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.jsoup.Jsoup;
-import org.jsoup.safety.Safelist;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.oauth2.provider.approval.Approval;
-import org.springframework.security.oauth2.provider.approval.Approval.ApprovalStatus;
-import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.claims.ExtractorsRegistry;
@@ -51,6 +44,27 @@ import it.smartcommunitylab.aac.scope.ScopeRegistry;
 import it.smartcommunitylab.aac.scope.ScriptScopeApprover;
 import it.smartcommunitylab.aac.scope.StoreScopeApprover;
 import it.smartcommunitylab.aac.scope.WhitelistScopeApprover;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.oauth2.provider.approval.Approval;
+import org.springframework.security.oauth2.provider.approval.Approval.ApprovalStatus;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 /*
  * Manage services and their integration.
@@ -58,10 +72,19 @@ import it.smartcommunitylab.aac.scope.WhitelistScopeApprover;
  */
 
 @Component
-@PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')"
-        + " or hasAuthority(#realm+':" + Config.R_ADMIN + "')"
-        + " or hasAuthority(#realm+':" + Config.R_DEVELOPER + "')")
+@PreAuthorize(
+    "hasAuthority('" +
+    Config.R_ADMIN +
+    "')" +
+    " or hasAuthority(#realm+':" +
+    Config.R_ADMIN +
+    "')" +
+    " or hasAuthority(#realm+':" +
+    Config.R_DEVELOPER +
+    "')"
+)
 public class ServicesManager implements InitializingBean {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
@@ -87,8 +110,7 @@ public class ServicesManager implements InitializingBean {
 
     private ServiceResourceClaimsExtractorProvider resourceClaimsExtractorProvider;
 
-    public ServicesManager() {
-    }
+    public ServicesManager() {}
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -118,17 +140,14 @@ public class ServicesManager implements InitializingBean {
 
             // register
             scopeRegistry.registerScopeProvider(sp);
-
         }
-
     }
 
     /*
      * Services
-     * 
+     *
      */
     public Service findService(String realm, String serviceId) {
-
         Service service = serviceService.findService(serviceId);
 
         if (service == null) {
@@ -154,9 +173,9 @@ public class ServicesManager implements InitializingBean {
         return service;
     }
 
-//    public Service getServiceByNamespace(String realm, String namespace) throws NoSuchServiceException {
-//        return serviceService.getServiceByNamespace(namespace);
-//    }
+    //    public Service getServiceByNamespace(String realm, String namespace) throws NoSuchServiceException {
+    //        return serviceService.getServiceByNamespace(namespace);
+    //    }
 
     public List<Service> listServices(String realm) throws NoSuchRealmException {
         Realm re = realmService.getRealm(realm);
@@ -190,9 +209,7 @@ public class ServicesManager implements InitializingBean {
             // optional
             Map<String, String> claimMapping = service.getClaimMapping();
             if (claimMapping != null && !claimMapping.isEmpty()) {
-
                 s = serviceService.updateService(serviceId, name, description, claimMapping);
-
             }
 
             // related
@@ -234,7 +251,6 @@ public class ServicesManager implements InitializingBean {
                 // register
                 scopeRegistry.registerScopeProvider(sp);
             }
-
         } catch (NoSuchServiceException e) {
             // something broken
             throw new SystemException();
@@ -244,7 +260,7 @@ public class ServicesManager implements InitializingBean {
     }
 
     public Service updateService(String realm, String serviceId, Service service)
-            throws NoSuchServiceException, NoSuchRealmException, RegistrationException {
+        throws NoSuchServiceException, NoSuchRealmException, RegistrationException {
         // fetch realm
         Realm re = realmService.getRealm(realm);
 
@@ -282,7 +298,6 @@ public class ServicesManager implements InitializingBean {
         result.setClaims(ss.getClaims());
 
         try {
-
             // unregister provider if present
             ScopeProvider spr = scopeRegistry.findScopeProvider(namespace);
             if (spr != null && spr instanceof ServiceScopeProvider) {
@@ -300,7 +315,6 @@ public class ServicesManager implements InitializingBean {
                     // check if exists or new
                     ServiceScope ssc = null;
                     if (ss.getScopes().contains(sc)) {
-
                         try {
                             ssc = updateServiceScope(realm, serviceId, sc.getScope(), sc);
                         } catch (NoSuchScopeException e) {
@@ -318,10 +332,12 @@ public class ServicesManager implements InitializingBean {
             }
 
             // reduce and get removed scopes
-            Set<ServiceScope> removedScopes = ss.getScopes().stream().filter(s -> !serviceScopes.contains(s))
-                    .collect(Collectors.toSet());
+            Set<ServiceScope> removedScopes = ss
+                .getScopes()
+                .stream()
+                .filter(s -> !serviceScopes.contains(s))
+                .collect(Collectors.toSet());
             for (ServiceScope sc : removedScopes) {
-
                 try {
                     deleteServiceScope(realm, serviceId, sc.getScope());
                 } catch (NoSuchScopeException e) {
@@ -353,13 +369,15 @@ public class ServicesManager implements InitializingBean {
                     if (ssc != null) {
                         serviceClaims.add(ssc);
                     }
-
                 }
             }
 
             // reduce and get removed claims
-            Set<ServiceClaim> removedClaims = ss.getClaims().stream().filter(s -> !serviceClaims.contains(s))
-                    .collect(Collectors.toSet());
+            Set<ServiceClaim> removedClaims = ss
+                .getClaims()
+                .stream()
+                .filter(s -> !serviceClaims.contains(s))
+                .collect(Collectors.toSet());
             for (ServiceClaim sc : removedClaims) {
                 try {
                     deleteServiceClaim(realm, serviceId, sc.getKey());
@@ -385,7 +403,6 @@ public class ServicesManager implements InitializingBean {
                 // register
                 scopeRegistry.registerScopeProvider(sp);
             }
-
         } catch (NoSuchServiceException e) {
             // something broken
             throw new SystemException();
@@ -412,15 +429,13 @@ public class ServicesManager implements InitializingBean {
 
             // cleanup scopes
             for (ServiceScope sc : service.getScopes()) {
-
                 // TODO invalidate tokens with this scope?
 
                 // remove approvals
                 try {
                     Collection<Approval> approvals = approvalStore.findScopeApprovals(sc.getScope());
                     approvalStore.revokeApprovals(approvals);
-                } catch (Exception e) {
-                }
+                } catch (Exception e) {}
             }
 
             // TODO unregister custom extractors when implemented
@@ -448,7 +463,7 @@ public class ServicesManager implements InitializingBean {
     }
 
     public ServiceScope getServiceScope(String realm, String serviceId, String scope)
-            throws NoSuchServiceException, NoSuchScopeException {
+        throws NoSuchServiceException, NoSuchScopeException {
         // use finder to avoid loading all related
         Service service = serviceService.findService(serviceId);
         if (service == null) {
@@ -463,7 +478,7 @@ public class ServicesManager implements InitializingBean {
     }
 
     public ServiceScope addServiceScope(String realm, String serviceId, ServiceScope sc)
-            throws NoSuchServiceException, RegistrationException {
+        throws NoSuchServiceException, RegistrationException {
         // use finder to avoid loading all related
         Service service = serviceService.findService(serviceId);
         if (service == null) {
@@ -503,12 +518,19 @@ public class ServicesManager implements InitializingBean {
         boolean approvalAny = sc.isApprovalAny();
         boolean approvalRequired = sc.isApprovalRequired();
 
-        ServiceScope s = serviceService.addScope(serviceId, scope,
-                name, description, type,
-                claims,
-                roles, spaceRoles,
-                approvalFunction,
-                approvalRequired, approvalAny);
+        ServiceScope s = serviceService.addScope(
+            serviceId,
+            scope,
+            name,
+            description,
+            type,
+            claims,
+            roles,
+            spaceRoles,
+            approvalFunction,
+            approvalRequired,
+            approvalAny
+        );
 
         // refresh service
         String namespace = service.getNamespace();
@@ -541,8 +563,7 @@ public class ServicesManager implements InitializingBean {
     }
 
     public ServiceScope updateServiceScope(String realm, String serviceId, String scope, ServiceScope sc)
-            throws NoSuchServiceException, NoSuchScopeException {
-
+        throws NoSuchServiceException, NoSuchScopeException {
         // use finder to avoid loading all related
         Service service = serviceService.findService(serviceId);
         if (service == null) {
@@ -582,12 +603,19 @@ public class ServicesManager implements InitializingBean {
         boolean approvalAny = sc.isApprovalAny();
         boolean approvalRequired = sc.isApprovalRequired();
 
-        ServiceScope s = serviceService.updateScope(serviceId, scope,
-                name, description, type,
-                claims,
-                roles, spaceRoles,
-                approvalFunction,
-                approvalRequired, approvalAny);
+        ServiceScope s = serviceService.updateScope(
+            serviceId,
+            scope,
+            name,
+            description,
+            type,
+            claims,
+            roles,
+            spaceRoles,
+            approvalFunction,
+            approvalRequired,
+            approvalAny
+        );
 
         // refresh service
         String namespace = service.getNamespace();
@@ -620,8 +648,7 @@ public class ServicesManager implements InitializingBean {
     }
 
     public void deleteServiceScope(String realm, String serviceId, String scope)
-            throws NoSuchServiceException, NoSuchScopeException {
-
+        throws NoSuchServiceException, NoSuchScopeException {
         // use finder to avoid loading all related
         Service service = serviceService.findService(serviceId);
         if (service == null) {
@@ -648,8 +675,7 @@ public class ServicesManager implements InitializingBean {
             try {
                 Collection<Approval> approvals = approvalStore.findScopeApprovals(scope);
                 approvalStore.revokeApprovals(approvals);
-            } catch (Exception e) {
-            }
+            } catch (Exception e) {}
 
             // remove
             serviceService.deleteScope(serviceId, scope);
@@ -673,7 +699,6 @@ public class ServicesManager implements InitializingBean {
                 // register
                 scopeRegistry.registerScopeProvider(sp);
             }
-
         }
     }
 
@@ -696,7 +721,7 @@ public class ServicesManager implements InitializingBean {
     }
 
     public ServiceClaim getServiceClaim(String realm, String serviceId, String key)
-            throws NoSuchServiceException, NoSuchClaimException {
+        throws NoSuchServiceException, NoSuchClaimException {
         // use finder to avoid loading all related
         Service service = serviceService.findService(serviceId);
         if (service == null) {
@@ -711,7 +736,7 @@ public class ServicesManager implements InitializingBean {
     }
 
     public ServiceClaim addServiceClaim(String realm, String serviceId, ServiceClaim claim)
-            throws NoSuchServiceException, RegistrationException {
+        throws NoSuchServiceException, RegistrationException {
         // use finder to avoid loading all related
         Service service = serviceService.findService(serviceId);
         if (service == null) {
@@ -738,16 +763,13 @@ public class ServicesManager implements InitializingBean {
         AttributeType type = claim.getType() != null ? claim.getType() : AttributeType.STRING;
         boolean isMultiple = claim.isMultiple();
 
-        ServiceClaim sc = serviceService.addClaim(serviceId, key,
-                name, description, type, isMultiple);
+        ServiceClaim sc = serviceService.addClaim(serviceId, key, name, description, type, isMultiple);
 
         return sc;
-
     }
 
     public ServiceClaim updateServiceClaim(String realm, String serviceId, String key, ServiceClaim claim)
-            throws NoSuchServiceException, NoSuchClaimException {
-
+        throws NoSuchServiceException, NoSuchClaimException {
         // use finder to avoid loading all related
         Service service = serviceService.findService(serviceId);
         if (service == null) {
@@ -781,15 +803,13 @@ public class ServicesManager implements InitializingBean {
         AttributeType type = claim.getType() != null ? claim.getType() : AttributeType.STRING;
         boolean isMultiple = claim.isMultiple();
 
-        ServiceClaim sc = serviceService.updateClaim(serviceId, key,
-                name, description, type, isMultiple);
+        ServiceClaim sc = serviceService.updateClaim(serviceId, key, name, description, type, isMultiple);
 
         return sc;
     }
 
     public void deleteServiceClaim(String realm, String serviceId, String key)
-            throws NoSuchServiceException, NoSuchClaimException {
-
+        throws NoSuchServiceException, NoSuchClaimException {
         // use finder to avoid loading all related
         Service service = serviceService.findService(serviceId);
         if (service == null) {
@@ -815,7 +835,7 @@ public class ServicesManager implements InitializingBean {
      */
 
     public Collection<Approval> getServiceScopeApprovals(String realm, String serviceId, String scope)
-            throws NoSuchServiceException, NoSuchScopeException {
+        throws NoSuchServiceException, NoSuchScopeException {
         // use finder to avoid loading all related
         Service service = serviceService.findService(serviceId);
         if (service == null) {
@@ -833,7 +853,6 @@ public class ServicesManager implements InitializingBean {
 
         // fetch approvals from store, serviceId is stored in userId
         return approvalStore.findUserScopeApprovals(resourceId, sc.getScope());
-
     }
 
     /**
@@ -857,9 +876,14 @@ public class ServicesManager implements InitializingBean {
         return approvalStore.findUserApprovals(resourceId);
     }
 
-    public Approval addServiceScopeApproval(String realm, String serviceId, String scope, String subjectId,
-            int duration, boolean approved)
-            throws NoSuchServiceException, NoSuchScopeException {
+    public Approval addServiceScopeApproval(
+        String realm,
+        String serviceId,
+        String scope,
+        String subjectId,
+        int duration,
+        boolean approved
+    ) throws NoSuchServiceException, NoSuchScopeException {
         // use finder to avoid loading all related
         Service service = serviceService.findService(serviceId);
         if (service == null) {
@@ -891,11 +915,10 @@ public class ServicesManager implements InitializingBean {
         approvalStore.addApprovals(Collections.singleton(approval));
 
         return approvalStore.findApproval(serviceId, subjectId, scope);
-
     }
 
     public void revokeServiceScopeApproval(String realm, String serviceId, String scope, String subjectId)
-            throws NoSuchServiceException, NoSuchScopeException {
+        throws NoSuchServiceException, NoSuchScopeException {
         // use finder to avoid loading all related
         Service service = serviceService.findService(serviceId);
         if (service == null) {
@@ -961,16 +984,14 @@ public class ServicesManager implements InitializingBean {
         } else {
             return new CombinedScopeApprover(realm, namespace, scope, approvers);
         }
-
     }
 
     /**
-     * 
+     *
      * @param serviceNamespace
      * @return
      */
     public Boolean checkServiceNamespace(String realm, String serviceNamespace) {
         return serviceService.findServiceByNamespace(serviceNamespace.toLowerCase()) != null;
     }
-
 }

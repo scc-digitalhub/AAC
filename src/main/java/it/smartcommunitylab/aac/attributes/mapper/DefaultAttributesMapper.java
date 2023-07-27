@@ -1,15 +1,20 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.attributes.mapper;
-
-import java.io.Serializable;
-import java.text.ParseException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.Map;
-import java.util.Optional;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import it.smartcommunitylab.aac.attributes.model.BooleanAttribute;
 import it.smartcommunitylab.aac.attributes.model.DateAttribute;
@@ -21,15 +26,24 @@ import it.smartcommunitylab.aac.attributes.model.TimeAttribute;
 import it.smartcommunitylab.aac.core.model.Attribute;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.model.AttributeType;
+import java.io.Serializable;
+import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.Map;
+import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DefaultAttributesMapper extends BaseAttributesMapper {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    
+
     public static final String TYPE = "default";
 
     public DefaultAttributesMapper(AttributeSet attributeSet) {
         super(attributeSet);
-
     }
 
     @Override
@@ -48,8 +62,7 @@ public class DefaultAttributesMapper extends BaseAttributesMapper {
         // case-insensitive
         if (value == null) {
             String c = key.toLowerCase();
-            Optional<String> k = attributes.keySet().stream()
-                    .filter(e -> c.equals(e.toLowerCase())).findFirst();
+            Optional<String> k = attributes.keySet().stream().filter(e -> c.equals(e.toLowerCase())).findFirst();
             if (k.isPresent()) {
                 value = attributes.get(k.get());
             }
@@ -58,8 +71,11 @@ public class DefaultAttributesMapper extends BaseAttributesMapper {
         // loose match by removing separators etc
         if (value == null) {
             String c = key.replaceAll(EXCLUDED_CHARS, "");
-            Optional<String> k = attributes.keySet().stream()
-                    .filter(e -> c.equals(e.replaceAll(EXCLUDED_CHARS, ""))).findFirst();
+            Optional<String> k = attributes
+                .keySet()
+                .stream()
+                .filter(e -> c.equals(e.replaceAll(EXCLUDED_CHARS, "")))
+                .findFirst();
             if (k.isPresent()) {
                 value = attributes.get(k.get());
             }
@@ -103,5 +119,4 @@ public class DefaultAttributesMapper extends BaseAttributesMapper {
     }
 
     public static final String EXCLUDED_CHARS = "[^\\p{IsAlphabetic}\\p{IsDigit}]";
-
 }

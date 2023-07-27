@@ -1,10 +1,35 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.core.service;
 
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
+import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.config.ProvidersProperties;
+import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
+import it.smartcommunitylab.aac.core.model.ConfigMap;
+import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.persistence.IdentityProviderEntity;
+import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.RandomStringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
@@ -17,28 +42,18 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.DataBinder;
 
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
-import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.config.ProvidersProperties;
-import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
-import it.smartcommunitylab.aac.core.model.ConfigMap;
-import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.persistence.IdentityProviderEntity;
-import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
-
 @Service
 @Transactional
 public class IdentityProviderService
-        extends
-        ConfigurableProviderService<IdentityProviderAuthority<?, ?, ?, ?>, ConfigurableIdentityProvider, IdentityProviderEntity> {
+    extends ConfigurableProviderService<IdentityProviderAuthority<?, ?, ?, ?>, ConfigurableIdentityProvider, IdentityProviderEntity> {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    public IdentityProviderService(IdentityProviderAuthorityService authorityService,
-            ConfigurableProviderEntityService<IdentityProviderEntity> providerService) {
+    public IdentityProviderService(
+        IdentityProviderAuthorityService authorityService,
+        ConfigurableProviderEntityService<IdentityProviderEntity> providerService
+    ) {
         super(authorityService, providerService);
-
         // set converters
         this.setConfigConverter(new IdentityProviderConfigConverter());
         this.setEntityConverter(new IdentityProviderEntityConverter());
@@ -52,15 +67,19 @@ public class IdentityProviderService
         // account
         // TODO make configurable
         ConfigurableIdentityProvider internalConfig = new ConfigurableIdentityProvider(
-                SystemKeys.AUTHORITY_INTERNAL, SystemKeys.AUTHORITY_INTERNAL,
-                SystemKeys.REALM_SYSTEM);
+            SystemKeys.AUTHORITY_INTERNAL,
+            SystemKeys.AUTHORITY_INTERNAL,
+            SystemKeys.REALM_SYSTEM
+        );
         internalConfig.setVersion(1);
         logger.debug("configure internal idp for system realm");
         systemProviders.put(internalConfig.getProvider(), internalConfig);
 
         ConfigurableIdentityProvider internalPasswordIdpConfig = new ConfigurableIdentityProvider(
-                SystemKeys.AUTHORITY_PASSWORD, SystemKeys.AUTHORITY_INTERNAL + "_" + SystemKeys.AUTHORITY_PASSWORD,
-                SystemKeys.REALM_SYSTEM);
+            SystemKeys.AUTHORITY_PASSWORD,
+            SystemKeys.AUTHORITY_INTERNAL + "_" + SystemKeys.AUTHORITY_PASSWORD,
+            SystemKeys.REALM_SYSTEM
+        );
         internalPasswordIdpConfig.setVersion(1);
         logger.debug("configure internal password idp for system realm");
         systemProviders.put(internalPasswordIdpConfig.getProvider(), internalPasswordIdpConfig);
@@ -86,8 +105,9 @@ public class IdentityProviderService
                     continue;
                 }
 
-                String providerId = StringUtils.hasText(cp.getProvider()) ? cp.getProvider()
-                        : RandomStringUtils.randomAlphanumeric(10);
+                String providerId = StringUtils.hasText(cp.getProvider())
+                    ? cp.getProvider()
+                    : RandomStringUtils.randomAlphanumeric(10);
                 logger.debug("configure provider {}:{} for realm system", authority, providerId);
                 if (logger.isTraceEnabled()) {
                     logger.trace("provider config: {}", String.valueOf(cp.getConfiguration()));
@@ -104,9 +124,12 @@ public class IdentityProviderService
                         validator.validate(configurable, binder.getBindingResult());
                         if (binder.getBindingResult().hasErrors()) {
                             StringBuilder sb = new StringBuilder();
-                            binder.getBindingResult().getFieldErrors().forEach(e -> {
-                                sb.append(e.getField()).append(" ").append(e.getDefaultMessage());
-                            });
+                            binder
+                                .getBindingResult()
+                                .getFieldErrors()
+                                .forEach(e -> {
+                                    sb.append(e.getField()).append(" ").append(e.getDefaultMessage());
+                                });
                             String errorMsg = sb.toString();
                             throw new RegistrationException(errorMsg);
                         }
@@ -115,8 +138,11 @@ public class IdentityProviderService
                     Map<String, Serializable> configuration = configurable.getConfiguration();
 
                     // build a new config to detach from props
-                    ConfigurableIdentityProvider cip = new ConfigurableIdentityProvider(authority, providerId,
-                            SystemKeys.REALM_SYSTEM);
+                    ConfigurableIdentityProvider cip = new ConfigurableIdentityProvider(
+                        authority,
+                        providerId,
+                        SystemKeys.REALM_SYSTEM
+                    );
                     cip.setName(cp.getName());
                     cip.setTitleMap(cp.getTitleMap());
                     cip.setDescriptionMap(cip.getDescriptionMap());
@@ -131,9 +157,9 @@ public class IdentityProviderService
 
                     // register
                     systemProviders.put(providerId, cip);
-
-                } catch (RegistrationException | SystemException | IllegalArgumentException
-                        | NoSuchAuthorityException ex) {
+                } catch (
+                    RegistrationException | SystemException | IllegalArgumentException | NoSuchAuthorityException ex
+                ) {
                     logger.error("error configuring provider :" + ex.getMessage(), ex);
                 }
             }
@@ -141,11 +167,14 @@ public class IdentityProviderService
     }
 
     static class IdentityProviderEntityConverter
-            implements Converter<IdentityProviderEntity, ConfigurableIdentityProvider> {
+        implements Converter<IdentityProviderEntity, ConfigurableIdentityProvider> {
 
         public ConfigurableIdentityProvider convert(IdentityProviderEntity pe) {
-            ConfigurableIdentityProvider cp = new ConfigurableIdentityProvider(pe.getAuthority(), pe.getProvider(),
-                    pe.getRealm());
+            ConfigurableIdentityProvider cp = new ConfigurableIdentityProvider(
+                pe.getAuthority(),
+                pe.getProvider(),
+                pe.getRealm()
+            );
             cp.setConfiguration(pe.getConfigurationMap());
             cp.setVersion(pe.getVersion());
 
@@ -161,11 +190,9 @@ public class IdentityProviderService
 
             return cp;
         }
-
     }
 
-    class IdentityProviderConfigConverter
-            implements Converter<ConfigurableIdentityProvider, IdentityProviderEntity> {
+    class IdentityProviderConfigConverter implements Converter<ConfigurableIdentityProvider, IdentityProviderEntity> {
 
         @Override
         public IdentityProviderEntity convert(ConfigurableIdentityProvider reg) {
@@ -186,7 +213,11 @@ public class IdentityProviderService
             Map<String, String> titleMap = null;
             if (reg.getTitleMap() != null) {
                 // cleanup every field via safelist
-                titleMap = reg.getTitleMap().entrySet().stream()
+                titleMap =
+                    reg
+                        .getTitleMap()
+                        .entrySet()
+                        .stream()
                         .filter(e -> e.getValue() != null)
                         .map(e -> Map.entry(e.getKey(), Jsoup.clean(e.getValue(), Safelist.none())))
                         .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
@@ -196,7 +227,11 @@ public class IdentityProviderService
             Map<String, String> descriptionMap = null;
             if (reg.getDescriptionMap() != null) {
                 // cleanup every field via safelist
-                descriptionMap = reg.getDescriptionMap().entrySet().stream()
+                descriptionMap =
+                    reg
+                        .getDescriptionMap()
+                        .entrySet()
+                        .stream()
                         .filter(e -> e.getValue() != null)
                         .map(e -> Map.entry(e.getKey(), Jsoup.clean(e.getValue(), Safelist.none())))
                         .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
@@ -207,8 +242,9 @@ public class IdentityProviderService
             String persistence = reg.getPersistence();
             String events = reg.getEvents();
 
-            Integer position = (reg.getPosition() != null && reg.getPosition().intValue() > 0) ? reg.getPosition()
-                    : null;
+            Integer position = (reg.getPosition() != null && reg.getPosition().intValue() > 0)
+                ? reg.getPosition()
+                : null;
 
             pe.setPersistence(persistence);
             pe.setEvents(events);
@@ -221,7 +257,5 @@ public class IdentityProviderService
 
             return pe;
         }
-
     }
-
 }

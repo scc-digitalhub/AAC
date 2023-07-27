@@ -1,8 +1,25 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.saml.auth;
 
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
 import java.time.Instant;
 import java.util.UUID;
-
 import org.joda.time.DateTime;
 import org.opensaml.core.config.ConfigurationService;
 import org.opensaml.core.xml.config.XMLObjectProviderRegistry;
@@ -26,12 +43,8 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationRequestContext;
 import org.springframework.util.Assert;
 
-import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
-
 public class SamlAuthenticationRequestContextConverter
-        implements Converter<Saml2AuthenticationRequestContext, AuthnRequest> {
-
+    implements Converter<Saml2AuthenticationRequestContext, AuthnRequest> {
     static {
         OpenSamlInitializationService.initialize();
     }
@@ -49,20 +62,23 @@ public class SamlAuthenticationRequestContextConverter
     private RequestedAuthnContextBuilder reqAuthnContextBuilder;
 
     public SamlAuthenticationRequestContextConverter(
-            ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository) {
+        ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository
+    ) {
         Assert.notNull(registrationRepository, "provider registration repository cannot be null");
         this.registrationRepository = registrationRepository;
 
         // fetch opensaml builders
         XMLObjectProviderRegistry registry = ConfigurationService.get(XMLObjectProviderRegistry.class);
-        this.marshaller = (AuthnRequestMarshaller) registry.getMarshallerFactory()
-                .getMarshaller(AuthnRequest.DEFAULT_ELEMENT_NAME);
-        this.authnRequestBuilder = (AuthnRequestBuilder) registry.getBuilderFactory()
-                .getBuilder(AuthnRequest.DEFAULT_ELEMENT_NAME);
+        this.marshaller =
+            (AuthnRequestMarshaller) registry.getMarshallerFactory().getMarshaller(AuthnRequest.DEFAULT_ELEMENT_NAME);
+        this.authnRequestBuilder =
+            (AuthnRequestBuilder) registry.getBuilderFactory().getBuilder(AuthnRequest.DEFAULT_ELEMENT_NAME);
         this.issuerBuilder = (IssuerBuilder) registry.getBuilderFactory().getBuilder(Issuer.DEFAULT_ELEMENT_NAME);
-        this.nameIDPolicyBuilder = (NameIDPolicyBuilder) registry.getBuilderFactory()
-                .getBuilder(NameIDPolicy.DEFAULT_ELEMENT_NAME);
-        this.reqAuthnContextBuilder = (RequestedAuthnContextBuilder) registry.getBuilderFactory()
+        this.nameIDPolicyBuilder =
+            (NameIDPolicyBuilder) registry.getBuilderFactory().getBuilder(NameIDPolicy.DEFAULT_ELEMENT_NAME);
+        this.reqAuthnContextBuilder =
+            (RequestedAuthnContextBuilder) registry
+                .getBuilderFactory()
                 .getBuilder(RequestedAuthnContext.DEFAULT_ELEMENT_NAME);
     }
 
@@ -74,8 +90,10 @@ public class SamlAuthenticationRequestContextConverter
         // registrationId is providerId
         SamlIdentityProviderConfig providerConfig = registrationRepository.findByProviderId(registrationId);
         if (providerConfig == null) {
-            Saml2Error saml2Error = new Saml2Error(Saml2ErrorCodes.RELYING_PARTY_REGISTRATION_NOT_FOUND,
-                    "No relying party registration found");
+            Saml2Error saml2Error = new Saml2Error(
+                Saml2ErrorCodes.RELYING_PARTY_REGISTRATION_NOT_FOUND,
+                "No relying party registration found"
+            );
             throw new Saml2AuthenticationException(saml2Error);
         }
 
@@ -120,11 +138,13 @@ public class SamlAuthenticationRequestContextConverter
         if (providerConfig.getRelyingPartyRegistrationAuthnContextClassRefs() != null) {
             RequestedAuthnContext requestAuthnContext = this.reqAuthnContextBuilder.buildObject();
             requestAuthnContext.setComparison(AuthnContextComparisonTypeEnumeration.EXACT);
-            providerConfig.getRelyingPartyRegistrationAuthnContextClassRefs().forEach((r) -> {
-                AuthnContextClassRef authnContextClassRef = new AuthnContextClassRefBuilder().buildObject();
-                authnContextClassRef.setAuthnContextClassRef(r);
-                requestAuthnContext.getAuthnContextClassRefs().add(authnContextClassRef);
-            });
+            providerConfig
+                .getRelyingPartyRegistrationAuthnContextClassRefs()
+                .forEach(r -> {
+                    AuthnContextClassRef authnContextClassRef = new AuthnContextClassRefBuilder().buildObject();
+                    authnContextClassRef.setAuthnContextClassRef(r);
+                    requestAuthnContext.getAuthnContextClassRefs().add(authnContextClassRef);
+                });
 
             if (providerConfig.getRelyingPartyRegistrationAuthnContextComparison() != null) {
                 String comparison = providerConfig.getRelyingPartyRegistrationAuthnContextComparison();
@@ -139,12 +159,10 @@ public class SamlAuthenticationRequestContextConverter
             auth.setRequestedAuthnContext(requestAuthnContext);
         }
 
-//        Scoping scoping = new ScopingBuilder().buildObject();
-//        scoping.setProxyCount(2);
-//        auth.setScoping(scoping);
+        //        Scoping scoping = new ScopingBuilder().buildObject();
+        //        scoping.setProxyCount(2);
+        //        auth.setScoping(scoping);
 
         return auth;
-
     }
-
 }

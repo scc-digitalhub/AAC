@@ -1,3 +1,19 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.oauth.store;
 
 import java.io.Serializable;
@@ -8,7 +24,6 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
-
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.util.Assert;
 import org.springframework.util.DigestUtils;
@@ -56,13 +71,17 @@ public class InMemoryAuthorizationRequestStore implements AuthorizationRequestSt
         Map<String, String> values = new TreeMap<String, String>();
 
         values.put("client_id", request.getClientId());
-        values.put("response_type",
-                StringUtils.collectionToCommaDelimitedString(new TreeSet<String>(request.getResponseTypes())));
+        values.put(
+            "response_type",
+            StringUtils.collectionToCommaDelimitedString(new TreeSet<String>(request.getResponseTypes()))
+        );
         values.put("scope", StringUtils.collectionToCommaDelimitedString(new TreeSet<String>(request.getScope())));
         values.put("redirect_uri", request.getRedirectUri());
         values.put("state", request.getState());
-        values.put("resource",
-                StringUtils.collectionToCommaDelimitedString(new TreeSet<String>(request.getResourceIds())));
+        values.put(
+            "resource",
+            StringUtils.collectionToCommaDelimitedString(new TreeSet<String>(request.getResourceIds()))
+        );
 
         // build key and reduce to md5hash
         StringBuilder sb = new StringBuilder();
@@ -77,6 +96,5 @@ public class InMemoryAuthorizationRequestStore implements AuthorizationRequestSt
         } catch (UnsupportedEncodingException e) {
             throw new IllegalStateException("error building key");
         }
-
     }
 }

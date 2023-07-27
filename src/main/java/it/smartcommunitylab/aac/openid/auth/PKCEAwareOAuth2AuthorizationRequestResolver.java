@@ -1,5 +1,23 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.openid.auth;
 
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -7,7 +25,6 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.security.crypto.keygen.Base64StringKeyGenerator;
 import org.springframework.security.crypto.keygen.StringKeyGenerator;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
@@ -20,15 +37,12 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.Assert;
 
-import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
-
 /*
  * Extends spring DefaultOAuth2AuthorizationRequestResolver to always include PKCE exchange
  * TODO remove class when lands https://github.com/spring-projects/spring-security/pull/7804
- * 
+ *
  * we could also leverage request customizer to accomplish the same
- * 
+ *
  */
 
 public class PKCEAwareOAuth2AuthorizationRequestResolver implements OAuth2AuthorizationRequestResolver {
@@ -38,9 +52,10 @@ public class PKCEAwareOAuth2AuthorizationRequestResolver implements OAuth2Author
     private final RequestMatcher requestMatcher;
 
     public PKCEAwareOAuth2AuthorizationRequestResolver(
-            ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository,
-            ClientRegistrationRepository clientRegistrationRepository,
-            String authorizationRequestBaseUri) {
+        ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository,
+        ClientRegistrationRepository clientRegistrationRepository,
+        String authorizationRequestBaseUri
+    ) {
         Assert.notNull(registrationRepository, "provider registration repository cannot be null");
         Assert.notNull(clientRegistrationRepository, "clientRegistrationRepository cannot be null");
         Assert.hasText(authorizationRequestBaseUri, "authorizationRequestBaseUri cannot be empty");
@@ -48,8 +63,8 @@ public class PKCEAwareOAuth2AuthorizationRequestResolver implements OAuth2Author
         this.registrationRepository = registrationRepository;
         this.requestMatcher = new AntPathRequestMatcher(authorizationRequestBaseUri + "/{registrationId}");
 
-        defaultResolver = new DefaultOAuth2AuthorizationRequestResolver(clientRegistrationRepository,
-                authorizationRequestBaseUri);
+        defaultResolver =
+            new DefaultOAuth2AuthorizationRequestResolver(clientRegistrationRepository, authorizationRequestBaseUri);
     }
 
     @Override
@@ -108,17 +123,20 @@ public class PKCEAwareOAuth2AuthorizationRequestResolver implements OAuth2Author
         addPkceParameters(attributes, additionalParameters);
 
         // get a builder and reset paramers
-        return OAuth2AuthorizationRequest.from(authRequest)
-                .attributes(attributes)
-                .additionalParameters(additionalParameters)
-                .build();
+        return OAuth2AuthorizationRequest
+            .from(authRequest)
+            .attributes(attributes)
+            .additionalParameters(additionalParameters)
+            .build();
     }
 
     /*
      * add pkce parameters, copy from DefaultOAuth2AuthorizationRequestResolver
      */
     private final StringKeyGenerator secureKeyGenerator = new Base64StringKeyGenerator(
-            Base64.getUrlEncoder().withoutPadding(), 96);
+        Base64.getUrlEncoder().withoutPadding(),
+        96
+    );
 
     private void addPkceParameters(Map<String, Object> attributes, Map<String, Object> additionalParameters) {
         String codeVerifier = this.secureKeyGenerator.generateKey();
@@ -137,5 +155,4 @@ public class PKCEAwareOAuth2AuthorizationRequestResolver implements OAuth2Author
         byte[] digest = md.digest(value.getBytes(StandardCharsets.US_ASCII));
         return Base64.getUrlEncoder().withoutPadding().encodeToString(digest);
     }
-
 }

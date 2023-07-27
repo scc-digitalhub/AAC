@@ -1,10 +1,25 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.core.auth;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.Assert;
-
-import it.smartcommunitylab.aac.SystemKeys;
 
 public class RealmWrappedAuthenticationToken extends WrappedAuthenticationToken {
 
@@ -13,21 +28,16 @@ public class RealmWrappedAuthenticationToken extends WrappedAuthenticationToken 
     private final String authority;
     private final String realm;
 
-    public RealmWrappedAuthenticationToken(
-            AbstractAuthenticationToken token,
-            String realm) {
+    public RealmWrappedAuthenticationToken(AbstractAuthenticationToken token, String realm) {
         this(token, realm, null);
     }
 
-    public RealmWrappedAuthenticationToken(
-            AbstractAuthenticationToken token,
-            String realm, String authority) {
+    public RealmWrappedAuthenticationToken(AbstractAuthenticationToken token, String realm, String authority) {
         super(token);
         Assert.hasText(realm, "realm can not be null or empty");
         this.token = token;
         this.authority = authority;
         this.realm = realm;
-
     }
 
     public String getAuthority() {
@@ -59,28 +69,19 @@ public class RealmWrappedAuthenticationToken extends WrappedAuthenticationToken 
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         RealmWrappedAuthenticationToken other = (RealmWrappedAuthenticationToken) obj;
         if (authority == null) {
-            if (other.authority != null)
-                return false;
-        } else if (!authority.equals(other.authority))
-            return false;
+            if (other.authority != null) return false;
+        } else if (!authority.equals(other.authority)) return false;
         if (realm == null) {
-            if (other.realm != null)
-                return false;
-        } else if (!realm.equals(other.realm))
-            return false;
+            if (other.realm != null) return false;
+        } else if (!realm.equals(other.realm)) return false;
         if (token == null) {
-            if (other.token != null)
-                return false;
-        } else if (!token.equals(other.token))
-            return false;
+            if (other.token != null) return false;
+        } else if (!token.equals(other.token)) return false;
         return true;
     }
 

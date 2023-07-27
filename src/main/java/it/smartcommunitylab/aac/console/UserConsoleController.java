@@ -1,45 +1,24 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.console;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import javax.annotation.Nullable;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.audit.AuditEvent;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.authentication.InsufficientAuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.session.SessionInformation;
-import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
@@ -72,6 +51,39 @@ import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationRequest;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationResponse;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationStartRequest;
 import it.smartcommunitylab.aac.webauthn.store.WebAuthnRegistrationRequestStore;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import javax.annotation.Nullable;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.audit.AuditEvent;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.session.SessionInformation;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @PreAuthorize("hasAuthority('" + Config.R_USER + "')")
@@ -83,14 +95,16 @@ public class UserConsoleController {
     private WebAuthnRegistrationRequestStore webAuthnRequestStore;
 
     // TODO remove workaround for token serialization
-    private final static ObjectMapper tokenMapper;
+    private static final ObjectMapper tokenMapper;
+
     static {
         ObjectMapper mapper = new ObjectMapper();
         mapper.disable(MapperFeature.USE_ANNOTATIONS);
         tokenMapper = mapper;
     }
-    private final TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
-    };
+
+    private final TypeReference<HashMap<String, Serializable>> typeRef =
+        new TypeReference<HashMap<String, Serializable>>() {};
 
     @Autowired
     private AuthenticationHelper authHelper;
@@ -143,7 +157,6 @@ public class UserConsoleController {
 
         // TODO use a proper profile for UI (UserProfile..)
         return ResponseEntity.ok(user);
-
     }
 
     @DeleteMapping("/details/{userId}")
@@ -158,38 +171,33 @@ public class UserConsoleController {
      * Accounts
      */
     @GetMapping("/accounts")
-    public ResponseEntity<Page<EditableUserAccount>> listAccounts(Pageable pageable)
-            throws NoSuchUserException {
-        List<EditableUserAccount> result = userManager.getMyAccounts().stream()
-                .collect(Collectors.toList());
+    public ResponseEntity<Page<EditableUserAccount>> listAccounts(Pageable pageable) throws NoSuchUserException {
+        List<EditableUserAccount> result = userManager.getMyAccounts().stream().collect(Collectors.toList());
         Page<EditableUserAccount> page = new PageImpl<>(result, pageable, result.size());
         return ResponseEntity.ok(page);
     }
 
     @GetMapping("/accounts/{uuid}")
     public ResponseEntity<EditableUserAccount> getAccount(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String uuid)
-            throws NoSuchUserException, NoSuchProviderException, NoSuchAuthorityException {
-
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String uuid
+    ) throws NoSuchUserException, NoSuchProviderException, NoSuchAuthorityException {
         EditableUserAccount account = userManager.getMyAccount(uuid);
         return ResponseEntity.ok(account);
     }
 
     @PutMapping("/accounts/{uuid}")
     public ResponseEntity<EditableUserAccount> updateAccount(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String uuid,
-            @RequestBody @Valid @NotNull AbstractEditableAccount reg)
-            throws NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
-
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String uuid,
+        @RequestBody @Valid @NotNull AbstractEditableAccount reg
+    ) throws NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
         EditableUserAccount account = userManager.updateMyAccount(uuid, reg);
         return ResponseEntity.ok(account);
     }
 
     @DeleteMapping("/accounts/{uuid}")
     public ResponseEntity<Void> deleteAccount(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String uuid)
-            throws NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
-
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String uuid
+    ) throws NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
         userManager.deleteMyAccount(uuid);
         return ResponseEntity.ok().build();
     }
@@ -199,49 +207,44 @@ public class UserConsoleController {
      */
     @GetMapping("/password")
     public ResponseEntity<Page<InternalEditableUserPassword>> listPassword(Pageable pageable)
-            throws NoSuchUserException {
-        List<InternalEditableUserPassword> result = userManager.getMyPassword().stream()
-                .collect(Collectors.toList());
+        throws NoSuchUserException {
+        List<InternalEditableUserPassword> result = userManager.getMyPassword().stream().collect(Collectors.toList());
         Page<InternalEditableUserPassword> page = new PageImpl<>(result, pageable, result.size());
         return ResponseEntity.ok(page);
     }
 
     @PostMapping("/password")
     public ResponseEntity<InternalEditableUserPassword> registerPassword(
-            @RequestBody @Valid @NotNull InternalEditableUserPassword reg)
-            throws NoSuchCredentialException, NoSuchUserException, NoSuchProviderException, RegistrationException,
-            NoSuchAuthorityException {
-
+        @RequestBody @Valid @NotNull InternalEditableUserPassword reg
+    )
+        throws NoSuchCredentialException, NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
         InternalEditableUserPassword cred = userManager.registerMyPassword(reg);
         return ResponseEntity.ok(cred);
     }
 
     @GetMapping("/password/{id}")
     public ResponseEntity<InternalEditableUserPassword> getPassword(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String id)
-            throws NoSuchCredentialException, NoSuchUserException, NoSuchProviderException, NoSuchAuthorityException {
-
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String id
+    ) throws NoSuchCredentialException, NoSuchUserException, NoSuchProviderException, NoSuchAuthorityException {
         InternalEditableUserPassword cred = userManager.getMyPassword(id);
         return ResponseEntity.ok(cred);
     }
 
     @PutMapping("/password/{id}")
     public ResponseEntity<InternalEditableUserPassword> updatePassword(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String id,
-            @RequestBody @Valid @NotNull InternalEditableUserPassword reg)
-            throws NoSuchCredentialException, NoSuchUserException, NoSuchProviderException, RegistrationException,
-            NoSuchAuthorityException {
-
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String id,
+        @RequestBody @Valid @NotNull InternalEditableUserPassword reg
+    )
+        throws NoSuchCredentialException, NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
         InternalEditableUserPassword cred = userManager.updateMyPassword(id, reg);
         return ResponseEntity.ok(cred);
     }
 
     @DeleteMapping("/password/{id}")
     public ResponseEntity<Void> deletePassword(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String id)
-            throws NoSuchCredentialException, NoSuchUserException, NoSuchProviderException, RegistrationException,
-            NoSuchAuthorityException {
-
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String id
+    )
+        throws NoSuchCredentialException, NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
         userManager.deleteMyPassword(id);
         return ResponseEntity.ok().build();
     }
@@ -251,39 +254,38 @@ public class UserConsoleController {
      */
     @GetMapping("/webauthn")
     public ResponseEntity<Page<WebAuthnEditableUserCredential>> listWebAuthnCredentials(Pageable pageable)
-            throws NoSuchUserException {
-        List<WebAuthnEditableUserCredential> result = userManager.getMyWebAuthnCredentials().stream()
-                .collect(Collectors.toList());
+        throws NoSuchUserException {
+        List<WebAuthnEditableUserCredential> result = userManager
+            .getMyWebAuthnCredentials()
+            .stream()
+            .collect(Collectors.toList());
         Page<WebAuthnEditableUserCredential> page = new PageImpl<>(result, pageable, result.size());
         return ResponseEntity.ok(page);
     }
 
     @GetMapping("/webauthn/{id}")
     public ResponseEntity<WebAuthnEditableUserCredential> getWebAuthnCredentials(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String id)
-            throws NoSuchCredentialException, NoSuchUserException, NoSuchProviderException, NoSuchAuthorityException {
-
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String id
+    ) throws NoSuchCredentialException, NoSuchUserException, NoSuchProviderException, NoSuchAuthorityException {
         WebAuthnEditableUserCredential cred = userManager.getMyWebAuthnCredential(id);
         return ResponseEntity.ok(cred);
     }
 
     @PutMapping("/webauthn/{id}")
     public ResponseEntity<WebAuthnEditableUserCredential> updateWebAuthnCredentials(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String id,
-            @RequestBody @Valid @NotNull WebAuthnEditableUserCredential reg)
-            throws NoSuchCredentialException, NoSuchUserException, NoSuchProviderException, RegistrationException,
-            NoSuchAuthorityException {
-
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String id,
+        @RequestBody @Valid @NotNull WebAuthnEditableUserCredential reg
+    )
+        throws NoSuchCredentialException, NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
         WebAuthnEditableUserCredential cred = userManager.updateMyWebAuthnCredential(id, reg);
         return ResponseEntity.ok(cred);
     }
 
     @DeleteMapping("/webauthn/{id}")
     public ResponseEntity<Void> deleteCredentials(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String id)
-            throws NoSuchCredentialException, NoSuchUserException, NoSuchProviderException, RegistrationException,
-            NoSuchAuthorityException {
-
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String id
+    )
+        throws NoSuchCredentialException, NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
         userManager.deleteMyWebAuthnCredential(id);
         return ResponseEntity.ok().build();
     }
@@ -291,9 +293,9 @@ public class UserConsoleController {
     // webauthn registration 2 step flow
     @RequestMapping(method = RequestMethod.PATCH, value = "/webauthn")
     public ResponseEntity<WebAuthnRegistrationResponse> attestateWebAuthnCredential(
-            @RequestBody(required = false) @Nullable WebAuthnEditableUserCredential reg)
-            throws NoSuchCredentialException, NoSuchUserException, NoSuchProviderException, RegistrationException,
-            NoSuchAuthorityException {
+        @RequestBody(required = false) @Nullable WebAuthnEditableUserCredential reg
+    )
+        throws NoSuchCredentialException, NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
         WebAuthnRegistrationRequest request = userManager.registerMyWebAuthnCredential(reg);
 
         // store request
@@ -301,17 +303,18 @@ public class UserConsoleController {
 
         // build response
         WebAuthnRegistrationResponse response = new WebAuthnRegistrationResponse(
-                key, request.getCredentialCreationInfo().getOptions());
+            key,
+            request.getCredentialCreationInfo().getOptions()
+        );
 
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/webauthn")
     public ResponseEntity<WebAuthnEditableUserCredential> registerWebAuthnCredential(
-            @RequestBody @NotNull WebAuthnEditableUserCredential reg)
-            throws NoSuchCredentialException, NoSuchUserException, NoSuchProviderException, RegistrationException,
-            NoSuchAuthorityException {
-
+        @RequestBody @NotNull WebAuthnEditableUserCredential reg
+    )
+        throws NoSuchCredentialException, NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
         // we skip validation so we check here
         String key = reg.getKey();
         if (!StringUtils.hasText(key)) {
@@ -345,8 +348,8 @@ public class UserConsoleController {
 
     @GetMapping("/connections/{id}")
     public ResponseEntity<ConnectedApp> getConnection(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String id)
-            throws NoSuchClientException {
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String id
+    ) throws NoSuchClientException {
         String[] i = id.split(SystemKeys.ID_SEPARATOR);
         if (i.length != 2) {
             throw new IllegalArgumentException("invalid id format");
@@ -360,8 +363,8 @@ public class UserConsoleController {
 
     @DeleteMapping("/connections/{id}")
     public ResponseEntity<Void> deleteConnection(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String id)
-            throws NoSuchClientException {
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String id
+    ) throws NoSuchClientException {
         String[] i = id.split(SystemKeys.ID_SEPARATOR);
         if (i.length != 2) {
             throw new IllegalArgumentException("invalid id format");
@@ -372,6 +375,7 @@ public class UserConsoleController {
         userManager.deleteMyConnectedApp(clientId);
         return ResponseEntity.ok().build();
     }
+
     /*
      * Profiles
      */
@@ -399,26 +403,29 @@ public class UserConsoleController {
 
     @GetMapping("/sessions")
     public ResponseEntity<Page<IdentifiableSessionInformation>> mySessions(Pageable pageable)
-            throws InvalidDefinitionException {
-        List<IdentifiableSessionInformation> result = userManager.getMySessions().stream()
-                .map(s -> new IdentifiableSessionInformation(s.getPrincipal(), s.getSessionId(), s.getLastRequest()))
-                .collect(Collectors.toList());
+        throws InvalidDefinitionException {
+        List<IdentifiableSessionInformation> result = userManager
+            .getMySessions()
+            .stream()
+            .map(s -> new IdentifiableSessionInformation(s.getPrincipal(), s.getSessionId(), s.getLastRequest()))
+            .collect(Collectors.toList());
         Page<IdentifiableSessionInformation> page = new PageImpl<>(result, pageable, result.size());
         return ResponseEntity.ok(page);
     }
 
     @GetMapping("/tokens")
     public ResponseEntity<Page<Map<String, Serializable>>> myTokens(Pageable pageable)
-            throws InvalidDefinitionException {
-
+        throws InvalidDefinitionException {
         Collection<AACOAuth2AccessToken> tokens = userManager.getMyAccessTokens();
-        List<Map<String, Serializable>> result = tokens.stream()
-                .map(t -> {
-                    HashMap<String, Serializable> m = tokenMapper.convertValue(t, typeRef);
-                    m.put("id", t.getToken());
-                    return m;
-                })
-                .filter(t -> t != null).collect(Collectors.toList());
+        List<Map<String, Serializable>> result = tokens
+            .stream()
+            .map(t -> {
+                HashMap<String, Serializable> m = tokenMapper.convertValue(t, typeRef);
+                m.put("id", t.getToken());
+                return m;
+            })
+            .filter(t -> t != null)
+            .collect(Collectors.toList());
         Page<Map<String, Serializable>> page = new PageImpl<>(result, pageable, result.size());
         return ResponseEntity.ok(page);
     }
@@ -427,25 +434,26 @@ public class UserConsoleController {
     public ResponseEntity<Page<Scope>> scopes(Pageable pageable) throws NoSuchRealmException {
         // cleanup scope details
 
-        List<Scope> result = scopeManager.listScopes()
-                .stream()
-                .filter(s -> ScopeType.CLIENT != s.getType())
-                .map(s -> {
-                    Scope r = new Scope(s.getScope());
-                    r.setName(s.getName());
-                    r.setDescription(s.getDescription());
-                    r.setResourceId(s.getResourceId());
-                    return r;
-                })
-                .collect(Collectors.toList());
+        List<Scope> result = scopeManager
+            .listScopes()
+            .stream()
+            .filter(s -> ScopeType.CLIENT != s.getType())
+            .map(s -> {
+                Scope r = new Scope(s.getScope());
+                r.setName(s.getName());
+                r.setDescription(s.getDescription());
+                r.setResourceId(s.getResourceId());
+                return r;
+            })
+            .collect(Collectors.toList());
         Page<Scope> page = new PageImpl<>(result, pageable, result.size());
         return ResponseEntity.ok(page);
     }
 
     @GetMapping("/scopes/{scope}")
     public ResponseEntity<Scope> scope(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String scope)
-            throws NoSuchRealmException, NoSuchScopeException {
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String scope
+    ) throws NoSuchRealmException, NoSuchScopeException {
         Scope s = scopeManager.getScope(scope);
         return ResponseEntity.ok(s);
     }
@@ -460,6 +468,7 @@ public class UserConsoleController {
     }
 
     public static class IdentifiableSessionInformation extends SessionInformation {
+
         public IdentifiableSessionInformation(Object principal, String sessionId, Date lastRequest) {
             super(principal, sessionId, lastRequest);
         }

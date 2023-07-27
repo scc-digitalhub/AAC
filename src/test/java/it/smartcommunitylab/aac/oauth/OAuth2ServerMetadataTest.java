@@ -1,24 +1,32 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.oauth;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import it.smartcommunitylab.aac.openid.OIDCProviderMetadataTest;
-import it.smartcommunitylab.aac.openid.OIDCRpInitiatedLogoutTest;
-import it.smartcommunitylab.aac.openid.OIDCSessionManagementTest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import it.smartcommunitylab.aac.openid.OIDCProviderMetadataTest;
+import it.smartcommunitylab.aac.openid.OIDCRpInitiatedLogoutTest;
+import it.smartcommunitylab.aac.openid.OIDCSessionManagementTest;
 import java.io.Serializable;
 import java.net.URI;
 import java.util.ArrayList;
@@ -30,11 +38,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 /*
  * OAuth 2.0 Authorization Server Metadata
  * as per RFC8414
- * 
+ *
  * https://www.rfc-editor.org/rfc/rfc8414
  */
 
@@ -50,10 +65,7 @@ public class OAuth2ServerMetadataTest {
 
     @Test
     public void metadataIsAvailable() throws Exception {
-        MvcResult res = this.mockMvc
-                .perform(get(METADATA_URL))
-                .andDo(print()).andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(get(METADATA_URL)).andDo(print()).andExpect(status().isOk()).andReturn();
 
         // content type is json
         assertEquals(res.getResponse().getContentType(), MediaType.APPLICATION_JSON_VALUE);
@@ -66,34 +78,29 @@ public class OAuth2ServerMetadataTest {
 
     @Test
     public void metadataIsWellFormed() throws Exception {
-        MvcResult res = this.mockMvc
-                .perform(get(METADATA_URL))
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(get(METADATA_URL)).andExpect(status().isOk()).andReturn();
 
         // parse as Map from JSON
         String json = res.getResponse().getContentAsString();
         Map<String, Serializable> metadata = mapper.readValue(json, typeRef);
 
         // every claim is either string, boolean or string array
-        metadata.entrySet().forEach(e -> {
-            assertThat(e.getValue()).isInstanceOfAny(String.class, Boolean.class, List.class);
+        metadata
+            .entrySet()
+            .forEach(e -> {
+                assertThat(e.getValue()).isInstanceOfAny(String.class, Boolean.class, List.class);
 
-            if (e instanceof ArrayList) {
-                @SuppressWarnings("unchecked")
-                List<Object> l = (List<Object>) e;
-                assertThat(l).allMatch(v -> (v instanceof String));
-            }
-        });
-
+                if (e instanceof ArrayList) {
+                    @SuppressWarnings("unchecked")
+                    List<Object> l = (List<Object>) e;
+                    assertThat(l).allMatch(v -> (v instanceof String));
+                }
+            });
     }
 
     @Test
     public void allMetadataIsRegistered() throws Exception {
-        MvcResult res = this.mockMvc
-                .perform(get(METADATA_URL))
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(get(METADATA_URL)).andExpect(status().isOk()).andReturn();
 
         // parse as Map from JSON
         String json = res.getResponse().getContentAsString();
@@ -107,18 +114,16 @@ public class OAuth2ServerMetadataTest {
         validKeys.addAll(OIDCRpInitiatedLogoutTest.METADATA);
         validKeys.addAll(OAuth2AuthorizationServerIssuerTest.METADATA);
 
-        metadata.keySet().forEach(k -> {
-            assertThat(k).isIn(validKeys);
-        });
-
+        metadata
+            .keySet()
+            .forEach(k -> {
+                assertThat(k).isIn(validKeys);
+            });
     }
 
     @Test
     public void requiredMetadataIsAvailable() throws Exception {
-        MvcResult res = this.mockMvc
-                .perform(get(METADATA_URL))
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(get(METADATA_URL)).andExpect(status().isOk()).andReturn();
 
         // parse as Map from JSON
         String json = res.getResponse().getContentAsString();
@@ -133,10 +138,7 @@ public class OAuth2ServerMetadataTest {
 
     @Test
     public void issuerIsValid() throws Exception {
-        MvcResult res = this.mockMvc
-                .perform(get(METADATA_URL))
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(get(METADATA_URL)).andExpect(status().isOk()).andReturn();
 
         // parse as Map from JSON
         String json = res.getResponse().getContentAsString();
@@ -152,7 +154,6 @@ public class OAuth2ServerMetadataTest {
         assertDoesNotThrow(() -> {
             String issuer = (String) metadata.get("issuer");
             URI.create(issuer);
-
         });
 
         String issuer = (String) metadata.get("issuer");
@@ -165,10 +166,10 @@ public class OAuth2ServerMetadataTest {
 
     /*
      * Metadata endpoint
-     * 
+     *
      * https://www.rfc-editor.org/rfc/rfc8414#section-3
      */
-    public final static String METADATA_URL = "/.well-known/oauth-authorization-server";
+    public static final String METADATA_URL = "/.well-known/oauth-authorization-server";
 
     /*
      * Claims definition
@@ -179,42 +180,37 @@ public class OAuth2ServerMetadataTest {
     public static final Set<String> OPTIONAL_METADATA;
 
     private static final String[] REQUIRED_METADATA_VALUES = {
-            "issuer",
-            "authorization_endpoint",
-            "token_endpoint",
-            "response_types_supported",
-
+        "issuer",
+        "authorization_endpoint",
+        "token_endpoint",
+        "response_types_supported",
     };
-    private static final String[] RECOMMENDED_METADATA_VALUES = {
-            "scopes_supported",
-            "claims_supported"
-
-    };
+    private static final String[] RECOMMENDED_METADATA_VALUES = { "scopes_supported", "claims_supported" };
 
     private static final String[] OPTIONAL_METADATA_VALUES = {
-            "jwks_uri",
-            "registration_endpoint",
-            "response_modes_supported",
-            "grant_types_supported",
-            "token_endpoint_auth_methods_supported",
-            "token_endpoint_auth_signing_alg_values_supported",
-            "service_documentation",
-            "ui_locales_supported",
-            "op_policy_uri",
-            "op_tos_uri",
-            "revocation_endpoint",
-            "revocation_endpoint_auth_methods_supported",
-            "revocation_endpoint_auth_signing_alg_values_supported",
-            "introspection_endpoint",
-            "introspection_endpoint_auth_methods_supported",
-            "introspection_endpoint_auth_signing_alg_values_supported",
-            "code_challenge_methods_supported"
+        "jwks_uri",
+        "registration_endpoint",
+        "response_modes_supported",
+        "grant_types_supported",
+        "token_endpoint_auth_methods_supported",
+        "token_endpoint_auth_signing_alg_values_supported",
+        "service_documentation",
+        "ui_locales_supported",
+        "op_policy_uri",
+        "op_tos_uri",
+        "revocation_endpoint",
+        "revocation_endpoint_auth_methods_supported",
+        "revocation_endpoint_auth_signing_alg_values_supported",
+        "introspection_endpoint",
+        "introspection_endpoint_auth_methods_supported",
+        "introspection_endpoint_auth_signing_alg_values_supported",
+        "code_challenge_methods_supported",
     };
 
     static {
         REQUIRED_METADATA = Collections.unmodifiableSortedSet(new TreeSet<>(Arrays.asList(REQUIRED_METADATA_VALUES)));
-        RECOMMENDED_METADATA = Collections
-                .unmodifiableSortedSet(new TreeSet<>(Arrays.asList(RECOMMENDED_METADATA_VALUES)));
+        RECOMMENDED_METADATA =
+            Collections.unmodifiableSortedSet(new TreeSet<>(Arrays.asList(RECOMMENDED_METADATA_VALUES)));
         OPTIONAL_METADATA = Collections.unmodifiableSortedSet(new TreeSet<>(Arrays.asList(OPTIONAL_METADATA_VALUES)));
         TreeSet<String> set = new TreeSet<>();
         set.addAll(REQUIRED_METADATA);
@@ -223,6 +219,6 @@ public class OAuth2ServerMetadataTest {
         METADATA = Collections.unmodifiableSortedSet(set);
     }
 
-    private final TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
-    };
+    private final TypeReference<HashMap<String, Serializable>> typeRef =
+        new TypeReference<HashMap<String, Serializable>>() {};
 }

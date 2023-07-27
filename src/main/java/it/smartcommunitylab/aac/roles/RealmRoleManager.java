@@ -1,25 +1,20 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.roles;
-
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.jsoup.Jsoup;
-import org.jsoup.safety.Safelist;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.authentication.InsufficientAuthenticationException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.provider.approval.Approval;
-import org.springframework.security.oauth2.provider.approval.Approval.ApprovalStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
@@ -36,17 +31,36 @@ import it.smartcommunitylab.aac.roles.service.SubjectRoleService;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
 import it.smartcommunitylab.aac.services.ServiceScope;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.provider.approval.Approval;
+import org.springframework.security.oauth2.provider.approval.Approval.ApprovalStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 /*
  * Realm roles are bound to subjects and exists within a given realm
- * 
+ *
  * TODO realm permissions
  */
 
 @Service
-@PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')"
-        + " or hasAuthority(#realm+':" + Config.R_ADMIN + "')")
+@PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')" + " or hasAuthority(#realm+':" + Config.R_ADMIN + "')")
 public class RealmRoleManager {
+
     private static final int DEFAULT_DURATION = 3650;
 
     @Autowired
@@ -89,7 +103,6 @@ public class RealmRoleManager {
     }
 
     public RealmRole addRealmRole(String realm, RealmRole r) {
-
         String role = r.getRole();
         if (!StringUtils.hasText(role)) {
             throw new IllegalArgumentException("role can not be null or empty");
@@ -114,8 +127,10 @@ public class RealmRoleManager {
         // add permissions if defined
         if (r.getPermissions() != null) {
             try {
-                Map<String, Boolean> scopesMap = r.getPermissions().stream()
-                        .collect(Collectors.toMap(s -> s, s -> true));
+                Map<String, Boolean> scopesMap = r
+                    .getPermissions()
+                    .stream()
+                    .collect(Collectors.toMap(s -> s, s -> true));
                 Collection<Approval> approvals = setRealmRoleApprovals(realm, roleId, scopesMap);
                 Set<String> permissions = approvals.stream().map(a -> a.getScope()).collect(Collectors.toSet());
                 res.setPermissions(permissions);
@@ -134,7 +149,6 @@ public class RealmRoleManager {
     }
 
     public RealmRole updateRealmRole(String realm, String roleId, RealmRole r) throws NoSuchRoleException {
-
         RealmRole rl = rolesService.getRole(roleId);
         if (!realm.equals(rl.getRealm())) {
             throw new IllegalArgumentException("realm mismatch");
@@ -156,8 +170,10 @@ public class RealmRoleManager {
         // add permissions if defined
         if (r.getPermissions() != null) {
             try {
-                Map<String, Boolean> scopesMap = r.getPermissions().stream()
-                        .collect(Collectors.toMap(s -> s, s -> true));
+                Map<String, Boolean> scopesMap = r
+                    .getPermissions()
+                    .stream()
+                    .collect(Collectors.toMap(s -> s, s -> true));
                 Collection<Approval> approvals = setRealmRoleApprovals(realm, roleId, scopesMap);
                 Set<String> permissions = approvals.stream().map(a -> a.getScope()).collect(Collectors.toSet());
                 res.setPermissions(permissions);
@@ -190,7 +206,6 @@ public class RealmRoleManager {
             // remove all assignments
             roleService.removeRoles(realm, role);
         }
-
     }
 
     public Collection<Approval> getRealmRoleApprovals(String realm, String roleId) throws NoSuchRoleException {
@@ -204,7 +219,7 @@ public class RealmRoleManager {
     }
 
     public Approval addRealmRoleApproval(String realm, String roleId, String scope, boolean approved)
-            throws NoSuchRoleException, NoSuchScopeException {
+        throws NoSuchRoleException, NoSuchScopeException {
         RealmRole r = rolesService.fetchRole(roleId);
         if (r == null) {
             throw new NoSuchRoleException();
@@ -232,7 +247,7 @@ public class RealmRoleManager {
     }
 
     public Collection<Approval> addRealmRoleApprovals(String realm, String roleId, Map<String, Boolean> scopesMap)
-            throws NoSuchRoleException {
+        throws NoSuchRoleException {
         RealmRole r = rolesService.fetchRole(roleId);
         if (r == null) {
             throw new NoSuchRoleException();
@@ -240,77 +255,79 @@ public class RealmRoleManager {
 
         List<Approval> approvals = new ArrayList<>();
         // unpack map and process
-        scopesMap.entrySet().forEach(e -> {
-            String scope = e.getKey();
-            boolean approved = e.getValue() != null ? e.getValue().booleanValue() : true;
-            try {
-                // lookup scope in registry
-                Scope s = scopeRegistry.getScope(scope);
+        scopesMap
+            .entrySet()
+            .forEach(e -> {
+                String scope = e.getKey();
+                boolean approved = e.getValue() != null ? e.getValue().booleanValue() : true;
+                try {
+                    // lookup scope in registry
+                    Scope s = scopeRegistry.getScope(scope);
 
-                // TODO evaluate same realm check
-                String resourceId = s.getResourceId();
-                if (s instanceof ServiceScope) {
-                    resourceId = ((ServiceScope) s).getServiceId();
+                    // TODO evaluate same realm check
+                    String resourceId = s.getResourceId();
+                    if (s instanceof ServiceScope) {
+                        resourceId = ((ServiceScope) s).getServiceId();
+                    }
+
+                    // add approval to store, will refresh if present
+                    Calendar calendar = Calendar.getInstance();
+                    calendar.add(Calendar.DAY_OF_YEAR, DEFAULT_DURATION);
+                    Date expiresAt = calendar.getTime();
+                    ApprovalStatus approvalStatus = approved ? ApprovalStatus.APPROVED : ApprovalStatus.DENIED;
+
+                    Approval approval = new Approval(resourceId, roleId, scope, expiresAt, approvalStatus);
+                    approvalStore.addApprovals(Collections.singleton(approval));
+                    approvals.add(approval);
+                } catch (NoSuchScopeException ex) {
+                    // skip
                 }
-
-                // add approval to store, will refresh if present
-                Calendar calendar = Calendar.getInstance();
-                calendar.add(Calendar.DAY_OF_YEAR, DEFAULT_DURATION);
-                Date expiresAt = calendar.getTime();
-                ApprovalStatus approvalStatus = approved ? ApprovalStatus.APPROVED : ApprovalStatus.DENIED;
-
-                Approval approval = new Approval(resourceId, roleId, scope, expiresAt, approvalStatus);
-                approvalStore.addApprovals(Collections.singleton(approval));
-                approvals.add(approval);
-            } catch (NoSuchScopeException ex) {
-                // skip
-            }
-
-        });
+            });
 
         return approvals;
     }
 
     public Collection<Approval> setRealmRoleApprovals(String realm, String roleId, Map<String, Boolean> scopesMap)
-            throws NoSuchRoleException {
+        throws NoSuchRoleException {
         RealmRole r = rolesService.fetchRole(roleId);
         if (r == null) {
             throw new NoSuchRoleException();
         }
 
         // unpack map and process
-        scopesMap.entrySet().forEach(e -> {
-            String scope = e.getKey();
-            boolean approved = e.getValue() != null ? e.getValue().booleanValue() : true;
-            try {
-                // lookup scope in registry
-                Scope s = scopeRegistry.getScope(scope);
+        scopesMap
+            .entrySet()
+            .forEach(e -> {
+                String scope = e.getKey();
+                boolean approved = e.getValue() != null ? e.getValue().booleanValue() : true;
+                try {
+                    // lookup scope in registry
+                    Scope s = scopeRegistry.getScope(scope);
 
-                // TODO evaluate same realm check
-                String resourceId = s.getResourceId();
-                if (s instanceof ServiceScope) {
-                    resourceId = ((ServiceScope) s).getServiceId();
+                    // TODO evaluate same realm check
+                    String resourceId = s.getResourceId();
+                    if (s instanceof ServiceScope) {
+                        resourceId = ((ServiceScope) s).getServiceId();
+                    }
+
+                    // add approval to store, will refresh if present
+                    Calendar calendar = Calendar.getInstance();
+                    calendar.add(Calendar.DAY_OF_YEAR, DEFAULT_DURATION);
+                    Date expiresAt = calendar.getTime();
+                    ApprovalStatus approvalStatus = approved ? ApprovalStatus.APPROVED : ApprovalStatus.DENIED;
+
+                    Approval approval = new Approval(resourceId, roleId, scope, expiresAt, approvalStatus);
+                    approvalStore.addApprovals(Collections.singleton(approval));
+                } catch (NoSuchScopeException ex) {
+                    // skip
                 }
-
-                // add approval to store, will refresh if present
-                Calendar calendar = Calendar.getInstance();
-                calendar.add(Calendar.DAY_OF_YEAR, DEFAULT_DURATION);
-                Date expiresAt = calendar.getTime();
-                ApprovalStatus approvalStatus = approved ? ApprovalStatus.APPROVED : ApprovalStatus.DENIED;
-
-                Approval approval = new Approval(resourceId, roleId, scope, expiresAt, approvalStatus);
-                approvalStore.addApprovals(Collections.singleton(approval));
-            } catch (NoSuchScopeException ex) {
-                // skip
-            }
-
-        });
+            });
 
         return approvalStore.findClientApprovals(roleId);
     }
 
     public void removeRealmRoleApproval(String realm, String roleId, String scope)
-            throws NoSuchRoleException, NoSuchScopeException {
+        throws NoSuchRoleException, NoSuchScopeException {
         RealmRole r = rolesService.fetchRole(roleId);
         if (r == null) {
             throw new NoSuchRoleException();
@@ -324,19 +341,18 @@ public class RealmRoleManager {
         if (approval != null) {
             approvalStore.revokeApprovals(Collections.singleton(approval));
         }
-
     }
 
     /*
      * Role assignment
      */
     public Collection<String> getRoleSubjects(String realm, String role)
-            throws NoSuchRealmException, NoSuchRoleException {
+        throws NoSuchRealmException, NoSuchRoleException {
         return roleService.getRoleSubjects(realm, role);
     }
 
     public String addRoleSubject(String realm, String role, String subject)
-            throws NoSuchRealmException, NoSuchRoleException, NoSuchSubjectException {
+        throws NoSuchRealmException, NoSuchRoleException, NoSuchSubjectException {
         // check if subject exists
         Subject s = subjectService.getSubject(subject);
 
@@ -345,24 +361,20 @@ public class RealmRoleManager {
     }
 
     public Collection<String> addRoleSubjects(String realm, String role, Collection<String> subjects)
-            throws NoSuchRealmException, NoSuchRoleException, NoSuchSubjectException {
-
+        throws NoSuchRealmException, NoSuchRoleException, NoSuchSubjectException {
         // check if all subjects exists
         if (subjects.stream().anyMatch(s -> (subjectService.findSubject(s) == null))) {
             throw new NoSuchSubjectException();
         }
 
         // TODO evaluate checking if subjects match the realm
-        subjects.stream()
-                .map(s -> roleService.addRoleSubject(realm, role, s))
-                .collect(Collectors.toList());
+        subjects.stream().map(s -> roleService.addRoleSubject(realm, role, s)).collect(Collectors.toList());
 
         return roleService.getRoleSubjects(realm, role);
     }
 
     public Collection<String> setRoleSubjects(String realm, String role, Collection<String> subjects)
-            throws NoSuchRealmException, NoSuchRoleException, NoSuchSubjectException {
-
+        throws NoSuchRealmException, NoSuchRoleException, NoSuchSubjectException {
         // check if all subjects exists
         if (subjects.stream().anyMatch(s -> (subjectService.findSubject(s) == null))) {
             throw new NoSuchSubjectException();
@@ -373,14 +385,13 @@ public class RealmRoleManager {
     }
 
     public void removeRoleSubject(String realm, String role, String subject)
-            throws NoSuchRealmException, NoSuchRoleException {
+        throws NoSuchRealmException, NoSuchRoleException {
         roleService.removeRoleSubject(realm, role, subject);
     }
 
     public Collection<String> removeRoleSubjects(String realm, String role, Collection<String> subjects)
-            throws NoSuchRealmException, NoSuchRoleException {
-        subjects.stream()
-                .forEach(s -> roleService.removeRoleSubject(realm, role, s));
+        throws NoSuchRealmException, NoSuchRoleException {
+        subjects.stream().forEach(s -> roleService.removeRoleSubject(realm, role, s));
 
         return roleService.getRoleSubjects(realm, role);
     }
@@ -404,15 +415,17 @@ public class RealmRoleManager {
     }
 
     public Collection<RealmRole> addSubjectRoles(String realm, String subjectId, Collection<RealmRole> roles)
-            throws NoSuchSubjectException {
+        throws NoSuchSubjectException {
         // check if subject exists
         Subject s = subjectService.getSubject(subjectId);
 
         // unpack
-        Collection<String> toAdd = roles.stream()
-                .filter(r -> realm.equals(r.getRealm()) || r.getRealm() == null)
-                .filter(r -> rolesService.findRole(realm, r.getRole()) != null)
-                .map(r -> r.getRole()).collect(Collectors.toList());
+        Collection<String> toAdd = roles
+            .stream()
+            .filter(r -> realm.equals(r.getRealm()) || r.getRealm() == null)
+            .filter(r -> rolesService.findRole(realm, r.getRole()) != null)
+            .map(r -> r.getRole())
+            .collect(Collectors.toList());
 
         roleService.addRoles(s.getSubjectId(), realm, toAdd);
 
@@ -420,14 +433,16 @@ public class RealmRoleManager {
     }
 
     public Collection<RealmRole> removeSubjectRoles(String realm, String subjectId, Collection<RealmRole> roles)
-            throws NoSuchSubjectException {
+        throws NoSuchSubjectException {
         // check if subject exists
         Subject s = subjectService.getSubject(subjectId);
 
         // unpack
-        Collection<String> toRemove = roles.stream()
-                .filter(r -> realm.equals(r.getRealm()) || r.getRealm() == null)
-                .map(r -> r.getRole()).collect(Collectors.toList());
+        Collection<String> toRemove = roles
+            .stream()
+            .filter(r -> realm.equals(r.getRealm()) || r.getRealm() == null)
+            .map(r -> r.getRole())
+            .collect(Collectors.toList());
 
         roleService.removeRoles(s.getSubjectId(), realm, toRemove);
 
@@ -435,15 +450,17 @@ public class RealmRoleManager {
     }
 
     public Collection<RealmRole> setSubjectRoles(String realm, String subjectId, Collection<RealmRole> roles)
-            throws NoSuchSubjectException {
+        throws NoSuchSubjectException {
         // check if subject exists
         Subject s = subjectService.getSubject(subjectId);
 
         // unpack
-        Collection<String> toSet = roles.stream()
-                .filter(r -> realm.equals(r.getRealm()) || r.getRealm() == null)
-                .filter(r -> rolesService.findRole(realm, r.getRole()) != null)
-                .map(r -> r.getRole()).collect(Collectors.toList());
+        Collection<String> toSet = roles
+            .stream()
+            .filter(r -> realm.equals(r.getRealm()) || r.getRealm() == null)
+            .filter(r -> rolesService.findRole(realm, r.getRole()) != null)
+            .map(r -> r.getRole())
+            .collect(Collectors.toList());
 
         roleService.removeRoles(s.getSubjectId(), realm, toSet);
 

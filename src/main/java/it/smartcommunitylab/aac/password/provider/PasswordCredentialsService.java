@@ -1,24 +1,20 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.password.provider;
-
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.mail.MessagingException;
-import javax.validation.constraints.NotNull;
-
-import org.apache.commons.lang3.RandomStringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
@@ -40,9 +36,27 @@ import it.smartcommunitylab.aac.password.model.PasswordPolicy;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.password.service.InternalPasswordUserCredentialsService;
 import it.smartcommunitylab.aac.utils.MailService;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import javax.mail.MessagingException;
+import javax.validation.constraints.NotNull;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
-public class PasswordCredentialsService extends
-        AbstractCredentialsService<InternalUserPassword, InternalEditableUserPassword, InternalUserAccount, PasswordIdentityProviderConfigMap, PasswordCredentialsServiceConfig> {
+public class PasswordCredentialsService
+    extends AbstractCredentialsService<InternalUserPassword, InternalEditableUserPassword, InternalUserAccount, PasswordIdentityProviderConfigMap, PasswordCredentialsServiceConfig> {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // services
@@ -51,11 +65,13 @@ public class PasswordCredentialsService extends
     private MailService mailService;
     private RealmAwareUriBuilder uriBuilder;
 
-    public PasswordCredentialsService(String providerId,
-            UserAccountService<InternalUserAccount> userAccountService,
-            InternalPasswordUserCredentialsService passwordService,
-            PasswordCredentialsServiceConfig providerConfig,
-            String realm) {
+    public PasswordCredentialsService(
+        String providerId,
+        UserAccountService<InternalUserAccount> userAccountService,
+        InternalPasswordUserCredentialsService passwordService,
+        PasswordCredentialsServiceConfig providerConfig,
+        String realm
+    ) {
         super(SystemKeys.AUTHORITY_PASSWORD, providerId, userAccountService, passwordService, providerConfig, realm);
         Assert.notNull(passwordService, "password service is mandatory");
 
@@ -93,23 +109,25 @@ public class PasswordCredentialsService extends
 
         // fetch ALL active + non expired credentials
         List<InternalUserPassword> credentials = passwordService
-                .findCredentialsByAccount(repositoryId, username).stream()
-                .filter(c -> STATUS_ACTIVE.equals(c.getStatus()) && !c.isExpired())
-                .collect(Collectors.toList());
+            .findCredentialsByAccount(repositoryId, username)
+            .stream()
+            .filter(c -> STATUS_ACTIVE.equals(c.getStatus()) && !c.isExpired())
+            .collect(Collectors.toList());
 
         // pick any match on hashed password
-        return credentials.stream()
-                .anyMatch(c -> {
-                    try {
-                        return hasher.validatePassword(password, c.getPassword());
-                    } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-                        throw new SystemException(e.getMessage());
-                    }
-                });
+        return credentials
+            .stream()
+            .anyMatch(c -> {
+                try {
+                    return hasher.validatePassword(password, c.getPassword());
+                } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+                    throw new SystemException(e.getMessage());
+                }
+            });
     }
 
     public InternalUserPassword setPassword(String username, String password, boolean changeOnFirstAccess)
-            throws NoSuchUserException, RegistrationException {
+        throws NoSuchUserException, RegistrationException {
         // fetch user
         InternalUserAccount account = accountService.findAccountById(repositoryId, username);
         if (account == null) {
@@ -129,28 +147,31 @@ public class PasswordCredentialsService extends
 
         // validate new password is NEW
         // TODO move to proper policy service when implemented
-        boolean isReuse = oldPasswords.stream().anyMatch(p -> {
-            try {
-                return hasher.validatePassword(password, p.getPassword());
-            } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-                return false;
-            }
-        });
+        boolean isReuse = oldPasswords
+            .stream()
+            .anyMatch(p -> {
+                try {
+                    return hasher.validatePassword(password, p.getPassword());
+                } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+                    return false;
+                }
+            });
 
         if (isReuse && config.getPasswordKeepNumber() > 0) {
             throw new InvalidPasswordException("password-reuse");
         }
 
         List<InternalUserPassword> toUpdate = oldPasswords
-                .stream()
-                .filter(p -> !STATUS_REVOKED.equals(p.getStatus()))
-                .limit(config.getPasswordKeepNumber())
-                .collect(Collectors.toList());
+            .stream()
+            .filter(p -> !STATUS_REVOKED.equals(p.getStatus()))
+            .limit(config.getPasswordKeepNumber())
+            .collect(Collectors.toList());
 
-        List<InternalUserPassword> toDelete = oldPasswords.stream()
-                .filter(p -> !STATUS_REVOKED.equals(p.getStatus()))
-                .filter(p -> !toUpdate.contains(p))
-                .collect(Collectors.toList());
+        List<InternalUserPassword> toDelete = oldPasswords
+            .stream()
+            .filter(p -> !STATUS_REVOKED.equals(p.getStatus()))
+            .filter(p -> !toUpdate.contains(p))
+            .collect(Collectors.toList());
         if (!toDelete.isEmpty()) {
             // delete in batch
             Set<String> ids = toDelete.stream().map(p -> p.getId()).collect(Collectors.toSet());
@@ -192,7 +213,6 @@ public class PasswordCredentialsService extends
         pass.eraseCredentials();
 
         return pass;
-
     }
 
     public InternalUserPassword resetPassword(String username) throws NoSuchUserException, RegistrationException {
@@ -288,20 +308,26 @@ public class PasswordCredentialsService extends
      */
     @Override
     public InternalUserPassword addCredential(String accountId, String credentialId, UserCredentials uc)
-            throws NoSuchUserException, RegistrationException {
+        throws NoSuchUserException, RegistrationException {
         if (uc == null) {
             throw new RegistrationException();
         }
 
-        Assert.isInstanceOf(InternalUserPassword.class, uc,
-                "registration must be an instance of internal user password");
+        Assert.isInstanceOf(
+            InternalUserPassword.class,
+            uc,
+            "registration must be an instance of internal user password"
+        );
         InternalUserPassword reg = (InternalUserPassword) uc;
 
         // skip validation of password against policy
         // we only make sure password is usable
         String password = reg.getPassword();
-        if (!StringUtils.hasText(password) || password.length() < config.getPasswordMinLength()
-                || password.length() > config.getPasswordMaxLength()) {
+        if (
+            !StringUtils.hasText(password) ||
+            password.length() < config.getPasswordMinLength() ||
+            password.length() > config.getPasswordMaxLength()
+        ) {
             throw new RegistrationException("invalid password");
         }
 
@@ -328,20 +354,26 @@ public class PasswordCredentialsService extends
 
     @Override
     public InternalUserPassword setCredential(String credentialId, UserCredentials uc)
-            throws RegistrationException, NoSuchCredentialException {
+        throws RegistrationException, NoSuchCredentialException {
         if (uc == null) {
             throw new RegistrationException();
         }
 
-        Assert.isInstanceOf(InternalUserPassword.class, uc,
-                "registration must be an instance of internal user password");
+        Assert.isInstanceOf(
+            InternalUserPassword.class,
+            uc,
+            "registration must be an instance of internal user password"
+        );
         InternalUserPassword reg = (InternalUserPassword) uc;
 
         // skip validation of password against policy
         // we only make sure password is usable
         String password = reg.getPassword();
-        if (!StringUtils.hasText(password) || password.length() < config.getPasswordMinLength()
-                || password.length() > config.getPasswordMaxLength()) {
+        if (
+            !StringUtils.hasText(password) ||
+            password.length() < config.getPasswordMinLength() ||
+            password.length() > config.getPasswordMaxLength()
+        ) {
             throw new RegistrationException("invalid password");
         }
 
@@ -401,9 +433,10 @@ public class PasswordCredentialsService extends
         // TODO map MANY pass to ONE editable per user
         // fetch ALL active
         List<InternalUserPassword> credentials = passwordService
-                .findCredentialsByAccount(repositoryId, accountId).stream()
-                .filter(c -> STATUS_ACTIVE.equals(c.getStatus()))
-                .collect(Collectors.toList());
+            .findCredentialsByAccount(repositoryId, accountId)
+            .stream()
+            .filter(c -> STATUS_ACTIVE.equals(c.getStatus()))
+            .collect(Collectors.toList());
 
         return credentials.stream().map(c -> toEditable(c)).collect(Collectors.toList());
     }
@@ -413,16 +446,16 @@ public class PasswordCredentialsService extends
         // TODO map MANY pass to ONE editable per user
         // fetch ALL active
         List<InternalUserPassword> credentials = passwordService
-                .findCredentialsByUser(repositoryId, userId).stream()
-                .filter(c -> STATUS_ACTIVE.equals(c.getStatus()))
-                .collect(Collectors.toList());
+            .findCredentialsByUser(repositoryId, userId)
+            .stream()
+            .filter(c -> STATUS_ACTIVE.equals(c.getStatus()))
+            .collect(Collectors.toList());
 
         return credentials.stream().map(c -> toEditable(c)).collect(Collectors.toList());
     }
 
     @Override
-    public InternalEditableUserPassword getEditableCredential(String credentialId)
-            throws NoSuchCredentialException {
+    public InternalEditableUserPassword getEditableCredential(String credentialId) throws NoSuchCredentialException {
         // get as editable
         // TODO map MANY pass to ONE editable per user
         InternalUserPassword pass = getCredential(credentialId);
@@ -430,15 +463,17 @@ public class PasswordCredentialsService extends
     }
 
     @Override
-    public InternalEditableUserPassword registerEditableCredential(String accountId,
-            EditableUserCredentials uc)
-            throws RegistrationException, NoSuchUserException {
+    public InternalEditableUserPassword registerEditableCredential(String accountId, EditableUserCredentials uc)
+        throws RegistrationException, NoSuchUserException {
         if (uc == null) {
             throw new RegistrationException();
         }
 
-        Assert.isInstanceOf(InternalEditableUserPassword.class, uc,
-                "registration must be an instance of internal user password");
+        Assert.isInstanceOf(
+            InternalEditableUserPassword.class,
+            uc,
+            "registration must be an instance of internal user password"
+        );
         InternalEditableUserPassword reg = (InternalEditableUserPassword) uc;
 
         // fetch user
@@ -457,8 +492,11 @@ public class PasswordCredentialsService extends
         // skip validation of password against policy, will be done later
         // we only make sure password is usable
         String password = reg.getPassword();
-        if (!StringUtils.hasText(password) || password.length() < config.getPasswordMinLength()
-                || password.length() > config.getPasswordMaxLength()) {
+        if (
+            !StringUtils.hasText(password) ||
+            password.length() < config.getPasswordMinLength() ||
+            password.length() > config.getPasswordMaxLength()
+        ) {
             throw new RegistrationException("invalid password");
         }
 
@@ -470,30 +508,34 @@ public class PasswordCredentialsService extends
     }
 
     @Override
-    public void deleteEditableCredential(@NotNull String credentialId)
-            throws NoSuchCredentialException {
+    public void deleteEditableCredential(@NotNull String credentialId) throws NoSuchCredentialException {
         // TODO map MANY pass to ONE editable per user
         String id = credentialId;
         deleteCredential(id);
     }
 
     @Override
-    public InternalEditableUserPassword editEditableCredential(String credentialId,
-            EditableUserCredentials uc)
-            throws RegistrationException, NoSuchCredentialException {
+    public InternalEditableUserPassword editEditableCredential(String credentialId, EditableUserCredentials uc)
+        throws RegistrationException, NoSuchCredentialException {
         if (uc == null) {
             throw new RegistrationException();
         }
 
-        Assert.isInstanceOf(InternalEditableUserPassword.class, uc,
-                "registration must be an instance of internal user password");
+        Assert.isInstanceOf(
+            InternalEditableUserPassword.class,
+            uc,
+            "registration must be an instance of internal user password"
+        );
         InternalEditableUserPassword reg = (InternalEditableUserPassword) uc;
 
         // skip validation of password against policy, will be done later
         // we only make sure password is usable
         String password = reg.getPassword();
-        if (!StringUtils.hasText(password) || password.length() < config.getPasswordMinLength()
-                || password.length() > config.getPasswordMaxLength()) {
+        if (
+            !StringUtils.hasText(password) ||
+            password.length() < config.getPasswordMinLength() ||
+            password.length() > config.getPasswordMaxLength()
+        ) {
             throw new RegistrationException("invalid password");
         }
 
@@ -526,7 +568,6 @@ public class PasswordCredentialsService extends
         }
 
         try {
-
             // update password via set to keep password history
             this.setPassword(account.getUsername(), password, false);
 
@@ -548,7 +589,7 @@ public class PasswordCredentialsService extends
     @Override
     public String getEditUrl(String credentialsId) throws NoSuchCredentialException {
         // get as editable for user
-//        InternalUserPassword pass = getCredential(credentialsId);
+        //        InternalUserPassword pass = getCredential(credentialsId);
 
         return PasswordCredentialsAuthority.AUTHORITY_URL + "changepwd/" + getProvider();
     }
@@ -583,8 +624,11 @@ public class PasswordCredentialsService extends
      * Helpers
      */
 
-    private InternalUserPassword buildPassword(InternalUserAccount account, String password,
-            boolean changeOnFirstAccess) {
+    private InternalUserPassword buildPassword(
+        InternalUserAccount account,
+        String password,
+        boolean changeOnFirstAccess
+    ) {
         Date expirationDate = null;
         // expiration date
         if (config.getPasswordMaxDays() > 0) {
@@ -619,8 +663,6 @@ public class PasswordCredentialsService extends
     }
 
     private String generatePassword() {
-        return RandomStringUtils.random(config.getPasswordMaxLength(), true,
-                config.isPasswordRequireNumber());
+        return RandomStringUtils.random(config.getPasswordMaxLength(), true, config.isPasswordRequireNumber());
     }
-
 }

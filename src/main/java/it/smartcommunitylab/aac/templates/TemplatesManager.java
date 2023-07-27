@@ -1,23 +1,20 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.templates;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.safety.Cleaner;
-import org.jsoup.safety.Safelist;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
@@ -36,12 +33,28 @@ import it.smartcommunitylab.aac.core.service.TemplateProviderService;
 import it.smartcommunitylab.aac.templates.model.TemplateModel;
 import it.smartcommunitylab.aac.templates.service.LanguageService;
 import it.smartcommunitylab.aac.templates.service.TemplateService;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.stream.Collectors;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.safety.Cleaner;
+import org.jsoup.safety.Safelist;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 @Service
-@PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')"
-        + " or hasAuthority(#realm+':" + Config.R_ADMIN + "')")
+@PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')" + " or hasAuthority(#realm+':" + Config.R_ADMIN + "')")
 public class TemplatesManager
-        extends ConfigurableProviderManager<ConfigurableTemplateProvider, TemplateProviderAuthority<?, ?, ?, ?>> {
+    extends ConfigurableProviderManager<ConfigurableTemplateProvider, TemplateProviderAuthority<?, ?, ?, ?>> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -64,22 +77,24 @@ public class TemplatesManager
     }
 
     public ConfigurableTemplateProvider getProviderByRealm(String realm)
-            throws NoSuchProviderException, NoSuchRealmException, RegistrationException {
+        throws NoSuchProviderException, NoSuchRealmException, RegistrationException {
         // fetch first if available
         ConfigurableTemplateProvider provider = findProviderByRealm(realm);
 
         if (provider == null) {
             // create as new
             String id = SystemKeys.AUTHORITY_TEMPLATE + SystemKeys.SLUG_SEPARATOR + realm;
-            ConfigurableTemplateProvider cp = new ConfigurableTemplateProvider(SystemKeys.AUTHORITY_TEMPLATE, id,
-                    realm);
+            ConfigurableTemplateProvider cp = new ConfigurableTemplateProvider(
+                SystemKeys.AUTHORITY_TEMPLATE,
+                id,
+                realm
+            );
 
             try {
                 provider = addProvider(realm, cp);
             } catch (NoSuchAuthorityException e) {
                 throw new NoSuchProviderException();
             }
-
         }
 
         // check if languages are set, otherwise use default
@@ -92,8 +107,7 @@ public class TemplatesManager
 
     @Override
     public ConfigurableTemplateProvider addProvider(String realm, ConfigurableTemplateProvider provider)
-            throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
-
+        throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
         // validate language
         // TODO refactor
         if (provider.getLanguages() != null) {
@@ -125,10 +139,11 @@ public class TemplatesManager
     }
 
     @Override
-    public ConfigurableTemplateProvider updateProvider(String realm, String providerId,
-            ConfigurableTemplateProvider provider)
-            throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
-
+    public ConfigurableTemplateProvider updateProvider(
+        String realm,
+        String providerId,
+        ConfigurableTemplateProvider provider
+    ) throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
         // validate language
         // TODO refactor
         if (provider.getLanguages() != null) {
@@ -168,19 +183,23 @@ public class TemplatesManager
     }
 
     public Collection<Template> listTemplates(String realm, String authority)
-            throws NoSuchProviderException, NoSuchAuthorityException {
-
-        logger.debug("list templates for realm {} from authority {}", StringUtils.trimAllWhitespace(realm),
-                StringUtils.trimAllWhitespace(authority));
+        throws NoSuchProviderException, NoSuchAuthorityException {
+        logger.debug(
+            "list templates for realm {} from authority {}",
+            StringUtils.trimAllWhitespace(realm),
+            StringUtils.trimAllWhitespace(authority)
+        );
         return authorityService.getAuthority(authority).getProviderByRealm(realm).getTemplates();
     }
 
     public Template getTemplate(String realm, String authority, String template)
-            throws NoSuchTemplateException, NoSuchProviderException, NoSuchAuthorityException {
-
-        logger.debug("get template {} for realm {} from authority {}",
-                StringUtils.trimAllWhitespace(template), StringUtils.trimAllWhitespace(realm),
-                StringUtils.trimAllWhitespace(authority));
+        throws NoSuchTemplateException, NoSuchProviderException, NoSuchAuthorityException {
+        logger.debug(
+            "get template {} for realm {} from authority {}",
+            StringUtils.trimAllWhitespace(template),
+            StringUtils.trimAllWhitespace(realm),
+            StringUtils.trimAllWhitespace(authority)
+        );
 
         return authorityService.getAuthority(authority).getProviderByRealm(realm).getTemplate(template);
     }
@@ -189,16 +208,23 @@ public class TemplatesManager
      * Template models from service
      */
     public TemplateModel findTemplateModel(String realm, String authority, String template, String language) {
-        logger.debug("find template model {} for realm {} from authority {} language {}",
-                StringUtils.trimAllWhitespace(template), StringUtils.trimAllWhitespace(realm),
-                StringUtils.trimAllWhitespace(authority), StringUtils.trimAllWhitespace(language));
+        logger.debug(
+            "find template model {} for realm {} from authority {} language {}",
+            StringUtils.trimAllWhitespace(template),
+            StringUtils.trimAllWhitespace(realm),
+            StringUtils.trimAllWhitespace(authority),
+            StringUtils.trimAllWhitespace(language)
+        );
 
         return templateService.findTemplate(authority, realm, template, language);
     }
 
     public TemplateModel getTemplateModel(String realm, String id) throws NoSuchTemplateException {
-        logger.debug("get template model {} for realm {}", StringUtils.trimAllWhitespace(id),
-                StringUtils.trimAllWhitespace(realm));
+        logger.debug(
+            "get template model {} for realm {}",
+            StringUtils.trimAllWhitespace(id),
+            StringUtils.trimAllWhitespace(realm)
+        );
 
         TemplateModel m = templateService.getTemplate(id);
         if (!realm.equals(m.getRealm())) {
@@ -215,22 +241,32 @@ public class TemplatesManager
     }
 
     public Collection<TemplateModel> listTemplateModels(String realm, String authority) {
-        logger.debug("list template models for realm {} for authority {}", StringUtils.trimAllWhitespace(realm),
-                StringUtils.trimAllWhitespace(authority));
+        logger.debug(
+            "list template models for realm {} for authority {}",
+            StringUtils.trimAllWhitespace(realm),
+            StringUtils.trimAllWhitespace(authority)
+        );
 
         return templateService.listTemplates(authority, realm);
     }
 
     public Collection<TemplateModel> listTemplateModels(String realm, String authority, String template) {
-        logger.debug("list template {} models for realm {} for authority {}", StringUtils.trimAllWhitespace(template),
-                StringUtils.trimAllWhitespace(realm), StringUtils.trimAllWhitespace(authority));
+        logger.debug(
+            "list template {} models for realm {} for authority {}",
+            StringUtils.trimAllWhitespace(template),
+            StringUtils.trimAllWhitespace(realm),
+            StringUtils.trimAllWhitespace(authority)
+        );
 
         return templateService.listTemplates(authority, realm, template);
     }
 
     public Page<TemplateModel> searchTemplateModels(String realm, String keywords, Pageable pageRequest) {
-        logger.debug("search templates for realm {} with keywords {}", StringUtils.trimAllWhitespace(realm),
-                StringUtils.trimAllWhitespace(keywords));
+        logger.debug(
+            "search templates for realm {} with keywords {}",
+            StringUtils.trimAllWhitespace(realm),
+            StringUtils.trimAllWhitespace(keywords)
+        );
 
         String query = StringUtils.trimAllWhitespace(keywords);
         Page<TemplateModel> page = templateService.searchTemplates(realm, query, pageRequest);
@@ -238,7 +274,7 @@ public class TemplatesManager
     }
 
     public TemplateModel addTemplateModel(String realm, TemplateModel reg)
-            throws NoSuchTemplateException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
+        throws NoSuchTemplateException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
         // check model
         String template = reg.getTemplate();
         String authority = reg.getAuthority();
@@ -247,8 +283,12 @@ public class TemplatesManager
             throw new RegistrationException();
         }
 
-        logger.debug("add template {} with authority {} for realm {}", StringUtils.trimAllWhitespace(template),
-                StringUtils.trimAllWhitespace(authority), StringUtils.trimAllWhitespace(realm));
+        logger.debug(
+            "add template {} with authority {} for realm {}",
+            StringUtils.trimAllWhitespace(template),
+            StringUtils.trimAllWhitespace(authority),
+            StringUtils.trimAllWhitespace(realm)
+        );
 
         Template t = authorityService.getAuthority(authority).getProviderByRealm(realm).getTemplate(template);
         Collection<String> keys = t.keys();
@@ -263,7 +303,11 @@ public class TemplatesManager
         // cleanup unregistered keys
         Map<String, String> content = null;
         if (reg.getContent() != null) {
-            content = reg.getContent().entrySet().stream()
+            content =
+                reg
+                    .getContent()
+                    .entrySet()
+                    .stream()
                     .filter(e -> keys.contains(e.getKey()))
                     .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
         }
@@ -275,7 +319,7 @@ public class TemplatesManager
     }
 
     public TemplateModel updateTemplateModel(String realm, String id, TemplateModel reg)
-            throws NoSuchTemplateException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
+        throws NoSuchTemplateException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
         TemplateModel m = templateService.getTemplate(id);
         if (!realm.equals(m.getRealm())) {
             throw new IllegalArgumentException("realm-mismatch");
@@ -289,9 +333,13 @@ public class TemplatesManager
             throw new RegistrationException();
         }
 
-        logger.debug("update template {}:{} with authority {} for realm {}", StringUtils.trimAllWhitespace(template),
-                StringUtils.trimAllWhitespace(id), StringUtils.trimAllWhitespace(authority),
-                StringUtils.trimAllWhitespace(realm));
+        logger.debug(
+            "update template {}:{} with authority {} for realm {}",
+            StringUtils.trimAllWhitespace(template),
+            StringUtils.trimAllWhitespace(id),
+            StringUtils.trimAllWhitespace(authority),
+            StringUtils.trimAllWhitespace(realm)
+        );
 
         Template t = authorityService.getAuthority(authority).getProviderByRealm(realm).getTemplate(template);
         Collection<String> keys = t.keys();
@@ -306,7 +354,11 @@ public class TemplatesManager
         // cleanup unregistered keys
         Map<String, String> content = null;
         if (reg.getContent() != null) {
-            content = reg.getContent().entrySet().stream()
+            content =
+                reg
+                    .getContent()
+                    .entrySet()
+                    .stream()
                     .filter(e -> keys.contains(e.getKey()))
                     .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
         }
@@ -318,19 +370,23 @@ public class TemplatesManager
     }
 
     public void deleteTemplateModel(String realm, String id) throws NoSuchTemplateException {
-
         TemplateModel m = templateService.getTemplate(id);
         if (!realm.equals(m.getRealm())) {
             throw new IllegalArgumentException("realm-mismatch");
         }
 
-        logger.debug("delete template {}:{} with authority {} for realm {}", m.getTemplate(),
-                StringUtils.trimAllWhitespace(id), m.getAuthority(), StringUtils.trimAllWhitespace(realm));
+        logger.debug(
+            "delete template {}:{} with authority {} for realm {}",
+            m.getTemplate(),
+            StringUtils.trimAllWhitespace(id),
+            m.getAuthority(),
+            StringUtils.trimAllWhitespace(realm)
+        );
         templateService.deleteTemplate(id);
     }
 
     public TemplateModel sanitizeTemplateModel(String realm, String id, TemplateModel reg)
-            throws NoSuchTemplateException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
+        throws NoSuchTemplateException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
         TemplateModel m = templateService.getTemplate(id);
         if (!realm.equals(m.getRealm())) {
             throw new IllegalArgumentException("realm-mismatch");
@@ -357,7 +413,11 @@ public class TemplatesManager
         // cleanup unregistered keys
         Map<String, String> content = null;
         if (reg.getContent() != null) {
-            content = reg.getContent().entrySet().stream()
+            content =
+                reg
+                    .getContent()
+                    .entrySet()
+                    .stream()
                     .filter(e -> keys.contains(e.getKey()))
                     .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
         }
@@ -368,5 +428,4 @@ public class TemplatesManager
 
         return reg;
     }
-
 }

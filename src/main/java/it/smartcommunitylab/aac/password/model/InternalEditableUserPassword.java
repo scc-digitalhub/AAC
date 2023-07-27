@@ -1,12 +1,20 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.password.model;
-
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.persistence.Column;
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -15,21 +23,28 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractEditableUserCredentials;
 import it.smartcommunitylab.aac.repository.JsonSchemaIgnore;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import javax.persistence.Column;
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 
 @Valid
 @JsonInclude(Include.ALWAYS)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class InternalEditableUserPassword extends AbstractEditableUserCredentials {
+
     private static final long serialVersionUID = SystemKeys.AAC_INTERNAL_SERIAL_VERSION;
-    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_CREDENTIALS + SystemKeys.ID_SEPARATOR
-            + SystemKeys.AUTHORITY_PASSWORD;
+    public static final String RESOURCE_TYPE =
+        SystemKeys.RESOURCE_CREDENTIALS + SystemKeys.ID_SEPARATOR + SystemKeys.AUTHORITY_PASSWORD;
 
     private static final JsonNode schema;
+
     static {
         schema = generator.generateSchema(InternalEditableUserPassword.class);
     }

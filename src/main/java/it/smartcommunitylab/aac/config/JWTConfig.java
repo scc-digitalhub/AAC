@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2015 Fondazione Bruno Kessler
- * 
+ *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
  *    You may obtain a copy of the License at
- * 
+ *
  *        http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  *    Unless required by applicable law or agreed to in writing, software
  *    distributed under the License is distributed on an "AS IS" BASIS,
  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,25 +16,22 @@
 
 package it.smartcommunitylab.aac.config;
 
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
-
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.KeyUse;
-
 import it.smartcommunitylab.aac.jose.JWKSetKeyStore;
 import it.smartcommunitylab.aac.jwt.DefaultJWTEncryptionAndDecryptionService;
 import it.smartcommunitylab.aac.jwt.DefaultJWTSigningAndValidationService;
 import it.smartcommunitylab.aac.jwt.JWTEncryptionAndDecryptionService;
 import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 
 /**
  * @author raman
@@ -55,8 +52,7 @@ public class JWTConfig {
 
     @Bean
     public JWTSigningAndValidationService getJWTSigningAndValidationService()
-            throws NoSuchAlgorithmException, InvalidKeySpecException {
-
+        throws NoSuchAlgorithmException, InvalidKeySpecException {
         // always check key
         JWK key = null;
 
@@ -72,8 +68,10 @@ public class JWTConfig {
         } else {
             // check match
             for (JWK jwk : jwtKeyStore.getKeys()) {
-                if (jwk.getKeyID().equals(sigKid)
-                        && (jwk.getKeyUse() == null || jwk.getKeyUse().equals(KeyUse.SIGNATURE))) {
+                if (
+                    jwk.getKeyID().equals(sigKid) &&
+                    (jwk.getKeyUse() == null || jwk.getKeyUse().equals(KeyUse.SIGNATURE))
+                ) {
                     // keyUse = null means key is valid for both
                     key = jwk;
                     break;
@@ -98,16 +96,18 @@ public class JWTConfig {
 
     @Bean
     public JWTEncryptionAndDecryptionService getJWTEncryptionAndDecryptionService()
-            throws JOSEException, NoSuchAlgorithmException, InvalidKeySpecException {
-
+        throws JOSEException, NoSuchAlgorithmException, InvalidKeySpecException {
         // check key if required
         JWK key = null;
 
         if (!encKid.isEmpty()) {
             // check match
             for (JWK jwk : jwtKeyStore.getKeys()) {
-                if (jwk.getKeyID().equals(encKid)
-                        && (jwk.getKeyUse() == null || jwk.getKeyUse().equals(KeyUse.ENCRYPTION)) && jwk.isPrivate()) {
+                if (
+                    jwk.getKeyID().equals(encKid) &&
+                    (jwk.getKeyUse() == null || jwk.getKeyUse().equals(KeyUse.ENCRYPTION)) &&
+                    jwk.isPrivate()
+                ) {
                     // keyUse = null means key is valid for both
                     key = jwk;
                     break;
@@ -126,10 +126,8 @@ public class JWTConfig {
             if (key.getAlgorithm() != null) {
                 service.setDefaultAlgorithm((JWEAlgorithm) key.getAlgorithm());
             }
-
         }
 
         return service;
     }
-
 }

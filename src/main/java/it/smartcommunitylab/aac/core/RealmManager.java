@@ -1,29 +1,20 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.core;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import org.jsoup.Jsoup;
-import org.jsoup.safety.Safelist;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
@@ -71,12 +62,36 @@ import it.smartcommunitylab.aac.services.ServicesManager;
 import it.smartcommunitylab.aac.templates.model.TemplateModel;
 import it.smartcommunitylab.aac.templates.service.TemplateService;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredential;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Service
 public class RealmManager {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final static int SLUG_MIN_LENGTH = 3;
+    private static final int SLUG_MIN_LENGTH = 3;
 
     @Autowired
     private ApplicationProperties appProps;
@@ -135,14 +150,14 @@ public class RealmManager {
     @Autowired
     private UserCredentialsService<InternalUserPassword> internalUserPasswordService;
 
-//    @Autowired
-//    private SessionManager sessionManager;
+    //    @Autowired
+    //    private SessionManager sessionManager;
 
     /*
      * Manage realms.
-     * 
+     *
      * TODO add permissions!
-     * 
+     *
      * TODO add role assignments, import/export etc
      */
 
@@ -314,7 +329,6 @@ public class RealmManager {
 
                     // check ownership
                     if (client.getRealm().equals(slug)) {
-
                         // remove, will kill active sessions and cleanup
                         clientManager.deleteClientApp(slug, clientId);
                     }
@@ -332,7 +346,6 @@ public class RealmManager {
                     // remove, will kill active sessions and cleanup
                     // will also delete if this realm is owner
                     userManager.removeUser(slug, subjectId);
-
                 } catch (NoSuchUserException e) {
                     // skip
                 }
@@ -340,12 +353,18 @@ public class RealmManager {
 
             // remove all orphan credentials
             // TODO refactor using credentialsService
-            List<String> passwords = internalUserPasswordService.findCredentialsByRealm(slug).stream()
-                    .map(p -> p.getId()).collect(Collectors.toList());
+            List<String> passwords = internalUserPasswordService
+                .findCredentialsByRealm(slug)
+                .stream()
+                .map(p -> p.getId())
+                .collect(Collectors.toList());
             internalUserPasswordService.deleteAllCredentials(slug, passwords);
 
-            List<String> credentials = webAuthnUserCredentialsService.findCredentialsByRealm(slug).stream()
-                    .map(p -> p.getId()).collect(Collectors.toList());
+            List<String> credentials = webAuthnUserCredentialsService
+                .findCredentialsByRealm(slug)
+                .stream()
+                .map(p -> p.getId())
+                .collect(Collectors.toList());
             webAuthnUserCredentialsService.deleteAllCredentials(slug, credentials);
 
             // remove services
@@ -356,7 +375,6 @@ public class RealmManager {
 
                     // remove, will cleanup
                     servicesManager.deleteService(slug, serviceId);
-
                 } catch (NoSuchServiceException e) {
                     // skip
                 }
@@ -411,7 +429,6 @@ public class RealmManager {
 
         // remove realm
         realmService.deleteRealm(slug);
-
     }
 
     /*
@@ -420,32 +437,37 @@ public class RealmManager {
     public Collection<Developer> listDevelopers() {
         // hardcoded, all system users are global developers
         // TODO sanitize output with dedicated developer model
-        return userService.listUsers(SystemKeys.REALM_SYSTEM).stream()
-                .map(u -> toDeveloper(SystemKeys.REALM_SYSTEM, u))
-                .collect(Collectors.toList());
+        return userService
+            .listUsers(SystemKeys.REALM_SYSTEM)
+            .stream()
+            .map(u -> toDeveloper(SystemKeys.REALM_SYSTEM, u))
+            .collect(Collectors.toList());
     }
 
     public Collection<Developer> getDevelopers(String realm) throws NoSuchRealmException {
         Realm r = realmService.getRealm(realm);
 
-        List<Developer> developers = userService.listUsersByAuthority(r.getSlug(), Config.R_DEVELOPER)
-                .stream()
-                .map(u -> toDeveloper(realm, u))
-                .collect(Collectors.toList());
+        List<Developer> developers = userService
+            .listUsersByAuthority(r.getSlug(), Config.R_DEVELOPER)
+            .stream()
+            .map(u -> toDeveloper(realm, u))
+            .collect(Collectors.toList());
 
-        List<Developer> admins = userService.listUsersByAuthority(r.getSlug(), Config.R_ADMIN)
-                .stream()
-                .map(u -> toDeveloper(realm, u))
-                .collect(Collectors.toList());
+        List<Developer> admins = userService
+            .listUsersByAuthority(r.getSlug(), Config.R_ADMIN)
+            .stream()
+            .map(u -> toDeveloper(realm, u))
+            .collect(Collectors.toList());
 
         return Stream.concat(developers.stream(), admins.stream()).collect(Collectors.toSet());
     }
 
     public Developer updateDeveloper(String realm, String subjectId, Collection<String> roles)
-            throws NoSuchRealmException, NoSuchUserException {
-
-        Set<String> devRoles = roles.stream().filter(r -> Config.R_ADMIN.equals(r) || Config.R_DEVELOPER.equals(r))
-                .collect(Collectors.toSet());
+        throws NoSuchRealmException, NoSuchUserException {
+        Set<String> devRoles = roles
+            .stream()
+            .filter(r -> Config.R_ADMIN.equals(r) || Config.R_DEVELOPER.equals(r))
+            .collect(Collectors.toSet());
 
         Realm r = realmService.getRealm(realm);
         userService.setUserAuthorities(subjectId, r.getSlug(), devRoles);
@@ -465,23 +487,27 @@ public class RealmManager {
         dev.setEmail(user.getEmail());
 
         // filter realm+global authorities
-        Set<GrantedAuthority> authorities = user.getAuthorities().stream().filter(a -> {
-            if (a instanceof SimpleGrantedAuthority) {
-                return true;
-            }
-            if (a instanceof RealmGrantedAuthority) {
-                return realm.equals(((RealmGrantedAuthority) a).getRealm());
-            }
-            return false;
-        }).collect(Collectors.toSet());
+        Set<GrantedAuthority> authorities = user
+            .getAuthorities()
+            .stream()
+            .filter(a -> {
+                if (a instanceof SimpleGrantedAuthority) {
+                    return true;
+                }
+                if (a instanceof RealmGrantedAuthority) {
+                    return realm.equals(((RealmGrantedAuthority) a).getRealm());
+                }
+                return false;
+            })
+            .collect(Collectors.toSet());
 
         dev.setAuthorities(authorities);
 
         return dev;
     }
 
-    public Developer inviteDeveloper(String realm, String subjectId,
-            String email) throws NoSuchRealmException, NoSuchUserException, RegistrationException {
+    public Developer inviteDeveloper(String realm, String subjectId, String email)
+        throws NoSuchRealmException, NoSuchUserException, RegistrationException {
         User user = null;
         if (StringUtils.hasText(subjectId)) {
             // lookup by subject global
@@ -489,8 +515,8 @@ public class RealmManager {
         }
         if (user == null && StringUtils.hasText(email)) {
             // lookup by email in system
-            user = userService.findUsersByEmailAddress(SystemKeys.REALM_SYSTEM, email).stream().findFirst()
-                    .orElse(null);
+            user =
+                userService.findUsersByEmailAddress(SystemKeys.REALM_SYSTEM, email).stream().findFirst().orElse(null);
         }
 
         if (user == null && StringUtils.hasText(email)) {
@@ -509,7 +535,6 @@ public class RealmManager {
 
         // assign developer role
         return updateDeveloper(realm, user.getSubjectId(), Collections.singleton(Config.R_DEVELOPER));
-
     }
 
     public ApplicationProperties getRealmProps(String realm) throws NoSuchRealmException {
@@ -570,9 +595,10 @@ public class RealmManager {
         List<OIDCUserAccount> oidcUsers = oidcUserAccountService.findAccountByRealm(realm);
         List<SamlUserAccount> samlUsers = samlUserAccountService.findAccountByRealm(realm);
 
-        List<AbstractAccount> users = Stream.of(internalUsers, oidcUsers, samlUsers)
-                .flatMap(l -> l.stream())
-                .collect(Collectors.toList());
+        List<AbstractAccount> users = Stream
+            .of(internalUsers, oidcUsers, samlUsers)
+            .flatMap(l -> l.stream())
+            .collect(Collectors.toList());
 
         rc.setUsers(users);
         // credentials

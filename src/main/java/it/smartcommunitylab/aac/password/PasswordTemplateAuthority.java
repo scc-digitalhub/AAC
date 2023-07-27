@@ -1,8 +1,20 @@
-package it.smartcommunitylab.aac.password;
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
+package it.smartcommunitylab.aac.password;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.authorities.TemplateProviderAuthority;
@@ -16,11 +28,14 @@ import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfig;
 import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfigurationProvider;
 import it.smartcommunitylab.aac.templates.provider.TemplateProviderConfigMap;
 import it.smartcommunitylab.aac.templates.service.TemplateService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 @Service
-public class PasswordTemplateAuthority extends
-        AbstractSingleConfigurableProviderAuthority<PasswordTemplateProvider, TemplateModel, ConfigurableTemplateProvider, TemplateProviderConfigMap, RealmTemplateProviderConfig>
-        implements
+public class PasswordTemplateAuthority
+    extends AbstractSingleConfigurableProviderAuthority<PasswordTemplateProvider, TemplateModel, ConfigurableTemplateProvider, TemplateProviderConfigMap, RealmTemplateProviderConfig>
+    implements
         TemplateProviderAuthority<PasswordTemplateProvider, TemplateModel, TemplateProviderConfigMap, RealmTemplateProviderConfig> {
 
     // services
@@ -30,8 +45,9 @@ public class PasswordTemplateAuthority extends
     protected RealmTemplateProviderConfigurationProvider configProvider;
 
     public PasswordTemplateAuthority(
-            TemplateService templateService,
-            ProviderConfigRepository<RealmTemplateProviderConfig> registrationRepository) {
+        TemplateService templateService,
+        ProviderConfigRepository<RealmTemplateProviderConfig> registrationRepository
+    ) {
         super(SystemKeys.AUTHORITY_PASSWORD, new PasswordConfigTranslatorRepository(registrationRepository));
         Assert.notNull(templateService, "template service is mandatory");
 
@@ -56,29 +72,35 @@ public class PasswordTemplateAuthority extends
 
     @Override
     protected PasswordTemplateProvider buildProvider(RealmTemplateProviderConfig config) {
-        PasswordTemplateProvider p = new PasswordTemplateProvider(config.getProvider(), templateService, config,
-                config.getRealm());
+        PasswordTemplateProvider p = new PasswordTemplateProvider(
+            config.getProvider(),
+            templateService,
+            config,
+            config.getRealm()
+        );
 
         return p;
     }
 
-    static class PasswordConfigTranslatorRepository extends
-            TranslatorProviderConfigRepository<RealmTemplateProviderConfig, RealmTemplateProviderConfig> {
+    static class PasswordConfigTranslatorRepository
+        extends TranslatorProviderConfigRepository<RealmTemplateProviderConfig, RealmTemplateProviderConfig> {
 
         public PasswordConfigTranslatorRepository(
-                ProviderConfigRepository<RealmTemplateProviderConfig> externalRepository) {
+            ProviderConfigRepository<RealmTemplateProviderConfig> externalRepository
+        ) {
             super(externalRepository);
             setConverter(config -> {
-                RealmTemplateProviderConfig c = new RealmTemplateProviderConfig(SystemKeys.AUTHORITY_PASSWORD,
-                        config.getProvider(), config.getRealm(), config.getConfigMap());
+                RealmTemplateProviderConfig c = new RealmTemplateProviderConfig(
+                    SystemKeys.AUTHORITY_PASSWORD,
+                    config.getProvider(),
+                    config.getRealm(),
+                    config.getConfigMap()
+                );
                 c.setCustomStyle(config.getCustomStyle());
                 c.setLanguages(c.getLanguages());
 
                 return c;
-
             });
         }
-
     }
-
 }

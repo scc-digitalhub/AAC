@@ -1,5 +1,37 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.console;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import io.swagger.v3.oas.annotations.Hidden;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
+import it.smartcommunitylab.aac.common.NoSuchClientException;
+import it.smartcommunitylab.aac.common.NoSuchProviderException;
+import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.controller.BaseIdentityProviderController;
+import it.smartcommunitylab.aac.core.ClientManager;
+import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.model.ClientApp;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -15,7 +47,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,31 +65,14 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.yaml.snakeyaml.Yaml;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-
-import io.swagger.v3.oas.annotations.Hidden;
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
-import it.smartcommunitylab.aac.common.NoSuchClientException;
-import it.smartcommunitylab.aac.common.NoSuchProviderException;
-import it.smartcommunitylab.aac.common.NoSuchRealmException;
-import it.smartcommunitylab.aac.common.NoSuchUserException;
-import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.controller.BaseIdentityProviderController;
-import it.smartcommunitylab.aac.core.ClientManager;
-import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.model.ClientApp;
-
 @RestController
 @Hidden
 @RequestMapping("/console/dev")
 public class DevIdentityProviderController extends BaseIdentityProviderController {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final TypeReference<Map<String, List<ConfigurableIdentityProvider>>> typeRef = new TypeReference<Map<String, List<ConfigurableIdentityProvider>>>() {
-    };
+    private final TypeReference<Map<String, List<ConfigurableIdentityProvider>>> typeRef =
+        new TypeReference<Map<String, List<ConfigurableIdentityProvider>>>() {};
     private final String LIST_KEY = "providers";
 
     @Autowired
@@ -74,9 +88,9 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
     @Override
     @GetMapping("/idps/{realm}/{providerId}")
     public ConfigurableIdentityProvider getIdp(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
-            throws NoSuchProviderException, NoSuchRealmException, NoSuchAuthorityException {
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId
+    ) throws NoSuchProviderException, NoSuchRealmException, NoSuchAuthorityException {
         ConfigurableIdentityProvider provider = super.getIdp(realm, providerId);
 
         // fetch also configuration schema
@@ -89,10 +103,10 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
     @Override
     @PostMapping("/idps/{realm}")
     public ConfigurableIdentityProvider addIdp(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestBody @Valid @NotNull ConfigurableIdentityProvider registration)
-            throws NoSuchRealmException, NoSuchProviderException, RegistrationException, SystemException,
-            NoSuchAuthorityException {
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @RequestBody @Valid @NotNull ConfigurableIdentityProvider registration
+    )
+        throws NoSuchRealmException, NoSuchProviderException, RegistrationException, SystemException, NoSuchAuthorityException {
         ConfigurableIdentityProvider provider = super.addIdp(realm, registration);
 
         // fetch also configuration schema
@@ -105,11 +119,11 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
     @Override
     @PutMapping("/idps/{realm}/{providerId}")
     public ConfigurableIdentityProvider updateIdp(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            @RequestBody @Valid @NotNull ConfigurableIdentityProvider registration,
-            @RequestParam(required = false, defaultValue = "false") Optional<Boolean> force)
-            throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
+        @RequestBody @Valid @NotNull ConfigurableIdentityProvider registration,
+        @RequestParam(required = false, defaultValue = "false") Optional<Boolean> force
+    ) throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
         ConfigurableIdentityProvider provider = super.updateIdp(realm, providerId, registration, Optional.of(false));
 
         // fetch also configuration schema
@@ -124,11 +138,11 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
      */
     @PutMapping("/idps/{realm}")
     public Collection<ConfigurableIdentityProvider> importRealmProvider(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestParam(required = false, defaultValue = "false") boolean reset,
-            @RequestPart(name = "yaml", required = false) @Valid String yaml,
-            @RequestPart(name = "file", required = false) @Valid MultipartFile file)
-            throws NoSuchRealmException, RegistrationException, NoSuchProviderException, NoSuchAuthorityException {
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @RequestParam(required = false, defaultValue = "false") boolean reset,
+        @RequestPart(name = "yaml", required = false) @Valid String yaml,
+        @RequestPart(name = "file", required = false) @Valid MultipartFile file
+    ) throws NoSuchRealmException, RegistrationException, NoSuchProviderException, NoSuchAuthorityException {
         logger.debug("import idp(s) to realm {}", StringUtils.trimAllWhitespace(realm));
 
         if (!StringUtils.hasText(yaml) && (file == null || file.isEmpty())) {
@@ -142,9 +156,11 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
                     throw new IllegalArgumentException("invalid file");
                 }
 
-                if (!SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType())
-                        && !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType())
-                        && !SystemKeys.MEDIA_TYPE_XYAML.toString().equals(file.getContentType())) {
+                if (
+                    !SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType()) &&
+                    !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType()) &&
+                    !SystemKeys.MEDIA_TYPE_XYAML.toString().equals(file.getContentType())
+                ) {
                     throw new IllegalArgumentException("invalid file");
                 }
 
@@ -167,8 +183,7 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
                 }
             } else {
                 // try single element
-                ConfigurableIdentityProvider reg = yamlObjectMapper.readValue(yaml,
-                        ConfigurableIdentityProvider.class);
+                ConfigurableIdentityProvider reg = yamlObjectMapper.readValue(yaml, ConfigurableIdentityProvider.class);
                 regs.add(reg);
             }
 
@@ -206,18 +221,19 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
 
             throw new RegistrationException(e.getMessage());
         }
-
     }
 
     @GetMapping("/idps/{realm}/{providerId}/export")
     public void exportRealmProvider(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            HttpServletResponse res)
-            throws NoSuchProviderException, NoSuchRealmException, SystemException, IOException,
-            NoSuchAuthorityException {
-        logger.debug("export idp {} for realm {}",
-                StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
+        HttpServletResponse res
+    ) throws NoSuchProviderException, NoSuchRealmException, SystemException, IOException, NoSuchAuthorityException {
+        logger.debug(
+            "export idp {} for realm {}",
+            StringUtils.trimAllWhitespace(providerId),
+            StringUtils.trimAllWhitespace(realm)
+        );
 
         ConfigurableIdentityProvider provider = providerManager.getProvider(realm, providerId);
         String s = yamlObjectMapper.writeValueAsString(provider);
@@ -229,7 +245,6 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
         out.write(s.getBytes(StandardCharsets.UTF_8));
         out.flush();
         out.close();
-
     }
 
     /*
@@ -237,13 +252,12 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
      */
     @PutMapping("/idps/{realm}/{providerId}/apps/{clientId}")
     public ResponseEntity<ClientApp> updateRealmProviderClientApp(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
-            @RequestBody @Valid @NotNull ClientApp app)
-            throws NoSuchRealmException, NoSuchUserException, NoSuchClientException, SystemException,
-            NoSuchProviderException {
-
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
+        @RequestBody @Valid @NotNull ClientApp app
+    )
+        throws NoSuchRealmException, NoSuchUserException, NoSuchClientException, SystemException, NoSuchProviderException {
         ClientApp clientApp = clientManager.getClientApp(realm, clientId);
         // update providers only for this id
         Set<String> providers = new HashSet<>(Arrays.asList(clientApp.getProviders()));

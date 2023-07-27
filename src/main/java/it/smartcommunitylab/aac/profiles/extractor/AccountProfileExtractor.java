@@ -1,11 +1,20 @@
-package it.smartcommunitylab.aac.profiles.extractor;
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
+package it.smartcommunitylab.aac.profiles.extractor;
 
 import it.smartcommunitylab.aac.attributes.AccountAttributesSet;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
@@ -15,6 +24,12 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.model.AttributeType;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.profiles.model.AccountProfile;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class AccountProfileExtractor extends AbstractUserProfileExtractor {
 
@@ -24,9 +39,7 @@ public class AccountProfileExtractor extends AbstractUserProfileExtractor {
     }
 
     @Override
-    public AccountProfile extractUserProfile(User user)
-            throws InvalidDefinitionException {
-
+    public AccountProfile extractUserProfile(User user) throws InvalidDefinitionException {
         // fetch identities
         Collection<UserIdentity> identities = user.getIdentities();
 
@@ -76,23 +89,28 @@ public class AccountProfileExtractor extends AbstractUserProfileExtractor {
 
         // look for accountProfile extra attributes
         Map<String, String> extra = new HashMap<>();
-        Optional<UserAttributes> attrs = attributes.stream()
-                .filter(a -> a.getIdentifier().equals(AccountAttributesSet.IDENTIFIER)).findFirst();
+        Optional<UserAttributes> attrs = attributes
+            .stream()
+            .filter(a -> a.getIdentifier().equals(AccountAttributesSet.IDENTIFIER))
+            .findFirst();
         if (attrs.isPresent()) {
             // add every extra property
-            attrs.get().getAttributes().forEach(attr -> {
-                if (!AccountAttributesSet.USER_ID.equals(attr.getKey()) &&
+            attrs
+                .get()
+                .getAttributes()
+                .forEach(attr -> {
+                    if (
+                        !AccountAttributesSet.USER_ID.equals(attr.getKey()) &&
                         !AccountAttributesSet.USERNAME.equals(attr.getKey()) &&
-                        attr.getType() == AttributeType.STRING) {
-                    extra.put(attr.getKey(), attr.getValue().toString());
-                }
-            });
+                        attr.getType() == AttributeType.STRING
+                    ) {
+                        extra.put(attr.getKey(), attr.getValue().toString());
+                    }
+                });
         }
 
         profile.setAttributes(extra);
 
         return profile;
-
     }
-
 }

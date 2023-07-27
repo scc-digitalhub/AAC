@@ -1,16 +1,30 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.oauth;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.provider.AuthorizationRequest;
-import org.springframework.security.oauth2.provider.approval.UserApprovalHandler;
-import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.oauth.approval.ScopeApprovalHandler;
 import it.smartcommunitylab.aac.oauth.approval.SpacesApprovalHandler;
 import it.smartcommunitylab.aac.oauth.flow.OAuthFlowExtensionsHandler;
+import java.util.HashMap;
+import java.util.Map;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.provider.AuthorizationRequest;
+import org.springframework.security.oauth2.provider.approval.UserApprovalHandler;
+import org.springframework.util.Assert;
 
 public class AACApprovalHandler implements UserApprovalHandler {
 
@@ -49,8 +63,10 @@ public class AACApprovalHandler implements UserApprovalHandler {
     }
 
     @Override
-    public AuthorizationRequest checkForPreApproval(AuthorizationRequest authorizationRequest,
-            Authentication userAuthentication) {
+    public AuthorizationRequest checkForPreApproval(
+        AuthorizationRequest authorizationRequest,
+        Authentication userAuthentication
+    ) {
         AuthorizationRequest request = authorizationRequest;
         if (scopeApprovalHandler != null) {
             // first call scopeApprover to let it modify request *before* user approval
@@ -68,10 +84,14 @@ public class AACApprovalHandler implements UserApprovalHandler {
     }
 
     @Override
-    public AuthorizationRequest updateAfterApproval(AuthorizationRequest authorizationRequest,
-            Authentication userAuthentication) {
-        AuthorizationRequest request = userApprovalHandler.updateAfterApproval(authorizationRequest,
-                userAuthentication);
+    public AuthorizationRequest updateAfterApproval(
+        AuthorizationRequest authorizationRequest,
+        Authentication userAuthentication
+    ) {
+        AuthorizationRequest request = userApprovalHandler.updateAfterApproval(
+            authorizationRequest,
+            userAuthentication
+        );
 
         // update spaces
         if (spacesApprovalHandler != null) {
@@ -88,22 +108,27 @@ public class AACApprovalHandler implements UserApprovalHandler {
     }
 
     @Override
-    public Map<String, Object> getUserApprovalRequest(AuthorizationRequest authorizationRequest,
-            Authentication userAuthentication) {
+    public Map<String, Object> getUserApprovalRequest(
+        AuthorizationRequest authorizationRequest,
+        Authentication userAuthentication
+    ) {
         Map<String, Object> model = new HashMap<>();
 
-        Map<String, Object> userApprovalModel = userApprovalHandler.getUserApprovalRequest(authorizationRequest,
-                userAuthentication);
+        Map<String, Object> userApprovalModel = userApprovalHandler.getUserApprovalRequest(
+            authorizationRequest,
+            userAuthentication
+        );
         model.putAll(userApprovalModel);
 
         // get spaces model
         if (spacesApprovalHandler != null) {
-            Map<String, Object> spacesApprovalModel = spacesApprovalHandler.getUserApprovalRequest(authorizationRequest,
-                    userAuthentication);
+            Map<String, Object> spacesApprovalModel = spacesApprovalHandler.getUserApprovalRequest(
+                authorizationRequest,
+                userAuthentication
+            );
             model.putAll(spacesApprovalModel);
         }
 
         return model;
     }
-
 }

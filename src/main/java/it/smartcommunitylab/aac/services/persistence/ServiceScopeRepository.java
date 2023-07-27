@@ -15,20 +15,17 @@
  */
 package it.smartcommunitylab.aac.services.persistence;
 
+import it.smartcommunitylab.aac.repository.CustomJpaRepository;
 import java.util.List;
-
 import org.springframework.stereotype.Repository;
 
-import it.smartcommunitylab.aac.repository.CustomJpaRepository;
-
 /**
- * 
+ *
  * @author raman
  *
  */
 @Repository
 public interface ServiceScopeRepository extends CustomJpaRepository<ServiceScopeEntity, String> {
-
     ServiceScopeEntity findByScope(String scope);
 
     ServiceScopeEntity findByServiceIdAndScope(String serviceId, String scope);
@@ -36,5 +33,4 @@ public interface ServiceScopeRepository extends CustomJpaRepository<ServiceScope
     List<ServiceScopeEntity> findByServiceId(String serviceId);
 
     List<ServiceScopeEntity> findByServiceIdAndType(String serviceId, String type);
-
 }

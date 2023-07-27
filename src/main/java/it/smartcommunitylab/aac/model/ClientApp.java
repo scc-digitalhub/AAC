@@ -1,5 +1,28 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import java.io.Serializable;
 import java.util.Base64;
 import java.util.Collection;
@@ -9,20 +32,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
-
 import org.springframework.util.StringUtils;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 
 /*
  * ClientApp describes clients as configuration properties
@@ -45,12 +58,13 @@ public class ClientApp {
 
     @NotBlank
     private String name;
+
     private String description;
 
     // configuration, type-specific
     private Map<String, Serializable> configuration;
 
-//    private JsonSchema schema;
+    //    private JsonSchema schema;
 
     // scopes
     // TODO evaluate a better mapping for services+attribute sets etc
@@ -77,7 +91,7 @@ public class ClientApp {
     // locking.
     // this field is always disclosed in cross-realm scenarios
     // TODO evaluate removal or hide from json
-//    @JsonIgnore
+    //    @JsonIgnore
     private Set<SpaceRole> spaceRoles;
 
     // mappers
@@ -87,6 +101,7 @@ public class ClientApp {
     // TODO map to fixed list or explode
     @JsonIgnore
     private Map<String, String> hookFunctions;
+
     private Map<String, String> hookWebUrls;
     private String hookUniqueSpaces;
 
@@ -208,34 +223,49 @@ public class ClientApp {
         this.hookUniqueSpaces = hookUniqueSpaces;
     }
 
-//    public JsonSchema getSchema() {
-//        return schema;
-//    }
-//
-//    public void setSchema(JsonSchema schema) {
-//        this.schema = schema;
-//    }
+    //    public JsonSchema getSchema() {
+    //        return schema;
+    //    }
+    //
+    //    public void setSchema(JsonSchema schema) {
+    //        this.schema = schema;
+    //    }
 
     @JsonProperty("hookFunctions")
     public Map<String, String> getHookFunctionsBase64() {
         if (hookFunctions == null) {
             return null;
         }
-        return hookFunctions.entrySet().stream()
-                .filter(e -> StringUtils.hasText(e.getValue()))
-                .collect(Collectors.toMap(e -> e.getKey(), e -> {
-                    return Base64.getEncoder().encodeToString(e.getValue().getBytes());
-                }));
+        return hookFunctions
+            .entrySet()
+            .stream()
+            .filter(e -> StringUtils.hasText(e.getValue()))
+            .collect(
+                Collectors.toMap(
+                    e -> e.getKey(),
+                    e -> {
+                        return Base64.getEncoder().encodeToString(e.getValue().getBytes());
+                    }
+                )
+            );
     }
 
     @JsonProperty("hookFunctions")
     public void setHookFunctionsBase64(Map<String, String> hookFunctions) {
         if (hookFunctions != null) {
-            this.hookFunctions = hookFunctions.entrySet().stream()
+            this.hookFunctions =
+                hookFunctions
+                    .entrySet()
+                    .stream()
                     .filter(e -> StringUtils.hasText(e.getValue()))
-                    .collect(Collectors.toMap(e -> e.getKey(), e -> {
-                        return new String(Base64.getDecoder().decode(e.getValue().getBytes()));
-                    }));
+                    .collect(
+                        Collectors.toMap(
+                            e -> e.getKey(),
+                            e -> {
+                                return new String(Base64.getDecoder().decode(e.getValue().getBytes()));
+                            }
+                        )
+                    );
         }
     }
 
@@ -262,5 +292,4 @@ public class ClientApp {
         this.spaceRoles = new HashSet<>();
         spaceRoles.addAll(rr);
     }
-
 }

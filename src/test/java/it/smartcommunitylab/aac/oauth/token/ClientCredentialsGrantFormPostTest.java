@@ -1,13 +1,35 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.oauth.token;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.bootstrap.BootstrapConfig;
+import it.smartcommunitylab.aac.oauth.OAuth2ConfigUtils;
+import it.smartcommunitylab.aac.oauth.endpoint.TokenEndpoint;
+import it.smartcommunitylab.aac.oauth.model.ClientRegistration;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,19 +47,10 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.bootstrap.BootstrapConfig;
-import it.smartcommunitylab.aac.oauth.OAuth2ConfigUtils;
-import it.smartcommunitylab.aac.oauth.endpoint.TokenEndpoint;
-import it.smartcommunitylab.aac.oauth.model.ClientRegistration;
-
 /*
  * OAuth 2.0 Client Credentials
  * as per RFC6749
- * 
+ *
  * https://www.rfc-editor.org/rfc/rfc6749#section-4.4
  */
 
@@ -82,14 +95,12 @@ public class ClientCredentialsGrantFormPostTest {
         params.add(OAuth2ParameterNames.CLIENT_SECRET, clientSecret);
         params.add(OAuth2ParameterNames.SCOPE, "");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(TOKEN_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a valid json in response
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
@@ -121,14 +132,12 @@ public class ClientCredentialsGrantFormPostTest {
         params.add(OAuth2ParameterNames.CLIENT_SECRET, clientSecret);
         params.add(OAuth2ParameterNames.SCOPE, Config.SCOPE_CLIENT_ROLE);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(TOKEN_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a valid json in response
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
@@ -160,14 +169,12 @@ public class ClientCredentialsGrantFormPostTest {
         params.add(OAuth2ParameterNames.CLIENT_SECRET, clientSecret);
         params.add(OAuth2ParameterNames.SCOPE, "");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(TOKEN_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
         // expect a valid json in response
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
@@ -190,9 +197,10 @@ public class ClientCredentialsGrantFormPostTest {
 
         // scopes are either empty or string or set of strings
         assertThat(response.get(OAuth2ParameterNames.SCOPE))
-                .satisfiesAnyOf(
-                        scope -> assertThat(scope).isNull(),
-                        scope -> assertThat(scope).isNotNull().isInstanceOfAny(String.class, List.class));
+            .satisfiesAnyOf(
+                scope -> assertThat(scope).isNull(),
+                scope -> assertThat(scope).isNotNull().isInstanceOfAny(String.class, List.class)
+            );
 
         // scope offline access is not included
         if (response.get(OAuth2ParameterNames.SCOPE) != null) {
@@ -202,12 +210,11 @@ public class ClientCredentialsGrantFormPostTest {
             }
             if (response.get(OAuth2ParameterNames.SCOPE) instanceof List) {
                 assertThat((List<?>) response.get(OAuth2ParameterNames.SCOPE))
-                        .allSatisfy(o -> assertThat(o).isInstanceOf(String.class));
+                    .allSatisfy(o -> assertThat(o).isInstanceOf(String.class));
 
                 @SuppressWarnings("unchecked")
                 List<String> scope = (List<String>) response.get(OAuth2ParameterNames.SCOPE);
                 assertThat(scope).doesNotContain(Config.SCOPE_OFFLINE_ACCESS);
-
             }
         }
     }
@@ -221,14 +228,12 @@ public class ClientCredentialsGrantFormPostTest {
         params.add(OAuth2ParameterNames.CLIENT_SECRET, clientSecret);
         params.add(OAuth2ParameterNames.SCOPE, Config.SCOPE_OFFLINE_ACCESS);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(TOKEN_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isBadRequest())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isBadRequest()).andReturn();
 
         // expect a 400 with an error
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
@@ -248,14 +253,12 @@ public class ClientCredentialsGrantFormPostTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.CLIENT_CREDENTIALS.getValue());
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(TOKEN_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isUnauthorized())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isUnauthorized()).andReturn();
 
         // expect a 401 with an error
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
@@ -274,14 +277,12 @@ public class ClientCredentialsGrantFormPostTest {
         params.add(OAuth2ParameterNames.CLIENT_SECRET, "secret");
         params.add(OAuth2ParameterNames.SCOPE, "");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(TOKEN_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isUnauthorized())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isUnauthorized()).andReturn();
 
         // expect a 401 with an error
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
@@ -297,14 +298,12 @@ public class ClientCredentialsGrantFormPostTest {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.CLIENT_CREDENTIALS.getValue());
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(TOKEN_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
-        MvcResult res = this.mockMvc
-                .perform(req)
-                .andExpect(status().isUnauthorized())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isUnauthorized()).andReturn();
 
         // expect a 401 with an error
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
@@ -314,7 +313,6 @@ public class ClientCredentialsGrantFormPostTest {
         assertThat(response.get("error")).isEqualTo("unauthorized");
     }
 
-    private final static String TOKEN_URL = TokenEndpoint.TOKEN_URL;
-    private final TypeReference<Map<String, Serializable>> typeRef = new TypeReference<Map<String, Serializable>>() {
-    };
+    private static final String TOKEN_URL = TokenEndpoint.TOKEN_URL;
+    private final TypeReference<Map<String, Serializable>> typeRef = new TypeReference<Map<String, Serializable>>() {};
 }

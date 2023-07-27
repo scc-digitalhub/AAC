@@ -1,7 +1,20 @@
-package it.smartcommunitylab.aac.attributes;
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
+package it.smartcommunitylab.aac.attributes;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.provider.ScriptAttributeProvider;
@@ -16,10 +29,12 @@ import it.smartcommunitylab.aac.attributes.store.PersistentAttributeStore;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.core.base.AbstractAttributeAuthority;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 @Service
-public class ScriptAttributeAuthority extends
-        AbstractAttributeAuthority<ScriptAttributeProvider, ScriptAttributeProviderConfigMap, ScriptAttributeProviderConfig> {
+public class ScriptAttributeAuthority
+    extends AbstractAttributeAuthority<ScriptAttributeProvider, ScriptAttributeProviderConfigMap, ScriptAttributeProviderConfig> {
 
     // execution service for custom attributes mapping
     private final ScriptExecutionService executionService;
@@ -28,9 +43,11 @@ public class ScriptAttributeAuthority extends
     protected final AutoJdbcAttributeStore jdbcAttributeStore;
 
     public ScriptAttributeAuthority(
-            AttributeService attributeService, ScriptExecutionService executionService,
-            AutoJdbcAttributeStore jdbcAttributeStore,
-            ProviderConfigRepository<ScriptAttributeProviderConfig> registrationRepository) {
+        AttributeService attributeService,
+        ScriptExecutionService executionService,
+        AutoJdbcAttributeStore jdbcAttributeStore,
+        ProviderConfigRepository<ScriptAttributeProviderConfig> registrationRepository
+    ) {
         super(SystemKeys.AUTHORITY_SCRIPT, attributeService, registrationRepository);
         Assert.notNull(executionService, "script execution service is mandatory");
         Assert.notNull(jdbcAttributeStore, "attribute store is mandatory");
@@ -44,10 +61,12 @@ public class ScriptAttributeAuthority extends
         AttributeStore attributeStore = getAttributeStore(config.getProvider(), config.getPersistence());
 
         ScriptAttributeProvider ap = new ScriptAttributeProvider(
-                config.getProvider(),
-                attributeService, attributeStore,
-                config,
-                config.getRealm());
+            config.getProvider(),
+            attributeService,
+            attributeStore,
+            config,
+            config.getRealm()
+        );
         ap.setExecutionService(executionService);
 
         return ap;

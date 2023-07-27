@@ -1,8 +1,21 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.internal.provider;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
@@ -10,23 +23,35 @@ import it.smartcommunitylab.aac.core.provider.AccountPrincipalConverter;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.Assert;
 
-public class InternalAccountPrincipalConverter extends AbstractProvider<InternalUserAccount>
-        implements AccountPrincipalConverter<InternalUserAccount> {
+public class InternalAccountPrincipalConverter
+    extends AbstractProvider<InternalUserAccount>
+    implements AccountPrincipalConverter<InternalUserAccount> {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final UserAccountService<InternalUserAccount> userAccountService;
     private final String repositoryId;
 
-    public InternalAccountPrincipalConverter(String providerId,
-            UserAccountService<InternalUserAccount> accountService,
-            String repositoryId, String realm) {
+    public InternalAccountPrincipalConverter(
+        String providerId,
+        UserAccountService<InternalUserAccount> accountService,
+        String repositoryId,
+        String realm
+    ) {
         this(SystemKeys.AUTHORITY_INTERNAL, providerId, accountService, repositoryId, realm);
     }
 
-    public InternalAccountPrincipalConverter(String authority, String providerId,
-            UserAccountService<InternalUserAccount> accountService,
-            String repositoryId, String realm) {
+    public InternalAccountPrincipalConverter(
+        String authority,
+        String providerId,
+        UserAccountService<InternalUserAccount> accountService,
+        String repositoryId,
+        String realm
+    ) {
         super(authority, providerId, realm);
         Assert.notNull(accountService, "account service is mandatory");
         Assert.hasText(repositoryId, "repository id is mandatory");
@@ -35,7 +60,6 @@ public class InternalAccountPrincipalConverter extends AbstractProvider<Internal
 
         // repositoryId from config
         this.repositoryId = repositoryId;
-
     }
 
     @Override
@@ -46,8 +70,11 @@ public class InternalAccountPrincipalConverter extends AbstractProvider<Internal
     @Override
     public InternalUserAccount convertAccount(UserAuthenticatedPrincipal userPrincipal, String userId) {
         // we expect an instance of our model
-        Assert.isInstanceOf(InternalUserAuthenticatedPrincipal.class, userPrincipal,
-                "principal must be an instance of internal authenticated principal");
+        Assert.isInstanceOf(
+            InternalUserAuthenticatedPrincipal.class,
+            userPrincipal,
+            "principal must be an instance of internal authenticated principal"
+        );
         InternalUserAuthenticatedPrincipal principal = (InternalUserAuthenticatedPrincipal) userPrincipal;
 
         // sanity check for same authority
@@ -70,5 +97,4 @@ public class InternalAccountPrincipalConverter extends AbstractProvider<Internal
 
         return account;
     }
-
 }

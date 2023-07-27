@@ -1,24 +1,39 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.saml.model;
 
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.base.AbstractAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.saml.SamlKeys;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.saml.SamlKeys;
-
 public class SamlUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincipal {
+
     private static final long serialVersionUID = SystemKeys.AAC_SAML_SERIAL_VERSION;
-    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_PRINCIPAL + SystemKeys.ID_SEPARATOR
-            + SystemKeys.AUTHORITY_SAML;
+    public static final String RESOURCE_TYPE =
+        SystemKeys.RESOURCE_PRINCIPAL + SystemKeys.ID_SEPARATOR + SystemKeys.AUTHORITY_SAML;
 
     // subject identifier from external provider is local id
     private final String subjectId;
@@ -84,19 +99,22 @@ public class SamlUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
 
         if (principal != null) {
             // get allowed attributes as strings or list of strings
-            principal.getAttributes().entrySet().stream()
-                    .filter(e -> !SamlKeys.SAML_ATTRIBUTES.contains(e.getKey()))
-                    .filter(e -> (e.getValue() != null && !e.getValue().isEmpty()))
-                    .forEach(e -> {
-                        String key = e.getKey();
-                        // map to String
-                        List<String> values = e.getValue().stream().map(o -> o.toString()).collect(Collectors.toList());
-                        if (values.size() == 1) {
-                            result.put(key, values.get(0));
-                        } else {
-                            result.put(key, new ArrayList<>(values));
-                        }
-                    });
+            principal
+                .getAttributes()
+                .entrySet()
+                .stream()
+                .filter(e -> !SamlKeys.SAML_ATTRIBUTES.contains(e.getKey()))
+                .filter(e -> (e.getValue() != null && !e.getValue().isEmpty()))
+                .forEach(e -> {
+                    String key = e.getKey();
+                    // map to String
+                    List<String> values = e.getValue().stream().map(o -> o.toString()).collect(Collectors.toList());
+                    if (values.size() == 1) {
+                        result.put(key, values.get(0));
+                    } else {
+                        result.put(key, new ArrayList<>(values));
+                    }
+                });
         }
 
         if (attributes != null) {
@@ -157,5 +175,4 @@ public class SamlUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
     public void setEmailVerified(Boolean emailVerified) {
         this.emailVerified = emailVerified;
     }
-
 }

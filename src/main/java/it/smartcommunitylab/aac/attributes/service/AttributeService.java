@@ -1,19 +1,20 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.attributes.service;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.attributes.DefaultAttributesSet;
 import it.smartcommunitylab.aac.attributes.model.AbstractAttribute;
@@ -31,10 +32,24 @@ import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
 import it.smartcommunitylab.aac.core.model.Attribute;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.model.AttributeType;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Service
 @Transactional
 public class AttributeService {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
@@ -62,7 +77,6 @@ public class AttributeService {
         List<AttributeEntity> attributes = attributeService.listAttributes(identifier);
 
         return toSet(se, attributes);
-
     }
 
     public AttributeSet findAttributeSet(String identifier) {
@@ -79,8 +93,7 @@ public class AttributeService {
         List<AttributeEntity> attributes = Collections.emptyList();
         try {
             attributes = attributeService.listAttributes(identifier);
-        } catch (NoSuchAttributeSetException e) {
-        }
+        } catch (NoSuchAttributeSetException e) {}
 
         return toSet(se, attributes);
     }
@@ -94,65 +107,74 @@ public class AttributeService {
         logger.debug("list attribute sets");
 
         // TODO add static (internal) attribute sets to list
-        return attributeService.listAttributeSets().stream().map(s -> {
-            DefaultAttributesSet a = toSet(s);
-            try {
-                a.addAttributes(listAttributes(s.getIdentifier()));
-            } catch (NoSuchAttributeSetException e) {
-            }
-            return a;
-        }).collect(Collectors.toList());
+        return attributeService
+            .listAttributeSets()
+            .stream()
+            .map(s -> {
+                DefaultAttributesSet a = toSet(s);
+                try {
+                    a.addAttributes(listAttributes(s.getIdentifier()));
+                } catch (NoSuchAttributeSetException e) {}
+                return a;
+            })
+            .collect(Collectors.toList());
     }
 
     public Collection<AttributeSet> listAttributeSets(String realm) {
         logger.debug("list attribute sets for realm " + StringUtils.trimAllWhitespace(realm));
 
         // TODO add static (internal) attribute sets to list
-        return attributeService.listAttributeSets(realm).stream().map(s -> {
-            DefaultAttributesSet a = toSet(s);
-            try {
-                a.addAttributes(listAttributes(s.getIdentifier()));
-            } catch (NoSuchAttributeSetException e) {
-            }
-            return a;
-        }).collect(Collectors.toList());
+        return attributeService
+            .listAttributeSets(realm)
+            .stream()
+            .map(s -> {
+                DefaultAttributesSet a = toSet(s);
+                try {
+                    a.addAttributes(listAttributes(s.getIdentifier()));
+                } catch (NoSuchAttributeSetException e) {}
+                return a;
+            })
+            .collect(Collectors.toList());
     }
 
     public AttributeSet addAttributeSet(String realm, AttributeSet set) {
-
         String identifier = set.getIdentifier();
         if (!StringUtils.hasText(identifier)) {
             throw new IllegalArgumentException("invalid set identifier");
         }
 
         logger.debug("add attribute set " + identifier);
-        AttributeSetEntity se = attributeService.addAttributeSet(realm, identifier, set.getName(),
-                set.getDescription());
+        AttributeSetEntity se = attributeService.addAttributeSet(
+            realm,
+            identifier,
+            set.getName(),
+            set.getDescription()
+        );
         List<Attribute> attrs = new ArrayList<>();
         if (set.getAttributes() != null) {
             try {
                 for (Attribute attr : set.getAttributes()) {
-
-                    AttributeEntity ae = attributeService.addAttribute(identifier, attr.getKey(),
-                            attr.getType(), attr.getIsMultiple(),
-                            attr.getName(), attr.getDescription());
+                    AttributeEntity ae = attributeService.addAttribute(
+                        identifier,
+                        attr.getKey(),
+                        attr.getType(),
+                        attr.getIsMultiple(),
+                        attr.getName(),
+                        attr.getDescription()
+                    );
 
                     attrs.add(toAttribute(ae));
                 }
-            } catch (NoSuchAttributeSetException e) {
-            }
+            } catch (NoSuchAttributeSetException e) {}
         }
 
         DefaultAttributesSet a = toSet(se);
         a.addAttributes(attrs);
 
         return a;
-
     }
 
-    public AttributeSet updateAttributeSet(String identifier, AttributeSet set)
-            throws NoSuchAttributeSetException {
-
+    public AttributeSet updateAttributeSet(String identifier, AttributeSet set) throws NoSuchAttributeSetException {
         logger.debug("update attribute set " + StringUtils.trimAllWhitespace(identifier));
 
         if (systemAttributeSets.containsKey(identifier)) {
@@ -167,23 +189,36 @@ public class AttributeService {
         se = attributeService.updateAttributeSet(identifier, set.getName(), set.getDescription());
         List<Attribute> attrs = new ArrayList<>();
         if (set.getAttributes() != null) {
-
-            Set<String> toRemove = attributeService.listAttributes(identifier).stream().map(a -> a.getKey())
-                    .collect(Collectors.toSet());
+            Set<String> toRemove = attributeService
+                .listAttributes(identifier)
+                .stream()
+                .map(a -> a.getKey())
+                .collect(Collectors.toSet());
 
             for (Attribute attr : set.getAttributes()) {
                 AttributeEntity ae = attributeService.findAttribute(identifier, attr.getKey());
                 if (ae == null) {
-                    ae = attributeService.addAttribute(identifier, attr.getKey(),
-                            attr.getType(), attr.getIsMultiple(),
-                            attr.getName(), attr.getDescription());
+                    ae =
+                        attributeService.addAttribute(
+                            identifier,
+                            attr.getKey(),
+                            attr.getType(),
+                            attr.getIsMultiple(),
+                            attr.getName(),
+                            attr.getDescription()
+                        );
                 } else {
                     try {
-                        ae = attributeService.updateAttribute(identifier, attr.getKey(),
-                                attr.getType(), attr.getIsMultiple(),
-                                attr.getName(), attr.getDescription());
-                    } catch (NoSuchAttributeException e) {
-                    }
+                        ae =
+                            attributeService.updateAttribute(
+                                identifier,
+                                attr.getKey(),
+                                attr.getType(),
+                                attr.getIsMultiple(),
+                                attr.getName(),
+                                attr.getDescription()
+                            );
+                    } catch (NoSuchAttributeException e) {}
                 }
 
                 attrs.add(toAttribute(ae));
@@ -199,14 +234,12 @@ public class AttributeService {
                     e.printStackTrace();
                 }
             });
-
         }
 
         DefaultAttributesSet a = toSet(se);
         a.addAttributes(attrs);
 
         return a;
-
     }
 
     public void deleteAttributeSet(String identifier) throws NoSuchAttributeSetException {
@@ -220,7 +253,6 @@ public class AttributeService {
         }
 
         attributeService.deleteAttributeSet(identifier);
-
     }
 
     /*
@@ -233,7 +265,6 @@ public class AttributeService {
         AttributeSetEntity se = attributeService.getAttributeSet(identifier);
         List<AttributeEntity> attributes = attributeService.listAttributes(se.getIdentifier());
         return attributes.stream().map(a -> toAttribute(a)).collect(Collectors.toList());
-
     }
 
     /*

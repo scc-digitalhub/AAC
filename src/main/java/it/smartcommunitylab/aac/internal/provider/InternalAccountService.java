@@ -1,20 +1,20 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.internal.provider;
-
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import javax.mail.MessagingException;
-import org.jsoup.Jsoup;
-import org.jsoup.safety.Safelist;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.lang.Nullable;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
@@ -38,13 +38,27 @@ import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
 import it.smartcommunitylab.aac.model.SubjectStatus;
 import it.smartcommunitylab.aac.utils.MailService;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import javax.mail.MessagingException;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.lang.Nullable;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 @Transactional
 public class InternalAccountService
-        extends
-        AbstractConfigurableProvider<InternalUserAccount, ConfigurableAccountProvider, InternalIdentityProviderConfigMap, InternalAccountServiceConfig>
-        implements
+    extends AbstractConfigurableProvider<InternalUserAccount, ConfigurableAccountProvider, InternalIdentityProviderConfigMap, InternalAccountServiceConfig>
+    implements
         AccountService<InternalUserAccount, InternalEditableUserAccount, InternalIdentityProviderConfigMap, InternalAccountServiceConfig> {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // services
@@ -59,12 +73,15 @@ public class InternalAccountService
     private MailService mailService;
     private RealmAwareUriBuilder uriBuilder;
 
-    public InternalAccountService(String providerId,
-            UserEntityService userEntityService,
-            UserAccountService<InternalUserAccount> userAccountService, InternalUserConfirmKeyService confirmKeyService,
-            InternalAccountServiceConfig providerConfig, String realm) {
-        super(SystemKeys.AUTHORITY_INTERNAL, providerId,
-                realm, providerConfig);
+    public InternalAccountService(
+        String providerId,
+        UserEntityService userEntityService,
+        UserAccountService<InternalUserAccount> userAccountService,
+        InternalUserConfirmKeyService confirmKeyService,
+        InternalAccountServiceConfig providerConfig,
+        String realm
+    ) {
+        super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm, providerConfig);
         Assert.notNull(userEntityService, "user entity service is mandatory");
         Assert.notNull(userAccountService, "user account service is mandatory");
         Assert.notNull(confirmKeyService, "user confirm service is mandatory");
@@ -139,35 +156,38 @@ public class InternalAccountService
 
         return account;
     }
-//
-//    @Override
-//    @Transactional(readOnly = true)
-//    public InternalUserAccount findAccountByUuid(String uuid) {
-//        InternalUserAccount account = userAccountService.findAccountByUuid(uuid);
-//        if (account == null) {
-//            return null;
-//        }
-//
-//        // check repository matches
-//        if (!repositoryId.equals(account.getRepositoryId())) {
-//            return null;
-//        }
-//
-//        // map to our authority
-//        account.setAuthority(getAuthority());
-//        account.setProvider(getProvider());
-//
-//        return account;
-//    }
+
+    //
+    //    @Override
+    //    @Transactional(readOnly = true)
+    //    public InternalUserAccount findAccountByUuid(String uuid) {
+    //        InternalUserAccount account = userAccountService.findAccountByUuid(uuid);
+    //        if (account == null) {
+    //            return null;
+    //        }
+    //
+    //        // check repository matches
+    //        if (!repositoryId.equals(account.getRepositoryId())) {
+    //            return null;
+    //        }
+    //
+    //        // map to our authority
+    //        account.setAuthority(getAuthority());
+    //        account.setProvider(getProvider());
+    //
+    //        return account;
+    //    }
 
     @Transactional(readOnly = true)
     public InternalUserAccount findAccountByEmail(String email) {
         // we pick first account matching email, repository should contain unique
         // email+provider
-        InternalUserAccount account = userAccountService.findAccountByEmail(repositoryId, email).stream()
-                .filter(a -> a.isEmailVerified())
-                .findFirst()
-                .orElse(null);
+        InternalUserAccount account = userAccountService
+            .findAccountByEmail(repositoryId, email)
+            .stream()
+            .filter(a -> a.isEmailVerified())
+            .findFirst()
+            .orElse(null);
 
         if (account == null) {
             return null;
@@ -194,7 +214,7 @@ public class InternalAccountService
 
     @Override
     public InternalUserAccount linkAccount(String username, String userId)
-            throws NoSuchUserException, RegistrationException {
+        throws NoSuchUserException, RegistrationException {
         logger.debug("link account with username {} to user {}", String.valueOf(username), String.valueOf(userId));
 
         // we expect user to be valid
@@ -235,8 +255,12 @@ public class InternalAccountService
 
             if (resourceService != null) {
                 // remove resource
-                resourceService.deleteResourceEntity(SystemKeys.RESOURCE_ACCOUNT, SystemKeys.AUTHORITY_INTERNAL,
-                        getProvider(), username);
+                resourceService.deleteResourceEntity(
+                    SystemKeys.RESOURCE_ACCOUNT,
+                    SystemKeys.AUTHORITY_INTERNAL,
+                    getProvider(),
+                    username
+                );
             }
         }
     }
@@ -252,15 +276,19 @@ public class InternalAccountService
 
             if (resourceService != null) {
                 // remove resource
-                resourceService.deleteResourceEntity(SystemKeys.RESOURCE_ACCOUNT, SystemKeys.AUTHORITY_INTERNAL,
-                        getProvider(), a.getUsername());
+                resourceService.deleteResourceEntity(
+                    SystemKeys.RESOURCE_ACCOUNT,
+                    SystemKeys.AUTHORITY_INTERNAL,
+                    getProvider(),
+                    a.getUsername()
+                );
             }
         }
     }
 
     @Override
     public InternalEditableUserAccount registerAccount(@Nullable String userId, EditableUserAccount registration)
-            throws RegistrationException, NoSuchUserException {
+        throws RegistrationException, NoSuchUserException {
         if (!config.isEnableRegistration()) {
             throw new IllegalArgumentException("registration is disabled for this provider");
         }
@@ -269,8 +297,11 @@ public class InternalAccountService
             throw new RegistrationException();
         }
 
-        Assert.isInstanceOf(InternalEditableUserAccount.class, registration,
-                "registration must be an instance of internal editable user account");
+        Assert.isInstanceOf(
+            InternalEditableUserAccount.class,
+            registration,
+            "registration must be an instance of internal editable user account"
+        );
         InternalEditableUserAccount reg = (InternalEditableUserAccount) registration;
 
         logger.debug("register a new account for user {}", String.valueOf(userId));
@@ -311,15 +342,20 @@ public class InternalAccountService
     }
 
     @Override
-    public InternalUserAccount createAccount(@Nullable String userId, @Nullable String accountId,
-            UserAccount registration)
-            throws RegistrationException, NoSuchUserException {
+    public InternalUserAccount createAccount(
+        @Nullable String userId,
+        @Nullable String accountId,
+        UserAccount registration
+    ) throws RegistrationException, NoSuchUserException {
         if (registration == null) {
             throw new RegistrationException();
         }
 
-        Assert.isInstanceOf(InternalUserAccount.class, registration,
-                "registration must be an instance of internal user account");
+        Assert.isInstanceOf(
+            InternalUserAccount.class,
+            registration,
+            "registration must be an instance of internal user account"
+        );
         InternalUserAccount reg = (InternalUserAccount) registration;
 
         logger.debug("create a new account for user {}", String.valueOf(userId));
@@ -351,8 +387,10 @@ public class InternalAccountService
         }
 
         // we require unique email
-        if (StringUtils.hasText(emailAddress)
-                && userAccountService.findAccountByEmail(repositoryId, emailAddress).size() > 0) {
+        if (
+            StringUtils.hasText(emailAddress) &&
+            userAccountService.findAccountByEmail(repositoryId, emailAddress).size() > 0
+        ) {
             throw new DuplicatedDataException("email");
         }
 
@@ -421,8 +459,13 @@ public class InternalAccountService
 
         if (resourceService != null) {
             // register as user resource
-            resourceService.addResourceEntity(account.getUuid(), SystemKeys.RESOURCE_ACCOUNT,
-                    SystemKeys.AUTHORITY_INTERNAL, getProvider(), username);
+            resourceService.addResourceEntity(
+                account.getUuid(),
+                SystemKeys.RESOURCE_ACCOUNT,
+                SystemKeys.AUTHORITY_INTERNAL,
+                getProvider(),
+                username
+            );
         }
 
         // map to our authority
@@ -448,7 +491,7 @@ public class InternalAccountService
 
     @Override
     public InternalEditableUserAccount editAccount(String userId, String accountId, EditableUserAccount registration)
-            throws RegistrationException, NoSuchUserException {
+        throws RegistrationException, NoSuchUserException {
         if (!config.isEnableRegistration()) {
             throw new IllegalArgumentException("registration is disabled for this provider");
         }
@@ -457,8 +500,11 @@ public class InternalAccountService
             throw new RegistrationException();
         }
 
-        Assert.isInstanceOf(InternalEditableUserAccount.class, registration,
-                "registration must be an instance of internal editable user account");
+        Assert.isInstanceOf(
+            InternalEditableUserAccount.class,
+            registration,
+            "registration must be an instance of internal editable user account"
+        );
         InternalEditableUserAccount reg = (InternalEditableUserAccount) registration;
 
         logger.debug("edit account for user {}", String.valueOf(userId));
@@ -495,7 +541,7 @@ public class InternalAccountService
 
     @Override
     public InternalUserAccount updateAccount(String userId, String username, UserAccount registration)
-            throws NoSuchUserException, RegistrationException {
+        throws NoSuchUserException, RegistrationException {
         if (!config.isEnableUpdate()) {
             throw new IllegalArgumentException("update is disabled for this provider");
         }
@@ -504,8 +550,11 @@ public class InternalAccountService
             throw new RegistrationException();
         }
 
-        Assert.isInstanceOf(InternalUserAccount.class, registration,
-                "registration must be an instance of internal user account");
+        Assert.isInstanceOf(
+            InternalUserAccount.class,
+            registration,
+            "registration must be an instance of internal user account"
+        );
         InternalUserAccount reg = (InternalUserAccount) registration;
 
         logger.debug("update account with username {} for user {}", String.valueOf(username), String.valueOf(userId));
@@ -557,7 +606,6 @@ public class InternalAccountService
 
                 emailConfirm = true;
             }
-
         }
 
         // we update all props, even if empty or null
@@ -580,8 +628,7 @@ public class InternalAccountService
     }
 
     @Override
-    public InternalUserAccount verifyAccount(String username)
-            throws NoSuchUserException, RegistrationException {
+    public InternalUserAccount verifyAccount(String username) throws NoSuchUserException, RegistrationException {
         logger.debug("verify account with username {}", String.valueOf(username));
 
         InternalUserAccount account = findAccountByUsername(username);
@@ -620,8 +667,7 @@ public class InternalAccountService
     }
 
     @Override
-    public InternalUserAccount confirmAccount(String username)
-            throws NoSuchUserException, RegistrationException {
+    public InternalUserAccount confirmAccount(String username) throws NoSuchUserException, RegistrationException {
         logger.debug("confirm account with username {}", String.valueOf(username));
 
         InternalUserAccount account = findAccountByUsername(username);
@@ -644,8 +690,7 @@ public class InternalAccountService
     }
 
     @Override
-    public InternalUserAccount unconfirmAccount(String username)
-            throws NoSuchUserException, RegistrationException {
+    public InternalUserAccount unconfirmAccount(String username) throws NoSuchUserException, RegistrationException {
         logger.debug("unconfirm account with username {}", String.valueOf(username));
 
         InternalUserAccount account = findAccountByUsername(username);
@@ -670,64 +715,64 @@ public class InternalAccountService
     /*
      * Administrative ops
      */
-//    @Override
-//    public UserAccount activateAccount(String username) throws NoSuchUserException, RegistrationException {
-//        return updateStatus(username, UserStatus.ACTIVE);
-//    }
-//
-//    @Override
-//    public UserAccount inactivateAccount(String username) throws NoSuchUserException, RegistrationException {
-//        return updateStatus(username, UserStatus.INACTIVE);
-//    }
+    //    @Override
+    //    public UserAccount activateAccount(String username) throws NoSuchUserException, RegistrationException {
+    //        return updateStatus(username, UserStatus.ACTIVE);
+    //    }
+    //
+    //    @Override
+    //    public UserAccount inactivateAccount(String username) throws NoSuchUserException, RegistrationException {
+    //        return updateStatus(username, UserStatus.INACTIVE);
+    //    }
 
-//    @Override
-//    public UserAccount blockAccount(String username) throws NoSuchUserException, RegistrationException {
-//        return updateStatus(username, UserStatus.BLOCKED);
-//    }
-//
-//    @Override
-//    public UserAccount unblockAccount(String username) throws NoSuchUserException, RegistrationException {
-//        return updateStatus(username, UserStatus.ACTIVE);
-//    }
+    //    @Override
+    //    public UserAccount blockAccount(String username) throws NoSuchUserException, RegistrationException {
+    //        return updateStatus(username, UserStatus.BLOCKED);
+    //    }
+    //
+    //    @Override
+    //    public UserAccount unblockAccount(String username) throws NoSuchUserException, RegistrationException {
+    //        return updateStatus(username, UserStatus.ACTIVE);
+    //    }
 
-//    public InternalUserAccount resetConfirm(String userId)
-//            throws NoSuchUserException {
-//        if (!config.isEnableUpdate()) {
-//            throw new IllegalArgumentException("delete is disabled for this provider");
-//        }
-//
-//        String username = parseResourceId(userId);
-//        String realm = getRealm();
-//
-//        InternalUserAccount account = userAccountService.findAccountByUsername(realm, username);
-//        if (account == null) {
-//            throw new NoSuchUserException();
-//        }
-//
-//        // build key
-//        String confirmationKey = passwordService.generateKey();
-//
-//        // we set deadline as +N seconds
-//        Calendar calendar = Calendar.getInstance();
-//        calendar.add(Calendar.SECOND, config.getConfirmationValidity());
-//
-//        account.setConfirmed(false);
-//        account.setConfirmationDeadline(calendar.getTime());
-//        account.setConfirmationKey(confirmationKey);
-//
-//        account = userAccountService.updateAccount(account.getId(), account);
-//
-//        // set providerId since all internal accounts have the same
-//        account.setProvider(getProvider());
-//
-//        // rewrite internal userId
-//        account.setUserId(exportInternalId(username));
-//
-//        return account;
-//    }
+    //    public InternalUserAccount resetConfirm(String userId)
+    //            throws NoSuchUserException {
+    //        if (!config.isEnableUpdate()) {
+    //            throw new IllegalArgumentException("delete is disabled for this provider");
+    //        }
+    //
+    //        String username = parseResourceId(userId);
+    //        String realm = getRealm();
+    //
+    //        InternalUserAccount account = userAccountService.findAccountByUsername(realm, username);
+    //        if (account == null) {
+    //            throw new NoSuchUserException();
+    //        }
+    //
+    //        // build key
+    //        String confirmationKey = passwordService.generateKey();
+    //
+    //        // we set deadline as +N seconds
+    //        Calendar calendar = Calendar.getInstance();
+    //        calendar.add(Calendar.SECOND, config.getConfirmationValidity());
+    //
+    //        account.setConfirmed(false);
+    //        account.setConfirmationDeadline(calendar.getTime());
+    //        account.setConfirmationKey(confirmationKey);
+    //
+    //        account = userAccountService.updateAccount(account.getId(), account);
+    //
+    //        // set providerId since all internal accounts have the same
+    //        account.setProvider(getProvider());
+    //
+    //        // rewrite internal userId
+    //        account.setUserId(exportInternalId(username));
+    //
+    //        return account;
+    //    }
 
     public InternalUserAccount confirmAccountViaKey(String confirmationKey)
-            throws NoSuchUserException, RegistrationException {
+        throws NoSuchUserException, RegistrationException {
         logger.debug("confirm account via key {}", String.valueOf(confirmationKey));
 
         if (!StringUtils.hasText(confirmationKey)) {
@@ -742,7 +787,6 @@ public class InternalAccountService
         String username = account.getUsername();
 
         if (!account.isConfirmed()) {
-
             // validate key, we do it simple
             boolean isValid = false;
 
@@ -780,7 +824,6 @@ public class InternalAccountService
                 account.setConfirmationKey(null);
                 account = userAccountService.updateAccount(repositoryId, username, account);
             }
-
         }
 
         // map to our authority
@@ -788,7 +831,6 @@ public class InternalAccountService
         account.setProvider(getProvider());
 
         return account;
-
     }
 
     public String generateKey() {
@@ -798,9 +840,12 @@ public class InternalAccountService
     }
 
     private InternalUserAccount updateStatus(String username, SubjectStatus newStatus)
-            throws NoSuchUserException, RegistrationException {
-        logger.debug("update account with username {} to status {}", String.valueOf(username),
-                String.valueOf(newStatus));
+        throws NoSuchUserException, RegistrationException {
+        logger.debug(
+            "update account with username {} to status {}",
+            String.valueOf(username),
+            String.valueOf(newStatus)
+        );
 
         InternalUserAccount account = findAccountByUsername(username);
         if (account == null) {
@@ -827,57 +872,57 @@ public class InternalAccountService
     /*
      * Mail
      */
-//    private void sendPasswordMail(InternalUserAccount account, String password)
-//            throws MessagingException {
-//        if (mailService != null) {
-//            String realm = getRealm();
-//            String loginUrl = "/login";
-//            if (uriBuilder != null) {
-//                loginUrl = uriBuilder.buildUrl(realm, loginUrl);
-//            }
-//
-//            Map<String, String> action = new HashMap<>();
-//            action.put("url", loginUrl);
-//            action.put("text", "action.login");
-//
-//            Map<String, Object> vars = new HashMap<>();
-//            vars.put("user", account);
-//            vars.put("password", password);
-//            vars.put("action", action);
-//            vars.put("realm", account.getRealm());
-//
-//            String template = "password";
-//            mailService.sendEmail(account.getEmail(), template, account.getLang(), vars);
-//        }
-//    }
-//
-//    private void sendPasswordAndConfirmationMail(InternalUserAccount account, String password, String key)
-//            throws MessagingException {
-//        if (mailService != null) {
-//            // action is handled by global filter
-//            String provider = getProvider();
-//            String confirmUrl = "/auth/" + getAuthority() + "/confirm/" + provider + "?code="
-//                    + key;
-//            if (uriBuilder != null) {
-//                confirmUrl = uriBuilder.buildUrl(null, confirmUrl);
-//            }
-//
-//            Map<String, String> action = new HashMap<>();
-//            action.put("url", confirmUrl);
-//            action.put("text", "action.confirm");
-//
-//            Map<String, Object> vars = new HashMap<>();
-//            vars.put("user", account);
-//            vars.put("password", password);
-//            vars.put("action", action);
-//            vars.put("realm", account.getRealm());
-//
-//            // use confirm template and avoid sending temporary password
-//            // TODO evaluate with credentials refactoring
-//            String template = "confirmation";
-//            mailService.sendEmail(account.getEmail(), template, account.getLang(), vars);
-//        }
-//    }
+    //    private void sendPasswordMail(InternalUserAccount account, String password)
+    //            throws MessagingException {
+    //        if (mailService != null) {
+    //            String realm = getRealm();
+    //            String loginUrl = "/login";
+    //            if (uriBuilder != null) {
+    //                loginUrl = uriBuilder.buildUrl(realm, loginUrl);
+    //            }
+    //
+    //            Map<String, String> action = new HashMap<>();
+    //            action.put("url", loginUrl);
+    //            action.put("text", "action.login");
+    //
+    //            Map<String, Object> vars = new HashMap<>();
+    //            vars.put("user", account);
+    //            vars.put("password", password);
+    //            vars.put("action", action);
+    //            vars.put("realm", account.getRealm());
+    //
+    //            String template = "password";
+    //            mailService.sendEmail(account.getEmail(), template, account.getLang(), vars);
+    //        }
+    //    }
+    //
+    //    private void sendPasswordAndConfirmationMail(InternalUserAccount account, String password, String key)
+    //            throws MessagingException {
+    //        if (mailService != null) {
+    //            // action is handled by global filter
+    //            String provider = getProvider();
+    //            String confirmUrl = "/auth/" + getAuthority() + "/confirm/" + provider + "?code="
+    //                    + key;
+    //            if (uriBuilder != null) {
+    //                confirmUrl = uriBuilder.buildUrl(null, confirmUrl);
+    //            }
+    //
+    //            Map<String, String> action = new HashMap<>();
+    //            action.put("url", confirmUrl);
+    //            action.put("text", "action.confirm");
+    //
+    //            Map<String, Object> vars = new HashMap<>();
+    //            vars.put("user", account);
+    //            vars.put("password", password);
+    //            vars.put("action", action);
+    //            vars.put("realm", account.getRealm());
+    //
+    //            // use confirm template and avoid sending temporary password
+    //            // TODO evaluate with credentials refactoring
+    //            String template = "confirmation";
+    //            mailService.sendEmail(account.getEmail(), template, account.getLang(), vars);
+    //        }
+    //    }
 
     private void sendConfirmationMail(InternalUserAccount account, String key) throws MessagingException {
         if (mailService != null) {
@@ -886,8 +931,7 @@ public class InternalAccountService
             // action is handled by global filter
             String provider = getProvider();
 
-            String confirmUrl = "/auth/" + getAuthority() + "/confirm/" + provider + "?code="
-                    + key;
+            String confirmUrl = "/auth/" + getAuthority() + "/confirm/" + provider + "?code=" + key;
             if (uriBuilder != null) {
                 confirmUrl = uriBuilder.buildUrl(null, confirmUrl);
             }
@@ -906,17 +950,21 @@ public class InternalAccountService
             logger.debug("send confirmation mail to {}", String.valueOf(account.getEmail()));
             mailService.sendEmail(account.getEmail(), template, account.getLang(), vars);
         } else {
-            logger.debug("can't send confirmation mail for account with username {}: no mail service",
-                    String.valueOf(account.getUsername()));
+            logger.debug(
+                "can't send confirmation mail for account with username {}: no mail service",
+                String.valueOf(account.getUsername())
+            );
         }
-
     }
 
     private InternalEditableUserAccount toEditableAccount(InternalUserAccount account) {
         // build editable model
         InternalEditableUserAccount ea = new InternalEditableUserAccount(
-                getProvider(), getRealm(),
-                account.getUserId(), account.getUuid());
+            getProvider(),
+            getRealm(),
+            account.getUserId(),
+            account.getUuid()
+        );
         ea.setUsername(account.getUsername());
 
         ea.setCreateDate(account.getCreateDate());
@@ -943,7 +991,5 @@ public class InternalAccountService
             return Jsoup.clean(input, safe);
         }
         return null;
-
     }
-
 }

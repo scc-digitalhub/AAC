@@ -1,11 +1,28 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.auth;
 
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.SystemKeys;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -19,14 +36,11 @@ import org.springframework.security.test.context.support.TestExecutionEvent;
 import org.springframework.security.test.context.support.WithSecurityContext;
 import org.springframework.security.test.context.support.WithSecurityContextFactory;
 
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.SystemKeys;
-
 /*
  * A factory for building a mock security context from a mock authentication
  */
 public class MockBearerTokenAuthenticationFactory
-        implements WithSecurityContextFactory<WithMockBearerTokenAuthentication> {
+    implements WithSecurityContextFactory<WithMockBearerTokenAuthentication> {
 
     @Override
     public SecurityContext createSecurityContext(WithMockBearerTokenAuthentication annotation) {
@@ -50,12 +64,12 @@ public class MockBearerTokenAuthenticationFactory
     public static Authentication createAuthentication(MockBearerTokenAuthentication token) {
         // map all authorities as-is
         // + map scopes as authorities with prefix
-        Set<GrantedAuthority> authorities = Stream.concat(
-                Stream.of(token.getAuthorities())
-                        .map(a -> new SimpleGrantedAuthority(a)),
-                Stream.of(token.getScopes())
-                        .map(s -> new SimpleGrantedAuthority("SCOPE_" + s)))
-                .collect(Collectors.toSet());
+        Set<GrantedAuthority> authorities = Stream
+            .concat(
+                Stream.of(token.getAuthorities()).map(a -> new SimpleGrantedAuthority(a)),
+                Stream.of(token.getScopes()).map(s -> new SimpleGrantedAuthority("SCOPE_" + s))
+            )
+            .collect(Collectors.toSet());
 
         // build principal with authorities
         Map<String, Object> attrs = new HashMap<>();
@@ -63,12 +77,18 @@ public class MockBearerTokenAuthenticationFactory
         attrs.put("realm", token.getRealm());
         attrs.put("scopes", token.getScopes());
 
-        OAuth2IntrospectionAuthenticatedPrincipal principal = new OAuth2IntrospectionAuthenticatedPrincipal(attrs,
-                authorities);
+        OAuth2IntrospectionAuthenticatedPrincipal principal = new OAuth2IntrospectionAuthenticatedPrincipal(
+            attrs,
+            authorities
+        );
 
         // build a custom token
-        OAuth2AccessToken accessToken = new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, token.getToken(),
-                null, null);
+        OAuth2AccessToken accessToken = new OAuth2AccessToken(
+            OAuth2AccessToken.TokenType.BEARER,
+            token.getToken(),
+            null,
+            null
+        );
 
         // set authentication
         Authentication auth = new BearerTokenAuthentication(principal, accessToken, authorities);
@@ -76,6 +96,7 @@ public class MockBearerTokenAuthenticationFactory
     }
 
     public static final class MockBearerTokenAuthentication {
+
         private String subject;
 
         private String realm;
@@ -129,6 +150,5 @@ public class MockBearerTokenAuthenticationFactory
         public void setToken(String token) {
             this.token = token;
         }
-
     }
 }

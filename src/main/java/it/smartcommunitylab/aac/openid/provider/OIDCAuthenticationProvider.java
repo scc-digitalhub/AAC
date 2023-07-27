@@ -1,5 +1,39 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.openid.provider;
 
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.OctetSequenceKey;
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.attributes.OpenIdAttributesSet;
+import it.smartcommunitylab.aac.attributes.mapper.OpenIdAttributesMapper;
+import it.smartcommunitylab.aac.claims.ScriptExecutionService;
+import it.smartcommunitylab.aac.common.InvalidDefinitionException;
+import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
+import it.smartcommunitylab.aac.core.model.AttributeSet;
+import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.openid.OIDCKeys;
+import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticationException;
+import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticationToken;
+import it.smartcommunitylab.aac.openid.model.OIDCUserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -8,9 +42,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.crypto.spec.SecretKeySpec;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -35,28 +67,9 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.OctetSequenceKey;
-
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.attributes.OpenIdAttributesSet;
-import it.smartcommunitylab.aac.attributes.mapper.OpenIdAttributesMapper;
-import it.smartcommunitylab.aac.claims.ScriptExecutionService;
-import it.smartcommunitylab.aac.common.InvalidDefinitionException;
-import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
-import it.smartcommunitylab.aac.core.model.AttributeSet;
-import it.smartcommunitylab.aac.core.provider.IdentityProvider;
-import it.smartcommunitylab.aac.core.provider.UserAccountService;
-import it.smartcommunitylab.aac.openid.OIDCKeys;
-import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticationException;
-import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticationToken;
-import it.smartcommunitylab.aac.openid.model.OIDCUserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
-
 public class OIDCAuthenticationProvider
-        extends ExtendedAuthenticationProvider<OIDCUserAuthenticatedPrincipal, OIDCUserAccount> {
+    extends ExtendedAuthenticationProvider<OIDCUserAuthenticatedPrincipal, OIDCUserAccount> {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final UserAccountService<OIDCUserAccount> accountService;
@@ -71,18 +84,22 @@ public class OIDCAuthenticationProvider
     protected ScriptExecutionService executionService;
     protected final OpenIdAttributesMapper openidMapper;
 
-    public OIDCAuthenticationProvider(String providerId,
-            UserAccountService<OIDCUserAccount> accountService,
-            OIDCIdentityProviderConfig config,
-            String realm) {
+    public OIDCAuthenticationProvider(
+        String providerId,
+        UserAccountService<OIDCUserAccount> accountService,
+        OIDCIdentityProviderConfig config,
+        String realm
+    ) {
         this(SystemKeys.AUTHORITY_OIDC, providerId, accountService, config, realm);
     }
 
     public OIDCAuthenticationProvider(
-            String authority, String providerId,
-            UserAccountService<OIDCUserAccount> accountService,
-            OIDCIdentityProviderConfig config,
-            String realm) {
+        String authority,
+        String providerId,
+        UserAccountService<OIDCUserAccount> accountService,
+        OIDCIdentityProviderConfig config,
+        String realm
+    ) {
         super(authority, providerId, realm);
         Assert.notNull(accountService, "account service is mandatory");
         Assert.notNull(config, "provider config is mandatory");
@@ -97,7 +114,8 @@ public class OIDCAuthenticationProvider
         this.subAttributeName = config.getSubAttributeName();
 
         // build appropriate client auth request converter
-        OAuth2AuthorizationCodeGrantRequestEntityConverter requestEntityConverter = new OAuth2AuthorizationCodeGrantRequestEntityConverter();
+        OAuth2AuthorizationCodeGrantRequestEntityConverter requestEntityConverter =
+            new OAuth2AuthorizationCodeGrantRequestEntityConverter();
         // private key jwt resolver, as per
         // https://tools.ietf.org/html/rfc7523#section-2.2
         if (ClientAuthenticationMethod.PRIVATE_KEY_JWT.equals(config.getClientAuthenticationMethod())) {
@@ -105,7 +123,7 @@ public class OIDCAuthenticationProvider
             JWK jwk = config.getClientJWK();
 
             // build resolver only for this registration
-            Function<ClientRegistration, JWK> jwkResolver = (clientRegistration) -> {
+            Function<ClientRegistration, JWK> jwkResolver = clientRegistration -> {
                 if (providerId.equals(clientRegistration.getRegistrationId())) {
                     return jwk;
                 }
@@ -114,7 +132,8 @@ public class OIDCAuthenticationProvider
             };
 
             requestEntityConverter.addParametersConverter(
-                    new NimbusJwtClientAuthenticationParametersConverter<>(jwkResolver));
+                new NimbusJwtClientAuthenticationParametersConverter<>(jwkResolver)
+            );
         }
 
         // client secret jwt resolver, as per
@@ -122,14 +141,13 @@ public class OIDCAuthenticationProvider
         if (ClientAuthenticationMethod.CLIENT_SECRET_JWT.equals(config.getClientAuthenticationMethod())) {
             // build key from secret as HmacSHA256
             SecretKeySpec secretKey = new SecretKeySpec(
-                    config.getConfigMap().getClientSecret().getBytes(StandardCharsets.UTF_8),
-                    "HmacSHA256");
-            JWK jwk = new OctetSequenceKey.Builder(secretKey)
-                    .keyID(UUID.randomUUID().toString())
-                    .build();
+                config.getConfigMap().getClientSecret().getBytes(StandardCharsets.UTF_8),
+                "HmacSHA256"
+            );
+            JWK jwk = new OctetSequenceKey.Builder(secretKey).keyID(UUID.randomUUID().toString()).build();
 
             // build resolver only for this registration
-            Function<ClientRegistration, JWK> jwkResolver = (clientRegistration) -> {
+            Function<ClientRegistration, JWK> jwkResolver = clientRegistration -> {
                 if (providerId.equals(clientRegistration.getRegistrationId())) {
                     return jwk;
                 }
@@ -138,21 +156,23 @@ public class OIDCAuthenticationProvider
             };
 
             requestEntityConverter.addParametersConverter(
-                    new NimbusJwtClientAuthenticationParametersConverter<>(jwkResolver));
+                new NimbusJwtClientAuthenticationParametersConverter<>(jwkResolver)
+            );
         }
 
         // we support only authCode login
-        DefaultAuthorizationCodeTokenResponseClient accessTokenResponseClient = new DefaultAuthorizationCodeTokenResponseClient();
+        DefaultAuthorizationCodeTokenResponseClient accessTokenResponseClient =
+            new DefaultAuthorizationCodeTokenResponseClient();
         accessTokenResponseClient.setRequestEntityConverter(requestEntityConverter);
 
         // we don't use the account repository to fetch user details,
         // use oidc userinfo to provide user details
         // TODO add jwt handling from id_token or access token
-        this.oidcProvider = new OidcAuthorizationCodeAuthenticationProvider(accessTokenResponseClient,
-                new OidcUserService());
+        this.oidcProvider =
+            new OidcAuthorizationCodeAuthenticationProvider(accessTokenResponseClient, new OidcUserService());
         // oauth userinfo comes from oidc userinfo..
-        this.oauthProvider = new OAuth2LoginAuthenticationProvider(accessTokenResponseClient,
-                new DefaultOAuth2UserService());
+        this.oauthProvider =
+            new OAuth2LoginAuthenticationProvider(accessTokenResponseClient, new DefaultOAuth2UserService());
 
         // use a custom authorities mapper to cleanup authorities spring injects
         // default impl translates the whole oauth response as an authority..
@@ -182,10 +202,14 @@ public class OIDCAuthenticationProvider
         }
 
         // TODO extract codeResponse + tokenResponse for audit
-        String authorizationRequestUri = loginAuthenticationToken.getAuthorizationExchange().getAuthorizationRequest()
-                .getAuthorizationRequestUri();
-        String authorizationResponseUri = loginAuthenticationToken.getAuthorizationExchange().getAuthorizationResponse()
-                .getRedirectUri();
+        String authorizationRequestUri = loginAuthenticationToken
+            .getAuthorizationExchange()
+            .getAuthorizationRequest()
+            .getAuthorizationRequestUri();
+        String authorizationResponseUri = loginAuthenticationToken
+            .getAuthorizationExchange()
+            .getAuthorizationResponse()
+            .getRedirectUri();
 
         // delegate to oauth providers in sequence
         try {
@@ -207,23 +231,36 @@ public class OIDCAuthenticationProvider
                 // check if account is present and locked
                 OIDCUserAccount account = accountService.findAccountById(repositoryId, subject);
                 if (account != null && account.isLocked()) {
-                    throw new OIDCAuthenticationException(new OAuth2Error("invalid_request"), "account not available",
-                            authorizationRequestUri,
-                            authorizationResponseUri, null, null);
+                    throw new OIDCAuthenticationException(
+                        new OAuth2Error("invalid_request"),
+                        "account not available",
+                        authorizationRequestUri,
+                        authorizationResponseUri,
+                        null,
+                        null
+                    );
                 }
 
-                auth = new OIDCAuthenticationToken(
+                auth =
+                    new OIDCAuthenticationToken(
                         subject,
                         authenticationToken.getPrincipal(),
                         authenticationToken.getAccessToken(),
                         authenticationToken.getRefreshToken(),
-                        Collections.singleton(new SimpleGrantedAuthority(Config.R_USER)));
+                        Collections.singleton(new SimpleGrantedAuthority(Config.R_USER))
+                    );
             }
 
             return auth;
         } catch (OAuth2AuthenticationException e) {
-            throw new OIDCAuthenticationException(e.getError(), e.getMessage(), authorizationRequestUri,
-                    authorizationResponseUri, null, null);
+            throw new OIDCAuthenticationException(
+                e.getError(),
+                e.getMessage(),
+                authorizationRequestUri,
+                authorizationResponseUri,
+                null,
+                null
+            );
         }
     }
 
@@ -251,9 +288,13 @@ public class OIDCAuthenticationProvider
         // everything else
 
         // bind principal to ourselves
-        OIDCUserAuthenticatedPrincipal user = new OIDCUserAuthenticatedPrincipal(getAuthority(), getProvider(),
-                getRealm(),
-                userId, subject);
+        OIDCUserAuthenticatedPrincipal user = new OIDCUserAuthenticatedPrincipal(
+            getAuthority(),
+            getProvider(),
+            getRealm(),
+            userId,
+            subject
+        );
         user.setUsername(username);
         user.setPrincipal(oauthDetails);
 
@@ -262,19 +303,27 @@ public class OIDCAuthenticationProvider
             try {
                 // get all attributes from principal except jwt attrs
                 // TODO handle all attributes not only strings.
-                Map<String, Serializable> principalAttributes = user.getAttributes().entrySet().stream()
-                        .filter(e -> !OIDCKeys.JWT_ATTRIBUTES.contains(e.getKey()))
-                        .filter(e -> e.getValue() != null)
-                        .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+                Map<String, Serializable> principalAttributes = user
+                    .getAttributes()
+                    .entrySet()
+                    .stream()
+                    .filter(e -> !OIDCKeys.JWT_ATTRIBUTES.contains(e.getKey()))
+                    .filter(e -> e.getValue() != null)
+                    .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
                 // execute script
                 Map<String, Serializable> customAttributes = executionService.executeFunction(
-                        IdentityProvider.ATTRIBUTE_MAPPING_FUNCTION,
-                        customMappingFunction, principalAttributes);
+                    IdentityProvider.ATTRIBUTE_MAPPING_FUNCTION,
+                    customMappingFunction,
+                    principalAttributes
+                );
 
                 // update map
                 if (customAttributes != null) {
                     // replace map
-                    principalAttributes = customAttributes.entrySet().stream()
+                    principalAttributes =
+                        customAttributes
+                            .entrySet()
+                            .stream()
                             .filter(e -> !OIDCKeys.JWT_ATTRIBUTES.contains(e.getKey()))
                             .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
                     user.setAttributes(principalAttributes);
@@ -286,28 +335,28 @@ public class OIDCAuthenticationProvider
 
         // map attributes to openid set and flatten to string
         AttributeSet oidcAttributeSet = openidMapper.mapAttributes(user.getAttributes());
-        Map<String, String> oidcAttributes = oidcAttributeSet.getAttributes()
-                .stream()
-                .collect(Collectors.toMap(
-                        a -> a.getKey(),
-                        a -> a.exportValue()));
+        Map<String, String> oidcAttributes = oidcAttributeSet
+            .getAttributes()
+            .stream()
+            .collect(Collectors.toMap(a -> a.getKey(), a -> a.exportValue()));
 
         // fetch email when available
         String email = oidcAttributes.get(OpenIdAttributesSet.EMAIL);
 
         boolean defaultVerifiedStatus = config.getConfigMap().getTrustEmailAddress() != null
-                ? config.getConfigMap().getTrustEmailAddress()
-                : false;
+            ? config.getConfigMap().getTrustEmailAddress()
+            : false;
         boolean emailVerified = StringUtils.hasText(oidcAttributes.get(OpenIdAttributesSet.EMAIL_VERIFIED))
-                ? Boolean.parseBoolean(oidcAttributes.get(OpenIdAttributesSet.EMAIL_VERIFIED))
-                : defaultVerifiedStatus;
+            ? Boolean.parseBoolean(oidcAttributes.get(OpenIdAttributesSet.EMAIL_VERIFIED))
+            : defaultVerifiedStatus;
 
         if (Boolean.TRUE.equals(config.getConfigMap().getAlwaysTrustEmailAddress())) {
             emailVerified = true;
         }
 
         // read username from attributes, mapper can replace it
-        username = StringUtils.hasText(oidcAttributes.get(OpenIdAttributesSet.PREFERRED_USERNAME))
+        username =
+            StringUtils.hasText(oidcAttributes.get(OpenIdAttributesSet.PREFERRED_USERNAME))
                 ? oidcAttributes.get(OpenIdAttributesSet.PREFERRED_USERNAME)
                 : user.getUsername();
 
@@ -341,9 +390,7 @@ public class OIDCAuthenticationProvider
         }
 
         return null;
-
     }
 
     private final GrantedAuthoritiesMapper nullAuthoritiesMapper = (authorities -> Collections.emptyList());
-
 }

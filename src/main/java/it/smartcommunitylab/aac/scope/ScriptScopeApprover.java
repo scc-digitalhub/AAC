@@ -1,26 +1,39 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.scope;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.springframework.security.oauth2.provider.approval.Approval;
-import org.springframework.security.oauth2.provider.approval.Approval.ApprovalStatus;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.dto.UserProfile;
 import it.smartcommunitylab.aac.model.User;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import org.springframework.security.oauth2.provider.approval.Approval;
+import org.springframework.security.oauth2.provider.approval.Approval.ApprovalStatus;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 public class ScriptScopeApprover implements ScopeApprover {
 
@@ -28,8 +41,8 @@ public class ScriptScopeApprover implements ScopeApprover {
     public static final int DEFAULT_DURATION_MS = 3600000; // 1h
 
     private final ObjectMapper mapper = new ObjectMapper();
-    private final TypeReference<HashMap<String, Serializable>> serMapTypeRef = new TypeReference<HashMap<String, Serializable>>() {
-    };
+    private final TypeReference<HashMap<String, Serializable>> serMapTypeRef =
+        new TypeReference<HashMap<String, Serializable>>() {};
 
     private final String realm;
     private final String resourceId;
@@ -68,7 +81,7 @@ public class ScriptScopeApprover implements ScopeApprover {
 
     @Override
     public Approval approveUserScope(String scope, User user, ClientDetails client, Collection<String> scopes)
-            throws InvalidDefinitionException, SystemException {
+        throws InvalidDefinitionException, SystemException {
         if (!this.scope.equals(scope)) {
             return null;
         }
@@ -90,9 +103,7 @@ public class ScriptScopeApprover implements ScopeApprover {
         map.put("client", mapper.convertValue(client, serMapTypeRef));
 
         // execute script
-        Map<String, Serializable> customClaims = executionService.executeFunction(functionName,
-                functionCode,
-                map);
+        Map<String, Serializable> customClaims = executionService.executeFunction(functionName, functionCode, map);
 
         // we expect result to be compatible with approval
         try {
@@ -109,16 +120,14 @@ public class ScriptScopeApprover implements ScopeApprover {
 
             ApprovalStatus approvalStatus = result.approved ? ApprovalStatus.APPROVED : ApprovalStatus.DENIED;
             return new Approval(resourceId, client.getClientId(), scope, expiresIn, approvalStatus);
-
         } catch (Exception e) {
             throw new SystemException("invalid result from function");
         }
-
     }
 
     @Override
     public Approval approveClientScope(String scope, ClientDetails client, Collection<String> scopes)
-            throws InvalidDefinitionException, SystemException {
+        throws InvalidDefinitionException, SystemException {
         if (!this.scope.equals(scope)) {
             return null;
         }
@@ -135,9 +144,7 @@ public class ScriptScopeApprover implements ScopeApprover {
         map.put("client", mapper.convertValue(client, serMapTypeRef));
 
         // execute script
-        Map<String, Serializable> customClaims = executionService.executeFunction(functionName,
-                functionCode,
-                map);
+        Map<String, Serializable> customClaims = executionService.executeFunction(functionName, functionCode, map);
 
         // we expect result to be compatible with approval
         try {
@@ -154,7 +161,6 @@ public class ScriptScopeApprover implements ScopeApprover {
 
             ApprovalStatus approvalStatus = result.approved ? ApprovalStatus.APPROVED : ApprovalStatus.DENIED;
             return new Approval(resourceId, client.getClientId(), scope, expiresIn, approvalStatus);
-
         } catch (Exception e) {
             throw new SystemException("invalid result from function");
         }
@@ -164,11 +170,13 @@ public class ScriptScopeApprover implements ScopeApprover {
     public String getRealm() {
         return realm;
     }
+
     /*
      * Function result model
      */
 
     public class ApprovalResult {
+
         public Boolean approved;
         public Date expiresAt;
     }

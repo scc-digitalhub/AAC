@@ -1,8 +1,20 @@
-package it.smartcommunitylab.aac.profiles.extractor;
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.stream.Collectors;
+package it.smartcommunitylab.aac.profiles.extractor;
 
 import it.smartcommunitylab.aac.attributes.BasicAttributesSet;
 import it.smartcommunitylab.aac.attributes.EmailAttributesSet;
@@ -13,6 +25,9 @@ import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.profiles.model.EmailProfile;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.stream.Collectors;
 
 public class EmailProfileExtractor extends AbstractUserProfileExtractor {
 
@@ -22,9 +37,7 @@ public class EmailProfileExtractor extends AbstractUserProfileExtractor {
     }
 
     @Override
-    public EmailProfile extractUserProfile(User user)
-            throws InvalidDefinitionException {
-
+    public EmailProfile extractUserProfile(User user) throws InvalidDefinitionException {
         // fetch identities
         Collection<UserIdentity> identities = user.getIdentities();
 
@@ -64,14 +77,26 @@ public class EmailProfileExtractor extends AbstractUserProfileExtractor {
         EmailProfile profile = new EmailProfile();
 
         String email = getStringAttribute(
-                getAttribute(attributes, EmailAttributesSet.EMAIL, EmailAttributesSet.IDENTIFIER,
-                        BasicAttributesSet.IDENTIFIER, OpenIdAttributesSet.IDENTIFIER,
-                        "profile"));
+            getAttribute(
+                attributes,
+                EmailAttributesSet.EMAIL,
+                EmailAttributesSet.IDENTIFIER,
+                BasicAttributesSet.IDENTIFIER,
+                OpenIdAttributesSet.IDENTIFIER,
+                "profile"
+            )
+        );
         profile.setEmail(email);
 
         Boolean emailVerified = getBooleanAttribute(
-                getAttribute(attributes, EmailAttributesSet.EMAIL_VERIFIED, EmailAttributesSet.IDENTIFIER,
-                        OpenIdAttributesSet.IDENTIFIER, "profile"));
+            getAttribute(
+                attributes,
+                EmailAttributesSet.EMAIL_VERIFIED,
+                EmailAttributesSet.IDENTIFIER,
+                OpenIdAttributesSet.IDENTIFIER,
+                "profile"
+            )
+        );
         profile.setEmailVerified(emailVerified);
 
         return profile;

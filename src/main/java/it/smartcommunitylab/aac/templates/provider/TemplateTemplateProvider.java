@@ -1,7 +1,20 @@
-package it.smartcommunitylab.aac.templates.provider;
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import java.util.HashMap;
-import java.util.UUID;
+package it.smartcommunitylab.aac.templates.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractTemplateProvider;
@@ -15,18 +28,23 @@ import it.smartcommunitylab.aac.templates.model.LoginTemplate;
 import it.smartcommunitylab.aac.templates.model.TemplateModel;
 import it.smartcommunitylab.aac.templates.model.UserApprovalTemplate;
 import it.smartcommunitylab.aac.templates.service.TemplateService;
+import java.util.HashMap;
+import java.util.UUID;
 
 public class TemplateTemplateProvider
-        extends
-        AbstractTemplateProvider<TemplateModel, TemplateProviderConfigMap, RealmTemplateProviderConfig> {
+    extends AbstractTemplateProvider<TemplateModel, TemplateProviderConfigMap, RealmTemplateProviderConfig> {
 
     private final Resource resource;
     private final InternalUserAccount account;
     private final OAuth2ClientDetails clientDetails;
 
-    public TemplateTemplateProvider(String providerId,
-            TemplateService templateService, Resource oauthResource,
-            RealmTemplateProviderConfig providerConfig, String realm) {
+    public TemplateTemplateProvider(
+        String providerId,
+        TemplateService templateService,
+        Resource oauthResource,
+        RealmTemplateProviderConfig providerConfig,
+        String realm
+    ) {
         super(SystemKeys.AUTHORITY_TEMPLATE, providerId, templateService, providerConfig, realm);
         // TODO mock user from props
         this.resource = oauthResource != null ? oauthResource : new OpenIdResource();
@@ -47,20 +65,24 @@ public class TemplateTemplateProvider
 
         factories = new HashMap<>();
         factories.put(LoginTemplate.TEMPLATE, () -> new LoginTemplate(realm));
-        factories.put(EndSessionTemplate.TEMPLATE, () -> {
-            TemplateModel m = new EndSessionTemplate(realm);
-            m.setModelAttribute("account", account);
-            return m;
-        });
-        factories.put(UserApprovalTemplate.TEMPLATE, () -> {
-            TemplateModel m = new UserApprovalTemplate(realm);
-            m.setModelAttribute("account", account);
-            m.setModelAttribute("client", clientDetails);
-            m.setModelAttribute("resources", resource.getScopes());
-            return m;
-        });
+        factories.put(
+            EndSessionTemplate.TEMPLATE,
+            () -> {
+                TemplateModel m = new EndSessionTemplate(realm);
+                m.setModelAttribute("account", account);
+                return m;
+            }
+        );
+        factories.put(
+            UserApprovalTemplate.TEMPLATE,
+            () -> {
+                TemplateModel m = new UserApprovalTemplate(realm);
+                m.setModelAttribute("account", account);
+                m.setModelAttribute("client", clientDetails);
+                m.setModelAttribute("resources", resource.getScopes());
+                return m;
+            }
+        );
         factories.put(FooterTemplate.TEMPLATE, () -> new FooterTemplate(realm));
-
     }
-
 }

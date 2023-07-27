@@ -1,8 +1,28 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.oauth.endpoint;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientAuthenticationToken;
+import it.smartcommunitylab.aac.oauth.common.ServerErrorException;
+import it.smartcommunitylab.aac.oauth.store.ExtTokenStore;
 import java.io.IOException;
 import java.util.Optional;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,12 +45,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientAuthenticationToken;
-import it.smartcommunitylab.aac.oauth.common.ServerErrorException;
-import it.smartcommunitylab.aac.oauth.store.ExtTokenStore;
-
 /**
  * OAuth2.0 Token Revocation controller as of RFC7009:
  * https://tools.ietf.org/html/rfc7009
@@ -49,22 +63,25 @@ public class TokenRevocationEndpoint {
 
     /**
      * Revoke the access token and the associated refresh token.
-     * 
+     *
      * @param token
      */
     @Operation(summary = "Revoke token")
     @RequestMapping(method = RequestMethod.POST, value = TOKEN_REVOCATION_URL)
     public ResponseEntity<String> revokeTokenWithParam(
-            @RequestParam(name = "token") String token,
-            @RequestParam(required = false, name = "token_type_hint") Optional<String> tokenTypeHint,
-            Authentication authentication) {
-
+        @RequestParam(name = "token") String token,
+        @RequestParam(required = false, name = "token_type_hint") Optional<String> tokenTypeHint,
+        Authentication authentication
+    ) {
         if (!(authentication instanceof OAuth2ClientAuthenticationToken) || !authentication.isAuthenticated()) {
             throw new InsufficientAuthenticationException("Invalid client authentication");
         }
 
-        logger.debug("request revoke of token {} hint {}", StringUtils.trimAllWhitespace(token),
-                StringUtils.trimAllWhitespace(String.valueOf(tokenTypeHint)));
+        logger.debug(
+            "request revoke of token {} hint {}",
+            StringUtils.trimAllWhitespace(token),
+            StringUtils.trimAllWhitespace(String.valueOf(tokenTypeHint))
+        );
 
         OAuth2ClientAuthenticationToken clientAuth = (OAuth2ClientAuthenticationToken) authentication;
 
@@ -96,7 +113,6 @@ public class TokenRevocationEndpoint {
                 // load authentication
                 auth = tokenStore.readAuthentication(accessToken);
             }
-
         }
 
         if (auth == null) {
@@ -113,7 +129,6 @@ public class TokenRevocationEndpoint {
         logger.trace("client auth requesting revoke  " + String.valueOf(clientAuth.getClientId()));
 
         if (clientId.equals(clientAuth.getClientId())) {
-
             // remove
             // TODO rewrite to handle a revocation status or
             // move to a different store, we want to keep revoked tokens around
@@ -130,21 +145,19 @@ public class TokenRevocationEndpoint {
                 // DISABLED removal of refresh for access
                 // spec says we MAY remove these
                 // TODO add a config flag
-//                    // check if refresh embedded
-//                    if (accessToken.getRefreshToken() != null) {
-//                        logger.trace("remove refresh token for " + accessToken.getRefreshToken().getValue());
-//                        tokenStore.removeRefreshToken(accessToken.getRefreshToken());
-//                    }
+                //                    // check if refresh embedded
+                //                    if (accessToken.getRefreshToken() != null) {
+                //                        logger.trace("remove refresh token for " + accessToken.getRefreshToken().getValue());
+                //                        tokenStore.removeRefreshToken(accessToken.getRefreshToken());
+                //                    }
                 logger.trace("remove access token for " + accessToken.getValue());
                 tokenStore.removeAccessToken(accessToken);
             }
-
         } else {
             throw new UnauthorizedClientException("client is not the owner of the token");
         }
 
         return ResponseEntity.ok("");
-
     }
 
     @ExceptionHandler(AuthenticationException.class)
@@ -178,7 +191,5 @@ public class TokenRevocationEndpoint {
         // exceptions have a predefined message
         ResponseEntity<OAuth2Exception> response = new ResponseEntity<OAuth2Exception>(e, headers, status);
         return response;
-
     }
-
 }

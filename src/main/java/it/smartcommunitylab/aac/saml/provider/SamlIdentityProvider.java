@@ -1,9 +1,20 @@
-package it.smartcommunitylab.aac.saml.provider;
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import java.util.Collection;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.util.StringUtils;
+package it.smartcommunitylab.aac.saml.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
@@ -15,9 +26,14 @@ import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.saml.model.SamlUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.saml.model.SamlUserIdentity;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
+import java.util.Collection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
 
-public class SamlIdentityProvider extends
-        AbstractIdentityProvider<SamlUserIdentity, SamlUserAccount, SamlUserAuthenticatedPrincipal, SamlIdentityProviderConfigMap, SamlIdentityProviderConfig> {
+public class SamlIdentityProvider
+    extends AbstractIdentityProvider<SamlUserIdentity, SamlUserAccount, SamlUserAuthenticatedPrincipal, SamlIdentityProviderConfigMap, SamlIdentityProviderConfig> {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // internal providers
@@ -28,38 +44,43 @@ public class SamlIdentityProvider extends
     private final SamlSubjectResolver subjectResolver;
 
     public SamlIdentityProvider(
-            String providerId,
-            UserAccountService<SamlUserAccount> userAccountService,
-            SamlIdentityProviderConfig config,
-            String realm) {
+        String providerId,
+        UserAccountService<SamlUserAccount> userAccountService,
+        SamlIdentityProviderConfig config,
+        String realm
+    ) {
         this(SystemKeys.AUTHORITY_SAML, providerId, userAccountService, config, realm);
     }
 
     public SamlIdentityProvider(
-            String authority, String providerId,
-            UserAccountService<SamlUserAccount> userAccountService,
-            SamlIdentityProviderConfig config,
-            String realm) {
+        String authority,
+        String providerId,
+        UserAccountService<SamlUserAccount> userAccountService,
+        SamlIdentityProviderConfig config,
+        String realm
+    ) {
         super(authority, providerId, config, realm);
-
         logger.debug("create saml provider with id {}", String.valueOf(providerId));
 
         // build resource providers, we use our providerId to ensure consistency
         SamlAccountServiceConfigConverter configConverter = new SamlAccountServiceConfigConverter();
-        this.accountService = new SamlAccountService(authority, providerId, userAccountService,
-                configConverter.convert(config), realm);
-        this.principalConverter = new SamlAccountPrincipalConverter(authority, providerId, userAccountService, config,
-                realm);
+        this.accountService =
+            new SamlAccountService(authority, providerId, userAccountService, configConverter.convert(config), realm);
+        this.principalConverter =
+            new SamlAccountPrincipalConverter(authority, providerId, userAccountService, config, realm);
         this.attributeProvider = new SamlAttributeProvider(authority, providerId, config, realm);
-        this.authenticationProvider = new SamlAuthenticationProvider(authority, providerId, userAccountService, config,
-                realm);
+        this.authenticationProvider =
+            new SamlAuthenticationProvider(authority, providerId, userAccountService, config, realm);
         this.subjectResolver = new SamlSubjectResolver(authority, providerId, userAccountService, config, realm);
 
         // function hooks from config
-        if (config.getHookFunctions() != null
-                && StringUtils.hasText(config.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION))) {
-            this.authenticationProvider
-                    .setCustomMappingFunction(config.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION));
+        if (
+            config.getHookFunctions() != null &&
+            StringUtils.hasText(config.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION))
+        ) {
+            this.authenticationProvider.setCustomMappingFunction(
+                    config.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION)
+                );
         }
     }
 
@@ -102,8 +123,11 @@ public class SamlIdentityProvider extends
     }
 
     @Override
-    protected SamlUserIdentity buildIdentity(SamlUserAccount account, SamlUserAuthenticatedPrincipal principal,
-            Collection<UserAttributes> attributes) {
+    protected SamlUserIdentity buildIdentity(
+        SamlUserAccount account,
+        SamlUserAuthenticatedPrincipal principal,
+        Collection<UserAttributes> attributes
+    ) {
         // build identity
         SamlUserIdentity identity = new SamlUserIdentity(getAuthority(), getProvider(), getRealm(), account, principal);
         identity.setAttributes(attributes);

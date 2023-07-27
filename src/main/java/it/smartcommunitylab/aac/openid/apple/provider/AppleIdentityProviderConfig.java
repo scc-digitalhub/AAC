@@ -1,11 +1,35 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.openid.apple.provider;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.base.AbstractIdentityProviderConfig;
+import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
+import it.smartcommunitylab.aac.openid.apple.AppleIdentityAuthority;
+import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
+import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
 import java.io.StringReader;
 import java.security.PrivateKey;
 import java.security.interfaces.ECPrivateKey;
 import java.util.HashSet;
 import java.util.Set;
-
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
@@ -15,27 +39,17 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.util.StringUtils;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.openid.apple.AppleIdentityAuthority;
-import it.smartcommunitylab.aac.core.base.AbstractIdentityProviderConfig;
-import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
-import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
-import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
-
 public class AppleIdentityProviderConfig extends AbstractIdentityProviderConfig<AppleIdentityProviderConfigMap> {
+
     private static final long serialVersionUID = SystemKeys.AAC_OIDC_SERIAL_VERSION;
-    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_PROVIDER + SystemKeys.ID_SEPARATOR
-            + AppleIdentityProviderConfigMap.RESOURCE_TYPE;
+    public static final String RESOURCE_TYPE =
+        SystemKeys.RESOURCE_PROVIDER + SystemKeys.ID_SEPARATOR + AppleIdentityProviderConfigMap.RESOURCE_TYPE;
 
     public static final String ISSUER_URI = "https://appleid.apple.com";
     public static final String AUTHORIZATION_URL = "https://appleid.apple.com/auth/authorize?response_mode=form_post";
 
-    public static final String DEFAULT_REDIRECT_URL = "{baseUrl}" + AppleIdentityAuthority.AUTHORITY_URL
-            + "{action}/{registrationId}";
+    public static final String DEFAULT_REDIRECT_URL =
+        "{baseUrl}" + AppleIdentityAuthority.AUTHORITY_URL + "{action}/{registrationId}";
 
     private transient ClientRegistration clientRegistration;
     private transient ECPrivateKey privateKey;
@@ -97,8 +111,8 @@ public class AppleIdentityProviderConfig extends AbstractIdentityProviderConfig<
         // 5. set all scopes available and ask for response POST
         builder.scope(getScopes());
 
-//        // 5. set key as secret and build JWT at request time
-//        builder.clientSecret(this.getClientJWK().toJSONString());
+        //        // 5. set key as secret and build JWT at request time
+        //        builder.clientSecret(this.getClientJWK().toJSONString());
 
         // ask for response_mode form to receive scopes
         builder.authorizationUri(AUTHORIZATION_URL);
@@ -170,7 +184,8 @@ public class AppleIdentityProviderConfig extends AbstractIdentityProviderConfig<
             PrivateKey privateKey = pemConverter.getPrivateKey(privateKeyInfo);
             if (!(privateKey instanceof ECPrivateKey)) {
                 throw new IllegalArgumentException(
-                        "invalid key, EC type required, found " + String.valueOf(privateKey.getAlgorithm()));
+                    "invalid key, EC type required, found " + String.valueOf(privateKey.getAlgorithm())
+                );
             }
 
             return (ECPrivateKey) privateKey;
@@ -181,8 +196,11 @@ public class AppleIdentityProviderConfig extends AbstractIdentityProviderConfig<
 
     @JsonIgnore
     public OIDCIdentityProviderConfig toOidcProviderConfig() {
-        OIDCIdentityProviderConfig op = new OIDCIdentityProviderConfig(SystemKeys.AUTHORITY_APPLE, getProvider(),
-                getRealm());
+        OIDCIdentityProviderConfig op = new OIDCIdentityProviderConfig(
+            SystemKeys.AUTHORITY_APPLE,
+            getProvider(),
+            getRealm()
+        );
         OIDCIdentityProviderConfigMap cMap = new OIDCIdentityProviderConfigMap();
         cMap.setClientId(configMap.getClientId());
         cMap.setIssuerUri(ISSUER_URI);
@@ -194,5 +212,4 @@ public class AppleIdentityProviderConfig extends AbstractIdentityProviderConfig<
 
         return op;
     }
-
 }

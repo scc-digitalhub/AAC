@@ -1,5 +1,30 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.claims;
 
+import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import delight.graaljssandbox.GraalSandbox;
+import delight.graaljssandbox.GraalSandboxes;
+import delight.nashornsandbox.exceptions.ScriptCPUAbuseException;
+import it.smartcommunitylab.aac.common.InvalidDefinitionException;
+import it.smartcommunitylab.aac.common.SystemException;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.StringWriter;
@@ -8,19 +33,7 @@ import java.nio.file.FileSystems;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executors;
-
 import javax.script.ScriptException;
-
-import com.fasterxml.jackson.core.JsonGenerationException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import delight.graaljssandbox.GraalSandbox;
-import delight.graaljssandbox.GraalSandboxes;
-import delight.nashornsandbox.exceptions.ScriptCPUAbuseException;
-import it.smartcommunitylab.aac.common.InvalidDefinitionException;
-import it.smartcommunitylab.aac.common.SystemException;
 
 public class LocalGraalExecutionService implements ScriptExecutionService {
 
@@ -32,8 +45,8 @@ public class LocalGraalExecutionService implements ScriptExecutionService {
 
     // custom jackson configuration with typeReference
     private final ObjectMapper mapper = new ObjectMapper();
-    private final TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
-    };
+    private final TypeReference<HashMap<String, Serializable>> typeRef =
+        new TypeReference<HashMap<String, Serializable>>() {};
 
     public LocalGraalExecutionService() {
         this.maxCpuTime = DEFAULT_MAX_CPU_TIME;
@@ -59,15 +72,14 @@ public class LocalGraalExecutionService implements ScriptExecutionService {
     // TODO implement a threadPool for sandboxes to avoid bootstrap
     @Override
     public Map<String, Serializable> executeFunction(String name, String function, Map<String, Serializable> input)
-            throws InvalidDefinitionException, SystemException {
-
+        throws InvalidDefinitionException, SystemException {
         // TODO evaluate function syntax etc
 
         // workaround for graal 19.2.1 and fat jars
         // https://github.com/oracle/graal/issues/1348
         try {
-            URL res = com.oracle.js.parser.ScriptEnvironment.class.getClassLoader()
-                    .getResource("/META-INF/truffle/language");
+            URL res =
+                com.oracle.js.parser.ScriptEnvironment.class.getClassLoader().getResource("/META-INF/truffle/language");
             // initialize the file system for the language file
             FileSystems.newFileSystem(res.toURI(), new HashMap<>());
         } catch (Throwable ignored) {
@@ -84,11 +96,8 @@ public class LocalGraalExecutionService implements ScriptExecutionService {
             writer.append(function);
             writer.append(";");
             writer.append("\n");
-            writer.append("result = JSON.stringify("
-                    + name
-                    + "(data))");
+            writer.append("result = JSON.stringify(" + name + "(data))");
 
-            
             String code = writer.toString();
             sandbox.eval(code);
             String output = (String) sandbox.get("result");
@@ -104,7 +113,6 @@ public class LocalGraalExecutionService implements ScriptExecutionService {
         } finally {
             sandbox.getExecutor().shutdown();
         }
-
     }
 
     private GraalSandbox createSandbox() {

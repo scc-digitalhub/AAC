@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2015 Fondazione Bruno Kessler
- * 
+ *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
  *    You may obtain a copy of the License at
- * 
+ *
  *        http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  *    Unless required by applicable law or agreed to in writing, software
  *    distributed under the License is distributed on an "AS IS" BASIS,
  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,6 +16,10 @@
 
 package it.smartcommunitylab.aac.oauth.flow;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -27,7 +31,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -45,18 +48,13 @@ import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
-
 /**
  * Implementation of the {@link OAuthFlowExtensions} with the Web hook
  * functionality. The call is accompanied with the JWT token of the requesting
  * client with respect to the authorized user scope claims.
- * 
+ *
  * TODO add call signature with sha256payload+date+key(clientSecret)
- * 
+ *
  * @author raman
  *
  */
@@ -65,10 +63,10 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
     private static final Logger logger = LoggerFactory.getLogger(WebhookOAuthFlowExtensions.class);
 
     private final ObjectMapper mapper = new ObjectMapper();
-    private final TypeReference<HashMap<String, Serializable>> serMapTypeRef = new TypeReference<HashMap<String, Serializable>>() {
-    };
-    private final TypeReference<HashMap<String, String>> stringMapTypeRef = new TypeReference<HashMap<String, String>>() {
-    };
+    private final TypeReference<HashMap<String, Serializable>> serMapTypeRef =
+        new TypeReference<HashMap<String, Serializable>>() {};
+    private final TypeReference<HashMap<String, String>> stringMapTypeRef =
+        new TypeReference<HashMap<String, String>>() {};
 
     @Value("${hook.timeout:10000}")
     private int timeout;
@@ -80,24 +78,25 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
     }
 
     public void init() {
-        RequestConfig config = RequestConfig.custom()
-                .setConnectTimeout(timeout)
-                .setConnectionRequestTimeout(timeout)
-                .setSocketTimeout(timeout)
-                .build();
-        CloseableHttpClient client = HttpClientBuilder
-                .create()
-                .setDefaultRequestConfig(config)
-                .build();
+        RequestConfig config = RequestConfig
+            .custom()
+            .setConnectTimeout(timeout)
+            .setConnectionRequestTimeout(timeout)
+            .setSocketTimeout(timeout)
+            .build();
+        CloseableHttpClient client = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
         HttpComponentsClientHttpRequestFactory clientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory(
-                client);
+            client
+        );
         restTemplate = new RestTemplate(clientHttpRequestFactory);
     }
 
     @Override
-    public Map<String, String> onBeforeUserApproval(Map<String, String> requestParameters,
-            User user, OAuth2ClientDetails client) throws FlowExecutionException {
-
+    public Map<String, String> onBeforeUserApproval(
+        Map<String, String> requestParameters,
+        User user,
+        OAuth2ClientDetails client
+    ) throws FlowExecutionException {
         if (client.getHookWebUrls() == null) {
             return null;
         }
@@ -122,8 +121,12 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
             headers.set("Authorization", buildBasicAuth(client.getClientId(), client.getClientSecret()));
             HttpEntity<Map<String, Serializable>> entity = new HttpEntity<>(map, headers);
 
-            ResponseEntity<String> response = restTemplate.exchange(url.toString(), HttpMethod.POST, entity,
-                    String.class);
+            ResponseEntity<String> response = restTemplate.exchange(
+                url.toString(),
+                HttpMethod.POST,
+                entity,
+                String.class
+            );
 
             logger.debug("Hook response code: " + response.getStatusCodeValue());
             logger.trace("Hook result: " + response.getBody());
@@ -139,12 +142,11 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
         } catch (Exception e) {
             throw new FlowExecutionException("Hook invocation failure: " + e.getMessage());
         }
-
     }
 
     @Override
-    public Optional<Boolean> onAfterUserApproval(Collection<String> scopes, User user,
-            OAuth2ClientDetails client) throws FlowExecutionException {
+    public Optional<Boolean> onAfterUserApproval(Collection<String> scopes, User user, OAuth2ClientDetails client)
+        throws FlowExecutionException {
         if (client.getHookWebUrls() == null) {
             return Optional.empty();
         }
@@ -169,8 +171,12 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
             headers.set("Authorization", buildBasicAuth(client.getClientId(), client.getClientSecret()));
             HttpEntity<Map<String, Serializable>> entity = new HttpEntity<>(map, headers);
 
-            ResponseEntity<String> response = restTemplate.exchange(url.toString(), HttpMethod.POST, entity,
-                    String.class);
+            ResponseEntity<String> response = restTemplate.exchange(
+                url.toString(),
+                HttpMethod.POST,
+                entity,
+                String.class
+            );
 
             logger.debug("Hook response code: " + response.getStatusCodeValue());
             logger.trace("Hook result: " + response.getBody());
@@ -191,7 +197,6 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
             } else {
                 throw new FlowExecutionException("invalid response from webhook: " + statusCode.toString());
             }
-
         } catch (MalformedURLException e) {
             throw new FlowExecutionException("Invalid hook URL: " + webhook);
         } catch (Exception e) {
@@ -201,7 +206,7 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
 
     @Override
     public Map<String, String> onBeforeTokenGrant(Map<String, String> requestParameters, OAuth2ClientDetails client)
-            throws FlowExecutionException {
+        throws FlowExecutionException {
         if (client.getHookWebUrls() == null) {
             return null;
         }
@@ -225,8 +230,12 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
             headers.set("Authorization", buildBasicAuth(client.getClientId(), client.getClientSecret()));
             HttpEntity<Map<String, Serializable>> entity = new HttpEntity<>(map, headers);
 
-            ResponseEntity<String> response = restTemplate.exchange(url.toString(), HttpMethod.POST, entity,
-                    String.class);
+            ResponseEntity<String> response = restTemplate.exchange(
+                url.toString(),
+                HttpMethod.POST,
+                entity,
+                String.class
+            );
 
             logger.debug("Hook response code: " + response.getStatusCodeValue());
             logger.trace("Hook result: " + response.getBody());
@@ -246,13 +255,11 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
 
     @Override
     public void onAfterTokenGrant(OAuth2AccessToken accessToken, OAuth2ClientDetails client)
-            throws FlowExecutionException {
+        throws FlowExecutionException {
         if (client.getHookWebUrls() != null) {
-
             String webhook = client.getHookWebUrls().get(OAuthFlowExtensions.AFTER_TOKEN_GRANT);
 
             if (StringUtils.hasText(webhook)) {
-
                 try {
                     URL url = new URL(webhook);
                     HttpHeaders headers = new HttpHeaders();
@@ -261,8 +268,12 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
                     headers.set("Authorization", buildBasicAuth(client.getClientId(), client.getClientSecret()));
                     HttpEntity<OAuth2AccessToken> entity = new HttpEntity<>(accessToken, headers);
 
-                    ResponseEntity<String> response = restTemplate.exchange(url.toString(), HttpMethod.POST, entity,
-                            String.class);
+                    ResponseEntity<String> response = restTemplate.exchange(
+                        url.toString(),
+                        HttpMethod.POST,
+                        entity,
+                        String.class
+                    );
 
                     logger.debug("Hook response code: " + response.getStatusCodeValue());
                     logger.trace("Hook result: " + response.getBody());
@@ -270,7 +281,6 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
                     if (!response.getStatusCode().is2xxSuccessful()) {
                         throw new FlowExecutionException("invalid response from webhook");
                     }
-
                 } catch (MalformedURLException e) {
                     throw new FlowExecutionException("Invalid hook URL: " + webhook);
                 } catch (Exception e) {
@@ -281,6 +291,7 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
     }
 
     public class ApprovalResult {
+
         public Boolean approved;
     }
 
@@ -291,5 +302,4 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
 
         return authHeader;
     }
-
 }

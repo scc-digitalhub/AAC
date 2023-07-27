@@ -1,15 +1,22 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.core;
 
-import java.util.Collection;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
@@ -23,9 +30,19 @@ import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
 import it.smartcommunitylab.aac.core.service.ConfigurableProviderService;
 import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.model.Realm;
+import java.util.Collection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
-public abstract class ConfigurableProviderManager<C extends ConfigurableProvider, A extends ConfigurableProviderAuthority<?, ?, C, ?, ?>>
-        implements InitializingBean {
+public abstract class ConfigurableProviderManager<
+    C extends ConfigurableProvider, A extends ConfigurableProviderAuthority<?, ?, C, ?, ?>
+>
+    implements InitializingBean {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final ConfigurableProviderService<A, C, ? extends ProviderEntity> providerService;
@@ -60,8 +77,11 @@ public abstract class ConfigurableProviderManager<C extends ConfigurableProvider
     }
 
     public C findProvider(String realm, String providerId) {
-        logger.debug("find provider {} for realm {}", StringUtils.trimAllWhitespace(providerId),
-                StringUtils.trimAllWhitespace(realm));
+        logger.debug(
+            "find provider {} for realm {}",
+            StringUtils.trimAllWhitespace(providerId),
+            StringUtils.trimAllWhitespace(realm)
+        );
 
         C cp = providerService.findProvider(providerId);
 
@@ -73,9 +93,12 @@ public abstract class ConfigurableProviderManager<C extends ConfigurableProvider
     }
 
     public C getProvider(String realm, String providerId)
-            throws NoSuchProviderException, NoSuchRealmException, NoSuchAuthorityException {
-        logger.debug("get provider {} for realm {}", StringUtils.trimAllWhitespace(providerId),
-                StringUtils.trimAllWhitespace(realm));
+        throws NoSuchProviderException, NoSuchRealmException, NoSuchAuthorityException {
+        logger.debug(
+            "get provider {} for realm {}",
+            StringUtils.trimAllWhitespace(providerId),
+            StringUtils.trimAllWhitespace(realm)
+        );
 
         Realm re = realmService.getRealm(realm);
         C cp = providerService.getProvider(providerId);
@@ -92,7 +115,7 @@ public abstract class ConfigurableProviderManager<C extends ConfigurableProvider
     }
 
     public C addProvider(String realm, C provider)
-            throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
+        throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
         logger.debug("add provider to realm {}", StringUtils.trimAllWhitespace(realm));
         if (logger.isTraceEnabled()) {
             logger.trace("provider bean: {}", StringUtils.trimAllWhitespace(provider.toString()));
@@ -107,11 +130,13 @@ public abstract class ConfigurableProviderManager<C extends ConfigurableProvider
         return providerService.addProvider(re.getSlug(), provider);
     }
 
-    public C updateProvider(String realm, String providerId,
-            C provider)
-            throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
-        logger.debug("update provider {} for realm {}", StringUtils.trimAllWhitespace(providerId),
-                StringUtils.trimAllWhitespace(realm));
+    public C updateProvider(String realm, String providerId, C provider)
+        throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
+        logger.debug(
+            "update provider {} for realm {}",
+            StringUtils.trimAllWhitespace(providerId),
+            StringUtils.trimAllWhitespace(realm)
+        );
         if (logger.isTraceEnabled()) {
             logger.trace("provider bean: {}", StringUtils.trimAllWhitespace(provider.toString()));
         }
@@ -132,9 +157,12 @@ public abstract class ConfigurableProviderManager<C extends ConfigurableProvider
     }
 
     public void deleteProvider(String realm, String providerId)
-            throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
-        logger.debug("delete provider {} for realm {}", StringUtils.trimAllWhitespace(providerId),
-                StringUtils.trimAllWhitespace(realm));
+        throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
+        logger.debug(
+            "delete provider {} for realm {}",
+            StringUtils.trimAllWhitespace(providerId),
+            StringUtils.trimAllWhitespace(realm)
+        );
 
         if (SystemKeys.REALM_GLOBAL.equals(realm) || SystemKeys.REALM_SYSTEM.equals(realm)) {
             // we do not persist in db global providers
@@ -158,9 +186,12 @@ public abstract class ConfigurableProviderManager<C extends ConfigurableProvider
     }
 
     public C registerProvider(String realm, String providerId)
-            throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
-        logger.debug("register provider {} for realm {}", StringUtils.trimAllWhitespace(providerId),
-                StringUtils.trimAllWhitespace(realm));
+        throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
+        logger.debug(
+            "register provider {} for realm {}",
+            StringUtils.trimAllWhitespace(providerId),
+            StringUtils.trimAllWhitespace(realm)
+        );
 
         if (SystemKeys.REALM_GLOBAL.equals(realm) || SystemKeys.REALM_SYSTEM.equals(realm)) {
             // we do not persist in db global providers
@@ -202,9 +233,12 @@ public abstract class ConfigurableProviderManager<C extends ConfigurableProvider
     }
 
     public C unregisterProvider(String realm, String providerId)
-            throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
-        logger.debug("unregister provider {} for realm {}", StringUtils.trimAllWhitespace(providerId),
-                StringUtils.trimAllWhitespace(realm));
+        throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
+        logger.debug(
+            "unregister provider {} for realm {}",
+            StringUtils.trimAllWhitespace(providerId),
+            StringUtils.trimAllWhitespace(realm)
+        );
 
         if (SystemKeys.REALM_GLOBAL.equals(realm) || SystemKeys.REALM_SYSTEM.equals(realm)) {
             // we do not persist in db global providers
@@ -239,7 +273,7 @@ public abstract class ConfigurableProviderManager<C extends ConfigurableProvider
 
     /*
      * Compatibility
-     * 
+     *
      * Support checking registration status
      */
     public boolean isProviderRegistered(String realm, C provider) throws SystemException {
@@ -259,13 +293,11 @@ public abstract class ConfigurableProviderManager<C extends ConfigurableProvider
      */
 
     public ConfigurableProperties getConfigurableProperties(String realm, String authority)
-            throws NoSuchAuthorityException {
+        throws NoSuchAuthorityException {
         return providerService.getConfigurableProperties(authority);
     }
 
-    public JsonSchema getConfigurationSchema(String realm, String authority)
-            throws NoSuchAuthorityException {
+    public JsonSchema getConfigurationSchema(String realm, String authority) throws NoSuchAuthorityException {
         return providerService.getConfigurationSchema(authority);
     }
-
 }

@@ -1,12 +1,20 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.password.provider;
-
-import java.io.Serializable;
-import java.util.Map;
-
-import javax.validation.Valid;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.Pattern;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -15,10 +23,17 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractConfigMap;
+import java.io.Serializable;
+import java.util.Map;
+import javax.validation.Valid;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.Pattern;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PasswordCredentialsServiceConfigMap extends AbstractConfigMap implements Serializable {
+
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     @Pattern(regexp = SystemKeys.SLUG_PATTERN)
@@ -58,8 +73,7 @@ public class PasswordCredentialsServiceConfigMap extends AbstractConfigMap imple
     private Boolean passwordRequireSpecial;
     private Boolean passwordSupportWhitespace;
 
-    public PasswordCredentialsServiceConfigMap() {
-    }
+    public PasswordCredentialsServiceConfigMap() {}
 
     public String getRepositoryId() {
         return repositoryId;
@@ -199,8 +213,7 @@ public class PasswordCredentialsServiceConfigMap extends AbstractConfigMap imple
     public void setConfiguration(Map<String, Serializable> props) {
         // use mapper for local
         mapper.setSerializationInclusion(Include.NON_EMPTY);
-        PasswordCredentialsServiceConfigMap map = mapper.convertValue(props,
-                PasswordCredentialsServiceConfigMap.class);
+        PasswordCredentialsServiceConfigMap map = mapper.convertValue(props, PasswordCredentialsServiceConfigMap.class);
 
         setConfiguration(map);
     }

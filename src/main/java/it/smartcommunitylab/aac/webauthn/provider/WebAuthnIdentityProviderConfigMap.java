@@ -1,11 +1,21 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.webauthn.provider;
 
-import java.io.Serializable;
-import java.util.Map;
-
-import javax.validation.Valid;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -13,18 +23,26 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.yubico.webauthn.data.ResidentKeyRequirement;
 import com.yubico.webauthn.data.UserVerificationRequirement;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractConfigMap;
+import java.io.Serializable;
+import java.util.Map;
+import javax.validation.Valid;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class WebAuthnIdentityProviderConfigMap extends AbstractConfigMap implements Serializable {
+
     private static final long serialVersionUID = SystemKeys.AAC_WEBAUTHN_SERIAL_VERSION;
 
-    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_CONFIG + SystemKeys.ID_SEPARATOR
-            + SystemKeys.RESOURCE_IDENTITY_PROVIDER + SystemKeys.ID_SEPARATOR
-            + SystemKeys.AUTHORITY_WEBAUTHN;
+    public static final String RESOURCE_TYPE =
+        SystemKeys.RESOURCE_CONFIG +
+        SystemKeys.ID_SEPARATOR +
+        SystemKeys.RESOURCE_IDENTITY_PROVIDER +
+        SystemKeys.ID_SEPARATOR +
+        SystemKeys.AUTHORITY_WEBAUTHN;
 
     @Max(3 * 24 * 60 * 60)
     protected Integer maxSessionDuration;
@@ -37,13 +55,13 @@ public class WebAuthnIdentityProviderConfigMap extends AbstractConfigMap impleme
 
     @Min(30)
     private Integer registrationTimeout;
+
     @Min(10)
     private Integer loginTimeout;
 
     private Boolean requireAccountConfirmation;
 
-    public WebAuthnIdentityProviderConfigMap() {
-    }
+    public WebAuthnIdentityProviderConfigMap() {}
 
     public Integer getMaxSessionDuration() {
         return maxSessionDuration;
@@ -137,5 +155,4 @@ public class WebAuthnIdentityProviderConfigMap extends AbstractConfigMap impleme
     public JsonSchema getSchema() throws JsonMappingException {
         return schemaGen.generateSchema(WebAuthnIdentityProviderConfigMap.class);
     }
-
 }

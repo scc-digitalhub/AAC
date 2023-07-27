@@ -1,7 +1,20 @@
-package it.smartcommunitylab.aac.internal.provider;
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
+package it.smartcommunitylab.aac.internal.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
@@ -11,6 +24,8 @@ import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 @Transactional
 public class InternalIdentityConfirmService extends AbstractProvider<UserCredentials> {
@@ -19,10 +34,13 @@ public class InternalIdentityConfirmService extends AbstractProvider<UserCredent
     private final UserAccountService<InternalUserAccount> accountService;
     private final String repositoryId;
 
-    public InternalIdentityConfirmService(String providerId,
-            UserAccountService<InternalUserAccount> accountService,
-            InternalUserConfirmKeyService confirmKeyService,
-            InternalIdentityProviderConfig config, String realm) {
+    public InternalIdentityConfirmService(
+        String providerId,
+        UserAccountService<InternalUserAccount> accountService,
+        InternalUserConfirmKeyService confirmKeyService,
+        InternalIdentityProviderConfig config,
+        String realm
+    ) {
         super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
         Assert.notNull(accountService, "account service is mandatory");
         Assert.notNull(confirmKeyService, "confirm service is mandatory");
@@ -55,7 +73,7 @@ public class InternalIdentityConfirmService extends AbstractProvider<UserCredent
     }
 
     public InternalUserAccount confirmAccount(String username, String key)
-            throws NoSuchUserException, RegistrationException {
+        throws NoSuchUserException, RegistrationException {
         InternalUserAccount account = accountService.findAccountById(repositoryId, username);
         if (account == null) {
             return null;
@@ -69,5 +87,4 @@ public class InternalIdentityConfirmService extends AbstractProvider<UserCredent
 
         return account;
     }
-
 }

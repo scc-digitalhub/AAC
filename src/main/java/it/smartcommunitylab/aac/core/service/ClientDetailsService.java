@@ -1,16 +1,20 @@
-package it.smartcommunitylab.aac.core.service;
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
+package it.smartcommunitylab.aac.core.service;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
@@ -22,6 +26,17 @@ import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
 import it.smartcommunitylab.aac.roles.service.SubjectRoleService;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 @Service
 public class ClientDetailsService implements InitializingBean {
@@ -43,9 +58,7 @@ public class ClientDetailsService implements InitializingBean {
     }
 
     @Override
-    public void afterPropertiesSet() throws Exception {
-
-    }
+    public void afterPropertiesSet() throws Exception {}
 
     @Autowired
     public void setSpaceRoleService(SpaceRoleService spaceRoleService) {
@@ -73,9 +86,11 @@ public class ClientDetailsService implements InitializingBean {
         authorities.addAll(clientAuthorities);
 
         ClientDetails details = new ClientDetails(
-                client.getClientId(), client.getRealm(),
-                client.getType(),
-                authorities);
+            client.getClientId(),
+            client.getRealm(),
+            client.getType(),
+            authorities
+        );
 
         details.setName(client.getName());
         details.setDescription(client.getDescription());
@@ -93,7 +108,6 @@ public class ClientDetailsService implements InitializingBean {
             // clientId is our subjectId
             Collection<RealmRole> clientRoles = subjectRoleService.getRoles(clientId);
             details.setRealmRoles(clientRoles);
-
         }
 
         // load space roles
@@ -111,7 +125,5 @@ public class ClientDetailsService implements InitializingBean {
         }
 
         return details;
-
     }
-
 }

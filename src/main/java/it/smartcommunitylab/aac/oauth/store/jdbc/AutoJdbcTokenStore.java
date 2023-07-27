@@ -16,11 +16,11 @@
 
 package it.smartcommunitylab.aac.oauth.store.jdbc;
 
+import it.smartcommunitylab.aac.oauth.store.ExtTokenStore;
+import it.smartcommunitylab.aac.oauth.store.ExtendedAuthenticationKeyGenerator;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
 import javax.sql.DataSource;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -31,25 +31,26 @@ import org.springframework.security.oauth2.common.OAuth2RefreshToken;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
 
-import it.smartcommunitylab.aac.oauth.store.ExtTokenStore;
-import it.smartcommunitylab.aac.oauth.store.ExtendedAuthenticationKeyGenerator;
-
 /**
  * Token store with DB tables creation on startup.
- * 
+ *
  * @see {@link JdbcTokenStore}
  * @author raman
  *
  */
 public class AutoJdbcTokenStore extends JdbcTokenStore implements ExtTokenStore {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private JdbcTemplate jdbcTemplate;
 
-    private static final String DEFAULT_CREATE_RT_TABLE_STATEMENT = "CREATE TABLE IF NOT EXISTS oauth_refresh_token ( token_id VARCHAR(64) NOT NULL PRIMARY KEY, token BLOB NOT NULL, authentication BLOB NOT NULL);";
-    private static final String DEFAULT_CREATE_AT_TABLE_STATEMENT = "CREATE TABLE IF NOT EXISTS oauth_access_token (token_id VARCHAR(256),  token BLOB, authentication_id VARCHAR(256), user_name VARCHAR(256), client_id VARCHAR(256), authentication BLOB, refresh_token VARCHAR(256));";
+    private static final String DEFAULT_CREATE_RT_TABLE_STATEMENT =
+        "CREATE TABLE IF NOT EXISTS oauth_refresh_token ( token_id VARCHAR(64) NOT NULL PRIMARY KEY, token BLOB NOT NULL, authentication BLOB NOT NULL);";
+    private static final String DEFAULT_CREATE_AT_TABLE_STATEMENT =
+        "CREATE TABLE IF NOT EXISTS oauth_access_token (token_id VARCHAR(256),  token BLOB, authentication_id VARCHAR(256), user_name VARCHAR(256), client_id VARCHAR(256), authentication BLOB, refresh_token VARCHAR(256));";
 
-    private static final String DEFAULT_SELECT_ACCESS_TOKEN_FROM_REFRESH_TOKEN = "select token_id, token from oauth_access_token where refresh_token = ?";
+    private static final String DEFAULT_SELECT_ACCESS_TOKEN_FROM_REFRESH_TOKEN =
+        "select token_id, token from oauth_access_token where refresh_token = ?";
 
     private String createRefreshTokenStatement = DEFAULT_CREATE_RT_TABLE_STATEMENT;
     private String createAccessTokenStatement = DEFAULT_CREATE_AT_TABLE_STATEMENT;
@@ -74,18 +75,18 @@ public class AutoJdbcTokenStore extends JdbcTokenStore implements ExtTokenStore 
         jdbcTemplate.execute(createRefreshTokenStatement);
     }
 
-//    /**
-//     * @param dataSource
-//     * @param createRefreshTokenStatement
-//     * @param createAccessTokenStatement
-//     */
-//    public AutoJdbcTokenStore(DataSource dataSource, String createRefreshTokenStatement,
-//            String createAccessTokenStatement) {
-//        super(dataSource);
-//        this.createRefreshTokenStatement = createRefreshTokenStatement;
-//        this.createAccessTokenStatement = createAccessTokenStatement;
-//        initSchema(dataSource);
-//    }
+    //    /**
+    //     * @param dataSource
+    //     * @param createRefreshTokenStatement
+    //     * @param createAccessTokenStatement
+    //     */
+    //    public AutoJdbcTokenStore(DataSource dataSource, String createRefreshTokenStatement,
+    //            String createAccessTokenStatement) {
+    //        super(dataSource);
+    //        this.createRefreshTokenStatement = createRefreshTokenStatement;
+    //        this.createAccessTokenStatement = createAccessTokenStatement;
+    //        initSchema(dataSource);
+    //    }
 
     @Override
     public OAuth2AccessToken getAccessToken(OAuth2Authentication authentication) {
@@ -99,12 +100,16 @@ public class AutoJdbcTokenStore extends JdbcTokenStore implements ExtTokenStore 
         String key = extractTokenKey(tokenValue);
 
         try {
-            accessToken = jdbcTemplate.queryForObject(selectAccessTokenFromRefreshTokenSql,
+            accessToken =
+                jdbcTemplate.queryForObject(
+                    selectAccessTokenFromRefreshTokenSql,
                     new RowMapper<OAuth2AccessToken>() {
                         public OAuth2AccessToken mapRow(ResultSet rs, int rowNum) throws SQLException {
                             return deserializeAccessToken(rs.getBytes(2));
                         }
-                    }, key);
+                    },
+                    key
+                );
         } catch (EmptyResultDataAccessException e) {
             if (logger.isInfoEnabled()) {
                 logger.debug("Failed to find access token for refresh " + tokenValue);
@@ -125,6 +130,5 @@ public class AutoJdbcTokenStore extends JdbcTokenStore implements ExtTokenStore 
         }
 
         return accessToken.getRefreshToken();
-
     }
 }

@@ -1,11 +1,20 @@
-package it.smartcommunitylab.aac.core.base;
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
+package it.smartcommunitylab.aac.core.base;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.MissingDataException;
@@ -15,10 +24,18 @@ import it.smartcommunitylab.aac.core.provider.AccountProvider;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.model.SubjectStatus;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 @Transactional
-public class AbstractAccountProvider<U extends AbstractAccount> extends AbstractProvider<U>
-        implements AccountProvider<U> {
+public class AbstractAccountProvider<U extends AbstractAccount>
+    extends AbstractProvider<U>
+    implements AccountProvider<U> {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // services
@@ -27,15 +44,22 @@ public class AbstractAccountProvider<U extends AbstractAccount> extends Abstract
     private ResourceEntityService resourceService;
 
     public AbstractAccountProvider(
-            String authority, String providerId,
-            UserAccountService<U> accountService,
-            String repositoryId, String realm) {
+        String authority,
+        String providerId,
+        UserAccountService<U> accountService,
+        String repositoryId,
+        String realm
+    ) {
         super(authority, providerId, realm);
         Assert.notNull(accountService, "account service is mandatory");
         Assert.hasText(repositoryId, "repository id is mandatory");
 
-        logger.debug("create {} account provider for realm {} with id {}", String.valueOf(authority),
-                String.valueOf(realm), String.valueOf(providerId));
+        logger.debug(
+            "create {} account provider for realm {} with id {}",
+            String.valueOf(authority),
+            String.valueOf(realm),
+            String.valueOf(providerId)
+        );
 
         this.accountService = accountService;
         this.repositoryId = repositoryId;
@@ -87,25 +111,25 @@ public class AbstractAccountProvider<U extends AbstractAccount> extends Abstract
         return account;
     }
 
-//    @Override
-//    @Transactional(readOnly = true)
-//    public U findAccountByUuid(String uuid) {
-//        U account = accountService.findAccountByUuid(uuid);
-//        if (account == null) {
-//            return null;
-//        }
-//
-//        // check repository matches
-//        if (!repositoryId.equals(account.getRepositoryId())) {
-//            return null;
-//        }
-//
-//        // map to our authority
-//        account.setAuthority(getAuthority());
-//        account.setProvider(getProvider());
-//
-//        return account;
-//    }
+    //    @Override
+    //    @Transactional(readOnly = true)
+    //    public U findAccountByUuid(String uuid) {
+    //        U account = accountService.findAccountByUuid(uuid);
+    //        if (account == null) {
+    //            return null;
+    //        }
+    //
+    //        // check repository matches
+    //        if (!repositoryId.equals(account.getRepositoryId())) {
+    //            return null;
+    //        }
+    //
+    //        // map to our authority
+    //        account.setAuthority(getAuthority());
+    //        account.setProvider(getProvider());
+    //
+    //        return account;
+    //    }
 
     @Override
     public U lockAccount(String accountId) throws NoSuchUserException, RegistrationException {
@@ -118,9 +142,7 @@ public class AbstractAccountProvider<U extends AbstractAccount> extends Abstract
     }
 
     @Override
-    public U linkAccount(String accountId, String userId)
-            throws NoSuchUserException, RegistrationException {
-
+    public U linkAccount(String accountId, String userId) throws NoSuchUserException, RegistrationException {
         // we expect user to be valid
         if (!StringUtils.hasText(userId)) {
             throw new MissingDataException("user");
@@ -158,8 +180,12 @@ public class AbstractAccountProvider<U extends AbstractAccount> extends Abstract
 
             if (resourceService != null) {
                 // remove resource
-                resourceService.deleteResourceEntity(SystemKeys.RESOURCE_ACCOUNT, getAuthority(),
-                        getProvider(), accountId);
+                resourceService.deleteResourceEntity(
+                    SystemKeys.RESOURCE_ACCOUNT,
+                    getAuthority(),
+                    getProvider(),
+                    accountId
+                );
             }
         }
     }
@@ -173,15 +199,18 @@ public class AbstractAccountProvider<U extends AbstractAccount> extends Abstract
 
             if (resourceService != null) {
                 // remove resource
-                resourceService.deleteResourceEntity(SystemKeys.RESOURCE_ACCOUNT, getAuthority(),
-                        getProvider(), a.getAccountId());
+                resourceService.deleteResourceEntity(
+                    SystemKeys.RESOURCE_ACCOUNT,
+                    getAuthority(),
+                    getProvider(),
+                    a.getAccountId()
+                );
             }
         }
     }
 
     protected U updateStatus(String accountId, SubjectStatus newStatus)
-            throws NoSuchUserException, RegistrationException {
-
+        throws NoSuchUserException, RegistrationException {
         U account = findAccount(accountId);
         if (account == null) {
             throw new NoSuchUserException();
@@ -205,5 +234,4 @@ public class AbstractAccountProvider<U extends AbstractAccount> extends Abstract
 
         return account;
     }
-
 }

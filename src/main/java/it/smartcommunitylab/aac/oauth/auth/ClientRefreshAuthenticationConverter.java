@@ -1,17 +1,30 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.oauth.auth;
 
+import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
+import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
 import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.util.StringUtils;
-
-import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
-import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
 
 public class ClientRefreshAuthenticationConverter extends OAuth2ClientAuthenticationConverter {
 
@@ -24,25 +37,30 @@ public class ClientRefreshAuthenticationConverter extends OAuth2ClientAuthentica
 
         // fetch and validate parameters
         Map<String, String[]> parameters = request.getParameterMap();
-        if (!parameters.containsKey(OAuth2ParameterNames.CLIENT_ID)
-                || !parameters.containsKey(OAuth2ParameterNames.REFRESH_TOKEN)
-                || !parameters.containsKey(OAuth2ParameterNames.GRANT_TYPE)) {
+        if (
+            !parameters.containsKey(OAuth2ParameterNames.CLIENT_ID) ||
+            !parameters.containsKey(OAuth2ParameterNames.REFRESH_TOKEN) ||
+            !parameters.containsKey(OAuth2ParameterNames.GRANT_TYPE)
+        ) {
             // not a valid request
             return null;
         }
 
         // support refresh flow without secret for public clients
         // requires refresh token rotation set
-        AuthorizationGrantType grantType = AuthorizationGrantType
-                .parse(request.getParameter(OAuth2ParameterNames.GRANT_TYPE));
+        AuthorizationGrantType grantType = AuthorizationGrantType.parse(
+            request.getParameter(OAuth2ParameterNames.GRANT_TYPE)
+        );
 
         if (AuthorizationGrantType.REFRESH_TOKEN != grantType) {
             return null;
         }
 
         // make sure we get exactly 1 value per parameter
-        if (parameters.get(OAuth2ParameterNames.CLIENT_ID).length != 1
-                || parameters.get(OAuth2ParameterNames.REFRESH_TOKEN).length != 1) {
+        if (
+            parameters.get(OAuth2ParameterNames.CLIENT_ID).length != 1 ||
+            parameters.get(OAuth2ParameterNames.REFRESH_TOKEN).length != 1
+        ) {
             // throw oauth2 exception
             throw new OAuth2AuthenticationException(OAuth2ErrorCodes.INVALID_REQUEST);
         }
@@ -59,7 +77,5 @@ public class ClientRefreshAuthenticationConverter extends OAuth2ClientAuthentica
 
         // return our authRequest
         return new OAuth2ClientRefreshAuthenticationToken(clientId, refreshToken, AuthenticationMethod.NONE.getValue());
-
     }
-
 }

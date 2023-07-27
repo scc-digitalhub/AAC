@@ -1,3 +1,19 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac;
 
 import org.springframework.http.MediaType;
@@ -23,7 +39,7 @@ public class SystemKeys {
     public static final String AUTHORITY_INTERNAL = "internal";
     public static final String AUTHORITY_OIDC = "oidc";
     public static final String AUTHORITY_SAML = "saml";
-//    public static final String AUTHORITY_SPID = "spid";
+    //    public static final String AUTHORITY_SPID = "spid";
     public static final String AUTHORITY_CIE = "cie";
     public static final String AUTHORITY_MAPPER = "mapper";
     public static final String AUTHORITY_SCRIPT = "script";
@@ -108,11 +124,10 @@ public class SystemKeys {
     public static final String SPECIAL_PATTERN = "^[a-zA-Z0-9!@#$&()\\-`.+,/\"]*$";
     public static final String JWT_PATTERN = "(^[A-Za-z0-9-_]*\\.[A-Za-z0-9-_]*\\.[A-Za-z0-9-_]*$)";
 
-    public static final int DEFAULT_APPROVAL_VALIDITY = 60 * 60 * 24 * 30;// 30 days
+    public static final int DEFAULT_APPROVAL_VALIDITY = 60 * 60 * 24 * 30; // 30 days
 
     public static final MediaType MEDIA_TYPE_YAML = MediaType.valueOf("text/yaml");
     public static final MediaType MEDIA_TYPE_YML = MediaType.valueOf("text/yml");
     public static final MediaType MEDIA_TYPE_XYAML = MediaType.valueOf("application/x-yaml");
     public static final String MEDIA_TYPE_XYAML_VALUE = "application/x-yaml";
-
 }

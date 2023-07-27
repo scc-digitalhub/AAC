@@ -1,8 +1,21 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.saml;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityAuthority;
@@ -17,10 +30,13 @@ import it.smartcommunitylab.aac.saml.provider.SamlIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProvider;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfigMap;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 @Service
-public class SamlIdentityAuthority extends
-        AbstractIdentityAuthority<SamlIdentityProvider, SamlUserIdentity, SamlIdentityProviderConfigMap, SamlIdentityProviderConfig> {
+public class SamlIdentityAuthority
+    extends AbstractIdentityAuthority<SamlIdentityProvider, SamlUserIdentity, SamlIdentityProviderConfigMap, SamlIdentityProviderConfig> {
 
     public static final String AUTHORITY_URL = "/auth/" + SystemKeys.AUTHORITY_SAML + "/";
 
@@ -39,15 +55,17 @@ public class SamlIdentityAuthority extends
 
     @Autowired
     public SamlIdentityAuthority(
-            UserAccountService<SamlUserAccount> userAccountService,
-            ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository) {
+        UserAccountService<SamlUserAccount> userAccountService,
+        ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository
+    ) {
         this(SystemKeys.AUTHORITY_SAML, userAccountService, registrationRepository);
     }
 
     public SamlIdentityAuthority(
-            String authorityId,
-            UserAccountService<SamlUserAccount> userAccountService,
-            ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository) {
+        String authorityId,
+        UserAccountService<SamlUserAccount> userAccountService,
+        ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository
+    ) {
         super(authorityId, registrationRepository);
         Assert.notNull(userAccountService, "account service is mandatory");
 
@@ -56,8 +74,8 @@ public class SamlIdentityAuthority extends
         this.relyingPartyRegistrationRepository = new SamlRelyingPartyRegistrationRepository(registrationRepository);
 
         // build filter provider
-        this.filterProvider = new SamlFilterProvider(authorityId, relyingPartyRegistrationRepository,
-                registrationRepository);
+        this.filterProvider =
+            new SamlFilterProvider(authorityId, relyingPartyRegistrationRepository, registrationRepository);
     }
 
     @Autowired
@@ -89,14 +107,10 @@ public class SamlIdentityAuthority extends
     public SamlIdentityProvider buildProvider(SamlIdentityProviderConfig config) {
         String id = config.getProvider();
 
-        SamlIdentityProvider idp = new SamlIdentityProvider(
-                authorityId, id,
-                accountService,
-                config, config.getRealm());
+        SamlIdentityProvider idp = new SamlIdentityProvider(authorityId, id, accountService, config, config.getRealm());
 
         idp.setExecutionService(executionService);
         idp.setResourceService(resourceService);
         return idp;
     }
-
 }

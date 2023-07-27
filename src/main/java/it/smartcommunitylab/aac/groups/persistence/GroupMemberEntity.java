@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2015 Fondazione Bruno Kessler
- * 
+ *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
  *    You may obtain a copy of the License at
- * 
+ *
  *        http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  *    Unless required by applicable law or agreed to in writing, software
  *    distributed under the License is distributed on an "AS IS" BASIS,
  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,8 +29,10 @@ import javax.validation.constraints.NotNull;
  *
  */
 @Entity
-@Table(name = "group_members", uniqueConstraints = @UniqueConstraint(columnNames = { "subject_id", "realm",
-        "group_key" }))
+@Table(
+    name = "group_members",
+    uniqueConstraints = @UniqueConstraint(columnNames = { "subject_id", "realm", "group_key" })
+)
 public class GroupMemberEntity {
 
     @Id
@@ -93,29 +95,19 @@ public class GroupMemberEntity {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         GroupMemberEntity other = (GroupMemberEntity) obj;
         if (group == null) {
-            if (other.group != null)
-                return false;
-        } else if (!group.equals(other.group))
-            return false;
+            if (other.group != null) return false;
+        } else if (!group.equals(other.group)) return false;
         if (realm == null) {
-            if (other.realm != null)
-                return false;
-        } else if (!realm.equals(other.realm))
-            return false;
+            if (other.realm != null) return false;
+        } else if (!realm.equals(other.realm)) return false;
         if (subject == null) {
-            if (other.subject != null)
-                return false;
-        } else if (!subject.equals(other.subject))
-            return false;
+            if (other.subject != null) return false;
+        } else if (!subject.equals(other.subject)) return false;
         return true;
     }
-
 }

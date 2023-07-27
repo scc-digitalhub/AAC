@@ -1,10 +1,20 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.core.provider;
-
-import java.util.Collection;
-
-import javax.validation.constraints.NotNull;
-
-import org.springframework.lang.Nullable;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchCredentialException;
@@ -14,21 +24,28 @@ import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsProvider;
 import it.smartcommunitylab.aac.core.model.EditableUserCredentials;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
+import java.util.Collection;
+import javax.validation.constraints.NotNull;
+import org.springframework.lang.Nullable;
 
 /*
  * Credentials service handles credentials associated to a single user account,
- * which is handled by a given account service in the same realm 
+ * which is handled by a given account service in the same realm
  */
 
-public interface AccountCredentialsService<R extends UserCredentials, E extends EditableUserCredentials, M extends ConfigMap, C extends CredentialsServiceConfig<M>>
-        extends ConfigurableResourceProvider<R, ConfigurableCredentialsProvider, M, C> {
-
+public interface AccountCredentialsService<
+    R extends UserCredentials,
+    E extends EditableUserCredentials,
+    M extends ConfigMap,
+    C extends CredentialsServiceConfig<M>
+>
+    extends ConfigurableResourceProvider<R, ConfigurableCredentialsProvider, M, C> {
     /*
      * (user) editable credentials
      * User can manage their credentials via a simplified (and unified) view.
      * Do note that there is *no* requirement to represent a single credential
      * consistently between editable and core.
-     * 
+     *
      * TODO split service in 2: core and editable
      */
     public Collection<E> listEditableCredentials(@NotNull String accountId);
@@ -38,10 +55,10 @@ public interface AccountCredentialsService<R extends UserCredentials, E extends 
     public E getEditableCredential(@NotNull String credentialId) throws NoSuchCredentialException;
 
     public E registerEditableCredential(@NotNull String accountId, @NotNull EditableUserCredentials credentials)
-            throws RegistrationException, NoSuchUserException;
+        throws RegistrationException, NoSuchUserException;
 
     public E editEditableCredential(@NotNull String credentialId, @NotNull EditableUserCredentials credentials)
-            throws RegistrationException, NoSuchCredentialException;
+        throws RegistrationException, NoSuchCredentialException;
 
     public void deleteEditableCredential(@NotNull String credentialId) throws NoSuchCredentialException;
 
@@ -59,13 +76,13 @@ public interface AccountCredentialsService<R extends UserCredentials, E extends 
     public R getCredential(@NotNull String credentialId) throws NoSuchCredentialException;
 
     public R addCredential(@NotNull String accountId, @Nullable String credentialId, @NotNull UserCredentials uc)
-            throws NoSuchUserException, RegistrationException;
+        throws NoSuchUserException, RegistrationException;
 
     public R setCredential(@NotNull String credentialId, @NotNull UserCredentials credentials)
-            throws RegistrationException, NoSuchCredentialException;
+        throws RegistrationException, NoSuchCredentialException;
 
-//    public void resetCredentials(String accountId, String credentialsId)
-//            throws NoSuchUserException, NoSuchCredentialException;
+    //    public void resetCredentials(String accountId, String credentialsId)
+    //            throws NoSuchUserException, NoSuchCredentialException;
 
     public R revokeCredential(@NotNull String credentialId) throws NoSuchCredentialException, RegistrationException;
 
@@ -75,24 +92,23 @@ public interface AccountCredentialsService<R extends UserCredentials, E extends 
 
     public void deleteCredentialsByUser(@NotNull String userId);
 
-//    /*
-//     * Action urls
-//     */
-//    public String getSetUrl() throws NoSuchUserException;
+    //    /*
+    //     * Action urls
+    //     */
+    //    public String getSetUrl() throws NoSuchUserException;
     public String getRegisterUrl();
 
     public String getEditUrl(String credentialsId) throws NoSuchCredentialException;
 
-//
-//    /*
-//     * At least one between resetLink or resetCredentials is required to support
-//     * reset. Credentials used for login should be resettable, while those used for
-//     * MFA should be removed or revoked.
-//     */
-//    public String getResetUrl();
+    //
+    //    /*
+    //     * At least one between resetLink or resetCredentials is required to support
+    //     * reset. Credentials used for login should be resettable, while those used for
+    //     * MFA should be removed or revoked.
+    //     */
+    //    public String getResetUrl();
 
-    default public String getType() {
+    public default String getType() {
         return SystemKeys.RESOURCE_CREDENTIALS;
     }
-
 }

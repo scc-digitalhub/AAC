@@ -15,24 +15,20 @@
  */
 package it.smartcommunitylab.aac.services.persistence;
 
+import it.smartcommunitylab.aac.repository.CustomJpaRepository;
 import java.util.List;
-
 import org.springframework.stereotype.Repository;
 
-import it.smartcommunitylab.aac.repository.CustomJpaRepository;
-
 /**
- * 
+ *
  * @author raman
  *
  */
 @Repository
 public interface ServiceClaimRepository extends CustomJpaRepository<ServiceClaimEntity, Long> {
-
-//    @Query("select s from ServiceClaim s where s.service.serviceId = LOWER(?1)")
+    //    @Query("select s from ServiceClaim s where s.service.serviceId = LOWER(?1)")
     List<ServiceClaimEntity> findByServiceId(String serviceId);
 
-//    @Query("select s from ServiceClaim s where s.service.serviceId = LOWER(?1) and key = LOWER(?2)")
+    //    @Query("select s from ServiceClaim s where s.service.serviceId = LOWER(?1) and key = LOWER(?2)")
     ServiceClaimEntity findByServiceIdAndKey(String serviceId, String key);
-
 }

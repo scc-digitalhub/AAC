@@ -1,10 +1,24 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.oauth.auth;
 
-import java.util.Collection;
-
-import org.springframework.security.core.GrantedAuthority;
-
 import it.smartcommunitylab.aac.SystemKeys;
+import java.util.Collection;
+import org.springframework.security.core.GrantedAuthority;
 
 public class OAuth2ClientJwtAssertionAuthenticationToken extends OAuth2ClientAuthenticationToken {
 
@@ -14,17 +28,23 @@ public class OAuth2ClientJwtAssertionAuthenticationToken extends OAuth2ClientAut
 
     private String clientAssertion;
 
-    public OAuth2ClientJwtAssertionAuthenticationToken(String clientId, String clientAssertion,
-            String authenticationMethod) {
+    public OAuth2ClientJwtAssertionAuthenticationToken(
+        String clientId,
+        String clientAssertion,
+        String authenticationMethod
+    ) {
         super(clientId);
         this.clientAssertion = clientAssertion;
         this.authenticationMethod = authenticationMethod;
         setAuthenticated(false);
     }
 
-    public OAuth2ClientJwtAssertionAuthenticationToken(String clientId, String clientAssertion,
-            String authenticationMethod,
-            Collection<? extends GrantedAuthority> authorities) {
+    public OAuth2ClientJwtAssertionAuthenticationToken(
+        String clientId,
+        String clientAssertion,
+        String authenticationMethod,
+        Collection<? extends GrantedAuthority> authorities
+    ) {
         super(clientId, authorities);
         this.clientAssertion = clientAssertion;
         this.authenticationMethod = authenticationMethod;
@@ -44,5 +64,4 @@ public class OAuth2ClientJwtAssertionAuthenticationToken extends OAuth2ClientAut
         super.eraseCredentials();
         this.clientAssertion = null;
     }
-
 }
