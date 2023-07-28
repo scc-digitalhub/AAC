@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.base;
+package it.smartcommunitylab.aac.base.provider;
 
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
-import it.smartcommunitylab.aac.base.provider.AbstractConfigurationProvider;
+import it.smartcommunitylab.aac.base.provider.config.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.core.provider.IdentityProviderConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.config.ConfigurableIdentityProvider;
 
@@ -27,7 +27,7 @@ public abstract class AbstractIdentityConfigurationProvider<
     extends AbstractConfigurationProvider<M, ConfigurableIdentityProvider, C>
     implements IdentityProviderConfigurationProvider<M, C> {
 
-    public AbstractIdentityConfigurationProvider(String authority) {
+    protected AbstractIdentityConfigurationProvider(String authority) {
         super(authority);
     }
 

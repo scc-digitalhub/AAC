@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.base;
+package it.smartcommunitylab.aac.base.provider;
 
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.provider.LoginProvider;
-import java.util.Locale;
 import java.util.Map;
 import org.springframework.util.Assert;
 

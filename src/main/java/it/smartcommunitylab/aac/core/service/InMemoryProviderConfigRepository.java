@@ -16,7 +16,7 @@
 
 package it.smartcommunitylab.aac.core.service;
 
-import it.smartcommunitylab.aac.base.AbstractProviderConfig;
+import it.smartcommunitylab.aac.base.provider.config.AbstractProviderConfig;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import java.util.Collection;
 import java.util.Map;

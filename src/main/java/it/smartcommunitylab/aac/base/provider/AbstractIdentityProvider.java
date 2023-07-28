@@ -17,7 +17,11 @@
 package it.smartcommunitylab.aac.base.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.AbstractAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
+import it.smartcommunitylab.aac.base.model.AbstractUserAccount;
+import it.smartcommunitylab.aac.base.model.AbstractUserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.base.model.AbstractUserIdentity;
+import it.smartcommunitylab.aac.base.provider.config.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
@@ -34,7 +38,6 @@ import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
 import it.smartcommunitylab.aac.core.provider.config.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.provider.config.IdentityProviderConfig;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -47,18 +50,18 @@ import org.springframework.util.Assert;
 
 @Transactional
 public abstract class AbstractIdentityProvider<
-    I extends UserIdentity,
-    U extends UserAccount,
-    P extends UserAuthenticatedPrincipal,
-    M extends ConfigMap,
-    C extends IdentityProviderConfig<M>
+    I extends AbstractUserIdentity,
+    U extends AbstractUserAccount,
+    P extends AbstractUserAuthenticatedPrincipal,
+    M extends AbstractConfigMap,
+    C extends AbstractIdentityProviderConfig<M>
 >
     extends AbstractConfigurableResourceProvider<I, ConfigurableIdentityProvider, M, C>
     implements IdentityProvider<I, U, P, M, C>, InitializingBean {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    public AbstractIdentityProvider(String authority, String providerId, C config, String realm) {
+    protected AbstractIdentityProvider(String authority, String providerId, C config, String realm) {
         super(authority, providerId, realm, config);
         Assert.notNull(config, "provider config is mandatory");
 
@@ -228,8 +231,8 @@ public abstract class AbstractIdentityProvider<
         // uuid is available for persisted accounts
         String uuid = account.getUuid();
         // set uuid on principal when possible
-        if (principal instanceof AbstractAuthenticatedPrincipal) {
-            ((AbstractAuthenticatedPrincipal) principal).setUuid(uuid);
+        if (principal instanceof AbstractUserAuthenticatedPrincipal) {
+            ((AbstractUserAuthenticatedPrincipal) principal).setUuid(uuid);
         }
 
         // convert attribute sets via provider, will update store

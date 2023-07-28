@@ -18,7 +18,7 @@ package it.smartcommunitylab.aac.openid.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.OpenIdAttributesSet;
-import it.smartcommunitylab.aac.base.AbstractAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.base.model.AbstractUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.openid.OIDCKeys;
 import java.io.Serializable;
 import java.util.HashMap;
@@ -28,7 +28,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-public class OIDCUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincipal {
+public class OIDCUserAuthenticatedPrincipal extends AbstractUserAuthenticatedPrincipal {
 
     private static final long serialVersionUID = SystemKeys.AAC_OIDC_SERIAL_VERSION;
     public static final String RESOURCE_TYPE =

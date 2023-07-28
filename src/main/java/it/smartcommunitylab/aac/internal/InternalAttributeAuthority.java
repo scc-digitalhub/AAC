@@ -18,7 +18,7 @@ package it.smartcommunitylab.aac.internal;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
-import it.smartcommunitylab.aac.base.AbstractSingleConfigurableProviderAuthority;
+import it.smartcommunitylab.aac.base.authorities.AbstractSingleConfigurableProviderAuthority;
 import it.smartcommunitylab.aac.core.authorities.AttributeProviderAuthority;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;

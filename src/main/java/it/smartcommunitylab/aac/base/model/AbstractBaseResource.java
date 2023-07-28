@@ -24,11 +24,11 @@ public abstract class AbstractBaseResource implements Resource {
 
     @JsonInclude
     @Transient
-    protected final String authority;
+    protected String authority;
 
     @JsonInclude
     @Transient
-    protected final String provider;
+    protected String provider;
 
     @JsonInclude
     protected final String realm;
@@ -57,13 +57,13 @@ public abstract class AbstractBaseResource implements Resource {
     // by default resources are stored in repositories
     // authorityId and provider are transient: implementations should avoid
     // persisting these attributes
-    // public void setAuthority(String authority) {
-    //     this.authority = authority;
-    // }
+    public void setAuthority(String authority) {
+        this.authority = authority;
+    }
 
-    // public void setProvider(String provider) {
-    //     this.provider = provider;
-    // }
+    public void setProvider(String provider) {
+        this.provider = provider;
+    }
 
     // //realm is persisted, let actual classes handle
     // public abstract void setRealm(String realm);

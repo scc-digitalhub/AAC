@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
-import it.smartcommunitylab.aac.base.model.AbstractAccount;
+import it.smartcommunitylab.aac.base.model.AbstractUserAccount;
 import it.smartcommunitylab.aac.base.model.AbstractUserCredentials;
 import it.smartcommunitylab.aac.core.provider.config.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.provider.config.ConfigurableIdentityProvider;
@@ -56,7 +56,7 @@ public class RealmConfig {
     private List<ClientApp> clientApps;
 
     // user accounts
-    private List<AbstractAccount> users;
+    private List<AbstractUserAccount> users;
 
     // credentials
     private List<AbstractUserCredentials> credentials;
@@ -116,11 +116,11 @@ public class RealmConfig {
         this.clientApps = clientApps;
     }
 
-    public List<AbstractAccount> getUsers() {
+    public List<AbstractUserAccount> getUsers() {
         return users;
     }
 
-    public void setUsers(List<AbstractAccount> users) {
+    public void setUsers(List<AbstractUserAccount> users) {
         this.users = users;
     }
 

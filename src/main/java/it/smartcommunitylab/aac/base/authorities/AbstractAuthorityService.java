@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.base;
+package it.smartcommunitylab.aac.base.authorities;
 
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.core.authorities.AuthorityService;
-import it.smartcommunitylab.aac.core.authorities.ProviderAuthority;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -26,12 +25,13 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.util.Assert;
 
-public abstract class AbstractAuthorityService<A extends ProviderAuthority<?, ?>> implements AuthorityService<A> {
+public abstract class AbstractAuthorityService<A extends AbstractProviderAuthority<?, ?, ?, ?, ?>>
+    implements AuthorityService<A> {
 
     private final String type;
     protected Map<String, A> authorities;
 
-    public AbstractAuthorityService(String type) {
+    protected AbstractAuthorityService(String type) {
         Assert.hasText(type, "type is mandatory");
         this.type = type;
         authorities = Collections.emptyMap();

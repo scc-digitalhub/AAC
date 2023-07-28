@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.password;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.AbstractIdentityAuthority;
+import it.smartcommunitylab.aac.base.authorities.AbstractIdentityAuthority;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;

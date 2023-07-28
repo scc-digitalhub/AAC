@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.base;
+package it.smartcommunitylab.aac.base.authorities;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
-
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
+import it.smartcommunitylab.aac.base.provider.AbstractConfigurableResourceProvider;
+import it.smartcommunitylab.aac.base.provider.config.AbstractProviderConfig;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.core.authorities.ProviderAuthority;
 import it.smartcommunitylab.aac.core.model.Resource;
 import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.core.provider.config.AbstractConfigurableProviderI;
-
+import it.smartcommunitylab.aac.core.provider.config.AbstractConfigurableProvider;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -39,9 +39,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
 public abstract class AbstractProviderAuthority<
-    S extends ConfigurableResourceProvider<R, T, M, C>,
+    S extends AbstractConfigurableResourceProvider<R, T, M, C>,
     R extends Resource,
-    T extends AbstractConfigurableProviderI,
+    T extends AbstractConfigurableProvider,
     M extends AbstractConfigMap,
     C extends AbstractProviderConfig<M, T>
 >
@@ -82,7 +82,7 @@ public abstract class AbstractProviderAuthority<
             }
         );
 
-    public AbstractProviderAuthority(String authorityId, ProviderConfigRepository<C> registrationRepository) {
+    protected AbstractProviderAuthority(String authorityId, ProviderConfigRepository<C> registrationRepository) {
         Assert.hasText(authorityId, "authority id  is mandatory");
         Assert.notNull(registrationRepository, "provider registration repository is mandatory");
 
@@ -90,7 +90,6 @@ public abstract class AbstractProviderAuthority<
         this.registrationRepository = registrationRepository;
     }
 
-    @Override
     public String getAuthorityId() {
         return authorityId;
     }

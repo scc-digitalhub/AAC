@@ -18,7 +18,7 @@ package it.smartcommunitylab.aac.openid.persistence;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.model.AbstractAccount;
+import it.smartcommunitylab.aac.base.model.AbstractUserAccount;
 import it.smartcommunitylab.aac.model.SubjectStatus;
 import it.smartcommunitylab.aac.repository.HashMapSerializableConverter;
 import java.io.Serializable;
@@ -43,7 +43,7 @@ import org.springframework.util.StringUtils;
 @IdClass(OIDCUserAccountId.class)
 @Table(name = "oidc_users")
 @EntityListeners(AuditingEntityListener.class)
-public class OIDCUserAccount extends AbstractAccount {
+public class OIDCUserAccount extends AbstractUserAccount {
 
     private static final long serialVersionUID = SystemKeys.AAC_OIDC_SERIAL_VERSION;
     public static final String RESOURCE_TYPE =

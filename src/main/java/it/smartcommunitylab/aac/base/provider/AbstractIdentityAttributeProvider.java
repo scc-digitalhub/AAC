@@ -16,11 +16,9 @@
 
 package it.smartcommunitylab.aac.base.provider;
 
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.model.AbstractAccount;
-import it.smartcommunitylab.aac.core.model.UserAccount;
+import it.smartcommunitylab.aac.base.model.AbstractUserAccount;
+import it.smartcommunitylab.aac.base.model.AbstractUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.IdentityAttributeProvider;
 import java.io.Serializable;
 import java.util.Collection;
@@ -28,7 +26,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public abstract class AbstractIdentityAttributeProvider<P extends UserAuthenticatedPrincipal, U extends UserAccount>
+public abstract class AbstractIdentityAttributeProvider<
+    P extends AbstractUserAuthenticatedPrincipal, U extends AbstractUserAccount
+>
     extends AbstractProvider<UserAttributes>
     implements IdentityAttributeProvider<P, U> {
 
@@ -36,19 +36,19 @@ public abstract class AbstractIdentityAttributeProvider<P extends UserAuthentica
         super(authority, provider, realm);
     }
 
-    @Override
-    public final String getType() {
-        return SystemKeys.RESOURCE_ATTRIBUTES;
-    }
+    // @Override
+    // public final String getType() {
+    //     return SystemKeys.RESOURCE_ATTRIBUTES;
+    // }
 
     @Override
     public Collection<UserAttributes> convertPrincipalAttributes(P principal, U account) {
         String id = principal.getPrincipalId();
         Map<String, Serializable> attributes = principal.getAttributes();
 
-        if (account instanceof AbstractAccount) {
+        if (account instanceof AbstractUserAccount) {
             // set principal attrs in account
-            ((AbstractAccount) account).setAttributes(attributes);
+            ((AbstractUserAccount) account).setAttributes(attributes);
         }
 
         // call extract to transform
@@ -65,9 +65,9 @@ public abstract class AbstractIdentityAttributeProvider<P extends UserAuthentica
         String id = account.getAccountId();
         Map<String, Serializable> attributes = Collections.emptyMap();
 
-        if (account instanceof AbstractAccount) {
+        if (account instanceof AbstractUserAccount) {
             // read principal attrs from account
-            attributes = ((AbstractAccount) account).getAttributes();
+            attributes = ((AbstractUserAccount) account).getAttributes();
         }
 
         // call extract to transform

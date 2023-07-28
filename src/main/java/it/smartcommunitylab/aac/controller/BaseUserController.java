@@ -19,7 +19,7 @@ package it.smartcommunitylab.aac.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.model.AbstractAccount;
+import it.smartcommunitylab.aac.base.model.AbstractUserAccount;
 import it.smartcommunitylab.aac.base.model.AbstractEditableAccount;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
@@ -201,7 +201,7 @@ public class BaseUserController implements InitializingBean {
     public UserAccount createUserAccount(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
-        @RequestBody @Valid @NotNull AbstractAccount reg
+        @RequestBody @Valid @NotNull AbstractUserAccount reg
     )
         throws NoSuchRealmException, RegistrationException, NoSuchUserException, NoSuchProviderException, NoSuchAuthorityException {
         logger.debug("register user for realm {}", StringUtils.trimAllWhitespace(realm));
@@ -255,7 +255,7 @@ public class BaseUserController implements InitializingBean {
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid,
-        @RequestBody @Valid @NotNull AbstractAccount reg
+        @RequestBody @Valid @NotNull AbstractUserAccount reg
     )
         throws NoSuchUserException, NoSuchRealmException, RegistrationException, NoSuchProviderException, NoSuchAuthorityException {
         logger.debug(

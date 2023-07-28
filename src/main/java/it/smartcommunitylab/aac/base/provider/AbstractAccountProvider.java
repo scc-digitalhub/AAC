@@ -17,9 +17,8 @@
 package it.smartcommunitylab.aac.base.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.model.AbstractAccount;
+import it.smartcommunitylab.aac.base.model.AbstractUserAccount;
 import it.smartcommunitylab.aac.common.MissingDataException;
-import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.provider.AccountProvider;
@@ -34,7 +33,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 @Transactional
-public class AbstractAccountProvider<U extends AbstractAccount>
+public abstract class AbstractAccountProvider<U extends AbstractUserAccount>
     extends AbstractProvider<U>
     implements AccountProvider<U> {
 
@@ -45,7 +44,7 @@ public class AbstractAccountProvider<U extends AbstractAccount>
     protected final String repositoryId;
     private ResourceEntityService resourceService;
 
-    public AbstractAccountProvider(
+    protected AbstractAccountProvider(
         String authority,
         String providerId,
         UserAccountService<U> accountService,
@@ -71,10 +70,10 @@ public class AbstractAccountProvider<U extends AbstractAccount>
         this.resourceService = resourceService;
     }
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_ACCOUNT;
-    }
+    // @Override
+    // public String getType() {
+    //     return SystemKeys.RESOURCE_ACCOUNT;
+    // }
 
     @Override
     @Transactional(readOnly = true)
@@ -173,7 +172,7 @@ public class AbstractAccountProvider<U extends AbstractAccount>
     }
 
     @Override
-    public void deleteAccount(String accountId) throws NoSuchUserException {
+    public void deleteAccount(String accountId) {
         U account = findAccount(accountId);
 
         if (account != null) {
@@ -197,7 +196,7 @@ public class AbstractAccountProvider<U extends AbstractAccount>
         List<U> accounts = accountService.findAccountByUser(repositoryId, userId);
         for (U a : accounts) {
             // remove account
-            accountService.deleteAccount(repositoryId, a.getAccountId());
+            accountService.deleteAccount(repositoryId, a.getId());
 
             if (resourceService != null) {
                 // remove resource
@@ -205,7 +204,7 @@ public class AbstractAccountProvider<U extends AbstractAccount>
                     SystemKeys.RESOURCE_ACCOUNT,
                     getAuthority(),
                     getProvider(),
-                    a.getAccountId()
+                    a.getId()
                 );
             }
         }

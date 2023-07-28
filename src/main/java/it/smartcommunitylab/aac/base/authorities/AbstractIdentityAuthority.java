@@ -14,39 +14,32 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.base;
+package it.smartcommunitylab.aac.base.authorities;
 
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
+import it.smartcommunitylab.aac.base.model.AbstractUserIdentity;
+import it.smartcommunitylab.aac.base.provider.AbstractIdentityProvider;
+import it.smartcommunitylab.aac.base.provider.config.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
-import it.smartcommunitylab.aac.core.model.ConfigMap;
-import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
-import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProviderConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.config.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.provider.config.IdentityProviderConfig;
-
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
-public abstract class AbstractSingleProviderIdentityAuthority<
-    S extends IdentityProvider<I, ?, ?, M, C>,
-    I extends UserIdentity,
+public abstract class AbstractIdentityAuthority<
+    S extends AbstractIdentityProvider<I, ?, ?, M, C>,
+    I extends AbstractUserIdentity,
     M extends AbstractConfigMap,
     C extends AbstractIdentityProviderConfig<M>
 >
-    extends AbstractSingleConfigurableProviderAuthority<S, I, ConfigurableIdentityProvider, M, C>
-    implements IdentityProviderAuthority<S, I, M, C>, InitializingBean {
+    extends AbstractConfigurableProviderAuthority<S, I, ConfigurableIdentityProvider, M, C>
+    implements IdentityProviderAuthority<S, I, M, C> {
 
     // configuration provider
     protected IdentityProviderConfigurationProvider<M, C> configProvider;
 
-    public AbstractSingleProviderIdentityAuthority(
-        String authorityId,
-        ProviderConfigRepository<C> registrationRepository
-    ) {
+    protected AbstractIdentityAuthority(String authorityId, ProviderConfigRepository<C> registrationRepository) {
         super(authorityId, registrationRepository);
     }
 
@@ -56,10 +49,10 @@ public abstract class AbstractSingleProviderIdentityAuthority<
         Assert.notNull(configProvider, "config provider is mandatory");
     }
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_IDENTITY;
-    }
+    // @Override
+    // public String getType() {
+    //     return SystemKeys.RESOURCE_IDENTITY;
+    // }
 
     @Override
     public IdentityProviderConfigurationProvider<M, C> getConfigurationProvider() {

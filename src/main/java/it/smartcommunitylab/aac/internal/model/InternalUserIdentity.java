@@ -18,7 +18,7 @@ package it.smartcommunitylab.aac.internal.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.model.AbstractIdentity;
+import it.smartcommunitylab.aac.base.model.AbstractUserIdentity;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.model.UserCredentialsIdentity;
@@ -34,7 +34,7 @@ import org.springframework.util.Assert;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class InternalUserIdentity extends AbstractIdentity implements UserCredentialsIdentity {
+public class InternalUserIdentity extends AbstractUserIdentity implements UserCredentialsIdentity {
 
     private static final long serialVersionUID = SystemKeys.AAC_INTERNAL_SERIAL_VERSION;
     public static final String RESOURCE_TYPE =

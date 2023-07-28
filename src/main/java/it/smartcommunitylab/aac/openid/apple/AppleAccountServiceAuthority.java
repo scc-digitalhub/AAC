@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.openid.apple;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.AbstractProviderAuthority;
+import it.smartcommunitylab.aac.base.authorities.AbstractProviderAuthority;
 import it.smartcommunitylab.aac.base.model.AbstractEditableAccount;
 import it.smartcommunitylab.aac.core.authorities.AccountServiceAuthority;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;

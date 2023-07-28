@@ -14,28 +14,30 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.base;
+package it.smartcommunitylab.aac.base.authorities;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
+import it.smartcommunitylab.aac.base.provider.AbstractConfigurableResourceProvider;
+import it.smartcommunitylab.aac.base.provider.config.AbstractProviderConfig;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.authorities.ConfigurableProviderAuthority;
+import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.Resource;
 import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
 import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.config.AbstractConfigurableProvider;
-import it.smartcommunitylab.aac.core.provider.config.AbstractConfigurableProviderI;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
 public abstract class AbstractConfigurableProviderAuthority<
-    S extends ConfigurableResourceProvider<R, T, M, C>,
+    S extends AbstractConfigurableResourceProvider<R, T, M, C>,
     R extends Resource,
-    T extends AbstractConfigurableProviderI,
+    T extends AbstractConfigurableProvider,
     M extends AbstractConfigMap,
     C extends AbstractProviderConfig<M, T>
 >
@@ -44,7 +46,7 @@ public abstract class AbstractConfigurableProviderAuthority<
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    public AbstractConfigurableProviderAuthority(
+    protected AbstractConfigurableProviderAuthority(
         String authorityId,
         ProviderConfigRepository<C> registrationRepository
     ) {
@@ -60,7 +62,8 @@ public abstract class AbstractConfigurableProviderAuthority<
     public abstract ConfigurationProvider<M, T, C> getConfigurationProvider();
 
     @Override
-    public C registerProvider(AbstractConfigurableProvider cp) throws RegistrationException {
+    public C registerProvider(ConfigurableProvider cp)
+        throws IllegalArgumentException, RegistrationException, SystemException {
         // cast config and handle errors
         T tcp = null;
         try {

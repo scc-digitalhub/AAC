@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.internal.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.AbstractIdentityServiceConfig;
+import it.smartcommunitylab.aac.base.provider.config.AbstractIdentityServiceConfig;
 import it.smartcommunitylab.aac.core.provider.config.ConfigurableIdentityService;
 
 public class InternalIdentityServiceConfig extends AbstractIdentityServiceConfig<InternalIdentityProviderConfigMap> {

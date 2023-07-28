@@ -14,25 +14,22 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.base;
+package it.smartcommunitylab.aac.base.authorities;
 
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
+import it.smartcommunitylab.aac.base.model.AbstractUserCredentials;
+import it.smartcommunitylab.aac.base.provider.config.AbstractCredentialsServiceConfig;
 import it.smartcommunitylab.aac.core.authorities.CredentialsServiceAuthority;
-import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.EditableUserCredentials;
-import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.provider.AccountCredentialsService;
-import it.smartcommunitylab.aac.core.provider.CredentialsServiceConfig;
 import it.smartcommunitylab.aac.core.provider.CredentialsServiceConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.config.ConfigurableCredentialsProvider;
-
 import org.springframework.util.Assert;
 
 public abstract class AbstractCredentialsAuthority<
     S extends AccountCredentialsService<R, E, M, C>,
-    R extends UserCredentials,
+    R extends AbstractUserCredentials,
     E extends EditableUserCredentials,
     M extends AbstractConfigMap,
     C extends AbstractCredentialsServiceConfig<M>
@@ -43,7 +40,7 @@ public abstract class AbstractCredentialsAuthority<
     // configuration provider
     protected CredentialsServiceConfigurationProvider<M, C> configProvider;
 
-    public AbstractCredentialsAuthority(String authorityId, ProviderConfigRepository<C> registrationRepository) {
+    protected AbstractCredentialsAuthority(String authorityId, ProviderConfigRepository<C> registrationRepository) {
         super(authorityId, registrationRepository);
     }
 
@@ -53,10 +50,10 @@ public abstract class AbstractCredentialsAuthority<
         Assert.notNull(configProvider, "config provider is mandatory");
     }
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_CREDENTIALS;
-    }
+    // @Override
+    // public String getType() {
+    //     return SystemKeys.RESOURCE_CREDENTIALS;
+    // }
 
     @Override
     public CredentialsServiceConfigurationProvider<M, C> getConfigurationProvider() {

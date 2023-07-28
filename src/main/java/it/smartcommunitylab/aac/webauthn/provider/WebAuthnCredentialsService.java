@@ -22,7 +22,7 @@ import com.yubico.webauthn.data.AuthenticatorTransport;
 import com.yubico.webauthn.data.ClientRegistrationExtensionOutputs;
 import com.yubico.webauthn.data.PublicKeyCredential;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.AbstractCredentialsService;
+import it.smartcommunitylab.aac.base.provider.AbstractCredentialsService;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.InvalidDataException;
 import it.smartcommunitylab.aac.common.MissingDataException;

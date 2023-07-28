@@ -18,7 +18,7 @@ package it.smartcommunitylab.aac.internal.persistence;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.model.AbstractAccount;
+import it.smartcommunitylab.aac.base.model.AbstractUserAccount;
 import it.smartcommunitylab.aac.model.SubjectStatus;
 import java.io.Serializable;
 import java.util.Date;
@@ -43,7 +43,7 @@ import org.springframework.util.StringUtils;
 @Table(name = "internal_users")
 @EntityListeners(AuditingEntityListener.class)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class InternalUserAccount extends AbstractAccount implements CredentialsContainer {
+public class InternalUserAccount extends AbstractUserAccount implements CredentialsContainer {
 
     private static final long serialVersionUID = SystemKeys.AAC_INTERNAL_SERIAL_VERSION;
     public static final String RESOURCE_TYPE =

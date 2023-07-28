@@ -19,7 +19,7 @@ package it.smartcommunitylab.aac.saml.provider;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.AbstractIdentityProviderConfig;
+import it.smartcommunitylab.aac.base.provider.config.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.core.provider.config.ConfigurableIdentityProvider;
 
 import java.io.IOException;

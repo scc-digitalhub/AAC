@@ -39,14 +39,21 @@ import java.util.Map;
         @Type(value = SamlUserAccount.class, name = SamlUserAccount.RESOURCE_TYPE),
     }
 )
-public abstract class AbstractAccount extends AbstractBaseUserResource implements UserAccount {
+public abstract class AbstractUserAccount extends AbstractBaseUserResource implements UserAccount {
 
-    protected AbstractAccount(String authority, String provider, String realm, String id) {
+    protected AbstractUserAccount(String authority, String provider, String realm, String id) {
         super(authority, provider, realm, id, null);
     }
 
-    protected AbstractAccount(String authority, String provider, String realm, String id, String userId) {
+    protected AbstractUserAccount(String authority, String provider, String realm, String id, String userId) {
         super(authority, provider, realm, id, userId);
+    }
+
+    public abstract String getAccountId();
+
+    @Override
+    public String getId() {
+        return getUuid();
     }
 
     // uuid is mandatory

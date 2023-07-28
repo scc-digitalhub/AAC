@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.base;
+package it.smartcommunitylab.aac.base.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.model.AbstractAccount;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.base.model.AbstractEditableAccount;
-import it.smartcommunitylab.aac.base.provider.AbstractConfigurableResourceProvider;
+import it.smartcommunitylab.aac.base.model.AbstractUserAccount;
+import it.smartcommunitylab.aac.base.provider.config.AbstractAccountServiceConfig;
 import it.smartcommunitylab.aac.common.MissingDataException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.EditableUserAccount;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.provider.AccountService;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
-import it.smartcommunitylab.aac.core.provider.config.AccountServiceConfig;
 import it.smartcommunitylab.aac.core.provider.config.ConfigurableAccountProvider;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.model.PersistenceMode;
@@ -47,7 +45,7 @@ import org.springframework.util.StringUtils;
 
 @Transactional
 public abstract class AbstractAccountService<
-    U extends AbstractAccount,
+    U extends AbstractUserAccount,
     E extends AbstractEditableAccount,
     M extends AbstractConfigMap,
     C extends AbstractAccountServiceConfig<M>
@@ -61,10 +59,9 @@ public abstract class AbstractAccountService<
     protected ResourceEntityService resourceService;
 
     // provider configuration
-    protected final C config;
     protected final String repositoryId;
 
-    public AbstractAccountService(
+    protected AbstractAccountService(
         String authority,
         String providerId,
         UserAccountService<U> userAccountService,
@@ -75,7 +72,6 @@ public abstract class AbstractAccountService<
         Assert.notNull(userAccountService, "user account service is mandatory");
         Assert.notNull(config, "provider config is mandatory");
 
-        this.config = config;
         this.repositoryId = config.getRepositoryId();
         logger.debug(
             "create {} account service for realm {} with id {} repository {}",
@@ -148,7 +144,7 @@ public abstract class AbstractAccountService<
     }
 
     @Override
-    public void deleteAccount(String accountId) throws NoSuchUserException {
+    public void deleteAccount(String accountId) {
         U account = findAccount(accountId);
 
         if (account != null) {

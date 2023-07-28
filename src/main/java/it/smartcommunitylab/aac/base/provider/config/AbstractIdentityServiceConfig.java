@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.base;
+package it.smartcommunitylab.aac.base.provider.config;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -24,34 +24,30 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
-import it.smartcommunitylab.aac.core.provider.CredentialsServiceConfig;
-import it.smartcommunitylab.aac.core.provider.config.ConfigurableCredentialsProvider;
-import it.smartcommunitylab.aac.password.provider.PasswordCredentialsServiceConfig;
-import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsServiceConfig;
+import it.smartcommunitylab.aac.core.provider.config.ConfigurableIdentityService;
+import it.smartcommunitylab.aac.core.provider.config.IdentityServiceConfig;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityServiceConfig;
 import org.springframework.util.StringUtils;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes(
-    {
-        @Type(value = PasswordCredentialsServiceConfig.class, name = PasswordCredentialsServiceConfig.RESOURCE_TYPE),
-        @Type(value = WebAuthnCredentialsServiceConfig.class, name = WebAuthnCredentialsServiceConfig.RESOURCE_TYPE),
-    }
+    { @Type(value = InternalIdentityServiceConfig.class, name = InternalIdentityServiceConfig.RESOURCE_TYPE) }
 )
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(Include.ALWAYS)
-public abstract class AbstractCredentialsServiceConfig<M extends AbstractConfigMap>
-    extends AbstractProviderConfig<M, ConfigurableCredentialsProvider>
-    implements CredentialsServiceConfig<M> {
+public abstract class AbstractIdentityServiceConfig<M extends AbstractConfigMap>
+    extends AbstractProviderConfig<M, ConfigurableIdentityService>
+    implements IdentityServiceConfig<M> {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     protected String repositoryId;
 
-    protected AbstractCredentialsServiceConfig(String authority, String provider, String realm, M configMap) {
+    protected AbstractIdentityServiceConfig(String authority, String provider, String realm, M configMap) {
         super(authority, provider, realm, configMap);
     }
 
-    protected AbstractCredentialsServiceConfig(ConfigurableCredentialsProvider cp, M configMap) {
+    protected AbstractIdentityServiceConfig(ConfigurableIdentityService cp, M configMap) {
         super(cp, configMap);
         this.repositoryId = cp.getRepositoryId();
     }

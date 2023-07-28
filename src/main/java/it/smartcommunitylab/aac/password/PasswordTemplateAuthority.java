@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.password;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.AbstractSingleConfigurableProviderAuthority;
+import it.smartcommunitylab.aac.base.authorities.AbstractSingleConfigurableProviderAuthority;
 import it.smartcommunitylab.aac.core.authorities.TemplateProviderAuthority;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.config.ConfigurableTemplateProvider;

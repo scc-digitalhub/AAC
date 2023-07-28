@@ -37,13 +37,13 @@ import it.smartcommunitylab.aac.saml.model.SamlUserIdentity;
         @Type(value = SamlUserIdentity.class, name = SamlUserIdentity.RESOURCE_TYPE),
     }
 )
-public abstract class AbstractIdentity extends AbstractBaseUserResource implements UserIdentity {
+public abstract class AbstractUserIdentity extends AbstractBaseUserResource implements UserIdentity {
 
-    protected AbstractIdentity(String authority, String provider, String realm, String id) {
+    protected AbstractUserIdentity(String authority, String provider, String realm, String id) {
         super(authority, provider, realm, id, null);
     }
 
-    protected AbstractIdentity(String authority, String provider, String realm, String id, String userId) {
+    protected AbstractUserIdentity(String authority, String provider, String realm, String id, String userId) {
         super(authority, provider, realm, id, userId);
     }
 

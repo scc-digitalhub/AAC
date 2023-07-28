@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.saml.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.AbstractAccountServiceConfig;
+import it.smartcommunitylab.aac.base.provider.config.AbstractAccountServiceConfig;
 import it.smartcommunitylab.aac.core.provider.config.ConfigurableAccountProvider;
 
 public class SamlAccountServiceConfig extends AbstractAccountServiceConfig<SamlIdentityProviderConfigMap> {

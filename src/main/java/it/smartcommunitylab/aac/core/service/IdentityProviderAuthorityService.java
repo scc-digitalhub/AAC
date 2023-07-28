@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.core.service;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.AbstractConfigurableAuthorityService;
+import it.smartcommunitylab.aac.base.authorities.AbstractConfigurableAuthorityService;
 import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
 
 import java.util.Collection;

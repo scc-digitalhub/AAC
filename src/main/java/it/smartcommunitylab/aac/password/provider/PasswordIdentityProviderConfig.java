@@ -18,7 +18,7 @@ package it.smartcommunitylab.aac.password.provider;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.AbstractIdentityProviderConfig;
+import it.smartcommunitylab.aac.base.provider.config.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.core.provider.config.ConfigurableIdentityProvider;
 
 public class PasswordIdentityProviderConfig extends AbstractIdentityProviderConfig<PasswordIdentityProviderConfigMap> {

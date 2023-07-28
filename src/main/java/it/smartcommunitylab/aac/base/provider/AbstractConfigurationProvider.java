@@ -23,13 +23,10 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-
-import it.smartcommunitylab.aac.base.AbstractProviderConfig;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
+import it.smartcommunitylab.aac.base.provider.config.AbstractProviderConfig;
 import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
-import it.smartcommunitylab.aac.core.provider.config.AbstractConfigurableProviderI;
-import it.smartcommunitylab.aac.core.provider.config.ProviderConfig;
-
+import it.smartcommunitylab.aac.core.provider.config.AbstractConfigurableProvider;
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -39,7 +36,7 @@ import java.util.Map;
 import org.springframework.util.Assert;
 
 public abstract class AbstractConfigurationProvider<
-    M extends AbstractConfigMap, T extends AbstractConfigurableProviderI, C extends AbstractProviderConfig<M, T>
+    M extends AbstractConfigMap, T extends AbstractConfigurableProvider, C extends AbstractProviderConfig<M, T>
 >
     implements ConfigurationProvider<M, T, C> {
 
@@ -51,7 +48,7 @@ public abstract class AbstractConfigurationProvider<
     protected final String authority;
     protected M defaultConfigMap;
 
-    public AbstractConfigurationProvider(String authority) {
+    protected AbstractConfigurationProvider(String authority) {
         Assert.hasText(authority, "authority id is mandatory");
         this.authority = authority;
 

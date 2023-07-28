@@ -19,7 +19,7 @@ package it.smartcommunitylab.aac.core;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.AttributeSetsManager;
-import it.smartcommunitylab.aac.base.model.AbstractAccount;
+import it.smartcommunitylab.aac.base.model.AbstractUserAccount;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
@@ -601,7 +601,7 @@ public class RealmManager {
         List<OIDCUserAccount> oidcUsers = oidcUserAccountService.findAccountByRealm(realm);
         List<SamlUserAccount> samlUsers = samlUserAccountService.findAccountByRealm(realm);
 
-        List<AbstractAccount> users = Stream
+        List<AbstractUserAccount> users = Stream
             .of(internalUsers, oidcUsers, samlUsers)
             .flatMap(l -> l.stream())
             .collect(Collectors.toList());

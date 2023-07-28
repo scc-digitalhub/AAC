@@ -1,7 +1,3 @@
-import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-import java.io.Serializable;
-import java.util.Map;
-
 /**
  * Copyright 2023 Fondazione Bruno Kessler
  *
@@ -17,6 +13,11 @@ import java.util.Map;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package it.smartcommunitylab.aac.core.model;
+
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import java.util.Map;
 
 /*
  * Mutable configuration for resource providers

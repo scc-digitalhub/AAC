@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.base;
+package it.smartcommunitylab.aac.base.model;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.model.AbstractBaseUserResource;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.openid.model.OIDCUserAuthenticatedPrincipal;
@@ -48,15 +47,15 @@ import org.springframework.util.StringUtils;
         @Type(value = SamlUserAuthenticatedPrincipal.class, name = SystemKeys.AUTHORITY_SAML),
     }
 )
-public abstract class AbstractAuthenticatedPrincipal
+public abstract class AbstractUserAuthenticatedPrincipal
     extends AbstractBaseUserResource
     implements UserAuthenticatedPrincipal {
 
-    protected AbstractAuthenticatedPrincipal(String authority, String provider, String realm, String id) {
+    protected AbstractUserAuthenticatedPrincipal(String authority, String provider, String realm, String id) {
         super(authority, provider, realm, id, null);
     }
 
-    protected AbstractAuthenticatedPrincipal(
+    protected AbstractUserAuthenticatedPrincipal(
         String authority,
         String provider,
         String realm,
@@ -64,6 +63,13 @@ public abstract class AbstractAuthenticatedPrincipal
         String userId
     ) {
         super(authority, provider, realm, id, userId);
+    }
+
+    public abstract String getPrincipalId();
+
+    @Override
+    public String getId() {
+        return getPrincipalId();
     }
 
     @Override

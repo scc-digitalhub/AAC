@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.nimbusds.jose.jwk.JWK;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.AbstractIdentityProviderConfig;
+import it.smartcommunitylab.aac.base.provider.config.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.core.provider.config.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import java.text.ParseException;

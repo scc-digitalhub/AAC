@@ -14,21 +14,17 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.base;
+package it.smartcommunitylab.aac.base.authorities;
 
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
+import it.smartcommunitylab.aac.base.provider.config.AbstractAttributeProviderConfig;
 import it.smartcommunitylab.aac.core.authorities.AttributeProviderAuthority;
-import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.provider.AttributeConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.core.provider.config.AttributeProviderConfig;
 import it.smartcommunitylab.aac.core.provider.config.ConfigurableAttributeProvider;
-
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 
@@ -36,7 +32,7 @@ public abstract class AbstractAttributeAuthority<
     S extends AttributeProvider<M, C>, M extends AbstractConfigMap, C extends AbstractAttributeProviderConfig<M>
 >
     extends AbstractConfigurableProviderAuthority<S, UserAttributes, ConfigurableAttributeProvider, M, C>
-    implements AttributeProviderAuthority<S, M, C>, InitializingBean {
+    implements AttributeProviderAuthority<S, M, C> {
 
     // attributes sets service
     protected final AttributeService attributeService;
@@ -44,7 +40,7 @@ public abstract class AbstractAttributeAuthority<
     // configuration provider
     protected AttributeConfigurationProvider<M, C> configProvider;
 
-    public AbstractAttributeAuthority(
+    protected AbstractAttributeAuthority(
         String authorityId,
         AttributeService attributeService,
         ProviderConfigRepository<C> registrationRepository
@@ -55,10 +51,10 @@ public abstract class AbstractAttributeAuthority<
         this.attributeService = attributeService;
     }
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_ATTRIBUTES;
-    }
+    // @Override
+    // public String getType() {
+    //     return SystemKeys.RESOURCE_ATTRIBUTES;
+    // }
 
     @Override
     public AttributeConfigurationProvider<M, C> getConfigurationProvider() {

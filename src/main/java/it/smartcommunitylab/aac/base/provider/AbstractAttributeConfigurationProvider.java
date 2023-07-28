@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.base;
+package it.smartcommunitylab.aac.base.provider;
 
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
-import it.smartcommunitylab.aac.base.provider.AbstractConfigurationProvider;
+import it.smartcommunitylab.aac.base.provider.config.AbstractAttributeProviderConfig;
 import it.smartcommunitylab.aac.core.provider.AttributeConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.config.ConfigurableAttributeProvider;
 
@@ -27,7 +27,7 @@ public abstract class AbstractAttributeConfigurationProvider<
     extends AbstractConfigurationProvider<M, ConfigurableAttributeProvider, C>
     implements AttributeConfigurationProvider<M, C> {
 
-    public AbstractAttributeConfigurationProvider(String authority) {
+    protected AbstractAttributeConfigurationProvider(String authority) {
         super(authority);
     }
 

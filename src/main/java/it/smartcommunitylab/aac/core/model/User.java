@@ -1,7 +1,3 @@
-import it.smartcommunitylab.aac.SystemKeys;
-import java.util.Collection;
-import java.util.Date;
-
 /**
  * Copyright 2023 Fondazione Bruno Kessler
  *
@@ -17,6 +13,12 @@ import java.util.Date;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package it.smartcommunitylab.aac.core.model;
+
+import it.smartcommunitylab.aac.SystemKeys;
+import java.util.Collection;
+import java.util.Date;
 
 /*
  * A User

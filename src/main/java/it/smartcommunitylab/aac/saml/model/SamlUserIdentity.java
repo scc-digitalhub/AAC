@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.saml.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.model.AbstractIdentity;
+import it.smartcommunitylab.aac.base.model.AbstractUserIdentity;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import java.util.Collection;
@@ -26,7 +26,7 @@ import java.util.HashSet;
 import java.util.Set;
 import org.springframework.util.Assert;
 
-public class SamlUserIdentity extends AbstractIdentity {
+public class SamlUserIdentity extends AbstractUserIdentity {
 
     private static final long serialVersionUID = SystemKeys.AAC_SAML_SERIAL_VERSION;
     public static final String RESOURCE_TYPE =

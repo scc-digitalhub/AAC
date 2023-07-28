@@ -22,7 +22,7 @@ import it.smartcommunitylab.aac.core.model.UserResource;
 public abstract class AbstractBaseUserResource extends AbstractBaseResource implements UserResource {
 
     @JsonInclude
-    protected final String userId;
+    protected String userId;
 
     protected AbstractBaseUserResource(String authority, String provider, String realm, String id, String userId) {
         super(authority, provider, realm, id);
@@ -40,8 +40,8 @@ public abstract class AbstractBaseUserResource extends AbstractBaseResource impl
         this((String) null, (String) null, (String) null, (String) null, (String) null);
     }
 
-    // //userId is persisted, let actual classes handle
-    // public abstract void setUserId(String userId);
+    //userId is persisted, let actual classes handle
+    public abstract void setUserId(String userId);
 
     @Override
     public String getUserId() {

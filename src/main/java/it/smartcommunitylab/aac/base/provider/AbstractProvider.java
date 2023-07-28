@@ -16,11 +16,8 @@
 
 package it.smartcommunitylab.aac.base.provider;
 
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.Resource;
 import it.smartcommunitylab.aac.core.provider.ResourceProvider;
-import java.util.regex.Pattern;
-import org.springframework.util.StringUtils;
 
 public abstract class AbstractProvider<R extends Resource> implements ResourceProvider<R> {
 
@@ -39,8 +36,12 @@ public abstract class AbstractProvider<R extends Resource> implements ResourcePr
         return authority;
     }
 
-    @Override
     public String getProvider() {
+        return provider;
+    }
+
+    @Override
+    public String getId() {
         return provider;
     }
 

@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.saml.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.AbstractLoginProvider;
+import it.smartcommunitylab.aac.base.provider.AbstractLoginProvider;
 
 import org.apache.commons.lang3.ArrayUtils;
 

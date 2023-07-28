@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.base;
+package it.smartcommunitylab.aac.base.authorities;
 
 import it.smartcommunitylab.aac.core.authorities.ConfigurableAuthorityService;
-import it.smartcommunitylab.aac.core.authorities.ConfigurableProviderAuthority;
 
-public abstract class AbstractConfigurableAuthorityService<A extends ConfigurableProviderAuthority<?, ?, ?, ?, ?>>
+public abstract class AbstractConfigurableAuthorityService<
+    A extends AbstractConfigurableProviderAuthority<?, ?, ?, ?, ?>
+>
     extends AbstractAuthorityService<A>
     implements ConfigurableAuthorityService<A> {
 
-    public AbstractConfigurableAuthorityService(String type) {
+    protected AbstractConfigurableAuthorityService(String type) {
         super(type);
     }
 }

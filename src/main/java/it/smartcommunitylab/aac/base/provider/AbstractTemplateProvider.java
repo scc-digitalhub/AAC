@@ -17,12 +17,11 @@
 package it.smartcommunitylab.aac.base.provider;
 
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
+import it.smartcommunitylab.aac.base.provider.config.AbstractTemplateProviderConfig;
 import it.smartcommunitylab.aac.common.NoSuchTemplateException;
-import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.Template;
 import it.smartcommunitylab.aac.core.provider.TemplateProvider;
 import it.smartcommunitylab.aac.core.provider.config.ConfigurableTemplateProvider;
-import it.smartcommunitylab.aac.core.provider.config.TemplateProviderConfig;
 import it.smartcommunitylab.aac.templates.model.TemplateModel;
 import it.smartcommunitylab.aac.templates.service.TemplateService;
 import java.util.Collection;
@@ -35,7 +34,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
 public abstract class AbstractTemplateProvider<
-    T extends TemplateModel, M extends AbstractConfigMap, C extends TemplateProviderConfig<M>
+    T extends TemplateModel, M extends AbstractConfigMap, C extends AbstractTemplateProviderConfig<M>
 >
     extends AbstractConfigurableResourceProvider<T, ConfigurableTemplateProvider, M, C>
     implements TemplateProvider<T, M, C>, InitializingBean {
@@ -43,7 +42,7 @@ public abstract class AbstractTemplateProvider<
     protected final TemplateService templateService;
     protected Map<String, Supplier<TemplateModel>> factories;
 
-    public AbstractTemplateProvider(
+    protected AbstractTemplateProvider(
         String authority,
         String providerId,
         TemplateService templateService,

@@ -54,48 +54,18 @@ public abstract class AbstractEditableUserCredentials
         generator = SchemaGeneratorFactory.build(schemaMapper);
     }
 
-    protected String uuid;
-    protected String userId;
-    protected String realm;
-
-    protected AbstractEditableUserCredentials(String authority, String provider, String uuid) {
-        super(authority, provider);
-        this.uuid = uuid;
+    protected AbstractEditableUserCredentials(String authority, String provider, String realm, String id) {
+        super(authority, provider, realm, id, null);
     }
 
-    @Override
-    public String getId() {
-        // use uuid from persisted model
-        return getUuid();
-    }
-
-    @Override
-    public String getResourceId() {
-        return getCredentialsId();
-    }
-
-    public String getUuid() {
-        return uuid;
-    }
-
-    public void setUuid(String uuid) {
-        this.uuid = uuid;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public String getRealm() {
-        return realm;
-    }
-
-    public void setRealm(String realm) {
-        this.realm = realm;
+    protected AbstractEditableUserCredentials(
+        String authority,
+        String provider,
+        String realm,
+        String id,
+        String userId
+    ) {
+        super(authority, provider, realm, id, userId);
     }
 
     @Override

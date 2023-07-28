@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.base;
+package it.smartcommunitylab.aac.base.provider.config;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
-import it.smartcommunitylab.aac.core.provider.config.AbstractConfigurableProviderI;
+import it.smartcommunitylab.aac.core.provider.config.AbstractConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.config.ProviderConfig;
-
 import java.io.Serializable;
 import java.util.Locale;
 import java.util.Map;
 
-public abstract class AbstractProviderConfig<M extends AbstractConfigMap, T extends AbstractConfigurableProviderI>
+public abstract class AbstractProviderConfig<M extends AbstractConfigMap, T extends AbstractConfigurableProvider>
     implements ProviderConfig<M>, Serializable {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;

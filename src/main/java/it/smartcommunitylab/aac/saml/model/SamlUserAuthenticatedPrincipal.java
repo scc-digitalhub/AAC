@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.saml.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.AbstractAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.base.model.AbstractUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.saml.SamlKeys;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -29,7 +29,7 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-public class SamlUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincipal {
+public class SamlUserAuthenticatedPrincipal extends AbstractUserAuthenticatedPrincipal {
 
     private static final long serialVersionUID = SystemKeys.AAC_SAML_SERIAL_VERSION;
     public static final String RESOURCE_TYPE =

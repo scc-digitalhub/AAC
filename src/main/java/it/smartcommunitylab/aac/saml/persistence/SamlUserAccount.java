@@ -18,7 +18,7 @@ package it.smartcommunitylab.aac.saml.persistence;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.model.AbstractAccount;
+import it.smartcommunitylab.aac.base.model.AbstractUserAccount;
 import it.smartcommunitylab.aac.model.SubjectStatus;
 import it.smartcommunitylab.aac.repository.HashMapSerializableConverter;
 import java.io.Serializable;
@@ -43,7 +43,7 @@ import org.springframework.util.StringUtils;
 @IdClass(SamlUserAccountId.class)
 @Table(name = "saml_users")
 @EntityListeners(AuditingEntityListener.class)
-public class SamlUserAccount extends AbstractAccount {
+public class SamlUserAccount extends AbstractUserAccount {
 
     private static final long serialVersionUID = SystemKeys.AAC_SAML_SERIAL_VERSION;
     public static final String RESOURCE_TYPE =

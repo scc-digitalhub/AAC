@@ -29,7 +29,7 @@ import it.smartcommunitylab.aac.attributes.provider.MapperAttributeProviderConfi
 import it.smartcommunitylab.aac.attributes.provider.ScriptAttributeProviderConfig;
 import it.smartcommunitylab.aac.attributes.provider.WebhookAttributeProviderConfig;
 import it.smartcommunitylab.aac.attributes.store.AutoJdbcAttributeStore;
-import it.smartcommunitylab.aac.base.AbstractProviderConfig;
+import it.smartcommunitylab.aac.base.provider.config.AbstractProviderConfig;
 import it.smartcommunitylab.aac.claims.ExtractorsRegistry;
 import it.smartcommunitylab.aac.claims.InMemoryExtractorsRegistry;
 import it.smartcommunitylab.aac.claims.ResourceClaimsExtractorProvider;

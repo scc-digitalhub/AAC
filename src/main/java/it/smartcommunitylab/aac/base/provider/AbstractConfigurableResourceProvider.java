@@ -16,18 +16,20 @@
 
 package it.smartcommunitylab.aac.base.provider;
 
-import it.smartcommunitylab.aac.core.model.ConfigMap;
+import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
+import it.smartcommunitylab.aac.base.provider.config.AbstractProviderConfig;
 import it.smartcommunitylab.aac.core.model.Resource;
 import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
 import it.smartcommunitylab.aac.core.provider.config.AbstractConfigurableProvider;
-import it.smartcommunitylab.aac.core.provider.config.ProviderConfig;
-
 import java.util.Locale;
 import java.util.Map;
 import org.springframework.util.Assert;
 
 public abstract class AbstractConfigurableResourceProvider<
-    R extends Resource, T extends AbstractConfigurableResourceProvider, M extends ConfigMap, C extends ProviderConfig<M>
+    R extends Resource,
+    T extends AbstractConfigurableProvider,
+    M extends AbstractConfigMap,
+    C extends AbstractProviderConfig<M, T>
 >
     extends AbstractProvider<R>
     implements ConfigurableResourceProvider<R, T, M, C> {
