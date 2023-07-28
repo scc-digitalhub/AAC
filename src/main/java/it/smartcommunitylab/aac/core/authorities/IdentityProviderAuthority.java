@@ -17,11 +17,11 @@
 package it.smartcommunitylab.aac.core.authorities;
 
 import it.smartcommunitylab.aac.core.model.ConfigMap;
-import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
-import it.smartcommunitylab.aac.core.provider.IdentityProviderConfig;
+import it.smartcommunitylab.aac.core.provider.config.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.provider.config.IdentityProviderConfig;
 
 public interface IdentityProviderAuthority<
     S extends IdentityProvider<I, ?, ?, M, C>,

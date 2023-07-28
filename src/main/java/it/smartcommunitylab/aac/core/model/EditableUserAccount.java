@@ -17,13 +17,12 @@
 package it.smartcommunitylab.aac.core.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import java.io.Serializable;
 
 /*
  * An editable account, suitable for registration
  */
 
-public interface EditableUserAccount extends EditableResource, UserResource, Serializable {
+public interface EditableUserAccount extends EditableResource, UserResource {
     default String getType() {
         return SystemKeys.RESOURCE_ACCOUNT;
     }

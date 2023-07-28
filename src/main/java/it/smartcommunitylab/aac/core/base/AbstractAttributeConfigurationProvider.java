@@ -16,8 +16,10 @@
 
 package it.smartcommunitylab.aac.core.base;
 
-import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.core.base.model.AbstractConfigMap;
+import it.smartcommunitylab.aac.core.base.provider.AbstractConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.AttributeConfigurationProvider;
+import it.smartcommunitylab.aac.core.provider.config.ConfigurableAttributeProvider;
 
 public abstract class AbstractAttributeConfigurationProvider<
     M extends AbstractConfigMap, C extends AbstractAttributeProviderConfig<M>

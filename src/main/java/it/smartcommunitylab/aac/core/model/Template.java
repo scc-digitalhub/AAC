@@ -23,7 +23,7 @@ import java.util.Map;
 /*
  * A template handles localizable and customizable content for the UI
  */
-public interface Template extends Resource {
+public interface Template extends RealmResource {
     public String getTemplate();
 
     public String getLanguage();

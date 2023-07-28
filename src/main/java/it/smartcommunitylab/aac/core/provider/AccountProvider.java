@@ -16,12 +16,13 @@
 
 package it.smartcommunitylab.aac.core.provider;
 
+import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import java.util.Collection;
 
-public interface AccountProvider<U extends UserAccount> extends ResourceProvider<U> {
+public interface AccountProvider<U extends UserAccount> extends PersistedResourceProvider<U>, UserResourceProvider<U> {
     /*
      * Fetch accounts from this provider
      */
@@ -34,12 +35,14 @@ public interface AccountProvider<U extends UserAccount> extends ResourceProvider
 
     public U getAccount(String accountId) throws NoSuchUserException;
 
-    public void deleteAccount(String accountId) throws NoSuchUserException;
+    public void deleteAccount(String accountId);
 
     public void deleteAccounts(String userId);
 
     // userId is globally addressable
     public Collection<U> listAccounts(String userId);
+
+    public Collection<U> listAccounts();
 
     /*
      * Actions on accounts
@@ -54,4 +57,33 @@ public interface AccountProvider<U extends UserAccount> extends ResourceProvider
     public U lockAccount(String accountId) throws NoSuchUserException, RegistrationException;
 
     public U unlockAccount(String accountId) throws NoSuchUserException, RegistrationException;
+
+    /*
+     * As Resources
+     */
+
+    @Override
+    default Collection<U> listResources() {
+        return listAccounts();
+    }
+
+    @Override
+    default Collection<U> listResourcesByUser(String userId) {
+        return listAccounts(userId);
+    }
+
+    @Override
+    default U findResource(String id) {
+        return findAccount(id);
+    }
+
+    @Override
+    default U getResource(String id) throws NoSuchResourceException {
+        return getAccount(id);
+    }
+
+    @Override
+    default void deleteResource(String id) {
+        deleteAccount(id);
+    }
 }

@@ -19,7 +19,7 @@ package it.smartcommunitylab.aac.saml.provider;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.base.AbstractAccountService;
-import it.smartcommunitylab.aac.core.base.AbstractEditableAccount;
+import it.smartcommunitylab.aac.core.base.model.AbstractEditableAccount;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.saml.model.SamlEditableUserAccount;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;

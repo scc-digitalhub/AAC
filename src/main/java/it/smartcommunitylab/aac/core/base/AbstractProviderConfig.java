@@ -17,13 +17,15 @@
 package it.smartcommunitylab.aac.core.base;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
-import it.smartcommunitylab.aac.core.provider.ProviderConfig;
+import it.smartcommunitylab.aac.core.base.model.AbstractConfigMap;
+import it.smartcommunitylab.aac.core.provider.config.AbstractConfigurableProviderI;
+import it.smartcommunitylab.aac.core.provider.config.ProviderConfig;
+
 import java.io.Serializable;
 import java.util.Locale;
 import java.util.Map;
 
-public abstract class AbstractProviderConfig<M extends AbstractConfigMap, T extends ConfigurableProvider>
+public abstract class AbstractProviderConfig<M extends AbstractConfigMap, T extends AbstractConfigurableProviderI>
     implements ProviderConfig<M>, Serializable {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;

@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.core.model;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import java.io.Serializable;
 import java.util.Map;
 import org.springframework.security.core.AuthenticatedPrincipal;
@@ -25,7 +26,7 @@ import org.springframework.security.core.AuthenticatedPrincipal;
  *
  * Every identity provider should implement a custom class exposing this interface for handling the authentication flow
  */
-public interface UserAuthenticatedPrincipal extends AuthenticatedPrincipal, UserResource, Serializable {
+public interface UserAuthenticatedPrincipal extends AuthenticatedPrincipal, UserResource {
     // principal name
     public String getUsername();
 
@@ -37,6 +38,7 @@ public interface UserAuthenticatedPrincipal extends AuthenticatedPrincipal, User
     // principal attributes as received from idp
     public Map<String, Serializable> getAttributes();
 
-    // principalId is local to the provider
-    String getPrincipalId();
+    default String getType() {
+        return SystemKeys.RESOURCE_PRINCIPAL;
+    }
 }

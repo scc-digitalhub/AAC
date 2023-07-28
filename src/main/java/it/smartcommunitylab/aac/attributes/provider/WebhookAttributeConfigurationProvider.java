@@ -18,7 +18,8 @@ package it.smartcommunitylab.aac.attributes.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractAttributeConfigurationProvider;
-import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.core.provider.config.ConfigurableAttributeProvider;
+
 import org.springframework.stereotype.Service;
 
 @Service

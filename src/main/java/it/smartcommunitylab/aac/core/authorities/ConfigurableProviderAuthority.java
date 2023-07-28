@@ -19,11 +19,12 @@ package it.smartcommunitylab.aac.core.authorities;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.Resource;
 import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
 import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
-import it.smartcommunitylab.aac.core.provider.ProviderConfig;
+import it.smartcommunitylab.aac.core.provider.config.AbstractConfigurableProvider;
+import it.smartcommunitylab.aac.core.provider.config.AbstractConfigurableProviderI;
+import it.smartcommunitylab.aac.core.provider.config.ProviderConfig;
 
 /*
  * Provider authorities handle (configurable) resource providers by managing registrations and configuration
@@ -31,7 +32,7 @@ import it.smartcommunitylab.aac.core.provider.ProviderConfig;
 public interface ConfigurableProviderAuthority<
     S extends ConfigurableResourceProvider<R, T, M, C>,
     R extends Resource,
-    T extends ConfigurableProvider,
+    T extends AbstractConfigurableProviderI,
     M extends ConfigMap,
     C extends ProviderConfig<M>
 >
@@ -42,7 +43,7 @@ public interface ConfigurableProviderAuthority<
      * TODO remove and make interface RO
      */
 
-    public C registerProvider(ConfigurableProvider config)
+    public C registerProvider(AbstractConfigurableProvider config)
         throws IllegalArgumentException, RegistrationException, SystemException;
 
     public void unregisterProvider(String providerId) throws SystemException;

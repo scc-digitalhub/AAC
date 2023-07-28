@@ -16,8 +16,10 @@
 
 package it.smartcommunitylab.aac.core.base;
 
-import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.base.model.AbstractConfigMap;
+import it.smartcommunitylab.aac.core.base.provider.AbstractConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProviderConfigurationProvider;
+import it.smartcommunitylab.aac.core.provider.config.ConfigurableIdentityProvider;
 
 public abstract class AbstractIdentityConfigurationProvider<
     M extends AbstractConfigMap, C extends AbstractIdentityProviderConfig<M>

@@ -19,7 +19,7 @@ package it.smartcommunitylab.aac.internal.provider;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.provider.ScriptAttributeProviderConfigMap;
 import it.smartcommunitylab.aac.core.base.AbstractAttributeProviderConfig;
-import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.core.provider.config.ConfigurableAttributeProvider;
 
 public class InternalAttributeProviderConfig
     extends AbstractAttributeProviderConfig<InternalAttributeProviderConfigMap> {

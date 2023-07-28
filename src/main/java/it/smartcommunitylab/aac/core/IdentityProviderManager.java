@@ -18,7 +18,7 @@ package it.smartcommunitylab.aac.core;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
-import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.provider.config.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.service.IdentityProviderService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;

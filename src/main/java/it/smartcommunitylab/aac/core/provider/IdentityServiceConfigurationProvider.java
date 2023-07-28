@@ -17,7 +17,8 @@
 package it.smartcommunitylab.aac.core.provider;
 
 import it.smartcommunitylab.aac.core.model.ConfigMap;
-import it.smartcommunitylab.aac.core.model.ConfigurableIdentityService;
+import it.smartcommunitylab.aac.core.provider.config.ConfigurableIdentityService;
+import it.smartcommunitylab.aac.core.provider.config.IdentityServiceConfig;
 
 public interface IdentityServiceConfigurationProvider<M extends ConfigMap, C extends IdentityServiceConfig<M>>
     extends ConfigurationProvider<M, ConfigurableIdentityService, C> {}

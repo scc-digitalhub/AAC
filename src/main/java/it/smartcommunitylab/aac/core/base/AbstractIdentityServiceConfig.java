@@ -23,8 +23,9 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.model.ConfigurableIdentityService;
-import it.smartcommunitylab.aac.core.provider.IdentityServiceConfig;
+import it.smartcommunitylab.aac.core.base.model.AbstractConfigMap;
+import it.smartcommunitylab.aac.core.provider.config.ConfigurableIdentityService;
+import it.smartcommunitylab.aac.core.provider.config.IdentityServiceConfig;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityServiceConfig;
 import org.springframework.util.StringUtils;
 

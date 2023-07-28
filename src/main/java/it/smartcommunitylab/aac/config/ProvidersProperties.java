@@ -16,10 +16,11 @@
 
 package it.smartcommunitylab.aac.config;
 
-import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
+
+import it.smartcommunitylab.aac.core.provider.config.ConfigurableIdentityProvider;
 
 public class ProvidersProperties {
 

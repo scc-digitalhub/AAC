@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.internal.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractTemplateProvider;
+import it.smartcommunitylab.aac.core.base.provider.AbstractTemplateProvider;
 import it.smartcommunitylab.aac.internal.dto.UserRegistrationBean;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.templates.InternalChangeAccountSuccessTemplate;

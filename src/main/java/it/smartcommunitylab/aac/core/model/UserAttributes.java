@@ -17,7 +17,6 @@
 package it.smartcommunitylab.aac.core.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import java.io.Serializable;
 
 /*
  * A set of attributes for a given user, from an authority via a provider
@@ -30,14 +29,14 @@ import java.io.Serializable;
  * Scopes binded to profiles should require implicit/explicit approval of set scope
  *
  */
-public interface UserAttributes extends AttributeSet, UserResource, Serializable {
+public interface UserAttributes extends AttributeSet, UserResource {
+    // // a local unique identifier for this set for this user
+    // public String getAttributesId();
+
     // mapper to attributeSet
     // TODO?
 
     default String getType() {
         return SystemKeys.RESOURCE_ATTRIBUTES;
     }
-
-    // a local unique identifier for this set for this user
-    public String getAttributesId();
 }

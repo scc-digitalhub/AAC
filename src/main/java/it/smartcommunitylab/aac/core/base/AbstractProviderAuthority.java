@@ -22,10 +22,12 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.core.authorities.ProviderAuthority;
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.core.model.Resource;
 import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.core.provider.config.AbstractConfigurableProviderI;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -38,7 +40,7 @@ import org.springframework.util.Assert;
 public abstract class AbstractProviderAuthority<
     S extends ConfigurableResourceProvider<R, T, M, C>,
     R extends Resource,
-    T extends ConfigurableProvider,
+    T extends AbstractConfigurableProviderI,
     M extends AbstractConfigMap,
     C extends AbstractProviderConfig<M, T>
 >

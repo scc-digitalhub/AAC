@@ -29,9 +29,7 @@ public interface ProviderAuthority<S extends ResourceProvider<R>, R extends Reso
      * Details
      */
 
-    public String getAuthorityId();
-
-    public String getType();
+    public String getId();
 
     /*
      * Providers
@@ -43,5 +41,6 @@ public interface ProviderAuthority<S extends ResourceProvider<R>, R extends Reso
 
     public S getProvider(String providerId) throws NoSuchProviderException;
 
+    // authorities are global, let consumers filter by realm
     public List<S> getProvidersByRealm(String realm);
 }

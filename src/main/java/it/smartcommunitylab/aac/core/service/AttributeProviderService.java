@@ -17,8 +17,9 @@
 package it.smartcommunitylab.aac.core.service;
 
 import it.smartcommunitylab.aac.core.authorities.AttributeProviderAuthority;
-import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.persistence.AttributeProviderEntity;
+import it.smartcommunitylab.aac.core.provider.config.ConfigurableAttributeProvider;
+
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;

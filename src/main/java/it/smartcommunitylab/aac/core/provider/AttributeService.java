@@ -19,6 +19,7 @@ package it.smartcommunitylab.aac.core.provider;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.core.provider.config.AttributeProviderConfig;
 import java.util.Collection;
 
 public interface AttributeService<M extends ConfigMap, C extends AttributeProviderConfig<M>>

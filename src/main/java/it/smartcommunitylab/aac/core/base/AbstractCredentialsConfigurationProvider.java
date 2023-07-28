@@ -16,8 +16,10 @@
 
 package it.smartcommunitylab.aac.core.base;
 
-import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsProvider;
+import it.smartcommunitylab.aac.core.base.model.AbstractConfigMap;
+import it.smartcommunitylab.aac.core.base.provider.AbstractConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.CredentialsServiceConfigurationProvider;
+import it.smartcommunitylab.aac.core.provider.config.ConfigurableCredentialsProvider;
 
 public abstract class AbstractCredentialsConfigurationProvider<
     M extends AbstractConfigMap, C extends AbstractCredentialsServiceConfig<M>

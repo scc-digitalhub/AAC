@@ -19,11 +19,14 @@ package it.smartcommunitylab.aac.core.base;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.authorities.ConfigurableProviderAuthority;
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.core.model.Resource;
 import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
 import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.core.provider.config.AbstractConfigurableProvider;
+import it.smartcommunitylab.aac.core.provider.config.AbstractConfigurableProviderI;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -32,7 +35,7 @@ import org.springframework.util.Assert;
 public abstract class AbstractConfigurableProviderAuthority<
     S extends ConfigurableResourceProvider<R, T, M, C>,
     R extends Resource,
-    T extends ConfigurableProvider,
+    T extends AbstractConfigurableProviderI,
     M extends AbstractConfigMap,
     C extends AbstractProviderConfig<M, T>
 >
@@ -57,7 +60,7 @@ public abstract class AbstractConfigurableProviderAuthority<
     public abstract ConfigurationProvider<M, T, C> getConfigurationProvider();
 
     @Override
-    public C registerProvider(ConfigurableProvider cp) throws RegistrationException {
+    public C registerProvider(AbstractConfigurableProvider cp) throws RegistrationException {
         // cast config and handle errors
         T tcp = null;
         try {

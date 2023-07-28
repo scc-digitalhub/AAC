@@ -27,9 +27,10 @@ import it.smartcommunitylab.aac.core.authorities.ConfigurableAuthorityService;
 import it.smartcommunitylab.aac.core.authorities.ConfigurableProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
 import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
+import it.smartcommunitylab.aac.core.provider.config.AbstractConfigurableProviderI;
+
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
@@ -51,7 +52,7 @@ import org.springframework.validation.SmartValidator;
 
 @Transactional
 public abstract class ConfigurableProviderService<
-    A extends ConfigurableProviderAuthority<?, ?, C, ?, ?>, C extends ConfigurableProvider, E extends ProviderEntity
+    A extends ConfigurableProviderAuthority<?, ?, C, ?, ?>, C extends AbstractConfigurableProviderI, E extends ProviderEntity
 >
     implements InitializingBean {
 

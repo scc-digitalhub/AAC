@@ -17,10 +17,10 @@
 package it.smartcommunitylab.aac.core.authorities;
 
 import it.smartcommunitylab.aac.core.model.ConfigMap;
-import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
-import it.smartcommunitylab.aac.core.provider.AttributeProviderConfig;
+import it.smartcommunitylab.aac.core.provider.config.AttributeProviderConfig;
+import it.smartcommunitylab.aac.core.provider.config.ConfigurableAttributeProvider;
 
 public interface AttributeProviderAuthority<
     S extends AttributeProvider<M, C>, M extends ConfigMap, C extends AttributeProviderConfig<M>

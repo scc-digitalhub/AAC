@@ -17,8 +17,9 @@
 package it.smartcommunitylab.aac.core.service;
 
 import it.smartcommunitylab.aac.core.authorities.TemplateProviderAuthority;
-import it.smartcommunitylab.aac.core.model.ConfigurableTemplateProvider;
 import it.smartcommunitylab.aac.core.persistence.TemplateProviderEntity;
+import it.smartcommunitylab.aac.core.provider.config.ConfigurableTemplateProvider;
+
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.jsoup.Jsoup;

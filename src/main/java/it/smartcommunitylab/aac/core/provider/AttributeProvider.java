@@ -19,9 +19,10 @@ package it.smartcommunitylab.aac.core.provider;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
-import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.core.provider.config.AttributeProviderConfig;
+import it.smartcommunitylab.aac.core.provider.config.ConfigurableAttributeProvider;
 import java.util.Collection;
 
 /*

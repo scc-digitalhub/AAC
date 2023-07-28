@@ -19,13 +19,15 @@ package it.smartcommunitylab.aac.core.base;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
 import it.smartcommunitylab.aac.core.authorities.AttributeProviderAuthority;
+import it.smartcommunitylab.aac.core.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
-import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.provider.AttributeConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
-import it.smartcommunitylab.aac.core.provider.AttributeProviderConfig;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.core.provider.config.AttributeProviderConfig;
+import it.smartcommunitylab.aac.core.provider.config.ConfigurableAttributeProvider;
+
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;

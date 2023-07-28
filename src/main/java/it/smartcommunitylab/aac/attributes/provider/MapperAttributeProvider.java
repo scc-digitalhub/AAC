@@ -23,14 +23,15 @@ import it.smartcommunitylab.aac.attributes.mapper.ExactAttributesMapper;
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
 import it.smartcommunitylab.aac.attributes.store.AttributeStore;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
-import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
 import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
+import it.smartcommunitylab.aac.core.base.provider.AbstractConfigurableResourceProvider;
 import it.smartcommunitylab.aac.core.model.Attribute;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
-import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
+import it.smartcommunitylab.aac.core.provider.config.ConfigurableAttributeProvider;
+
 import java.io.Serializable;
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -46,7 +47,7 @@ import java.util.stream.Collectors;
 import org.springframework.util.Assert;
 
 public class MapperAttributeProvider
-    extends AbstractConfigurableProvider<UserAttributes, ConfigurableAttributeProvider, MapperAttributeProviderConfigMap, MapperAttributeProviderConfig>
+    extends AbstractConfigurableResourceProvider<UserAttributes, ConfigurableAttributeProvider, MapperAttributeProviderConfigMap, MapperAttributeProviderConfig>
     implements AttributeProvider<MapperAttributeProviderConfigMap, MapperAttributeProviderConfig> {
 
     // services

@@ -22,7 +22,7 @@ import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
-import it.smartcommunitylab.aac.core.provider.IdentityServiceConfig;
+import it.smartcommunitylab.aac.core.provider.config.IdentityServiceConfig;
 
 public interface IdentityServiceAuthority<
     S extends IdentityService<I, U, E, M, C>,

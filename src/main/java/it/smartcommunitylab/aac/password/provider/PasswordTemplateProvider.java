@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.password.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractTemplateProvider;
+import it.smartcommunitylab.aac.core.base.provider.AbstractTemplateProvider;
 import it.smartcommunitylab.aac.dto.UserEmail;
 import it.smartcommunitylab.aac.password.model.InternalEditableUserPassword;
 import it.smartcommunitylab.aac.password.model.PasswordPolicy;

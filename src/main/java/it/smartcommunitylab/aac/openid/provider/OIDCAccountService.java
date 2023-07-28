@@ -19,7 +19,7 @@ package it.smartcommunitylab.aac.openid.provider;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.base.AbstractAccountService;
-import it.smartcommunitylab.aac.core.base.AbstractEditableAccount;
+import it.smartcommunitylab.aac.core.base.model.AbstractEditableAccount;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.openid.model.OIDCEditableUserAccount;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;

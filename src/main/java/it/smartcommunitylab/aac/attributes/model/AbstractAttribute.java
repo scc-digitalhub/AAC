@@ -21,7 +21,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.Attribute;
 import java.io.Serializable;
 
-public abstract class AbstractAttribute implements Attribute, Serializable {
+public abstract class AbstractAttribute implements Attribute {
 
     private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
 

@@ -24,7 +24,8 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.yubico.webauthn.data.ResidentKeyRequirement;
 import com.yubico.webauthn.data.UserVerificationRequirement;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractConfigMap;
+import it.smartcommunitylab.aac.core.base.model.AbstractConfigMap;
+
 import java.io.Serializable;
 import java.util.Map;
 import javax.validation.Valid;

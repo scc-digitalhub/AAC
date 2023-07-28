@@ -26,7 +26,8 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.AttributeProviderManager;
-import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.core.provider.config.ConfigurableAttributeProvider;
+
 import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Collectors;

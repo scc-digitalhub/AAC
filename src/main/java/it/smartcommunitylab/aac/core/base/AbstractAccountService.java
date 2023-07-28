@@ -20,13 +20,17 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.MissingDataException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.core.base.model.AbstractAccount;
+import it.smartcommunitylab.aac.core.base.model.AbstractConfigMap;
+import it.smartcommunitylab.aac.core.base.model.AbstractEditableAccount;
+import it.smartcommunitylab.aac.core.base.provider.AbstractConfigurableResourceProvider;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
-import it.smartcommunitylab.aac.core.model.ConfigurableAccountProvider;
 import it.smartcommunitylab.aac.core.model.EditableUserAccount;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.provider.AccountService;
-import it.smartcommunitylab.aac.core.provider.AccountServiceConfig;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.core.provider.config.AccountServiceConfig;
+import it.smartcommunitylab.aac.core.provider.config.ConfigurableAccountProvider;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.model.PersistenceMode;
 import it.smartcommunitylab.aac.model.SubjectStatus;
@@ -48,7 +52,7 @@ public abstract class AbstractAccountService<
     M extends AbstractConfigMap,
     C extends AbstractAccountServiceConfig<M>
 >
-    extends AbstractConfigurableProvider<U, ConfigurableAccountProvider, M, C>
+    extends AbstractConfigurableResourceProvider<U, ConfigurableAccountProvider, M, C>
     implements AccountService<U, E, M, C>, InitializingBean {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());

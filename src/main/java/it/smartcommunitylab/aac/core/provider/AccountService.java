@@ -20,9 +20,10 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
-import it.smartcommunitylab.aac.core.model.ConfigurableAccountProvider;
 import it.smartcommunitylab.aac.core.model.EditableUserAccount;
 import it.smartcommunitylab.aac.core.model.UserAccount;
+import it.smartcommunitylab.aac.core.provider.config.AccountServiceConfig;
+import it.smartcommunitylab.aac.core.provider.config.ConfigurableAccountProvider;
 import org.springframework.lang.Nullable;
 
 //TODO split editable into own service

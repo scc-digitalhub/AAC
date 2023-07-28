@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.base.model.AbstractBaseUserResource;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.openid.model.OIDCUserAuthenticatedPrincipal;
@@ -51,50 +52,18 @@ public abstract class AbstractAuthenticatedPrincipal
     extends AbstractBaseUserResource
     implements UserAuthenticatedPrincipal {
 
-    private String uuid;
-    private String userId;
-    private String realm;
-
-    protected AbstractAuthenticatedPrincipal(String authority, String provider) {
-        super(authority, provider);
+    protected AbstractAuthenticatedPrincipal(String authority, String provider, String realm, String id) {
+        super(authority, provider, realm, id, null);
     }
 
-    public abstract String getUsername();
-
-    @Override
-    public String getId() {
-        // use uuid from model
-        return getUuid();
-    }
-
-    @Override
-    public String getResourceId() {
-        return getPrincipalId();
-    }
-
-    @Override
-    public String getUuid() {
-        return uuid;
-    }
-
-    public void setUuid(String uuid) {
-        this.uuid = uuid;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public String getRealm() {
-        return realm;
-    }
-
-    public void setRealm(String realm) {
-        this.realm = realm;
+    protected AbstractAuthenticatedPrincipal(
+        String authority,
+        String provider,
+        String realm,
+        String id,
+        String userId
+    ) {
+        super(authority, provider, realm, id, userId);
     }
 
     @Override
@@ -102,19 +71,14 @@ public abstract class AbstractAuthenticatedPrincipal
         Map<String, Serializable> map = new HashMap<>();
         map.put("authority", getAuthority());
         map.put("provider", getProvider());
-        map.put("username", getUsername());
-        map.put("principalId", getPrincipalId());
+        if (StringUtils.hasText(getRealm())) {
+            map.put("realm", getRealm());
+        }
+        if (StringUtils.hasText(getUserId())) {
+            map.put("userId", getUserId());
+        }
         map.put("id", getId());
-
-        if (StringUtils.hasText(uuid)) {
-            map.put("uuid", uuid);
-        }
-        if (StringUtils.hasText(userId)) {
-            map.put("userId", userId);
-        }
-        if (StringUtils.hasText(realm)) {
-            map.put("realm", realm);
-        }
+        map.put("username", getUsername());
 
         return map;
     }

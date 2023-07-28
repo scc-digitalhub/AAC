@@ -23,14 +23,14 @@ import it.smartcommunitylab.aac.attributes.mapper.ExactAttributesMapper;
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
 import it.smartcommunitylab.aac.attributes.store.AttributeStore;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
-import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
 import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
+import it.smartcommunitylab.aac.core.base.provider.AbstractConfigurableResourceProvider;
 import it.smartcommunitylab.aac.core.model.Attribute;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
-import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
+import it.smartcommunitylab.aac.core.provider.config.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.oauth.flow.FlowExecutionException;
 import java.io.Serializable;
 import java.net.MalformedURLException;
@@ -63,7 +63,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
 public class WebhookAttributeProvider
-    extends AbstractConfigurableProvider<UserAttributes, ConfigurableAttributeProvider, WebhookAttributeProviderConfigMap, WebhookAttributeProviderConfig>
+    extends AbstractConfigurableResourceProvider<UserAttributes, ConfigurableAttributeProvider, WebhookAttributeProviderConfigMap, WebhookAttributeProviderConfig>
     implements AttributeProvider<WebhookAttributeProviderConfigMap, WebhookAttributeProviderConfig> {
 
     private static final Logger logger = LoggerFactory.getLogger(WebhookAttributeProvider.class);

@@ -20,8 +20,12 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchCredentialException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.core.base.model.AbstractAccount;
+import it.smartcommunitylab.aac.core.base.model.AbstractConfigMap;
+import it.smartcommunitylab.aac.core.base.model.AbstractEditableUserCredentials;
+import it.smartcommunitylab.aac.core.base.model.AbstractUserCredentials;
+import it.smartcommunitylab.aac.core.base.provider.AbstractConfigurableResourceProvider;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
-import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsProvider;
 import it.smartcommunitylab.aac.core.model.EditableUserCredentials;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
@@ -29,6 +33,7 @@ import it.smartcommunitylab.aac.core.provider.AccountCredentialsService;
 import it.smartcommunitylab.aac.core.provider.CredentialsServiceConfig;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.provider.UserCredentialsService;
+import it.smartcommunitylab.aac.core.provider.config.ConfigurableCredentialsProvider;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
 import java.util.Collection;
@@ -50,7 +55,7 @@ public abstract class AbstractCredentialsService<
     M extends AbstractConfigMap,
     C extends AbstractCredentialsServiceConfig<M>
 >
-    extends AbstractConfigurableProvider<UC, ConfigurableCredentialsProvider, M, C>
+    extends AbstractConfigurableResourceProvider<UC, ConfigurableCredentialsProvider, M, C>
     implements AccountCredentialsService<UC, EC, M, C>, InitializingBean {
 
     protected static final String STATUS_ACTIVE = CredentialsStatus.ACTIVE.getValue();

@@ -20,7 +20,7 @@ import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.EditableUserAccount;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.provider.AccountService;
-import it.smartcommunitylab.aac.core.provider.AccountServiceConfig;
+import it.smartcommunitylab.aac.core.provider.config.AccountServiceConfig;
 
 public interface AccountServiceAuthority<
     S extends AccountService<U, E, M, C>,
