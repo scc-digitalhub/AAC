@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.templates.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractProviderConfig;
+import it.smartcommunitylab.aac.base.AbstractProviderConfig;
 import it.smartcommunitylab.aac.core.provider.config.ConfigurableTemplateProvider;
 import it.smartcommunitylab.aac.core.provider.config.TemplateProviderConfig;
 import it.smartcommunitylab.aac.templates.service.LanguageService;

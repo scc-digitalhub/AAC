@@ -18,7 +18,7 @@ package it.smartcommunitylab.aac.attributes.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.mapper.DefaultAttributesMapper;
-import it.smartcommunitylab.aac.core.base.AbstractAttributeProviderConfig;
+import it.smartcommunitylab.aac.base.AbstractAttributeProviderConfig;
 import it.smartcommunitylab.aac.core.provider.config.ConfigurableAttributeProvider;
 
 public class MapperAttributeProviderConfig extends AbstractAttributeProviderConfig<MapperAttributeProviderConfigMap> {

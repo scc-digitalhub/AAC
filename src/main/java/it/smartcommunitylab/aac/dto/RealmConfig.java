@@ -21,8 +21,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
-import it.smartcommunitylab.aac.core.base.model.AbstractAccount;
-import it.smartcommunitylab.aac.core.base.model.AbstractUserCredentials;
+import it.smartcommunitylab.aac.base.model.AbstractAccount;
+import it.smartcommunitylab.aac.base.model.AbstractUserCredentials;
 import it.smartcommunitylab.aac.core.provider.config.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.provider.config.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.provider.config.ConfigurableTemplateProvider;

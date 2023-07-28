@@ -17,8 +17,8 @@
 package it.smartcommunitylab.aac.saml.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.base.AbstractIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.config.IdentityAuthoritiesProperties;
-import it.smartcommunitylab.aac.core.base.AbstractIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.config.ConfigurableIdentityProvider;
 
 import org.springframework.beans.factory.annotation.Autowired;

@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.openid.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.provider.AbstractAccountProvider;
+import it.smartcommunitylab.aac.base.provider.AbstractAccountProvider;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import org.springframework.transaction.annotation.Transactional;

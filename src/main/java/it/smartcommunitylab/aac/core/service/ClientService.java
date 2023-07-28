@@ -16,8 +16,8 @@
 
 package it.smartcommunitylab.aac.core.service;
 
+import it.smartcommunitylab.aac.base.BaseClient;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
-import it.smartcommunitylab.aac.core.base.BaseClient;
 import it.smartcommunitylab.aac.core.model.ClientCredentials;
 import java.util.Collection;
 

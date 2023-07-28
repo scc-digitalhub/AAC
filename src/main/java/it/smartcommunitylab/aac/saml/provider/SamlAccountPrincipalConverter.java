@@ -19,7 +19,7 @@ package it.smartcommunitylab.aac.saml.provider;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.SamlAttributesSet;
 import it.smartcommunitylab.aac.attributes.mapper.SamlAttributesMapper;
-import it.smartcommunitylab.aac.core.base.provider.AbstractProvider;
+import it.smartcommunitylab.aac.base.provider.AbstractProvider;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.AccountPrincipalConverter;

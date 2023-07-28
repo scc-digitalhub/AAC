@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.webauthn;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractCredentialsAuthority;
+import it.smartcommunitylab.aac.base.AbstractCredentialsAuthority;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.provider.config.AbstractConfigurableProvider;
