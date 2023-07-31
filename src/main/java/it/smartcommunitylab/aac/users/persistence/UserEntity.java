@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.core.persistence;
+package it.smartcommunitylab.aac.users.persistence;
 
 import it.smartcommunitylab.aac.model.SubjectStatus;
 import java.util.Date;

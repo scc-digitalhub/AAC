@@ -19,7 +19,6 @@ package it.smartcommunitylab.aac.controller;
 import it.smartcommunitylab.aac.common.LoginException;
 import it.smartcommunitylab.aac.config.ApplicationProperties;
 import it.smartcommunitylab.aac.core.ClientDetails;
-import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
@@ -28,6 +27,8 @@ import it.smartcommunitylab.aac.core.service.ClientDetailsService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderAuthorityService;
 import it.smartcommunitylab.aac.core.service.IdentityServiceAuthorityService;
 import it.smartcommunitylab.aac.model.Realm;
+import it.smartcommunitylab.aac.realms.RealmManager;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;

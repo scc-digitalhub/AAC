@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.core.persistence;
+package it.smartcommunitylab.aac.realms.persistence;
 
 import it.smartcommunitylab.aac.repository.HashMapConverter;
 import java.io.Serializable;
