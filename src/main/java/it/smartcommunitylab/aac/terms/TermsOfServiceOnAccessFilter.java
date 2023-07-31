@@ -92,7 +92,6 @@ public class TermsOfServiceOnAccessFilter extends OncePerRequestFilter {
 		if (requestMatcher.matches(request) && requiresProcessing(request)
 				&& !termsManagedRequestMatcher.matches(request)) {
 			logger.trace("process request for {}", request.getRequestURI());
-			System.out.println("process request for {" + request.getRequestURI() + " }");
 			UserAuthentication userAuth = (UserAuthentication) SecurityContextHolder.getContext().getAuthentication();
 			ExtendedAuthenticationToken token = CollectionUtils.firstElement(userAuth.getAuthentications());
 
@@ -109,7 +108,7 @@ public class TermsOfServiceOnAccessFilter extends OncePerRequestFilter {
 
 				if (request.getSession().getAttribute("refusedTerms") != null
 						&& request.getSession().getAttribute("refusedTerms").equals("true")) {
-					this.logger.debug("logout user after reset");
+					this.logger.debug("logout user after terms refuse");
 					SecurityContextHolder.clearContext();
 					request.getSession().removeAttribute("termsManaged");
 					request.getSession().removeAttribute("refusedTerms");
@@ -120,7 +119,6 @@ public class TermsOfServiceOnAccessFilter extends OncePerRequestFilter {
 							+ realmEntity.getTosConfiguration().getConfiguration().get("approveTOS");
 					this.requestCache.saveRequest(request, response);
 					this.logger.debug("Redirect to {}", targetUrl);
-					System.out.println("Redirect to { " + targetUrl + " }");
 					this.redirectStrategy.sendRedirect(request, response, targetUrl);
 					return;
 				} else if (request.getSession().getAttribute("termsManaged") != null

@@ -30,6 +30,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -54,23 +55,27 @@ public class TermsController {
 			throws NoSuchProviderException, NoSuchUserException, NoSuchRealmException {
 
 		UserDetails user = authHelper.getUserDetails();
-		
+
 		if (user == null) {
 			throw new InsufficientAuthenticationException("error.unauthenticated_user");
 		}
 
-		model.addAttribute("approveButton", approveTOS);
+		model.addAttribute("acceptUrl", "/terms/accept");
 
-		return "terms/terms";
+		if (approveTOS.equals("true")) {
+			model.addAttribute("rejectUrl", "/terms/refuse");
+			return "terms/terms_approval";
+		}
 
+		return "terms/terms_ok";
 	}
 
-	@GetMapping("/terms/accept")
-	public String termsAccept(HttpServletRequest request, Model model, Locale locale)
+	@PostMapping("/terms/accept")
+	public String termsAccepted(HttpServletRequest request, Model model, Locale locale)
 			throws NoSuchProviderException, NoSuchUserException, NoSuchRealmException {
 
 		UserDetails user = authHelper.getUserDetails();
-		
+
 		if (user == null) {
 			throw new InsufficientAuthenticationException("error.unauthenticated_user");
 		}
@@ -85,7 +90,7 @@ public class TermsController {
 			throws NoSuchProviderException, NoSuchUserException, NoSuchRealmException {
 
 		UserDetails user = authHelper.getUserDetails();
-		
+
 		if (user == null) {
 			throw new InsufficientAuthenticationException("error.unauthenticated_user");
 		}

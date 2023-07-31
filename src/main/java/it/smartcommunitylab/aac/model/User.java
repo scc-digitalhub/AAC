@@ -110,6 +110,9 @@ public class User {
     // additional attributes as UserAttributes collection
     // realm scoped
     private List<UserAttributes> attributes;
+    
+    // terms of service.
+    private boolean tosAccepted;
 
     public User(String subjectId, String source) {
         Assert.hasText(subjectId, "subject can not be null or empty");
@@ -378,4 +381,12 @@ public class User {
     //        this.spaceRoles.remove(r);
     //    }
 
+	public boolean isTosAccepted() {
+		return tosAccepted;
+	}
+
+	public void setTosAccepted(boolean tosAccepted) {
+		this.tosAccepted = tosAccepted;
+	}
+	
 }

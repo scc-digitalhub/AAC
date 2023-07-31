@@ -1,0 +1,41 @@
+<!--
+
+       Copyright 2015-2021 Smart Community Lab, FBK
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+-->
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/card-border}" th:with="title='label.tos.title',icon='it-note'">
+    <head>
+        <title th:text="#{label.tos.title}">Terms of Service</title>
+    </head>
+
+    <body>
+        <div layout:fragment="content">
+            <!-- panel text -->
+            <div class="mt-3 mb-3 justify-content-center customization-block" th:if="${template != null && template.get('tos.text') != null}" th:utext="${template.get('tos.text')}"></div>
+
+            <br />
+
+            <form action="#" th:action="${acceptUrl}" method="post">
+                <div class="row">
+                    <div class="col-12 text-center">
+                        <button class="btn btn-primary" th:text="#{action.approve}"></button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </body>
+</html>
