@@ -16,10 +16,10 @@
 
 package it.smartcommunitylab.aac.core.persistence;
 
-import it.smartcommunitylab.aac.repository.HashMapConverter;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
+
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
@@ -28,98 +28,116 @@ import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
+
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import it.smartcommunitylab.aac.repository.HashMapConverter;
 
 @Entity
 @Table(name = "realms")
 @EntityListeners(AuditingEntityListener.class)
 public class RealmEntity {
 
-    @Id
-    @NotNull
-    @Column(length = 128, unique = true)
-    private String slug;
+	@Id
+	@NotNull
+	@Column(length = 128, unique = true)
+	private String slug;
 
-    @NotNull
-    private String name;
+	@NotNull
+	private String name;
 
-    // audit
-    @CreatedDate
-    @Column(name = "created_date")
-    private Date createDate;
+	// audit
+	@CreatedDate
+	@Column(name = "created_date")
+	private Date createDate;
 
-    @LastModifiedDate
-    @Column(name = "last_modified_date")
-    private Date modifiedDate;
+	@LastModifiedDate
+	@Column(name = "last_modified_date")
+	private Date modifiedDate;
 
-    // configuration
-    @Column(name = "is_editable")
-    private boolean editable;
+	// configuration
+	@Column(name = "is_editable")
+	private boolean editable;
 
-    @Column(name = "is_public")
-    private boolean isPublic;
+	@Column(name = "is_public")
+	private boolean isPublic;
 
-    // TODO move to oauth2ConfigProvider
-    @Lob
-    @Column(name = "oauth_configuration_map")
-    @Convert(converter = HashMapConverter.class)
-    private Map<String, Serializable> oauthConfigurationMap;
+	// TODO move to oauth2ConfigProvider
+	@Lob
+	@Column(name = "oauth_configuration_map")
+	@Convert(converter = HashMapConverter.class)
+	private Map<String, Serializable> oauthConfigurationMap;
 
-    public String getName() {
-        return name;
-    }
+	// TODO move to termsOfServiceConfigProvider
+	@Lob
+	@Column(name = "tos_configuration_map")
+	@Convert(converter = HashMapConverter.class)
+	private Map<String, Serializable> tosConfigurationMap;
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public String getSlug() {
-        return slug;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public void setSlug(String slug) {
-        this.slug = slug;
-    }
+	public String getSlug() {
+		return slug;
+	}
 
-    public Date getCreateDate() {
-        return createDate;
-    }
+	public void setSlug(String slug) {
+		this.slug = slug;
+	}
 
-    public void setCreateDate(Date createDate) {
-        this.createDate = createDate;
-    }
+	public Date getCreateDate() {
+		return createDate;
+	}
 
-    public Date getModifiedDate() {
-        return modifiedDate;
-    }
+	public void setCreateDate(Date createDate) {
+		this.createDate = createDate;
+	}
 
-    public void setModifiedDate(Date modifiedDate) {
-        this.modifiedDate = modifiedDate;
-    }
+	public Date getModifiedDate() {
+		return modifiedDate;
+	}
 
-    public boolean isEditable() {
-        return editable;
-    }
+	public void setModifiedDate(Date modifiedDate) {
+		this.modifiedDate = modifiedDate;
+	}
 
-    public void setEditable(boolean editable) {
-        this.editable = editable;
-    }
+	public boolean isEditable() {
+		return editable;
+	}
 
-    public boolean isPublic() {
-        return isPublic;
-    }
+	public void setEditable(boolean editable) {
+		this.editable = editable;
+	}
 
-    public void setPublic(boolean isPublic) {
-        this.isPublic = isPublic;
-    }
+	public boolean isPublic() {
+		return isPublic;
+	}
 
-    public Map<String, Serializable> getOAuthConfigurationMap() {
-        return oauthConfigurationMap;
-    }
+	public void setPublic(boolean isPublic) {
+		this.isPublic = isPublic;
+	}
 
-    public void setOAuthConfigurationMap(Map<String, Serializable> oauthConfigurationMap) {
-        this.oauthConfigurationMap = oauthConfigurationMap;
-    }
+	public Map<String, Serializable> getOAuthConfigurationMap() {
+		return oauthConfigurationMap;
+	}
+
+	public void setOAuthConfigurationMap(Map<String, Serializable> oauthConfigurationMap) {
+		this.oauthConfigurationMap = oauthConfigurationMap;
+	}
+
+	public Map<String, Serializable> getTosConfigurationMap() {
+		return tosConfigurationMap;
+	}
+
+	public void setTosConfigurationMap(Map<String, Serializable> tosConfigurationMap) {
+		this.tosConfigurationMap = tosConfigurationMap;
+	}
+
 }

@@ -17,6 +17,7 @@
 package it.smartcommunitylab.aac.config;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.auth.ExtendedLoginUrlAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.auth.LoginUrlRequestConverter;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
@@ -32,6 +33,8 @@ import it.smartcommunitylab.aac.oauth.service.OAuth2ClientService;
 import it.smartcommunitylab.aac.password.auth.InternalPasswordResetOnAccessFilter;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
+import it.smartcommunitylab.aac.terms.TermsOfServiceOnAccessFilter;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -87,6 +90,9 @@ public class OAuth2UserSecurityConfig {
 
     @Autowired
     private ProviderConfigRepository<PasswordIdentityProviderConfig> internalPasswordIdentityProviderConfigRepository;
+    
+    @Autowired
+    private RealmManager realmManager;
 
     /*
      * Configure a separated security context for oauth2 tokenEndpoints
@@ -155,12 +161,15 @@ public class OAuth2UserSecurityConfig {
             internalPasswordIdentityProviderConfigRepository
         );
 
+        TermsOfServiceOnAccessFilter tosFilter = new TermsOfServiceOnAccessFilter(realmManager);
+        
         // disable logout post-reset for oauth2 urls
         passwordResetFilter.setLogoutAfterReset(false);
 
         // build a virtual filter chain as composite filter
         ArrayList<Filter> filters = new ArrayList<>();
         filters.add(passwordResetFilter);
+        filters.add(tosFilter);
 
         CompositeFilter filter = new CompositeFilter();
         filter.setFilters(filters);

@@ -16,6 +16,22 @@
 
 package it.smartcommunitylab.aac.core.service;
 
+import java.io.Serializable;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
+
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.InvalidDataException;
@@ -25,20 +41,7 @@ import it.smartcommunitylab.aac.core.persistence.RealmEntity;
 import it.smartcommunitylab.aac.core.persistence.RealmEntityRepository;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ConfigurationMap;
-import java.io.Serializable;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.support.PageableExecutionUtils;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
+import it.smartcommunitylab.aac.oauth.model.TermsOfServiceConfigurationMap;
 
 @Service
 @Transactional
@@ -149,7 +152,8 @@ public class RealmService implements InitializingBean {
         String name,
         boolean isEditable,
         boolean isPublic,
-        Map<String, Serializable> oauthConfigurationMap
+        Map<String, Serializable> oauthConfigurationMap,
+        Map<String, Serializable> tosConfigurationMap
     ) throws NoSuchRealmException {
         if (SystemKeys.REALM_GLOBAL.equals(slug) || SystemKeys.REALM_SYSTEM.equals(slug)) {
             throw new IllegalArgumentException("system realms are immutable");
@@ -165,6 +169,8 @@ public class RealmService implements InitializingBean {
         r.setPublic(isPublic);
 
         r.setOAuthConfigurationMap(oauthConfigurationMap);
+        r.setTosConfigurationMap(tosConfigurationMap);
+        
         r = realmRepository.save(r);
 
         return toRealm(r);
@@ -247,6 +253,12 @@ public class RealmService implements InitializingBean {
             oauth2ConfigMap.setConfiguration(re.getOAuthConfigurationMap());
         }
         r.setOAuthConfiguration(oauth2ConfigMap);
+        
+        TermsOfServiceConfigurationMap tosConfigMap = new TermsOfServiceConfigurationMap();
+        if (re.getTosConfigurationMap() != null) {
+        	tosConfigMap.setConfiguration(re.getTosConfigurationMap());
+        }
+        r.setTosConfiguration(tosConfigMap);
 
         return r;
     }
