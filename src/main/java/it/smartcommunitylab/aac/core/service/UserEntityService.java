@@ -236,6 +236,19 @@ public class UserEntityService {
         return u;
     }
 
+    public UserEntity updateTos(String uuid, Boolean tos) throws NoSuchUserException {
+        UserEntity u = getUser(uuid);
+
+        if (tos != null) {
+            u.setTosAccepted(tos.booleanValue());
+        } else {
+            u.setTosAccepted(null);
+        }
+
+        u = userRepository.save(u);
+        return u;
+    }
+
     public void deleteUser(String uuid) {
         UserEntity u = userRepository.findByUuid(uuid);
         if (u != null) {

@@ -17,11 +17,15 @@
 package it.smartcommunitylab.aac.config;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.core.MyUserManager;
+import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.auth.ExtendedLoginUrlAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.auth.LoginUrlRequestConverter;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.IdentityProviderAuthorityService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderService;
+import it.smartcommunitylab.aac.core.service.RealmService;
+import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.oauth.auth.AuthorizationEndpointFilter;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientAwareLoginUrlConverter;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2IdpAwareLoginUrlConverter;
@@ -32,6 +36,7 @@ import it.smartcommunitylab.aac.oauth.service.OAuth2ClientService;
 import it.smartcommunitylab.aac.password.auth.InternalPasswordResetOnAccessFilter;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
+import it.smartcommunitylab.aac.tos.TosOnAccessFilter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -87,6 +92,12 @@ public class OAuth2UserSecurityConfig {
 
     @Autowired
     private ProviderConfigRepository<PasswordIdentityProviderConfig> internalPasswordIdentityProviderConfigRepository;
+
+    @Autowired
+    private RealmService realmService;
+
+    @Autowired
+    private UserService userService;
 
     /*
      * Configure a separated security context for oauth2 tokenEndpoints
@@ -155,12 +166,15 @@ public class OAuth2UserSecurityConfig {
             internalPasswordIdentityProviderConfigRepository
         );
 
+        TosOnAccessFilter tosFilter = new TosOnAccessFilter(realmService, userService);
+
         // disable logout post-reset for oauth2 urls
         passwordResetFilter.setLogoutAfterReset(false);
 
         // build a virtual filter chain as composite filter
         ArrayList<Filter> filters = new ArrayList<>();
         filters.add(passwordResetFilter);
+        filters.add(tosFilter);
 
         CompositeFilter filter = new CompositeFilter();
         filter.setFilters(filters);

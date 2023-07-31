@@ -28,14 +28,17 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.provider.AccountCredentialsService;
+import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.internal.InternalIdentityServiceAuthority;
 import it.smartcommunitylab.aac.internal.dto.UserRegistrationBean;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
+import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.password.model.PasswordPolicy;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.password.provider.PasswordCredentialsService;
+import java.nio.file.ProviderNotFoundException;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.Optional;
@@ -76,6 +79,9 @@ public class InternalRegistrationController {
 
     @Autowired
     private InternalIdentityServiceAuthority internalAuthority;
+
+    @Autowired
+    private RealmService realmService;
 
     @Autowired
     private MessageSource messageSource;
@@ -258,6 +264,11 @@ public class InternalRegistrationController {
 
         // load realm props
         String realm = idp.getRealm();
+        Realm r = realmService.findRealm(realm);
+        if (r == null) {
+            throw new ProviderNotFoundException("realm not found");
+        }
+
         model.addAttribute("realm", realm);
         model.addAttribute("displayName", realm);
 
@@ -286,6 +297,10 @@ public class InternalRegistrationController {
         model.addAttribute("registrationUrl", "/auth/internal/register/" + providerId);
         // set realm login url
         model.addAttribute("loginUrl", "/-/" + realm + "/login");
+
+        if (r.getTosConfiguration() != null && r.getTosConfiguration().isEnableTOS()) {
+            model.addAttribute("tosUrl", "/-/" + realm + "/terms");
+        }
 
         return "internal/registeraccount";
     }

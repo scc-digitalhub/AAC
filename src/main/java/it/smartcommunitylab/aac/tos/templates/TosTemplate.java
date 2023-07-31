@@ -14,29 +14,18 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.core.model;
+package it.smartcommunitylab.aac.tos.templates;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import java.util.Collection;
-import java.util.Map;
+import it.smartcommunitylab.aac.templates.model.FixedTemplateModel;
+import java.util.Arrays;
 
-/*
- * A template handles localizable and customizable content for the UI
- */
-public interface Template extends Resource {
-    public String getTemplate();
+public class TosTemplate extends FixedTemplateModel {
 
-    public String getLanguage();
+    public static final String TEMPLATE = "tos";
+    public static final String[] KEYS = { "tos.text" };
 
-    public Collection<String> keys();
-
-    public String get(String key);
-
-    public Map<String, String> getContent();
-
-    default String getType() {
-        return SystemKeys.RESOURCE_TEMPLATE;
+    public TosTemplate(String realm) {
+        super(SystemKeys.AUTHORITY_TOS, realm, null, TEMPLATE, Arrays.asList(KEYS));
     }
-
-    public Map<String, Object> getModelAttributes();
 }

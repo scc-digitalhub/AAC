@@ -131,6 +131,8 @@ public class UserService {
             u.setLoginDate(ue.getLoginDate());
             u.setLoginIp(ue.getLoginIp());
             u.setLoginProvider(ue.getLoginProvider());
+            boolean tosAccepted = ue.getTosAccepted() != null ? ue.getTosAccepted().booleanValue() : false;
+            u.setTosAccepted(tosAccepted);
 
             // refresh authorities
             u.setAuthorities(fetchUserAuthorities(subjectId, realm));
@@ -175,6 +177,8 @@ public class UserService {
             u.setLoginDate(ue.getLoginDate());
             u.setLoginIp(ue.getLoginIp());
             u.setLoginProvider(ue.getLoginProvider());
+            boolean tosAccepted = ue.getTosAccepted() != null ? ue.getTosAccepted().booleanValue() : false;
+            u.setTosAccepted(tosAccepted);
 
             // refresh authorities
             u.setAuthorities(fetchUserAuthorities(subjectId, realm));
@@ -265,6 +269,7 @@ public class UserService {
         // add authorities
         try {
             user.setAuthorities(fetchUserAuthorities(subjectId, realm));
+            user.setTosAccepted(u.getTosAccepted());
         } catch (NoSuchUserException e) {
             // ignore
         }
@@ -283,6 +288,12 @@ public class UserService {
         u.setEmail(ue.getEmailAddress());
         boolean emailVerified = ue.getEmailVerified() != null ? ue.getEmailVerified().booleanValue() : false;
         u.setEmailVerified(emailVerified);
+
+        if (ue.getTosAccepted() != null) {
+            u.setTosAccepted(ue.isTosAccepted());
+        } else {
+            u.setTosAccepted(null);
+        }
 
         // status
         SubjectStatus status = SubjectStatus.parse(ue.getStatus());
@@ -334,6 +345,12 @@ public class UserService {
         u.setEmail(ue.getEmailAddress());
         boolean emailVerified = ue.getEmailVerified() != null ? ue.getEmailVerified().booleanValue() : false;
         u.setEmailVerified(emailVerified);
+
+        if (ue.getTosAccepted() != null) {
+            u.setTosAccepted(ue.isTosAccepted());
+        } else {
+            u.setTosAccepted(null);
+        }
 
         // status
         SubjectStatus status = SubjectStatus.parse(ue.getStatus());
@@ -781,5 +798,17 @@ public class UserService {
 
     public Collection<Group> fetchUserGroups(String subjectId, String realm) throws NoSuchUserException {
         return groupService.getSubjectGroups(subjectId, realm);
+    }
+
+    public void acceptTos(String subjectId) throws NoSuchUserException {
+        userService.updateTos(subjectId, true);
+    }
+
+    public void rejectTos(String subjectId) throws NoSuchUserException {
+        userService.updateTos(subjectId, false);
+    }
+
+    public void resetTos(String subjectId) throws NoSuchUserException {
+        userService.updateTos(subjectId, null);
     }
 }

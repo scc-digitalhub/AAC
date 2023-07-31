@@ -1,0 +1,15 @@
+<div class="pt-3">
+    <div class="row">
+        <fieldset class="col-md-10">
+            <legend class="mb-4">Terms of Service configuration</legend>
+            <div class="form-check form-check-group" ng-click="realmSettings.tosConfiguration.enableTOS = !realmSettings.tosConfiguration.enableTOS ">
+                <input type="checkbox" class="form-control" id="enabledTos" ng-model="realmSettings.tosConfiguration.enableTOS">
+                <label for="enabledTos">Enable Terms of Service</label>
+            </div>
+            <div class="form-check form-check-group" ng-click="realmSettings.tosConfiguration.approveTOS = !realmSettings.tosConfiguration.approveTOS ">
+                <input type="checkbox" class="form-control" id="approveTos" ng-model="realmSettings.tosConfiguration.approveTOS">
+                <label for="approveTos">Approve Terms of Service</label>                
+            </div>            
+        </fieldset>
+    </div>
+</div>

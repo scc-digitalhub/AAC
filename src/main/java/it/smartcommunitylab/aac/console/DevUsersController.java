@@ -323,4 +323,16 @@ public class DevUsersController extends BaseUserController {
         Collection<OAuth2AccessToken> result = userManager.getAccessTokens(realm, userId);
         return ResponseEntity.ok(result);
     }
+
+    /*
+     * Tos
+     */
+    @PutMapping("/users/{realm}/{userId}/resetTos")
+    public ResponseEntity<Void> resetTos(
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId
+    ) throws NoSuchRealmException, NoSuchUserException {
+        userManager.resetTos(realm, userId);
+        return ResponseEntity.ok(null);
+    }
 }

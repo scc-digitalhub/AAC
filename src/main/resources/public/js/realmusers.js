@@ -219,6 +219,11 @@ angular.module('aac.controllers.realmusers', [])
                 return data.data;
             });
         }
+        service.resetTos = function (slug, subject) {
+            return $http.put('console/dev/users/' + slug + '/' + subject + '/resetTos').then(function (data) {
+                return data.data;
+            });
+        }
         return service;
 
     })
@@ -1683,6 +1688,16 @@ angular.module('aac.controllers.realmusers', [])
             }
             $scope.modAttributes = attributes;
             $('#deleteConfirm').modal({ keyboard: false });
+        };
+        
+        $scope.resetTos = function (user) {
+            RealmUsers.resetTos(slug, user.subjectId)
+                .then(function (data) {
+                    $scope.reload(data);
+                    Utils.showSuccess();
+                }).catch(function (err) {
+                    Utils.showError(err.data.message);
+                });
         };
 
         $scope.copyText = function (txt) {

@@ -63,6 +63,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1102,5 +1105,20 @@ public class UserManager {
     public Collection<Group> getUserGroups(String realm, String subjectId)
         throws NoSuchRealmException, NoSuchUserException {
         return userService.fetchUserGroups(subjectId, realm);
+    }
+
+    @Transactional(readOnly = false)
+    public void resetTos(String realm, String userId) throws NoSuchUserException, NoSuchRealmException {
+        logger.debug("reset user {} tos", StringUtils.trimAllWhitespace(userId));
+
+        // check user source realm
+        Realm r = realmService.getRealm(realm);
+        String source = userService.getUserRealm(userId);
+        if (!source.equals(r.getSlug())) {
+            throw new IllegalArgumentException("realm-mismatch");
+        }
+
+        // reset tos.
+        userService.resetTos(userId);
     }
 }

@@ -19,10 +19,13 @@ import it.smartcommunitylab.aac.core.auth.ExtendedLogoutSuccessHandler;
 import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.core.service.RealmService;
+import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.crypto.InternalPasswordEncoder;
 import it.smartcommunitylab.aac.password.auth.InternalPasswordResetOnAccessFilter;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
+import it.smartcommunitylab.aac.tos.TosOnAccessFilter;
 import java.util.ArrayList;
 import java.util.List;
 import javax.servlet.Filter;
@@ -63,8 +66,9 @@ public class SecurityConfig {
     @Value("${application.url}")
     private String applicationURL;
 
-    private final String loginPath = "/login";
-    private final String logoutPath = "/logout";
+    private static final String LOGINPATH = "/login";
+    private static final String LOGOUTPATH = "/logout";
+    private static final String TERMSPATH = "/terms";
 
     @Autowired
     private RealmAwarePathUriBuilder realmUriBuilder;
@@ -74,6 +78,12 @@ public class SecurityConfig {
 
     @Autowired
     private ProviderConfigRepository<PasswordIdentityProviderConfig> internalPasswordIdentityProviderConfigRepository;
+
+    @Autowired
+    private RealmService realmService;
+
+    @Autowired
+    private UserService userService;
 
     //    /*
     //     * rememberme
@@ -124,11 +134,13 @@ public class SecurityConfig {
             .antMatchers("/error")
             .permitAll()
             // whitelist login pages
-            .antMatchers(loginPath, logoutPath)
+            .antMatchers(LOGINPATH, LOGOUTPATH)
             .permitAll()
-            .antMatchers("/-/{realm}/" + loginPath)
+            .antMatchers("/-/{realm}/" + LOGINPATH)
             .permitAll()
             .antMatchers("/endsession")
+            .permitAll()
+            .antMatchers("/-/{realm}/" + TERMSPATH)
             .permitAll()
             // whitelist auth providers pages (login,registration etc)
             //                .antMatchers("/auth/**").permitAll()
@@ -146,15 +158,15 @@ public class SecurityConfig {
             //                        oauth2AuthenticationEntryPoint(oauth2ClientDetailsService, loginPath),
             //                        new AntPathRequestMatcher("/oauth/**"))
             .defaultAuthenticationEntryPointFor(
-                realmAuthEntryPoint(loginPath, realmUriBuilder),
+                realmAuthEntryPoint(LOGINPATH, realmUriBuilder),
                 new AntPathRequestMatcher("/**")
             )
             .accessDeniedPage("/accesserror")
             .and()
             .logout(logout ->
                 logout
-                    .logoutUrl(logoutPath)
-                    .logoutRequestMatcher(new AntPathRequestMatcher(logoutPath))
+                    .logoutUrl(LOGOUTPATH)
+                    .logoutRequestMatcher(new AntPathRequestMatcher(LOGOUTPATH))
                     .logoutSuccessHandler(logoutSuccessHandler(realmUriBuilder))
                     .permitAll()
             )
@@ -220,7 +232,7 @@ public class SecurityConfig {
     @Bean
     public LogoutSuccessHandler logoutSuccessHandler(RealmAwarePathUriBuilder uriBuilder) {
         // TODO update dedicated, leverage OidcClientInitiatedLogoutSuccessHandler
-        ExtendedLogoutSuccessHandler handler = new ExtendedLogoutSuccessHandler(loginPath);
+        ExtendedLogoutSuccessHandler handler = new ExtendedLogoutSuccessHandler(LOGINPATH);
         handler.setRealmUriBuilder(uriBuilder);
         handler.setDefaultTargetUrl("/");
         handler.setTargetUrlParameter("target");
@@ -252,9 +264,12 @@ public class SecurityConfig {
             internalPasswordIdentityProviderConfigRepository
         );
 
+        TosOnAccessFilter tosFilter = new TosOnAccessFilter(realmService, userService);
+
         // build a virtual filter chain as composite filter
         ArrayList<Filter> filters = new ArrayList<>();
         filters.add(passwordChangeFilter);
+        filters.add(tosFilter);
 
         CompositeFilter filter = new CompositeFilter();
         filter.setFilters(filters);
