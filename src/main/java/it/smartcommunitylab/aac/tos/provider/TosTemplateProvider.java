@@ -20,7 +20,6 @@ import java.util.HashMap;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractTemplateProvider;
-import it.smartcommunitylab.aac.password.templates.PasswordPolicyTemplate;
 import it.smartcommunitylab.aac.templates.model.TemplateModel;
 import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfig;
 import it.smartcommunitylab.aac.templates.provider.TemplateProviderConfigMap;
@@ -39,9 +38,8 @@ public class TosTemplateProvider
 			TemplateModel m = new TosTemplate(realm);
 			return m;
 		});
-		factories.put(TosApproveTemplate.TEMPLATE, () -> new TosApproveTemplate(realm));
-		factories.put(PasswordPolicyTemplate.TEMPLATE, () -> {
-			TemplateModel m = new PasswordPolicyTemplate(realm);
+		factories.put(TosApproveTemplate.TEMPLATE, () -> {
+			TemplateModel m = new TosApproveTemplate(realm);
 			return m;
 		});
 	}
