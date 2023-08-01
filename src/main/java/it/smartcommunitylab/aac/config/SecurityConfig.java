@@ -24,7 +24,7 @@ import it.smartcommunitylab.aac.crypto.InternalPasswordEncoder;
 import it.smartcommunitylab.aac.password.auth.InternalPasswordResetOnAccessFilter;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
-import it.smartcommunitylab.aac.terms.TermsOfServiceOnAccessFilter;
+import it.smartcommunitylab.aac.tos.TosOnAccessFilter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -258,7 +258,7 @@ public class SecurityConfig {
             internalPasswordIdentityProviderConfigRepository
         );
         
-        TermsOfServiceOnAccessFilter tosFilter = new TermsOfServiceOnAccessFilter(realmManager);
+        TosOnAccessFilter tosFilter = new TosOnAccessFilter(realmManager);
 
         // build a virtual filter chain as composite filter
         ArrayList<Filter> filters = new ArrayList<>();

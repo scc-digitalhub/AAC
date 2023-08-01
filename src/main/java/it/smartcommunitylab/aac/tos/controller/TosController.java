@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.terms.controller;
+package it.smartcommunitylab.aac.tos.controller;
 
 import java.util.Locale;
 
@@ -42,7 +42,7 @@ import it.smartcommunitylab.aac.core.UserDetails;
 
 @Controller
 @RequestMapping
-public class TermsController {
+public class TosController {
 
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -60,11 +60,14 @@ public class TermsController {
 			throw new InsufficientAuthenticationException("error.unauthenticated_user");
 		}
 
+		String realm = user.getRealm();
 		model.addAttribute("acceptUrl", "/terms/accept");
+		model.addAttribute("realm", realm);
+		model.addAttribute("displayName", realm);
 
 		if (approveTOS.equals("true")) {
 			model.addAttribute("rejectUrl", "/terms/refuse");
-			return "terms/terms_approval";
+			return "terms_approval";
 		}
 
 		return "terms/terms_ok";

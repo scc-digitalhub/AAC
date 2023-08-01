@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.terms;
+package it.smartcommunitylab.aac.tos;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -49,7 +49,7 @@ import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.model.Realm;
 
-public class TermsOfServiceOnAccessFilter extends OncePerRequestFilter {
+public class TosOnAccessFilter extends OncePerRequestFilter {
 	private final RequestMatcher termsManagedRequestMatcher = new AntPathRequestMatcher("/terms/**");
 	static final String[] SKIP_URLS = { "/api/**", "/html/**", "/js/**", "/lib/**", "/fonts/**", "/italia/**",
 			"/i18n/**" };
@@ -62,7 +62,7 @@ public class TermsOfServiceOnAccessFilter extends OncePerRequestFilter {
 
 	private final RealmManager realmManager;
 
-	public TermsOfServiceOnAccessFilter(RealmManager realmManager) {
+	public TosOnAccessFilter(RealmManager realmManager) {
 		// init request cache as store
 		HttpSessionRequestCache cache = new HttpSessionRequestCache();
 		this.requestCache = cache;

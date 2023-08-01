@@ -33,7 +33,7 @@ import it.smartcommunitylab.aac.oauth.service.OAuth2ClientService;
 import it.smartcommunitylab.aac.password.auth.InternalPasswordResetOnAccessFilter;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
-import it.smartcommunitylab.aac.terms.TermsOfServiceOnAccessFilter;
+import it.smartcommunitylab.aac.tos.TosOnAccessFilter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -161,7 +161,7 @@ public class OAuth2UserSecurityConfig {
             internalPasswordIdentityProviderConfigRepository
         );
 
-        TermsOfServiceOnAccessFilter tosFilter = new TermsOfServiceOnAccessFilter(realmManager);
+        TosOnAccessFilter tosFilter = new TosOnAccessFilter(realmManager);
         
         // disable logout post-reset for oauth2 urls
         passwordResetFilter.setLogoutAfterReset(false);

@@ -22,10 +22,10 @@ import it.smartcommunitylab.aac.SystemKeys;
 
 public class TosTemplate extends FixedTemplateModel {
 
-	public static final String TEMPLATE = "tos";
+	public static final String TEMPLATE = "terms_approval";
 	private static final String[] KEYS = { "tos.text" };
 
 	public TosTemplate(String realm) {
-		super(SystemKeys.AUTHORITY_PASSWORD, realm, null, TEMPLATE, Arrays.asList(KEYS));
+		super(SystemKeys.AUTHORITY_TEMPLATE, realm, null, TEMPLATE, Arrays.asList(KEYS));
 	}
 }
