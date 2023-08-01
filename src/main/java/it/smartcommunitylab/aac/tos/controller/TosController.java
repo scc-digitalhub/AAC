@@ -67,11 +67,11 @@ public class TosController {
 
 		if (approveTOS.equals("true")) {
 			model.addAttribute("rejectUrl", "/terms/refuse");
-			return "tos_approval";
+			return "tos/tos_approval";
 		}
         
-		return "tos_ok";
-//		return "terms/terms_ok";
+		return "tos/tos_ok";
+
 	}
 
 	@PostMapping("/terms/accept")

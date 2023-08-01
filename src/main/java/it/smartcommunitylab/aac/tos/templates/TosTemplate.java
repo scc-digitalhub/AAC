@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.templates.model;
+package it.smartcommunitylab.aac.tos.templates;
 
 import java.util.Arrays;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.templates.model.FixedTemplateModel;
 
-public class TosApproveTemplate extends FixedTemplateModel {
+public class TosTemplate extends FixedTemplateModel {
 
-	public static final String TEMPLATE = "tos_approval";
+	public static final String TEMPLATE = "tos_ok";
 	private static final String[] KEYS = { "tos.text" };
 
-	public TosApproveTemplate(String realm) {
+	public TosTemplate(String realm) {
 		super(SystemKeys.AUTHORITY_TEMPLATE, realm, null, TEMPLATE, Arrays.asList(KEYS));
 	}
 }

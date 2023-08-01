@@ -29,10 +29,10 @@ import it.smartcommunitylab.aac.templates.model.EndSessionTemplate;
 import it.smartcommunitylab.aac.templates.model.FooterTemplate;
 import it.smartcommunitylab.aac.templates.model.LoginTemplate;
 import it.smartcommunitylab.aac.templates.model.TemplateModel;
-import it.smartcommunitylab.aac.templates.model.TosApproveTemplate;
-import it.smartcommunitylab.aac.templates.model.TosTemplate;
 import it.smartcommunitylab.aac.templates.model.UserApprovalTemplate;
 import it.smartcommunitylab.aac.templates.service.TemplateService;
+import it.smartcommunitylab.aac.tos.templates.TosApproveTemplate;
+import it.smartcommunitylab.aac.tos.templates.TosTemplate;
 
 public class TemplateTemplateProvider
     extends AbstractTemplateProvider<TemplateModel, TemplateProviderConfigMap, RealmTemplateProviderConfig> {
