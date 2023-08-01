@@ -20,12 +20,12 @@ import java.util.Arrays;
 
 import it.smartcommunitylab.aac.SystemKeys;
 
-public class TosTemplate extends FixedTemplateModel {
+public class TosApproveTemplate extends FixedTemplateModel {
 
-	public static final String TEMPLATE = "tos_ok";
+	public static final String TEMPLATE = "tos_approval";
 	private static final String[] KEYS = { "tos.text" };
 
-	public TosTemplate(String realm) {
+	public TosApproveTemplate(String realm) {
 		super(SystemKeys.AUTHORITY_TEMPLATE, realm, null, TEMPLATE, Arrays.asList(KEYS));
 	}
 }

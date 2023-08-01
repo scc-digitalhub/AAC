@@ -16,6 +16,9 @@
 
 package it.smartcommunitylab.aac.templates.provider;
 
+import java.util.HashMap;
+import java.util.UUID;
+
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractTemplateProvider;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
@@ -26,11 +29,10 @@ import it.smartcommunitylab.aac.templates.model.EndSessionTemplate;
 import it.smartcommunitylab.aac.templates.model.FooterTemplate;
 import it.smartcommunitylab.aac.templates.model.LoginTemplate;
 import it.smartcommunitylab.aac.templates.model.TemplateModel;
+import it.smartcommunitylab.aac.templates.model.TosApproveTemplate;
 import it.smartcommunitylab.aac.templates.model.TosTemplate;
 import it.smartcommunitylab.aac.templates.model.UserApprovalTemplate;
 import it.smartcommunitylab.aac.templates.service.TemplateService;
-import java.util.HashMap;
-import java.util.UUID;
 
 public class TemplateTemplateProvider
     extends AbstractTemplateProvider<TemplateModel, TemplateProviderConfigMap, RealmTemplateProviderConfig> {
@@ -86,5 +88,6 @@ public class TemplateTemplateProvider
         );
         factories.put(FooterTemplate.TEMPLATE, () -> new FooterTemplate(realm));
         factories.put(TosTemplate.TEMPLATE, () -> new TosTemplate(realm));
+        factories.put(TosApproveTemplate.TEMPLATE, () -> new TosApproveTemplate(realm));
     }
 }
