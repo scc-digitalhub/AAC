@@ -16,30 +16,13 @@
 
 package it.smartcommunitylab.aac.config;
 
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.core.RealmManager;
-import it.smartcommunitylab.aac.core.auth.ExtendedLoginUrlAuthenticationEntryPoint;
-import it.smartcommunitylab.aac.core.auth.LoginUrlRequestConverter;
-import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.core.service.IdentityProviderAuthorityService;
-import it.smartcommunitylab.aac.core.service.IdentityProviderService;
-import it.smartcommunitylab.aac.oauth.auth.AuthorizationEndpointFilter;
-import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientAwareLoginUrlConverter;
-import it.smartcommunitylab.aac.oauth.auth.OAuth2IdpAwareLoginUrlConverter;
-import it.smartcommunitylab.aac.oauth.endpoint.AuthorizationEndpoint;
-import it.smartcommunitylab.aac.oauth.endpoint.UserApprovalEndpoint;
-import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
-import it.smartcommunitylab.aac.oauth.service.OAuth2ClientService;
-import it.smartcommunitylab.aac.password.auth.InternalPasswordResetOnAccessFilter;
-import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
-import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
-import it.smartcommunitylab.aac.tos.TosOnAccessFilter;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import javax.servlet.Filter;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -57,6 +40,26 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CompositeFilter;
+
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.core.MyUserManager;
+import it.smartcommunitylab.aac.core.RealmManager;
+import it.smartcommunitylab.aac.core.auth.ExtendedLoginUrlAuthenticationEntryPoint;
+import it.smartcommunitylab.aac.core.auth.LoginUrlRequestConverter;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.core.service.IdentityProviderAuthorityService;
+import it.smartcommunitylab.aac.core.service.IdentityProviderService;
+import it.smartcommunitylab.aac.oauth.auth.AuthorizationEndpointFilter;
+import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientAwareLoginUrlConverter;
+import it.smartcommunitylab.aac.oauth.auth.OAuth2IdpAwareLoginUrlConverter;
+import it.smartcommunitylab.aac.oauth.endpoint.AuthorizationEndpoint;
+import it.smartcommunitylab.aac.oauth.endpoint.UserApprovalEndpoint;
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientService;
+import it.smartcommunitylab.aac.password.auth.InternalPasswordResetOnAccessFilter;
+import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
+import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
+import it.smartcommunitylab.aac.tos.TosOnAccessFilter;
 
 /*
  * Security context for oauth2 endpoints
@@ -93,6 +96,9 @@ public class OAuth2UserSecurityConfig {
     
     @Autowired
     private RealmManager realmManager;
+    
+    @Autowired
+    private MyUserManager myUserManager;
 
     /*
      * Configure a separated security context for oauth2 tokenEndpoints
@@ -161,7 +167,7 @@ public class OAuth2UserSecurityConfig {
             internalPasswordIdentityProviderConfigRepository
         );
 
-        TosOnAccessFilter tosFilter = new TosOnAccessFilter(realmManager);
+        TosOnAccessFilter tosFilter = new TosOnAccessFilter(realmManager, myUserManager);
         
         // disable logout post-reset for oauth2 urls
         passwordResetFilter.setLogoutAfterReset(false);

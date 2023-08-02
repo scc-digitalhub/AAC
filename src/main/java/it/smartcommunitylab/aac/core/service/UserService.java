@@ -131,6 +131,8 @@ public class UserService {
             u.setLoginDate(ue.getLoginDate());
             u.setLoginIp(ue.getLoginIp());
             u.setLoginProvider(ue.getLoginProvider());
+            boolean tosAccepted = ue.getTosAccepted() != null ? ue.getTosAccepted().booleanValue() : false;
+            u.setTosAccepted(tosAccepted);
 
             // refresh authorities
             u.setAuthorities(fetchUserAuthorities(subjectId, realm));
@@ -175,6 +177,8 @@ public class UserService {
             u.setLoginDate(ue.getLoginDate());
             u.setLoginIp(ue.getLoginIp());
             u.setLoginProvider(ue.getLoginProvider());
+            boolean tosAccepted = ue.getTosAccepted() != null ? ue.getTosAccepted().booleanValue() : false;
+            u.setTosAccepted(tosAccepted);
 
             // refresh authorities
             u.setAuthorities(fetchUserAuthorities(subjectId, realm));
@@ -782,4 +786,9 @@ public class UserService {
     public Collection<Group> fetchUserGroups(String subjectId, String realm) throws NoSuchUserException {
         return groupService.getSubjectGroups(subjectId, realm);
     }
+    
+	public void acceptTOS(String subjectId) throws NoSuchUserException {
+		userService.acceptTOS(subjectId);		
+	}
+	
 }

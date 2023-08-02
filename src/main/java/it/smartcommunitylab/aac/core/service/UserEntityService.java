@@ -235,6 +235,13 @@ public class UserEntityService {
         u = userRepository.save(u);
         return u;
     }
+    
+    public UserEntity acceptTOS(String uuid) throws NoSuchUserException {
+        UserEntity u = getUser(uuid);
+        u.setTosAccepted(true);
+        u = userRepository.save(u);
+        return u;
+    }
 
     public void deleteUser(String uuid) {
         UserEntity u = userRepository.findByUuid(uuid);

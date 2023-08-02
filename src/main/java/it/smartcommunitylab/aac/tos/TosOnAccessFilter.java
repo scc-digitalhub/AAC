@@ -43,11 +43,15 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.core.MyUserManager;
 import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.model.Realm;
+import it.smartcommunitylab.aac.model.User;
 
 public class TosOnAccessFilter extends OncePerRequestFilter {
 	private final RequestMatcher termsManagedRequestMatcher = new AntPathRequestMatcher("/terms/**");
@@ -61,12 +65,14 @@ public class TosOnAccessFilter extends OncePerRequestFilter {
 	private RequestMatcher requestMatcher;
 
 	private final RealmManager realmManager;
+	private final MyUserManager userManager;
 
-	public TosOnAccessFilter(RealmManager realmManager) {
+	public TosOnAccessFilter(RealmManager realmManager, MyUserManager userManager) {
 		// init request cache as store
 		HttpSessionRequestCache cache = new HttpSessionRequestCache();
 		this.requestCache = cache;
 		this.realmManager = realmManager;
+		this.userManager = userManager;
 		this.requestMatcher = buildRequestMatcher();
 	}
 
@@ -102,34 +108,44 @@ public class TosOnAccessFilter extends OncePerRequestFilter {
 
 			String realm = token.getRealm();
 
-			if (!realm.equalsIgnoreCase(SystemKeys.REALM_GLOBAL) && !realm.equalsIgnoreCase(SystemKeys.REALM_SYSTEM)
-					&& request.getSession().getAttribute("termsManaged") == null) {
-				Realm realmEntity = realmManager.findRealm(realm);
+			try {
+				User user = userManager.getMyUser(realm);
+				if (!realm.equalsIgnoreCase(SystemKeys.REALM_GLOBAL) && !realm.equalsIgnoreCase(SystemKeys.REALM_SYSTEM)
+						&& !user.isTosAccepted()) {
+					Realm realmEntity = realmManager.findRealm(realm);
 
-				if (request.getSession().getAttribute("refusedTerms") != null
-						&& request.getSession().getAttribute("refusedTerms").equals("true")) {
-					this.logger.debug("logout user after terms refuse");
-					SecurityContextHolder.clearContext();
-					request.getSession().removeAttribute("termsManaged");
-					request.getSession().removeAttribute("refusedTerms");
-					request.setAttribute(RealmAwareAuthenticationEntryPoint.REALM_URI_VARIABLE_NAME, realm);
-				} else if ((realmEntity.getTosConfiguration().getConfiguration().containsKey("enableTOS"))
-						&& (boolean) realmEntity.getTosConfiguration().getConfiguration().get("enableTOS")) {
-					String targetUrl = "/terms/"
-							+ realmEntity.getTosConfiguration().getConfiguration().get("approveTOS");
-					this.requestCache.saveRequest(request, response);
-					this.logger.debug("Redirect to {}", targetUrl);
-					this.redirectStrategy.sendRedirect(request, response, targetUrl);
-					return;
-				} else if (request.getSession().getAttribute("termsManaged") != null
-						&& request.getSession().getAttribute("termsManaged").equals("true")) {
-					SavedRequest savedRequest = this.requestCache.getRequest(request, response);
-					if (savedRequest != null) {
-						logger.debug("restore request from cache");
-						this.requestCache.removeRequest(request, response);
-						this.redirectStrategy.sendRedirect(request, response, savedRequest.getRedirectUrl());
+					if (request.getSession().getAttribute("refusedTerms") != null
+							&& request.getSession().getAttribute("refusedTerms").equals("true")) {
+						this.logger.debug("logout user after terms refuse");
+						SecurityContextHolder.clearContext();
+						request.getSession().removeAttribute("refusedTerms");
+						request.setAttribute(RealmAwareAuthenticationEntryPoint.REALM_URI_VARIABLE_NAME, realm);
+					} else if ((realmEntity.getTosConfiguration().getConfiguration().containsKey("enableTOS"))
+							&& (boolean) realmEntity.getTosConfiguration().getConfiguration().get("enableTOS")
+							&& request.getSession().getAttribute("termsManaged") == null) {
+						String targetUrl = "/terms/"
+								+ realmEntity.getTosConfiguration().getConfiguration().get("approveTOS");
+						this.requestCache.saveRequest(request, response);
+						this.logger.debug("Redirect to {}", targetUrl);
+						this.redirectStrategy.sendRedirect(request, response, targetUrl);
+						return;
+					} else if (request.getSession().getAttribute("termsManaged") != null
+							&& request.getSession().getAttribute("termsManaged").equals("true")) {
+						SavedRequest savedRequest = this.requestCache.getRequest(request, response);
+						if (savedRequest != null) {
+							logger.debug("restore request from cache");
+							this.requestCache.removeRequest(request, response);
+							this.redirectStrategy.sendRedirect(request, response, savedRequest.getRedirectUrl());
+							userManager.setTosAccepted(user.getSubjectId());
+							return;
+						}
 					}
 				}
+			} catch (NoSuchRealmException e) {
+				logger.error(e.getMessage(), e);
+			} catch (NoSuchUserException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
 

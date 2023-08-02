@@ -15,20 +15,11 @@
  ******************************************************************************/
 package it.smartcommunitylab.aac.config;
 
-import it.smartcommunitylab.aac.core.RealmManager;
-import it.smartcommunitylab.aac.core.auth.ExtendedLogoutSuccessHandler;
-import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
-import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
-import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.crypto.InternalPasswordEncoder;
-import it.smartcommunitylab.aac.password.auth.InternalPasswordResetOnAccessFilter;
-import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
-import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
-import it.smartcommunitylab.aac.tos.TosOnAccessFilter;
-
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.servlet.Filter;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -48,6 +39,18 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import org.springframework.security.web.header.writers.ClearSiteDataHeaderWriter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.filter.CompositeFilter;
+
+import it.smartcommunitylab.aac.core.MyUserManager;
+import it.smartcommunitylab.aac.core.RealmManager;
+import it.smartcommunitylab.aac.core.auth.ExtendedLogoutSuccessHandler;
+import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
+import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.crypto.InternalPasswordEncoder;
+import it.smartcommunitylab.aac.password.auth.InternalPasswordResetOnAccessFilter;
+import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
+import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
+import it.smartcommunitylab.aac.tos.TosOnAccessFilter;
 
 /*
  * Security config for AAC UI
@@ -80,7 +83,10 @@ public class SecurityConfig {
     
     @Autowired
     private RealmManager realmManager;
-
+    
+    @Autowired
+    private MyUserManager myUserManager;
+    
     //    /*
     //     * rememberme
     //     */
@@ -258,7 +264,7 @@ public class SecurityConfig {
             internalPasswordIdentityProviderConfigRepository
         );
         
-        TosOnAccessFilter tosFilter = new TosOnAccessFilter(realmManager);
+        TosOnAccessFilter tosFilter = new TosOnAccessFilter(realmManager, myUserManager);
 
         // build a virtual filter chain as composite filter
         ArrayList<Filter> filters = new ArrayList<>();

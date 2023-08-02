@@ -38,6 +38,7 @@ import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
+import it.smartcommunitylab.aac.core.MyUserManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 
 @Controller
@@ -48,6 +49,9 @@ public class TosController {
 
 	@Autowired
 	private AuthenticationHelper authHelper;
+
+	@Autowired
+	private MyUserManager myUserManager;
 
 	@GetMapping("/terms/{approveTOS}")
 	public String terms(@PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String approveTOS,
@@ -69,7 +73,7 @@ public class TosController {
 			model.addAttribute("rejectUrl", "/terms/refuse");
 			return "tos/tos_approval";
 		}
-        
+
 		return "tos/tos_ok";
 
 	}
@@ -85,6 +89,7 @@ public class TosController {
 		}
 
 		request.getSession().setAttribute("termsManaged", "true");
+		this.logger.debug("terms of service approved");
 
 		return "redirect:/";
 	}
