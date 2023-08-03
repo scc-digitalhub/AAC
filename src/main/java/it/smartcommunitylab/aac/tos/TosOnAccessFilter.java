@@ -40,7 +40,9 @@ import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.util.WebUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
@@ -114,13 +116,7 @@ public class TosOnAccessFilter extends OncePerRequestFilter {
 						&& !user.isTosAccepted()) {
 					Realm realmEntity = realmManager.findRealm(realm);
 
-					if (request.getSession().getAttribute("refusedTerms") != null
-							&& request.getSession().getAttribute("refusedTerms").equals("true")) {
-						this.logger.debug("logout user after terms refuse");
-						SecurityContextHolder.clearContext();
-						request.getSession().removeAttribute("refusedTerms");
-						request.setAttribute(RealmAwareAuthenticationEntryPoint.REALM_URI_VARIABLE_NAME, realm);
-					} else if ((realmEntity.getTosConfiguration().getConfiguration().containsKey("enableTOS"))
+					if ((realmEntity.getTosConfiguration().getConfiguration().containsKey("enableTOS"))
 							&& (boolean) realmEntity.getTosConfiguration().getConfiguration().get("enableTOS")
 							&& request.getSession().getAttribute("termsManaged") == null) {
 						String targetUrl = "/terms/"

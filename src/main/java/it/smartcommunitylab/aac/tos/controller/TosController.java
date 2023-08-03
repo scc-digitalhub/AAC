@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,6 +41,7 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.MyUserManager;
 import it.smartcommunitylab.aac.core.UserDetails;
+import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
 
 @Controller
 @RequestMapping
@@ -105,9 +107,10 @@ public class TosController {
 		}
 
 		this.logger.debug("logout user after terms refusal");
-		request.getSession().setAttribute("refusedTerms", "true");
+		SecurityContextHolder.clearContext();
+		request.setAttribute(RealmAwareAuthenticationEntryPoint.REALM_URI_VARIABLE_NAME, user.getRealm());
 
-		return "redirect:/";
+		return "error/tos_refuse";
 
 	}
 
