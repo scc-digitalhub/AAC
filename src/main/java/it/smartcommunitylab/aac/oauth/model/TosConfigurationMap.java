@@ -32,7 +32,7 @@ import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class TermsOfServiceConfigurationMap implements ConfigurableProperties {
+public class TosConfigurationMap implements ConfigurableProperties {
 
 	private static ObjectMapper mapper = new ObjectMapper();
 	private final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
@@ -41,7 +41,7 @@ public class TermsOfServiceConfigurationMap implements ConfigurableProperties {
 	private Boolean enableTOS;
 	private Boolean approveTOS;
 
-	public TermsOfServiceConfigurationMap() {
+	public TosConfigurationMap() {
 		enableTOS = false;
 		approveTOS = false;
 	}
@@ -77,7 +77,7 @@ public class TermsOfServiceConfigurationMap implements ConfigurableProperties {
 	public void setConfiguration(Map<String, Serializable> props) {
 		// use mapper
 		mapper.setSerializationInclusion(Include.NON_EMPTY);
-		TermsOfServiceConfigurationMap map = mapper.convertValue(props, TermsOfServiceConfigurationMap.class);
+		TosConfigurationMap map = mapper.convertValue(props, TosConfigurationMap.class);
 
 		this.enableTOS = map.getEnableTOS();
 		this.approveTOS = map.getApproveTOS();

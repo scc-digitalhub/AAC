@@ -79,7 +79,7 @@ import it.smartcommunitylab.aac.model.Group;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.oauth.model.TermsOfServiceConfigurationMap;
+import it.smartcommunitylab.aac.oauth.model.TosConfigurationMap;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.roles.RealmRoleManager;

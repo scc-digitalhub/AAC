@@ -41,7 +41,7 @@ import it.smartcommunitylab.aac.core.persistence.RealmEntity;
 import it.smartcommunitylab.aac.core.persistence.RealmEntityRepository;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ConfigurationMap;
-import it.smartcommunitylab.aac.oauth.model.TermsOfServiceConfigurationMap;
+import it.smartcommunitylab.aac.oauth.model.TosConfigurationMap;
 
 @Service
 @Transactional
@@ -254,7 +254,7 @@ public class RealmService implements InitializingBean {
         }
         r.setOAuthConfiguration(oauth2ConfigMap);
         
-        TermsOfServiceConfigurationMap tosConfigMap = new TermsOfServiceConfigurationMap();
+        TosConfigurationMap tosConfigMap = new TosConfigurationMap();
         if (re.getTosConfigurationMap() != null) {
         	tosConfigMap.setConfiguration(re.getTosConfigurationMap());
         }

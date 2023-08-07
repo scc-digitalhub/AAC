@@ -24,7 +24,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import it.smartcommunitylab.aac.oauth.model.OAuth2ConfigurationMap;
-import it.smartcommunitylab.aac.oauth.model.TermsOfServiceConfigurationMap;
+import it.smartcommunitylab.aac.oauth.model.TosConfigurationMap;
 
 @Valid
 @JsonInclude(Include.ALWAYS)
@@ -42,7 +42,7 @@ public class Realm {
 	// TODO drop and move to provider
 	private OAuth2ConfigurationMap oauthConfiguration;
 
-	private TermsOfServiceConfigurationMap tosConfiguration;
+	private TosConfigurationMap tosConfiguration;
 
 	public Realm() {
 		this.oauthConfiguration = new OAuth2ConfigurationMap();
@@ -52,7 +52,7 @@ public class Realm {
 		this.name = name;
 		this.slug = slug;
 		this.oauthConfiguration = new OAuth2ConfigurationMap();
-		this.tosConfiguration = new TermsOfServiceConfigurationMap();
+		this.tosConfiguration = new TosConfigurationMap();
 	}
 
 	public String getName() {
@@ -95,11 +95,11 @@ public class Realm {
 		this.oauthConfiguration = oauthConfiguration;
 	}
 
-	public TermsOfServiceConfigurationMap getTosConfiguration() {
+	public TosConfigurationMap getTosConfiguration() {
 		return tosConfiguration;
 	}
 
-	public void setTosConfiguration(TermsOfServiceConfigurationMap tosConfiguration) {
+	public void setTosConfiguration(TosConfigurationMap tosConfiguration) {
 		this.tosConfiguration = tosConfiguration;
 	}
 
