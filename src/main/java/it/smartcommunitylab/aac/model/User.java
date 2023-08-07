@@ -112,7 +112,7 @@ public class User {
     private List<UserAttributes> attributes;
 
     // terms of service.
-    private boolean tosAccepted;
+    private Boolean tosAccepted;
 
     public User(String subjectId, String source) {
         Assert.hasText(subjectId, "subject can not be null or empty");
@@ -364,6 +364,18 @@ public class User {
         this.groups.addAll(groups);
     }
 
+	public Boolean getTosAccepted() {
+		return tosAccepted;
+	}
+
+	public void setTosAccepted(Boolean tosAccepted) {
+		this.tosAccepted = tosAccepted;
+	}
+	
+	public boolean isTosAccepted() {
+	    return tosAccepted != null ? tosAccepted.booleanValue() : false;
+	}
+
     //    public void addSpaceRoles(Collection<SpaceRole> rr) {
     //        if (rr != null) {
     //            spaceRoles.addAll(rr);
@@ -382,11 +394,5 @@ public class User {
     //        this.spaceRoles.remove(r);
     //    }
 
-    public boolean isTosAccepted() {
-        return tosAccepted;
-    }
-
-    public void setTosAccepted(boolean tosAccepted) {
-        this.tosAccepted = tosAccepted;
-    }
+   
 }

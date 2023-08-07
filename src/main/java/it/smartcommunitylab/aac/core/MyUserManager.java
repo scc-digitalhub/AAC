@@ -199,7 +199,6 @@ public class MyUserManager {
         Realm realm = realmService.getRealm(slug);
         // make sure config is clear
         realm.setOAuthConfiguration(null);
-        realm.setTosConfiguration(realm.getTosConfiguration());
 
         return realm;
     }
@@ -808,7 +807,4 @@ public class MyUserManager {
         return auditStore.findByPrincipal(subjectId, null, null, type);
     }
 
-    public void setTosAccepted(String subjectId) throws NoSuchUserException {
-        userService.acceptTOS(subjectId);
-    }
 }

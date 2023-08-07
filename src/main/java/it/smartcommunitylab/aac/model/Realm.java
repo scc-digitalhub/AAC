@@ -44,6 +44,7 @@ public class Realm {
 
     public Realm() {
         this.oauthConfiguration = new OAuth2ConfigurationMap();
+        this.tosConfiguration = new TosConfigurationMap();
     }
 
     public Realm(String slug, String name) {

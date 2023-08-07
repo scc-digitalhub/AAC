@@ -287,6 +287,7 @@ public class UserService {
         u.setEmail(ue.getEmailAddress());
         boolean emailVerified = ue.getEmailVerified() != null ? ue.getEmailVerified().booleanValue() : false;
         u.setEmailVerified(emailVerified);
+        u.setTosAccepted(ue.isTosAccepted());
 
         // status
         SubjectStatus status = SubjectStatus.parse(ue.getStatus());
@@ -787,7 +788,15 @@ public class UserService {
         return groupService.getSubjectGroups(subjectId, realm);
     }
 
-    public void acceptTOS(String subjectId) throws NoSuchUserException {
-        userService.acceptTOS(subjectId);
+    public void acceptTos(String subjectId) throws NoSuchUserException {
+    	userService.updateTos(subjectId, true);
+    }
+    
+    public void refuseTos(String subjectId) throws NoSuchUserException {
+    	userService.updateTos(subjectId, false);
+    }
+    
+    public void resetTos(String subjectId) throws NoSuchUserException {
+    	userService.updateTos(subjectId, null);
     }
 }

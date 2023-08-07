@@ -24,6 +24,8 @@ import it.smartcommunitylab.aac.core.auth.LoginUrlRequestConverter;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.IdentityProviderAuthorityService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderService;
+import it.smartcommunitylab.aac.core.service.RealmService;
+import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.oauth.auth.AuthorizationEndpointFilter;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientAwareLoginUrlConverter;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2IdpAwareLoginUrlConverter;
@@ -92,10 +94,10 @@ public class OAuth2UserSecurityConfig {
     private ProviderConfigRepository<PasswordIdentityProviderConfig> internalPasswordIdentityProviderConfigRepository;
 
     @Autowired
-    private RealmManager realmManager;
+    private RealmService realmService;
 
     @Autowired
-    private MyUserManager myUserManager;
+    private UserService userService;
 
     /*
      * Configure a separated security context for oauth2 tokenEndpoints
@@ -164,7 +166,7 @@ public class OAuth2UserSecurityConfig {
             internalPasswordIdentityProviderConfigRepository
         );
 
-        TosOnAccessFilter tosFilter = new TosOnAccessFilter(realmManager, myUserManager);
+        TosOnAccessFilter tosFilter = new TosOnAccessFilter(realmService, userService);
 
         // disable logout post-reset for oauth2 urls
         passwordResetFilter.setLogoutAfterReset(false);

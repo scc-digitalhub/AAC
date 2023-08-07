@@ -15,12 +15,12 @@
  ******************************************************************************/
 package it.smartcommunitylab.aac.config;
 
-import it.smartcommunitylab.aac.core.MyUserManager;
-import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.auth.ExtendedLogoutSuccessHandler;
 import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.core.service.RealmService;
+import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.crypto.InternalPasswordEncoder;
 import it.smartcommunitylab.aac.password.auth.InternalPasswordResetOnAccessFilter;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
@@ -79,10 +79,10 @@ public class SecurityConfig {
     private ProviderConfigRepository<PasswordIdentityProviderConfig> internalPasswordIdentityProviderConfigRepository;
 
     @Autowired
-    private RealmManager realmManager;
+    private RealmService realmService;
 
     @Autowired
-    private MyUserManager myUserManager;
+    private UserService userService;
 
     //    /*
     //     * rememberme
@@ -261,7 +261,7 @@ public class SecurityConfig {
             internalPasswordIdentityProviderConfigRepository
         );
 
-        TosOnAccessFilter tosFilter = new TosOnAccessFilter(realmManager, myUserManager);
+        TosOnAccessFilter tosFilter = new TosOnAccessFilter(realmService, userService);
 
         // build a virtual filter chain as composite filter
         ArrayList<Filter> filters = new ArrayList<>();

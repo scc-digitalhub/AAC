@@ -24,6 +24,8 @@ import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
+import it.smartcommunitylab.aac.core.service.RealmService;
+import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.User;
 import java.io.IOException;
@@ -71,15 +73,15 @@ public class TosOnAccessFilter extends OncePerRequestFilter {
     private RedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
     private RequestMatcher requestMatcher;
 
-    private final RealmManager realmManager;
-    private final MyUserManager userManager;
+    private final RealmService realmService;
+    private final UserService userService;
 
-    public TosOnAccessFilter(RealmManager realmManager, MyUserManager userManager) {
+    public TosOnAccessFilter(RealmService realmService, UserService userService) {
         // init request cache as store
         HttpSessionRequestCache cache = new HttpSessionRequestCache();
         this.requestCache = cache;
-        this.realmManager = realmManager;
-        this.userManager = userManager;
+        this.realmService = realmService;
+        this.userService = userService;
         this.requestMatcher = buildRequestMatcher();
     }
 
@@ -119,46 +121,40 @@ public class TosOnAccessFilter extends OncePerRequestFilter {
 
             String realm = token.getRealm();
 
-            try {
-                User user = userManager.getMyUser(realm);
-                if (
-                    !realm.equalsIgnoreCase(SystemKeys.REALM_GLOBAL) &&
-                    !realm.equalsIgnoreCase(SystemKeys.REALM_SYSTEM) &&
-                    !user.isTosAccepted()
-                ) {
-                    Realm realmEntity = realmManager.findRealm(realm);
+			try {
+				User user = userService.getUser(userAuth.getSubjectId());
+				if (!realm.equalsIgnoreCase(SystemKeys.REALM_GLOBAL) && !realm.equalsIgnoreCase(SystemKeys.REALM_SYSTEM)
+						&& !user.isTosAccepted()) {
+					Realm realmEntity = realmService.findRealm(realm);
 
-                    if (
-                        (realmEntity.getTosConfiguration().getConfiguration().containsKey("enableTOS")) &&
-                        (boolean) realmEntity.getTosConfiguration().getConfiguration().get("enableTOS") &&
-                        request.getSession().getAttribute("termsManaged") == null
-                    ) {
-                        String targetUrl =
-                            "/terms/" + realmEntity.getTosConfiguration().getConfiguration().get("approveTOS");
-                        this.requestCache.saveRequest(request, response);
-                        this.logger.debug("Redirect to {}", targetUrl);
-                        this.redirectStrategy.sendRedirect(request, response, targetUrl);
-                        return;
-                    } else if (
-                        request.getSession().getAttribute("termsManaged") != null &&
-                        request.getSession().getAttribute("termsManaged").equals("true")
-                    ) {
-                        SavedRequest savedRequest = this.requestCache.getRequest(request, response);
-                        if (savedRequest != null) {
-                            logger.debug("restore request from cache");
-                            this.requestCache.removeRequest(request, response);
-                            this.redirectStrategy.sendRedirect(request, response, savedRequest.getRedirectUrl());
-                            userManager.setTosAccepted(user.getSubjectId());
-                            return;
-                        }
-                    }
-                }
-            } catch (NoSuchRealmException e) {
-                logger.error(e.getMessage(), e);
-            } catch (NoSuchUserException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
+					if (request.getSession().getAttribute("termsStatus") != null
+							&& request.getSession().getAttribute("termsStatus").equals("Refuse")) {
+						SecurityContextHolder.clearContext();
+						request.setAttribute(RealmAwareAuthenticationEntryPoint.REALM_URI_VARIABLE_NAME,
+								user.getRealm());
+					} else if ((realmEntity.getTosConfiguration().getConfiguration().containsKey("enableTOS"))
+							&& (boolean) realmEntity.getTosConfiguration().getConfiguration().get("enableTOS")
+							&& request.getSession().getAttribute("termsStatus") == null) {
+						String targetUrl = "/terms";
+						this.requestCache.saveRequest(request, response);
+						this.logger.debug("Redirect to {}", targetUrl);
+						this.redirectStrategy.sendRedirect(request, response, targetUrl);
+						return;
+					} else if (request.getSession().getAttribute("termsStatus") != null
+							&& request.getSession().getAttribute("termsStatus").equals("Approve")) {
+						SavedRequest savedRequest = this.requestCache.getRequest(request, response);
+						if (savedRequest != null) {
+							logger.debug("restore request from cache");
+							this.requestCache.removeRequest(request, response);
+							this.redirectStrategy.sendRedirect(request, response, savedRequest.getRedirectUrl());
+							return;
+						}
+					}
+				}
+			} catch (NoSuchUserException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
         }
 
         chain.doFilter(request, response);

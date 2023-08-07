@@ -236,9 +236,15 @@ public class UserEntityService {
         return u;
     }
 
-    public UserEntity acceptTOS(String uuid) throws NoSuchUserException {
+    public UserEntity updateTos(String uuid, Boolean tos) throws NoSuchUserException {
         UserEntity u = getUser(uuid);
-        u.setTosAccepted(true);
+        
+        if (tos != null) {
+        	u.setTosAccepted(tos.booleanValue());        	
+        } else {
+        	u.setTosAccepted(null);
+        }
+      
         u = userRepository.save(u);
         return u;
     }

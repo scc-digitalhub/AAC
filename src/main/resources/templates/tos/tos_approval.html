@@ -30,12 +30,12 @@
             <br />
 
             <form action="#" th:action="${acceptUrl}" method="post">
-                <div class="row">
+            	<div class="row">
                     <div class="col-6 text-right">
-                        <button class="btn btn-primary" th:text="#{action.approve}"></button>
+                        <button type="submit" th:name="approveParam" th:value="Approve" class="btn btn-primary" th:text="#{action.approve}" />
                     </div>
-                    <div class="col-6">
-                        <a class="btn btn-danger" th:href="${rejectUrl}" th:text="#{action.refuse}"></a>
+                    <div class="col-6">                    	
+                   		<button type="submit" th:name="approveParam" th:value="Refuse" class="btn btn-danger" th:text="#{action.refuse}" />
                     </div>
                 </div>
             </form>
