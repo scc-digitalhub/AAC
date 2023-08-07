@@ -808,8 +808,7 @@ public class MyUserManager {
         return auditStore.findByPrincipal(subjectId, null, null, type);
     }
 
-	public void setTosAccepted(String subjectId) throws NoSuchUserException {
-		userService.acceptTOS(subjectId);			
-	}
-	
+    public void setTosAccepted(String subjectId) throws NoSuchUserException {
+        userService.acceptTOS(subjectId);
+    }
 }

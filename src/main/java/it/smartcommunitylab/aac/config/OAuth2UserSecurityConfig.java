@@ -16,31 +16,6 @@
 
 package it.smartcommunitylab.aac.config;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.servlet.Filter;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.web.AuthenticationEntryPoint;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.security.web.util.matcher.OrRequestMatcher;
-import org.springframework.security.web.util.matcher.RequestMatcher;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CompositeFilter;
-
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.core.MyUserManager;
 import it.smartcommunitylab.aac.core.RealmManager;
@@ -60,6 +35,28 @@ import it.smartcommunitylab.aac.password.auth.InternalPasswordResetOnAccessFilte
 import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
 import it.smartcommunitylab.aac.tos.TosOnAccessFilter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.servlet.Filter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CompositeFilter;
 
 /*
  * Security context for oauth2 endpoints
@@ -93,10 +90,10 @@ public class OAuth2UserSecurityConfig {
 
     @Autowired
     private ProviderConfigRepository<PasswordIdentityProviderConfig> internalPasswordIdentityProviderConfigRepository;
-    
+
     @Autowired
     private RealmManager realmManager;
-    
+
     @Autowired
     private MyUserManager myUserManager;
 
@@ -168,7 +165,7 @@ public class OAuth2UserSecurityConfig {
         );
 
         TosOnAccessFilter tosFilter = new TosOnAccessFilter(realmManager, myUserManager);
-        
+
         // disable logout post-reset for oauth2 urls
         passwordResetFilter.setLogoutAfterReset(false);
 

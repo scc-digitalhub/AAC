@@ -16,12 +16,18 @@
 
 package it.smartcommunitylab.aac.tos.controller;
 
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchProviderException;
+import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.core.AuthenticationHelper;
+import it.smartcommunitylab.aac.core.MyUserManager;
+import it.smartcommunitylab.aac.core.UserDetails;
+import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
 import java.util.Locale;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,84 +40,72 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.common.NoSuchProviderException;
-import it.smartcommunitylab.aac.common.NoSuchRealmException;
-import it.smartcommunitylab.aac.common.NoSuchUserException;
-import it.smartcommunitylab.aac.core.AuthenticationHelper;
-import it.smartcommunitylab.aac.core.MyUserManager;
-import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
-
 @Controller
 @RequestMapping
 public class TosController {
 
-	private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
-	@Autowired
-	private AuthenticationHelper authHelper;
+    @Autowired
+    private AuthenticationHelper authHelper;
 
-	@Autowired
-	private MyUserManager myUserManager;
+    @Autowired
+    private MyUserManager myUserManager;
 
-	@GetMapping("/terms/{approveTOS}")
-	public String terms(@PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String approveTOS,
-			HttpServletRequest request, Model model, Locale locale)
-			throws NoSuchProviderException, NoSuchUserException, NoSuchRealmException {
+    @GetMapping("/terms/{approveTOS}")
+    public String terms(
+        @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String approveTOS,
+        HttpServletRequest request,
+        Model model,
+        Locale locale
+    ) throws NoSuchProviderException, NoSuchUserException, NoSuchRealmException {
+        UserDetails user = authHelper.getUserDetails();
 
-		UserDetails user = authHelper.getUserDetails();
+        if (user == null) {
+            throw new InsufficientAuthenticationException("error.unauthenticated_user");
+        }
 
-		if (user == null) {
-			throw new InsufficientAuthenticationException("error.unauthenticated_user");
-		}
+        String realm = user.getRealm();
+        model.addAttribute("acceptUrl", "/terms/accept");
+        model.addAttribute("realm", realm);
+        model.addAttribute("displayName", realm);
 
-		String realm = user.getRealm();
-		model.addAttribute("acceptUrl", "/terms/accept");
-		model.addAttribute("realm", realm);
-		model.addAttribute("displayName", realm);
+        if (approveTOS.equals("true")) {
+            model.addAttribute("rejectUrl", "/terms/refuse");
+            return "tos/tos_approval";
+        }
 
-		if (approveTOS.equals("true")) {
-			model.addAttribute("rejectUrl", "/terms/refuse");
-			return "tos/tos_approval";
-		}
+        return "tos/tos_ok";
+    }
 
-		return "tos/tos_ok";
+    @PostMapping("/terms/accept")
+    public String termsAccepted(HttpServletRequest request, Model model, Locale locale)
+        throws NoSuchProviderException, NoSuchUserException, NoSuchRealmException {
+        UserDetails user = authHelper.getUserDetails();
 
-	}
+        if (user == null) {
+            throw new InsufficientAuthenticationException("error.unauthenticated_user");
+        }
 
-	@PostMapping("/terms/accept")
-	public String termsAccepted(HttpServletRequest request, Model model, Locale locale)
-			throws NoSuchProviderException, NoSuchUserException, NoSuchRealmException {
+        request.getSession().setAttribute("termsManaged", "true");
+        this.logger.debug("terms of service approved");
 
-		UserDetails user = authHelper.getUserDetails();
+        return "redirect:/";
+    }
 
-		if (user == null) {
-			throw new InsufficientAuthenticationException("error.unauthenticated_user");
-		}
+    @GetMapping("/terms/refuse")
+    public String termsRefused(HttpServletRequest request, Model model, Locale locale)
+        throws NoSuchProviderException, NoSuchUserException, NoSuchRealmException {
+        UserDetails user = authHelper.getUserDetails();
 
-		request.getSession().setAttribute("termsManaged", "true");
-		this.logger.debug("terms of service approved");
+        if (user == null) {
+            throw new InsufficientAuthenticationException("error.unauthenticated_user");
+        }
 
-		return "redirect:/";
-	}
+        this.logger.debug("logout user after terms refusal");
+        SecurityContextHolder.clearContext();
+        request.setAttribute(RealmAwareAuthenticationEntryPoint.REALM_URI_VARIABLE_NAME, user.getRealm());
 
-	@GetMapping("/terms/refuse")
-	public String termsRefused(HttpServletRequest request, Model model, Locale locale)
-			throws NoSuchProviderException, NoSuchUserException, NoSuchRealmException {
-
-		UserDetails user = authHelper.getUserDetails();
-
-		if (user == null) {
-			throw new InsufficientAuthenticationException("error.unauthenticated_user");
-		}
-
-		this.logger.debug("logout user after terms refusal");
-		SecurityContextHolder.clearContext();
-		request.setAttribute(RealmAwareAuthenticationEntryPoint.REALM_URI_VARIABLE_NAME, user.getRealm());
-
-		return "error/tos_refuse";
-
-	}
-
+        return "error/tos_refuse";
+    }
 }

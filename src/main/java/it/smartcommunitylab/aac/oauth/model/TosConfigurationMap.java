@@ -16,71 +16,66 @@
 
 package it.smartcommunitylab.aac.oauth.model;
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.validation.Valid;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+import javax.validation.Valid;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TosConfigurationMap implements ConfigurableProperties {
 
-	private static ObjectMapper mapper = new ObjectMapper();
-	private final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
-	};
+    private static ObjectMapper mapper = new ObjectMapper();
+    private static final TypeReference<HashMap<String, Serializable>> typeRef =
+        new TypeReference<HashMap<String, Serializable>>() {};
 
-	private Boolean enableTOS;
-	private Boolean approveTOS;
+    private Boolean enableTOS;
+    private Boolean approveTOS;
 
-	public TosConfigurationMap() {
-		enableTOS = false;
-		approveTOS = false;
-	}
+    public TosConfigurationMap() {
+        enableTOS = false;
+        approveTOS = false;
+    }
 
-	public Boolean getEnableTOS() {
-		if (enableTOS != null)
-			return enableTOS;
-		return false;
-	}
+    public Boolean getEnableTOS() {
+        if (enableTOS != null) return enableTOS;
+        return false;
+    }
 
-	public void setEnableTOS(Boolean enableTOS) {
-		this.enableTOS = enableTOS;
-	}
+    public void setEnableTOS(Boolean enableTOS) {
+        this.enableTOS = enableTOS;
+    }
 
-	public Boolean getApproveTOS() {
-		return approveTOS;
-	}
+    public Boolean getApproveTOS() {
+        return approveTOS;
+    }
 
-	public void setApproveTOS(Boolean approveTOS) {
-		this.approveTOS = approveTOS;
-	}
+    public void setApproveTOS(Boolean approveTOS) {
+        this.approveTOS = approveTOS;
+    }
 
-	@Override
-	@JsonIgnore
-	public Map<String, Serializable> getConfiguration() {
-		// use mapper
-		mapper.setSerializationInclusion(Include.NON_EMPTY);
-		return mapper.convertValue(this, typeRef);
-	}
+    @Override
+    @JsonIgnore
+    public Map<String, Serializable> getConfiguration() {
+        // use mapper
+        mapper.setSerializationInclusion(Include.NON_EMPTY);
+        return mapper.convertValue(this, typeRef);
+    }
 
-	@Override
-	@JsonIgnore
-	public void setConfiguration(Map<String, Serializable> props) {
-		// use mapper
-		mapper.setSerializationInclusion(Include.NON_EMPTY);
-		TosConfigurationMap map = mapper.convertValue(props, TosConfigurationMap.class);
+    @Override
+    @JsonIgnore
+    public void setConfiguration(Map<String, Serializable> props) {
+        // use mapper
+        mapper.setSerializationInclusion(Include.NON_EMPTY);
+        TosConfigurationMap map = mapper.convertValue(props, TosConfigurationMap.class);
 
-		this.enableTOS = map.getEnableTOS();
-		this.approveTOS = map.getApproveTOS();
-
-	}
+        this.enableTOS = map.getEnableTOS();
+        this.approveTOS = map.getApproveTOS();
+    }
 }

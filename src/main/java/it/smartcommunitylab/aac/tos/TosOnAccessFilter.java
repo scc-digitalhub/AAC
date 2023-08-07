@@ -16,16 +16,24 @@
 
 package it.smartcommunitylab.aac.tos;
 
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.core.MyUserManager;
+import it.smartcommunitylab.aac.core.RealmManager;
+import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationToken;
+import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
+import it.smartcommunitylab.aac.model.Realm;
+import it.smartcommunitylab.aac.model.User;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -44,117 +52,124 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.WebUtils;
 
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.common.NoSuchRealmException;
-import it.smartcommunitylab.aac.common.NoSuchUserException;
-import it.smartcommunitylab.aac.core.MyUserManager;
-import it.smartcommunitylab.aac.core.RealmManager;
-import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationToken;
-import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
-import it.smartcommunitylab.aac.core.auth.UserAuthentication;
-import it.smartcommunitylab.aac.model.Realm;
-import it.smartcommunitylab.aac.model.User;
-
 public class TosOnAccessFilter extends OncePerRequestFilter {
-	private final RequestMatcher termsManagedRequestMatcher = new AntPathRequestMatcher("/terms/**");
-	static final String[] SKIP_URLS = { "/api/**", "/html/**", "/js/**", "/lib/**", "/fonts/**", "/italia/**",
-			"/i18n/**" };
-	private final Logger logger = LoggerFactory.getLogger(getClass());
 
-	private final RequestCache requestCache;
+    private final RequestMatcher termsManagedRequestMatcher = new AntPathRequestMatcher("/terms/**");
+    static final String[] SKIP_URLS = {
+        "/api/**",
+        "/html/**",
+        "/js/**",
+        "/lib/**",
+        "/fonts/**",
+        "/italia/**",
+        "/i18n/**",
+    };
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
-	private RedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
-	private RequestMatcher requestMatcher;
+    private final RequestCache requestCache;
 
-	private final RealmManager realmManager;
-	private final MyUserManager userManager;
+    private RedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
+    private RequestMatcher requestMatcher;
 
-	public TosOnAccessFilter(RealmManager realmManager, MyUserManager userManager) {
-		// init request cache as store
-		HttpSessionRequestCache cache = new HttpSessionRequestCache();
-		this.requestCache = cache;
-		this.realmManager = realmManager;
-		this.userManager = userManager;
-		this.requestMatcher = buildRequestMatcher();
-	}
+    private final RealmManager realmManager;
+    private final MyUserManager userManager;
 
-	private RequestMatcher buildRequestMatcher() {
-		List<RequestMatcher> antMatchers = Arrays.stream(SKIP_URLS).map(u -> new AntPathRequestMatcher(u))
-				.collect(Collectors.toList());
+    public TosOnAccessFilter(RealmManager realmManager, MyUserManager userManager) {
+        // init request cache as store
+        HttpSessionRequestCache cache = new HttpSessionRequestCache();
+        this.requestCache = cache;
+        this.realmManager = realmManager;
+        this.userManager = userManager;
+        this.requestMatcher = buildRequestMatcher();
+    }
 
-		return new NegatedRequestMatcher(new OrRequestMatcher(antMatchers));
+    private RequestMatcher buildRequestMatcher() {
+        List<RequestMatcher> antMatchers = Arrays
+            .stream(SKIP_URLS)
+            .map(u -> new AntPathRequestMatcher(u))
+            .collect(Collectors.toList());
 
-	}
+        return new NegatedRequestMatcher(new OrRequestMatcher(antMatchers));
+    }
 
-	public void setRedirectStrategy(RedirectStrategy redirectStrategy) {
-		this.redirectStrategy = redirectStrategy;
-	}
+    public void setRedirectStrategy(RedirectStrategy redirectStrategy) {
+        this.redirectStrategy = redirectStrategy;
+    }
 
-	public void setRequestMatcher(RequestMatcher requestMatcher) {
-		this.requestMatcher = requestMatcher;
-	}
+    public void setRequestMatcher(RequestMatcher requestMatcher) {
+        this.requestMatcher = requestMatcher;
+    }
 
-	@Override
-	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-			throws ServletException, IOException {
-		if (requestMatcher.matches(request) && requiresProcessing(request)
-				&& !termsManagedRequestMatcher.matches(request)) {
-			logger.trace("process request for {}", request.getRequestURI());
-			UserAuthentication userAuth = (UserAuthentication) SecurityContextHolder.getContext().getAuthentication();
-			ExtendedAuthenticationToken token = CollectionUtils.firstElement(userAuth.getAuthentications());
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+        throws ServletException, IOException {
+        if (
+            requestMatcher.matches(request) &&
+            requiresProcessing(request) &&
+            !termsManagedRequestMatcher.matches(request)
+        ) {
+            logger.trace("process request for {}", request.getRequestURI());
+            UserAuthentication userAuth = (UserAuthentication) SecurityContextHolder.getContext().getAuthentication();
+            ExtendedAuthenticationToken token = CollectionUtils.firstElement(userAuth.getAuthentications());
 
-			if (token == null) {
-				logger.error("empty token on authentication success");
-				return;
-			}
+            if (token == null) {
+                logger.error("empty token on authentication success");
+                return;
+            }
 
-			String realm = token.getRealm();
+            String realm = token.getRealm();
 
-			try {
-				User user = userManager.getMyUser(realm);
-				if (!realm.equalsIgnoreCase(SystemKeys.REALM_GLOBAL) && !realm.equalsIgnoreCase(SystemKeys.REALM_SYSTEM)
-						&& !user.isTosAccepted()) {
-					Realm realmEntity = realmManager.findRealm(realm);
+            try {
+                User user = userManager.getMyUser(realm);
+                if (
+                    !realm.equalsIgnoreCase(SystemKeys.REALM_GLOBAL) &&
+                    !realm.equalsIgnoreCase(SystemKeys.REALM_SYSTEM) &&
+                    !user.isTosAccepted()
+                ) {
+                    Realm realmEntity = realmManager.findRealm(realm);
 
-					if ((realmEntity.getTosConfiguration().getConfiguration().containsKey("enableTOS"))
-							&& (boolean) realmEntity.getTosConfiguration().getConfiguration().get("enableTOS")
-							&& request.getSession().getAttribute("termsManaged") == null) {
-						String targetUrl = "/terms/"
-								+ realmEntity.getTosConfiguration().getConfiguration().get("approveTOS");
-						this.requestCache.saveRequest(request, response);
-						this.logger.debug("Redirect to {}", targetUrl);
-						this.redirectStrategy.sendRedirect(request, response, targetUrl);
-						return;
-					} else if (request.getSession().getAttribute("termsManaged") != null
-							&& request.getSession().getAttribute("termsManaged").equals("true")) {
-						SavedRequest savedRequest = this.requestCache.getRequest(request, response);
-						if (savedRequest != null) {
-							logger.debug("restore request from cache");
-							this.requestCache.removeRequest(request, response);
-							this.redirectStrategy.sendRedirect(request, response, savedRequest.getRedirectUrl());
-							userManager.setTosAccepted(user.getSubjectId());
-							return;
-						}
-					}
-				}
-			} catch (NoSuchRealmException e) {
-				logger.error(e.getMessage(), e);
-			} catch (NoSuchUserException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
+                    if (
+                        (realmEntity.getTosConfiguration().getConfiguration().containsKey("enableTOS")) &&
+                        (boolean) realmEntity.getTosConfiguration().getConfiguration().get("enableTOS") &&
+                        request.getSession().getAttribute("termsManaged") == null
+                    ) {
+                        String targetUrl =
+                            "/terms/" + realmEntity.getTosConfiguration().getConfiguration().get("approveTOS");
+                        this.requestCache.saveRequest(request, response);
+                        this.logger.debug("Redirect to {}", targetUrl);
+                        this.redirectStrategy.sendRedirect(request, response, targetUrl);
+                        return;
+                    } else if (
+                        request.getSession().getAttribute("termsManaged") != null &&
+                        request.getSession().getAttribute("termsManaged").equals("true")
+                    ) {
+                        SavedRequest savedRequest = this.requestCache.getRequest(request, response);
+                        if (savedRequest != null) {
+                            logger.debug("restore request from cache");
+                            this.requestCache.removeRequest(request, response);
+                            this.redirectStrategy.sendRedirect(request, response, savedRequest.getRedirectUrl());
+                            userManager.setTosAccepted(user.getSubjectId());
+                            return;
+                        }
+                    }
+                }
+            } catch (NoSuchRealmException e) {
+                logger.error(e.getMessage(), e);
+            } catch (NoSuchUserException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
 
-		chain.doFilter(request, response);
-		return;
-	}
+        chain.doFilter(request, response);
+        return;
+    }
 
-	private boolean requiresProcessing(HttpServletRequest request) {
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		if (auth == null || !(auth instanceof UserAuthentication)) {
-			return false;
-		}
-		return true;
-	}
-
+    private boolean requiresProcessing(HttpServletRequest request) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !(auth instanceof UserAuthentication)) {
+            return false;
+        }
+        return true;
+    }
 }

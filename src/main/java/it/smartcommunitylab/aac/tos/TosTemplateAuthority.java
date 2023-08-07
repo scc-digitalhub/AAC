@@ -16,10 +16,6 @@
 
 package it.smartcommunitylab.aac.tos;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.authorities.TemplateProviderAuthority;
 import it.smartcommunitylab.aac.core.base.AbstractSingleConfigurableProviderAuthority;
@@ -32,64 +28,77 @@ import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfigur
 import it.smartcommunitylab.aac.templates.provider.TemplateProviderConfigMap;
 import it.smartcommunitylab.aac.templates.service.TemplateService;
 import it.smartcommunitylab.aac.tos.provider.TosTemplateProvider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 @Service
-public class TosTemplateAuthority extends
-		AbstractSingleConfigurableProviderAuthority<TosTemplateProvider, TemplateModel, ConfigurableTemplateProvider, TemplateProviderConfigMap, RealmTemplateProviderConfig>
-		implements
-		TemplateProviderAuthority<TosTemplateProvider, TemplateModel, TemplateProviderConfigMap, RealmTemplateProviderConfig> {
+public class TosTemplateAuthority
+    extends AbstractSingleConfigurableProviderAuthority<TosTemplateProvider, TemplateModel, ConfigurableTemplateProvider, TemplateProviderConfigMap, RealmTemplateProviderConfig>
+    implements
+        TemplateProviderAuthority<TosTemplateProvider, TemplateModel, TemplateProviderConfigMap, RealmTemplateProviderConfig> {
 
-	// services
-	private final TemplateService templateService;
+    // services
+    private final TemplateService templateService;
 
-	// configuration provider
-	protected RealmTemplateProviderConfigurationProvider configProvider;
+    // configuration provider
+    protected RealmTemplateProviderConfigurationProvider configProvider;
 
-	public TosTemplateAuthority(TemplateService templateService,
-			ProviderConfigRepository<RealmTemplateProviderConfig> registrationRepository) {
-		super(SystemKeys.AUTHORITY_TOS, new TosConfigTranslatorRepository(registrationRepository));
-		Assert.notNull(templateService, "template service is mandatory");
+    public TosTemplateAuthority(
+        TemplateService templateService,
+        ProviderConfigRepository<RealmTemplateProviderConfig> registrationRepository
+    ) {
+        super(SystemKeys.AUTHORITY_TOS, new TosConfigTranslatorRepository(registrationRepository));
+        Assert.notNull(templateService, "template service is mandatory");
 
-		this.templateService = templateService;
-	}
+        this.templateService = templateService;
+    }
 
-	@Override
-	public String getType() {
-		return SystemKeys.RESOURCE_TEMPLATE;
-	}
+    @Override
+    public String getType() {
+        return SystemKeys.RESOURCE_TEMPLATE;
+    }
 
-	@Autowired
-	public void setConfigProvider(RealmTemplateProviderConfigurationProvider configProvider) {
-		Assert.notNull(configProvider, "config provider is mandatory");
-		this.configProvider = configProvider;
-	}
+    @Autowired
+    public void setConfigProvider(RealmTemplateProviderConfigurationProvider configProvider) {
+        Assert.notNull(configProvider, "config provider is mandatory");
+        this.configProvider = configProvider;
+    }
 
-	@Override
-	public RealmTemplateProviderConfigurationProvider getConfigurationProvider() {
-		return configProvider;
-	}
+    @Override
+    public RealmTemplateProviderConfigurationProvider getConfigurationProvider() {
+        return configProvider;
+    }
 
-	@Override
-	protected TosTemplateProvider buildProvider(RealmTemplateProviderConfig config) {
-		TosTemplateProvider p = new TosTemplateProvider(config.getProvider(), templateService, config,
-				config.getRealm());
+    @Override
+    protected TosTemplateProvider buildProvider(RealmTemplateProviderConfig config) {
+        TosTemplateProvider p = new TosTemplateProvider(
+            config.getProvider(),
+            templateService,
+            config,
+            config.getRealm()
+        );
 
-		return p;
-	}
+        return p;
+    }
 
-	static class TosConfigTranslatorRepository
-			extends TranslatorProviderConfigRepository<RealmTemplateProviderConfig, RealmTemplateProviderConfig> {
+    static class TosConfigTranslatorRepository
+        extends TranslatorProviderConfigRepository<RealmTemplateProviderConfig, RealmTemplateProviderConfig> {
 
-		public TosConfigTranslatorRepository(ProviderConfigRepository<RealmTemplateProviderConfig> externalRepository) {
-			super(externalRepository);
-			setConverter(config -> {
-				RealmTemplateProviderConfig c = new RealmTemplateProviderConfig(SystemKeys.AUTHORITY_TOS,
-						config.getProvider(), config.getRealm(), config.getConfigMap());
-				c.setCustomStyle(config.getCustomStyle());
-				c.setLanguages(c.getLanguages());
+        public TosConfigTranslatorRepository(ProviderConfigRepository<RealmTemplateProviderConfig> externalRepository) {
+            super(externalRepository);
+            setConverter(config -> {
+                RealmTemplateProviderConfig c = new RealmTemplateProviderConfig(
+                    SystemKeys.AUTHORITY_TOS,
+                    config.getProvider(),
+                    config.getRealm(),
+                    config.getConfigMap()
+                );
+                c.setCustomStyle(config.getCustomStyle());
+                c.setLanguages(c.getLanguages());
 
-				return c;
-			});
-		}
-	}
+                return c;
+            });
+        }
+    }
 }

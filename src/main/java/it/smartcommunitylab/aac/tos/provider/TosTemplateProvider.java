@@ -16,8 +16,6 @@
 
 package it.smartcommunitylab.aac.tos.provider;
 
-import java.util.HashMap;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractTemplateProvider;
 import it.smartcommunitylab.aac.templates.model.TemplateModel;
@@ -26,21 +24,32 @@ import it.smartcommunitylab.aac.templates.provider.TemplateProviderConfigMap;
 import it.smartcommunitylab.aac.templates.service.TemplateService;
 import it.smartcommunitylab.aac.tos.templates.TosApproveTemplate;
 import it.smartcommunitylab.aac.tos.templates.TosTemplate;
+import java.util.HashMap;
 
 public class TosTemplateProvider
-		extends AbstractTemplateProvider<TemplateModel, TemplateProviderConfigMap, RealmTemplateProviderConfig> {
+    extends AbstractTemplateProvider<TemplateModel, TemplateProviderConfigMap, RealmTemplateProviderConfig> {
 
-	public TosTemplateProvider(String providerId, TemplateService templateService,
-			RealmTemplateProviderConfig providerConfig, String realm) {
-		super(SystemKeys.AUTHORITY_TOS, providerId, templateService, providerConfig, realm);
-		factories = new HashMap<>();
-		factories.put(TosTemplate.TEMPLATE, () -> {
-			TemplateModel m = new TosTemplate(realm);
-			return m;
-		});
-		factories.put(TosApproveTemplate.TEMPLATE, () -> {
-			TemplateModel m = new TosApproveTemplate(realm);
-			return m;
-		});
-	}
+    public TosTemplateProvider(
+        String providerId,
+        TemplateService templateService,
+        RealmTemplateProviderConfig providerConfig,
+        String realm
+    ) {
+        super(SystemKeys.AUTHORITY_TOS, providerId, templateService, providerConfig, realm);
+        factories = new HashMap<>();
+        factories.put(
+            TosTemplate.TEMPLATE,
+            () -> {
+                TemplateModel m = new TosTemplate(realm);
+                return m;
+            }
+        );
+        factories.put(
+            TosApproveTemplate.TEMPLATE,
+            () -> {
+                TemplateModel m = new TosApproveTemplate(realm);
+                return m;
+            }
+        );
+    }
 }

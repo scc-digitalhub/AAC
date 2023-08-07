@@ -16,91 +16,88 @@
 
 package it.smartcommunitylab.aac.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ConfigurationMap;
+import it.smartcommunitylab.aac.oauth.model.TosConfigurationMap;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
-
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
-import it.smartcommunitylab.aac.oauth.model.OAuth2ConfigurationMap;
-import it.smartcommunitylab.aac.oauth.model.TosConfigurationMap;
 
 @Valid
 @JsonInclude(Include.ALWAYS)
 public class Realm {
 
-	private String name;
+    private String name;
 
-	@NotBlank
-	@Size(max = 128)
-	private String slug;
+    @NotBlank
+    @Size(max = 128)
+    private String slug;
 
-	private boolean isEditable = true;
-	private boolean isPublic = true;
+    private boolean isEditable = true;
+    private boolean isPublic = true;
 
-	// TODO drop and move to provider
-	private OAuth2ConfigurationMap oauthConfiguration;
+    // TODO drop and move to provider
+    private OAuth2ConfigurationMap oauthConfiguration;
 
-	private TosConfigurationMap tosConfiguration;
+    private TosConfigurationMap tosConfiguration;
 
-	public Realm() {
-		this.oauthConfiguration = new OAuth2ConfigurationMap();
-	}
+    public Realm() {
+        this.oauthConfiguration = new OAuth2ConfigurationMap();
+    }
 
-	public Realm(String slug, String name) {
-		this.name = name;
-		this.slug = slug;
-		this.oauthConfiguration = new OAuth2ConfigurationMap();
-		this.tosConfiguration = new TosConfigurationMap();
-	}
+    public Realm(String slug, String name) {
+        this.name = name;
+        this.slug = slug;
+        this.oauthConfiguration = new OAuth2ConfigurationMap();
+        this.tosConfiguration = new TosConfigurationMap();
+    }
 
-	public String getName() {
-		return name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public String getSlug() {
-		return slug;
-	}
+    public String getSlug() {
+        return slug;
+    }
 
-	public void setSlug(String slug) {
-		this.slug = slug;
-	}
+    public void setSlug(String slug) {
+        this.slug = slug;
+    }
 
-	public boolean isEditable() {
-		return isEditable;
-	}
+    public boolean isEditable() {
+        return isEditable;
+    }
 
-	public void setEditable(boolean isEditable) {
-		this.isEditable = isEditable;
-	}
+    public void setEditable(boolean isEditable) {
+        this.isEditable = isEditable;
+    }
 
-	public boolean isPublic() {
-		return isPublic;
-	}
+    public boolean isPublic() {
+        return isPublic;
+    }
 
-	public void setPublic(boolean isPublic) {
-		this.isPublic = isPublic;
-	}
+    public void setPublic(boolean isPublic) {
+        this.isPublic = isPublic;
+    }
 
-	public OAuth2ConfigurationMap getOAuthConfiguration() {
-		return oauthConfiguration;
-	}
+    public OAuth2ConfigurationMap getOAuthConfiguration() {
+        return oauthConfiguration;
+    }
 
-	public void setOAuthConfiguration(OAuth2ConfigurationMap oauthConfiguration) {
-		this.oauthConfiguration = oauthConfiguration;
-	}
+    public void setOAuthConfiguration(OAuth2ConfigurationMap oauthConfiguration) {
+        this.oauthConfiguration = oauthConfiguration;
+    }
 
-	public TosConfigurationMap getTosConfiguration() {
-		return tosConfiguration;
-	}
+    public TosConfigurationMap getTosConfiguration() {
+        return tosConfiguration;
+    }
 
-	public void setTosConfiguration(TosConfigurationMap tosConfiguration) {
-		this.tosConfiguration = tosConfiguration;
-	}
-
+    public void setTosConfiguration(TosConfigurationMap tosConfiguration) {
+        this.tosConfiguration = tosConfiguration;
+    }
 }

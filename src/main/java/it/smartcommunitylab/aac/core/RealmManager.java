@@ -16,32 +16,6 @@
 
 package it.smartcommunitylab.aac.core;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-
-import org.jsoup.Jsoup;
-import org.jsoup.safety.Safelist;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
-
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.AttributeSetsManager;
@@ -88,6 +62,29 @@ import it.smartcommunitylab.aac.services.ServicesManager;
 import it.smartcommunitylab.aac.templates.model.TemplateModel;
 import it.smartcommunitylab.aac.templates.service.TemplateService;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredential;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Service
 public class RealmManager {
@@ -220,10 +217,10 @@ public class RealmManager {
         if (r.getOAuthConfiguration() != null) {
             oauth2ConfigMap = r.getOAuthConfiguration().getConfiguration();
         }
-        
+
         Map<String, Serializable> tosConfigMap = null;
         if (r.getTosConfiguration() != null) {
-        	tosConfigMap = r.getTosConfiguration().getConfiguration();
+            tosConfigMap = r.getTosConfiguration().getConfiguration();
         }
 
         Realm realm = realmService.updateRealm(slug, name, r.isEditable(), r.isPublic(), oauth2ConfigMap, tosConfigMap);

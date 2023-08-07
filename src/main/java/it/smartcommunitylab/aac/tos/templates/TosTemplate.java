@@ -16,17 +16,16 @@
 
 package it.smartcommunitylab.aac.tos.templates;
 
-import java.util.Arrays;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.templates.model.FixedTemplateModel;
+import java.util.Arrays;
 
 public class TosTemplate extends FixedTemplateModel {
 
-	public static final String TEMPLATE = "tos_ok";
-	private static final String[] KEYS = { "tos.text" };
+    public static final String TEMPLATE = "tos_ok";
+    private static final String[] KEYS = { "tos.text" };
 
-	public TosTemplate(String realm) {
-		super(SystemKeys.AUTHORITY_TEMPLATE, realm, null, TEMPLATE, Arrays.asList(KEYS));
-	}
+    public TosTemplate(String realm) {
+        super(SystemKeys.AUTHORITY_TEMPLATE, realm, null, TEMPLATE, Arrays.asList(KEYS));
+    }
 }

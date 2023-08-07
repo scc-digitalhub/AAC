@@ -786,9 +786,8 @@ public class UserService {
     public Collection<Group> fetchUserGroups(String subjectId, String realm) throws NoSuchUserException {
         return groupService.getSubjectGroups(subjectId, realm);
     }
-    
-	public void acceptTOS(String subjectId) throws NoSuchUserException {
-		userService.acceptTOS(subjectId);		
-	}
-	
+
+    public void acceptTOS(String subjectId) throws NoSuchUserException {
+        userService.acceptTOS(subjectId);
+    }
 }

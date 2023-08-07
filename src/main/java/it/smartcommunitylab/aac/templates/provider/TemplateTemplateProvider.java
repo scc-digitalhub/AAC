@@ -16,9 +16,6 @@
 
 package it.smartcommunitylab.aac.templates.provider;
 
-import java.util.HashMap;
-import java.util.UUID;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractTemplateProvider;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
@@ -33,6 +30,8 @@ import it.smartcommunitylab.aac.templates.model.UserApprovalTemplate;
 import it.smartcommunitylab.aac.templates.service.TemplateService;
 import it.smartcommunitylab.aac.tos.templates.TosApproveTemplate;
 import it.smartcommunitylab.aac.tos.templates.TosTemplate;
+import java.util.HashMap;
+import java.util.UUID;
 
 public class TemplateTemplateProvider
     extends AbstractTemplateProvider<TemplateModel, TemplateProviderConfigMap, RealmTemplateProviderConfig> {

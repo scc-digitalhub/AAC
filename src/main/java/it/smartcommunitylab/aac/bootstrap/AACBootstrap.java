@@ -411,7 +411,15 @@ public class AACBootstrap {
 
                         // skip config maps
                         // TODO put in dedicated providers + config
-                        realm = realmService.updateRealm(r.getSlug(), r.getName(), r.isEditable(), r.isPublic(), null, null);
+                        realm =
+                            realmService.updateRealm(
+                                r.getSlug(),
+                                r.getName(),
+                                r.isEditable(),
+                                r.isPublic(),
+                                null,
+                                null
+                            );
                     }
 
                     /*

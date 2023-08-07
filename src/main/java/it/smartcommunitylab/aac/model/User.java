@@ -110,7 +110,7 @@ public class User {
     // additional attributes as UserAttributes collection
     // realm scoped
     private List<UserAttributes> attributes;
-    
+
     // terms of service.
     private boolean tosAccepted;
 
@@ -363,6 +363,7 @@ public class User {
         this.groups = new HashSet<>();
         this.groups.addAll(groups);
     }
+
     //    public void addSpaceRoles(Collection<SpaceRole> rr) {
     //        if (rr != null) {
     //            spaceRoles.addAll(rr);
@@ -381,12 +382,11 @@ public class User {
     //        this.spaceRoles.remove(r);
     //    }
 
-	public boolean isTosAccepted() {
-		return tosAccepted;
-	}
+    public boolean isTosAccepted() {
+        return tosAccepted;
+    }
 
-	public void setTosAccepted(boolean tosAccepted) {
-		this.tosAccepted = tosAccepted;
-	}
-	
+    public void setTosAccepted(boolean tosAccepted) {
+        this.tosAccepted = tosAccepted;
+    }
 }

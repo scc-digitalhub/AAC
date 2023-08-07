@@ -81,7 +81,7 @@ public class UserEntity {
 
     @Column(name = "last_login_provider")
     private String loginProvider;
-    
+
     @Column(name = "tos_accepted")
     private Boolean tosAccepted;
 
@@ -217,16 +217,16 @@ public class UserEntity {
 
         return false;
     }
-    
+
     public Boolean getTosAccepted() {
-		return tosAccepted;
-	}
+        return tosAccepted;
+    }
 
-	public void setTosAccepted(Boolean tosAccepted) {
-		this.tosAccepted = tosAccepted;
-	}
+    public void setTosAccepted(Boolean tosAccepted) {
+        this.tosAccepted = tosAccepted;
+    }
 
-	@Override
+    @Override
     public String toString() {
         return (
             "UserEntity [uuid=" +
@@ -248,7 +248,7 @@ public class UserEntity {
             ", modifiedDate=" +
             modifiedDate +
             ", tosAccepted=" +
-            tosAccepted +            
+            tosAccepted +
             "]"
         );
     }
