@@ -44,8 +44,11 @@ public class TosConfigurationMap implements ConfigurableProperties {
     }
 
     public Boolean getEnableTOS() {
-        if (enableTOS != null) return enableTOS;
-        return false;
+        return enableTOS;
+    }
+
+    public boolean isEnableTOS() {
+        return enableTOS != null ? enableTOS.booleanValue() : false;
     }
 
     public void setEnableTOS(Boolean enableTOS) {
@@ -58,6 +61,10 @@ public class TosConfigurationMap implements ConfigurableProperties {
 
     public void setApproveTOS(Boolean approveTOS) {
         this.approveTOS = approveTOS;
+    }
+
+    public boolean isApprovedTOS() {
+        return approveTOS != null ? approveTOS.booleanValue() : false;
     }
 
     @Override

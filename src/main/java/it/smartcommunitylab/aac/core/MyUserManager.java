@@ -806,5 +806,4 @@ public class MyUserManager {
 
         return auditStore.findByPrincipal(subjectId, null, null, type);
     }
-
 }

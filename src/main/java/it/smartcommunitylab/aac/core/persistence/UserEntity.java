@@ -225,7 +225,7 @@ public class UserEntity {
     public void setTosAccepted(Boolean tosAccepted) {
         this.tosAccepted = tosAccepted;
     }
-    
+
     public boolean isTosAccepted() {
         return tosAccepted != null ? tosAccepted.booleanValue() : false;
     }

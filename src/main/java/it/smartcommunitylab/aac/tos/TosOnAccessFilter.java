@@ -75,9 +75,10 @@ public class TosOnAccessFilter extends OncePerRequestFilter {
 
     private final RealmService realmService;
     private final UserService userService;
-    
+
     private static final String TOS_APRROVED = "Approve";
     private static final String TOS_REFUSED = "Refuse";
+    private static final String TOS_STATUS = "termsStatus";
 
     public TosOnAccessFilter(RealmService realmService, UserService userService) {
         // init request cache as store
@@ -106,89 +107,87 @@ public class TosOnAccessFilter extends OncePerRequestFilter {
     }
 
     @Override
-	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-			throws ServletException, IOException {
-		if (requestMatcher.matches(request) && requiresProcessing(request)
-				&& !termsManagedRequestMatcher.matches(request)) {
-			logger.trace("process request for {}", request.getRequestURI());
-			UserAuthentication userAuth = (UserAuthentication) SecurityContextHolder.getContext().getAuthentication();
-			ExtendedAuthenticationToken token = CollectionUtils.firstElement(userAuth.getAuthentications());
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+        throws ServletException, IOException {
+        if (requestMatcher.matches(request) && requiresProcessing() && !termsManagedRequestMatcher.matches(request)) {
+            logger.trace("process request for {}", request.getRequestURI());
+            UserAuthentication userAuth = (UserAuthentication) SecurityContextHolder.getContext().getAuthentication();
+            ExtendedAuthenticationToken token = CollectionUtils.firstElement(userAuth.getAuthentications());
+            String realm = token.getRealm();
+            // check if realm is obliged to tos.
+            Realm realmEntity = realmService.findRealm(realm);
+            User user = userService.findUser(userAuth.getSubjectId());
 
-			if (token == null) {
-				logger.error("empty token on authentication success");
-				return;
-			}
+            if (user != null && realmEntity != null && realmEntity.getTosConfiguration().isEnableTOS()) {
+                // Refuse.
+                if (user.getTosAccepted() != null && !user.isTosAccepted()) {
+                    // check session is empty
+                    if (
+                        request.getSession().getAttribute(TOS_STATUS) != null &&
+                        request.getSession().getAttribute(TOS_STATUS).equals(TOS_REFUSED)
+                    ) {
+                        // clear session.
+                        SecurityContextHolder.clearContext();
+                        request.getSession().removeAttribute(TOS_STATUS);
+                    }
 
-			String realm = token.getRealm();
+                    String refuseUrl = "/terms/refuse";
+                    this.logger.debug("Redirect to {}", refuseUrl);
+                    request.setAttribute(RealmAwareAuthenticationEntryPoint.REALM_URI_VARIABLE_NAME, user.getRealm());
+                    this.redirectStrategy.sendRedirect(request, response, refuseUrl);
+                    return;
+                } else if (user.getTosAccepted() != null && user.isTosAccepted()) { // Approve
+                    // if accepted in current session
+                    if (
+                        request.getSession().getAttribute(TOS_STATUS) != null &&
+                        request.getSession().getAttribute(TOS_STATUS).equals(TOS_APRROVED)
+                    ) {
+                        SavedRequest savedRequest = this.requestCache.getRequest(request, response);
+                        if (savedRequest != null) {
+                            logger.debug("restore request from cache");
+                            this.requestCache.removeRequest(request, response);
+                            request.getSession().removeAttribute(TOS_STATUS);
+                            this.redirectStrategy.sendRedirect(request, response, savedRequest.getRedirectUrl());
+                            return;
+                        }
+                    }
+                } else { // default (Null)
+                    String targetUrl = "/terms";
+                    this.requestCache.saveRequest(request, response);
+                    this.logger.debug("Redirect to {}", targetUrl);
+                    this.redirectStrategy.sendRedirect(request, response, targetUrl);
+                    return;
+                }
+            }
+        }
 
-			// check if realm is mutable
-			if (!realm.equalsIgnoreCase(SystemKeys.REALM_GLOBAL) && !realm.equalsIgnoreCase(SystemKeys.REALM_SYSTEM)) {
-				// check if realm is obliged to tos.
-				try {
-					Realm realmEntity = realmService.findRealm(realm);
-					if (realmEntity.getTosConfiguration().getConfiguration().containsKey("enableTOS")
-							&& (boolean) realmEntity.getTosConfiguration().getConfiguration().get("enableTOS")) {
-						User user = userService.getUser(userAuth.getSubjectId());
-						
-						if (user.getTosAccepted() != null) {
-							// check if rejected and session is empty
-							if (!user.getTosAccepted()) {
-								if (request.getSession().getAttribute("termsStatus") != null
-										&& request.getSession().getAttribute("termsStatus").equals(TOS_REFUSED)) {
-									// clear session.
-									SecurityContextHolder.clearContext();
-									request.getSession().removeAttribute("termsStatus");
-								}
-								String refuseUrl = "/terms/refuse";
-								this.logger.debug("Redirect to {}", refuseUrl);
-								request.setAttribute(RealmAwareAuthenticationEntryPoint.REALM_URI_VARIABLE_NAME,
-										user.getRealm());
-								this.redirectStrategy.sendRedirect(request, response, refuseUrl);
-								return;
-							} else if (request.getSession().getAttribute("termsStatus") != null // if accepted in current session
-									&& request.getSession().getAttribute("termsStatus").equals(TOS_APRROVED)) {
-								SavedRequest savedRequest = this.requestCache.getRequest(request, response);
-								if (savedRequest != null) {
-									logger.debug("restore request from cache");
-									this.requestCache.removeRequest(request, response);
-									request.getSession().removeAttribute("termsStatus");
-									this.redirectStrategy.sendRedirect(request, response,
-											savedRequest.getRedirectUrl());
-									return;
-								}
-							} else { // approved in past.
-								chain.doFilter(request, response);
-								return;
-							}
-						} else { // default
-							String targetUrl = "/terms";
-							this.requestCache.saveRequest(request, response);
-							this.logger.debug("Redirect to {}", targetUrl);
-							this.redirectStrategy.sendRedirect(request, response, targetUrl);
-						}
-					} else {
-						chain.doFilter(request, response);
-						return;
-					}
-				} catch (NoSuchUserException e) {
-					e.printStackTrace();
-				}
-			} else {
-				chain.doFilter(request, response);
-				return;
+        chain.doFilter(request, response);
+    }
 
-			}
-		} else {
-			chain.doFilter(request, response);
-			return;
-		}
-	}
-
-    private boolean requiresProcessing(HttpServletRequest request) {
+    private boolean requiresProcessing() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !(auth instanceof UserAuthentication)) {
+
+        if (!(auth instanceof UserAuthentication)) {
             return false;
         }
-        return true;
+
+        UserAuthentication userAuth = (UserAuthentication) SecurityContextHolder.getContext().getAuthentication();
+        ExtendedAuthenticationToken token = CollectionUtils.firstElement(userAuth.getAuthentications());
+
+        if (token == null) {
+            logger.error("empty token on authentication success");
+            return false;
+        }
+
+        String realm = token.getRealm();
+
+        boolean require = false;
+        if (realm.equalsIgnoreCase(SystemKeys.REALM_GLOBAL) || realm.equalsIgnoreCase(SystemKeys.REALM_SYSTEM)) {
+            require = false;
+        } else {
+            require = true;
+        }
+
+        return require;
     }
 }

@@ -269,6 +269,7 @@ public class UserService {
         // add authorities
         try {
             user.setAuthorities(fetchUserAuthorities(subjectId, realm));
+            user.setTosAccepted(u.getTosAccepted());
         } catch (NoSuchUserException e) {
             // ignore
         }
@@ -287,13 +288,13 @@ public class UserService {
         u.setEmail(ue.getEmailAddress());
         boolean emailVerified = ue.getEmailVerified() != null ? ue.getEmailVerified().booleanValue() : false;
         u.setEmailVerified(emailVerified);
-        
+
         if (ue.getTosAccepted() != null) {
-        	u.setTosAccepted(ue.isTosAccepted());	
+            u.setTosAccepted(ue.isTosAccepted());
         } else {
-        	u.setTosAccepted(null);
+            u.setTosAccepted(null);
         }
-        
+
         // status
         SubjectStatus status = SubjectStatus.parse(ue.getStatus());
         u.setStatus(status);
@@ -794,14 +795,14 @@ public class UserService {
     }
 
     public void acceptTos(String subjectId) throws NoSuchUserException {
-    	userService.updateTos(subjectId, true);
+        userService.updateTos(subjectId, true);
     }
-    
+
     public void refuseTos(String subjectId) throws NoSuchUserException {
-    	userService.updateTos(subjectId, false);
+        userService.updateTos(subjectId, false);
     }
-    
+
     public void resetTos(String subjectId) throws NoSuchUserException {
-    	userService.updateTos(subjectId, null);
+        userService.updateTos(subjectId, null);
     }
 }

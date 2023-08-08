@@ -1,0 +1,109 @@
+<!--
+
+       Copyright 2015-2021 Smart Community Lab, FBK
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+-->
+
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="-1" />
+    <!-- Design Italia -->
+    <link rel="stylesheet" th:href="@{/italia/css/bootstrap-italia.min.css}" />
+    <script th:inline="javascript">
+        const contextpath = /*[[@{/}]]*/ "/";
+        window.__PUBLIC_PATH__ = contextpath + 'italia/fonts'
+    </script>
+
+    <link th:href="@{/italia/style.css}" rel="stylesheet" />
+    <style th:if="${customStyle != null}" th:utext="${customStyle}" type="text/css" id="customStyle"></style>
+
+    <title layout:title-pattern="$LAYOUT_TITLE - $CONTENT_TITLE" th:text="${displayName}">AAC</title>
+</head>
+
+<body>
+    <div class="container-md">
+
+        <div class="row mt-2 mt-md-8 justify-content-center">
+            <div class="col-md-12 col-sm-12">
+                <div class="card-wrapper">
+                    <div class="card border mb-4"
+                        th:classappend="${error == null} ? 'border-primary' : 'border-danger border-3'">
+
+                        <!-- card header -->
+                        <div>
+                            <div th:replace="partial/header :: card-header"></div>
+                        </div>
+
+                        <!-- card body -->
+                        <div class="card-body align-items-center">
+
+                            <!-- card logo -->
+                            <div th:replace="partial/logo :: card-logo"></div>
+
+                            <!-- fragment content -->
+                            <div layout:fragment="content">Content</div>
+
+                        </div>
+
+                        <!-- card footer -->
+                        <div th:replace="partial/footer :: card-footer"></div>
+
+                    </div>
+                </div>
+
+                <div class="footer-ext">
+                    <div th:if="${languages !=null}" class="language-switch pb-3 mb-3 ">
+                        <div class="btn-group">
+                            <button class="btn btn-sm text-right dropdown-toggle" type="button"
+                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                               
+                                <span th:text="#{'language.'+${language}}">lang</span>
+                                <svg class="icon-expand icon icon-sm">
+                                    <use th:xlink:href="@{/italia/svg/sprite.svg#it-expand}"></use>
+                                </svg>
+                            </button>
+                            <div class="dropdown-menu">
+                                <div class="link-list-wrapper">
+                                    <ul class="link-list">
+                                        <li th:each="lang : ${languages}">
+                                            <a class="dropdown-item list-item" th:href="${lang.url}">
+                                                <span th:text="${lang.label}">lang</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+    </div>
+    <script th:src="@{/italia/js/bootstrap-italia.bundle.min.js}" type="text/javascript" charset="utf-8"></script>
+</body>
+
+</html>

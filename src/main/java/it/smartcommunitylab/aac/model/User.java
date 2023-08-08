@@ -364,18 +364,17 @@ public class User {
         this.groups.addAll(groups);
     }
 
-	public Boolean getTosAccepted() {
-		return tosAccepted;
-	}
+    public Boolean getTosAccepted() {
+        return tosAccepted;
+    }
 
-	public void setTosAccepted(Boolean tosAccepted) {
-		this.tosAccepted = tosAccepted;
-	}
-	
-	public boolean isTosAccepted() {
-	    return tosAccepted != null ? tosAccepted.booleanValue() : false;
-	}
+    public void setTosAccepted(Boolean tosAccepted) {
+        this.tosAccepted = tosAccepted;
+    }
 
+    public boolean isTosAccepted() {
+        return tosAccepted != null ? tosAccepted.booleanValue() : false;
+    }
     //    public void addSpaceRoles(Collection<SpaceRole> rr) {
     //        if (rr != null) {
     //            spaceRoles.addAll(rr);
@@ -394,5 +393,4 @@ public class User {
     //        this.spaceRoles.remove(r);
     //    }
 
-   
 }
