@@ -28,8 +28,8 @@ import it.smartcommunitylab.aac.templates.model.LoginTemplate;
 import it.smartcommunitylab.aac.templates.model.TemplateModel;
 import it.smartcommunitylab.aac.templates.model.UserApprovalTemplate;
 import it.smartcommunitylab.aac.templates.service.TemplateService;
-import it.smartcommunitylab.aac.tos.templates.TosApproveTemplate;
-import it.smartcommunitylab.aac.tos.templates.TosTemplate;
+import it.smartcommunitylab.aac.tos.templates.TosApprovalTemplate;
+import it.smartcommunitylab.aac.tos.templates.TosOkTemplate;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -86,7 +86,7 @@ public class TemplateTemplateProvider
             }
         );
         factories.put(FooterTemplate.TEMPLATE, () -> new FooterTemplate(realm));
-        factories.put(TosTemplate.TEMPLATE, () -> new TosTemplate(realm));
-        factories.put(TosApproveTemplate.TEMPLATE, () -> new TosApproveTemplate(realm));
+        factories.put(TosOkTemplate.TEMPLATE, () -> new TosOkTemplate(realm));
+        factories.put(TosApprovalTemplate.TEMPLATE, () -> new TosApprovalTemplate(realm));
     }
 }
