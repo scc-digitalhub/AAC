@@ -184,40 +184,6 @@ public class TosOnAccessFilter extends OncePerRequestFilter {
 		}
 	}
 
-            
-            
-            
-            // check if user already accepted it or rejected,
-            // From filter redirect to error page which is inside controller.
-            // realm tos enabled, if laready accepted go on 
-            // if rejected error page.
-            // if it is something in this session restore the requrest, if there is session around, if there is SET flage in DB and there is flag in the SESSION
-            // so you need to restore the save request. SAVE REQUEST is inside filter.
-            // if it is rejected, i show 
-            
-//            ON NULL USER DOES NOT MAKE ANY CHOICE, KEEP SAVING and SET IN THE FORM
-            // IF IT IS REFUSE YOU HAVE TO CLEAR THE CONTEXT
-            // if it is alaredy accepted or reject and session is empty just go on.
-            
-            // we will have anohter filter to check if accept or reject here we handle reject only in this session.
-            // THIS filter will act only if there is something inside session.
-            // filter needs to only check the session and destroy 
-            
-            // controller manage objs and filter manage session. deleting the session will get the user to error page
-            
-            // if nothing in session, nothing will happen
-            
-            // if accepted and there is flag in the session, restore
-            // if reject and there is a flag, clear it and redirect
-            // chain of filter
-            // acutal chain not outside something , you need not to return but to doFilter(), always do the doFilter
-            // reverse the logic 
-            // if everhting is not null do something else you alwasy call chain.
-            // it intercept every request.
-
-       
-//    }
-
     private boolean requiresProcessing(HttpServletRequest request) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !(auth instanceof UserAuthentication)) {
