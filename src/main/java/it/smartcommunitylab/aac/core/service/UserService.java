@@ -287,8 +287,13 @@ public class UserService {
         u.setEmail(ue.getEmailAddress());
         boolean emailVerified = ue.getEmailVerified() != null ? ue.getEmailVerified().booleanValue() : false;
         u.setEmailVerified(emailVerified);
-        u.setTosAccepted(ue.isTosAccepted());
-
+        
+        if (ue.getTosAccepted() != null) {
+        	u.setTosAccepted(ue.isTosAccepted());	
+        } else {
+        	u.setTosAccepted(null);
+        }
+        
         // status
         SubjectStatus status = SubjectStatus.parse(ue.getStatus());
         u.setStatus(status);

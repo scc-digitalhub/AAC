@@ -16,32 +16,23 @@
 
 package it.smartcommunitylab.aac.tos.controller;
 
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.common.NoSuchProviderException;
-import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
-import it.smartcommunitylab.aac.core.MyUserManager;
 import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.model.Realm;
 
+import java.nio.file.ProviderNotFoundException;
 import java.util.Locale;
 import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-import javax.validation.constraints.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -72,17 +63,22 @@ public class TosController {
 
 		String realm = user.getRealm();
 		Realm realmEntity = realmService.findRealm(realm);
-		model.addAttribute("acceptUrl", "/terms/action");
-		model.addAttribute("realm", realm);
-		model.addAttribute("displayName", realm);
-
-		if ((realmEntity.getTosConfiguration().getConfiguration().containsKey("enableTOS"))
-				&& (boolean) realmEntity.getTosConfiguration().getConfiguration().get("enableTOS")) {
-			model.addAttribute("rejectUrl", "/terms/refuse");
-			return "tos/tos_approval";
-		}
 		
-		return "tos/tos_ok";
+		if (realmEntity != null) {
+			model.addAttribute("acceptUrl", "/terms/action");
+			model.addAttribute("realm", realm);
+			model.addAttribute("displayName", realm);
+
+			if ((realmEntity.getTosConfiguration().getConfiguration().containsKey("enableTOS"))
+					&& (boolean) realmEntity.getTosConfiguration().getConfiguration().get("enableTOS")) {
+				return "tos/tos_approval";
+			}
+			
+			return "tos/tos_ok";
+	
+		} else {
+			throw new ProviderNotFoundException("realm not found");
+		}		
     }
 
 	@PostMapping("/terms/action")
@@ -108,7 +104,8 @@ public class TosController {
 		} else {
 			throw new IllegalArgumentException("Need either approve or deny!");
 		}
-		return "redirect:/";
+		
+		return "redirect:/";		
 	}
 
     @GetMapping("/terms/refuse")
@@ -119,9 +116,8 @@ public class TosController {
             throw new InsufficientAuthenticationException("error.unauthenticated_user");
         }
 
-        userService.refuseTos(user.getSubjectId());
-		this.logger.debug("terms of service refused");
+        this.logger.debug("terms of service refused");
 		
-        return "error/tos_refuse";
+        return "tos/tos_refuse";
     }
 }
