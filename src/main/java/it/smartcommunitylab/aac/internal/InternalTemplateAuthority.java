@@ -18,14 +18,14 @@ package it.smartcommunitylab.aac.internal;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.authorities.AbstractSingleConfigurableProviderAuthority;
-import it.smartcommunitylab.aac.core.authorities.TemplateProviderAuthority;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.core.provider.config.ConfigurableTemplateProvider;
 import it.smartcommunitylab.aac.core.service.TranslatorProviderConfigRepository;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountServiceConfig;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountServiceConfigConverter;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.provider.InternalTemplateProvider;
+import it.smartcommunitylab.aac.templates.TemplateProviderAuthority;
+import it.smartcommunitylab.aac.templates.model.ConfigurableTemplateProvider;
 import it.smartcommunitylab.aac.templates.model.TemplateModel;
 import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfig;
 import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfigurationProvider;

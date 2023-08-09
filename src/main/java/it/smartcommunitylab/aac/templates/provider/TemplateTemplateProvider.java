@@ -17,11 +17,11 @@
 package it.smartcommunitylab.aac.templates.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.provider.AbstractTemplateProvider;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.profiles.scope.OpenIdResource;
 import it.smartcommunitylab.aac.scope.Resource;
+import it.smartcommunitylab.aac.templates.base.AbstractTemplateProvider;
 import it.smartcommunitylab.aac.templates.model.EndSessionTemplate;
 import it.smartcommunitylab.aac.templates.model.FooterTemplate;
 import it.smartcommunitylab.aac.templates.model.LoginTemplate;

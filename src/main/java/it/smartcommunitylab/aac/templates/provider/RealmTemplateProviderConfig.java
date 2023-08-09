@@ -17,8 +17,8 @@
 package it.smartcommunitylab.aac.templates.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.provider.config.AbstractTemplateProviderConfig;
-import it.smartcommunitylab.aac.core.provider.config.ConfigurableTemplateProvider;
+import it.smartcommunitylab.aac.templates.base.AbstractTemplateProviderConfig;
+import it.smartcommunitylab.aac.templates.model.ConfigurableTemplateProvider;
 
 public class RealmTemplateProviderConfig extends AbstractTemplateProviderConfig<TemplateProviderConfigMap> {
 

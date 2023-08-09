@@ -16,13 +16,13 @@
 
 package it.smartcommunitylab.aac.auth;
 
+import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.auth.DefaultUserAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationToken;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserIdentity;
+import it.smartcommunitylab.aac.identity.model.UserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;

@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.saml.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.model.AbstractUserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.identity.base.AbstractUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.saml.SamlKeys;
 import java.io.Serializable;
 import java.util.ArrayList;

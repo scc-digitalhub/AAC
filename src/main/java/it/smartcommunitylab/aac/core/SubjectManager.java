@@ -23,7 +23,6 @@ import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.realms.service.RealmService;
-
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;

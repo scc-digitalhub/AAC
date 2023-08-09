@@ -18,7 +18,7 @@ package it.smartcommunitylab.aac.internal.persistence;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.model.AbstractUserAccount;
+import it.smartcommunitylab.aac.accounts.base.AbstractUserAccount;
 import it.smartcommunitylab.aac.model.SubjectStatus;
 import java.io.Serializable;
 import java.util.Date;

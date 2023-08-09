@@ -17,8 +17,8 @@
 package it.smartcommunitylab.aac.openid.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.model.AbstractUserIdentity;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.attributes.model.UserAttributes;
+import it.smartcommunitylab.aac.identity.base.AbstractUserIdentity;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import java.util.Collection;
 import java.util.Collections;

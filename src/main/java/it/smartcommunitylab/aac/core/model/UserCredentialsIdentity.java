@@ -16,6 +16,8 @@
 
 package it.smartcommunitylab.aac.core.model;
 
+import it.smartcommunitylab.aac.credentials.model.UserCredentials;
+import it.smartcommunitylab.aac.identity.model.UserIdentity;
 import java.util.Collection;
 import org.springframework.security.core.CredentialsContainer;
 

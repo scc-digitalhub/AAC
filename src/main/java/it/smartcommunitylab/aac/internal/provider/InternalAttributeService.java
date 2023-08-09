@@ -18,15 +18,15 @@ package it.smartcommunitylab.aac.internal.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.mapper.ExactAttributesMapper;
+import it.smartcommunitylab.aac.attributes.model.Attribute;
+import it.smartcommunitylab.aac.attributes.model.AttributeSet;
+import it.smartcommunitylab.aac.attributes.model.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.attributes.model.DefaultUserAttributesImpl;
+import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
-import it.smartcommunitylab.aac.base.DefaultUserAttributesImpl;
 import it.smartcommunitylab.aac.base.provider.AbstractConfigurableResourceProvider;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
-import it.smartcommunitylab.aac.core.model.Attribute;
-import it.smartcommunitylab.aac.core.model.AttributeSet;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.core.provider.config.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.persistence.InternalAttributeEntity;
 import it.smartcommunitylab.aac.internal.service.InternalAttributeEntityService;
 import java.io.Serializable;
@@ -41,7 +41,7 @@ import org.springframework.util.Assert;
 public class InternalAttributeService
     extends AbstractConfigurableResourceProvider<UserAttributes, ConfigurableAttributeProvider, InternalAttributeProviderConfigMap, InternalAttributeProviderConfig>
     implements
-        it.smartcommunitylab.aac.core.provider.AttributeService<InternalAttributeProviderConfigMap, InternalAttributeProviderConfig> {
+        it.smartcommunitylab.aac.attributes.provider.AttributeService<InternalAttributeProviderConfigMap, InternalAttributeProviderConfig> {
 
     public static final String ATTRIBUTE_MAPPING_FUNCTION = "attributeMapping";
 

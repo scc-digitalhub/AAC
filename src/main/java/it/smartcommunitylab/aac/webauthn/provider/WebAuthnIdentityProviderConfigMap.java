@@ -25,7 +25,6 @@ import com.yubico.webauthn.data.ResidentKeyRequirement;
 import com.yubico.webauthn.data.UserVerificationRequirement;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
-
 import java.io.Serializable;
 import java.util.Map;
 import javax.validation.Valid;

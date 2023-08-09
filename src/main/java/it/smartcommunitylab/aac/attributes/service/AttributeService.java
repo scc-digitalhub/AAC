@@ -17,7 +17,9 @@
 package it.smartcommunitylab.aac.attributes.service;
 
 import it.smartcommunitylab.aac.attributes.DefaultAttributesSet;
-import it.smartcommunitylab.aac.attributes.model.AbstractAttribute;
+import it.smartcommunitylab.aac.attributes.base.AbstractAttribute;
+import it.smartcommunitylab.aac.attributes.model.Attribute;
+import it.smartcommunitylab.aac.attributes.model.AttributeSet;
 import it.smartcommunitylab.aac.attributes.model.BooleanAttribute;
 import it.smartcommunitylab.aac.attributes.model.DateAttribute;
 import it.smartcommunitylab.aac.attributes.model.DateTimeAttribute;
@@ -29,8 +31,6 @@ import it.smartcommunitylab.aac.attributes.persistence.AttributeEntity;
 import it.smartcommunitylab.aac.attributes.persistence.AttributeSetEntity;
 import it.smartcommunitylab.aac.common.NoSuchAttributeException;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
-import it.smartcommunitylab.aac.core.model.Attribute;
-import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.model.AttributeType;
 import java.util.ArrayList;
 import java.util.Collection;

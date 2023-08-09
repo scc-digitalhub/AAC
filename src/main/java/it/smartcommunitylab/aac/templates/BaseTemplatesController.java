@@ -24,7 +24,7 @@ import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchTemplateException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.core.model.Template;
+import it.smartcommunitylab.aac.templates.model.Template;
 import it.smartcommunitylab.aac.templates.model.TemplateModel;
 import java.util.Collection;
 import javax.validation.Valid;

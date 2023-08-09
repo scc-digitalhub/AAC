@@ -17,8 +17,8 @@
 package it.smartcommunitylab.aac.openid.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.provider.config.AbstractAccountServiceConfig;
-import it.smartcommunitylab.aac.core.provider.config.ConfigurableAccountProvider;
+import it.smartcommunitylab.aac.accounts.base.AbstractAccountServiceConfig;
+import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountProvider;
 
 public class OIDCAccountServiceConfig extends AbstractAccountServiceConfig<OIDCIdentityProviderConfigMap> {
 

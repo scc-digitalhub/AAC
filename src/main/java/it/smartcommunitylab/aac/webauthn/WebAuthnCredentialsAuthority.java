@@ -17,11 +17,11 @@
 package it.smartcommunitylab.aac.webauthn;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.authorities.AbstractCredentialsAuthority;
+import it.smartcommunitylab.aac.accounts.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.provider.config.AbstractConfigurableProvider;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
+import it.smartcommunitylab.aac.credentials.base.AbstractCredentialsAuthority;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnEditableUserCredential;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredential;

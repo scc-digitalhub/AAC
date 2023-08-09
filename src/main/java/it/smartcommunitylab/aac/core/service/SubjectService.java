@@ -29,7 +29,6 @@ import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.roles.persistence.RealmRoleEntity;
 import it.smartcommunitylab.aac.services.persistence.ServiceEntity;
 import it.smartcommunitylab.aac.users.persistence.UserEntity;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;

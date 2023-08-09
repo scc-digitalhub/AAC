@@ -30,7 +30,6 @@ import it.smartcommunitylab.aac.core.provider.config.AbstractConfigurableProvide
 import it.smartcommunitylab.aac.core.service.ConfigurableProviderService;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.realms.service.RealmService;
-
 import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -20,7 +20,6 @@ import it.smartcommunitylab.aac.core.ExtendedUserAuthenticationManager;
 import it.smartcommunitylab.aac.core.authorities.ConfigurableAuthorityService;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.identity.IdentityProviderAuthority;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;

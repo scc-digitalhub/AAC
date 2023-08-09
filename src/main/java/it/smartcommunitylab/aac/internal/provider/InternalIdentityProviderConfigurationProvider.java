@@ -17,10 +17,9 @@
 package it.smartcommunitylab.aac.internal.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.provider.AbstractIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.config.IdentityAuthoritiesProperties;
-import it.smartcommunitylab.aac.core.provider.config.ConfigurableIdentityProvider;
-
+import it.smartcommunitylab.aac.identity.base.AbstractIdentityConfigurationProvider;
+import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import org.springframework.stereotype.Service;
 
 @Service

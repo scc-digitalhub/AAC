@@ -20,7 +20,7 @@ import com.yubico.webauthn.data.ResidentKeyRequirement;
 import com.yubico.webauthn.data.UserVerificationRequirement;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.AbstractCredentialsServiceConfig;
-import it.smartcommunitylab.aac.core.provider.config.ConfigurableCredentialsProvider;
+import it.smartcommunitylab.aac.credentials.model.ConfigurableCredentialsProvider;
 
 public class WebAuthnCredentialsServiceConfig
     extends AbstractCredentialsServiceConfig<WebAuthnIdentityProviderConfigMap> {

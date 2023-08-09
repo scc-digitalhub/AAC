@@ -18,6 +18,10 @@ package it.smartcommunitylab.aac.bootstrap;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.accounts.model.UserAccount;
+import it.smartcommunitylab.aac.accounts.provider.UserAccountService;
+import it.smartcommunitylab.aac.attributes.model.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.attributes.service.AttributeProviderService;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchCredentialException;
@@ -27,19 +31,13 @@ import it.smartcommunitylab.aac.common.NoSuchServiceException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.core.model.UserAccount;
-import it.smartcommunitylab.aac.core.model.UserCredentials;
-import it.smartcommunitylab.aac.core.provider.UserAccountService;
-import it.smartcommunitylab.aac.core.provider.UserCredentialsService;
-import it.smartcommunitylab.aac.core.provider.config.ConfigurableAttributeProvider;
-import it.smartcommunitylab.aac.core.provider.config.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.provider.config.ConfigurableTemplateProvider;
-import it.smartcommunitylab.aac.core.service.AttributeProviderService;
 import it.smartcommunitylab.aac.core.service.ConfigurableProviderService;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
-import it.smartcommunitylab.aac.core.service.TemplateProviderService;
+import it.smartcommunitylab.aac.credentials.model.UserCredentials;
+import it.smartcommunitylab.aac.credentials.provider.UserCredentialsService;
 import it.smartcommunitylab.aac.crypto.PasswordHash;
+import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.service.IdentityProviderService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.model.ClientApp;
@@ -53,9 +51,10 @@ import it.smartcommunitylab.aac.realms.service.RealmService;
 import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
 import it.smartcommunitylab.aac.services.Service;
 import it.smartcommunitylab.aac.services.ServicesService;
+import it.smartcommunitylab.aac.templates.model.ConfigurableTemplateProvider;
+import it.smartcommunitylab.aac.templates.service.TemplateProviderService;
 import it.smartcommunitylab.aac.users.persistence.UserEntity;
 import it.smartcommunitylab.aac.users.service.UserEntityService;
-
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.AbstractMap;
@@ -131,10 +130,10 @@ public class AACBootstrap {
     private SpaceRoleService roleService;
 
     @Autowired
-    private it.smartcommunitylab.aac.core.service.UserAccountService userAccountService;
+    private it.smartcommunitylab.aac.accounts.service.UserAccountService userAccountService;
 
     @Autowired
-    private it.smartcommunitylab.aac.core.service.UserCredentialsService userCredentialsService;
+    private it.smartcommunitylab.aac.credentials.service.UserCredentialsService userCredentialsService;
 
     @Autowired
     private UserAccountService<InternalUserAccount> internalUserAccountService;

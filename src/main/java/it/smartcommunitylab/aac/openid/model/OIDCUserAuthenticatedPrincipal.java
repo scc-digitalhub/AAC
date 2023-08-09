@@ -18,7 +18,7 @@ package it.smartcommunitylab.aac.openid.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.OpenIdAttributesSet;
-import it.smartcommunitylab.aac.base.model.AbstractUserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.identity.base.AbstractUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.openid.OIDCKeys;
 import java.io.Serializable;
 import java.util.HashMap;

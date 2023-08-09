@@ -19,6 +19,7 @@ package it.smartcommunitylab.aac.attributes.model;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.attributes.base.AbstractAttribute;
 import it.smartcommunitylab.aac.model.AttributeType;
 import java.io.Serializable;
 import java.text.ParseException;

@@ -17,8 +17,8 @@
 package it.smartcommunitylab.aac.saml.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.model.AbstractUserIdentity;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.attributes.model.UserAttributes;
+import it.smartcommunitylab.aac.identity.base.AbstractUserIdentity;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import java.util.Collection;
 import java.util.Collections;

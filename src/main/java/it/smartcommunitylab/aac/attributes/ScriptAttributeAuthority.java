@@ -17,6 +17,7 @@
 package it.smartcommunitylab.aac.attributes;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.attributes.base.AbstractAttributeAuthority;
 import it.smartcommunitylab.aac.attributes.provider.ScriptAttributeProvider;
 import it.smartcommunitylab.aac.attributes.provider.ScriptAttributeProviderConfig;
 import it.smartcommunitylab.aac.attributes.provider.ScriptAttributeProviderConfigMap;
@@ -26,7 +27,6 @@ import it.smartcommunitylab.aac.attributes.store.AutoJdbcAttributeStore;
 import it.smartcommunitylab.aac.attributes.store.InMemoryAttributeStore;
 import it.smartcommunitylab.aac.attributes.store.NullAttributeStore;
 import it.smartcommunitylab.aac.attributes.store.PersistentAttributeStore;
-import it.smartcommunitylab.aac.base.authorities.AbstractAttributeAuthority;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import org.springframework.stereotype.Service;

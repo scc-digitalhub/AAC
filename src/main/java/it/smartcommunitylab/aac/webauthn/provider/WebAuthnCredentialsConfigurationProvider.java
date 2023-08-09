@@ -17,10 +17,9 @@
 package it.smartcommunitylab.aac.webauthn.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.provider.AbstractCredentialsConfigurationProvider;
 import it.smartcommunitylab.aac.config.CredentialsAuthoritiesProperties;
-import it.smartcommunitylab.aac.core.provider.config.ConfigurableCredentialsProvider;
-
+import it.smartcommunitylab.aac.credentials.base.AbstractCredentialsConfigurationProvider;
+import it.smartcommunitylab.aac.credentials.model.ConfigurableCredentialsProvider;
 import org.springframework.stereotype.Service;
 
 @Service

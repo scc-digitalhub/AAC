@@ -17,10 +17,10 @@
 package it.smartcommunitylab.aac.attributes.mapper;
 
 import it.smartcommunitylab.aac.attributes.OpenIdAttributesSet;
+import it.smartcommunitylab.aac.attributes.model.Attribute;
 import it.smartcommunitylab.aac.attributes.model.BooleanAttribute;
 import it.smartcommunitylab.aac.attributes.model.DateAttribute;
 import it.smartcommunitylab.aac.attributes.model.StringAttribute;
-import it.smartcommunitylab.aac.core.model.Attribute;
 import java.util.ArrayList;
 import java.util.List;
 

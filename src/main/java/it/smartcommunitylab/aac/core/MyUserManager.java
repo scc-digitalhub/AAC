@@ -16,6 +16,11 @@
 
 package it.smartcommunitylab.aac.core;
 
+import it.smartcommunitylab.aac.accounts.model.EditableUserAccount;
+import it.smartcommunitylab.aac.accounts.model.UserAccount;
+import it.smartcommunitylab.aac.accounts.service.UserAccountService;
+import it.smartcommunitylab.aac.attributes.model.UserAttributes;
+import it.smartcommunitylab.aac.attributes.service.AttributeProviderService;
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
 import it.smartcommunitylab.aac.audit.store.AuditEventStore;
 import it.smartcommunitylab.aac.clients.persistence.ClientEntity;
@@ -29,14 +34,9 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.core.model.EditableUserAccount;
-import it.smartcommunitylab.aac.core.model.UserAccount;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.provider.config.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.service.AttributeProviderService;
-import it.smartcommunitylab.aac.core.service.UserAccountService;
-import it.smartcommunitylab.aac.core.service.UserCredentialsService;
 import it.smartcommunitylab.aac.core.service.UserService;
+import it.smartcommunitylab.aac.credentials.service.UserCredentialsService;
+import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.service.IdentityProviderService;
 import it.smartcommunitylab.aac.internal.InternalAccountServiceAuthority;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;

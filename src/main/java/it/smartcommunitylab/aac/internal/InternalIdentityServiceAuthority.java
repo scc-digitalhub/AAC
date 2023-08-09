@@ -18,12 +18,12 @@ package it.smartcommunitylab.aac.internal;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.authorities.AbstractProviderAuthority;
-import it.smartcommunitylab.aac.core.authorities.CredentialsServiceAuthority;
-import it.smartcommunitylab.aac.core.authorities.IdentityServiceAuthority;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.core.provider.config.ConfigurableIdentityService;
 import it.smartcommunitylab.aac.core.service.TranslatorProviderConfigRepository;
+import it.smartcommunitylab.aac.credentials.CredentialsServiceAuthority;
+import it.smartcommunitylab.aac.identity.IdentityServiceAuthority;
+import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityService;
 import it.smartcommunitylab.aac.internal.model.InternalEditableUserAccount;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
@@ -32,7 +32,6 @@ import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityServiceConfig;
 import it.smartcommunitylab.aac.users.service.UserEntityService;
-
 import java.util.Collection;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;

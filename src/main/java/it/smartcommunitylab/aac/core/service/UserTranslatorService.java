@@ -16,10 +16,10 @@
 
 package it.smartcommunitylab.aac.core.service;
 
+import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.UserTranslator;
+import it.smartcommunitylab.aac.identity.model.UserIdentity;
 import it.smartcommunitylab.aac.model.User;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;

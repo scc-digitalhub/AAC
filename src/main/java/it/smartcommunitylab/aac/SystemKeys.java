@@ -87,7 +87,6 @@ public class SystemKeys {
     public static final String RESOURCE_TEMPLATE = "template";
     public static final String RESOURCE_SETTINGS = "settings";
 
-
     public static final String PATH_SEPARATOR = "/-/";
     public static final String ID_SEPARATOR = ":";
     public static final String URN_PROTOCOL = "urn://";

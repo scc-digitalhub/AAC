@@ -17,12 +17,12 @@
 package it.smartcommunitylab.aac.internal;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.attributes.AttributeProviderAuthority;
+import it.smartcommunitylab.aac.attributes.model.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
 import it.smartcommunitylab.aac.base.authorities.AbstractSingleConfigurableProviderAuthority;
-import it.smartcommunitylab.aac.core.authorities.AttributeProviderAuthority;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.core.provider.config.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeConfigurationProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeProviderConfig;
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeProviderConfigMap;

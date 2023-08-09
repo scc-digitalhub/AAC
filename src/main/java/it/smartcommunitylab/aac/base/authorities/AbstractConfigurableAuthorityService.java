@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.base.authorities;
 
+import it.smartcommunitylab.aac.attributes.base.AbstractAuthorityService;
 import it.smartcommunitylab.aac.core.authorities.ConfigurableAuthorityService;
 
 public abstract class AbstractConfigurableAuthorityService<

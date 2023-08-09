@@ -19,7 +19,7 @@ package it.smartcommunitylab.aac.webauthn.service;
 import it.smartcommunitylab.aac.common.DuplicatedDataException;
 import it.smartcommunitylab.aac.common.NoSuchCredentialException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.core.provider.UserCredentialsService;
+import it.smartcommunitylab.aac.credentials.provider.UserCredentialsService;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredential;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredentialsRepository;

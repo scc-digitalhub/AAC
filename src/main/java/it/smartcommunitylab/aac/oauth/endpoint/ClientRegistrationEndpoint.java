@@ -35,7 +35,6 @@ import it.smartcommunitylab.aac.oauth.request.OAuth2TokenRequestFactory;
 import it.smartcommunitylab.aac.oauth.scope.OAuth2DCRResource;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.realms.service.RealmService;
-
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Arrays;

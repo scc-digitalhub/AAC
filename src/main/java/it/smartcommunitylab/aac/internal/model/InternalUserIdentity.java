@@ -18,10 +18,10 @@ package it.smartcommunitylab.aac.internal.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.model.AbstractUserIdentity;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserCredentials;
+import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserCredentialsIdentity;
+import it.smartcommunitylab.aac.credentials.model.UserCredentials;
+import it.smartcommunitylab.aac.identity.base.AbstractUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import java.util.ArrayList;
 import java.util.Collection;

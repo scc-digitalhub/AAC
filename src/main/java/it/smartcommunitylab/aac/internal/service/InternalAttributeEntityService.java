@@ -16,7 +16,7 @@
 
 package it.smartcommunitylab.aac.internal.service;
 
-import it.smartcommunitylab.aac.core.model.Attribute;
+import it.smartcommunitylab.aac.attributes.model.Attribute;
 import it.smartcommunitylab.aac.internal.persistence.InternalAttributeEntity;
 import it.smartcommunitylab.aac.internal.persistence.InternalAttributeEntityRepository;
 import java.io.Serializable;

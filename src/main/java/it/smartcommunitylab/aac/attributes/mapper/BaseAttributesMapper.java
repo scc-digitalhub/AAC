@@ -16,9 +16,9 @@
 
 package it.smartcommunitylab.aac.attributes.mapper;
 
+import it.smartcommunitylab.aac.attributes.model.Attribute;
+import it.smartcommunitylab.aac.attributes.model.AttributeSet;
 import it.smartcommunitylab.aac.attributes.model.DefaultAttributesImpl;
-import it.smartcommunitylab.aac.core.model.Attribute;
-import it.smartcommunitylab.aac.core.model.AttributeSet;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;

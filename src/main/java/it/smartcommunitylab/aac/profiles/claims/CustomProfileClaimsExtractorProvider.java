@@ -16,12 +16,12 @@
 
 package it.smartcommunitylab.aac.profiles.claims;
 
+import it.smartcommunitylab.aac.attributes.model.Attribute;
+import it.smartcommunitylab.aac.attributes.model.AttributeSet;
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
 import it.smartcommunitylab.aac.claims.ScopeClaimsExtractor;
 import it.smartcommunitylab.aac.claims.ScopeClaimsExtractorProvider;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
-import it.smartcommunitylab.aac.core.model.Attribute;
-import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.profiles.extractor.AttributesProfileExtractor;
 import java.util.Collection;
 import java.util.Collections;

@@ -17,8 +17,6 @@
 package it.smartcommunitylab.aac.attributes.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.model.Attribute;
-import it.smartcommunitylab.aac.core.model.AttributeSet;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;

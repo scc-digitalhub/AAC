@@ -19,7 +19,7 @@ package it.smartcommunitylab.aac.webauthn.persistence;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.model.AbstractUserCredentials;
+import it.smartcommunitylab.aac.credentials.base.AbstractUserCredentials;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
 import java.util.Date;
 import javax.persistence.Column;

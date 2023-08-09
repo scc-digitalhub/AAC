@@ -18,7 +18,7 @@ package it.smartcommunitylab.aac.password.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.AbstractCredentialsServiceConfig;
-import it.smartcommunitylab.aac.core.provider.config.ConfigurableCredentialsProvider;
+import it.smartcommunitylab.aac.credentials.model.ConfigurableCredentialsProvider;
 
 public class PasswordCredentialsServiceConfig
     extends AbstractCredentialsServiceConfig<PasswordIdentityProviderConfigMap> {

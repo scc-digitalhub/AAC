@@ -20,7 +20,7 @@ import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.provider.config.ProviderConfig;
 import java.util.Collection;
 
-public interface ProviderConfigRepository<T extends ProviderConfig<? extends ConfigMap>> {
+public interface ProviderConfigRepository<T extends ProviderConfig<? extends ConfigMap, ? extends ConfigMap>> {
     T findByProviderId(String providerId);
 
     Collection<T> findAll();

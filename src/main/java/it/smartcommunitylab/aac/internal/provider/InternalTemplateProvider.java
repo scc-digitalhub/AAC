@@ -17,7 +17,6 @@
 package it.smartcommunitylab.aac.internal.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.provider.AbstractTemplateProvider;
 import it.smartcommunitylab.aac.internal.dto.UserRegistrationBean;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.templates.InternalChangeAccountSuccessTemplate;
@@ -26,6 +25,7 @@ import it.smartcommunitylab.aac.internal.templates.InternalRegisterAccountConfir
 import it.smartcommunitylab.aac.internal.templates.InternalRegisterAccountSuccessTemplate;
 import it.smartcommunitylab.aac.internal.templates.InternalRegisterAccountTemplate;
 import it.smartcommunitylab.aac.password.model.PasswordPolicy;
+import it.smartcommunitylab.aac.templates.base.AbstractTemplateProvider;
 import it.smartcommunitylab.aac.templates.model.TemplateModel;
 import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfig;
 import it.smartcommunitylab.aac.templates.provider.TemplateProviderConfigMap;

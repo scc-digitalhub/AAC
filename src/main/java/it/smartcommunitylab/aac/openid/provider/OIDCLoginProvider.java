@@ -17,8 +17,7 @@
 package it.smartcommunitylab.aac.openid.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.provider.AbstractLoginProvider;
-
+import it.smartcommunitylab.aac.identity.base.AbstractLoginProvider;
 import org.apache.commons.lang3.ArrayUtils;
 
 public class OIDCLoginProvider extends AbstractLoginProvider {

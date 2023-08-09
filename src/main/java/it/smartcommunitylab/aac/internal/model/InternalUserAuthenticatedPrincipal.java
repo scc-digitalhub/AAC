@@ -18,7 +18,7 @@ package it.smartcommunitylab.aac.internal.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.model.AbstractUserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.identity.base.AbstractUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import java.io.Serializable;
 import java.util.HashMap;

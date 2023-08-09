@@ -25,6 +25,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.accounts.provider.UserAccountService;
 import it.smartcommunitylab.aac.attributes.provider.MapperAttributeProviderConfig;
 import it.smartcommunitylab.aac.attributes.provider.ScriptAttributeProviderConfig;
 import it.smartcommunitylab.aac.attributes.provider.WebhookAttributeProviderConfig;
@@ -41,7 +42,6 @@ import it.smartcommunitylab.aac.core.persistence.IdentityProviderEntityRepositor
 import it.smartcommunitylab.aac.core.persistence.TemplateProviderEntity;
 import it.smartcommunitylab.aac.core.persistence.TemplateProviderEntityRepository;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.AutoJDBCProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.ConfigurableProviderEntityService;
 import it.smartcommunitylab.aac.core.service.InMemoryProviderConfigRepository;

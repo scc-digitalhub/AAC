@@ -25,7 +25,6 @@ import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.model.SubjectStatus;
 import it.smartcommunitylab.aac.users.persistence.UserEntity;
 import it.smartcommunitylab.aac.users.persistence.UserEntityRepository;
-
 import java.util.Date;
 import java.util.List;
 import org.springframework.data.domain.Page;

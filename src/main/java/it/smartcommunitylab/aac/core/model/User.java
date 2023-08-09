@@ -17,6 +17,7 @@
 package it.smartcommunitylab.aac.core.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.identity.model.UserIdentity;
 import java.util.Collection;
 import java.util.Date;
 

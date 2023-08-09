@@ -18,9 +18,7 @@ package it.smartcommunitylab.aac.templates.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.provider.AbstractConfigurationProvider;
-import it.smartcommunitylab.aac.core.provider.TemplateProviderConfigurationProvider;
-import it.smartcommunitylab.aac.core.provider.config.ConfigurableTemplateProvider;
-
+import it.smartcommunitylab.aac.templates.model.ConfigurableTemplateProvider;
 import org.springframework.stereotype.Service;
 
 @Service

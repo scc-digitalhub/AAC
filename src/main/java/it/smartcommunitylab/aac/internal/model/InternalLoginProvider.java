@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.internal.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.provider.AbstractLoginProvider;
+import it.smartcommunitylab.aac.identity.base.AbstractLoginProvider;
 
 public class InternalLoginProvider extends AbstractLoginProvider {
 

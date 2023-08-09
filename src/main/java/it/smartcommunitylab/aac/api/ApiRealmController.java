@@ -26,7 +26,6 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.realms.RealmManager;
-
 import java.util.Collection;
 import java.util.Optional;
 import javax.validation.Valid;
