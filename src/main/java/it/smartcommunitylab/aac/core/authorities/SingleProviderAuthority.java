@@ -18,7 +18,6 @@ package it.smartcommunitylab.aac.core.authorities;
 
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.Resource;
 import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
 import it.smartcommunitylab.aac.core.provider.config.ProviderConfig;
@@ -28,13 +27,13 @@ import it.smartcommunitylab.aac.core.provider.config.ProviderConfig;
  */
 
 public interface SingleProviderAuthority<
-    S extends ConfigurableResourceProvider<R, T, M, C>,
+    P extends ConfigurableResourceProvider<R, C, S, M>,
     R extends Resource,
-    T extends ConfigurableProvider,
-    M extends ConfigMap,
-    C extends ProviderConfig<M>
+    C extends ProviderConfig<S, M>,
+    S extends ConfigMap,
+    M extends ConfigMap
 > {
-    public S findProviderByRealm(String realm);
+    public P findProviderByRealm(String realm);
 
-    public S getProviderByRealm(String realm) throws NoSuchProviderException;
+    public P getProviderByRealm(String realm) throws NoSuchProviderException;
 }

@@ -18,10 +18,10 @@ package it.smartcommunitylab.aac.openid.apple;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.provider.UserAccountService;
-import it.smartcommunitylab.aac.base.authorities.AbstractSingleProviderIdentityAuthority;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
+import it.smartcommunitylab.aac.identity.base.AbstractSingleProviderIdentityAuthority;
 import it.smartcommunitylab.aac.openid.apple.auth.AppleClientRegistrationRepository;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleFilterProvider;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityConfigurationProvider;

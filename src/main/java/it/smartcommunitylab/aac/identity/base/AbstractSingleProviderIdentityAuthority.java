@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.base.authorities;
+package it.smartcommunitylab.aac.identity.base;
 
+import it.smartcommunitylab.aac.base.authorities.AbstractSingleConfigurableProviderAuthority;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.identity.IdentityProviderAuthority;
-import it.smartcommunitylab.aac.identity.base.AbstractIdentityProvider;
-import it.smartcommunitylab.aac.identity.base.AbstractUserIdentity;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.provider.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderConfigurationProvider;

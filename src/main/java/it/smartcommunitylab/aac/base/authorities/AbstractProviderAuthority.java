@@ -21,6 +21,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
+import it.smartcommunitylab.aac.base.model.AbstractSettingsMap;
 import it.smartcommunitylab.aac.base.provider.AbstractConfigurableResourceProvider;
 import it.smartcommunitylab.aac.base.provider.config.AbstractProviderConfig;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
@@ -28,7 +29,6 @@ import it.smartcommunitylab.aac.core.authorities.ProviderAuthority;
 import it.smartcommunitylab.aac.core.model.Resource;
 import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.core.provider.config.AbstractConfigurableProvider;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -39,13 +39,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
 public abstract class AbstractProviderAuthority<
-    S extends AbstractConfigurableResourceProvider<R, T, M, C>,
+    P extends AbstractConfigurableResourceProvider<R, C, S, M>,
     R extends Resource,
-    T extends AbstractConfigurableProvider,
-    M extends AbstractConfigMap,
-    C extends AbstractProviderConfig<M, T>
+    C extends AbstractProviderConfig<S, M>,
+    S extends AbstractSettingsMap,
+    M extends AbstractConfigMap
 >
-    implements ProviderAuthority<S, R> {
+    implements ProviderAuthority<P, R> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -57,14 +57,14 @@ public abstract class AbstractProviderAuthority<
     // loading cache for idps
     // TODO replace with external loadableProviderRepository for
     // ProviderRepository<InternalIdentityProvider>
-    protected final LoadingCache<String, S> providers = CacheBuilder
+    protected final LoadingCache<String, P> providers = CacheBuilder
         .newBuilder()
         .expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
         .maximumSize(100)
         .build(
-            new CacheLoader<String, S>() {
+            new CacheLoader<String, P>() {
                 @Override
-                public S load(final String id) throws Exception {
+                public P load(final String id) throws Exception {
                     logger.debug("load config from repository for {}", id);
                     try {
                         C config = registrationRepository.findByProviderId(id);
@@ -94,7 +94,7 @@ public abstract class AbstractProviderAuthority<
         return authorityId;
     }
 
-    protected abstract S buildProvider(C config);
+    protected abstract P buildProvider(C config);
 
     @Override
     public boolean hasProvider(String providerId) {
@@ -103,7 +103,7 @@ public abstract class AbstractProviderAuthority<
     }
 
     @Override
-    public S findProvider(String providerId) {
+    public P findProvider(String providerId) {
         Assert.hasText(providerId, "provider id can not be null or empty");
 
         try {
@@ -116,7 +116,7 @@ public abstract class AbstractProviderAuthority<
                 return null;
             }
 
-            S p = providers.get(providerId);
+            P p = providers.get(providerId);
 
             // check config version match against repo
             if (config.getVersion() > p.getConfig().getVersion()) {
@@ -133,9 +133,9 @@ public abstract class AbstractProviderAuthority<
     }
 
     @Override
-    public S getProvider(String providerId) throws NoSuchProviderException {
+    public P getProvider(String providerId) throws NoSuchProviderException {
         Assert.hasText(providerId, "provider id can not be null or empty");
-        S p = findProvider(providerId);
+        P p = findProvider(providerId);
         if (p == null) {
             throw new NoSuchProviderException();
         }
@@ -144,7 +144,7 @@ public abstract class AbstractProviderAuthority<
     }
 
     @Override
-    public List<S> getProvidersByRealm(String realm) {
+    public List<P> getProvidersByRealm(String realm) {
         // we need to fetch registrations and get idp from cache, with optional load
         Collection<C> registrations = registrationRepository.findByRealm(realm);
         return registrations
