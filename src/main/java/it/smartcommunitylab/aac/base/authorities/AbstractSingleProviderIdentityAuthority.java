@@ -19,12 +19,13 @@ package it.smartcommunitylab.aac.base.authorities;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.base.model.AbstractUserIdentity;
 import it.smartcommunitylab.aac.base.provider.AbstractIdentityProvider;
-import it.smartcommunitylab.aac.base.provider.config.AbstractIdentityProviderConfig;
-import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
-import it.smartcommunitylab.aac.core.provider.IdentityProviderConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.config.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.identity.IdentityProviderAuthority;
+import it.smartcommunitylab.aac.identity.provider.AbstractIdentityProviderConfig;
+import it.smartcommunitylab.aac.identity.provider.IdentityProviderConfigurationProvider;
+
 import org.springframework.util.Assert;
 
 public abstract class AbstractSingleProviderIdentityAuthority<

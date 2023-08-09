@@ -16,12 +16,16 @@
 
 package it.smartcommunitylab.aac.core.model;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import it.smartcommunitylab.aac.core.provider.config.ConfigurableProviderImpl;
+import java.io.Serializable;
 import java.util.Map;
 
 /*
  * Mutable configuration for resource providers
  */
+@JsonDeserialize(as = ConfigurableProviderImpl.class)
 public interface ConfigurableProvider extends ConfigurableProperties {
     String getType();
 
@@ -51,6 +55,9 @@ public interface ConfigurableProvider extends ConfigurableProperties {
 
     Integer getVersion();
     void setVersion(Integer version);
+
+    Map<String, Serializable> getSettings();
+    void setSettings(Map<String, Serializable> props);
 
     JsonSchema getSchema();
     void setSchema(JsonSchema schema);

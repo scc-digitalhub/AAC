@@ -1,5 +1,5 @@
-/*
- * Copyright 2023 the original author or authors
+/**
+ * Copyright 2023 Fondazione Bruno Kessler
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,33 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.core.provider.config;
+package it.smartcommunitylab.aac.identity.provider;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.base.model.AbstractSettingsMap;
+import java.io.Serializable;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 import javax.validation.Valid;
 import org.springframework.util.StringUtils;
 
-@Deprecated
 @Valid
-@JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ConfigurableIdentityProvider extends AbstractConfigurableProvider {
+public class IdentityProviderSettingsMap extends AbstractSettingsMap {
+
+    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
+
+    public static final String RESOURCE_TYPE =
+        SystemKeys.RESOURCE_SETTINGS + SystemKeys.ID_SEPARATOR + SystemKeys.RESOURCE_IDENTITY_PROVIDER;
 
     private Boolean linkable;
     private String persistence;
@@ -42,24 +49,6 @@ public class ConfigurableIdentityProvider extends AbstractConfigurableProvider {
 
     @JsonIgnore
     private Map<String, String> hookFunctions = new HashMap<>();
-
-    public ConfigurableIdentityProvider(String authority, String provider, String realm) {
-        super(authority, provider, realm, SystemKeys.RESOURCE_IDENTITY);
-        this.persistence = SystemKeys.PERSISTENCE_LEVEL_NONE;
-        this.events = SystemKeys.EVENTS_LEVEL_DETAILS;
-        this.linkable = true;
-    }
-
-    /**
-     * Private constructor for JPA and other serialization tools.
-     *
-     * We need to implement this to enable deserialization of resources via
-     * reflection
-     */
-    @SuppressWarnings("unused")
-    private ConfigurableIdentityProvider() {
-        this((String) null, (String) null, (String) null);
-    }
 
     public Boolean getLinkable() {
         return linkable;
@@ -104,8 +93,9 @@ public class ConfigurableIdentityProvider extends AbstractConfigurableProvider {
     @JsonProperty("hookFunctions")
     public Map<String, String> getHookFunctionsBase64() {
         if (hookFunctions == null) {
-            return null;
+            return Collections.emptyMap();
         }
+
         return hookFunctions
             .entrySet()
             .stream()
@@ -137,5 +127,32 @@ public class ConfigurableIdentityProvider extends AbstractConfigurableProvider {
                         )
                     );
         }
+    }
+
+    @JsonIgnore
+    public void setConfiguration(IdentityProviderSettingsMap map) {
+        if (map == null) {
+            throw new IllegalArgumentException();
+        }
+
+        this.linkable = map.getLinkable();
+        this.persistence = map.getPersistence();
+        this.events = map.getEvents();
+        this.position = map.getPosition();
+
+        this.hookFunctions = map.getHookFunctions();
+    }
+
+    @Override
+    public void setConfiguration(Map<String, Serializable> props) {
+        // use mapper
+        mapper.setSerializationInclusion(Include.NON_EMPTY);
+        IdentityProviderSettingsMap map = mapper.convertValue(props, IdentityProviderSettingsMap.class);
+        setConfiguration(map);
+    }
+
+    @Override
+    public JsonSchema getSchema() throws JsonMappingException {
+        return schemaGen.generateSchema(IdentityProviderSettingsMap.class);
     }
 }

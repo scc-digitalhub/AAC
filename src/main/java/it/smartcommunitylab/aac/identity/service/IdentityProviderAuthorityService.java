@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.core.service;
+package it.smartcommunitylab.aac.identity.service;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.authorities.AbstractConfigurableAuthorityService;
-import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
-
+import it.smartcommunitylab.aac.identity.IdentityProviderAuthority;
 import java.util.Collection;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;

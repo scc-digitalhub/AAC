@@ -14,30 +14,26 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.core.service;
+package it.smartcommunitylab.aac.identity.service;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.config.ProvidersProperties;
-import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
-import it.smartcommunitylab.aac.core.persistence.IdentityProviderEntity;
+import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
-import it.smartcommunitylab.aac.core.provider.config.ConfigurableIdentityProvider;
-
+import it.smartcommunitylab.aac.core.provider.config.ConfigurableProviderImpl;
+import it.smartcommunitylab.aac.core.service.ConfigurableProviderEntityService;
+import it.smartcommunitylab.aac.core.service.ConfigurableProviderService;
+import it.smartcommunitylab.aac.identity.IdentityProviderAuthority;
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.Map;
-import java.util.stream.Collectors;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.jsoup.Jsoup;
-import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -45,20 +41,15 @@ import org.springframework.validation.DataBinder;
 
 @Service
 @Transactional
-public class IdentityProviderService
-    extends ConfigurableProviderService<IdentityProviderAuthority<?, ?, ?, ?>, ConfigurableIdentityProvider, IdentityProviderEntity> {
+public class IdentityProviderService extends ConfigurableProviderService<IdentityProviderAuthority<?, ?, ?, ?>> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     public IdentityProviderService(
         IdentityProviderAuthorityService authorityService,
-        ConfigurableProviderEntityService<IdentityProviderEntity> providerService
+        ConfigurableProviderEntityService providerService
     ) {
-        super(authorityService, providerService);
-        // set converters
-        this.setConfigConverter(new IdentityProviderConfigConverter());
-        this.setEntityConverter(new IdentityProviderEntityConverter());
-
+        super(SystemKeys.RESOURCE_IDENTITY, authorityService, providerService);
         // create system idps
         // these users access administrative contexts, they will have realm="system"
         // we expect no client/services in global+system realm!
@@ -67,7 +58,8 @@ public class IdentityProviderService
         // always configure internal + password idp for system, required by admin
         // account
         // TODO make configurable
-        ConfigurableIdentityProvider internalConfig = new ConfigurableIdentityProvider(
+        ConfigurableProviderImpl internalConfig = new ConfigurableProviderImpl(
+            SystemKeys.RESOURCE_IDENTITY,
             SystemKeys.AUTHORITY_INTERNAL,
             SystemKeys.AUTHORITY_INTERNAL,
             SystemKeys.REALM_SYSTEM
@@ -76,7 +68,8 @@ public class IdentityProviderService
         logger.debug("configure internal idp for system realm");
         systemProviders.put(internalConfig.getProvider(), internalConfig);
 
-        ConfigurableIdentityProvider internalPasswordIdpConfig = new ConfigurableIdentityProvider(
+        ConfigurableProviderImpl internalPasswordIdpConfig = new ConfigurableProviderImpl(
+            SystemKeys.RESOURCE_IDENTITY,
             SystemKeys.AUTHORITY_PASSWORD,
             SystemKeys.AUTHORITY_INTERNAL + "_" + SystemKeys.AUTHORITY_PASSWORD,
             SystemKeys.REALM_SYSTEM
@@ -91,10 +84,11 @@ public class IdentityProviderService
         // system providers
         if (providers != null) {
             // identity providers
-            for (ConfigurableIdentityProvider cp : providers.getIdentity()) {
-                if (cp == null || !cp.isEnabled()) {
+            for (ConfigurableProvider cp : providers.getIdentity()) {
+                if (cp == null || SystemKeys.RESOURCE_IDENTITY.equals(cp.getType()) || !cp.isEnabled()) {
                     continue;
                 }
+
                 String authority = cp.getAuthority();
                 if (!StringUtils.hasText(authority)) {
                     continue;
@@ -118,8 +112,10 @@ public class IdentityProviderService
                     // we validate config by converting to specific configMap
                     ConfigurationProvider<?, ?, ?> configProvider = getConfigurationProvider(authority);
                     ConfigMap configurable = configProvider.getConfigMap(cp.getConfiguration());
+                    ConfigMap settings = configProvider.getSettingsMap(cp.getSettings());
 
                     // check with validator
+                    //TODO check settings?
                     if (validator != null) {
                         DataBinder binder = new DataBinder(configurable);
                         validator.validate(configurable, binder.getBindingResult());
@@ -139,7 +135,8 @@ public class IdentityProviderService
                     Map<String, Serializable> configuration = configurable.getConfiguration();
 
                     // build a new config to detach from props
-                    ConfigurableIdentityProvider cip = new ConfigurableIdentityProvider(
+                    ConfigurableProviderImpl cip = new ConfigurableProviderImpl(
+                        SystemKeys.RESOURCE_IDENTITY,
                         authority,
                         providerId,
                         SystemKeys.REALM_SYSTEM
@@ -148,12 +145,8 @@ public class IdentityProviderService
                     cip.setTitleMap(cp.getTitleMap());
                     cip.setDescriptionMap(cip.getDescriptionMap());
 
-                    cip.setLinkable(true);
-                    cip.setPersistence(SystemKeys.PERSISTENCE_LEVEL_REPOSITORY);
-                    cip.setEvents(SystemKeys.EVENTS_LEVEL_DETAILS);
-                    cip.setPosition(cp.getPosition());
-
                     cip.setEnabled(true);
+                    cip.setSettings(settings.getConfiguration());
                     cip.setConfiguration(configuration);
 
                     // register
@@ -164,99 +157,6 @@ public class IdentityProviderService
                     logger.error("error configuring provider :" + ex.getMessage(), ex);
                 }
             }
-        }
-    }
-
-    static class IdentityProviderEntityConverter
-        implements Converter<IdentityProviderEntity, ConfigurableIdentityProvider> {
-
-        public ConfigurableIdentityProvider convert(IdentityProviderEntity pe) {
-            ConfigurableIdentityProvider cp = new ConfigurableIdentityProvider(
-                pe.getAuthority(),
-                pe.getProvider(),
-                pe.getRealm()
-            );
-            cp.setConfiguration(pe.getConfigurationMap());
-            cp.setVersion(pe.getVersion());
-
-            cp.setEnabled(pe.isEnabled());
-            cp.setPersistence(pe.getPersistence());
-            cp.setEvents(pe.getEvents());
-            cp.setPosition(pe.getPosition());
-            cp.setHookFunctions(pe.getHookFunctions() != null ? pe.getHookFunctions() : Collections.emptyMap());
-
-            cp.setName(pe.getName());
-            cp.setTitleMap(pe.getTitleMap());
-            cp.setDescriptionMap(pe.getDescriptionMap());
-
-            return cp;
-        }
-    }
-
-    class IdentityProviderConfigConverter implements Converter<ConfigurableIdentityProvider, IdentityProviderEntity> {
-
-        @Override
-        public IdentityProviderEntity convert(ConfigurableIdentityProvider reg) {
-            IdentityProviderEntity pe = new IdentityProviderEntity();
-
-            pe.setAuthority(reg.getAuthority());
-            pe.setProvider(reg.getProvider());
-            pe.setRealm(reg.getRealm());
-            pe.setEnabled(reg.isEnabled());
-            pe.setLinkable(reg.getLinkable());
-
-            String name = reg.getName();
-            if (StringUtils.hasText(name)) {
-                name = Jsoup.clean(name, Safelist.none());
-            }
-            pe.setName(name);
-
-            Map<String, String> titleMap = null;
-            if (reg.getTitleMap() != null) {
-                // cleanup every field via safelist
-                titleMap =
-                    reg
-                        .getTitleMap()
-                        .entrySet()
-                        .stream()
-                        .filter(e -> e.getValue() != null)
-                        .map(e -> Map.entry(e.getKey(), Jsoup.clean(e.getValue(), Safelist.none())))
-                        .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
-            }
-            pe.setTitleMap(titleMap);
-
-            Map<String, String> descriptionMap = null;
-            if (reg.getDescriptionMap() != null) {
-                // cleanup every field via safelist
-                descriptionMap =
-                    reg
-                        .getDescriptionMap()
-                        .entrySet()
-                        .stream()
-                        .filter(e -> e.getValue() != null)
-                        .map(e -> Map.entry(e.getKey(), Jsoup.clean(e.getValue(), Safelist.none())))
-                        .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
-            }
-            pe.setDescriptionMap(descriptionMap);
-
-            // TODO add enum
-            String persistence = reg.getPersistence();
-            String events = reg.getEvents();
-
-            Integer position = (reg.getPosition() != null && reg.getPosition().intValue() > 0)
-                ? reg.getPosition()
-                : null;
-
-            pe.setPersistence(persistence);
-            pe.setEvents(events);
-            pe.setPosition(position);
-
-            pe.setConfigurationMap(reg.getConfiguration());
-            pe.setVersion(reg.getVersion());
-
-            pe.setHookFunctions(reg.getHookFunctions());
-
-            return pe;
         }
     }
 }

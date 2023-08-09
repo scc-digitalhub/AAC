@@ -14,22 +14,23 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.core.authorities;
+package it.smartcommunitylab.aac.identity;
 
+import it.smartcommunitylab.aac.core.authorities.ConfigurableProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
-import it.smartcommunitylab.aac.core.provider.IdentityProvider;
-import it.smartcommunitylab.aac.core.provider.config.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.provider.config.IdentityProviderConfig;
+import it.smartcommunitylab.aac.identity.provider.IdentityProvider;
+import it.smartcommunitylab.aac.identity.provider.IdentityProviderConfig;
+import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
 
 public interface IdentityProviderAuthority<
-    S extends IdentityProvider<I, ?, ?, M, C>,
+    P extends IdentityProvider<I, ?, ?, M, C>,
     I extends UserIdentity,
     M extends ConfigMap,
     C extends IdentityProviderConfig<M>
 >
-    extends ConfigurableProviderAuthority<S, I, ConfigurableIdentityProvider, M, C> {
+    extends ConfigurableProviderAuthority<P, I, C, IdentityProviderSettingsMap, M> {
     /*
      * Filter provider exposes auth filters for registration in filter chain
      */

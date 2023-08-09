@@ -43,11 +43,11 @@ import it.smartcommunitylab.aac.core.provider.config.ConfigurableAttributeProvid
 import it.smartcommunitylab.aac.core.provider.config.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.provider.config.ConfigurableTemplateProvider;
 import it.smartcommunitylab.aac.core.service.AttributeProviderService;
-import it.smartcommunitylab.aac.core.service.IdentityProviderService;
 import it.smartcommunitylab.aac.core.service.TemplateProviderService;
 import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.dto.RealmConfig;
 import it.smartcommunitylab.aac.groups.service.GroupService;
+import it.smartcommunitylab.aac.identity.service.IdentityProviderService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Developer;

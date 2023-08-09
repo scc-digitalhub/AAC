@@ -16,8 +16,8 @@
 
 package it.smartcommunitylab.aac.core.provider;
 
-import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.config.ProviderConfig;
@@ -27,22 +27,33 @@ import java.util.Map;
 /*
  * Expose provider configuration outside modules
  */
-public interface ConfigurationProvider<
-    M extends ConfigMap, T extends ConfigurableProvider, C extends ProviderConfig<M>
-> {
+public interface ConfigurationProvider<C extends ProviderConfig<S, M>, S extends ConfigMap, M extends ConfigMap> {
+    //configs are tied to an authority
     public String getAuthority();
 
-    public default String getType() {
-        return SystemKeys.RESOURCE_CONFIG;
-    }
+    //expose the config repository
+    public ProviderConfigRepository<C> getRepository();
+
+    public C register(ConfigurableProvider config) throws RegistrationException;
+
+    public void unregister(String providerId);
+
+    // public default String getType() {
+    //     return SystemKeys.RESOURCE_CONFIG;
+    // }
 
     /*
      * Translate a configurableProvider with valid props to a valid provider config,
      * with default values set
      */
-    public C getConfig(T cp);
+    public C getConfig(ConfigurableProvider cp);
 
-    public C getConfig(T cp, boolean mergeDefault);
+    public C getConfig(ConfigurableProvider cp, boolean mergeDefault);
+
+    /*
+     * Translate a provider config to a configurable
+     */
+    public ConfigurableProvider getConfigurable(C providerConfig);
 
     /*
      * Expose and translate to valid configMap
@@ -53,10 +64,12 @@ public interface ConfigurationProvider<
     public M getConfigMap(Map<String, Serializable> map);
 
     /*
-     * Translate a provider config to a configurable
+     * Expose and translate to valid settingsMap
      */
-    public T getConfigurable(C providerConfig);
 
+    public S getDefaultSettingsMap();
+
+    public S getSettingsMap(Map<String, Serializable> map);
     /*
      * Validate configuration against schema and also policies (TODO)
      */
@@ -71,5 +84,5 @@ public interface ConfigurationProvider<
      * etc and should be used for API doc, UI forms etc
      */
 
-    public JsonSchema getSchema();
+    // public JsonSchema getSchema();
 }

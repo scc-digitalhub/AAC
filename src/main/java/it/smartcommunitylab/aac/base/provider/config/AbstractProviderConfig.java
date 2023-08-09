@@ -18,14 +18,15 @@ package it.smartcommunitylab.aac.base.provider.config;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
-import it.smartcommunitylab.aac.core.provider.config.AbstractConfigurableProvider;
+import it.smartcommunitylab.aac.base.model.AbstractSettingsMap;
+import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.config.ProviderConfig;
 import java.io.Serializable;
 import java.util.Locale;
 import java.util.Map;
 
-public abstract class AbstractProviderConfig<M extends AbstractConfigMap, T extends AbstractConfigurableProvider>
-    implements ProviderConfig<M>, Serializable {
+public abstract class AbstractProviderConfig<S extends AbstractSettingsMap, M extends AbstractConfigMap>
+    implements ProviderConfig<S, M>, Serializable {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
@@ -37,19 +38,23 @@ public abstract class AbstractProviderConfig<M extends AbstractConfigMap, T exte
     protected Map<String, String> titleMap;
     protected Map<String, String> descriptionMap;
 
+    protected S settingsMap;
     protected M configMap;
     protected int version;
 
-    protected AbstractProviderConfig(String authority, String provider, String realm, M configMap) {
+    protected AbstractProviderConfig(String authority, String provider, String realm, S settingsMap, M configMap) {
         this.authority = authority;
         this.realm = realm;
         this.provider = provider;
+
+        this.settingsMap = settingsMap;
         this.configMap = configMap;
+
         this.version = 0;
     }
 
-    protected AbstractProviderConfig(T cp, M configMap) {
-        this(cp.getAuthority(), cp.getProvider(), cp.getRealm(), configMap);
+    protected AbstractProviderConfig(ConfigurableProvider cp, S settingsMap, M configMap) {
+        this(cp.getAuthority(), cp.getProvider(), cp.getRealm(), settingsMap, configMap);
         this.name = cp.getName();
         this.titleMap = cp.getTitleMap();
         this.descriptionMap = cp.getDescriptionMap();
@@ -65,7 +70,7 @@ public abstract class AbstractProviderConfig<M extends AbstractConfigMap, T exte
      */
     @SuppressWarnings("unused")
     private AbstractProviderConfig() {
-        this((String) null, (String) null, (String) null, null);
+        this((String) null, (String) null, (String) null, null, null);
     }
 
     public String getAuthority() {
@@ -120,6 +125,14 @@ public abstract class AbstractProviderConfig<M extends AbstractConfigMap, T exte
 
     public void setDescriptionMap(Map<String, String> descriptionMap) {
         this.descriptionMap = descriptionMap;
+    }
+
+    public S getSettingsMap() {
+        return settingsMap;
+    }
+
+    public void setSettingsMap(S settingsMap) {
+        this.settingsMap = settingsMap;
     }
 
     public M getConfigMap() {

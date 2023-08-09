@@ -26,6 +26,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import java.io.Serializable;
 import java.util.HashMap;
@@ -34,22 +35,17 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 @Valid
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
-@JsonSubTypes(
-    {
-        @Type(value = ConfigurableAccountProvider.class, name = SystemKeys.RESOURCE_ACCOUNT),
-        @Type(value = ConfigurableAttributeProvider.class, name = SystemKeys.RESOURCE_ATTRIBUTES),
-        @Type(value = ConfigurableCredentialsProvider.class, name = SystemKeys.RESOURCE_CREDENTIALS),
-        @Type(value = ConfigurableIdentityProvider.class, name = SystemKeys.RESOURCE_IDENTITY),
-        @Type(value = ConfigurableTemplateProvider.class, name = SystemKeys.RESOURCE_TEMPLATE),
-    }
-)
-public abstract class AbstractConfigurableProvider implements ConfigurableProvider {
+public class ConfigurableProviderImpl implements ConfigurableProvider {
+
+    //TODO evaluate ENUM for known types
+    @NotBlank
+    private String type;
 
     @NotBlank
     @Size(max = 128)
@@ -57,25 +53,29 @@ public abstract class AbstractConfigurableProvider implements ConfigurableProvid
 
     @Size(max = 128)
     @Pattern(regexp = SystemKeys.SLUG_PATTERN)
-    private String realm;
+    @NotBlank
+    private String provider;
 
     @Size(max = 128)
     @Pattern(regexp = SystemKeys.SLUG_PATTERN)
-    private String provider;
-
     @NotBlank
-    private String type;
+    private String realm;
 
     private boolean enabled;
+
+    //TODO replace with status (ENUM)
     private Boolean registered;
 
+    @Size(max = 128)
     private String name;
+
     private Map<String, String> titleMap;
     private Map<String, String> descriptionMap;
 
     // configMap as raw map - should match schema
     // TODO evaluate adding configMap type as field
     protected Map<String, Serializable> configuration;
+    protected Map<String, Serializable> settings;
 
     @JsonProperty(access = Access.READ_ONLY)
     private Integer version;
@@ -83,15 +83,19 @@ public abstract class AbstractConfigurableProvider implements ConfigurableProvid
     @JsonProperty(access = Access.READ_ONLY)
     protected JsonSchema schema;
 
-    protected AbstractConfigurableProvider(String authority, String provider, String realm, String type) {
-        this.authority = authority;
-        this.realm = realm;
-        this.provider = provider;
+    public ConfigurableProviderImpl(String type, String authority, String provider, String realm) {
+        Assert.hasText(type, "type is required");
         this.type = type;
+
+        this.authority = authority;
+        this.provider = provider;
+        this.realm = realm;
+
         this.configuration = new HashMap<>();
+        this.settings = new HashMap<>();
+
         this.name = provider;
-        this.enabled = true;
-        this.registered = null;
+        this.enabled = false;
     }
 
     /**
@@ -101,7 +105,7 @@ public abstract class AbstractConfigurableProvider implements ConfigurableProvid
      * reflection
      */
     @SuppressWarnings("unused")
-    private AbstractConfigurableProvider() {
+    private ConfigurableProviderImpl() {
         this((String) null, (String) null, (String) null, (String) null);
     }
 
@@ -138,6 +142,10 @@ public abstract class AbstractConfigurableProvider implements ConfigurableProvid
     @Override
     public String getType() {
         return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     @Override
@@ -195,13 +203,21 @@ public abstract class AbstractConfigurableProvider implements ConfigurableProvid
         }
     }
 
-    public Serializable getConfigurationProperty(String key) {
-        return configuration.get(key);
+    public Map<String, Serializable> getSettings() {
+        return settings;
     }
 
-    public void setConfigurationProperty(String key, Serializable value) {
-        configuration.put(key, value);
+    public void setSettings(Map<String, Serializable> settings) {
+        this.settings = settings;
     }
+
+    // public Serializable getConfigurationProperty(String key) {
+    //     return configuration.get(key);
+    // }
+
+    // public void setConfigurationProperty(String key, Serializable value) {
+    //     configuration.put(key, value);
+    // }
 
     @Override
     public JsonSchema getSchema() {

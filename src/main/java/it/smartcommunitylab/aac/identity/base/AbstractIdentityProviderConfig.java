@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.base.provider.config;
+package it.smartcommunitylab.aac.identity.base;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -24,8 +24,11 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
+import it.smartcommunitylab.aac.base.provider.config.AbstractProviderConfig;
+import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.config.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.provider.config.IdentityProviderConfig;
+import it.smartcommunitylab.aac.identity.provider.IdentityProviderConfig;
+import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.model.PersistenceMode;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfig;
@@ -51,86 +54,26 @@ import org.springframework.util.StringUtils;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(Include.ALWAYS)
 public abstract class AbstractIdentityProviderConfig<M extends AbstractConfigMap>
-    extends AbstractProviderConfig<M, ConfigurableIdentityProvider>
+    extends AbstractProviderConfig<IdentityProviderSettingsMap, M>
     implements IdentityProviderConfig<M> {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
-    protected Boolean linkable;
-    protected PersistenceMode persistence;
-    protected String events;
-    protected Integer position;
-
-    protected Map<String, String> hookFunctions;
-
-    protected AbstractIdentityProviderConfig(String authority, String provider, String realm, M configMap) {
-        super(authority, provider, realm, configMap);
-        this.hookFunctions = Collections.emptyMap();
+    protected AbstractIdentityProviderConfig(
+        String authority,
+        String provider,
+        String realm,
+        IdentityProviderSettingsMap settingsMap,
+        M configMap
+    ) {
+        super(authority, provider, realm, settingsMap, configMap);
     }
 
-    protected AbstractIdentityProviderConfig(ConfigurableIdentityProvider cp, M configMap) {
-        super(cp, configMap);
-        this.linkable = cp.getLinkable();
-        this.persistence = StringUtils.hasText(cp.getPersistence()) ? PersistenceMode.parse(cp.getPersistence()) : null;
-        this.events = cp.getEvents();
-        this.position = cp.getPosition();
-
-        this.hookFunctions = (cp.getHookFunctions() != null ? cp.getHookFunctions() : Collections.emptyMap());
-    }
-
-    /**
-     * Private constructor for JPA and other serialization tools.
-     *
-     * We need to implement this to enable deserialization of resources via
-     * reflection
-     */
-    @SuppressWarnings("unused")
-    private AbstractIdentityProviderConfig() {
-        this((String) null, (String) null, (String) null, null);
-    }
-
-    public Boolean getLinkable() {
-        return linkable;
-    }
-
-    public void setLinkable(Boolean linkable) {
-        this.linkable = linkable;
-    }
-
-    public boolean isLinkable() {
-        return linkable != null ? linkable.booleanValue() : true;
-    }
-
-    public PersistenceMode getPersistence() {
-        // by default persist to repository
-        return persistence != null ? persistence : PersistenceMode.REPOSITORY;
-    }
-
-    public void setPersistence(PersistenceMode persistence) {
-        this.persistence = persistence;
-    }
-
-    public String getEvents() {
-        return events;
-    }
-
-    public void setEvents(String events) {
-        this.events = events;
-    }
-
-    public Integer getPosition() {
-        return position;
-    }
-
-    public void setPosition(Integer position) {
-        this.position = position;
-    }
-
-    public Map<String, String> getHookFunctions() {
-        return hookFunctions;
-    }
-
-    public void setHookFunctions(Map<String, String> hookFunctions) {
-        this.hookFunctions = hookFunctions;
+    protected AbstractIdentityProviderConfig(
+        ConfigurableProvider cp,
+        IdentityProviderSettingsMap settingsMap,
+        M configMap
+    ) {
+        super(cp, settingsMap, configMap);
     }
 }

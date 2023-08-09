@@ -26,7 +26,7 @@ import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.authorities.ConfigurableProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
-import it.smartcommunitylab.aac.core.provider.config.AbstractConfigurableProviderI;
+import it.smartcommunitylab.aac.core.provider.config.AbstractConfigurableProvider;
 import it.smartcommunitylab.aac.core.service.ConfigurableProviderService;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.realms.service.RealmService;
@@ -40,7 +40,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 public abstract class ConfigurableProviderManager<
-    C extends AbstractConfigurableProviderI, A extends ConfigurableProviderAuthority<?, ?, C, ?, ?>
+    C extends AbstractConfigurableProvider, A extends ConfigurableProviderAuthority<?, ?, C, ?, ?>
 >
     implements InitializingBean {
 

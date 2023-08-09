@@ -17,7 +17,6 @@
 package it.smartcommunitylab.aac.core.provider;
 
 import it.smartcommunitylab.aac.core.model.ConfigMap;
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.Resource;
 import it.smartcommunitylab.aac.core.provider.config.ProviderConfig;
 import java.util.Locale;
@@ -28,7 +27,7 @@ import java.util.Locale;
  * At runtime their config is expressed via an immutable ProviderConfig with the same ConfigMap.
  */
 public interface ConfigurableResourceProvider<
-    R extends Resource, T extends ConfigurableProvider, M extends ConfigMap, C extends ProviderConfig<M>
+    R extends Resource, C extends ProviderConfig<S, M>, S extends ConfigMap, M extends ConfigMap
 >
     extends ResourceProvider<R> {
     /*
@@ -45,6 +44,5 @@ public interface ConfigurableResourceProvider<
      */
 
     public C getConfig();
-
-    public T getConfigurable();
+    // public T getConfigurable();
 }

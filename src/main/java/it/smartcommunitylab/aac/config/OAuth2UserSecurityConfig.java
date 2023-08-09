@@ -18,7 +18,6 @@ package it.smartcommunitylab.aac.config;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.core.MyUserManager;
-import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.auth.ExtendedLoginUrlAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.auth.LoginUrlRequestConverter;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
@@ -26,6 +25,8 @@ import it.smartcommunitylab.aac.core.service.IdentityProviderAuthorityService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderService;
 import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.core.service.UserService;
+import it.smartcommunitylab.aac.identity.service.IdentityProviderAuthorityService;
+import it.smartcommunitylab.aac.identity.service.IdentityProviderService;
 import it.smartcommunitylab.aac.oauth.auth.AuthorizationEndpointFilter;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientAwareLoginUrlConverter;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2IdpAwareLoginUrlConverter;

@@ -22,7 +22,7 @@ import java.util.Map;
 /*
  * A provider runtime configuration, built around a configMap
  */
-public interface ProviderConfig<M extends ConfigMap> {
+public interface ProviderConfig<S extends ConfigMap, M extends ConfigMap> {
     /*
      * provider details
      */
@@ -43,10 +43,12 @@ public interface ProviderConfig<M extends ConfigMap> {
     public Map<String, String> getDescriptionMap();
 
     /*
-     * configMap
+     * config
      */
 
     public M getConfigMap();
+
+    public S getSettings();
 
     public int getVersion();
 }

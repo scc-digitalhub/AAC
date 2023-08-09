@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.core.provider;
+package it.smartcommunitylab.aac.identity.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
@@ -24,8 +24,10 @@ import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
-import it.smartcommunitylab.aac.core.provider.config.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.provider.config.IdentityProviderConfig;
+import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
+import it.smartcommunitylab.aac.core.provider.LoginProvider;
+import it.smartcommunitylab.aac.core.provider.SubjectResolver;
+
 import java.util.Collection;
 
 /*
@@ -44,7 +46,7 @@ public interface IdentityProvider<
     M extends ConfigMap,
     C extends IdentityProviderConfig<M>
 >
-    extends ConfigurableResourceProvider<I, ConfigurableIdentityProvider, M, C> {
+    extends ConfigurableResourceProvider<I, C, IdentityProviderSettingsMap, M> {
     public static final String ATTRIBUTE_MAPPING_FUNCTION = "attributeMapping";
 
     /*
