@@ -26,6 +26,9 @@
             <small class="row" ng-if="user.tosAccepted != null && !user.tosAccepted" >
             	&nbsp;<b>Status: </b>&nbsp;&nbsp;Refused
             </small>
+            <small class="row" ng-if="user.tosAccepted == null" >
+            	&nbsp;<b>Status: </b>&nbsp;&nbsp;Void
+            </small>
         </legend>
        <div class="row mb-5" ng-if="user.tosAccepted != null">
        		<button class="btn btn-primary btn-sm" ng-click="resetTos(user)">Reset</button>
