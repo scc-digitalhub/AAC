@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.base;
+package it.smartcommunitylab.aac.clients.base;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import java.util.Map;

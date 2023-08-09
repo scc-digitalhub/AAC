@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.controller;
+package it.smartcommunitylab.aac.scope.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import it.smartcommunitylab.aac.Config;

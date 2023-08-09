@@ -14,9 +14,25 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.core.persistence;
+package it.smartcommunitylab.aac.clients.model;
 
-import org.springframework.stereotype.Repository;
+import it.smartcommunitylab.aac.model.Credentials;
+import org.springframework.security.core.CredentialsContainer;
 
-@Repository
-public interface AttributeProviderEntityRepository extends ProviderEntityRepository<AttributeProviderEntity> {}
+public interface ClientCredentials extends Credentials, CredentialsContainer {
+    public String getClientId();
+
+    // by default client credentials are active
+    // TODO handle at implementation level
+    public default boolean isActive() {
+        return true;
+    }
+
+    public default boolean isExpired() {
+        return false;
+    }
+
+    public default boolean isRevoked() {
+        return false;
+    }
+}

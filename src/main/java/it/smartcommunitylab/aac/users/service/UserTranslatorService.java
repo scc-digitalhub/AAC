@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.core.service;
+package it.smartcommunitylab.aac.users.service;
 
 import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.provider.UserTranslator;
 import it.smartcommunitylab.aac.identity.model.UserIdentity;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.users.UserTranslator;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 

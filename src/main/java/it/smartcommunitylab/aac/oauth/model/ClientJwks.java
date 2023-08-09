@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.nimbusds.jose.jwk.JWKSet;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.model.ClientCredentials;
+import it.smartcommunitylab.aac.clients.model.ClientCredentials;
 import it.smartcommunitylab.aac.oauth.persistence.AbstractOAuth2ClientResource;
 import java.text.ParseException;
 import javax.validation.Valid;

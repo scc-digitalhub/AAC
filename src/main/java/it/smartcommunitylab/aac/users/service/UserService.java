@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.core.service;
+package it.smartcommunitylab.aac.users.service;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
@@ -32,6 +32,7 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.UserDetails;
+import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.credentials.service.CredentialsServiceAuthorityService;
 import it.smartcommunitylab.aac.groups.service.GroupService;
 import it.smartcommunitylab.aac.identity.model.UserIdentity;
@@ -48,7 +49,6 @@ import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
 import it.smartcommunitylab.aac.roles.service.SubjectRoleService;
 import it.smartcommunitylab.aac.users.persistence.UserEntity;
-import it.smartcommunitylab.aac.users.service.UserEntityService;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;

@@ -19,7 +19,7 @@ package it.smartcommunitylab.aac.api;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.api.scopes.ApiUsersScope;
-import it.smartcommunitylab.aac.controller.BaseUserController;
+import it.smartcommunitylab.aac.users.controller.BaseUserController;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

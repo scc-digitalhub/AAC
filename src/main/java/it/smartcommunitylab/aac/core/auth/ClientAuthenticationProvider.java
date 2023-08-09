@@ -16,7 +16,7 @@
 
 package it.smartcommunitylab.aac.core.auth;
 
-import it.smartcommunitylab.aac.core.service.ClientDetailsService;
+import it.smartcommunitylab.aac.clients.service.ClientDetailsService;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;

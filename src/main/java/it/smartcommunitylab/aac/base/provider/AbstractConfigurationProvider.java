@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
+import it.smartcommunitylab.aac.base.model.AbstractSettingsMap;
 import it.smartcommunitylab.aac.base.provider.config.AbstractProviderConfig;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
@@ -42,11 +43,13 @@ import org.springframework.validation.DataBinder;
 import org.springframework.validation.SmartValidator;
 
 public abstract class AbstractConfigurationProvider<
-    C extends AbstractProviderConfig<S, M>, S extends AbstractConfigMap, M extends AbstractConfigMap
+    C extends AbstractProviderConfig<S, M>, S extends AbstractSettingsMap, M extends AbstractConfigMap
 >
     implements ConfigurationProvider<C, S, M> {
 
-    protected static final ObjectMapper mapper = new ObjectMapper().addMixIn(AbstractConfigMap.class, NoTypes.class);
+    protected static final ObjectMapper mapper = new ObjectMapper()
+        .addMixIn(AbstractSettingsMap.class, NoTypes.class)
+        .addMixIn(AbstractConfigMap.class, NoTypes.class);
     private final JavaType configType;
     private final JavaType settingsType;
 

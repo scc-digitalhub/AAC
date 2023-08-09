@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.core;
+package it.smartcommunitylab.aac.clients;
 
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.audit.store.AuditEventStore;
+import it.smartcommunitylab.aac.clients.model.ClientCredentials;
 import it.smartcommunitylab.aac.clients.persistence.ClientEntity;
 import it.smartcommunitylab.aac.clients.service.ClientEntityService;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
+import it.smartcommunitylab.aac.core.SessionManager;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.core.model.Client;
-import it.smartcommunitylab.aac.core.model.ClientCredentials;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.service.IdentityProviderService;

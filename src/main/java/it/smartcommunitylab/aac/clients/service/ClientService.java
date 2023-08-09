@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.core.service;
+package it.smartcommunitylab.aac.clients.service;
 
-import it.smartcommunitylab.aac.base.BaseClient;
+import it.smartcommunitylab.aac.clients.base.BaseClient;
+import it.smartcommunitylab.aac.clients.model.ClientCredentials;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
-import it.smartcommunitylab.aac.core.model.ClientCredentials;
 import java.util.Collection;
 
 /*

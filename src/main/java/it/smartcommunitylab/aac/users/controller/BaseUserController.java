@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.controller;
+package it.smartcommunitylab.aac.users.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import it.smartcommunitylab.aac.Config;
@@ -28,12 +28,12 @@ import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.core.UserManager;
 import it.smartcommunitylab.aac.dto.UserEmail;
 import it.smartcommunitylab.aac.dto.UserStatus;
 import it.smartcommunitylab.aac.dto.UserSubject;
 import it.smartcommunitylab.aac.model.SubjectStatus;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.users.UserManager;
 import java.util.Collection;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;

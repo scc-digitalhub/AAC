@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.controller;
+package it.smartcommunitylab.aac.clients.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import io.swagger.v3.oas.annotations.Operation;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.clients.ClientManager;
+import it.smartcommunitylab.aac.clients.model.ClientCredentials;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
-import it.smartcommunitylab.aac.core.ClientManager;
-import it.smartcommunitylab.aac.core.model.ClientCredentials;
 import it.smartcommunitylab.aac.model.ClientApp;
 import java.io.Serializable;
 import java.util.Collection;

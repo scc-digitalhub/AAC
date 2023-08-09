@@ -21,7 +21,6 @@ import it.smartcommunitylab.aac.claims.ClaimsService;
 import it.smartcommunitylab.aac.clients.service.ClientEntityService;
 import it.smartcommunitylab.aac.core.auth.DefaultSecurityContextAuthenticationHelper;
 import it.smartcommunitylab.aac.core.service.SubjectService;
-import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.identity.service.IdentityProviderService;
 import it.smartcommunitylab.aac.jwt.JWTService;
 import it.smartcommunitylab.aac.oauth.AACApprovalHandler;
@@ -60,6 +59,7 @@ import it.smartcommunitylab.aac.openid.service.OIDCTokenServices;
 import it.smartcommunitylab.aac.openid.token.IdTokenServices;
 import it.smartcommunitylab.aac.profiles.claims.OpenIdClaimsExtractorProvider;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
+import it.smartcommunitylab.aac.users.service.UserService;
 import java.beans.PropertyVetoException;
 import java.util.ArrayList;
 import java.util.List;
@@ -209,7 +209,7 @@ public class OAuth2Config {
 
     public ScopeApprovalHandler scopeApprovalHandler(
         ScopeRegistry scopeRegistry,
-        it.smartcommunitylab.aac.core.service.ClientDetailsService clientDetailsService,
+        it.smartcommunitylab.aac.clients.service.ClientDetailsService clientDetailsService,
         UserService userService
     ) {
         ScopeApprovalHandler handler = new ScopeApprovalHandler(scopeRegistry, clientDetailsService);
@@ -219,7 +219,7 @@ public class OAuth2Config {
     }
 
     public SpacesApprovalHandler spacesApprovalHandler(
-        it.smartcommunitylab.aac.core.service.ClientDetailsService clientDetailsService,
+        it.smartcommunitylab.aac.clients.service.ClientDetailsService clientDetailsService,
         UserService userService
     ) {
         SpacesApprovalHandler handler = new SpacesApprovalHandler(clientDetailsService, userService);
@@ -231,7 +231,7 @@ public class OAuth2Config {
         ApprovalStore approvalStore,
         OAuth2ClientDetailsService oauthClientDetailsService,
         ScopeRegistry scopeRegistry,
-        it.smartcommunitylab.aac.core.service.ClientDetailsService clientDetailsService,
+        it.smartcommunitylab.aac.clients.service.ClientDetailsService clientDetailsService,
         UserService userService,
         FlowExtensionsService flowExtensionsService
     ) {
@@ -258,7 +258,7 @@ public class OAuth2Config {
     @Bean
     public ClaimsTokenEnhancer claimsTokenEnhancer(
         ClaimsService claimsService,
-        it.smartcommunitylab.aac.core.service.ClientDetailsService clientDetailsService
+        it.smartcommunitylab.aac.clients.service.ClientDetailsService clientDetailsService
     ) {
         return new ClaimsTokenEnhancer(claimsService, clientDetailsService);
     }
@@ -317,7 +317,7 @@ public class OAuth2Config {
         OAuth2ClientDetailsService clientDetailsService,
         AuthorizationCodeServices authorizationCodeServices,
         OAuth2RequestFactory oAuth2RequestFactory,
-        it.smartcommunitylab.aac.core.service.ClientDetailsService clientService,
+        it.smartcommunitylab.aac.clients.service.ClientDetailsService clientService,
         ScopeRegistry scopeRegistry,
         UserService userService,
         FlowExtensionsService flowExtensionsService,
@@ -418,7 +418,7 @@ public class OAuth2Config {
         OpenIdClaimsExtractorProvider claimsExtractorProvider,
         JWTService jwtService,
         OAuth2ClientDetailsService clientDetailsService,
-        it.smartcommunitylab.aac.core.service.ClientDetailsService clientService
+        it.smartcommunitylab.aac.clients.service.ClientDetailsService clientService
     ) {
         OIDCTokenServices idTokenServices = new OIDCTokenServices(issuer, claimsExtractorProvider, jwtService);
 
