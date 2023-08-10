@@ -26,8 +26,11 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
+import it.smartcommunitylab.aac.base.model.AbstractSettingsMap;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
+import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,7 +44,9 @@ import org.springframework.util.StringUtils;
 @Valid
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ConfigurableProviderImpl implements ConfigurableProvider {
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonSubTypes({ @Type(value = ConfigurableIdentityProvider.class, name = SystemKeys.RESOURCE_IDENTITY) })
+public class ConfigurableProviderImpl<S extends ConfigMap> implements ConfigurableProvider<S> {
 
     //TODO evaluate ENUM for known types
     @NotBlank

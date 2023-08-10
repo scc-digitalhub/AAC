@@ -31,6 +31,7 @@ import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
 import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.config.ConfigurableProviderConverter;
+import it.smartcommunitylab.aac.core.provider.config.ProviderConfig;
 import it.smartcommunitylab.aac.core.provider.config.ProviderEntityConverter;
 import java.util.Collection;
 import java.util.Collections;
@@ -52,7 +53,7 @@ import org.springframework.validation.DataBinder;
 import org.springframework.validation.SmartValidator;
 
 @Transactional
-public abstract class ConfigurableProviderService<A extends ConfigurableProviderAuthority<?, ?, ?, ?, ?>>
+public abstract class ConfigurableProviderService<C extends ConfigurableProvider<S>, S extends ConfigMap>
     implements InitializingBean {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -60,20 +61,20 @@ public abstract class ConfigurableProviderService<A extends ConfigurableProvider
     protected final String type;
 
     protected final ConfigurableProviderEntityService providerService;
-    protected final ConfigurableAuthorityService<A> authorityService;
+    protected final ConfigurableAuthorityService<? extends ConfigurableProviderAuthority<?, ? extends ProviderConfig<S, ?>, S, ?>, S> authorityService;
 
     // keep a local map for system providers since these are not in db
     // key is providerId
-    protected final Map<String, ConfigurableProvider> systemProviders = new HashMap<>();
+    protected final Map<String, C> systemProviders = new HashMap<>();
 
     protected SmartValidator validator;
 
-    protected Converter<ConfigurableProvider, ProviderEntity> configConverter;
-    protected Converter<ProviderEntity, ConfigurableProvider> entityConverter;
+    protected Converter<ConfigurableProvider<? extends ConfigMap>, ProviderEntity> configConverter;
+    protected Converter<ProviderEntity, C> entityConverter;
 
     protected ConfigurableProviderService(
         String type,
-        ConfigurableAuthorityService<A> providerAuthorityService,
+        ConfigurableAuthorityService<? extends ConfigurableProviderAuthority<?, ? extends ProviderConfig<S, ?>, S, ?>, S> providerAuthorityService,
         ConfigurableProviderEntityService providerService
     ) {
         Assert.hasText(type, "type is required");
@@ -86,7 +87,7 @@ public abstract class ConfigurableProviderService<A extends ConfigurableProvider
 
         //set default converters
         this.configConverter = new ConfigurableProviderConverter();
-        this.entityConverter = new ProviderEntityConverter();
+        this.entityConverter = new ProviderEntityConverter<>();
     }
 
     @Override
@@ -100,15 +101,17 @@ public abstract class ConfigurableProviderService<A extends ConfigurableProvider
         this.validator = validator;
     }
 
-    public void setConfigConverter(Converter<ConfigurableProvider, ProviderEntity> configConverter) {
+    public void setConfigConverter(
+        Converter<ConfigurableProvider<? extends ConfigMap>, ProviderEntity> configConverter
+    ) {
         this.configConverter = configConverter;
     }
 
-    public void setEntityConverter(Converter<ProviderEntity, ConfigurableProvider> entityConverter) {
+    public void setEntityConverter(Converter<ProviderEntity, C> entityConverter) {
         this.entityConverter = entityConverter;
     }
 
-    protected ConfigurationProvider<?, ?, ?> getConfigurationProvider(String authority)
+    protected ConfigurationProvider<? extends ProviderConfig<S, ?>, S, ?> getConfigurationProvider(String authority)
         throws NoSuchAuthorityException {
         return authorityService.getAuthority(authority).getConfigurationProvider();
     }
@@ -117,7 +120,7 @@ public abstract class ConfigurableProviderService<A extends ConfigurableProvider
      * CRUD via entities
      */
     @Transactional(readOnly = true)
-    public Collection<ConfigurableProvider> listProviders(String realm) {
+    public Collection<C> listProviders(String realm) {
         logger.debug("list providers for realm {}", StringUtils.trimAllWhitespace(realm));
 
         if (SystemKeys.REALM_GLOBAL.equals(realm)) {
@@ -138,7 +141,7 @@ public abstract class ConfigurableProviderService<A extends ConfigurableProvider
     }
 
     @Transactional(readOnly = true)
-    public ConfigurableProvider findProvider(String providerId) {
+    public C findProvider(String providerId) {
         // lookup in global map first
         if (systemProviders.containsKey(providerId)) {
             return systemProviders.get(providerId);
@@ -153,7 +156,7 @@ public abstract class ConfigurableProviderService<A extends ConfigurableProvider
     }
 
     @Transactional(readOnly = true)
-    public ConfigurableProvider getProvider(String providerId) throws NoSuchProviderException {
+    public C getProvider(String providerId) throws NoSuchProviderException {
         logger.debug("get provider {}", StringUtils.trimAllWhitespace(providerId));
 
         // lookup in global map first
@@ -162,7 +165,7 @@ public abstract class ConfigurableProviderService<A extends ConfigurableProvider
         }
 
         ProviderEntity pe = providerService.getProvider(type, providerId);
-        ConfigurableProvider config = entityConverter.convert(pe);
+        C config = entityConverter.convert(pe);
         if (config == null) {
             throw new NoSuchProviderException();
         }
@@ -170,8 +173,7 @@ public abstract class ConfigurableProviderService<A extends ConfigurableProvider
         return config;
     }
 
-    public ConfigurableProvider addProvider(String realm, ConfigurableProvider cp)
-        throws RegistrationException, SystemException, NoSuchAuthorityException {
+    public C addProvider(String realm, C cp) throws RegistrationException, SystemException, NoSuchAuthorityException {
         logger.debug("add provider for realm {}", StringUtils.trimAllWhitespace(realm));
         if (logger.isTraceEnabled()) {
             logger.trace("provider bean: {}", StringUtils.trimAllWhitespace(cp.toString()));
@@ -230,7 +232,7 @@ public abstract class ConfigurableProviderService<A extends ConfigurableProvider
         return entityConverter.convert(pe);
     }
 
-    public ConfigurableProvider updateProvider(String providerId, ConfigurableProvider cp)
+    public C updateProvider(String providerId, C cp)
         throws NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
         logger.debug("update provider {}", StringUtils.trimAllWhitespace(providerId));
         if (logger.isTraceEnabled()) {
@@ -330,10 +332,10 @@ public abstract class ConfigurableProviderService<A extends ConfigurableProvider
         logger.debug("register provider {}", StringUtils.trimAllWhitespace(providerId));
 
         // fetch, only persisted configurations can be registered
-        ConfigurableProvider cp = getProvider(providerId);
+        C cp = getProvider(providerId);
 
         //fetch config provider from authority
-        ConfigurationProvider<?, ?, ?> configProvider = getConfigurationProvider(cp.getAuthority());
+        ConfigurationProvider<?, S, ? extends ConfigMap> configProvider = getConfigurationProvider(cp.getAuthority());
 
         // always register and pop up errors
         configProvider.register(cp);
@@ -344,10 +346,10 @@ public abstract class ConfigurableProviderService<A extends ConfigurableProvider
         logger.debug("unregister provider {}", StringUtils.trimAllWhitespace(providerId));
 
         // fetch, only persisted configurations can be registered
-        ConfigurableProvider cp = getProvider(providerId);
+        C cp = getProvider(providerId);
 
         //fetch config provider from authority
-        ConfigurationProvider<?, ?, ?> configProvider = getConfigurationProvider(cp.getAuthority());
+        ConfigurationProvider<?, S, ? extends ConfigMap> configProvider = getConfigurationProvider(cp.getAuthority());
 
         // always unregister, when not active nothing will happen
         configProvider.unregister(cp.getProvider());
@@ -355,7 +357,7 @@ public abstract class ConfigurableProviderService<A extends ConfigurableProvider
 
     public boolean isProviderRegistered(String providerId) throws NoSuchProviderException, NoSuchAuthorityException {
         // fetch, only persisted configurations can be registered
-        ConfigurableProvider cp = getProvider(providerId);
+        C cp = getProvider(providerId);
 
         // ask authority
         return authorityService.getAuthority(cp.getAuthority()).hasProvider(cp.getProvider());
@@ -373,7 +375,7 @@ public abstract class ConfigurableProviderService<A extends ConfigurableProvider
 
     @Transactional(readOnly = true)
     public JsonSchema getSettingsSchema(String authority) throws NoSuchAuthorityException {
-        ConfigurationProvider<?, ?, ?> configProvider = getConfigurationProvider(authority);
+        ConfigurationProvider<?, S, ? extends ConfigMap> configProvider = getConfigurationProvider(authority);
         try {
             return configProvider.getDefaultSettingsMap().getSchema();
         } catch (JsonMappingException e) {
@@ -383,7 +385,7 @@ public abstract class ConfigurableProviderService<A extends ConfigurableProvider
 
     @Transactional(readOnly = true)
     public JsonSchema getConfigurationSchema(String authority) throws NoSuchAuthorityException {
-        ConfigurationProvider<?, ?, ?> configProvider = getConfigurationProvider(authority);
+        ConfigurationProvider<?, S, ? extends ConfigMap> configProvider = getConfigurationProvider(authority);
         try {
             return configProvider.getDefaultConfigMap().getSchema();
         } catch (JsonMappingException e) {

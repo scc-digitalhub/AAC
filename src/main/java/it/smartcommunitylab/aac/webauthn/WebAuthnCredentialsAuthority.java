@@ -19,7 +19,7 @@ package it.smartcommunitylab.aac.webauthn;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.core.provider.config.AbstractConfigurableProvider;
+import it.smartcommunitylab.aac.core.provider.config.ConfigurableProviderImpl;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.credentials.base.AbstractCredentialsAuthority;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
@@ -100,7 +100,7 @@ public class WebAuthnCredentialsAuthority
     }
 
     @Override
-    public WebAuthnCredentialsServiceConfig registerProvider(AbstractConfigurableProvider cp) {
+    public WebAuthnCredentialsServiceConfig registerProvider(ConfigurableProviderImpl cp) {
         throw new IllegalArgumentException("direct registration not supported");
     }
 }

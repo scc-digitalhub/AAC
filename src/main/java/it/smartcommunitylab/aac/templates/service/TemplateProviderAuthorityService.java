@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.templates.service;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.authorities.AbstractConfigurableAuthorityService;
+import it.smartcommunitylab.aac.base.service.AbstractConfigurableAuthorityService;
 import it.smartcommunitylab.aac.templates.TemplateProviderAuthority;
 import java.util.Collection;
 import org.springframework.beans.factory.InitializingBean;

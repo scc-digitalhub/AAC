@@ -26,13 +26,12 @@ import it.smartcommunitylab.aac.core.provider.config.ProviderConfig;
  * Provider authorities handle (configurable) resource providers by managing registrations and configuration
  */
 public interface ConfigurableProviderAuthority<
-    P extends ConfigurableResourceProvider<R, C, S, M>,
-    R extends Resource,
+    P extends ConfigurableResourceProvider<? extends Resource, C, S, M>,
     C extends ProviderConfig<S, M>,
     S extends ConfigMap,
     M extends ConfigMap
 >
-    extends ProviderAuthority<P, R> {
+    extends ProviderAuthority<P> {
     /*
      * Registration
      *

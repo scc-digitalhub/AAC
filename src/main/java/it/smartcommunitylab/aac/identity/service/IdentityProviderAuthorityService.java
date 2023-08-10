@@ -17,20 +17,27 @@
 package it.smartcommunitylab.aac.identity.service;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.authorities.AbstractConfigurableAuthorityService;
-import it.smartcommunitylab.aac.identity.IdentityProviderAuthority;
+import it.smartcommunitylab.aac.accounts.base.AbstractUserAccount;
+import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
+import it.smartcommunitylab.aac.base.service.AbstractConfigurableAuthorityService;
+import it.smartcommunitylab.aac.identity.base.AbstractIdentityProvider;
+import it.smartcommunitylab.aac.identity.base.AbstractIdentityProviderAuthority;
+import it.smartcommunitylab.aac.identity.base.AbstractIdentityProviderConfig;
+import it.smartcommunitylab.aac.identity.base.AbstractUserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.identity.base.AbstractUserIdentity;
+import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
 import java.util.Collection;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
 //@Service
 public class IdentityProviderAuthorityService
-    extends AbstractConfigurableAuthorityService<IdentityProviderAuthority<?, ?, ?, ?>>
+    extends AbstractConfigurableAuthorityService<AbstractIdentityProviderAuthority<? extends AbstractIdentityProvider<? extends AbstractUserIdentity, ? extends AbstractUserAccount, ? extends AbstractUserAuthenticatedPrincipal, ? extends AbstractConfigMap, ? extends AbstractIdentityProviderConfig<? extends AbstractConfigMap>>, ? extends AbstractIdentityProviderConfig<? extends AbstractConfigMap>, ? extends AbstractConfigMap>, IdentityProviderSettingsMap>
     implements InitializingBean {
 
-    public IdentityProviderAuthorityService(Collection<IdentityProviderAuthority<?, ?, ?, ?>> authorities) {
+    public IdentityProviderAuthorityService(Collection<AbstractIdentityProviderAuthority<?, ?, ?>> authorities) {
         super(SystemKeys.RESOURCE_IDENTITY);
-        this.setAuthorities(authorities);
+        // this.setAuthorities(authorities);
     }
 
     @Override

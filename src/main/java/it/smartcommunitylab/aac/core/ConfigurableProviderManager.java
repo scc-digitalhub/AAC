@@ -24,9 +24,11 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.authorities.ConfigurableProviderAuthority;
+import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
+import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
-import it.smartcommunitylab.aac.core.provider.config.AbstractConfigurableProvider;
+import it.smartcommunitylab.aac.core.provider.config.ConfigurableProviderImpl;
 import it.smartcommunitylab.aac.core.service.ConfigurableProviderService;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.realms.service.RealmService;
@@ -39,17 +41,18 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 public abstract class ConfigurableProviderManager<
-    C extends AbstractConfigurableProvider, A extends ConfigurableProviderAuthority<?, ?, C, ?, ?>
+    C extends ConfigurableProvider<? extends ConfigMap>,
+    A extends ConfigurableProviderAuthority<?, ?, ?, ? extends ConfigMap>
 >
     implements InitializingBean {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final ConfigurableProviderService<A, C, ? extends ProviderEntity> providerService;
+    private final ConfigurableProviderService<C, ? extends ConfigMap> providerService;
 
     private RealmService realmService;
 
-    public ConfigurableProviderManager(ConfigurableProviderService<A, C, ? extends ProviderEntity> providerService) {
+    protected ConfigurableProviderManager(ConfigurableProviderService<C, ? extends ConfigMap> providerService) {
         Assert.notNull(providerService, "provider service is required");
         this.providerService = providerService;
     }
@@ -292,10 +295,10 @@ public abstract class ConfigurableProviderManager<
      * Configuration schemas
      */
 
-    public ConfigurableProperties getConfigurableProperties(String realm, String authority)
-        throws NoSuchAuthorityException {
-        return providerService.getConfigurableProperties(authority);
-    }
+    // public ConfigurableProperties getConfigurableProperties(String realm, String authority)
+    //     throws NoSuchAuthorityException {
+    //     return providerService.getConfigurableProperties(authority);
+    // }
 
     public JsonSchema getConfigurationSchema(String realm, String authority) throws NoSuchAuthorityException {
         return providerService.getConfigurationSchema(authority);

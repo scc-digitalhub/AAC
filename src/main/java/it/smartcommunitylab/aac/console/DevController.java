@@ -29,7 +29,7 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.config.ApplicationProperties;
 import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.provider.config.AbstractConfigurableProvider;
+import it.smartcommunitylab.aac.core.provider.config.ConfigurableProviderImpl;
 import it.smartcommunitylab.aac.dto.RealmStats;
 import it.smartcommunitylab.aac.identity.IdentityProviderManager;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;

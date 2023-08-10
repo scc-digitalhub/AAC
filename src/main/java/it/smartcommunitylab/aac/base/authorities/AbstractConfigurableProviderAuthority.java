@@ -30,14 +30,13 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
 public abstract class AbstractConfigurableProviderAuthority<
-    P extends AbstractConfigurableResourceProvider<R, C, S, M>,
-    R extends Resource,
+    P extends AbstractConfigurableResourceProvider<? extends Resource, C, S, M>,
     C extends AbstractProviderConfig<S, M>,
     S extends AbstractSettingsMap,
     M extends AbstractConfigMap
 >
-    extends AbstractProviderAuthority<P, R, C, S, M>
-    implements ConfigurableProviderAuthority<P, R, C, S, M>, InitializingBean {
+    extends AbstractProviderAuthority<P, C>
+    implements ConfigurableProviderAuthority<P, C, S, M>, InitializingBean {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 

@@ -32,11 +32,11 @@ import it.smartcommunitylab.aac.core.provider.SubjectResolver;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.identity.model.UserIdentity;
-import it.smartcommunitylab.aac.identity.provider.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.identity.provider.AccountPrincipalConverter;
 import it.smartcommunitylab.aac.identity.provider.IdentityAttributeProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderConfig;
+import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -55,7 +55,7 @@ public abstract class AbstractIdentityProvider<
     M extends AbstractConfigMap,
     C extends AbstractIdentityProviderConfig<M>
 >
-    extends AbstractConfigurableResourceProvider<I, ConfigurableIdentityProvider, M, C>
+    extends AbstractConfigurableResourceProvider<I, C, IdentityProviderSettingsMap, M>
     implements IdentityProvider<I, U, P, M, C>, InitializingBean {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());

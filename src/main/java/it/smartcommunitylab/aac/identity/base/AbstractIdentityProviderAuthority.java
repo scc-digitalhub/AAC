@@ -16,29 +16,33 @@
 
 package it.smartcommunitylab.aac.identity.base;
 
+import it.smartcommunitylab.aac.accounts.base.AbstractUserAccount;
 import it.smartcommunitylab.aac.base.authorities.AbstractConfigurableProviderAuthority;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.identity.IdentityProviderAuthority;
+import it.smartcommunitylab.aac.identity.base.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.identity.provider.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderConfigurationProvider;
+import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
 import org.springframework.util.Assert;
 
-public abstract class AbstractIdentityAuthority<
-    S extends AbstractIdentityProvider<I, ?, ?, M, C>,
-    I extends AbstractUserIdentity,
-    M extends AbstractConfigMap,
-    C extends AbstractIdentityProviderConfig<M>
+public abstract class AbstractIdentityProviderAuthority<
+    P extends AbstractIdentityProvider<? extends AbstractUserIdentity, ? extends AbstractUserAccount, ? extends AbstractUserAuthenticatedPrincipal, M, C>,
+    C extends AbstractIdentityProviderConfig<M>,
+    M extends AbstractConfigMap
 >
-    extends AbstractConfigurableProviderAuthority<S, I, ConfigurableIdentityProvider, M, C>
-    implements IdentityProviderAuthority<S, I, M, C> {
+    extends AbstractConfigurableProviderAuthority<P, C, IdentityProviderSettingsMap, M>
+    implements IdentityProviderAuthority<P, C, M> {
 
     // configuration provider
     protected IdentityProviderConfigurationProvider<M, C> configProvider;
 
-    protected AbstractIdentityAuthority(String authorityId, ProviderConfigRepository<C> registrationRepository) {
+    protected AbstractIdentityProviderAuthority(
+        String authorityId,
+        ProviderConfigRepository<C> registrationRepository
+    ) {
         super(authorityId, registrationRepository);
     }
 

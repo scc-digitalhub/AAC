@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.identity.service;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.attributes.base.AbstractAuthorityService;
+import it.smartcommunitylab.aac.base.service.AbstractAuthorityService;
 import it.smartcommunitylab.aac.identity.IdentityServiceAuthority;
 import java.util.Collection;
 import org.springframework.beans.factory.InitializingBean;

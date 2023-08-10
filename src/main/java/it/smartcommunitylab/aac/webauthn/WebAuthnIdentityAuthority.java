@@ -20,7 +20,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
-import it.smartcommunitylab.aac.identity.base.AbstractIdentityAuthority;
+import it.smartcommunitylab.aac.identity.base.AbstractIdentityProviderAuthority;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityConfigurationProvider;
@@ -37,7 +37,7 @@ import org.springframework.util.Assert;
 
 @Service
 public class WebAuthnIdentityAuthority
-    extends AbstractIdentityAuthority<WebAuthnIdentityProvider, InternalUserIdentity, WebAuthnIdentityProviderConfigMap, WebAuthnIdentityProviderConfig> {
+    extends AbstractIdentityProviderAuthority<WebAuthnIdentityProvider, InternalUserIdentity, WebAuthnIdentityProviderConfigMap, WebAuthnIdentityProviderConfig> {
 
     public static final String AUTHORITY_URL = "/auth/webauthn/";
 

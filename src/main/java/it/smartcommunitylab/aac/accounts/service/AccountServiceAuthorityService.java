@@ -18,7 +18,8 @@ package it.smartcommunitylab.aac.accounts.service;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.AccountServiceAuthority;
-import it.smartcommunitylab.aac.attributes.base.AbstractAuthorityService;
+import it.smartcommunitylab.aac.base.service.AbstractAuthorityService;
+
 import java.util.Collection;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;

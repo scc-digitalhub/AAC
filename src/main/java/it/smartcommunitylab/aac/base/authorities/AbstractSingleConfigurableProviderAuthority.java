@@ -31,14 +31,13 @@ import java.util.Collections;
 import java.util.List;
 
 public abstract class AbstractSingleConfigurableProviderAuthority<
-    P extends AbstractConfigurableResourceProvider<R, C, S, M>,
-    R extends Resource,
+    P extends AbstractConfigurableResourceProvider<? extends Resource, C, S, M>,
     C extends AbstractProviderConfig<S, M>,
     S extends AbstractSettingsMap,
     M extends AbstractConfigMap
 >
-    extends AbstractConfigurableProviderAuthority<P, R, C, S, M>
-    implements SingleProviderAuthority<P, R, C, S, M> {
+    extends AbstractConfigurableProviderAuthority<P, C, S, M>
+    implements SingleProviderAuthority<P, C, S, M> {
 
     protected AbstractSingleConfigurableProviderAuthority(
         String authorityId,

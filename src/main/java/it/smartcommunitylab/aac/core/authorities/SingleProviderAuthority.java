@@ -27,8 +27,7 @@ import it.smartcommunitylab.aac.core.provider.config.ProviderConfig;
  */
 
 public interface SingleProviderAuthority<
-    P extends ConfigurableResourceProvider<R, C, S, M>,
-    R extends Resource,
+    P extends ConfigurableResourceProvider<? extends Resource, C, S, M>,
     C extends ProviderConfig<S, M>,
     S extends ConfigMap,
     M extends ConfigMap

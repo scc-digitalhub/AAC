@@ -24,7 +24,7 @@ import java.util.List;
 /*
  * Provider authorities handle resource providers
  */
-public interface ProviderAuthority<S extends ResourceProvider<R>, R extends Resource> {
+public interface ProviderAuthority<S extends ResourceProvider<? extends Resource>> {
     /*
      * Details
      */

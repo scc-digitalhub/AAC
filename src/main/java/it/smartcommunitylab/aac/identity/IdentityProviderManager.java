@@ -26,7 +26,7 @@ import org.springframework.stereotype.Service;
 @Service
 @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')" + " or hasAuthority(#realm+':" + Config.R_ADMIN + "')")
 public class IdentityProviderManager
-    extends ConfigurableProviderManager<ConfigurableIdentityProvider, IdentityProviderAuthority<?, ?, ?, ?>> {
+    extends ConfigurableProviderManager<ConfigurableIdentityProvider, IdentityProviderAuthority<?, ?, ?>> {
 
     public IdentityProviderManager(IdentityProviderService identityProviderService) {
         super(identityProviderService);

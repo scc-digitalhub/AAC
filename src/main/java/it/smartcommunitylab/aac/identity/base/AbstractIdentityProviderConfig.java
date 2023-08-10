@@ -25,20 +25,15 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.base.provider.config.AbstractProviderConfig;
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderConfig;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
-import it.smartcommunitylab.aac.model.PersistenceMode;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfig;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
-import java.util.Collections;
-import java.util.Map;
-import org.springframework.util.StringUtils;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes(
@@ -70,7 +65,7 @@ public abstract class AbstractIdentityProviderConfig<M extends AbstractConfigMap
     }
 
     protected AbstractIdentityProviderConfig(
-        ConfigurableProvider cp,
+        ConfigurableIdentityProvider cp,
         IdentityProviderSettingsMap settingsMap,
         M configMap
     ) {

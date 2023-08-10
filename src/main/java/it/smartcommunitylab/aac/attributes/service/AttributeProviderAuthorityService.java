@@ -18,7 +18,8 @@ package it.smartcommunitylab.aac.attributes.service;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.AttributeProviderAuthority;
-import it.smartcommunitylab.aac.base.authorities.AbstractConfigurableAuthorityService;
+import it.smartcommunitylab.aac.base.service.AbstractConfigurableAuthorityService;
+
 import java.util.Collection;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;

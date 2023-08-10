@@ -16,7 +16,7 @@
 
 package it.smartcommunitylab.aac.config;
 
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
+import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
@@ -24,17 +24,17 @@ import org.springframework.boot.context.properties.NestedConfigurationProperty;
 public class ProvidersProperties {
 
     @NestedConfigurationProperty
-    private List<ConfigurableProvider> identity;
+    private List<ConfigurableIdentityProvider> identity;
 
     public ProvidersProperties() {
         identity = new ArrayList<>();
     }
 
-    public List<ConfigurableProvider> getIdentity() {
+    public List<ConfigurableIdentityProvider> getIdentity() {
         return identity;
     }
 
-    public void setIdentity(List<ConfigurableProvider> identity) {
+    public void setIdentity(List<ConfigurableIdentityProvider> identity) {
         this.identity = identity;
     }
 }

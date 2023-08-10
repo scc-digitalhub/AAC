@@ -16,14 +16,16 @@
 
 package it.smartcommunitylab.aac.core.provider.config;
 
+import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
 import org.springframework.core.convert.converter.Converter;
 
-public class ProviderEntityConverter implements Converter<ProviderEntity, ConfigurableProvider> {
+public class ProviderEntityConverter<S extends ConfigMap>
+    implements Converter<ProviderEntity, ConfigurableProvider<S>> {
 
-    public ConfigurableProvider convert(ProviderEntity pe) {
-        ConfigurableProvider cp = new ConfigurableProviderImpl(
+    public ConfigurableProvider<S> convert(ProviderEntity pe) {
+        ConfigurableProviderImpl<S> cp = new ConfigurableProviderImpl<>(
             pe.getType(),
             pe.getAuthority(),
             pe.getProvider(),

@@ -14,11 +14,18 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.attributes.base;
+package it.smartcommunitylab.aac.base.service;
 
 import it.smartcommunitylab.aac.base.authorities.AbstractProviderAuthority;
+import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
+import it.smartcommunitylab.aac.base.model.AbstractSettingsMap;
+import it.smartcommunitylab.aac.base.provider.AbstractConfigurableResourceProvider;
+import it.smartcommunitylab.aac.base.provider.config.AbstractProviderConfig;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.core.authorities.AuthorityService;
+import it.smartcommunitylab.aac.core.model.ConfigMap;
+import it.smartcommunitylab.aac.core.model.Resource;
+import it.smartcommunitylab.aac.core.provider.config.ProviderConfig;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -26,7 +33,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.util.Assert;
 
-public abstract class AbstractAuthorityService<A extends AbstractProviderAuthority<?, ?, ?, ?, ?>>
+public abstract class AbstractAuthorityService<
+    A extends AbstractProviderAuthority<? extends AbstractConfigurableResourceProvider<? extends Resource, ? extends ProviderConfig<? extends ConfigMap, ? extends ConfigMap>, ? extends AbstractSettingsMap, ? extends ConfigMap>, ? extends AbstractProviderConfig<? extends AbstractSettingsMap, ? extends ConfigMap>>
+>
     implements AuthorityService<A> {
 
     private final String type;

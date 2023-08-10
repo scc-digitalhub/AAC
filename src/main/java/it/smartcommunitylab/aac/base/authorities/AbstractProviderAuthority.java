@@ -20,6 +20,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
+import com.oracle.truffle.api.library.GenerateLibrary.Abstract;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.base.model.AbstractSettingsMap;
 import it.smartcommunitylab.aac.base.provider.AbstractConfigurableResourceProvider;
@@ -39,13 +40,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
 public abstract class AbstractProviderAuthority<
-    P extends AbstractConfigurableResourceProvider<R, C, S, M>,
-    R extends Resource,
-    C extends AbstractProviderConfig<S, M>,
-    S extends AbstractSettingsMap,
-    M extends AbstractConfigMap
+    P extends AbstractConfigurableResourceProvider<? extends Resource, C, ? extends AbstractSettingsMap, ? extends AbstractConfigMap>,
+    C extends AbstractProviderConfig<? extends AbstractSettingsMap, ? extends AbstractConfigMap>
 >
-    implements ProviderAuthority<P, R> {
+    implements ProviderAuthority<P> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 

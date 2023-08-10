@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.core.provider.config;
 
+import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
 import java.util.Map;
@@ -28,10 +29,11 @@ import org.springframework.util.StringUtils;
 /*
  * Convert between a types config and the generic persistence entity
  */
-public class ConfigurableProviderConverter implements Converter<ConfigurableProvider, ProviderEntity> {
+public class ConfigurableProviderConverter
+    implements Converter<ConfigurableProvider<? extends ConfigMap>, ProviderEntity> {
 
     @Override
-    public ProviderEntity convert(ConfigurableProvider reg) {
+    public ProviderEntity convert(ConfigurableProvider<? extends ConfigMap> reg) {
         ProviderEntity pe = new ProviderEntity();
         pe.setType(reg.getType());
 

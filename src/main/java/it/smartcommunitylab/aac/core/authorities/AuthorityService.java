@@ -21,7 +21,7 @@ import it.smartcommunitylab.aac.core.model.Resource;
 import it.smartcommunitylab.aac.core.provider.ResourceProvider;
 import java.util.Collection;
 
-public interface AuthorityService<A extends ProviderAuthority<? extends ResourceProvider<?>, ? extends Resource>> {
+public interface AuthorityService<A extends ProviderAuthority<? extends ResourceProvider<? extends Resource>>> {
     /*
      * Details
      */

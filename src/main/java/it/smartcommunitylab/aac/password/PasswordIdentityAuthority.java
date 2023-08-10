@@ -21,7 +21,7 @@ import it.smartcommunitylab.aac.accounts.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
-import it.smartcommunitylab.aac.identity.base.AbstractIdentityAuthority;
+import it.smartcommunitylab.aac.identity.base.AbstractIdentityProviderAuthority;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.password.provider.PasswordFilterProvider;
@@ -37,7 +37,7 @@ import org.springframework.util.Assert;
 
 @Service
 public class PasswordIdentityAuthority
-    extends AbstractIdentityAuthority<PasswordIdentityProvider, InternalUserIdentity, PasswordIdentityProviderConfigMap, PasswordIdentityProviderConfig> {
+    extends AbstractIdentityProviderAuthority<PasswordIdentityProvider, InternalUserIdentity, PasswordIdentityProviderConfigMap, PasswordIdentityProviderConfig> {
 
     public static final String AUTHORITY_URL = "/auth/password/";
 

@@ -17,7 +17,6 @@
 package it.smartcommunitylab.aac.core.provider;
 
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.config.ProviderConfig;
@@ -34,7 +33,7 @@ public interface ConfigurationProvider<C extends ProviderConfig<S, M>, S extends
     //expose the config repository
     public ProviderConfigRepository<C> getRepository();
 
-    public C register(ConfigurableProvider config) throws RegistrationException;
+    public C register(ConfigurableProvider<S> config) throws RegistrationException;
 
     public void unregister(String providerId);
 
@@ -46,14 +45,14 @@ public interface ConfigurationProvider<C extends ProviderConfig<S, M>, S extends
      * Translate a configurableProvider with valid props to a valid provider config,
      * with default values set
      */
-    public C getConfig(ConfigurableProvider cp);
+    public C getConfig(ConfigurableProvider<S> cp);
 
-    public C getConfig(ConfigurableProvider cp, boolean mergeDefault);
+    public C getConfig(ConfigurableProvider<S> cp, boolean mergeDefault);
 
     /*
      * Translate a provider config to a configurable
      */
-    public ConfigurableProvider getConfigurable(C providerConfig);
+    public ConfigurableProvider<S> getConfigurable(C providerConfig);
 
     /*
      * Expose and translate to valid configMap

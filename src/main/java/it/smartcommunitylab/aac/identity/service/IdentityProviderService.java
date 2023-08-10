@@ -22,15 +22,14 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.config.ProvidersProperties;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
-import it.smartcommunitylab.aac.core.provider.config.ConfigurableProviderImpl;
 import it.smartcommunitylab.aac.core.service.ConfigurableProviderEntityService;
 import it.smartcommunitylab.aac.core.service.ConfigurableProviderService;
-import it.smartcommunitylab.aac.identity.IdentityProviderAuthority;
+import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
 import java.io.Serializable;
 import java.util.Map;
-import org.apache.commons.lang3.RandomStringUtils;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +40,8 @@ import org.springframework.validation.DataBinder;
 
 @Service
 @Transactional
-public class IdentityProviderService extends ConfigurableProviderService<IdentityProviderAuthority<?, ?, ?, ?>> {
+public class IdentityProviderService
+    extends ConfigurableProviderService<ConfigurableIdentityProvider, IdentityProviderSettingsMap> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -58,8 +58,7 @@ public class IdentityProviderService extends ConfigurableProviderService<Identit
         // always configure internal + password idp for system, required by admin
         // account
         // TODO make configurable
-        ConfigurableProviderImpl internalConfig = new ConfigurableProviderImpl(
-            SystemKeys.RESOURCE_IDENTITY,
+        ConfigurableIdentityProvider internalConfig = new ConfigurableIdentityProvider(
             SystemKeys.AUTHORITY_INTERNAL,
             SystemKeys.AUTHORITY_INTERNAL,
             SystemKeys.REALM_SYSTEM
@@ -68,8 +67,7 @@ public class IdentityProviderService extends ConfigurableProviderService<Identit
         logger.debug("configure internal idp for system realm");
         systemProviders.put(internalConfig.getProvider(), internalConfig);
 
-        ConfigurableProviderImpl internalPasswordIdpConfig = new ConfigurableProviderImpl(
-            SystemKeys.RESOURCE_IDENTITY,
+        ConfigurableIdentityProvider internalPasswordIdpConfig = new ConfigurableIdentityProvider(
             SystemKeys.AUTHORITY_PASSWORD,
             SystemKeys.AUTHORITY_INTERNAL + "_" + SystemKeys.AUTHORITY_PASSWORD,
             SystemKeys.REALM_SYSTEM
@@ -84,7 +82,7 @@ public class IdentityProviderService extends ConfigurableProviderService<Identit
         // system providers
         if (providers != null) {
             // identity providers
-            for (ConfigurableProvider cp : providers.getIdentity()) {
+            for (ConfigurableIdentityProvider cp : providers.getIdentity()) {
                 if (cp == null || SystemKeys.RESOURCE_IDENTITY.equals(cp.getType()) || !cp.isEnabled()) {
                     continue;
                 }
@@ -102,7 +100,7 @@ public class IdentityProviderService extends ConfigurableProviderService<Identit
 
                 String providerId = StringUtils.hasText(cp.getProvider())
                     ? cp.getProvider()
-                    : RandomStringUtils.randomAlphanumeric(10);
+                    : UUID.randomUUID().toString();
                 logger.debug("configure provider {}:{} for realm system", authority, providerId);
                 if (logger.isTraceEnabled()) {
                     logger.trace("provider config: {}", String.valueOf(cp.getConfiguration()));
@@ -135,8 +133,7 @@ public class IdentityProviderService extends ConfigurableProviderService<Identit
                     Map<String, Serializable> configuration = configurable.getConfiguration();
 
                     // build a new config to detach from props
-                    ConfigurableProviderImpl cip = new ConfigurableProviderImpl(
-                        SystemKeys.RESOURCE_IDENTITY,
+                    ConfigurableIdentityProvider cip = new ConfigurableIdentityProvider(
                         authority,
                         providerId,
                         SystemKeys.REALM_SYSTEM

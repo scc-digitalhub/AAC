@@ -26,7 +26,7 @@ import java.util.Map;
  * Mutable configuration for resource providers
  */
 @JsonDeserialize(as = ConfigurableProviderImpl.class)
-public interface ConfigurableProvider extends ConfigurableProperties {
+public interface ConfigurableProvider<S extends ConfigMap> extends ConfigurableProperties {
     String getType();
 
     String getAuthority();
