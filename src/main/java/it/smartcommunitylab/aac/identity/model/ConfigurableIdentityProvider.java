@@ -33,15 +33,8 @@ public class ConfigurableIdentityProvider extends ConfigurableProviderImpl<Ident
         super(SystemKeys.RESOURCE_IDENTITY, authority, provider, realm);
     }
 
-    /**
-     * Private constructor for JPA and other serialization tools.
-     *
-     * We need to implement this to enable deserialization of resources via
-     * reflection
-     */
-    @SuppressWarnings("unused")
-    private ConfigurableIdentityProvider() {
-        this((String) null, (String) null, (String) null);
+    public ConfigurableIdentityProvider() {
+        super(SystemKeys.RESOURCE_IDENTITY, null, null, null);
     }
     // public Boolean getLinkable() {
     //     return linkable;

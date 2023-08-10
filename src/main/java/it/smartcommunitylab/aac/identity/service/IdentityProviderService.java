@@ -17,6 +17,7 @@
 package it.smartcommunitylab.aac.identity.service;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.base.service.AbstractConfigurableProviderService;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
@@ -24,7 +25,6 @@ import it.smartcommunitylab.aac.config.ProvidersProperties;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 import it.smartcommunitylab.aac.core.service.ConfigurableProviderEntityService;
-import it.smartcommunitylab.aac.core.service.ConfigurableProviderService;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
 import java.io.Serializable;
@@ -41,7 +41,7 @@ import org.springframework.validation.DataBinder;
 @Service
 @Transactional
 public class IdentityProviderService
-    extends ConfigurableProviderService<ConfigurableIdentityProvider, IdentityProviderSettingsMap> {
+    extends AbstractConfigurableProviderService<ConfigurableIdentityProvider, IdentityProviderSettingsMap> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -49,7 +49,7 @@ public class IdentityProviderService
         IdentityProviderAuthorityService authorityService,
         ConfigurableProviderEntityService providerService
     ) {
-        super(SystemKeys.RESOURCE_IDENTITY, authorityService, providerService);
+        super(SystemKeys.RESOURCE_IDENTITY, authorityService, providerService, ConfigurableIdentityProvider::new);
         // create system idps
         // these users access administrative contexts, they will have realm="system"
         // we expect no client/services in global+system realm!

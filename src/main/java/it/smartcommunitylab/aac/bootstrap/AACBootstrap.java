@@ -22,6 +22,7 @@ import it.smartcommunitylab.aac.accounts.model.UserAccount;
 import it.smartcommunitylab.aac.accounts.provider.UserAccountService;
 import it.smartcommunitylab.aac.attributes.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.attributes.service.AttributeProviderService;
+import it.smartcommunitylab.aac.base.service.AbstractConfigurableProviderService;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchCredentialException;
@@ -31,7 +32,6 @@ import it.smartcommunitylab.aac.common.NoSuchServiceException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.core.service.ConfigurableProviderService;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.credentials.model.UserCredentials;
@@ -241,7 +241,7 @@ public class AACBootstrap {
         bootstrapConfigurableProviders(attributeProviderService, slug);
     }
 
-    private void bootstrapConfigurableProviders(ConfigurableProviderService<?, ?, ?> service, String realm) {
+    private void bootstrapConfigurableProviders(AbstractConfigurableProviderService<?, ?, ?> service, String realm) {
         // register in parallel via thread-pool
         service
             .listProviders(realm)

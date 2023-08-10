@@ -19,18 +19,26 @@ package it.smartcommunitylab.aac.core.provider.config;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
+import java.util.function.Supplier;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.util.Assert;
 
-public class ProviderEntityConverter<S extends ConfigMap>
-    implements Converter<ProviderEntity, ConfigurableProvider<S>> {
+public class ProviderEntityConverter<C extends ConfigurableProvider<? extends ConfigMap>>
+    implements Converter<ProviderEntity, C> {
 
-    public ConfigurableProvider<S> convert(ProviderEntity pe) {
-        ConfigurableProviderImpl<S> cp = new ConfigurableProviderImpl<>(
-            pe.getType(),
-            pe.getAuthority(),
-            pe.getProvider(),
-            pe.getRealm()
-        );
+    private final Supplier<C> factory;
+
+    public ProviderEntityConverter(Supplier<C> factory) {
+        Assert.notNull(factory, "factory is required");
+        this.factory = factory;
+    }
+
+    public C convert(ProviderEntity pe) {
+        C cp = factory.get();
+
+        cp.setAuthority(pe.getAuthority());
+        cp.setProvider(pe.getProvider());
+        cp.setRealm(pe.getRealm());
 
         //config
         cp.setSettings(pe.getSettingsMap());

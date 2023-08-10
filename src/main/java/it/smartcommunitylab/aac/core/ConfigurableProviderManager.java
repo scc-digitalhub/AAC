@@ -18,6 +18,7 @@ package it.smartcommunitylab.aac.core;
 
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.base.service.AbstractConfigurableProviderService;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
@@ -29,7 +30,6 @@ import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
 import it.smartcommunitylab.aac.core.provider.config.ConfigurableProviderImpl;
-import it.smartcommunitylab.aac.core.service.ConfigurableProviderService;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.realms.service.RealmService;
 import java.util.Collection;
@@ -48,11 +48,11 @@ public abstract class ConfigurableProviderManager<
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final ConfigurableProviderService<C, ? extends ConfigMap> providerService;
+    private final AbstractConfigurableProviderService<C, ? extends ConfigMap> providerService;
 
     private RealmService realmService;
 
-    protected ConfigurableProviderManager(ConfigurableProviderService<C, ? extends ConfigMap> providerService) {
+    protected ConfigurableProviderManager(AbstractConfigurableProviderService<C, ? extends ConfigMap> providerService) {
         Assert.notNull(providerService, "provider service is required");
         this.providerService = providerService;
     }

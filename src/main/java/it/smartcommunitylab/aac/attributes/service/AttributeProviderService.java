@@ -18,9 +18,10 @@ package it.smartcommunitylab.aac.attributes.service;
 
 import it.smartcommunitylab.aac.attributes.AttributeProviderAuthority;
 import it.smartcommunitylab.aac.attributes.model.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.base.service.AbstractConfigurableProviderService;
 import it.smartcommunitylab.aac.core.persistence.AttributeProviderEntity;
 import it.smartcommunitylab.aac.core.service.ConfigurableProviderEntityService;
-import it.smartcommunitylab.aac.core.service.ConfigurableProviderService;
+
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -35,7 +36,7 @@ import org.springframework.util.StringUtils;
 @Service
 @Transactional
 public class AttributeProviderService
-    extends ConfigurableProviderService<AttributeProviderAuthority<?, ?, ?>, ConfigurableAttributeProvider, AttributeProviderEntity> {
+    extends AbstractConfigurableProviderService<AttributeProviderAuthority<?, ?, ?>, ConfigurableAttributeProvider, AttributeProviderEntity> {
 
     public AttributeProviderService(
         AttributeProviderAuthorityService authorityService,

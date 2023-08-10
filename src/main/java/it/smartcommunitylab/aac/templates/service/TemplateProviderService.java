@@ -16,9 +16,9 @@
 
 package it.smartcommunitylab.aac.templates.service;
 
+import it.smartcommunitylab.aac.base.service.AbstractConfigurableProviderService;
 import it.smartcommunitylab.aac.core.persistence.TemplateProviderEntity;
 import it.smartcommunitylab.aac.core.service.ConfigurableProviderEntityService;
-import it.smartcommunitylab.aac.core.service.ConfigurableProviderService;
 import it.smartcommunitylab.aac.templates.TemplateProviderAuthority;
 import it.smartcommunitylab.aac.templates.model.ConfigurableTemplateProvider;
 import java.util.Map;
@@ -33,7 +33,7 @@ import org.springframework.util.StringUtils;
 @Service
 @Transactional
 public class TemplateProviderService
-    extends ConfigurableProviderService<TemplateProviderAuthority<?, ?, ?, ?>, ConfigurableTemplateProvider, TemplateProviderEntity> {
+    extends AbstractConfigurableProviderService<TemplateProviderAuthority<?, ?, ?, ?>, ConfigurableTemplateProvider, TemplateProviderEntity> {
 
     public TemplateProviderService(
         TemplateProviderAuthorityService authorityService,
