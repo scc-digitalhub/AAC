@@ -36,6 +36,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -119,7 +121,16 @@ public class LanguageHandlerInterceptor implements HandlerInterceptor {
                             }
 
                             // build url with param
-                            builder.replaceQueryParam("lang", l);
+                            Map<String,String[]> parameterMap = new HashMap<>(request.getParameterMap());
+                            parameterMap.remove("lang");
+
+                            MultiValueMap<String, String> parameterMVMap = new LinkedMultiValueMap<>();
+                            for (Map.Entry<String, String[]> entry : parameterMap.entrySet()) {
+                                parameterMVMap.put(entry.getKey(), Arrays.asList(entry.getValue()));
+                            }
+
+                            builder.replaceQueryParams(parameterMVMap);
+                            builder.queryParam("lang", l);
                             String url = builder.build().toString();
                             String label = loc.getDisplayLanguage(locale);
                             LanguageValue lv = new LanguageValue();
