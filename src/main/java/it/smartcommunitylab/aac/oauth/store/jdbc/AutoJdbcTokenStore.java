@@ -71,8 +71,8 @@ public class AutoJdbcTokenStore extends JdbcTokenStore implements ExtTokenStore 
 
     protected void initSchema(DataSource dataSource) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
-        jdbcTemplate.execute(createAccessTokenStatement);
-        jdbcTemplate.execute(createRefreshTokenStatement);
+//        jdbcTemplate.execute(createAccessTokenStatement);
+//        jdbcTemplate.execute(createRefreshTokenStatement);
     }
 
     //    /**

@@ -28,3 +28,11 @@ create table if not exists  subjects (subject_id varchar(128) not null, name var
 create table if not exists  template_providers (provider_id varchar(128) not null, authority varchar(128) not null, configuration_map longtext, custom_style longtext, description_map longtext, enabled bit not null, languages varchar(255), name varchar(128) not null, realm varchar(128) not null, title_map longtext, version integer, primary key (provider_id)) engine=InnoDB;
 create table if not exists  templates (id varchar(128) not null, authority varchar(128), content longtext, language varchar(255), realm varchar(128), template varchar(128), constraint UK7px59xf543tte24g9shjekk9q unique (authority, realm, template, language), primary key (id)) engine=InnoDB;
 create table if not exists  users (uuid varchar(128) not null, created_date datetime, email_address varchar(128), email_verified bit, expiration_date datetime, last_login_date datetime, last_login_ip varchar(255), last_login_provider varchar(255), last_modified_date datetime, realm varchar(128) not null, status varchar(255), tos_accepted bit, username varchar(128), primary key (uuid)) engine=InnoDB;
+
+CREATE TABLE IF NOT EXISTS oauth_refresh_token ( token_id VARCHAR(64) NOT NULL PRIMARY KEY, token BLOB NOT NULL, authentication BLOB NOT NULL);
+CREATE TABLE IF NOT EXISTS oauth_access_token (token_id VARCHAR(256),  token BLOB, authentication_id VARCHAR(256), user_name VARCHAR(256), client_id VARCHAR(256), authentication BLOB, refresh_token VARCHAR(256));
+CREATE TABLE IF NOT EXISTS oauth_approvals (clientId varchar(255) DEFAULT NULL, expiresAt datetime DEFAULT NULL, lastModifiedAt datetime DEFAULT NULL, scope varchar(255) DEFAULT NULL, status varchar(255) DEFAULT NULL, userId varchar(255) DEFAULT NULL);
+CREATE TABLE IF NOT EXISTS attributes (entity_id VARCHAR(256), provider_id VARCHAR(256), attr_key VARCHAR(256), attr_value BLOB);
+CREATE TABLE IF NOT EXISTS audit (time TIMESTAMP, principal varchar(255), realm varchar(255) DEFAULT NULL, type varchar(255), event BLOB );
+CREATE TABLE IF NOT EXISTS oauth_code (code VARCHAR(256), client_id VARCHAR(256), expiresAt TIMESTAMP, authentication BLOB);
+CREATE TABLE IF NOT EXISTS provider_config (type VARCHAR(256), provider_id VARCHAR(256),  realm VARCHAR(256), config BLOB, PRIMARY KEY (provider_id, type));
