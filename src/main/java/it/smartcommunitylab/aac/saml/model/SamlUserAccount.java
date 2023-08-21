@@ -50,19 +50,15 @@ public class SamlUserAccount extends AbstractUserAccount {
     private String issuer;
     private String email;
     private Boolean emailVerified;
-
     private String name;
     private String surname;
-
     private String lang;
 
-    // audit
-
-    private Date createDate;
-
-    private Date modifiedDate;
-
     private Map<String, Serializable> attributes;
+
+    // audit
+    private Date createDate;
+    private Date modifiedDate;
 
     public SamlUserAccount(String provider, String realm, String uuid) {
         super(SystemKeys.AUTHORITY_SAML, provider, realm, uuid);

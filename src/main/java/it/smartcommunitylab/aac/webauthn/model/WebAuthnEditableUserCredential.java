@@ -73,18 +73,8 @@ public class WebAuthnEditableUserCredential extends AbstractEditableUserCredenti
     @JsonSchemaIgnore
     private String attestation;
 
-    public WebAuthnEditableUserCredential() {
-        super(SystemKeys.AUTHORITY_WEBAUTHN, null, null);
-    }
-
-    public WebAuthnEditableUserCredential(String provider, String uuid) {
-        super(SystemKeys.AUTHORITY_WEBAUTHN, provider, uuid);
-    }
-
-    public WebAuthnEditableUserCredential(String provider, String realm, String userId, String uuid) {
-        super(SystemKeys.AUTHORITY_WEBAUTHN, provider, uuid);
-        setRealm(realm);
-        setUserId(userId);
+    public WebAuthnEditableUserCredential(String realm, String id) {
+        super(SystemKeys.AUTHORITY_WEBAUTHN, null, realm, id);
     }
 
     @Override

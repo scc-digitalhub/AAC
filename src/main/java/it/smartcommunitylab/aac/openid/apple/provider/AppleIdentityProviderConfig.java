@@ -19,8 +19,9 @@ package it.smartcommunitylab.aac.openid.apple.provider;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.identity.base.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.identity.provider.AbstractIdentityProviderConfig;
+import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
 import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.openid.apple.AppleIdentityAuthority;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
@@ -57,13 +58,23 @@ public class AppleIdentityProviderConfig extends AbstractIdentityProviderConfig<
     // thread-safe
     private static final JcaPEMKeyConverter pemConverter = new JcaPEMKeyConverter();
 
-    public AppleIdentityProviderConfig(@JsonProperty("provider") String provider, @JsonProperty("realm") String realm) {
-        super(SystemKeys.AUTHORITY_APPLE, provider, realm, new AppleIdentityProviderConfigMap());
+    public AppleIdentityProviderConfig(String provider, @JsonProperty("realm") String realm) {
+        super(
+            SystemKeys.AUTHORITY_APPLE,
+            provider,
+            realm,
+            new IdentityProviderSettingsMap(),
+            new AppleIdentityProviderConfigMap()
+        );
         this.clientRegistration = null;
     }
 
-    public AppleIdentityProviderConfig(ConfigurableIdentityProvider cp, AppleIdentityProviderConfigMap configMap) {
-        super(cp, configMap);
+    public AppleIdentityProviderConfig(
+        ConfigurableIdentityProvider cp,
+        IdentityProviderSettingsMap settingsMap,
+        AppleIdentityProviderConfigMap configMap
+    ) {
+        super(cp, settingsMap, configMap);
     }
 
     public String getRepositoryId() {

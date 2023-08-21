@@ -17,7 +17,6 @@
 package it.smartcommunitylab.aac.saml.persistence;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.repository.HashMapSerializableConverter;
 import java.io.Serializable;
 import java.util.Date;
@@ -65,14 +64,6 @@ public class SamlUserAccountEntity {
 
     @NotBlank
     @Column(length = 128)
-    private String authority;
-
-    @NotBlank
-    @Column(length = 128)
-    private String provider;
-
-    @NotBlank
-    @Column(length = 128)
     private String realm;
 
     // login
@@ -112,14 +103,6 @@ public class SamlUserAccountEntity {
     @Convert(converter = HashMapSerializableConverter.class)
     private Map<String, Serializable> attributes;
 
-    public SamlUserAccountEntity() {
-        this.authority = SystemKeys.AUTHORITY_SAML;
-    }
-
-    public SamlUserAccountEntity(String authority) {
-        this.authority = authority;
-    }
-
     public String getRepositoryId() {
         return repositoryId;
     }
@@ -150,22 +133,6 @@ public class SamlUserAccountEntity {
 
     public void setUserId(String userId) {
         this.userId = userId;
-    }
-
-    public String getAuthority() {
-        return authority;
-    }
-
-    public void setAuthority(String authority) {
-        this.authority = authority;
-    }
-
-    public String getProvider() {
-        return provider;
-    }
-
-    public void setProvider(String provider) {
-        this.provider = provider;
     }
 
     public String getRealm() {

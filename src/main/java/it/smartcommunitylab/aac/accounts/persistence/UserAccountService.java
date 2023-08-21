@@ -43,4 +43,6 @@ public interface UserAccountService<U extends UserAccount> {
         throws NoSuchUserException, RegistrationException;
 
     public void deleteAccount(@NotNull String repository, @NotNull String id);
+
+    public void deleteAllAccountsByUser(@NotNull String repository, @NotNull String userId);
 }

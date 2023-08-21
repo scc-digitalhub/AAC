@@ -33,7 +33,7 @@ import javax.validation.constraints.Pattern;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class WebAuthnCredentialsServiceConfigMap extends AbstractConfigMap implements Serializable {
+public class WebAuthnCredentialsServiceConfigMap extends AbstractConfigMap {
 
     private static final long serialVersionUID = SystemKeys.AAC_WEBAUTHN_SERIAL_VERSION;
 
@@ -48,8 +48,6 @@ public class WebAuthnCredentialsServiceConfigMap extends AbstractConfigMap imple
     private Integer registrationTimeout;
 
     private Boolean requireAccountConfirmation;
-
-    public WebAuthnCredentialsServiceConfigMap() {}
 
     public String getRepositoryId() {
         return repositoryId;

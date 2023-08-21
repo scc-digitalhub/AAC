@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.credentials.provider;
+package it.smartcommunitylab.aac.credentials.persistence;
 
 import it.smartcommunitylab.aac.common.NoSuchCredentialException;
 import it.smartcommunitylab.aac.common.RegistrationException;
@@ -23,13 +23,16 @@ import java.util.Collection;
 import javax.validation.constraints.NotNull;
 
 public interface UserCredentialsService<C extends UserCredentials> {
+    public Collection<C> findCredentials(@NotNull String repositoryId);
+
     public Collection<C> findCredentialsByRealm(@NotNull String realm);
 
     public C findCredentialsById(@NotNull String repository, @NotNull String id);
 
     public C findCredentialsByUuid(@NotNull String uuid);
 
-    public Collection<C> findCredentialsByAccount(@NotNull String repository, @NotNull String accountId);
+    //TODO remove, credentials are associated to USER not ACCOUNT
+    // public Collection<C> findCredentialsByAccount(@NotNull String repository, @NotNull String accountId);
 
     public Collection<C> findCredentialsByUser(@NotNull String repository, @NotNull String userId);
 
@@ -44,6 +47,6 @@ public interface UserCredentialsService<C extends UserCredentials> {
     public void deleteAllCredentials(@NotNull String repository, @NotNull Collection<String> id);
 
     public void deleteAllCredentialsByUser(@NotNull String repository, @NotNull String userId);
-
-    public void deleteAllCredentialsByAccount(@NotNull String repository, @NotNull String account);
+    //TODO remove, credentials are associated to USER not ACCOUNT
+    // public void deleteAllCredentialsByAccount(@NotNull String repository, @NotNull String account);
 }

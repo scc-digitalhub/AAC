@@ -19,10 +19,11 @@ package it.smartcommunitylab.aac.webauthn.service;
 import it.smartcommunitylab.aac.common.DuplicatedDataException;
 import it.smartcommunitylab.aac.common.NoSuchCredentialException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.credentials.provider.UserCredentialsService;
+import it.smartcommunitylab.aac.credentials.persistence.UserCredentialsService;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredential;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredentialsRepository;
+import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserCredential;
+import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredentialEntity;
+import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredentialsEntityRepository;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,7 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 /*
- * An internal service which handles credential persistence for internal user accounts, via JPA.
+ * An internal service which handles webauthn credential persistence for users, via JPA.
  *
  * We enforce detach on fetch to keep internal datasource isolated.
  */
@@ -42,11 +43,19 @@ public class WebAuthnUserCredentialsService implements UserCredentialsService<We
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final WebAuthnUserCredentialsRepository credentialRepository;
+    private final WebAuthnUserCredentialsEntityRepository credentialRepository;
 
-    public WebAuthnUserCredentialsService(WebAuthnUserCredentialsRepository credentialRepository) {
+    public WebAuthnUserCredentialsService(WebAuthnUserCredentialsEntityRepository credentialRepository) {
         Assert.notNull(credentialRepository, "credential repository is mandatory");
         this.credentialRepository = credentialRepository;
+    }
+
+    @Override
+    public Collection<WebAuthnUserCredential> findCredentials(@NotNull String repositoryId) {
+        logger.debug("find credentials for repository {}", String.valueOf(repositoryId));
+
+        List<WebAuthnUserCredentialEntity> credentials = credentialRepository.findByRepositoryId(repositoryId);
+        return credentials.stream().map(a -> to(a)).collect(Collectors.toList());
     }
 
     @Override
@@ -54,13 +63,8 @@ public class WebAuthnUserCredentialsService implements UserCredentialsService<We
     public List<WebAuthnUserCredential> findCredentialsByRealm(@NotNull String realm) {
         logger.debug("find credentials for realm {}", String.valueOf(realm));
 
-        List<WebAuthnUserCredential> credentials = credentialRepository.findByRealm(realm);
-        return credentials
-            .stream()
-            .map(a -> {
-                return credentialRepository.detach(a);
-            })
-            .collect(Collectors.toList());
+        List<WebAuthnUserCredentialEntity> credentials = credentialRepository.findByRealm(realm);
+        return credentials.stream().map(a -> to(a)).collect(Collectors.toList());
     }
 
     @Override
@@ -68,14 +72,14 @@ public class WebAuthnUserCredentialsService implements UserCredentialsService<We
     public WebAuthnUserCredential findCredentialsById(@NotNull String repository, @NotNull String id) {
         logger.debug("find credentials with id {} in repository {}", String.valueOf(id), String.valueOf(repository));
 
-        WebAuthnUserCredential credential = credentialRepository.findOne(id);
+        WebAuthnUserCredentialEntity credential = credentialRepository.findOne(id);
         if (credential == null) {
             return null;
         }
 
         // detach the entity, we don't want modifications to be persisted via a
         // read-only interface
-        return credentialRepository.detach(credential);
+        return to(credential);
     }
 
     @Override
@@ -84,38 +88,14 @@ public class WebAuthnUserCredentialsService implements UserCredentialsService<We
         logger.debug("find credentials with uuid {}", String.valueOf(uuid));
 
         // uuid is id
-        WebAuthnUserCredential credential = credentialRepository.findOne(uuid);
+        WebAuthnUserCredentialEntity credential = credentialRepository.findOne(uuid);
         if (credential == null) {
             return null;
         }
 
         // detach the entity, we don't want modifications to be persisted via a
         // read-only interface
-        return credentialRepository.detach(credential);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<WebAuthnUserCredential> findCredentialsByAccount(
-        @NotNull String repository,
-        @NotNull String accountId
-    ) {
-        logger.debug(
-            "find credentials for account {} in repository {}",
-            String.valueOf(accountId),
-            String.valueOf(repository)
-        );
-
-        List<WebAuthnUserCredential> credentials = credentialRepository.findByRepositoryIdAndUsername(
-            repository,
-            accountId
-        );
-        return credentials
-            .stream()
-            .map(a -> {
-                return credentialRepository.detach(a);
-            })
-            .collect(Collectors.toList());
+        return to(credential);
     }
 
     @Override
@@ -127,13 +107,11 @@ public class WebAuthnUserCredentialsService implements UserCredentialsService<We
             String.valueOf(repository)
         );
 
-        List<WebAuthnUserCredential> credentials = credentialRepository.findByRepositoryIdAndUserId(repository, userId);
-        return credentials
-            .stream()
-            .map(a -> {
-                return credentialRepository.detach(a);
-            })
-            .collect(Collectors.toList());
+        List<WebAuthnUserCredentialEntity> credentials = credentialRepository.findByRepositoryIdAndUserId(
+            repository,
+            userId
+        );
+        return credentials.stream().map(a -> to(a)).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -142,7 +120,7 @@ public class WebAuthnUserCredentialsService implements UserCredentialsService<We
         String userHandle,
         String credentialId
     ) {
-        WebAuthnUserCredential c = credentialRepository.findByRepositoryIdAndUserHandleAndCredentialId(
+        WebAuthnUserCredentialEntity c = credentialRepository.findByRepositoryIdAndUserHandleAndCredentialId(
             repositoryId,
             userHandle,
             credentialId
@@ -151,7 +129,7 @@ public class WebAuthnUserCredentialsService implements UserCredentialsService<We
             return null;
         }
 
-        return credentialRepository.detach(c);
+        return to(c);
     }
 
     @Override
@@ -172,13 +150,13 @@ public class WebAuthnUserCredentialsService implements UserCredentialsService<We
 
         try {
             // check if already registered
-            WebAuthnUserCredential credential = credentialRepository.findOne(id);
+            WebAuthnUserCredentialEntity credential = credentialRepository.findOne(id);
             if (credential != null) {
                 throw new DuplicatedDataException("id");
             }
 
             // create credential already hashed
-            credential = new WebAuthnUserCredential();
+            credential = new WebAuthnUserCredentialEntity();
             credential.setId(id);
             credential.setRepositoryId(repository);
 
@@ -203,17 +181,16 @@ public class WebAuthnUserCredentialsService implements UserCredentialsService<We
             // note: use flush because we detach the entity!
             credential = credentialRepository.saveAndFlush(credential);
 
-            // credential are encrypted, return as is
-            credential = credentialRepository.detach(credential);
-
-            credential.setAuthority(reg.getAuthority());
-            credential.setProvider(reg.getProvider());
-
             if (logger.isTraceEnabled()) {
                 logger.trace("credential: {}", String.valueOf(credential));
             }
 
-            return credential;
+            // credential are encrypted, return as is
+            WebAuthnUserCredential c = to(credential);
+            c.setAuthority(reg.getAuthority());
+            c.setProvider(reg.getProvider());
+
+            return c;
         } catch (Exception e) {
             throw new RegistrationException(e.getMessage());
         }
@@ -234,7 +211,7 @@ public class WebAuthnUserCredentialsService implements UserCredentialsService<We
         if (logger.isTraceEnabled()) {
             logger.trace("registration: {}", String.valueOf(reg));
         }
-        WebAuthnUserCredential credential = credentialRepository.findOne(id);
+        WebAuthnUserCredentialEntity credential = credentialRepository.findOne(id);
         if (credential == null) {
             throw new NoSuchCredentialException();
         }
@@ -261,17 +238,16 @@ public class WebAuthnUserCredentialsService implements UserCredentialsService<We
             // note: use flush because we detach the entity!
             credential = credentialRepository.saveAndFlush(credential);
 
-            // credential are encrypted, return as is
-            credential = credentialRepository.detach(credential);
-
             if (logger.isTraceEnabled()) {
                 logger.trace("credential: {}", String.valueOf(credential));
             }
 
-            credential.setAuthority(reg.getAuthority());
-            credential.setProvider(reg.getProvider());
+            // credential are encrypted, return as is
+            WebAuthnUserCredential c = to(credential);
+            c.setAuthority(reg.getAuthority());
+            c.setProvider(reg.getProvider());
 
-            return credential;
+            return c;
         } catch (Exception e) {
             throw new RegistrationException(e.getMessage());
         }
@@ -279,7 +255,7 @@ public class WebAuthnUserCredentialsService implements UserCredentialsService<We
 
     @Override
     public void deleteCredentials(@NotNull String repository, @NotNull String id) {
-        WebAuthnUserCredential credential = credentialRepository.findOne(id);
+        WebAuthnUserCredentialEntity credential = credentialRepository.findOne(id);
         if (credential != null) {
             logger.debug("delete credential with id {} repository {}", String.valueOf(id), String.valueOf(repository));
             credentialRepository.delete(credential);
@@ -300,22 +276,40 @@ public class WebAuthnUserCredentialsService implements UserCredentialsService<We
             String.valueOf(repository)
         );
 
-        List<WebAuthnUserCredential> credentials = credentialRepository.findByRepositoryIdAndUserId(repository, userId);
+        List<WebAuthnUserCredentialEntity> credentials = credentialRepository.findByRepositoryIdAndUserId(
+            repository,
+            userId
+        );
         credentialRepository.deleteAllInBatch(credentials);
     }
 
-    @Override
-    public void deleteAllCredentialsByAccount(@NotNull String repository, @NotNull String username) {
-        logger.debug(
-            "delete credentials for account {} in repository {}",
-            String.valueOf(username),
-            String.valueOf(repository)
-        );
+    /*
+     * Helpers
+     * TODO converters?
+     */
 
-        List<WebAuthnUserCredential> credentials = credentialRepository.findByRepositoryIdAndUsername(
-            repository,
-            username
-        );
-        credentialRepository.deleteAllInBatch(credentials);
+    private WebAuthnUserCredential to(WebAuthnUserCredentialEntity e) {
+        WebAuthnUserCredential c = new WebAuthnUserCredential(e.getRealm(), e.getId());
+        c.setRepositoryId(e.getRepositoryId());
+        c.setUsername(e.getUsername());
+        c.setUserId(e.getUserId());
+
+        c.setUserHandle(e.getUserHandle());
+        c.setDisplayName(e.getDisplayName());
+        c.setCredentialId(e.getCredentialId());
+
+        c.setPublicKeyCose(e.getPublicKeyCose());
+        c.setSignatureCount(e.getSignatureCount());
+        c.setTransports(e.getTransports());
+        c.setDiscoverable(e.getDiscoverable());
+        c.setAttestationObject(e.getAttestationObject());
+        c.setClientData(e.getClientData());
+
+        c.setCreateDate(e.getCreateDate());
+        c.setLastUsedDate(e.getLastUsedDate());
+
+        c.setStatus(e.getStatus());
+
+        return c;
     }
 }

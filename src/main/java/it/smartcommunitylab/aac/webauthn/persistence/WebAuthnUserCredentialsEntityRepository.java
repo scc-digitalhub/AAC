@@ -22,21 +22,25 @@ import java.util.List;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface WebAuthnUserCredentialsRepository
-    extends CustomJpaRepository<WebAuthnUserCredential, String>, DetachableJpaRepository<WebAuthnUserCredential> {
-    List<WebAuthnUserCredential> findByRealm(String realm);
+public interface WebAuthnUserCredentialsEntityRepository
+    extends
+        CustomJpaRepository<WebAuthnUserCredentialEntity, String>,
+        DetachableJpaRepository<WebAuthnUserCredentialEntity> {
+    List<WebAuthnUserCredentialEntity> findByRepositoryId(String repositoryId);
 
-    List<WebAuthnUserCredential> findByRepositoryIdAndUserId(String repositoryId, String userId);
+    List<WebAuthnUserCredentialEntity> findByRealm(String realm);
 
-    WebAuthnUserCredential findByRepositoryIdAndUserHandleAndCredentialId(
+    List<WebAuthnUserCredentialEntity> findByRepositoryIdAndUserId(String repositoryId, String userId);
+
+    WebAuthnUserCredentialEntity findByRepositoryIdAndUserHandleAndCredentialId(
         String repositoryId,
         String userHandle,
         String credentialId
     );
 
-    List<WebAuthnUserCredential> findByRepositoryIdAndCredentialId(String repositoryId, String credentialId);
+    List<WebAuthnUserCredentialEntity> findByRepositoryIdAndCredentialId(String repositoryId, String credentialId);
 
-    List<WebAuthnUserCredential> findByRepositoryIdAndUsername(String repositoryId, String username);
+    List<WebAuthnUserCredentialEntity> findByRepositoryIdAndUsername(String repositoryId, String username);
 
-    List<WebAuthnUserCredential> findByRepositoryIdAndUserHandle(String repositoryId, String userHandle);
+    List<WebAuthnUserCredentialEntity> findByRepositoryIdAndUserHandle(String repositoryId, String userHandle);
 }

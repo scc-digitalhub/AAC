@@ -28,8 +28,11 @@ import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountEntity;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountEntityRepository;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountId;
+import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredentialEntity;
+
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
@@ -203,9 +206,8 @@ public class SamlJpaUserAccountService implements UserAccountService<SamlUserAcc
             }
 
             // extract attributes and build model
-            account = new SamlUserAccountEntity(reg.getAuthority());
+            account = new SamlUserAccountEntity();
             account.setRepositoryId(repository);
-            account.setProvider(reg.getProvider());
             account.setSubjectId(subjectId);
 
             account.setUuid(s.getSubjectId());
@@ -231,7 +233,12 @@ public class SamlJpaUserAccountService implements UserAccountService<SamlUserAcc
                 logger.trace("account: {}", String.valueOf(account));
             }
 
-            return to(account);
+            //convert and set transient fields
+            SamlUserAccount a = to(account);
+            a.setAuthority(reg.getAuthority());
+            a.setProvider(reg.getProvider());
+
+            return a;
         } catch (RuntimeException e) {
             throw new RegistrationException(e.getMessage());
         }
@@ -289,7 +296,12 @@ public class SamlJpaUserAccountService implements UserAccountService<SamlUserAcc
                 logger.trace("account: {}", String.valueOf(account));
             }
 
-            return to(account);
+            //convert and set transient fields
+            SamlUserAccount a = to(account);
+            a.setAuthority(reg.getAuthority());
+            a.setProvider(reg.getProvider());
+
+            return a;
         } catch (Exception e) {
             throw new RegistrationException(e.getMessage());
         }
@@ -315,18 +327,27 @@ public class SamlJpaUserAccountService implements UserAccountService<SamlUserAcc
         }
     }
 
+    @Override
+    public void deleteAllAccountsByUser(@NotNull String repository, @NotNull String userId) {
+        logger.debug(
+            "delete accounts for user {} in repository {}",
+            String.valueOf(userId),
+            String.valueOf(repository)
+        );
+
+        List<SamlUserAccountEntity> accounts = accountRepository.findByUserIdAndRepositoryId(userId, repository);
+        accountRepository.deleteAllInBatch(accounts);
+    }
+    }
+
     /*
      * Helpers
      * TODO converters?
      */
 
     private SamlUserAccount to(SamlUserAccountEntity entity) {
-        SamlUserAccount account = new SamlUserAccount(
-            entity.getAuthority(),
-            entity.getProvider(),
-            entity.getRealm(),
-            entity.getUuid()
-        );
+        //note: transient fields are set to null, they will be populated by providers
+        SamlUserAccount account = new SamlUserAccount(null, null, entity.getRealm(), entity.getUuid());
 
         account.setRepositoryId(entity.getRepositoryId());
         account.setSubjectId(entity.getSubjectId());

@@ -17,11 +17,11 @@
 package it.smartcommunitylab.aac.openid.provider;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.nimbusds.jose.jwk.JWK;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.identity.base.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.identity.provider.AbstractIdentityProviderConfig;
+import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
 import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import java.text.ParseException;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -45,17 +45,17 @@ public class OIDCIdentityProviderConfig extends AbstractIdentityProviderConfig<O
         this(SystemKeys.AUTHORITY_OIDC, provider, realm);
     }
 
-    public OIDCIdentityProviderConfig(
-        @JsonProperty("authority") String authority,
-        @JsonProperty("provider") String provider,
-        @JsonProperty("realm") String realm
-    ) {
-        super(authority, provider, realm, new OIDCIdentityProviderConfigMap());
+    public OIDCIdentityProviderConfig(String authority, String provider, String realm) {
+        super(authority, provider, realm, new IdentityProviderSettingsMap(), new OIDCIdentityProviderConfigMap());
         this.clientRegistration = null;
     }
 
-    public OIDCIdentityProviderConfig(ConfigurableIdentityProvider cp, OIDCIdentityProviderConfigMap configMap) {
-        super(cp, configMap);
+    public OIDCIdentityProviderConfig(
+        ConfigurableIdentityProvider cp,
+        IdentityProviderSettingsMap settingsMap,
+        OIDCIdentityProviderConfigMap configMap
+    ) {
+        super(cp, settingsMap, configMap);
     }
 
     public String getRepositoryId() {

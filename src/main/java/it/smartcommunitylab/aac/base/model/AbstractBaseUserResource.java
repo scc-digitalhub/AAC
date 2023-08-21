@@ -21,6 +21,7 @@ import it.smartcommunitylab.aac.core.model.UserResource;
 
 public abstract class AbstractBaseUserResource extends AbstractBaseResource implements UserResource {
 
+    //TODO make final
     @JsonInclude
     protected String userId;
 

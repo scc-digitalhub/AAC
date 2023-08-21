@@ -19,6 +19,7 @@ package it.smartcommunitylab.aac.credentials.provider;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.provider.config.ProviderConfig;
 
-public interface CredentialsServiceConfig<M extends ConfigMap> extends ProviderConfig<M> {
+public interface CredentialsServiceConfig<M extends ConfigMap>
+    extends ProviderConfig<CredentialsServiceSettingsMap, M> {
     public String getRepositoryId();
 }

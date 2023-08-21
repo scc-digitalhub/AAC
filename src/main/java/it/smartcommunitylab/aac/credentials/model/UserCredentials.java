@@ -22,10 +22,11 @@ import it.smartcommunitylab.aac.model.Credentials;
 import org.springframework.security.core.CredentialsContainer;
 
 public interface UserCredentials extends UserResource, Credentials, CredentialsContainer {
-    // credentials are associated to accounts
-    public String getAccountId();
-
     default String getType() {
         return SystemKeys.RESOURCE_CREDENTIALS;
+    }
+
+    public default String getCredentialsId() {
+        return getId();
     }
 }

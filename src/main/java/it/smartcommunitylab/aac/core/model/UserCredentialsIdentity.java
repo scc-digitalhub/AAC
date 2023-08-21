@@ -21,6 +21,7 @@ import it.smartcommunitylab.aac.identity.model.UserIdentity;
 import java.util.Collection;
 import org.springframework.security.core.CredentialsContainer;
 
+@Deprecated
 public interface UserCredentialsIdentity extends UserIdentity, CredentialsContainer {
     // credentials
     public Collection<UserCredentials> getCredentials();

@@ -19,9 +19,8 @@ package it.smartcommunitylab.aac.credentials.model;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.EditableResource;
 import it.smartcommunitylab.aac.core.model.UserResource;
-import java.io.Serializable;
 
-public interface EditableUserCredentials extends EditableResource, UserResource, Serializable {
+public interface EditableUserCredentials extends EditableResource, UserResource {
     default String getType() {
         return SystemKeys.RESOURCE_CREDENTIALS;
     }

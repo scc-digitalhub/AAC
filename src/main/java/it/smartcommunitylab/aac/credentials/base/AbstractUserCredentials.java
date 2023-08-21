@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import it.smartcommunitylab.aac.base.model.AbstractBaseUserResource;
 import it.smartcommunitylab.aac.credentials.model.UserCredentials;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredential;
+import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserCredential;
 
 /*
  * Abstract class for user credentials
@@ -44,6 +44,11 @@ public abstract class AbstractUserCredentials extends AbstractBaseUserResource i
 
     protected AbstractUserCredentials(String authority, String provider, String realm, String id, String userId) {
         super(authority, provider, realm, id, userId);
+    }
+
+    @Override
+    public String getId() {
+        return getUuid();
     }
 
     // uuid is mandatory

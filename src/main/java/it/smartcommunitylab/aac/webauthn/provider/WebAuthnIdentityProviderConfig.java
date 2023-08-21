@@ -16,11 +16,11 @@
 
 package it.smartcommunitylab.aac.webauthn.provider;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.yubico.webauthn.data.UserVerificationRequirement;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.identity.base.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.identity.provider.AbstractIdentityProviderConfig;
+import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
 
 public class WebAuthnIdentityProviderConfig extends AbstractIdentityProviderConfig<WebAuthnIdentityProviderConfigMap> {
 
@@ -31,18 +31,22 @@ public class WebAuthnIdentityProviderConfig extends AbstractIdentityProviderConf
     private static final int TIMEOUT = 9;
     private static final int MAX_SESSION_DURATION = 24 * 60 * 60; // 24h
 
-    public WebAuthnIdentityProviderConfig(
-        @JsonProperty("provider") String provider,
-        @JsonProperty("realm") String realm
-    ) {
-        super(SystemKeys.AUTHORITY_WEBAUTHN, provider, realm, new WebAuthnIdentityProviderConfigMap());
+    public WebAuthnIdentityProviderConfig(String provider, String realm) {
+        super(
+            SystemKeys.AUTHORITY_WEBAUTHN,
+            provider,
+            realm,
+            new IdentityProviderSettingsMap(),
+            new WebAuthnIdentityProviderConfigMap()
+        );
     }
 
     public WebAuthnIdentityProviderConfig(
         ConfigurableIdentityProvider cp,
+        IdentityProviderSettingsMap settingsMap,
         WebAuthnIdentityProviderConfigMap configMap
     ) {
-        super(cp, configMap);
+        super(cp, settingsMap, configMap);
     }
 
     public String getRepositoryId() {
