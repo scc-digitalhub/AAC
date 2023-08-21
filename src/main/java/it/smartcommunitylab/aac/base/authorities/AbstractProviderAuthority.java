@@ -20,7 +20,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
-import com.oracle.truffle.api.library.GenerateLibrary.Abstract;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.base.model.AbstractSettingsMap;
 import it.smartcommunitylab.aac.base.provider.AbstractConfigurableResourceProvider;
@@ -28,7 +27,6 @@ import it.smartcommunitylab.aac.base.provider.config.AbstractProviderConfig;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.core.authorities.ProviderAuthority;
 import it.smartcommunitylab.aac.core.model.Resource;
-import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import java.util.Collection;
 import java.util.List;
@@ -88,7 +86,13 @@ public abstract class AbstractProviderAuthority<
         this.registrationRepository = registrationRepository;
     }
 
+    @Override
     public String getAuthorityId() {
+        return authorityId;
+    }
+
+    @Override
+    public String getId() {
         return authorityId;
     }
 

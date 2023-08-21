@@ -104,7 +104,7 @@ public class SamlSubjectResolver extends AbstractProvider<SamlUserAccount> imple
     public Subject resolveByUsername(String username) {
         logger.debug("resolve by username {}", String.valueOf(username));
         SamlUserAccount account = accountService
-            .findAccountByUsername(repositoryId, username)
+            .findAccountsByUsername(repositoryId, username)
             .stream()
             .findFirst()
             .orElse(null);
@@ -125,7 +125,7 @@ public class SamlSubjectResolver extends AbstractProvider<SamlUserAccount> imple
 
         logger.debug("resolve by email {}", String.valueOf(email));
         SamlUserAccount account = accountService
-            .findAccountByEmail(repositoryId, email)
+            .findAccountsByEmail(repositoryId, email)
             .stream()
             .filter(a -> a.isEmailVerified())
             .findFirst()

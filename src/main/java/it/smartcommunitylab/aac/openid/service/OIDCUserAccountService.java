@@ -58,7 +58,7 @@ public class OIDCUserAccountService implements UserAccountService<OIDCUserAccoun
     }
 
     @Transactional(readOnly = true)
-    public List<OIDCUserAccount> findAccountByRealm(String realm) {
+    public List<OIDCUserAccount> findAccountsByRealm(String realm) {
         logger.debug("find account for realm {}", String.valueOf(realm));
 
         List<OIDCUserAccount> accounts = accountRepository.findByRealm(realm);
@@ -89,7 +89,7 @@ public class OIDCUserAccountService implements UserAccountService<OIDCUserAccoun
     }
 
     @Transactional(readOnly = true)
-    public List<OIDCUserAccount> findAccountByUsername(String repository, String username) {
+    public List<OIDCUserAccount> findAccountsByUsername(String repository, String username) {
         logger.debug(
             "find account with username {} in repository {}",
             String.valueOf(username),
@@ -106,7 +106,7 @@ public class OIDCUserAccountService implements UserAccountService<OIDCUserAccoun
     }
 
     @Transactional(readOnly = true)
-    public List<OIDCUserAccount> findAccountByEmail(String repository, String email) {
+    public List<OIDCUserAccount> findAccountsByEmail(String repository, String email) {
         logger.debug("find account with email {} in repository {}", String.valueOf(email), String.valueOf(repository));
 
         List<OIDCUserAccount> accounts = accountRepository.findByRepositoryIdAndEmail(repository, email);
@@ -133,7 +133,7 @@ public class OIDCUserAccountService implements UserAccountService<OIDCUserAccoun
     }
 
     @Transactional(readOnly = true)
-    public List<OIDCUserAccount> findAccountByUser(String repository, String userId) {
+    public List<OIDCUserAccount> findAccountsByUser(String repository, String userId) {
         logger.debug("find account for user {} in repository {}", String.valueOf(userId), String.valueOf(repository));
 
         List<OIDCUserAccount> accounts = accountRepository.findByUserIdAndRepositoryId(userId, repository);

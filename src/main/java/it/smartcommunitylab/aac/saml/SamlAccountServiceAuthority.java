@@ -18,14 +18,14 @@ package it.smartcommunitylab.aac.saml;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.AccountServiceAuthority;
-import it.smartcommunitylab.aac.accounts.base.AbstractEditableAccount;
-import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountService;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
+import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
 import it.smartcommunitylab.aac.base.authorities.AbstractProviderAuthority;
+import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.core.service.TranslatorProviderConfigRepository;
-import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
+import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
 import it.smartcommunitylab.aac.saml.provider.SamlAccountService;
 import it.smartcommunitylab.aac.saml.provider.SamlAccountServiceConfig;
 import it.smartcommunitylab.aac.saml.provider.SamlAccountServiceConfigConverter;
@@ -37,9 +37,8 @@ import org.springframework.util.Assert;
 
 @Service
 public class SamlAccountServiceAuthority
-    extends AbstractProviderAuthority<SamlAccountService, SamlUserAccount, ConfigurableAccountService, SamlIdentityProviderConfigMap, SamlAccountServiceConfig>
-    implements
-        AccountServiceAuthority<SamlAccountService, SamlUserAccount, AbstractEditableAccount, SamlIdentityProviderConfigMap, SamlAccountServiceConfig> {
+    extends AbstractProviderAuthority<SamlAccountService, SamlAccountServiceConfig>
+    implements AccountServiceAuthority<SamlAccountService, SamlAccountServiceConfig, SamlIdentityProviderConfigMap> {
 
     // account service
     private final UserAccountService<SamlUserAccount> accountService;
@@ -69,11 +68,6 @@ public class SamlAccountServiceAuthority
         this.resourceService = resourceService;
     }
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_ACCOUNT;
-    }
-
     protected SamlAccountService buildProvider(SamlAccountServiceConfig config) {
         SamlAccountService service = new SamlAccountService(
             config.getProvider(),
@@ -93,5 +87,10 @@ public class SamlAccountServiceAuthority
             super(externalRepository);
             setConverter(new SamlAccountServiceConfigConverter());
         }
+    }
+
+    @Override
+    public ConfigurationProvider<SamlAccountServiceConfig, AccountServiceSettingsMap, SamlIdentityProviderConfigMap> getConfigurationProvider() {
+        return null;
     }
 }

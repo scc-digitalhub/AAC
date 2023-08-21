@@ -53,7 +53,7 @@ public abstract class AbstractProviderConfig<S extends AbstractSettingsMap, M ex
         this.version = 0;
     }
 
-    protected AbstractProviderConfig(ConfigurableProvider cp, S settingsMap, M configMap) {
+    protected AbstractProviderConfig(ConfigurableProvider<S> cp, S settingsMap, M configMap) {
         this(cp.getAuthority(), cp.getProvider(), cp.getRealm(), settingsMap, configMap);
         this.name = cp.getName();
         this.titleMap = cp.getTitleMap();

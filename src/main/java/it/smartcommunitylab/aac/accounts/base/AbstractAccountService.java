@@ -159,7 +159,7 @@ public abstract class AbstractAccountService<
 
     @Override
     public void deleteAccounts(String userId) {
-        List<U> accounts = userAccountService.findAccountByUser(repositoryId, userId);
+        List<U> accounts = userAccountService.findAccountsByUser(repositoryId, userId);
         for (U a : accounts) {
             // remove account
             userAccountService.deleteAccount(repositoryId, a.getAccountId());
@@ -178,8 +178,21 @@ public abstract class AbstractAccountService<
 
     @Override
     @Transactional(readOnly = true)
+    public List<U> listAccounts() {
+        List<U> accounts = userAccountService.findAccounts(repositoryId);
+
+        // map to our authority
+        accounts.forEach(a -> {
+            a.setAuthority(getAuthority());
+            a.setProvider(getProvider());
+        });
+        return accounts;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<U> listAccounts(String userId) {
-        List<U> accounts = userAccountService.findAccountByUser(repositoryId, userId);
+        List<U> accounts = userAccountService.findAccountsByUser(repositoryId, userId);
 
         // map to our authority
         accounts.forEach(a -> {

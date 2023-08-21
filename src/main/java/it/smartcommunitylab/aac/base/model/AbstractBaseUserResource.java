@@ -41,7 +41,7 @@ public abstract class AbstractBaseUserResource extends AbstractBaseResource impl
     }
 
     //userId is persisted, let actual classes handle
-    public abstract void setUserId(String userId);
+    // public abstract void setUserId(String userId);
 
     @Override
     public String getUserId() {

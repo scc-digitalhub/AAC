@@ -24,9 +24,10 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.model.SubjectStatus;
-import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
+import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
+import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountEntity;
+import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountEntityRepository;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountId;
-import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -41,14 +42,14 @@ import org.springframework.util.StringUtils;
  *  We enforce detach on fetch to keep internal datasource isolated.
  */
 @Transactional
-public class SamlUserAccountService implements UserAccountService<SamlUserAccount> {
+public class SamlJpaUserAccountService implements UserAccountService<SamlUserAccount> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final SamlUserAccountRepository accountRepository;
+    private final SamlUserAccountEntityRepository accountRepository;
     private final SubjectService subjectService;
 
-    public SamlUserAccountService(SamlUserAccountRepository accountRepository, SubjectService subjectService) {
+    public SamlJpaUserAccountService(SamlUserAccountEntityRepository accountRepository, SubjectService subjectService) {
         Assert.notNull(accountRepository, "account repository is required");
         Assert.notNull(subjectService, "subject service is mandatory");
 
@@ -57,14 +58,27 @@ public class SamlUserAccountService implements UserAccountService<SamlUserAccoun
     }
 
     @Transactional(readOnly = true)
-    public List<SamlUserAccount> findAccountByRealm(String realm) {
-        logger.debug("find account for realm {}", String.valueOf(realm));
+    public List<SamlUserAccount> findAccounts(String repositoryId) {
+        logger.debug("find account for repositoryId {}", String.valueOf(repositoryId));
 
-        List<SamlUserAccount> accounts = accountRepository.findByRealm(realm);
+        List<SamlUserAccountEntity> accounts = accountRepository.findByRepositoryId(repositoryId);
         return accounts
             .stream()
             .map(a -> {
-                return accountRepository.detach(a);
+                return to(a);
+            })
+            .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<SamlUserAccount> findAccountsByRealm(String realm) {
+        logger.debug("find account for realm {}", String.valueOf(realm));
+
+        List<SamlUserAccountEntity> accounts = accountRepository.findByRealm(realm);
+        return accounts
+            .stream()
+            .map(a -> {
+                return to(a);
             })
             .collect(Collectors.toList());
     }
@@ -77,42 +91,42 @@ public class SamlUserAccountService implements UserAccountService<SamlUserAccoun
             String.valueOf(repository)
         );
 
-        SamlUserAccount account = accountRepository.findOne(new SamlUserAccountId(repository, subjectId));
+        SamlUserAccountEntity account = accountRepository.findOne(new SamlUserAccountId(repository, subjectId));
         if (account == null) {
             return null;
         }
 
         // detach the entity, we don't want modifications to be persisted via a
         // read-only interface
-        return accountRepository.detach(account);
+        return to(account);
     }
 
     @Transactional(readOnly = true)
-    public List<SamlUserAccount> findAccountByUsername(String repository, String username) {
+    public List<SamlUserAccount> findAccountsByUsername(String repository, String username) {
         logger.debug(
             "find account with username {} in repository {}",
             String.valueOf(username),
             String.valueOf(repository)
         );
 
-        List<SamlUserAccount> accounts = accountRepository.findByRepositoryIdAndUsername(repository, username);
+        List<SamlUserAccountEntity> accounts = accountRepository.findByRepositoryIdAndUsername(repository, username);
         return accounts
             .stream()
             .map(a -> {
-                return accountRepository.detach(a);
+                return to(a);
             })
             .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public List<SamlUserAccount> findAccountByEmail(String repository, String email) {
+    public List<SamlUserAccount> findAccountsByEmail(String repository, String email) {
         logger.debug("find account with email {} in repository {}", String.valueOf(email), String.valueOf(repository));
 
-        List<SamlUserAccount> accounts = accountRepository.findByRepositoryIdAndEmail(repository, email);
+        List<SamlUserAccountEntity> accounts = accountRepository.findByRepositoryIdAndEmail(repository, email);
         return accounts
             .stream()
             .map(a -> {
-                return accountRepository.detach(a);
+                return to(a);
             })
             .collect(Collectors.toList());
     }
@@ -121,25 +135,25 @@ public class SamlUserAccountService implements UserAccountService<SamlUserAccoun
     public SamlUserAccount findAccountByUuid(String uuid) {
         logger.debug("find account with uuid {}", String.valueOf(uuid));
 
-        SamlUserAccount account = accountRepository.findByUuid(uuid);
+        SamlUserAccountEntity account = accountRepository.findByUuid(uuid);
         if (account == null) {
             return null;
         }
 
         // detach the entity, we don't want modifications to be persisted via a
         // read-only interface
-        return accountRepository.detach(account);
+        return to(account);
     }
 
     @Transactional(readOnly = true)
-    public List<SamlUserAccount> findAccountByUser(String repository, String userId) {
+    public List<SamlUserAccount> findAccountsByUser(String repository, String userId) {
         logger.debug("find account for user {} in repository {}", String.valueOf(userId), String.valueOf(repository));
 
-        List<SamlUserAccount> accounts = accountRepository.findByUserIdAndRepositoryId(userId, repository);
+        List<SamlUserAccountEntity> accounts = accountRepository.findByUserIdAndRepositoryId(userId, repository);
         return accounts
             .stream()
             .map(a -> {
-                return accountRepository.detach(a);
+                return to(a);
             })
             .collect(Collectors.toList());
     }
@@ -163,7 +177,7 @@ public class SamlUserAccountService implements UserAccountService<SamlUserAccoun
 
         try {
             // check if already registered
-            SamlUserAccount account = accountRepository.findOne(new SamlUserAccountId(repository, subjectId));
+            SamlUserAccountEntity account = accountRepository.findOne(new SamlUserAccountId(repository, subjectId));
             if (account != null) {
                 throw new DuplicatedDataException("subjectId");
             }
@@ -189,7 +203,7 @@ public class SamlUserAccountService implements UserAccountService<SamlUserAccoun
             }
 
             // extract attributes and build model
-            account = new SamlUserAccount(reg.getAuthority());
+            account = new SamlUserAccountEntity(reg.getAuthority());
             account.setRepositoryId(repository);
             account.setProvider(reg.getProvider());
             account.setSubjectId(subjectId);
@@ -212,16 +226,12 @@ public class SamlUserAccountService implements UserAccountService<SamlUserAccoun
 
             // note: use flush because we detach the entity!
             account = accountRepository.saveAndFlush(account);
-            account = accountRepository.detach(account);
-
-            account.setAuthority(reg.getAuthority());
-            account.setProvider(reg.getProvider());
 
             if (logger.isTraceEnabled()) {
                 logger.trace("account: {}", String.valueOf(account));
             }
 
-            return account;
+            return to(account);
         } catch (RuntimeException e) {
             throw new RegistrationException(e.getMessage());
         }
@@ -244,7 +254,7 @@ public class SamlUserAccountService implements UserAccountService<SamlUserAccoun
             logger.trace("registration: {}", String.valueOf(reg));
         }
 
-        SamlUserAccount account = accountRepository.findOne(new SamlUserAccountId(repository, subjectId));
+        SamlUserAccountEntity account = accountRepository.findOne(new SamlUserAccountId(repository, subjectId));
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -274,16 +284,12 @@ public class SamlUserAccountService implements UserAccountService<SamlUserAccoun
             account.setStatus(reg.getStatus());
 
             account = accountRepository.saveAndFlush(account);
-            account = accountRepository.detach(account);
 
             if (logger.isTraceEnabled()) {
                 logger.trace("account: {}", String.valueOf(account));
             }
 
-            account.setAuthority(reg.getAuthority());
-            account.setProvider(reg.getProvider());
-
-            return account;
+            return to(account);
         } catch (Exception e) {
             throw new RegistrationException(e.getMessage());
         }
@@ -291,7 +297,7 @@ public class SamlUserAccountService implements UserAccountService<SamlUserAccoun
 
     @Override
     public void deleteAccount(String repository, String subjectId) {
-        SamlUserAccount account = accountRepository.findOne(new SamlUserAccountId(repository, subjectId));
+        SamlUserAccountEntity account = accountRepository.findOne(new SamlUserAccountId(repository, subjectId));
         if (account != null) {
             String uuid = account.getUuid();
             if (uuid != null) {
@@ -307,5 +313,35 @@ public class SamlUserAccountService implements UserAccountService<SamlUserAccoun
             );
             accountRepository.delete(account);
         }
+    }
+
+    /*
+     * Helpers
+     * TODO converters?
+     */
+
+    private SamlUserAccount to(SamlUserAccountEntity entity) {
+        SamlUserAccount account = new SamlUserAccount(
+            entity.getAuthority(),
+            entity.getProvider(),
+            entity.getRealm(),
+            entity.getUuid()
+        );
+
+        account.setRepositoryId(entity.getRepositoryId());
+        account.setSubjectId(entity.getSubjectId());
+
+        account.setUserId(entity.getUserId());
+
+        account.setIssuer(entity.getIssuer());
+        account.setUsername(entity.getUsername());
+        account.setEmail(entity.getEmail());
+        account.setEmailVerified(entity.getEmailVerified());
+        account.setName(entity.getName());
+        account.setSurname(entity.getSurname());
+        account.setLang(entity.getLang());
+        account.setStatus(entity.getStatus());
+
+        return account;
     }
 }

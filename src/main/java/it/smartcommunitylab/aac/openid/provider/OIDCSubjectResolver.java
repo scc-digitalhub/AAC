@@ -108,7 +108,7 @@ public class OIDCSubjectResolver extends AbstractProvider<OIDCUserAccount> imple
     public Subject resolveByUsername(String username) {
         logger.debug("resolve by username {}", String.valueOf(username));
         OIDCUserAccount account = accountService
-            .findAccountByUsername(repositoryId, username)
+            .findAccountsByUsername(repositoryId, username)
             .stream()
             .findFirst()
             .orElse(null);
@@ -129,7 +129,7 @@ public class OIDCSubjectResolver extends AbstractProvider<OIDCUserAccount> imple
 
         logger.debug("resolve by email {}", String.valueOf(email));
         OIDCUserAccount account = accountService
-            .findAccountByEmail(repositoryId, email)
+            .findAccountsByEmail(repositoryId, email)
             .stream()
             .filter(a -> a.isEmailVerified())
             .findFirst()

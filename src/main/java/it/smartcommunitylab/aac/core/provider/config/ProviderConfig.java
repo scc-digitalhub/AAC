@@ -48,7 +48,7 @@ public interface ProviderConfig<S extends ConfigMap, M extends ConfigMap> {
 
     public M getConfigMap();
 
-    public S getSettings();
+    public S getSettingsMap();
 
     public int getVersion();
 }

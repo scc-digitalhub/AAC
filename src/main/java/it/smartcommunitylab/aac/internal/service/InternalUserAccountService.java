@@ -59,7 +59,7 @@ public class InternalUserAccountService
     }
 
     @Transactional(readOnly = true)
-    public List<InternalUserAccount> findAccountByRealm(String realm) {
+    public List<InternalUserAccount> findAccountsByRealm(String realm) {
         logger.debug("find account for realm {}", String.valueOf(realm));
 
         List<InternalUserAccount> accounts = accountRepository.findByRealm(realm);
@@ -88,7 +88,7 @@ public class InternalUserAccountService
     }
 
     @Transactional(readOnly = true)
-    public List<InternalUserAccount> findAccountByUsername(String repository, String username) {
+    public List<InternalUserAccount> findAccountsByUsername(String repository, String username) {
         logger.debug(
             "find account with username {} in repository {}",
             String.valueOf(username),
@@ -107,7 +107,7 @@ public class InternalUserAccountService
     }
 
     @Transactional(readOnly = true)
-    public List<InternalUserAccount> findAccountByEmail(String repository, String email) {
+    public List<InternalUserAccount> findAccountsByEmail(String repository, String email) {
         logger.debug("find account with email {} in repository {}", String.valueOf(email), String.valueOf(repository));
 
         List<InternalUserAccount> accounts = accountRepository.findByRepositoryIdAndEmail(repository, email);
@@ -148,7 +148,7 @@ public class InternalUserAccountService
     }
 
     @Transactional(readOnly = true)
-    public List<InternalUserAccount> findAccountByUser(String repository, String userId) {
+    public List<InternalUserAccount> findAccountsByUser(String repository, String userId) {
         logger.debug("find account for user {} in repository {}", String.valueOf(userId), String.valueOf(repository));
 
         List<InternalUserAccount> accounts = accountRepository.findByUserIdAndRepositoryId(userId, repository);

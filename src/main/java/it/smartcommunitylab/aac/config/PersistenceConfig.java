@@ -62,7 +62,7 @@ import it.smartcommunitylab.aac.password.service.InternalPasswordUserCredentials
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
-import it.smartcommunitylab.aac.saml.service.SamlUserAccountService;
+import it.smartcommunitylab.aac.saml.service.SamlJpaUserAccountService;
 import it.smartcommunitylab.aac.scope.InMemoryScopeRegistry;
 import it.smartcommunitylab.aac.scope.ScopeProvider;
 import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfig;
@@ -253,7 +253,7 @@ public class PersistenceConfig {
         SamlUserAccountRepository accountRepository,
         SubjectService subjectService
     ) {
-        return new SamlUserAccountService(accountRepository, subjectService);
+        return new SamlJpaUserAccountService(accountRepository, subjectService);
     }
 
     @Bean

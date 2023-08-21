@@ -49,11 +49,10 @@ public abstract class AbstractConfigurableProviderAuthority<
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        Assert.notNull(getConfigurationProvider(), "config provider is mandatory");
+        // Assert.notNull(getConfigurationProvider(), "config provider is mandatory");
     }
-
-    @Override
-    public abstract ConfigurationProvider<C, S, M> getConfigurationProvider();
+    // @Override
+    // public abstract ConfigurationProvider<C, S, M> getConfigurationProvider();
     // @Override
     // public C registerProvider(ConfigurableProvider cp)
     //     throws IllegalArgumentException, RegistrationException, SystemException {

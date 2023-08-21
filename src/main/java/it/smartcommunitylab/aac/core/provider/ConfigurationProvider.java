@@ -25,6 +25,7 @@ import java.util.Map;
 
 /*
  * Expose provider configuration outside modules
+ * TODO detach from authorities, this depends ONLY from config and repositories!
  */
 public interface ConfigurationProvider<C extends ProviderConfig<S, M>, S extends ConfigMap, M extends ConfigMap> {
     //configs are tied to an authority

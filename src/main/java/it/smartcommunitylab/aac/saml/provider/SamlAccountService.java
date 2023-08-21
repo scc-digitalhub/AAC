@@ -18,16 +18,15 @@ package it.smartcommunitylab.aac.saml.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.base.AbstractAccountService;
-import it.smartcommunitylab.aac.accounts.base.AbstractEditableAccount;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.saml.model.SamlEditableUserAccount;
-import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
+import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 public class SamlAccountService
-    extends AbstractAccountService<SamlUserAccount, AbstractEditableAccount, SamlIdentityProviderConfigMap, SamlAccountServiceConfig> {
+    extends AbstractAccountService<SamlUserAccount, SamlEditableUserAccount, SamlAccountServiceConfig, SamlIdentityProviderConfigMap> {
 
     public SamlAccountService(
         String providerId,

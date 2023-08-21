@@ -19,6 +19,7 @@ package it.smartcommunitylab.aac.saml.provider;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.base.AbstractAccountServiceConfig;
 import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountService;
+import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
 
 public class SamlAccountServiceConfig extends AbstractAccountServiceConfig<SamlIdentityProviderConfigMap> {
 
@@ -37,13 +38,18 @@ public class SamlAccountServiceConfig extends AbstractAccountServiceConfig<SamlI
     }
 
     public SamlAccountServiceConfig(String authority, String provider, String realm) {
-        super(authority, provider, realm, new SamlIdentityProviderConfigMap());
+        super(authority, provider, realm, new AccountServiceSettingsMap(), new SamlIdentityProviderConfigMap());
     }
 
-    public SamlAccountServiceConfig(ConfigurableAccountService cp, SamlIdentityProviderConfigMap configMap) {
-        super(cp, configMap);
+    public SamlAccountServiceConfig(
+        ConfigurableAccountService cp,
+        AccountServiceSettingsMap settingsMap,
+        SamlIdentityProviderConfigMap configMap
+    ) {
+        super(cp, settingsMap, configMap);
     }
 
+    @Override
     public String getRepositoryId() {
         // not configurable for now
         return getProvider();

@@ -98,7 +98,7 @@ public class InternalSubjectResolver
 
         logger.debug("resolve by email " + email);
         InternalUserAccount account = accountService
-            .findAccountByEmail(repositoryId, email)
+            .findAccountsByEmail(repositoryId, email)
             .stream()
             .filter(a -> a.isEmailVerified())
             .findFirst()

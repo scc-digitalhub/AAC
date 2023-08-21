@@ -118,7 +118,7 @@ public class InternalAccountService
     @Override
     @Transactional(readOnly = true)
     public List<InternalUserAccount> listAccounts(String userId) {
-        List<InternalUserAccount> accounts = userAccountService.findAccountByUser(repositoryId, userId);
+        List<InternalUserAccount> accounts = userAccountService.findAccountsByUser(repositoryId, userId);
 
         // map to our authority
         accounts.forEach(a -> {
@@ -183,7 +183,7 @@ public class InternalAccountService
         // we pick first account matching email, repository should contain unique
         // email+provider
         InternalUserAccount account = userAccountService
-            .findAccountByEmail(repositoryId, email)
+            .findAccountsByEmail(repositoryId, email)
             .stream()
             .filter(a -> a.isEmailVerified())
             .findFirst()
@@ -269,7 +269,7 @@ public class InternalAccountService
     public void deleteAccounts(String userId) {
         logger.debug("delete accounts for user {}", String.valueOf(userId));
 
-        List<InternalUserAccount> accounts = userAccountService.findAccountByUser(repositoryId, userId);
+        List<InternalUserAccount> accounts = userAccountService.findAccountsByUser(repositoryId, userId);
         for (InternalUserAccount a : accounts) {
             // remove account
             userAccountService.deleteAccount(repositoryId, a.getUsername());
@@ -389,7 +389,7 @@ public class InternalAccountService
         // we require unique email
         if (
             StringUtils.hasText(emailAddress) &&
-            userAccountService.findAccountByEmail(repositoryId, emailAddress).size() > 0
+            userAccountService.findAccountsByEmail(repositoryId, emailAddress).size() > 0
         ) {
             throw new DuplicatedDataException("email");
         }
@@ -600,7 +600,7 @@ public class InternalAccountService
 
             // if set to value, check if unique
             if (StringUtils.hasText(email)) {
-                if (userAccountService.findAccountByEmail(repositoryId, email).size() > 0) {
+                if (userAccountService.findAccountsByEmail(repositoryId, email).size() > 0) {
                     throw new DuplicatedDataException("email");
                 }
 

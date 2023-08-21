@@ -22,21 +22,22 @@ import java.util.List;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface SamlUserAccountRepository
-    extends CustomJpaRepository<SamlUserAccount, SamlUserAccountId>, DetachableJpaRepository<SamlUserAccount> {
-    SamlUserAccount findByUuid(String uuid);
+public interface SamlUserAccountEntityRepository
+    extends
+        CustomJpaRepository<SamlUserAccountEntity, SamlUserAccountId>, DetachableJpaRepository<SamlUserAccountEntity> {
+    SamlUserAccountEntity findByUuid(String uuid);
 
-    List<SamlUserAccount> findByRepositoryIdAndEmail(String repositoryId, String email);
+    List<SamlUserAccountEntity> findByRepositoryIdAndEmail(String repositoryId, String email);
 
-    List<SamlUserAccount> findByRepositoryIdAndUsername(String repositoryId, String username);
+    List<SamlUserAccountEntity> findByRepositoryIdAndUsername(String repositoryId, String username);
 
-    List<SamlUserAccount> findByRealm(String realm);
+    List<SamlUserAccountEntity> findByRealm(String realm);
 
-    List<SamlUserAccount> findByRepositoryId(String repositoryId);
+    List<SamlUserAccountEntity> findByRepositoryId(String repositoryId);
 
-    List<SamlUserAccount> findByUserId(String userId);
+    List<SamlUserAccountEntity> findByUserId(String userId);
 
-    List<SamlUserAccount> findByUserIdAndRealm(String userId, String realm);
+    List<SamlUserAccountEntity> findByUserIdAndRealm(String userId, String realm);
 
-    List<SamlUserAccount> findByUserIdAndRepositoryId(String userId, String repositoryId);
+    List<SamlUserAccountEntity> findByUserIdAndRepositoryId(String userId, String repositoryId);
 }

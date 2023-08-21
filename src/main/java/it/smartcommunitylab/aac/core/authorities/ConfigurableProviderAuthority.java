@@ -21,6 +21,7 @@ import it.smartcommunitylab.aac.core.model.Resource;
 import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
 import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.config.ProviderConfig;
+import org.springframework.lang.Nullable;
 
 /*
  * Provider authorities handle (configurable) resource providers by managing registrations and configuration
@@ -46,5 +47,5 @@ public interface ConfigurableProviderAuthority<
     /*
      * Config provider exposes configuration
      */
-    public ConfigurationProvider<C, S, M> getConfigurationProvider();
+    public @Nullable ConfigurationProvider<C, S, M> getConfigurationProvider();
 }

@@ -23,17 +23,19 @@ import java.util.List;
 import javax.validation.constraints.NotNull;
 
 public interface UserAccountService<U extends UserAccount> {
-    public List<U> findAccountByRealm(@NotNull String realm);
+    public List<U> findAccounts(@NotNull String repositoryId);
+
+    public List<U> findAccountsByRealm(@NotNull String realm);
 
     public U findAccountById(@NotNull String repository, @NotNull String id);
 
     public U findAccountByUuid(@NotNull String uuid);
 
-    public List<U> findAccountByUsername(@NotNull String repository, @NotNull String username);
+    public List<U> findAccountsByUsername(@NotNull String repository, @NotNull String username);
 
-    public List<U> findAccountByEmail(@NotNull String repository, @NotNull String email);
+    public List<U> findAccountsByEmail(@NotNull String repository, @NotNull String email);
 
-    public List<U> findAccountByUser(@NotNull String repository, @NotNull String userId);
+    public List<U> findAccountsByUser(@NotNull String repository, @NotNull String userId);
 
     public U addAccount(@NotNull String repository, @NotNull String id, @NotNull U reg) throws RegistrationException;
 

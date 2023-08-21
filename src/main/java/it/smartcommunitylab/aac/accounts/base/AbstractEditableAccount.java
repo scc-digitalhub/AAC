@@ -75,4 +75,8 @@ public abstract class AbstractEditableAccount extends AbstractBaseUserResource i
     @Override
     @JsonSchemaIgnore
     public abstract String getAccountId();
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
 }

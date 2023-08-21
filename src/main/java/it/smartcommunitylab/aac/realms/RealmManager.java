@@ -599,9 +599,9 @@ public class RealmManager {
         rc.setClientApps(new ArrayList<>(apps));
 
         // user accounts
-        List<InternalUserAccount> internalUsers = internalUserAccountService.findAccountByRealm(realm);
-        List<OIDCUserAccount> oidcUsers = oidcUserAccountService.findAccountByRealm(realm);
-        List<SamlUserAccount> samlUsers = samlUserAccountService.findAccountByRealm(realm);
+        List<InternalUserAccount> internalUsers = internalUserAccountService.findAccountsByRealm(realm);
+        List<OIDCUserAccount> oidcUsers = oidcUserAccountService.findAccountsByRealm(realm);
+        List<SamlUserAccount> samlUsers = samlUserAccountService.findAccountsByRealm(realm);
 
         List<AbstractUserAccount> users = Stream
             .of(internalUsers, oidcUsers, samlUsers)

@@ -76,20 +76,19 @@ public class SamlEditableUserAccount extends AbstractEditableAccount {
     private String lang;
 
     protected SamlEditableUserAccount() {
-        super(SystemKeys.AUTHORITY_OIDC, null, null);
+        super(SystemKeys.AUTHORITY_SAML, null, null, null);
     }
 
     public SamlEditableUserAccount(String provider, String uuid) {
-        super(SystemKeys.AUTHORITY_INTERNAL, provider, uuid);
+        super(SystemKeys.AUTHORITY_SAML, provider, null, uuid);
     }
 
     public SamlEditableUserAccount(String authority, String provider, String uuid) {
-        super(authority, provider, uuid);
+        super(authority, provider, null, uuid);
     }
 
     public SamlEditableUserAccount(String authority, String provider, String realm, String userId, String uuid) {
-        super(authority, provider, uuid);
-        setRealm(realm);
+        super(authority, provider, realm, uuid);
         setUserId(userId);
     }
 

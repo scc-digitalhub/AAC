@@ -60,7 +60,7 @@ public class InternalAccountProvider extends AbstractAccountProvider<InternalUse
         // we pick first account matching email, repository should contain unique
         // email+provider
         InternalUserAccount account = accountService
-            .findAccountByEmail(repositoryId, email)
+            .findAccountsByEmail(repositoryId, email)
             .stream()
             .filter(a -> a.isEmailVerified())
             .findFirst()

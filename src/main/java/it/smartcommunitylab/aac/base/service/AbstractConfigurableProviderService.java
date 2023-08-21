@@ -120,7 +120,16 @@ public abstract class AbstractConfigurableProviderService<
 
     protected ConfigurationProvider<? extends ProviderConfig<S, ?>, S, ?> getConfigurationProvider(String authority)
         throws NoSuchAuthorityException {
-        return authorityService.getAuthority(authority).getConfigurationProvider();
+        ConfigurationProvider<? extends ProviderConfig<S, ?>, S, ?> cp = authorityService
+            .getAuthority(authority)
+            .getConfigurationProvider();
+
+        //config provider could be null for authorities which don't expose dynamic config
+        if (cp == null) {
+            throw new IllegalArgumentException("config provider not available");
+        }
+
+        return cp;
     }
 
     /*
