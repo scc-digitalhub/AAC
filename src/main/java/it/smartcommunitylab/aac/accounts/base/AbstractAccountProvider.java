@@ -17,8 +17,8 @@
 package it.smartcommunitylab.aac.accounts.base;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.accounts.provider.AccountProvider;
-import it.smartcommunitylab.aac.accounts.provider.UserAccountService;
 import it.smartcommunitylab.aac.base.provider.AbstractProvider;
 import it.smartcommunitylab.aac.common.MissingDataException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;

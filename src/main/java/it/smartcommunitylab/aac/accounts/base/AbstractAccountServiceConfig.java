@@ -23,8 +23,9 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountProvider;
+import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountService;
 import it.smartcommunitylab.aac.accounts.provider.AccountServiceConfig;
+import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.base.provider.config.AbstractProviderConfig;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountServiceConfig;
@@ -46,39 +47,36 @@ import org.springframework.util.StringUtils;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(Include.ALWAYS)
 public abstract class AbstractAccountServiceConfig<M extends AbstractConfigMap>
-    extends AbstractProviderConfig<M, ConfigurableAccountProvider>
+    extends AbstractProviderConfig<AccountServiceSettingsMap, M>
     implements AccountServiceConfig<M> {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
-    protected String repositoryId;
-    protected PersistenceMode persistence;
-
-    protected AbstractAccountServiceConfig(String authority, String provider, String realm, M configMap) {
-        super(authority, provider, realm, configMap);
+    protected AbstractAccountServiceConfig(
+        String authority,
+        String provider,
+        String realm,
+        AccountServiceSettingsMap settingsMap,
+        M configMap
+    ) {
+        super(authority, provider, realm, settingsMap, configMap);
     }
 
-    protected AbstractAccountServiceConfig(ConfigurableAccountProvider cp, M configMap) {
-        super(cp, configMap);
-        this.repositoryId = cp.getRepositoryId();
-        this.persistence = StringUtils.hasText(cp.getPersistence()) ? PersistenceMode.parse(cp.getPersistence()) : null;
+    protected AbstractAccountServiceConfig(
+        ConfigurableAccountService cp,
+        AccountServiceSettingsMap settingsMap,
+        M configMap
+    ) {
+        super(cp, settingsMap, configMap);
     }
 
     public String getRepositoryId() {
         // if undefined always use realm as default repository id
-        return StringUtils.hasText(repositoryId) ? repositoryId : getRealm();
-    }
-
-    public void setRepositoryId(String repositoryId) {
-        this.repositoryId = repositoryId;
+        return StringUtils.hasText(settingsMap.getRepositoryId()) ? settingsMap.getRepositoryId() : getRealm();
     }
 
     public PersistenceMode getPersistence() {
         // by default persist to repository
-        return persistence != null ? persistence : PersistenceMode.REPOSITORY;
-    }
-
-    public void setPersistence(PersistenceMode persistence) {
-        this.persistence = persistence;
+        return settingsMap.getPersistence() != null ? settingsMap.getPersistence() : PersistenceMode.REPOSITORY;
     }
 }

@@ -17,11 +17,11 @@
 package it.smartcommunitylab.aac.accounts.base;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountProvider;
 import it.smartcommunitylab.aac.accounts.model.EditableUserAccount;
 import it.smartcommunitylab.aac.accounts.model.UserAccount;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.accounts.provider.AccountService;
-import it.smartcommunitylab.aac.accounts.provider.UserAccountService;
+import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.base.provider.AbstractConfigurableResourceProvider;
 import it.smartcommunitylab.aac.common.MissingDataException;
@@ -45,10 +45,10 @@ import org.springframework.util.StringUtils;
 public abstract class AbstractAccountService<
     U extends AbstractUserAccount,
     E extends AbstractEditableAccount,
-    M extends AbstractConfigMap,
-    C extends AbstractAccountServiceConfig<M>
+    C extends AbstractAccountServiceConfig<M>,
+    M extends AbstractConfigMap
 >
-    extends AbstractConfigurableResourceProvider<U, ConfigurableAccountProvider, M, C>
+    extends AbstractConfigurableResourceProvider<U, C, AccountServiceSettingsMap, M>
     implements AccountService<U, E, M, C>, InitializingBean {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -75,7 +75,8 @@ public abstract class AbstractAccountService<
             "create {} account service for realm {} with id {} repository {}",
             String.valueOf(authority),
             String.valueOf(realm),
-            String.valueOf(providerId)
+            String.valueOf(providerId),
+            String.valueOf(repositoryId)
         );
 
         this.userAccountService = userAccountService;
@@ -248,7 +249,7 @@ public abstract class AbstractAccountService<
             U u = (U) registration;
             reg = u;
         } catch (ClassCastException e) {
-            logger.error("Wrong account class: " + e.getMessage());
+            logger.error("Wrong account class: {}", e.getMessage());
             throw new IllegalArgumentException("unsupported account");
         }
 
@@ -322,7 +323,7 @@ public abstract class AbstractAccountService<
             U u = (U) registration;
             reg = u;
         } catch (ClassCastException e) {
-            logger.error("Wrong account class: " + e.getMessage());
+            logger.error("Wrong account class: {}", e.getMessage());
             throw new IllegalArgumentException("unsupported account");
         }
 

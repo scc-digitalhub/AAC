@@ -16,9 +16,8 @@
 
 package it.smartcommunitylab.aac.accounts.provider;
 
-import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountProvider;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 
-public interface AccountServiceConfigurationProvider<M extends ConfigMap, C extends AccountServiceConfig<M>>
-    extends ConfigurationProvider<M, ConfigurableAccountProvider, C> {}
+public interface AccountServiceConfigurationProvider<C extends AccountServiceConfig<M>, M extends ConfigMap>
+    extends ConfigurationProvider<C, AccountServiceSettingsMap, M> {}

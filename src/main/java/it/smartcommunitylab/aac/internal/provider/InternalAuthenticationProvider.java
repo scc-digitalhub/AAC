@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.internal.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.accounts.provider.UserAccountService;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.internal.auth.ConfirmKeyAuthenticationProvider;
 import it.smartcommunitylab.aac.internal.auth.InternalAuthenticationException;

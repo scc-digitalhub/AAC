@@ -20,11 +20,13 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.model.EditableUserAccount;
 import it.smartcommunitylab.aac.accounts.model.UserAccount;
 import it.smartcommunitylab.aac.accounts.provider.AccountService;
+import it.smartcommunitylab.aac.accounts.provider.AccountServiceConfig;
 import it.smartcommunitylab.aac.common.MissingDataException;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.persistence.ResourceEntity;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.users.persistence.UserEntity;
@@ -134,11 +136,13 @@ public class UserAccountService {
         String realm = ue.getRealm();
 
         // collect from all providers for the same realm
-        List<AccountService<?, ?, ?, ?>> services = accountServiceAuthorityService
-            .getAuthorities()
-            .stream()
-            .flatMap(e -> e.getProvidersByRealm(realm).stream())
-            .collect(Collectors.toList());
+        List<? extends AccountService<? extends UserAccount, ? extends EditableUserAccount, ? extends ConfigMap, ? extends AccountServiceConfig<? extends ConfigMap>>> services =
+            accountServiceAuthorityService
+                .getAuthorities()
+                .stream()
+                .flatMap(e -> e.getProvidersByRealm(realm).stream())
+                .collect(Collectors.toList());
+
         List<EditableUserAccount> accounts = services
             .stream()
             .flatMap(s ->

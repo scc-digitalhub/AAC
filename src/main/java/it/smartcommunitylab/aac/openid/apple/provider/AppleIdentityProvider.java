@@ -17,8 +17,8 @@
 package it.smartcommunitylab.aac.openid.apple.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.accounts.provider.AccountProvider;
-import it.smartcommunitylab.aac.accounts.provider.UserAccountService;
 import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.attributes.store.AttributeStore;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;

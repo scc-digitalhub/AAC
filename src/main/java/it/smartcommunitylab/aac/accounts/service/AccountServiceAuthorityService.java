@@ -18,8 +18,13 @@ package it.smartcommunitylab.aac.accounts.service;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.AccountServiceAuthority;
-import it.smartcommunitylab.aac.base.service.AbstractAuthorityService;
-
+import it.smartcommunitylab.aac.accounts.model.EditableUserAccount;
+import it.smartcommunitylab.aac.accounts.model.UserAccount;
+import it.smartcommunitylab.aac.accounts.provider.AccountService;
+import it.smartcommunitylab.aac.accounts.provider.AccountServiceConfig;
+import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
+import it.smartcommunitylab.aac.base.service.AbstractConfigurableAuthorityService;
+import it.smartcommunitylab.aac.core.model.ConfigMap;
 import java.util.Collection;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
@@ -27,10 +32,12 @@ import org.springframework.util.Assert;
 
 @Service
 public class AccountServiceAuthorityService
-    extends AbstractAuthorityService<AccountServiceAuthority<?, ?, ?, ?, ?>>
+    extends AbstractConfigurableAuthorityService<AccountServiceAuthority<? extends AccountService<? extends UserAccount, ? extends EditableUserAccount, ? extends ConfigMap, ? extends AccountServiceConfig<? extends ConfigMap>>, ? extends AccountServiceConfig<? extends ConfigMap>, ? extends ConfigMap>, AccountServiceSettingsMap>
     implements InitializingBean {
 
-    public AccountServiceAuthorityService(Collection<AccountServiceAuthority<?, ?, ?, ?, ?>> authorities) {
+    public AccountServiceAuthorityService(
+        Collection<AccountServiceAuthority<? extends AccountService<? extends UserAccount, ? extends EditableUserAccount, ? extends ConfigMap, ? extends AccountServiceConfig<? extends ConfigMap>>, ? extends AccountServiceConfig<? extends ConfigMap>, ? extends ConfigMap>> authorities
+    ) {
         super(SystemKeys.RESOURCE_ACCOUNT);
         this.setAuthorities(authorities);
     }

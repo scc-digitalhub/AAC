@@ -26,9 +26,11 @@ public interface IdentityProviderConfig<M extends ConfigMap> extends ProviderCon
 
     public PersistenceMode getPersistence();
 
+    //TODO map events as ENUM
     public String getEvents();
 
-    public Integer getPosition();
+    public int getPosition();
 
+    //TODO refactor hooks
     public Map<String, String> getHookFunctions();
 }

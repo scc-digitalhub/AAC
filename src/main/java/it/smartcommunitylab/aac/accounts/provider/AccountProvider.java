@@ -24,6 +24,7 @@ import it.smartcommunitylab.aac.core.provider.PersistedResourceProvider;
 import it.smartcommunitylab.aac.core.provider.UserResourceProvider;
 import java.util.Collection;
 
+//TODO split identityAccountProvider out, make this Configurable (merge from accountService)
 public interface AccountProvider<U extends UserAccount> extends PersistedResourceProvider<U>, UserResourceProvider<U> {
     /*
      * Fetch accounts from this provider

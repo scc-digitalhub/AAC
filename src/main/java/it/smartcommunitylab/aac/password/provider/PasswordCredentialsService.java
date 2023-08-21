@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.password.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.accounts.provider.UserAccountService;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.InvalidPasswordException;
 import it.smartcommunitylab.aac.common.NoSuchCredentialException;

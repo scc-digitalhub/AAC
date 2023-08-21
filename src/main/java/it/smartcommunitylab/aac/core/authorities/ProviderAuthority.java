@@ -31,6 +31,10 @@ public interface ProviderAuthority<S extends ResourceProvider<? extends Resource
 
     public String getId();
 
+    public default String getAuthorityId() {
+        return getId();
+    }
+
     /*
      * Providers
      */

@@ -17,14 +17,14 @@
 package it.smartcommunitylab.aac.identity.service;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.accounts.base.AbstractUserAccount;
-import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
+import it.smartcommunitylab.aac.accounts.model.UserAccount;
 import it.smartcommunitylab.aac.base.service.AbstractConfigurableAuthorityService;
-import it.smartcommunitylab.aac.identity.base.AbstractIdentityProvider;
-import it.smartcommunitylab.aac.identity.base.AbstractIdentityProviderAuthority;
-import it.smartcommunitylab.aac.identity.base.AbstractIdentityProviderConfig;
-import it.smartcommunitylab.aac.identity.base.AbstractUserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.identity.base.AbstractUserIdentity;
+import it.smartcommunitylab.aac.core.model.ConfigMap;
+import it.smartcommunitylab.aac.identity.IdentityProviderAuthority;
+import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.identity.model.UserIdentity;
+import it.smartcommunitylab.aac.identity.provider.IdentityProvider;
+import it.smartcommunitylab.aac.identity.provider.IdentityProviderConfig;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
 import java.util.Collection;
 import org.springframework.beans.factory.InitializingBean;
@@ -32,12 +32,14 @@ import org.springframework.util.Assert;
 
 //@Service
 public class IdentityProviderAuthorityService
-    extends AbstractConfigurableAuthorityService<AbstractIdentityProviderAuthority<? extends AbstractIdentityProvider<? extends AbstractUserIdentity, ? extends AbstractUserAccount, ? extends AbstractUserAuthenticatedPrincipal, ? extends AbstractConfigMap, ? extends AbstractIdentityProviderConfig<? extends AbstractConfigMap>>, ? extends AbstractIdentityProviderConfig<? extends AbstractConfigMap>, ? extends AbstractConfigMap>, IdentityProviderSettingsMap>
+    extends AbstractConfigurableAuthorityService<IdentityProviderAuthority<? extends IdentityProvider<? extends UserIdentity, ? extends UserAccount, ? extends UserAuthenticatedPrincipal, ? extends ConfigMap, ? extends IdentityProviderConfig<? extends ConfigMap>>, ? extends IdentityProviderConfig<? extends ConfigMap>, ? extends ConfigMap>, IdentityProviderSettingsMap>
     implements InitializingBean {
 
-    public IdentityProviderAuthorityService(Collection<AbstractIdentityProviderAuthority<?, ?, ?>> authorities) {
+    public IdentityProviderAuthorityService(
+        Collection<IdentityProviderAuthority<? extends IdentityProvider<? extends UserIdentity, ? extends UserAccount, ? extends UserAuthenticatedPrincipal, ? extends ConfigMap, ? extends IdentityProviderConfig<? extends ConfigMap>>, ? extends IdentityProviderConfig<? extends ConfigMap>, ? extends ConfigMap>> authorities
+    ) {
         super(SystemKeys.RESOURCE_IDENTITY);
-        // this.setAuthorities(authorities);
+        this.setAuthorities(authorities);
     }
 
     @Override

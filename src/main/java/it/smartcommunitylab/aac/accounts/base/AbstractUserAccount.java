@@ -50,8 +50,6 @@ public abstract class AbstractUserAccount extends AbstractBaseUserResource imple
         super(authority, provider, realm, id, userId);
     }
 
-    public abstract String getAccountId();
-
     @Override
     public String getId() {
         return getUuid();

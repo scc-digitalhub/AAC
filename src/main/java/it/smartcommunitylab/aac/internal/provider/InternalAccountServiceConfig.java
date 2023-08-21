@@ -18,7 +18,7 @@ package it.smartcommunitylab.aac.internal.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.base.AbstractAccountServiceConfig;
-import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountProvider;
+import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountService;
 
 public class InternalAccountServiceConfig extends AbstractAccountServiceConfig<InternalIdentityProviderConfigMap> {
 
@@ -38,7 +38,7 @@ public class InternalAccountServiceConfig extends AbstractAccountServiceConfig<I
         super(SystemKeys.AUTHORITY_INTERNAL, provider, realm, new InternalIdentityProviderConfigMap());
     }
 
-    public InternalAccountServiceConfig(ConfigurableAccountProvider cp, InternalIdentityProviderConfigMap configMap) {
+    public InternalAccountServiceConfig(ConfigurableAccountService cp, InternalIdentityProviderConfigMap configMap) {
         super(cp, configMap);
     }
 

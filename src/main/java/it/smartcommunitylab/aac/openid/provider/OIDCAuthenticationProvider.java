@@ -20,7 +20,7 @@ import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.OctetSequenceKey;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.accounts.provider.UserAccountService;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.attributes.OpenIdAttributesSet;
 import it.smartcommunitylab.aac.attributes.mapper.OpenIdAttributesMapper;
 import it.smartcommunitylab.aac.attributes.model.AttributeSet;

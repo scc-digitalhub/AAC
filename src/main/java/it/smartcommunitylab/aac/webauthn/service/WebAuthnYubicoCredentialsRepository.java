@@ -23,7 +23,8 @@ import com.yubico.webauthn.data.ByteArray;
 import com.yubico.webauthn.data.PublicKeyCredentialDescriptor;
 import com.yubico.webauthn.data.PublicKeyCredentialType;
 import com.yubico.webauthn.data.exception.Base64UrlException;
-import it.smartcommunitylab.aac.accounts.provider.UserAccountService;
+
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredential;

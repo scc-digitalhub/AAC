@@ -21,9 +21,7 @@ import it.smartcommunitylab.aac.base.model.AbstractSettingsMap;
 import it.smartcommunitylab.aac.base.provider.AbstractConfigurableResourceProvider;
 import it.smartcommunitylab.aac.base.provider.config.AbstractProviderConfig;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
-import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.authorities.SingleProviderAuthority;
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.Resource;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import java.util.Collection;
@@ -47,26 +45,26 @@ public abstract class AbstractSingleConfigurableProviderAuthority<
     }
 
     // TODO move to singleconfigurationprovider
-    @Override
-    public C registerProvider(ConfigurableProvider cp) throws RegistrationException {
-        if (cp != null && getAuthorityId().equals(cp.getAuthority())) {
-            // enforce single per realm
-            String realm = cp.getRealm();
+    // @Override
+    // public C registerProvider(ConfigurableProvider cp) throws RegistrationException {
+    //     if (cp != null && getAuthorityId().equals(cp.getAuthority())) {
+    //         // enforce single per realm
+    //         String realm = cp.getRealm();
 
-            // check if there is already a provider for realm (except the current)
-            Collection<C> list = registrationRepository.findByRealm(realm);
-            if (list.size() > 1) {
-                throw new RegistrationException("a provider already exists in the same realm");
-            } else if (list.size() == 1 && !list.iterator().next().getProvider().equals(cp.getProvider())) {
-                throw new RegistrationException("a provider already exists in the same realm");
-            }
+    //         // check if there is already a provider for realm (except the current)
+    //         Collection<C> list = registrationRepository.findByRealm(realm);
+    //         if (list.size() > 1) {
+    //             throw new RegistrationException("a provider already exists in the same realm");
+    //         } else if (list.size() == 1 && !list.iterator().next().getProvider().equals(cp.getProvider())) {
+    //             throw new RegistrationException("a provider already exists in the same realm");
+    //         }
 
-            // register
-            return super.registerProvider(cp);
-        } else {
-            throw new IllegalArgumentException();
-        }
-    }
+    //         // register
+    //         return super.registerProvider(cp);
+    //     } else {
+    //         throw new IllegalArgumentException();
+    //     }
+    // }
 
     @Override
     public P findProviderByRealm(String realm) {
@@ -94,9 +92,9 @@ public abstract class AbstractSingleConfigurableProviderAuthority<
     }
 
     @Override
-    public List<S> getProvidersByRealm(String realm) {
+    public List<P> getProvidersByRealm(String realm) {
         // fetch first if available
-        S provider = findProviderByRealm(realm);
+        P provider = findProviderByRealm(realm);
         if (provider == null) {
             return Collections.emptyList();
         }

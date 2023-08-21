@@ -29,6 +29,7 @@ import it.smartcommunitylab.aac.attributes.provider.MapperAttributeProviderConfi
 import it.smartcommunitylab.aac.attributes.provider.ScriptAttributeProviderConfigMap;
 import it.smartcommunitylab.aac.attributes.provider.WebhookAttributeProviderConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
+import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
@@ -45,7 +46,7 @@ import java.util.Map;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes(
     {
-        @Type(value = InternalIdentityProviderConfigMap.class, name = InternalIdentityProviderConfigMap.RESOURCE_TYPE),
+        @Type(value = IdentityProviderSettingsMap.class, name = IdentityProviderSettingsMap.RESOURCE_TYPE),
         @Type(value = PasswordIdentityProviderConfigMap.class, name = PasswordIdentityProviderConfigMap.RESOURCE_TYPE),
         @Type(value = WebAuthnIdentityProviderConfigMap.class, name = WebAuthnIdentityProviderConfigMap.RESOURCE_TYPE),
         @Type(value = AppleIdentityProviderConfigMap.class, name = AppleIdentityProviderConfigMap.RESOURCE_TYPE),

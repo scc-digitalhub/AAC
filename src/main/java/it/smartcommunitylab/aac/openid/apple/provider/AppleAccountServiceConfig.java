@@ -18,7 +18,7 @@ package it.smartcommunitylab.aac.openid.apple.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.base.AbstractAccountServiceConfig;
-import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountProvider;
+import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountService;
 
 public class AppleAccountServiceConfig extends AbstractAccountServiceConfig<AppleIdentityProviderConfigMap> {
 
@@ -36,7 +36,7 @@ public class AppleAccountServiceConfig extends AbstractAccountServiceConfig<Appl
         super(SystemKeys.AUTHORITY_APPLE, provider, realm, new AppleIdentityProviderConfigMap());
     }
 
-    public AppleAccountServiceConfig(ConfigurableAccountProvider cp, AppleIdentityProviderConfigMap configMap) {
+    public AppleAccountServiceConfig(ConfigurableAccountService cp, AppleIdentityProviderConfigMap configMap) {
         super(cp, configMap);
     }
 

@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.internal.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.accounts.provider.UserAccountService;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.base.provider.AbstractProvider;
 import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.identity.provider.AccountPrincipalConverter;

@@ -18,7 +18,7 @@ package it.smartcommunitylab.aac.credentials.base;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.base.AbstractUserAccount;
-import it.smartcommunitylab.aac.accounts.provider.UserAccountService;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.base.provider.AbstractConfigurableResourceProvider;
 import it.smartcommunitylab.aac.common.NoSuchCredentialException;

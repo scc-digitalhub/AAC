@@ -18,7 +18,7 @@ package it.smartcommunitylab.aac.internal.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.base.AbstractAccountProvider;
-import it.smartcommunitylab.aac.accounts.provider.UserAccountService;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

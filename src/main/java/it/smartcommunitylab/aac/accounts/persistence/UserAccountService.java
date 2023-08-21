@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.accounts.provider;
+package it.smartcommunitylab.aac.accounts.persistence;
 
 import it.smartcommunitylab.aac.accounts.model.UserAccount;
 import it.smartcommunitylab.aac.common.NoSuchUserException;

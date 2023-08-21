@@ -16,7 +16,7 @@
 
 package it.smartcommunitylab.aac.webauthn.service;
 
-import it.smartcommunitylab.aac.accounts.provider.UserAccountService;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;

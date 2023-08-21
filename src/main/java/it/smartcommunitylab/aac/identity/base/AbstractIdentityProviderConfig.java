@@ -29,6 +29,7 @@ import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderConfig;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
+import it.smartcommunitylab.aac.model.PersistenceMode;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfig;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
@@ -70,5 +71,24 @@ public abstract class AbstractIdentityProviderConfig<M extends AbstractConfigMap
         M configMap
     ) {
         super(cp, settingsMap, configMap);
+    }
+
+    public boolean isLinkable() {
+        // by default providers are linkable
+        return settingsMap.getLinkable() != null ? settingsMap.getLinkable().booleanValue() : true;
+    }
+
+    public PersistenceMode getPersistence() {
+        // by default persist to repository
+        return settingsMap.getPersistence() != null ? settingsMap.getPersistence() : PersistenceMode.REPOSITORY;
+    }
+
+    public String getEvents() {
+        //TODO use ENUM and add default
+        return settingsMap.getEvents();
+    }
+
+    public int getPosition() {
+        return settingsMap.getPosition() != null ? settingsMap.getPosition().intValue() : 0;
     }
 }

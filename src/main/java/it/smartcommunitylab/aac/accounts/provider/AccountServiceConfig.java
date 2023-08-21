@@ -20,7 +20,7 @@ import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.provider.config.ProviderConfig;
 import it.smartcommunitylab.aac.model.PersistenceMode;
 
-public interface AccountServiceConfig<M extends ConfigMap> extends ProviderConfig<M> {
+public interface AccountServiceConfig<M extends ConfigMap> extends ProviderConfig<AccountServiceSettingsMap, M> {
     public String getRepositoryId();
 
     public PersistenceMode getPersistence();

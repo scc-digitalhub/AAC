@@ -17,7 +17,6 @@
 package it.smartcommunitylab.aac.accounts.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountProvider;
 import it.smartcommunitylab.aac.accounts.model.EditableUserAccount;
 import it.smartcommunitylab.aac.accounts.model.UserAccount;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
@@ -30,7 +29,7 @@ import org.springframework.lang.Nullable;
 public interface AccountService<
     U extends UserAccount, E extends EditableUserAccount, M extends ConfigMap, C extends AccountServiceConfig<M>
 >
-    extends ConfigurableResourceProvider<U, ConfigurableAccountProvider, M, C>, AccountProvider<U> {
+    extends ConfigurableResourceProvider<U, C, AccountServiceSettingsMap, M>, AccountProvider<U> {
     /*
      * Editable accounts from this provider
      *

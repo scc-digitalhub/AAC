@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.model.AbstractSettingsMap;
+import it.smartcommunitylab.aac.model.PersistenceMode;
 import java.io.Serializable;
 import java.util.Base64;
 import java.util.Collections;
@@ -43,7 +44,7 @@ public class IdentityProviderSettingsMap extends AbstractSettingsMap {
         SystemKeys.RESOURCE_SETTINGS + SystemKeys.ID_SEPARATOR + SystemKeys.RESOURCE_IDENTITY_PROVIDER;
 
     private Boolean linkable;
-    private String persistence;
+    private PersistenceMode persistence;
     private String events;
     private Integer position;
 
@@ -58,11 +59,11 @@ public class IdentityProviderSettingsMap extends AbstractSettingsMap {
         this.linkable = linkable;
     }
 
-    public String getPersistence() {
+    public PersistenceMode getPersistence() {
         return persistence;
     }
 
-    public void setPersistence(String persistence) {
+    public void setPersistence(PersistenceMode persistence) {
         this.persistence = persistence;
     }
 

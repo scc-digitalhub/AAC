@@ -20,44 +20,20 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
+import it.smartcommunitylab.aac.core.provider.config.ConfigurableProviderImpl;
 import javax.validation.Valid;
 
 @Valid
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ConfigurableAccountProvider extends AbstractConfigurableProvider {
+public class ConfigurableAccountService extends ConfigurableProviderImpl<AccountServiceSettingsMap> {
 
-    private String repositoryId;
-    private String persistence;
-
-    public ConfigurableAccountProvider(String authority, String provider, String realm) {
-        super(authority, provider, realm, SystemKeys.RESOURCE_ACCOUNT);
+    public ConfigurableAccountService(String authority, String provider, String realm) {
+        super(SystemKeys.RESOURCE_ACCOUNT, authority, provider, realm);
     }
 
-    /**
-     * Private constructor for JPA and other serialization tools.
-     *
-     * We need to implement this to enable deserialization of resources via
-     * reflection
-     */
-    @SuppressWarnings("unused")
-    private ConfigurableAccountProvider() {
-        this((String) null, (String) null, (String) null);
-    }
-
-    public String getRepositoryId() {
-        return repositoryId;
-    }
-
-    public void setRepositoryId(String repositoryId) {
-        this.repositoryId = repositoryId;
-    }
-
-    public String getPersistence() {
-        return persistence;
-    }
-
-    public void setPersistence(String persistence) {
-        this.persistence = persistence;
+    public ConfigurableAccountService() {
+        super(SystemKeys.RESOURCE_ACCOUNT, null, null, null);
     }
 }

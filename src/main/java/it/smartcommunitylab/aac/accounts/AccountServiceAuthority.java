@@ -20,14 +20,13 @@ import it.smartcommunitylab.aac.accounts.model.EditableUserAccount;
 import it.smartcommunitylab.aac.accounts.model.UserAccount;
 import it.smartcommunitylab.aac.accounts.provider.AccountService;
 import it.smartcommunitylab.aac.accounts.provider.AccountServiceConfig;
-import it.smartcommunitylab.aac.core.authorities.ProviderAuthority;
+import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
+import it.smartcommunitylab.aac.core.authorities.ConfigurableProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 
 public interface AccountServiceAuthority<
-    S extends AccountService<U, E, M, C>,
-    U extends UserAccount,
-    E extends EditableUserAccount,
-    M extends ConfigMap,
-    C extends AccountServiceConfig<M>
+    P extends AccountService<? extends UserAccount, ? extends EditableUserAccount, M, C>,
+    C extends AccountServiceConfig<M>,
+    M extends ConfigMap
 >
-    extends ProviderAuthority<S, U> {}
+    extends ConfigurableProviderAuthority<P, C, AccountServiceSettingsMap, M> {}

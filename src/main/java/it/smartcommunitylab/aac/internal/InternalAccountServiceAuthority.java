@@ -18,8 +18,8 @@ package it.smartcommunitylab.aac.internal;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.AccountServiceAuthority;
-import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountProvider;
-import it.smartcommunitylab.aac.accounts.provider.UserAccountService;
+import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountService;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.base.authorities.AbstractProviderAuthority;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
@@ -41,7 +41,7 @@ import org.springframework.util.Assert;
 
 @Service
 public class InternalAccountServiceAuthority
-    extends AbstractProviderAuthority<InternalAccountService, InternalUserAccount, ConfigurableAccountProvider, InternalIdentityProviderConfigMap, InternalAccountServiceConfig>
+    extends AbstractProviderAuthority<InternalAccountService, InternalUserAccount, ConfigurableAccountService, InternalIdentityProviderConfigMap, InternalAccountServiceConfig>
     implements
         AccountServiceAuthority<InternalAccountService, InternalUserAccount, InternalEditableUserAccount, InternalIdentityProviderConfigMap, InternalAccountServiceConfig> {
 

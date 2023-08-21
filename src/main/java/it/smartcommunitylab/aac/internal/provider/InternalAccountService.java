@@ -17,11 +17,11 @@
 package it.smartcommunitylab.aac.internal.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountProvider;
+import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountService;
 import it.smartcommunitylab.aac.accounts.model.EditableUserAccount;
 import it.smartcommunitylab.aac.accounts.model.UserAccount;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.accounts.provider.AccountService;
-import it.smartcommunitylab.aac.accounts.provider.UserAccountService;
 import it.smartcommunitylab.aac.base.provider.AbstractConfigurableResourceProvider;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.DuplicatedDataException;
@@ -55,7 +55,7 @@ import org.springframework.util.StringUtils;
 
 @Transactional
 public class InternalAccountService
-    extends AbstractConfigurableResourceProvider<InternalUserAccount, ConfigurableAccountProvider, InternalIdentityProviderConfigMap, InternalAccountServiceConfig>
+    extends AbstractConfigurableResourceProvider<InternalUserAccount, ConfigurableAccountService, InternalIdentityProviderConfigMap, InternalAccountServiceConfig>
     implements
         AccountService<InternalUserAccount, InternalEditableUserAccount, InternalIdentityProviderConfigMap, InternalAccountServiceConfig> {
 

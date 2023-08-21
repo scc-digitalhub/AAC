@@ -18,7 +18,7 @@ package it.smartcommunitylab.aac.openid.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.base.AbstractAccountServiceConfig;
-import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountProvider;
+import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountService;
 
 public class OIDCAccountServiceConfig extends AbstractAccountServiceConfig<OIDCIdentityProviderConfigMap> {
 
@@ -40,7 +40,7 @@ public class OIDCAccountServiceConfig extends AbstractAccountServiceConfig<OIDCI
         super(authority, provider, realm, new OIDCIdentityProviderConfigMap());
     }
 
-    public OIDCAccountServiceConfig(ConfigurableAccountProvider cp, OIDCIdentityProviderConfigMap configMap) {
+    public OIDCAccountServiceConfig(ConfigurableAccountService cp, OIDCIdentityProviderConfigMap configMap) {
         super(cp, configMap);
     }
 

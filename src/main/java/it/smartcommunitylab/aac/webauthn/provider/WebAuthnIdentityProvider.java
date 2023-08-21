@@ -17,8 +17,8 @@
 package it.smartcommunitylab.aac.webauthn.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.accounts.provider.AccountService;
-import it.smartcommunitylab.aac.accounts.provider.UserAccountService;
 import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;

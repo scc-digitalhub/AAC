@@ -30,7 +30,8 @@ import com.yubico.webauthn.data.ClientAssertionExtensionOutputs;
 import com.yubico.webauthn.data.PublicKeyCredential;
 import com.yubico.webauthn.data.RelyingPartyIdentity;
 import com.yubico.webauthn.exception.AssertionFailedException;
-import it.smartcommunitylab.aac.accounts.provider.UserAccountService;
+
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;

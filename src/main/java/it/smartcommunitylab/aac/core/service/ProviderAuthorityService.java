@@ -26,18 +26,18 @@ import org.springframework.stereotype.Service;
 @Service
 public class ProviderAuthorityService {
 
-    private final Map<String, ConfigurableAuthorityService<?>> services;
+    private final Map<String, ConfigurableAuthorityService<?, ?>> services;
 
-    public ProviderAuthorityService(Collection<ConfigurableAuthorityService<?>> services) {
+    public ProviderAuthorityService(Collection<ConfigurableAuthorityService<?, ?>> services) {
         this.services = services.stream().collect(Collectors.toMap(s -> s.getType(), s -> s));
     }
 
-    public ConfigurableAuthorityService<?> findAuthorityService(String type) {
+    public ConfigurableAuthorityService<?, ?> findAuthorityService(String type) {
         return services.get(type);
     }
 
-    public ConfigurableAuthorityService<?> getAuthorityService(String type) throws NoSuchProviderException {
-        ConfigurableAuthorityService<?> as = findAuthorityService(type);
+    public ConfigurableAuthorityService<?, ?> getAuthorityService(String type) throws NoSuchProviderException {
+        ConfigurableAuthorityService<?, ?> as = findAuthorityService(type);
         if (as == null) {
             throw new NoSuchProviderException();
         }

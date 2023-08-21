@@ -19,7 +19,7 @@ package it.smartcommunitylab.aac.bootstrap;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.model.UserAccount;
-import it.smartcommunitylab.aac.accounts.provider.UserAccountService;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.attributes.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.attributes.service.AttributeProviderService;
 import it.smartcommunitylab.aac.base.service.AbstractConfigurableProviderService;

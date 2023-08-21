@@ -37,4 +37,8 @@ public interface UserAccount extends UserResource {
     default String getType() {
         return SystemKeys.RESOURCE_ACCOUNT;
     }
+
+    public default String getAccountId() {
+        return getId();
+    }
 }

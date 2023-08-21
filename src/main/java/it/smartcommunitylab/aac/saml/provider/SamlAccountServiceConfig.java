@@ -18,7 +18,7 @@ package it.smartcommunitylab.aac.saml.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.base.AbstractAccountServiceConfig;
-import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountProvider;
+import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountService;
 
 public class SamlAccountServiceConfig extends AbstractAccountServiceConfig<SamlIdentityProviderConfigMap> {
 
@@ -40,7 +40,7 @@ public class SamlAccountServiceConfig extends AbstractAccountServiceConfig<SamlI
         super(authority, provider, realm, new SamlIdentityProviderConfigMap());
     }
 
-    public SamlAccountServiceConfig(ConfigurableAccountProvider cp, SamlIdentityProviderConfigMap configMap) {
+    public SamlAccountServiceConfig(ConfigurableAccountService cp, SamlIdentityProviderConfigMap configMap) {
         super(cp, configMap);
     }
 

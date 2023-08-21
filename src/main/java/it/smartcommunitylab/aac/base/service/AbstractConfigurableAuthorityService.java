@@ -16,17 +16,16 @@
 
 package it.smartcommunitylab.aac.base.service;
 
-import it.smartcommunitylab.aac.base.authorities.AbstractConfigurableProviderAuthority;
-import it.smartcommunitylab.aac.base.model.AbstractBaseResource;
-import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
-import it.smartcommunitylab.aac.base.model.AbstractSettingsMap;
-import it.smartcommunitylab.aac.base.provider.AbstractConfigurableResourceProvider;
-import it.smartcommunitylab.aac.base.provider.config.AbstractProviderConfig;
 import it.smartcommunitylab.aac.core.authorities.ConfigurableAuthorityService;
+import it.smartcommunitylab.aac.core.authorities.ConfigurableProviderAuthority;
+import it.smartcommunitylab.aac.core.model.ConfigMap;
+import it.smartcommunitylab.aac.core.model.Resource;
+import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
+import it.smartcommunitylab.aac.core.provider.config.ProviderConfig;
 
 public abstract class AbstractConfigurableAuthorityService<
-    A extends AbstractConfigurableProviderAuthority<? extends AbstractConfigurableResourceProvider<? extends AbstractBaseResource, ? extends AbstractProviderConfig<S, ? extends AbstractConfigMap>, S, ? extends AbstractConfigMap>, ? extends AbstractProviderConfig<S, ? extends AbstractConfigMap>, S, ? extends AbstractConfigMap>,
-    S extends AbstractSettingsMap
+    A extends ConfigurableProviderAuthority<? extends ConfigurableResourceProvider<? extends Resource, ? extends ProviderConfig<S, ? extends ConfigMap>, S, ? extends ConfigMap>, ? extends ProviderConfig<S, ? extends ConfigMap>, S, ? extends ConfigMap>,
+    S extends ConfigMap
 >
     extends AbstractAuthorityService<A>
     implements ConfigurableAuthorityService<A, S> {

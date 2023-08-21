@@ -19,8 +19,8 @@ package it.smartcommunitylab.aac.saml;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.AccountServiceAuthority;
 import it.smartcommunitylab.aac.accounts.base.AbstractEditableAccount;
-import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountProvider;
-import it.smartcommunitylab.aac.accounts.provider.UserAccountService;
+import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountService;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.base.authorities.AbstractProviderAuthority;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
@@ -37,7 +37,7 @@ import org.springframework.util.Assert;
 
 @Service
 public class SamlAccountServiceAuthority
-    extends AbstractProviderAuthority<SamlAccountService, SamlUserAccount, ConfigurableAccountProvider, SamlIdentityProviderConfigMap, SamlAccountServiceConfig>
+    extends AbstractProviderAuthority<SamlAccountService, SamlUserAccount, ConfigurableAccountService, SamlIdentityProviderConfigMap, SamlAccountServiceConfig>
     implements
         AccountServiceAuthority<SamlAccountService, SamlUserAccount, AbstractEditableAccount, SamlIdentityProviderConfigMap, SamlAccountServiceConfig> {
 

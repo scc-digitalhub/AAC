@@ -16,7 +16,7 @@
 
 package it.smartcommunitylab.aac.config;
 
-import it.smartcommunitylab.aac.accounts.provider.UserAccountService;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.accounts.service.AccountServiceAuthorityService;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
