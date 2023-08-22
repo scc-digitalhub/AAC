@@ -17,6 +17,7 @@
 package it.smartcommunitylab.aac;
 
 import it.smartcommunitylab.aac.bootstrap.AACBootstrap;
+import it.smartcommunitylab.aac.config.DatabasePropertiesListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -35,7 +36,9 @@ public class AACMain {
     private AACBootstrap bootstrap;
 
     public static void main(String[] args) {
-        SpringApplication.run(AACMain.class, args);
+        SpringApplication app = new SpringApplication(AACMain.class);
+        app.addListeners(new DatabasePropertiesListener());
+        app.run(args);
     }
 
     @Bean

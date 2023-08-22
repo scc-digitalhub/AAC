@@ -261,8 +261,6 @@ logging:
 # SPRING
 spring:
    sql.init.mode: always
-   sql.init.platform: ${JDBC_PLATFORM:}
-   sql.init.schema-locations: classpath:db/sql/schema-${spring.sql.init.platform}.sql
    messages:
       basename: resources/internal
       encoding: UTF-8
