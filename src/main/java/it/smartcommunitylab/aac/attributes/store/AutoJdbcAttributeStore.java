@@ -69,7 +69,7 @@ public class AutoJdbcAttributeStore {
     }
 
     protected void initSchema() {
-//        jdbcTemplate.execute(createAttributesSql);
+        //        jdbcTemplate.execute(createAttributesSql);
     }
 
     public Serializable getAttribute(String providerId, String entityId, String key) {
