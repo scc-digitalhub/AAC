@@ -140,7 +140,7 @@ public class DatabaseConfig {
         props.setProperty("hibernate.ddl-auto", "validate");
         // Create Schema.
 //        props.setProperty("javax.persistence.schema-generation.scripts.action", "create");
-//        props.setProperty("javax.persistence.schema-generation.scripts.create-target", "src/main/resources/schema.sql");
+//        props.setProperty("javax.persistence.schema-generation.scripts.create-target", "src/main/resources/db/sql/schema-h2.sql");
 //        props.setProperty("javax.persistence.schema-generation.create-source", "metadata");
         bean.setJpaProperties(props);
 
