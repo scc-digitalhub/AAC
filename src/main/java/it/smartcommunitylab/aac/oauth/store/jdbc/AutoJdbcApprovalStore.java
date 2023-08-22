@@ -68,7 +68,7 @@ public class AutoJdbcApprovalStore extends JdbcApprovalStore implements Searchab
 
     protected void initSchema(DataSource dataSource) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
-//        jdbcTemplate.execute(createTableStatement);
+        //        jdbcTemplate.execute(createTableStatement);
     }
 
     @Override

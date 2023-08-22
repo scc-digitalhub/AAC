@@ -84,7 +84,7 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
     }
 
     protected void initSchema() {
-//        jdbcTemplate.execute(createAuditTableSql);
+        //        jdbcTemplate.execute(createAuditTableSql);
     }
 
     @Override

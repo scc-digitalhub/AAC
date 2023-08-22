@@ -214,6 +214,6 @@ public class AutoJdbcAuthorizationCodeServices implements AuthorizationCodeServi
     }
 
     protected void initSchema() {
-//        jdbcTemplate.execute(createAuthenticationSql);
+        //        jdbcTemplate.execute(createAuthenticationSql);
     }
 }
