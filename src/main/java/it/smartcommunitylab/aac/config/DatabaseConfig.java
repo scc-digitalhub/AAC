@@ -37,6 +37,7 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.util.StringUtils;
 
 /**
  * Database config is @1, we need dataSources to bootstrap
@@ -170,8 +171,13 @@ public class DatabaseConfig {
         bean.setJpaDialect(new IsolationSupportHibernateJpaDialect());
 
         Properties props = new Properties();
-        props.setProperty("hibernate.hbm2ddl.auto", "validate");
-        props.setProperty("hibernate.ddl-auto", "validate");
+        if (StringUtils.hasText(env.getProperty("JDBC_PLATFORM"))) {
+        	props.setProperty("hibernate.hbm2ddl.auto", "validate");
+        	props.setProperty("hibernate.ddl-auto", "validate");
+        } else {
+        	props.setProperty("hibernate.hbm2ddl.auto", "update");	
+        }
+        
         // Create Schema.
 //        props.setProperty("javax.persistence.schema-generation.scripts.action", "create");
 //        props.setProperty("javax.persistence.schema-generation.scripts.create-target", "src/main/resources/db/sql/schema-h2.sql");
