@@ -22,12 +22,12 @@ import it.smartcommunitylab.aac.accounts.base.AbstractEditableAccount;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.openid.model.OIDCEditableUserAccount;
-import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
+import it.smartcommunitylab.aac.openid.model.OIDCUserAccount;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 public class OIDCAccountService
-    extends AbstractAccountService<OIDCUserAccount, AbstractEditableAccount, OIDCIdentityProviderConfigMap, OIDCAccountServiceConfig> {
+    extends AbstractAccountService<OIDCUserAccount, AbstractEditableAccount, OIDCAccountServiceConfig, OIDCIdentityProviderConfigMap> {
 
     public OIDCAccountService(
         String providerId,

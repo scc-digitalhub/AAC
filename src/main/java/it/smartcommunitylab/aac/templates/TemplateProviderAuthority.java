@@ -23,11 +23,12 @@ import it.smartcommunitylab.aac.templates.model.ConfigurableTemplateProvider;
 import it.smartcommunitylab.aac.templates.model.Template;
 import it.smartcommunitylab.aac.templates.provider.TemplateProvider;
 import it.smartcommunitylab.aac.templates.provider.TemplateProviderConfig;
+import it.smartcommunitylab.aac.templates.provider.TemplateProviderSettingsMap;
 
 public interface TemplateProviderAuthority<
     S extends TemplateProvider<T, M, C>, T extends Template, M extends ConfigMap, C extends TemplateProviderConfig<M>
 >
-    extends ConfigurableProviderAuthority<S, T, ConfigurableTemplateProvider, M, C> {
+    extends ConfigurableProviderAuthority<S, ConfigurableTemplateProvider, C, TemplateProviderSettingsMap, M> {
     public S findProviderByRealm(String realm);
 
     public S getProviderByRealm(String realm) throws NoSuchProviderException;

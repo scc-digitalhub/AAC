@@ -104,10 +104,10 @@ public class TemplateModel implements Template {
         return id;
     }
 
-    @Override
-    public String getResourceId() {
-        return template + "." + language;
-    }
+    // @Override
+    // public String getResourceId() {
+    //     return template + "." + language;
+    // }
 
     @Override
     public String getTemplate() {

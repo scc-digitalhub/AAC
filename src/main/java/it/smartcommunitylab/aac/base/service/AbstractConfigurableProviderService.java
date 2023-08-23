@@ -67,7 +67,7 @@ public abstract class AbstractConfigurableProviderService<
     protected final String type;
 
     protected final ConfigurableProviderEntityService providerService;
-    protected final ConfigurableAuthorityService<? extends ConfigurableProviderAuthority<?, ? extends ProviderConfig<S, ?>, S, ?>, S> authorityService;
+    protected final ConfigurableAuthorityService<? extends ConfigurableProviderAuthority<?, ? extends ProviderConfig<S, ?>, ? extends ConfigurableProvider<S>, S, ?>, S> authorityService;
 
     // keep a local map for system providers since these are not in db
     // key is providerId
@@ -80,7 +80,7 @@ public abstract class AbstractConfigurableProviderService<
 
     protected AbstractConfigurableProviderService(
         String type,
-        ConfigurableAuthorityService<? extends ConfigurableProviderAuthority<?, ? extends ProviderConfig<S, ?>, S, ?>, S> providerAuthorityService,
+        ConfigurableAuthorityService<? extends ConfigurableProviderAuthority<?, ? extends ProviderConfig<S, ?>, ? extends ConfigurableProvider<S>, S, ?>, S> providerAuthorityService,
         ConfigurableProviderEntityService providerService,
         Supplier<C> factory
     ) {
@@ -118,11 +118,11 @@ public abstract class AbstractConfigurableProviderService<
         this.entityConverter = entityConverter;
     }
 
-    protected ConfigurationProvider<? extends ProviderConfig<S, ?>, S, ?> getConfigurationProvider(String authority)
-        throws NoSuchAuthorityException {
-        ConfigurationProvider<? extends ProviderConfig<S, ?>, S, ?> cp = authorityService
-            .getAuthority(authority)
-            .getConfigurationProvider();
+    protected ConfigurationProvider<? extends ProviderConfig<S, ?>, ? extends ConfigurableProvider<S>, S, ?> getConfigurationProvider(
+        String authority
+    ) throws NoSuchAuthorityException {
+        ConfigurationProvider<? extends ProviderConfig<S, ?>, ? extends ConfigurableProvider<S>, S, ?> cp =
+            authorityService.getAuthority(authority).getConfigurationProvider();
 
         //config provider could be null for authorities which don't expose dynamic config
         if (cp == null) {
@@ -226,7 +226,7 @@ public abstract class AbstractConfigurableProviderService<
         String authority = cp.getAuthority();
 
         // we validate config by converting to specific configMap
-        ConfigurationProvider<?, ?, ?> configProvider = getConfigurationProvider(authority);
+        ConfigurationProvider<?, ?, ?, ?> configProvider = getConfigurationProvider(authority);
         ConfigMap config = configProvider.getConfigMap(cp.getConfiguration());
         ConfigMap settings = configProvider.getSettingsMap(cp.getSettings());
 
@@ -288,7 +288,7 @@ public abstract class AbstractConfigurableProviderService<
 
         String authority = pe.getAuthority();
 
-        ConfigurationProvider<?, ?, ?> configProvider = getConfigurationProvider(authority);
+        ConfigurationProvider<?, ?, ?, ?> configProvider = getConfigurationProvider(authority);
         ConfigMap config = configProvider.getConfigMap(cp.getConfiguration());
         ConfigMap settings = configProvider.getSettingsMap(cp.getSettings());
 
@@ -351,7 +351,9 @@ public abstract class AbstractConfigurableProviderService<
         C cp = getProvider(providerId);
 
         //fetch config provider from authority
-        ConfigurationProvider<?, S, ? extends ConfigMap> configProvider = getConfigurationProvider(cp.getAuthority());
+        ConfigurationProvider<?, ?, S, ? extends ConfigMap> configProvider = getConfigurationProvider(
+            cp.getAuthority()
+        );
 
         // always register and pop up errors
         configProvider.register(cp);
@@ -365,7 +367,9 @@ public abstract class AbstractConfigurableProviderService<
         C cp = getProvider(providerId);
 
         //fetch config provider from authority
-        ConfigurationProvider<?, S, ? extends ConfigMap> configProvider = getConfigurationProvider(cp.getAuthority());
+        ConfigurationProvider<?, ?, S, ? extends ConfigMap> configProvider = getConfigurationProvider(
+            cp.getAuthority()
+        );
 
         // always unregister, when not active nothing will happen
         configProvider.unregister(cp.getProvider());
@@ -391,7 +395,7 @@ public abstract class AbstractConfigurableProviderService<
 
     @Transactional(readOnly = true)
     public JsonSchema getSettingsSchema(String authority) throws NoSuchAuthorityException {
-        ConfigurationProvider<?, S, ? extends ConfigMap> configProvider = getConfigurationProvider(authority);
+        ConfigurationProvider<?, ?, S, ? extends ConfigMap> configProvider = getConfigurationProvider(authority);
         try {
             return configProvider.getDefaultSettingsMap().getSchema();
         } catch (JsonMappingException e) {
@@ -401,7 +405,7 @@ public abstract class AbstractConfigurableProviderService<
 
     @Transactional(readOnly = true)
     public JsonSchema getConfigurationSchema(String authority) throws NoSuchAuthorityException {
-        ConfigurationProvider<?, S, ? extends ConfigMap> configProvider = getConfigurationProvider(authority);
+        ConfigurationProvider<?, ?, S, ? extends ConfigMap> configProvider = getConfigurationProvider(authority);
         try {
             return configProvider.getDefaultConfigMap().getSchema();
         } catch (JsonMappingException e) {

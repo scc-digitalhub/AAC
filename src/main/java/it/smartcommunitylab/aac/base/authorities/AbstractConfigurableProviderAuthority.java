@@ -22,27 +22,27 @@ import it.smartcommunitylab.aac.base.provider.AbstractConfigurableResourceProvid
 import it.smartcommunitylab.aac.base.provider.config.AbstractProviderConfig;
 import it.smartcommunitylab.aac.core.authorities.ConfigurableProviderAuthority;
 import it.smartcommunitylab.aac.core.model.Resource;
-import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.core.provider.config.ConfigurableProviderImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.util.Assert;
 
 public abstract class AbstractConfigurableProviderAuthority<
-    P extends AbstractConfigurableResourceProvider<? extends Resource, C, S, M>,
-    C extends AbstractProviderConfig<S, M>,
+    RP extends AbstractConfigurableResourceProvider<? extends Resource, P, S, M>,
+    C extends ConfigurableProviderImpl<S>,
+    P extends AbstractProviderConfig<S, M>,
     S extends AbstractSettingsMap,
     M extends AbstractConfigMap
 >
-    extends AbstractProviderAuthority<P, C>
-    implements ConfigurableProviderAuthority<P, C, S, M>, InitializingBean {
+    extends AbstractProviderAuthority<RP, P>
+    implements ConfigurableProviderAuthority<RP, C, P, S, M>, InitializingBean {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     protected AbstractConfigurableProviderAuthority(
         String authorityId,
-        ProviderConfigRepository<C> registrationRepository
+        ProviderConfigRepository<P> registrationRepository
     ) {
         super(authorityId, registrationRepository);
     }

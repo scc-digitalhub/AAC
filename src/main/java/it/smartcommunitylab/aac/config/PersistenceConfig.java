@@ -40,16 +40,16 @@ import it.smartcommunitylab.aac.core.service.AutoJDBCProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.ConfigurableProviderEntityService;
 import it.smartcommunitylab.aac.core.service.InMemoryProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.SubjectService;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountRepository;
+import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountEntityRepository;
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeProviderConfig;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
-import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
+import it.smartcommunitylab.aac.internal.service.InternalJpaUserAccountService;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfig;
-import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
-import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
+import it.smartcommunitylab.aac.openid.model.OIDCUserAccount;
+import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountEntityRepository;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
-import it.smartcommunitylab.aac.openid.service.OIDCUserAccountService;
+import it.smartcommunitylab.aac.openid.service.OIDCJpaUserAccountService;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
 import it.smartcommunitylab.aac.password.service.InternalPasswordUserCredentialsService;
@@ -236,10 +236,10 @@ public class PersistenceConfig {
 
     @Bean
     public UserAccountService<OIDCUserAccount> oidcUserAccountService(
-        OIDCUserAccountRepository accountRepository,
+        OIDCUserAccountEntityRepository accountRepository,
         SubjectService subjectService
     ) {
-        return new OIDCUserAccountService(accountRepository, subjectService);
+        return new OIDCJpaUserAccountService(accountRepository, subjectService);
     }
 
     @Bean
@@ -252,10 +252,10 @@ public class PersistenceConfig {
 
     @Bean
     public UserAccountService<InternalUserAccount> internalUserAccountService(
-        InternalUserAccountRepository accountRepository,
+        InternalUserAccountEntityRepository accountRepository,
         SubjectService subjectService
     ) {
-        return new InternalUserAccountService(accountRepository, subjectService);
+        return new InternalJpaUserAccountService(accountRepository, subjectService);
     }
 
     @Bean

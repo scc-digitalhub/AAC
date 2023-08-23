@@ -30,14 +30,13 @@ import com.yubico.webauthn.data.ClientAssertionExtensionOutputs;
 import com.yubico.webauthn.data.PublicKeyCredential;
 import com.yubico.webauthn.data.RelyingPartyIdentity;
 import com.yubico.webauthn.exception.AssertionFailedException;
-
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.webauthn.auth.WebAuthnAuthenticationException;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredentialsRepository;
+import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredentialsEntityRepository;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 import java.net.URL;
 import java.util.Collections;
@@ -61,7 +60,7 @@ public class WebAuthnLoginRpService {
     private String applicationUrl;
 
     private final UserAccountService<InternalUserAccount> userAccountService;
-    private final WebAuthnUserCredentialsRepository credentialsRepository;
+    private final WebAuthnUserCredentialsEntityRepository credentialsRepository;
     private final ProviderConfigRepository<WebAuthnIdentityProviderConfig> registrationRepository;
 
     // leverage a local cache for fetching rps
@@ -113,7 +112,7 @@ public class WebAuthnLoginRpService {
 
     public WebAuthnLoginRpService(
         UserAccountService<InternalUserAccount> userAccountService,
-        WebAuthnUserCredentialsRepository credentialsRepository,
+        WebAuthnUserCredentialsEntityRepository credentialsRepository,
         ProviderConfigRepository<WebAuthnIdentityProviderConfig> registrationRepository
     ) {
         Assert.notNull(userAccountService, "user account service is mandatory");

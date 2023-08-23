@@ -30,7 +30,7 @@ import it.smartcommunitylab.aac.openid.apple.provider.AppleAccountServiceConfig;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleAccountServiceConfigConverter;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfig;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfigMap;
-import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
+import it.smartcommunitylab.aac.openid.model.OIDCUserAccount;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -38,8 +38,7 @@ import org.springframework.util.Assert;
 @Service
 public class AppleAccountServiceAuthority
     extends AbstractProviderAuthority<AppleAccountService, OIDCUserAccount, ConfigurableAccountService, AppleIdentityProviderConfigMap, AppleAccountServiceConfig>
-    implements
-        AccountServiceAuthority<AppleAccountService, OIDCUserAccount, AbstractEditableAccount, AppleIdentityProviderConfigMap, AppleAccountServiceConfig> {
+    implements AccountServiceAuthority<AppleAccountService, AppleAccountServiceConfig, AppleIdentityProviderConfigMap> {
 
     // account service
     private final UserAccountService<OIDCUserAccount> accountService;

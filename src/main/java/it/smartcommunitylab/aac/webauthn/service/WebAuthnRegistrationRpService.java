@@ -32,17 +32,16 @@ import com.yubico.webauthn.data.PublicKeyCredentialCreationOptions;
 import com.yubico.webauthn.data.RelyingPartyIdentity;
 import com.yubico.webauthn.data.UserIdentity;
 import com.yubico.webauthn.exception.RegistrationFailedException;
-
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.webauthn.auth.WebAuthnAuthenticationException;
 import it.smartcommunitylab.aac.webauthn.model.CredentialCreationInfo;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationRequest;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredentialsRepository;
+import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredentialsEntityRepository;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsServiceConfig;
 import java.net.URL;
 import java.util.Arrays;
@@ -74,7 +73,7 @@ public class WebAuthnRegistrationRpService {
     private String[] extraOrigins;
 
     private final UserAccountService<InternalUserAccount> userAccountService;
-    private final WebAuthnUserCredentialsRepository credentialsRepository;
+    private final WebAuthnUserCredentialsEntityRepository credentialsRepository;
 
     // TODO evaluate removal and pass config as param in ops
     private final ProviderConfigRepository<WebAuthnCredentialsServiceConfig> registrationRepository;
@@ -140,7 +139,7 @@ public class WebAuthnRegistrationRpService {
 
     public WebAuthnRegistrationRpService(
         UserAccountService<InternalUserAccount> userAccountService,
-        WebAuthnUserCredentialsRepository credentialsRepository,
+        WebAuthnUserCredentialsEntityRepository credentialsRepository,
         ProviderConfigRepository<WebAuthnCredentialsServiceConfig> registrationRepository
     ) {
         Assert.notNull(userAccountService, "user account service is mandatory");

@@ -24,22 +24,24 @@ import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.core.authorities.SingleProviderAuthority;
 import it.smartcommunitylab.aac.core.model.Resource;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.core.provider.config.ConfigurableProviderImpl;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 public abstract class AbstractSingleConfigurableProviderAuthority<
-    P extends AbstractConfigurableResourceProvider<? extends Resource, C, S, M>,
-    C extends AbstractProviderConfig<S, M>,
+    RP extends AbstractConfigurableResourceProvider<? extends Resource, P, S, M>,
+    C extends ConfigurableProviderImpl<S>,
+    P extends AbstractProviderConfig<S, M>,
     S extends AbstractSettingsMap,
     M extends AbstractConfigMap
 >
-    extends AbstractConfigurableProviderAuthority<P, C, S, M>
-    implements SingleProviderAuthority<P, C, S, M> {
+    extends AbstractConfigurableProviderAuthority<RP, C, P, S, M>
+    implements SingleProviderAuthority<RP, P, S, M> {
 
     protected AbstractSingleConfigurableProviderAuthority(
         String authorityId,
-        ProviderConfigRepository<C> registrationRepository
+        ProviderConfigRepository<P> registrationRepository
     ) {
         super(authorityId, registrationRepository);
     }
@@ -67,10 +69,10 @@ public abstract class AbstractSingleConfigurableProviderAuthority<
     // }
 
     @Override
-    public P findProviderByRealm(String realm) {
+    public RP findProviderByRealm(String realm) {
         // we need to fetch registrations and get idp from cache, with optional load
         // we expect a single provider per realm, so fetch first
-        Collection<C> registrations = registrationRepository.findByRealm(realm);
+        Collection<P> registrations = registrationRepository.findByRealm(realm);
         return registrations
             .stream()
             .map(r -> findProvider(r.getProvider()))
@@ -80,9 +82,9 @@ public abstract class AbstractSingleConfigurableProviderAuthority<
     }
 
     @Override
-    public P getProviderByRealm(String realm) throws NoSuchProviderException {
+    public RP getProviderByRealm(String realm) throws NoSuchProviderException {
         // fetch first if available
-        P provider = findProviderByRealm(realm);
+        RP provider = findProviderByRealm(realm);
 
         if (provider == null) {
             throw new NoSuchProviderException();
@@ -92,9 +94,9 @@ public abstract class AbstractSingleConfigurableProviderAuthority<
     }
 
     @Override
-    public List<P> getProvidersByRealm(String realm) {
+    public List<RP> getProvidersByRealm(String realm) {
         // fetch first if available
-        P provider = findProviderByRealm(realm);
+        RP provider = findProviderByRealm(realm);
         if (provider == null) {
             return Collections.emptyList();
         }

@@ -20,12 +20,12 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.base.AbstractAccountService;
 import it.smartcommunitylab.aac.accounts.base.AbstractEditableAccount;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
-import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
+import it.smartcommunitylab.aac.openid.model.OIDCUserAccount;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 public class AppleAccountService
-    extends AbstractAccountService<OIDCUserAccount, AbstractEditableAccount, AppleIdentityProviderConfigMap, AppleAccountServiceConfig> {
+    extends AbstractAccountService<OIDCUserAccount, AbstractEditableAccount, AppleAccountServiceConfig, AppleIdentityProviderConfigMap> {
 
     public AppleAccountService(
         String providerId,

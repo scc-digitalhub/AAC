@@ -26,38 +26,25 @@ public class RealmTemplateProviderConfig extends AbstractTemplateProviderConfig<
     public static final String RESOURCE_TYPE =
         SystemKeys.RESOURCE_PROVIDER + SystemKeys.ID_SEPARATOR + TemplateProviderConfigMap.RESOURCE_TYPE;
 
-    private String customStyle;
+    public RealmTemplateProviderConfig(String authority, String provider, String realm) {
+        super(authority, provider, realm, new TemplateProviderSettingsMap(), new TemplateProviderConfigMap());
+    }
 
     public RealmTemplateProviderConfig(
-        String authority,
-        String provider,
-        String realm,
+        ConfigurableTemplateProvider cp,
+        TemplateProviderSettingsMap settingsMap,
         TemplateProviderConfigMap configMap
     ) {
-        super(authority, provider, realm, configMap);
+        super(cp, settingsMap, configMap);
     }
-
-    public RealmTemplateProviderConfig(ConfigurableTemplateProvider cp, TemplateProviderConfigMap configMap) {
-        super(cp, configMap);
-        this.customStyle = cp.getCustomStyle();
-    }
-
-    /**
-     * Private constructor for JPA and other serialization tools.
-     *
-     * We need to implement this to enable deserialization of resources via
-     * reflection
-     */
-    @SuppressWarnings("unused")
-    public RealmTemplateProviderConfig() {
-        super((String) null, (String) null, (String) null, new TemplateProviderConfigMap());
-    }
-
-    public String getCustomStyle() {
-        return customStyle;
-    }
-
-    public void setCustomStyle(String customStyle) {
-        this.customStyle = customStyle;
-    }
+    // /**
+    //  * Private constructor for JPA and other serialization tools.
+    //  *
+    //  * We need to implement this to enable deserialization of resources via
+    //  * reflection
+    //  */
+    // @SuppressWarnings("unused")
+    // public RealmTemplateProviderConfig() {
+    //     super((String) null, (String) null, (String) null, new TemplateProviderConfigMap());
+    // }
 }

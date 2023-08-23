@@ -30,8 +30,8 @@ import it.smartcommunitylab.aac.openid.apple.auth.AppleClientAuthenticationParam
 import it.smartcommunitylab.aac.openid.apple.model.AppleOidcUserData;
 import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticationException;
 import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticationToken;
+import it.smartcommunitylab.aac.openid.model.OIDCUserAccount;
 import it.smartcommunitylab.aac.openid.model.OIDCUserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.openid.provider.OIDCAuthenticationProvider;
 import it.smartcommunitylab.aac.openid.service.IdTokenOidcUserService;
 import java.io.Serializable;

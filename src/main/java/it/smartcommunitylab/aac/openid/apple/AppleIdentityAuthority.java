@@ -28,8 +28,8 @@ import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityConfiguration
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProvider;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfig;
 import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfigMap;
+import it.smartcommunitylab.aac.openid.model.OIDCUserAccount;
 import it.smartcommunitylab.aac.openid.model.OIDCUserIdentity;
-import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;

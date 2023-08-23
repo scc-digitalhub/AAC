@@ -20,20 +20,17 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import it.smartcommunitylab.aac.SystemKeys;
-import java.util.Collections;
-import java.util.Set;
+import it.smartcommunitylab.aac.core.provider.config.ConfigurableProviderImpl;
+import it.smartcommunitylab.aac.templates.provider.TemplateProviderSettingsMap;
 import javax.validation.Valid;
 
 @Valid
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ConfigurableTemplateProvider extends AbstractConfigurableProvider {
-
-    private Set<String> languages;
-    private String customStyle;
+public class ConfigurableTemplateProvider extends ConfigurableProviderImpl<TemplateProviderSettingsMap> {
 
     public ConfigurableTemplateProvider(String authority, String provider, String realm) {
-        super(authority, provider, realm, SystemKeys.RESOURCE_TEMPLATE);
+        super(SystemKeys.RESOURCE_TEMPLATE, authority, provider, realm);
     }
 
     /**
@@ -44,23 +41,6 @@ public class ConfigurableTemplateProvider extends AbstractConfigurableProvider {
      */
     @SuppressWarnings("unused")
     private ConfigurableTemplateProvider() {
-        this((String) null, (String) null, (String) null);
-        this.languages = Collections.emptySet();
-    }
-
-    public Set<String> getLanguages() {
-        return languages;
-    }
-
-    public void setLanguages(Set<String> languages) {
-        this.languages = languages;
-    }
-
-    public String getCustomStyle() {
-        return customStyle;
-    }
-
-    public void setCustomStyle(String customStyle) {
-        this.customStyle = customStyle;
+        super(SystemKeys.RESOURCE_TEMPLATE, null, null, null);
     }
 }

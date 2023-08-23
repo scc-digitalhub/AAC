@@ -20,7 +20,7 @@ import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.provider.config.ProviderConfig;
 import java.util.Set;
 
-public interface TemplateProviderConfig<M extends ConfigMap> extends ProviderConfig<M> {
+public interface TemplateProviderConfig<M extends ConfigMap> extends ProviderConfig<TemplateProviderSettingsMap, M> {
     public Set<String> getLanguages();
 
     public String getCustomStyle();

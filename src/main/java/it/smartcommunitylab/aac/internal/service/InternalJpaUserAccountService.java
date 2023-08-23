@@ -28,8 +28,6 @@ import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountEntityRe
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountId;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.model.SubjectStatus;
-import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
-import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountEntity;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;

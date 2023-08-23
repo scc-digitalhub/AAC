@@ -28,41 +28,51 @@ import it.smartcommunitylab.aac.base.provider.config.AbstractProviderConfig;
 import it.smartcommunitylab.aac.templates.model.ConfigurableTemplateProvider;
 import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfig;
 import it.smartcommunitylab.aac.templates.provider.TemplateProviderConfig;
+import it.smartcommunitylab.aac.templates.provider.TemplateProviderSettingsMap;
 import it.smartcommunitylab.aac.templates.service.LanguageService;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Set;
 import java.util.TreeSet;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes({ @Type(value = RealmTemplateProviderConfig.class, name = RealmTemplateProviderConfig.RESOURCE_TYPE) })
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(Include.ALWAYS)
 public abstract class AbstractTemplateProviderConfig<M extends AbstractConfigMap>
-    extends AbstractProviderConfig<M, ConfigurableTemplateProvider>
+    extends AbstractProviderConfig<TemplateProviderSettingsMap, M>
     implements TemplateProviderConfig<M> {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
-    protected Set<String> languages;
-
-    protected AbstractTemplateProviderConfig(String authority, String provider, String realm, M configMap) {
-        super(authority, provider, realm, configMap);
-        this.languages = Collections.emptySet();
+    protected AbstractTemplateProviderConfig(
+        String authority,
+        String provider,
+        String realm,
+        TemplateProviderSettingsMap settingsMap,
+        M configMap
+    ) {
+        super(authority, provider, realm, settingsMap, configMap);
     }
 
-    protected AbstractTemplateProviderConfig(ConfigurableTemplateProvider cp, M configMap) {
-        super(cp, configMap);
-        this.languages = cp.getLanguages();
+    protected AbstractTemplateProviderConfig(
+        ConfigurableTemplateProvider cp,
+        TemplateProviderSettingsMap settingsMap,
+        M configMap
+    ) {
+        super(cp, settingsMap, configMap);
     }
 
+    @Override
     public Set<String> getLanguages() {
-        return (languages != null && !languages.isEmpty())
-            ? languages
+        return !CollectionUtils.isEmpty(settingsMap.getLanguages())
+            ? settingsMap.getLanguages()
             : new TreeSet<>(Arrays.asList(LanguageService.LANGUAGES));
     }
 
-    public void setLanguages(Set<String> languages) {
-        this.languages = languages;
+    @Override
+    public String getCustomStyle() {
+        return StringUtils.hasText(settingsMap.getCustomStyle()) ? settingsMap.getCustomStyle() : "";
     }
 }

@@ -25,7 +25,7 @@ import it.smartcommunitylab.aac.base.authorities.AbstractProviderAuthority;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.core.service.TranslatorProviderConfigRepository;
-import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
+import it.smartcommunitylab.aac.openid.model.OIDCUserAccount;
 import it.smartcommunitylab.aac.openid.provider.OIDCAccountService;
 import it.smartcommunitylab.aac.openid.provider.OIDCAccountServiceConfig;
 import it.smartcommunitylab.aac.openid.provider.OIDCAccountServiceConfigConverter;

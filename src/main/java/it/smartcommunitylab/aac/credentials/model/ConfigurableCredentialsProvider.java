@@ -33,7 +33,14 @@ public class ConfigurableCredentialsProvider extends ConfigurableProviderImpl<Cr
         super(SystemKeys.RESOURCE_CREDENTIALS, authority, provider, realm);
     }
 
-    public ConfigurableCredentialsProvider() {
+    /**
+     * Private constructor for JPA and other serialization tools.
+     *
+     * We need to implement this to enable deserialization of resources via
+     * reflection
+     */
+    @SuppressWarnings("unused")
+    private ConfigurableCredentialsProvider() {
         super(SystemKeys.RESOURCE_CREDENTIALS, null, null, null);
     }
 }

@@ -229,10 +229,10 @@ public abstract class AbstractIdentityProvider<
 
         // uuid is available for persisted accounts
         String uuid = account.getUuid();
-        // set uuid on principal when possible
-        if (principal instanceof AbstractUserAuthenticatedPrincipal) {
-            ((AbstractUserAuthenticatedPrincipal) principal).setUuid(uuid);
-        }
+        // // set uuid on principal when possible - DISABLED, not needed
+        // if (principal instanceof AbstractUserAuthenticatedPrincipal) {
+        //     ((AbstractUserAuthenticatedPrincipal) principal).setUuid(uuid);
+        // }
 
         // convert attribute sets via provider, will update store
         logger.debug("convert principal and account to attributes via provider for {}", String.valueOf(id));

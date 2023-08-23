@@ -18,7 +18,7 @@ package it.smartcommunitylab.aac.oauth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.smartcommunitylab.aac.dto.RealmConfig;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.oauth.client.OAuth2ClientConfigMap;
 import it.smartcommunitylab.aac.oauth.model.ClientRegistration;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;

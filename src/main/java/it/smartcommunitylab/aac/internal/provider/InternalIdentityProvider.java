@@ -24,9 +24,9 @@ import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.identity.base.AbstractIdentityProvider;
 import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.identity.provider.LoginProvider;
+import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
 import java.util.Collection;
 import org.slf4j.Logger;
@@ -168,7 +168,7 @@ public class InternalIdentityProvider
 
         // uuid is available for persisted accounts
         String uuid = account.getUuid();
-        principal.setUuid(uuid);
+        // principal.setUuid(uuid);
 
         // userId is always present, is derived from the same account table
         String curUserId = account.getUserId();

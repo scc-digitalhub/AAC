@@ -31,8 +31,8 @@ import it.smartcommunitylab.aac.identity.model.UserIdentity;
 import it.smartcommunitylab.aac.identity.provider.IdentityService;
 import it.smartcommunitylab.aac.internal.InternalAccountServiceAuthority;
 import it.smartcommunitylab.aac.internal.model.InternalEditableUserAccount;
+import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.users.persistence.UserEntity;
 import it.smartcommunitylab.aac.users.service.UserEntityService;
 import java.util.ArrayList;
@@ -131,8 +131,7 @@ public class InternalIdentityService
     }
 
     @Override
-    public CredentialsService<?, ?, ?, ?> getCredentialsService(String authority)
-        throws NoSuchProviderException {
+    public CredentialsService<?, ?, ?, ?> getCredentialsService(String authority) throws NoSuchProviderException {
         CredentialsService<?, ?, ?, ?> cs = getCredentialsServices()
             .stream()
             .filter(s -> s.getAuthority().equals(authority))

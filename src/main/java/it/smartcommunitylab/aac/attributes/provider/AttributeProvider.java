@@ -17,7 +17,6 @@
 package it.smartcommunitylab.aac.attributes.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.attributes.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
@@ -45,7 +44,7 @@ import java.util.Collection;
  *  they should not handle identities
  */
 public interface AttributeProvider<M extends ConfigMap, C extends AttributeProviderConfig<M>>
-    extends ConfigurableResourceProvider<UserAttributes, ConfigurableAttributeProvider, M, C> {
+    extends ConfigurableResourceProvider<UserAttributes, C, AttributeProviderSettingsMap, M> {
     /*
      * Attribute sets (for scopes)
      *

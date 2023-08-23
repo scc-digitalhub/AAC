@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.templates.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.profiles.scope.OpenIdResource;
 import it.smartcommunitylab.aac.scope.Resource;
@@ -50,8 +50,8 @@ public class TemplateTemplateProvider
         this.resource = oauthResource != null ? oauthResource : new OpenIdResource();
 
         // TODO add mocking user props via config to build templates
-        account = new InternalUserAccount();
-        account.setRealm(realm);
+        account = new InternalUserAccount(SystemKeys.AUTHORITY_TEMPLATE, realm, "");
+        account.setProvider(providerId);
         account.setName("Mock");
         account.setSurname("User");
         account.setEmail("mockuser@test.local.me");

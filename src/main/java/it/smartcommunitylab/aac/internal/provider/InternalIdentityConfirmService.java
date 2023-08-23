@@ -22,7 +22,7 @@ import it.smartcommunitylab.aac.base.provider.AbstractProvider;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.credentials.model.UserCredentials;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -53,10 +53,10 @@ public class InternalIdentityConfirmService extends AbstractProvider<UserCredent
         this.repositoryId = config.getRepositoryId();
     }
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_CREDENTIALS;
-    }
+    // @Override
+    // public String getType() {
+    //     return SystemKeys.RESOURCE_CREDENTIALS;
+    // }
 
     @Transactional(readOnly = true)
     public InternalUserAccount findAccountByConfirmationKey(String key) {
