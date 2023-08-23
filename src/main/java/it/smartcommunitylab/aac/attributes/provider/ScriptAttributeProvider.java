@@ -17,6 +17,7 @@
 package it.smartcommunitylab.aac.attributes.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.attributes.base.AbstractAttributeProvider;
 import it.smartcommunitylab.aac.attributes.mapper.ExactAttributesMapper;
 import it.smartcommunitylab.aac.attributes.model.Attribute;
 import it.smartcommunitylab.aac.attributes.model.AttributeSet;
@@ -46,8 +47,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 public class ScriptAttributeProvider
-    extends AbstractConfigurableResourceProvider<UserAttributes, ConfigurableAttributeProvider, ScriptAttributeProviderConfigMap, ScriptAttributeProviderConfig>
-    implements AttributeProvider<ScriptAttributeProviderConfigMap, ScriptAttributeProviderConfig> {
+    extends AbstractAttributeProvider<DefaultUserAttributesImpl, ScriptAttributeProviderConfig, ScriptAttributeProviderConfigMap> {
 
     public static final String ATTRIBUTE_MAPPING_FUNCTION = "attributeMapping";
 
@@ -64,7 +64,7 @@ public class ScriptAttributeProvider
         ScriptAttributeProviderConfig providerConfig,
         String realm
     ) {
-        super(SystemKeys.AUTHORITY_SCRIPT, providerId, realm, providerConfig);
+        super(SystemKeys.AUTHORITY_SCRIPT, providerId, attributeService, providerConfig, realm);
         Assert.notNull(attributeService, "attribute service is mandatory");
         Assert.notNull(attributeStore, "attribute store is mandatory");
 

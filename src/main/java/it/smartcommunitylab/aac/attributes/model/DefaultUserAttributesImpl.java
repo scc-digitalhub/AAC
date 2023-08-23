@@ -47,14 +47,11 @@ public class DefaultUserAttributesImpl extends AbstractAttributes {
         String userId,
         String identifier
     ) {
-        super(authority, provider);
+        super(authority, provider, realm, userId);
         Assert.hasText(identifier, "set identifier can not be null");
 
         this.identifier = identifier;
         this.attributes = new HashSet<>();
-
-        setUserId(userId);
-        setRealm(realm);
     }
 
     public DefaultUserAttributesImpl(
@@ -64,7 +61,7 @@ public class DefaultUserAttributesImpl extends AbstractAttributes {
         String userId,
         AttributeSet attributeSet
     ) {
-        super(authority, provider);
+        super(authority, provider, realm, userId);
         Assert.notNull(attributeSet, "attribute set can not be null");
         Assert.hasText(attributeSet.getIdentifier(), "set identifier can not be null");
 
@@ -73,12 +70,8 @@ public class DefaultUserAttributesImpl extends AbstractAttributes {
         this.attributes.addAll(attributeSet.getAttributes());
         this.name = attributeSet.getName();
         this.description = attributeSet.getDescription();
-
-        setUserId(userId);
-        setRealm(realm);
     }
 
-    @Override
     public String getAttributesId() {
         return getIdentifier();
     }

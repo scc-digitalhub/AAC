@@ -32,4 +32,8 @@ public class ConfigurableAttributeProvider extends ConfigurableProviderImpl<Attr
     public ConfigurableAttributeProvider(String authority, String provider, String realm) {
         super(SystemKeys.RESOURCE_ATTRIBUTES, authority, provider, realm);
     }
+
+    public ConfigurableAttributeProvider() {
+        super(SystemKeys.RESOURCE_ATTRIBUTES, null, null, null);
+    }
 }

@@ -67,7 +67,7 @@ public abstract class AbstractConfigurableProviderService<
     protected final String type;
 
     protected final ConfigurableProviderEntityService providerService;
-    protected final ConfigurableAuthorityService<? extends ConfigurableProviderAuthority<?, ? extends ProviderConfig<S, ?>, ? extends ConfigurableProvider<S>, S, ?>, S> authorityService;
+    protected final ConfigurableAuthorityService<? extends ConfigurableProviderAuthority<?, ? extends ConfigurableProvider<S>, ? extends ProviderConfig<S, ?>, S, ?>, S> authorityService;
 
     // keep a local map for system providers since these are not in db
     // key is providerId
@@ -80,7 +80,7 @@ public abstract class AbstractConfigurableProviderService<
 
     protected AbstractConfigurableProviderService(
         String type,
-        ConfigurableAuthorityService<? extends ConfigurableProviderAuthority<?, ? extends ProviderConfig<S, ?>, ? extends ConfigurableProvider<S>, S, ?>, S> providerAuthorityService,
+        ConfigurableAuthorityService<? extends ConfigurableProviderAuthority<?, ? extends ConfigurableProvider<S>, ? extends ProviderConfig<S, ?>, S, ?>, S> providerAuthorityService,
         ConfigurableProviderEntityService providerService,
         Supplier<C> factory
     ) {

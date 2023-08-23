@@ -18,8 +18,12 @@ package it.smartcommunitylab.aac.attributes.service;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.AttributeProviderAuthority;
+import it.smartcommunitylab.aac.attributes.model.UserAttributes;
+import it.smartcommunitylab.aac.attributes.provider.AttributeProvider;
+import it.smartcommunitylab.aac.attributes.provider.AttributeProviderConfig;
+import it.smartcommunitylab.aac.attributes.provider.AttributeProviderSettingsMap;
 import it.smartcommunitylab.aac.base.service.AbstractConfigurableAuthorityService;
-
+import it.smartcommunitylab.aac.core.model.ConfigMap;
 import java.util.Collection;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
@@ -27,10 +31,12 @@ import org.springframework.util.Assert;
 
 @Service
 public class AttributeProviderAuthorityService
-    extends AbstractConfigurableAuthorityService<AttributeProviderAuthority<?, ?, ?>>
+    extends AbstractConfigurableAuthorityService<AttributeProviderAuthority<? extends AttributeProvider<? extends UserAttributes, ? extends ConfigMap, ? extends AttributeProviderConfig<? extends ConfigMap>>, ? extends AttributeProviderConfig<? extends ConfigMap>, ? extends ConfigMap>, AttributeProviderSettingsMap>
     implements InitializingBean {
 
-    public AttributeProviderAuthorityService(Collection<AttributeProviderAuthority<?, ?, ?>> authorities) {
+    public AttributeProviderAuthorityService(
+        Collection<AttributeProviderAuthority<? extends AttributeProvider<? extends UserAttributes, ? extends ConfigMap, ? extends AttributeProviderConfig<? extends ConfigMap>>, ? extends AttributeProviderConfig<? extends ConfigMap>, ? extends ConfigMap>> authorities
+    ) {
         super(SystemKeys.RESOURCE_ATTRIBUTES);
         this.setAuthorities(authorities);
     }

@@ -16,127 +16,117 @@
 
 package it.smartcommunitylab.aac.attributes.service;
 
-import it.smartcommunitylab.aac.attributes.AttributeProviderAuthority;
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.model.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.attributes.provider.AttributeProviderSettingsMap;
 import it.smartcommunitylab.aac.base.service.AbstractConfigurableProviderService;
-import it.smartcommunitylab.aac.core.persistence.AttributeProviderEntity;
 import it.smartcommunitylab.aac.core.service.ConfigurableProviderEntityService;
-
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import org.jsoup.Jsoup;
-import org.jsoup.safety.Safelist;
-import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 @Service
 @Transactional
 public class AttributeProviderService
-    extends AbstractConfigurableProviderService<AttributeProviderAuthority<?, ?, ?>, ConfigurableAttributeProvider, AttributeProviderEntity> {
+    extends AbstractConfigurableProviderService<ConfigurableAttributeProvider, AttributeProviderSettingsMap> {
 
     public AttributeProviderService(
         AttributeProviderAuthorityService authorityService,
-        ConfigurableProviderEntityService<AttributeProviderEntity> providerService
+        ConfigurableProviderEntityService providerService
     ) {
-        super(authorityService, providerService);
-        // set converters
-        setEntityConverter(new AttributeProviderEntityConverter());
-        setConfigConverter(new AttributeProviderConfigConverter());
+        super(SystemKeys.RESOURCE_ATTRIBUTES, authorityService, providerService, ConfigurableAttributeProvider::new);
+        // // set converters
+        // setEntityConverter(new AttributeProviderEntityConverter());
+        // setConfigConverter(new AttributeProviderConfigConverter());
     }
+    // class AttributeProviderEntityConverter
+    //     implements Converter<AttributeProviderEntity, ConfigurableAttributeProvider> {
 
-    class AttributeProviderEntityConverter
-        implements Converter<AttributeProviderEntity, ConfigurableAttributeProvider> {
+    //     @Override
+    //     public ConfigurableAttributeProvider convert(AttributeProviderEntity pe) {
+    //         ConfigurableAttributeProvider cp = new ConfigurableAttributeProvider(
+    //             pe.getAuthority(),
+    //             pe.getProvider(),
+    //             pe.getRealm()
+    //         );
+    //         cp.setConfiguration(pe.getConfigurationMap());
+    //         cp.setVersion(pe.getVersion());
 
-        @Override
-        public ConfigurableAttributeProvider convert(AttributeProviderEntity pe) {
-            ConfigurableAttributeProvider cp = new ConfigurableAttributeProvider(
-                pe.getAuthority(),
-                pe.getProvider(),
-                pe.getRealm()
-            );
-            cp.setConfiguration(pe.getConfigurationMap());
-            cp.setVersion(pe.getVersion());
+    //         cp.setEnabled(pe.isEnabled());
+    //         cp.setPersistence(pe.getPersistence());
+    //         cp.setEvents(pe.getEvents());
 
-            cp.setEnabled(pe.isEnabled());
-            cp.setPersistence(pe.getPersistence());
-            cp.setEvents(pe.getEvents());
+    //         cp.setName(pe.getName());
+    //         cp.setTitleMap(pe.getTitleMap());
+    //         cp.setDescriptionMap(pe.getDescriptionMap());
 
-            cp.setName(pe.getName());
-            cp.setTitleMap(pe.getTitleMap());
-            cp.setDescriptionMap(pe.getDescriptionMap());
+    //         Set<String> attributeSets = pe.getAttributeSets() != null
+    //             ? StringUtils.commaDelimitedListToSet(pe.getAttributeSets())
+    //             : Collections.emptySet();
+    //         cp.setAttributeSets(attributeSets);
 
-            Set<String> attributeSets = pe.getAttributeSets() != null
-                ? StringUtils.commaDelimitedListToSet(pe.getAttributeSets())
-                : Collections.emptySet();
-            cp.setAttributeSets(attributeSets);
+    //         return cp;
+    //     }
+    // }
 
-            return cp;
-        }
-    }
+    // class AttributeProviderConfigConverter
+    //     implements Converter<ConfigurableAttributeProvider, AttributeProviderEntity> {
 
-    class AttributeProviderConfigConverter
-        implements Converter<ConfigurableAttributeProvider, AttributeProviderEntity> {
+    //     @Override
+    //     public AttributeProviderEntity convert(ConfigurableAttributeProvider reg) {
+    //         AttributeProviderEntity pe = new AttributeProviderEntity();
 
-        @Override
-        public AttributeProviderEntity convert(ConfigurableAttributeProvider reg) {
-            AttributeProviderEntity pe = new AttributeProviderEntity();
+    //         pe.setAuthority(reg.getAuthority());
+    //         pe.setProvider(reg.getProvider());
+    //         pe.setRealm(reg.getRealm());
+    //         pe.setEnabled(reg.isEnabled());
 
-            pe.setAuthority(reg.getAuthority());
-            pe.setProvider(reg.getProvider());
-            pe.setRealm(reg.getRealm());
-            pe.setEnabled(reg.isEnabled());
+    //         String name = reg.getName();
+    //         if (StringUtils.hasText(name)) {
+    //             name = Jsoup.clean(name, Safelist.none());
+    //         }
+    //         pe.setName(name);
 
-            String name = reg.getName();
-            if (StringUtils.hasText(name)) {
-                name = Jsoup.clean(name, Safelist.none());
-            }
-            pe.setName(name);
+    //         Map<String, String> titleMap = null;
+    //         if (reg.getTitleMap() != null) {
+    //             // cleanup every field via safelist
+    //             titleMap =
+    //                 reg
+    //                     .getTitleMap()
+    //                     .entrySet()
+    //                     .stream()
+    //                     .filter(e -> e.getValue() != null)
+    //                     .map(e -> Map.entry(e.getKey(), Jsoup.clean(e.getValue(), Safelist.none())))
+    //                     .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+    //         }
+    //         pe.setTitleMap(titleMap);
 
-            Map<String, String> titleMap = null;
-            if (reg.getTitleMap() != null) {
-                // cleanup every field via safelist
-                titleMap =
-                    reg
-                        .getTitleMap()
-                        .entrySet()
-                        .stream()
-                        .filter(e -> e.getValue() != null)
-                        .map(e -> Map.entry(e.getKey(), Jsoup.clean(e.getValue(), Safelist.none())))
-                        .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
-            }
-            pe.setTitleMap(titleMap);
+    //         Map<String, String> descriptionMap = null;
+    //         if (reg.getDescriptionMap() != null) {
+    //             // cleanup every field via safelist
+    //             descriptionMap =
+    //                 reg
+    //                     .getDescriptionMap()
+    //                     .entrySet()
+    //                     .stream()
+    //                     .filter(e -> e.getValue() != null)
+    //                     .map(e -> Map.entry(e.getKey(), Jsoup.clean(e.getValue(), Safelist.none())))
+    //                     .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+    //         }
+    //         pe.setDescriptionMap(descriptionMap);
 
-            Map<String, String> descriptionMap = null;
-            if (reg.getDescriptionMap() != null) {
-                // cleanup every field via safelist
-                descriptionMap =
-                    reg
-                        .getDescriptionMap()
-                        .entrySet()
-                        .stream()
-                        .filter(e -> e.getValue() != null)
-                        .map(e -> Map.entry(e.getKey(), Jsoup.clean(e.getValue(), Safelist.none())))
-                        .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
-            }
-            pe.setDescriptionMap(descriptionMap);
+    //         // TODO add enum
+    //         String persistence = reg.getPersistence();
+    //         String events = reg.getEvents();
 
-            // TODO add enum
-            String persistence = reg.getPersistence();
-            String events = reg.getEvents();
+    //         pe.setPersistence(persistence);
+    //         pe.setEvents(events);
 
-            pe.setPersistence(persistence);
-            pe.setEvents(events);
+    //         pe.setConfigurationMap(reg.getConfiguration());
+    //         pe.setVersion(reg.getVersion());
 
-            pe.setConfigurationMap(reg.getConfiguration());
-            pe.setVersion(reg.getVersion());
+    //         pe.setAttributeSets(StringUtils.collectionToCommaDelimitedString(reg.getAttributeSets()));
 
-            pe.setAttributeSets(StringUtils.collectionToCommaDelimitedString(reg.getAttributeSets()));
-
-            return pe;
-        }
-    }
+    //         return pe;
+    //     }
+    // }
 }

@@ -108,7 +108,7 @@ public class IdentityProviderService
 
                 try {
                     // we validate config by converting to specific configMap
-                    ConfigurationProvider<?, ?, ?> configProvider = getConfigurationProvider(authority);
+                    ConfigurationProvider<?, ?, ?, ?> configProvider = getConfigurationProvider(authority);
                     ConfigMap configurable = configProvider.getConfigMap(cp.getConfiguration());
                     ConfigMap settings = configProvider.getSettingsMap(cp.getSettings());
 

@@ -28,6 +28,7 @@ import it.smartcommunitylab.aac.attributes.store.InMemoryAttributeStore;
 import it.smartcommunitylab.aac.attributes.store.NullAttributeStore;
 import it.smartcommunitylab.aac.attributes.store.PersistentAttributeStore;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.model.PersistenceMode;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -68,12 +69,12 @@ public class MapperAttributeAuthority
      * helpers
      */
 
-    protected AttributeStore getAttributeStore(String providerId, String persistence) {
+    protected AttributeStore getAttributeStore(String providerId, PersistenceMode persistence) {
         // we generate a new store for each provider
         AttributeStore store = new NullAttributeStore();
-        if (SystemKeys.PERSISTENCE_LEVEL_REPOSITORY.equals(persistence)) {
+        if (PersistenceMode.REPOSITORY == persistence) {
             store = new PersistentAttributeStore(getAuthorityId(), providerId, jdbcAttributeStore);
-        } else if (SystemKeys.PERSISTENCE_LEVEL_MEMORY.equals(persistence)) {
+        } else if (PersistenceMode.SESSION == persistence) {
             store = new InMemoryAttributeStore(getAuthorityId(), providerId);
         }
 

@@ -43,8 +43,8 @@ import java.util.Collection;
  *
  *  they should not handle identities
  */
-public interface AttributeProvider<M extends ConfigMap, C extends AttributeProviderConfig<M>>
-    extends ConfigurableResourceProvider<UserAttributes, C, AttributeProviderSettingsMap, M> {
+public interface AttributeProvider<U extends UserAttributes, M extends ConfigMap, C extends AttributeProviderConfig<M>>
+    extends ConfigurableResourceProvider<U, C, AttributeProviderSettingsMap, M> {
     /*
      * Attribute sets (for scopes)
      *

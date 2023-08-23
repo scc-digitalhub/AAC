@@ -21,8 +21,8 @@ import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import java.util.Collection;
 
-public interface AttributeService<M extends ConfigMap, C extends AttributeProviderConfig<M>>
-    extends AttributeProvider<M, C> {
+public interface AttributeService<U extends UserAttributes, M extends ConfigMap, C extends AttributeProviderConfig<M>>
+    extends AttributeProvider<U, M, C> {
     /*
      * Attribute management
      */

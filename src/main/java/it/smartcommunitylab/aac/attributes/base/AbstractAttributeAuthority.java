@@ -18,9 +18,8 @@ package it.smartcommunitylab.aac.attributes.base;
 
 import it.smartcommunitylab.aac.attributes.AttributeProviderAuthority;
 import it.smartcommunitylab.aac.attributes.model.ConfigurableAttributeProvider;
-import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.attributes.provider.AttributeConfigurationProvider;
-import it.smartcommunitylab.aac.attributes.provider.AttributeProvider;
+import it.smartcommunitylab.aac.attributes.provider.AttributeProviderSettingsMap;
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
 import it.smartcommunitylab.aac.base.authorities.AbstractConfigurableProviderAuthority;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
@@ -29,16 +28,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 
 public abstract class AbstractAttributeAuthority<
-    S extends AttributeProvider<M, C>, M extends AbstractConfigMap, C extends AbstractAttributeProviderConfig<M>
+    S extends AbstractAttributeProvider<? extends AbstractAttributes, C, M>,
+    M extends AbstractConfigMap,
+    C extends AbstractAttributeProviderConfig<M>
 >
-    extends AbstractConfigurableProviderAuthority<S, UserAttributes, ConfigurableAttributeProvider, M, C>
-    implements AttributeProviderAuthority<S, M, C> {
+    extends AbstractConfigurableProviderAuthority<S, ConfigurableAttributeProvider, C, AttributeProviderSettingsMap, M>
+    implements AttributeProviderAuthority<S, C, M> {
 
     // attributes sets service
     protected final AttributeService attributeService;
 
     // configuration provider
-    protected AttributeConfigurationProvider<M, C> configProvider;
+    protected AttributeConfigurationProvider<C, M> configProvider;
 
     protected AbstractAttributeAuthority(
         String authorityId,
@@ -57,12 +58,12 @@ public abstract class AbstractAttributeAuthority<
     // }
 
     @Override
-    public AttributeConfigurationProvider<M, C> getConfigurationProvider() {
+    public AttributeConfigurationProvider<C, M> getConfigurationProvider() {
         return configProvider;
     }
 
     @Autowired
-    public void setConfigProvider(AttributeConfigurationProvider<M, C> configProvider) {
+    public void setConfigProvider(AttributeConfigurationProvider<C, M> configProvider) {
         Assert.notNull(configProvider, "config provider is mandatory");
         this.configProvider = configProvider;
     }

@@ -17,6 +17,7 @@
 package it.smartcommunitylab.aac.attributes;
 
 import it.smartcommunitylab.aac.attributes.model.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.attributes.provider.AttributeProvider;
 import it.smartcommunitylab.aac.attributes.provider.AttributeProviderConfig;
 import it.smartcommunitylab.aac.attributes.provider.AttributeProviderSettingsMap;
@@ -24,7 +25,9 @@ import it.smartcommunitylab.aac.core.authorities.ConfigurableProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 
 public interface AttributeProviderAuthority<
-    S extends AttributeProvider<M, C>, M extends ConfigMap, C extends AttributeProviderConfig<M>
+    S extends AttributeProvider<? extends UserAttributes, M, C>,
+    C extends AttributeProviderConfig<M>,
+    M extends ConfigMap
 >
     extends ConfigurableProviderAuthority<S, ConfigurableAttributeProvider, C, AttributeProviderSettingsMap, M> {
     //
