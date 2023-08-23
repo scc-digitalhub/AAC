@@ -51,11 +51,19 @@ public class SamlUserAuthenticatedPrincipal extends AbstractUserAuthenticatedPri
     private Map<String, Serializable> attributes;
 
     public SamlUserAuthenticatedPrincipal(String provider, String realm, String userId, String subjectId) {
-        super(SystemKeys.AUTHORITY_SAML, provider);
+        this(SystemKeys.AUTHORITY_SAML, provider, realm, userId, subjectId);
+    }
+
+    public SamlUserAuthenticatedPrincipal(
+        String authority,
+        String provider,
+        String realm,
+        String userId,
+        String subjectId
+    ) {
+        super(authority, provider, realm, subjectId, userId);
         Assert.notNull(subjectId, "subjectId cannot be null");
         this.subjectId = subjectId;
-        setRealm(realm);
-        setUserId(userId);
     }
 
     @Override

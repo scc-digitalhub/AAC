@@ -14,114 +14,101 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.saml.model;
+package it.smartcommunitylab.aac.openid.persistence;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.accounts.base.AbstractUserAccount;
-import it.smartcommunitylab.aac.model.SubjectStatus;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import it.smartcommunitylab.aac.repository.HashMapSerializableConverter;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
-import javax.validation.Valid;
+import javax.persistence.Column;
+import javax.persistence.Convert;
+import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
+import javax.persistence.Id;
+import javax.persistence.IdClass;
+import javax.persistence.Lob;
+import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
-import org.springframework.util.StringUtils;
+import javax.validation.constraints.NotNull;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-@Valid
-@JsonIgnoreProperties(ignoreUnknown = true)
-@JsonInclude(Include.ALWAYS)
-public class SamlUserAccount extends AbstractUserAccount {
+@Entity
+@IdClass(OIDCUserAccountId.class)
+@Table(name = "oidc_users")
+@EntityListeners(AuditingEntityListener.class)
+public class OIDCUserAccountEntity {
 
-    private static final long serialVersionUID = SystemKeys.AAC_SAML_SERIAL_VERSION;
-    public static final String RESOURCE_TYPE =
-        SystemKeys.RESOURCE_ACCOUNT + SystemKeys.ID_SEPARATOR + SystemKeys.AUTHORITY_SAML;
-
+    @Id
     @NotBlank
+    @Column(name = "repository_id", length = 128)
     private String repositoryId;
 
     // subject identifier from external provider
+    @Id
     @NotBlank
-    private String subjectId;
+    @Column(name = "subject", length = 128)
+    private String subject;
 
     // unique uuid (subject entity)
     @NotBlank
+    @Column(unique = true, length = 128)
     private String uuid;
 
+    // reference to user
+    @NotNull
+    @Column(name = "user_id", length = 128)
+    private String userId;
+
+    @NotBlank
+    @Column(length = 128)
+    private String realm;
+
     // login
+    @Column(length = 32)
     private String status;
 
     // attributes
+    @Column(name = "username", length = 128)
     private String username;
+
     private String issuer;
+
     private String email;
+
+    @Column(name = "email_verified")
     private Boolean emailVerified;
+
     private String name;
-    private String surname;
+
+    @Column(name = "given_name")
+    private String givenName;
+
+    @Column(name = "family_name")
+    private String familyName;
+
+    @Column(length = 32)
     private String lang;
 
-    private Map<String, Serializable> attributes;
+    @Column(name = "picture_uri")
+    private String picture;
 
     // audit
+    @CreatedDate
+    @Column(name = "created_date")
     private Date createDate;
+
+    @LastModifiedDate
+    @Column(name = "last_modified_date")
     private Date modifiedDate;
 
-    public SamlUserAccount(String provider, String realm, String uuid) {
-        super(SystemKeys.AUTHORITY_SAML, provider, realm, uuid);
-    }
-
-    public SamlUserAccount(String authority, String provider, String realm, String uuid) {
-        super(authority, provider, realm, uuid);
-    }
-
-    @Override
-    public String getType() {
-        return RESOURCE_TYPE;
-    }
-
-    @Override
-    public String getUuid() {
-        return uuid;
-    }
-
-    @Override
-    public String getUsername() {
-        return username;
-    }
-
-    @Override
-    public String getEmailAddress() {
-        return email;
-    }
-
-    @Override
-    public boolean isEmailVerified() {
-        return (StringUtils.hasText(email) && emailVerified != null) ? emailVerified.booleanValue() : false;
-    }
-
-    @Override
-    public boolean isLocked() {
-        // only active users are *not* locked
-        if (status == null || SubjectStatus.ACTIVE.getValue().equals(status)) {
-            return false;
-        }
-
-        // every other condition locks login
-        return true;
-    }
-
-    /*
-     * fields
-     */
-
-    public String getSubjectId() {
-        return subjectId;
-    }
-
-    public void setSubjectId(String subjectId) {
-        this.subjectId = subjectId;
-    }
+    @Lob
+    @Column(name = "attributes")
+    @JsonIgnore
+    @Convert(converter = HashMapSerializableConverter.class)
+    private Map<String, Serializable> attributes;
 
     public String getRepositoryId() {
         return repositoryId;
@@ -131,8 +118,36 @@ public class SamlUserAccount extends AbstractUserAccount {
         this.repositoryId = repositoryId;
     }
 
+    public String getSubject() {
+        return subject;
+    }
+
+    public void setSubject(String subject) {
+        this.subject = subject;
+    }
+
+    public String getUuid() {
+        return uuid;
+    }
+
     public void setUuid(String uuid) {
         this.uuid = uuid;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public String getRealm() {
+        return realm;
+    }
+
+    public void setRealm(String realm) {
+        this.realm = realm;
     }
 
     public String getStatus() {
@@ -141,6 +156,14 @@ public class SamlUserAccount extends AbstractUserAccount {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getIssuer() {
@@ -175,12 +198,20 @@ public class SamlUserAccount extends AbstractUserAccount {
         this.name = name;
     }
 
-    public String getSurname() {
-        return surname;
+    public String getGivenName() {
+        return givenName;
     }
 
-    public void setSurname(String surname) {
-        this.surname = surname;
+    public void setGivenName(String givenName) {
+        this.givenName = givenName;
+    }
+
+    public String getFamilyName() {
+        return familyName;
+    }
+
+    public void setFamilyName(String familyName) {
+        this.familyName = familyName;
     }
 
     public String getLang() {
@@ -189,6 +220,14 @@ public class SamlUserAccount extends AbstractUserAccount {
 
     public void setLang(String lang) {
         this.lang = lang;
+    }
+
+    public String getPicture() {
+        return picture;
+    }
+
+    public void setPicture(String picture) {
+        this.picture = picture;
     }
 
     public Date getCreateDate() {
@@ -207,10 +246,6 @@ public class SamlUserAccount extends AbstractUserAccount {
         this.modifiedDate = modifiedDate;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
     public Map<String, Serializable> getAttributes() {
         return attributes;
     }
@@ -222,10 +257,10 @@ public class SamlUserAccount extends AbstractUserAccount {
     @Override
     public String toString() {
         return (
-            "SamlUserAccount [repositoryId=" +
+            "OIDCUserAccount [repositoryId=" +
             repositoryId +
-            ", subjectId=" +
-            subjectId +
+            ", subject=" +
+            subject +
             ", uuid=" +
             uuid +
             ", userId=" +
@@ -244,10 +279,14 @@ public class SamlUserAccount extends AbstractUserAccount {
             emailVerified +
             ", name=" +
             name +
-            ", surname=" +
-            surname +
+            ", givenName=" +
+            givenName +
+            ", familyName=" +
+            familyName +
             ", lang=" +
             lang +
+            ", picture=" +
+            picture +
             ", createDate=" +
             createDate +
             ", modifiedDate=" +

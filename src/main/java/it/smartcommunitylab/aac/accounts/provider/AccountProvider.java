@@ -20,12 +20,11 @@ import it.smartcommunitylab.aac.accounts.model.UserAccount;
 import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.core.provider.PersistedResourceProvider;
-import it.smartcommunitylab.aac.core.provider.UserResourceProvider;
+import it.smartcommunitylab.aac.core.provider.UserPersistedResourceProvider;
 import java.util.Collection;
 
 //TODO split identityAccountProvider out, make this Configurable (merge from accountService)
-public interface AccountProvider<U extends UserAccount> extends PersistedResourceProvider<U>, UserResourceProvider<U> {
+public interface AccountProvider<U extends UserAccount> extends UserPersistedResourceProvider<U> {
     /*
      * Fetch accounts from this provider
      */
@@ -88,5 +87,10 @@ public interface AccountProvider<U extends UserAccount> extends PersistedResourc
     @Override
     default void deleteResource(String id) {
         deleteAccount(id);
+    }
+
+    @Override
+    default void deleteResourcesByUser(String userId) {
+        deleteAccounts(userId);
     }
 }

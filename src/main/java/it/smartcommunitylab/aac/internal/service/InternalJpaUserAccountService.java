@@ -22,13 +22,18 @@ import it.smartcommunitylab.aac.common.DuplicatedDataException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.service.SubjectService;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountEntity;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountEntityRepository;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountId;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountRepository;
 import it.smartcommunitylab.aac.model.Subject;
+import it.smartcommunitylab.aac.model.SubjectStatus;
+import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
+import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountEntity;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,15 +47,18 @@ import org.springframework.util.StringUtils;
  */
 
 @Transactional
-public class InternalUserAccountService
+public class InternalJpaUserAccountService
     implements UserAccountService<InternalUserAccount>, InternalUserConfirmKeyService {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final InternalUserAccountRepository accountRepository;
+    private final InternalUserAccountEntityRepository accountRepository;
     private final SubjectService subjectService;
 
-    public InternalUserAccountService(InternalUserAccountRepository accountRepository, SubjectService subjectService) {
+    public InternalJpaUserAccountService(
+        InternalUserAccountEntityRepository accountRepository,
+        SubjectService subjectService
+    ) {
         Assert.notNull(accountRepository, "account repository is required");
         Assert.notNull(subjectService, "subject service is mandatory");
 
@@ -59,16 +67,19 @@ public class InternalUserAccountService
     }
 
     @Transactional(readOnly = true)
+    public List<InternalUserAccount> findAccounts(String repositoryId) {
+        logger.debug("find account for repositoryId {}", String.valueOf(repositoryId));
+
+        List<InternalUserAccountEntity> accounts = accountRepository.findByRepositoryId(repositoryId);
+        return accounts.stream().map(a -> to(a)).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public List<InternalUserAccount> findAccountsByRealm(String realm) {
         logger.debug("find account for realm {}", String.valueOf(realm));
 
-        List<InternalUserAccount> accounts = accountRepository.findByRealm(realm);
-        return accounts
-            .stream()
-            .map(a -> {
-                return accountRepository.detach(a);
-            })
-            .collect(Collectors.toList());
+        List<InternalUserAccountEntity> accounts = accountRepository.findByRealm(realm);
+        return accounts.stream().map(a -> to(a)).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -79,12 +90,12 @@ public class InternalUserAccountService
             String.valueOf(repository)
         );
 
-        InternalUserAccount account = accountRepository.findOne(new InternalUserAccountId(repository, username));
+        InternalUserAccountEntity account = accountRepository.findOne(new InternalUserAccountId(repository, username));
         if (account == null) {
             return null;
         }
 
-        return accountRepository.detach(account);
+        return to(account);
     }
 
     @Transactional(readOnly = true)
@@ -96,27 +107,20 @@ public class InternalUserAccountService
         );
 
         // we have at most 1 account with a given username, since username == id
-        InternalUserAccount account = accountRepository.findOne(new InternalUserAccountId(repository, username));
+        InternalUserAccountEntity account = accountRepository.findOne(new InternalUserAccountId(repository, username));
         if (account == null) {
             return Collections.emptyList();
         }
 
-        account = accountRepository.detach(account);
-
-        return Collections.singletonList(account);
+        return Collections.singletonList(to(account));
     }
 
     @Transactional(readOnly = true)
     public List<InternalUserAccount> findAccountsByEmail(String repository, String email) {
         logger.debug("find account with email {} in repository {}", String.valueOf(email), String.valueOf(repository));
 
-        List<InternalUserAccount> accounts = accountRepository.findByRepositoryIdAndEmail(repository, email);
-        return accounts
-            .stream()
-            .map(a -> {
-                return accountRepository.detach(a);
-            })
-            .collect(Collectors.toList());
+        List<InternalUserAccountEntity> accounts = accountRepository.findByRepositoryIdAndEmail(repository, email);
+        return accounts.stream().map(a -> to(a)).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -127,37 +131,32 @@ public class InternalUserAccountService
             String.valueOf(repository)
         );
 
-        InternalUserAccount account = accountRepository.findByRepositoryIdAndConfirmationKey(repository, key);
+        InternalUserAccountEntity account = accountRepository.findByRepositoryIdAndConfirmationKey(repository, key);
         if (account == null) {
             return null;
         }
 
-        return accountRepository.detach(account);
+        return to(account);
     }
 
     @Transactional(readOnly = true)
     public InternalUserAccount findAccountByUuid(String uuid) {
         logger.debug("find account with uuid {}", String.valueOf(uuid));
 
-        InternalUserAccount account = accountRepository.findByUuid(uuid);
+        InternalUserAccountEntity account = accountRepository.findByUuid(uuid);
         if (account == null) {
             return null;
         }
 
-        return accountRepository.detach(account);
+        return to(account);
     }
 
     @Transactional(readOnly = true)
     public List<InternalUserAccount> findAccountsByUser(String repository, String userId) {
         logger.debug("find account for user {} in repository {}", String.valueOf(userId), String.valueOf(repository));
 
-        List<InternalUserAccount> accounts = accountRepository.findByUserIdAndRepositoryId(userId, repository);
-        return accounts
-            .stream()
-            .map(a -> {
-                return accountRepository.detach(a);
-            })
-            .collect(Collectors.toList());
+        List<InternalUserAccountEntity> accounts = accountRepository.findByUserIdAndRepositoryId(userId, repository);
+        return accounts.stream().map(a -> to(a)).collect(Collectors.toList());
     }
 
     /*
@@ -180,7 +179,9 @@ public class InternalUserAccountService
         }
 
         try {
-            InternalUserAccount account = accountRepository.findOne(new InternalUserAccountId(repository, username));
+            InternalUserAccountEntity account = accountRepository.findOne(
+                new InternalUserAccountId(repository, username)
+            );
             if (account != null) {
                 throw new DuplicatedDataException("username");
             }
@@ -206,7 +207,7 @@ public class InternalUserAccountService
             }
 
             // we explode model
-            account = new InternalUserAccount();
+            account = new InternalUserAccountEntity();
             account.setRepositoryId(repository);
             account.setUsername(username);
 
@@ -214,26 +215,36 @@ public class InternalUserAccountService
 
             account.setUserId(reg.getUserId());
             account.setRealm(reg.getRealm());
-            account.setStatus(reg.getStatus());
+
             account.setEmail(reg.getEmail());
             account.setName(reg.getName());
             account.setSurname(reg.getSurname());
             account.setLang(reg.getLang());
+
             account.setConfirmed(reg.isConfirmed());
             account.setConfirmationDeadline(reg.getConfirmationDeadline());
             account.setConfirmationKey(reg.getConfirmationKey());
 
+            // set account as active
+            account.setStatus(SubjectStatus.ACTIVE.getValue());
+
+            //copy audit info for import/export
+            account.setCreateDate(reg.getCreateDate());
+            account.setModifiedDate(reg.getModifiedDate());
+
+            // note: use flush because we detach the entity!
             account = accountRepository.saveAndFlush(account);
-            account = accountRepository.detach(account);
 
             if (logger.isTraceEnabled()) {
                 logger.trace("account: {}", String.valueOf(account));
             }
 
-            account.setAuthority(reg.getAuthority());
-            account.setProvider(reg.getProvider());
+            //convert and set transient fields
+            InternalUserAccount a = to(account);
+            a.setAuthority(reg.getAuthority());
+            a.setProvider(reg.getProvider());
 
-            return account;
+            return a;
         } catch (RuntimeException e) {
             throw new RegistrationException(e.getMessage());
         }
@@ -255,14 +266,14 @@ public class InternalUserAccountService
             logger.trace("registration: {}", String.valueOf(reg));
         }
 
-        InternalUserAccount account = accountRepository.findOne(new InternalUserAccountId(repository, username));
+        InternalUserAccountEntity account = accountRepository.findOne(new InternalUserAccountId(repository, username));
         if (account == null) {
             throw new NoSuchUserException();
         }
 
         try {
-            // we support username update
-            account.setUsername(reg.getUsername());
+            // DISABLED we support username update
+            // account.setUsername(reg.getUsername());
 
             // DISABLED uuid change
             //            // support uuid change if provided
@@ -273,33 +284,38 @@ public class InternalUserAccountService
             // we explode model and update every field
             account.setUserId(reg.getUserId());
             account.setRealm(reg.getRealm());
-            account.setStatus(reg.getStatus());
+
             account.setEmail(reg.getEmail());
             account.setName(reg.getName());
             account.setSurname(reg.getSurname());
             account.setLang(reg.getLang());
+
+            // update account status
+            account.setStatus(reg.getStatus());
+
             account.setConfirmed(reg.isConfirmed());
             account.setConfirmationDeadline(reg.getConfirmationDeadline());
             account.setConfirmationKey(reg.getConfirmationKey());
 
             account = accountRepository.saveAndFlush(account);
-            account = accountRepository.detach(account);
 
             if (logger.isTraceEnabled()) {
                 logger.trace("account: {}", String.valueOf(account));
             }
 
-            account.setAuthority(reg.getAuthority());
-            account.setProvider(reg.getProvider());
+            //convert and set transient fields
+            InternalUserAccount a = to(account);
+            a.setAuthority(reg.getAuthority());
+            a.setProvider(reg.getProvider());
 
-            return account;
+            return a;
         } catch (Exception e) {
             throw new RegistrationException(e.getMessage());
         }
     }
 
     public void deleteAccount(String repository, String username) {
-        InternalUserAccount account = accountRepository.findOne(new InternalUserAccountId(repository, username));
+        InternalUserAccountEntity account = accountRepository.findOne(new InternalUserAccountId(repository, username));
         if (account != null) {
             String uuid = account.getUuid();
             if (uuid != null) {
@@ -319,6 +335,19 @@ public class InternalUserAccountService
     }
 
     @Override
+    public void deleteAllAccountsByUser(@NotNull String repository, @NotNull String userId) {
+        logger.debug(
+            "delete accounts for user {} in repository {}",
+            String.valueOf(userId),
+            String.valueOf(repository)
+        );
+
+        List<InternalUserAccountEntity> accounts = accountRepository.findByUserIdAndRepositoryId(userId, repository);
+        accountRepository.deleteAllInBatch(accounts);
+    }
+
+    //TODO remove from here
+    @Override
     public InternalUserAccount confirmAccount(String repository, String username, String key)
         throws NoSuchUserException, RegistrationException {
         logger.debug(
@@ -330,7 +359,7 @@ public class InternalUserAccountService
         if (logger.isTraceEnabled()) {
             logger.trace("key: {}", String.valueOf(key));
         }
-        InternalUserAccount account = accountRepository.findOne(new InternalUserAccountId(repository, username));
+        InternalUserAccountEntity account = accountRepository.findOne(new InternalUserAccountId(repository, username));
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -346,15 +375,41 @@ public class InternalUserAccountService
             account.setConfirmationKey(null);
 
             account = accountRepository.saveAndFlush(account);
-            account = accountRepository.detach(account);
 
             if (logger.isTraceEnabled()) {
                 logger.trace("account: {}", String.valueOf(account));
             }
 
-            return account;
+            return to(account);
         } catch (Exception e) {
             throw new RegistrationException(e.getMessage());
         }
+    }
+
+    /*
+     * Helpers
+     * TODO converters?
+     */
+
+    private InternalUserAccount to(InternalUserAccountEntity entity) {
+        //note: transient fields are set to null, they will be populated by providers
+        InternalUserAccount account = new InternalUserAccount(null, null, entity.getRealm(), entity.getUuid());
+
+        account.setRepositoryId(entity.getRepositoryId());
+        account.setUsername(entity.getUsername());
+
+        account.setUserId(entity.getUserId());
+        account.setStatus(entity.getStatus());
+
+        account.setEmail(entity.getEmail());
+        account.setConfirmed(entity.isConfirmed());
+        account.setName(entity.getName());
+        account.setSurname(entity.getSurname());
+        account.setLang(entity.getLang());
+
+        account.setCreateDate(entity.getCreateDate());
+        account.setModifiedDate(entity.getModifiedDate());
+
+        return account;
     }
 }

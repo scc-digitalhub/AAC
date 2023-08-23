@@ -18,17 +18,26 @@ package it.smartcommunitylab.aac.password.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.config.CredentialsAuthoritiesProperties;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.credentials.base.AbstractCredentialsConfigurationProvider;
 import it.smartcommunitylab.aac.credentials.model.ConfigurableCredentialsProvider;
 import org.springframework.stereotype.Service;
 
 @Service
 public class PasswordCredentialsConfigurationProvider
-    extends AbstractCredentialsConfigurationProvider<PasswordIdentityProviderConfigMap, PasswordCredentialsServiceConfig> {
+    extends AbstractCredentialsConfigurationProvider<PasswordCredentialsServiceConfig, PasswordIdentityProviderConfigMap> {
 
-    public PasswordCredentialsConfigurationProvider(CredentialsAuthoritiesProperties authoritiesProperties) {
-        super(SystemKeys.AUTHORITY_PASSWORD);
-        if (authoritiesProperties != null && authoritiesProperties.getPassword() != null) {
+    public PasswordCredentialsConfigurationProvider(
+        ProviderConfigRepository<PasswordCredentialsServiceConfig> registrationRepository,
+        CredentialsAuthoritiesProperties authoritiesProperties
+    ) {
+        super(SystemKeys.AUTHORITY_PASSWORD, registrationRepository);
+        if (
+            authoritiesProperties != null &&
+            authoritiesProperties.getSettings() != null &&
+            authoritiesProperties.getPassword() != null
+        ) {
+            setDefaultSettingsMap(authoritiesProperties.getSettings());
             setDefaultConfigMap(authoritiesProperties.getPassword());
         } else {
             setDefaultConfigMap(new PasswordIdentityProviderConfigMap());
@@ -37,6 +46,10 @@ public class PasswordCredentialsConfigurationProvider
 
     @Override
     protected PasswordCredentialsServiceConfig buildConfig(ConfigurableCredentialsProvider cp) {
-        return new PasswordCredentialsServiceConfig(cp, getConfigMap(cp.getConfiguration()));
+        return new PasswordCredentialsServiceConfig(
+            cp,
+            getSettingsMap(cp.getSettings()),
+            getConfigMap(cp.getConfiguration())
+        );
     }
 }

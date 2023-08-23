@@ -19,6 +19,7 @@ package it.smartcommunitylab.aac.openid.provider;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.base.AbstractAccountServiceConfig;
 import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountService;
+import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
 
 public class OIDCAccountServiceConfig extends AbstractAccountServiceConfig<OIDCIdentityProviderConfigMap> {
 
@@ -37,13 +38,18 @@ public class OIDCAccountServiceConfig extends AbstractAccountServiceConfig<OIDCI
     }
 
     public OIDCAccountServiceConfig(String authority, String provider, String realm) {
-        super(authority, provider, realm, new OIDCIdentityProviderConfigMap());
+        super(authority, provider, realm, new AccountServiceSettingsMap(), new OIDCIdentityProviderConfigMap());
     }
 
-    public OIDCAccountServiceConfig(ConfigurableAccountService cp, OIDCIdentityProviderConfigMap configMap) {
-        super(cp, configMap);
+    public OIDCAccountServiceConfig(
+        ConfigurableAccountService cp,
+        AccountServiceSettingsMap settingsMap,
+        OIDCIdentityProviderConfigMap configMap
+    ) {
+        super(cp, settingsMap, configMap);
     }
 
+    @Override
     public String getRepositoryId() {
         // not configurable for now
         return getProvider();

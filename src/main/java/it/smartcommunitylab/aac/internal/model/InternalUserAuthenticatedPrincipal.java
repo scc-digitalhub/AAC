@@ -19,7 +19,6 @@ package it.smartcommunitylab.aac.internal.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.identity.base.AbstractUserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,22 +41,20 @@ public class InternalUserAuthenticatedPrincipal extends AbstractUserAuthenticate
     // internal attributes from account
     private Map<String, String> attributes;
 
-    protected InternalUserAuthenticatedPrincipal(
+    public InternalUserAuthenticatedPrincipal(String provider, String realm, String userId, String username) {
+        this(SystemKeys.AUTHORITY_INTERNAL, provider, realm, username, userId);
+    }
+
+    public InternalUserAuthenticatedPrincipal(
         String authority,
         String provider,
         String realm,
         String userId,
         String username
     ) {
-        super(authority, provider);
+        super(authority, provider, realm, username, userId);
         Assert.hasText(username, "username can not be null or empty");
         this.username = username;
-        setRealm(realm);
-        setUserId(userId);
-    }
-
-    public InternalUserAuthenticatedPrincipal(String provider, String realm, String userId, String username) {
-        this(SystemKeys.AUTHORITY_INTERNAL, provider, realm, userId, username);
     }
 
     @Override

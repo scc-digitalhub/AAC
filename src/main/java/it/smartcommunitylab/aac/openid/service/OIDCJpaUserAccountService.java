@@ -24,11 +24,13 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.model.SubjectStatus;
-import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
+import it.smartcommunitylab.aac.openid.model.OIDCUserAccount;
+import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountEntity;
+import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountEntityRepository;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountId;
-import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,14 +44,14 @@ import org.springframework.util.StringUtils;
  */
 
 @Transactional
-public class OIDCUserAccountService implements UserAccountService<OIDCUserAccount> {
+public class OIDCJpaUserAccountService implements UserAccountService<OIDCUserAccount> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final OIDCUserAccountRepository accountRepository;
+    private final OIDCUserAccountEntityRepository accountRepository;
     private final SubjectService subjectService;
 
-    public OIDCUserAccountService(OIDCUserAccountRepository accountRepository, SubjectService subjectService) {
+    public OIDCJpaUserAccountService(OIDCUserAccountEntityRepository accountRepository, SubjectService subjectService) {
         Assert.notNull(accountRepository, "account repository is required");
         Assert.notNull(subjectService, "subject service is mandatory");
 
@@ -58,16 +60,19 @@ public class OIDCUserAccountService implements UserAccountService<OIDCUserAccoun
     }
 
     @Transactional(readOnly = true)
+    public List<OIDCUserAccount> findAccounts(String repositoryId) {
+        logger.debug("find account for repositoryId {}", String.valueOf(repositoryId));
+
+        List<OIDCUserAccountEntity> accounts = accountRepository.findByRepositoryId(repositoryId);
+        return accounts.stream().map(a -> to(a)).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public List<OIDCUserAccount> findAccountsByRealm(String realm) {
         logger.debug("find account for realm {}", String.valueOf(realm));
 
-        List<OIDCUserAccount> accounts = accountRepository.findByRealm(realm);
-        return accounts
-            .stream()
-            .map(a -> {
-                return accountRepository.detach(a);
-            })
-            .collect(Collectors.toList());
+        List<OIDCUserAccountEntity> accounts = accountRepository.findByRealm(realm);
+        return accounts.stream().map(a -> to(a)).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -78,14 +83,14 @@ public class OIDCUserAccountService implements UserAccountService<OIDCUserAccoun
             String.valueOf(repository)
         );
 
-        OIDCUserAccount account = accountRepository.findOne(new OIDCUserAccountId(repository, subject));
+        OIDCUserAccountEntity account = accountRepository.findOne(new OIDCUserAccountId(repository, subject));
         if (account == null) {
             return null;
         }
 
         // detach the entity, we don't want modifications to be persisted via a
         // read-only interface
-        return accountRepository.detach(account);
+        return to(account);
     }
 
     @Transactional(readOnly = true)
@@ -96,53 +101,38 @@ public class OIDCUserAccountService implements UserAccountService<OIDCUserAccoun
             String.valueOf(repository)
         );
 
-        List<OIDCUserAccount> accounts = accountRepository.findByRepositoryIdAndUsername(repository, username);
-        return accounts
-            .stream()
-            .map(a -> {
-                return accountRepository.detach(a);
-            })
-            .collect(Collectors.toList());
+        List<OIDCUserAccountEntity> accounts = accountRepository.findByRepositoryIdAndUsername(repository, username);
+        return accounts.stream().map(a -> to(a)).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public List<OIDCUserAccount> findAccountsByEmail(String repository, String email) {
         logger.debug("find account with email {} in repository {}", String.valueOf(email), String.valueOf(repository));
 
-        List<OIDCUserAccount> accounts = accountRepository.findByRepositoryIdAndEmail(repository, email);
-        return accounts
-            .stream()
-            .map(a -> {
-                return accountRepository.detach(a);
-            })
-            .collect(Collectors.toList());
+        List<OIDCUserAccountEntity> accounts = accountRepository.findByRepositoryIdAndEmail(repository, email);
+        return accounts.stream().map(a -> to(a)).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public OIDCUserAccount findAccountByUuid(String uuid) {
         logger.debug("find account with uuid {}", String.valueOf(uuid));
 
-        OIDCUserAccount account = accountRepository.findByUuid(uuid);
+        OIDCUserAccountEntity account = accountRepository.findByUuid(uuid);
         if (account == null) {
             return null;
         }
 
         // detach the entity, we don't want modifications to be persisted via a
         // read-only interface
-        return accountRepository.detach(account);
+        return to(account);
     }
 
     @Transactional(readOnly = true)
     public List<OIDCUserAccount> findAccountsByUser(String repository, String userId) {
         logger.debug("find account for user {} in repository {}", String.valueOf(userId), String.valueOf(repository));
 
-        List<OIDCUserAccount> accounts = accountRepository.findByUserIdAndRepositoryId(userId, repository);
-        return accounts
-            .stream()
-            .map(a -> {
-                return accountRepository.detach(a);
-            })
-            .collect(Collectors.toList());
+        List<OIDCUserAccountEntity> accounts = accountRepository.findByUserIdAndRepositoryId(userId, repository);
+        return accounts.stream().map(a -> to(a)).collect(Collectors.toList());
     }
 
     @Override
@@ -164,7 +154,7 @@ public class OIDCUserAccountService implements UserAccountService<OIDCUserAccoun
 
         try {
             // check if already registered
-            OIDCUserAccount account = accountRepository.findOne(new OIDCUserAccountId(repository, subject));
+            OIDCUserAccountEntity account = accountRepository.findOne(new OIDCUserAccountId(repository, subject));
             if (account != null) {
                 throw new DuplicatedDataException("subject");
             }
@@ -190,9 +180,10 @@ public class OIDCUserAccountService implements UserAccountService<OIDCUserAccoun
             }
 
             // extract attributes and build model
-            account = new OIDCUserAccount();
+            account = new OIDCUserAccountEntity();
             account.setRepositoryId(repository);
             account.setSubject(subject);
+
             account.setUuid(s.getSubjectId());
 
             account.setUserId(reg.getUserId());
@@ -208,21 +199,28 @@ public class OIDCUserAccountService implements UserAccountService<OIDCUserAccoun
             account.setLang(reg.getLang());
             account.setPicture(reg.getPicture());
 
+            account.setAttributes(reg.getAttributes());
+
             // set account as active
             account.setStatus(SubjectStatus.ACTIVE.getValue());
 
+            //copy audit info for import/export
+            account.setCreateDate(reg.getCreateDate());
+            account.setModifiedDate(reg.getModifiedDate());
+
             // note: use flush because we detach the entity!
             account = accountRepository.saveAndFlush(account);
-            account = accountRepository.detach(account);
 
             if (logger.isTraceEnabled()) {
                 logger.trace("account: {}", String.valueOf(account));
             }
 
-            account.setAuthority(reg.getAuthority());
-            account.setProvider(reg.getProvider());
+            //convert and set transient fields
+            OIDCUserAccount a = to(account);
+            a.setAuthority(reg.getAuthority());
+            a.setProvider(reg.getProvider());
 
-            return account;
+            return a;
         } catch (RuntimeException e) {
             throw new RegistrationException(e.getMessage());
         }
@@ -245,14 +243,14 @@ public class OIDCUserAccountService implements UserAccountService<OIDCUserAccoun
             logger.trace("registration: {}", String.valueOf(reg));
         }
 
-        OIDCUserAccount account = accountRepository.findOne(new OIDCUserAccountId(repository, subject));
+        OIDCUserAccountEntity account = accountRepository.findOne(new OIDCUserAccountId(repository, subject));
         if (account == null) {
             throw new NoSuchUserException();
         }
 
         try {
-            // support subject update
-            account.setSubject(reg.getSubject());
+            // DISABLED support subject update
+            // account.setSubject(reg.getSubject());
 
             // DISABLED support uuid change if provided
             //            if (StringUtils.hasText(reg.getUuid())) {
@@ -273,20 +271,23 @@ public class OIDCUserAccountService implements UserAccountService<OIDCUserAccoun
             account.setLang(reg.getLang());
             account.setPicture(reg.getPicture());
 
+            account.setAttributes(reg.getAttributes());
+
             // update account status
             account.setStatus(reg.getStatus());
 
             account = accountRepository.saveAndFlush(account);
-            account = accountRepository.detach(account);
 
             if (logger.isTraceEnabled()) {
                 logger.trace("account: {}", String.valueOf(account));
             }
 
-            account.setAuthority(reg.getAuthority());
-            account.setProvider(reg.getProvider());
+            //convert and set transient fields
+            OIDCUserAccount a = to(account);
+            a.setAuthority(reg.getAuthority());
+            a.setProvider(reg.getProvider());
 
-            return account;
+            return a;
         } catch (Exception e) {
             throw new RegistrationException(e.getMessage());
         }
@@ -294,7 +295,7 @@ public class OIDCUserAccountService implements UserAccountService<OIDCUserAccoun
 
     @Override
     public void deleteAccount(String repository, String subject) {
-        OIDCUserAccount account = accountRepository.findOne(new OIDCUserAccountId(repository, subject));
+        OIDCUserAccountEntity account = accountRepository.findOne(new OIDCUserAccountId(repository, subject));
         if (account != null) {
             String uuid = account.getUuid();
             if (uuid != null) {
@@ -310,5 +311,49 @@ public class OIDCUserAccountService implements UserAccountService<OIDCUserAccoun
             );
             accountRepository.delete(account);
         }
+    }
+
+    @Override
+    public void deleteAllAccountsByUser(@NotNull String repository, @NotNull String userId) {
+        logger.debug(
+            "delete accounts for user {} in repository {}",
+            String.valueOf(userId),
+            String.valueOf(repository)
+        );
+
+        List<OIDCUserAccountEntity> accounts = accountRepository.findByUserIdAndRepositoryId(userId, repository);
+        accountRepository.deleteAllInBatch(accounts);
+    }
+
+    /*
+     * Helpers
+     * TODO converters?
+     */
+
+    private OIDCUserAccount to(OIDCUserAccountEntity entity) {
+        //note: transient fields are set to null, they will be populated by providers
+        OIDCUserAccount account = new OIDCUserAccount(null, null, entity.getRealm(), entity.getUuid());
+
+        account.setRepositoryId(entity.getRepositoryId());
+        account.setSubject(entity.getSubject());
+
+        account.setUserId(entity.getUserId());
+        account.setStatus(entity.getStatus());
+
+        account.setIssuer(entity.getIssuer());
+        account.setUsername(entity.getUsername());
+        account.setEmail(entity.getEmail());
+        account.setEmailVerified(entity.getEmailVerified());
+        account.setName(entity.getName());
+        account.setGivenName(entity.getGivenName());
+        account.setFamilyName(entity.getFamilyName());
+        account.setLang(entity.getLang());
+
+        account.setAttributes(entity.getAttributes());
+
+        account.setCreateDate(entity.getCreateDate());
+        account.setModifiedDate(entity.getModifiedDate());
+
+        return account;
     }
 }

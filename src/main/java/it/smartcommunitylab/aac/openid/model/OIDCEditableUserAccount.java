@@ -81,20 +81,21 @@ public class OIDCEditableUserAccount extends AbstractEditableAccount {
     private String lang;
 
     protected OIDCEditableUserAccount() {
-        super(SystemKeys.AUTHORITY_OIDC, null, null);
+        super(SystemKeys.AUTHORITY_OIDC, null, null, null);
     }
 
+    @Deprecated
     public OIDCEditableUserAccount(String provider, String uuid) {
-        super(SystemKeys.AUTHORITY_INTERNAL, provider, uuid);
+        super(SystemKeys.AUTHORITY_OIDC, provider, null, uuid);
     }
 
+    @Deprecated
     public OIDCEditableUserAccount(String authority, String provider, String uuid) {
-        super(authority, provider, uuid);
+        super(authority, provider, null, uuid);
     }
 
     public OIDCEditableUserAccount(String authority, String provider, String realm, String userId, String uuid) {
-        super(authority, provider, uuid);
-        setRealm(realm);
+        super(authority, provider, realm, uuid);
         setUserId(userId);
     }
 

@@ -18,12 +18,13 @@ package it.smartcommunitylab.aac.attributes.provider;
 
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.provider.config.ProviderConfig;
+import it.smartcommunitylab.aac.model.PersistenceMode;
 import java.util.Set;
 
-public interface AttributeProviderConfig<T extends ConfigMap> extends ProviderConfig<T> {
-    public String getPersistence();
+public interface AttributeProviderConfig<M extends ConfigMap> extends ProviderConfig<AttributeProviderSettingsMap, M> {
+    public Set<String> getAttributeSets();
+
+    public PersistenceMode getPersistence();
 
     public String getEvents();
-
-    public Set<String> getAttributeSets();
 }

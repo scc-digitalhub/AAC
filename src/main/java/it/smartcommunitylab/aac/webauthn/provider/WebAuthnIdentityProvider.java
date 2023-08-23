@@ -167,27 +167,13 @@ public class WebAuthnIdentityProvider
         );
         identity.setAttributes(attributes);
 
-        // if attributes then load credentials
-        if (attributes != null) {
-            try {
-                List<WebAuthnUserCredential> credentials = credentialsService.findCredentialsByUsername(
-                    account.getUsername()
-                );
-                credentials.forEach(c -> c.eraseCredentials());
-                identity.setCredentials(credentials);
-            } catch (NoSuchUserException e) {
-                // this should not happen
-                logger.error("no user for account {}", String.valueOf(account.getUsername()));
-            }
-        }
-
         return identity;
     }
 
     @Override
     public void deleteIdentity(String userId, String username) throws NoSuchUserException {
-        // remove all credentials
-        credentialsService.deleteCredentialsByUsername(username);
+        // // remove all credentials - disabled
+        // credentialsService.deleteCredentialsByUsername(username);
         // do not remove account because we are NOT authoritative
     }
 

@@ -19,19 +19,26 @@ package it.smartcommunitylab.aac.internal.provider;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.base.AbstractAttributeConfigurationProvider;
 import it.smartcommunitylab.aac.attributes.model.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import org.springframework.stereotype.Service;
 
 @Service
 public class InternalAttributeConfigurationProvider
-    extends AbstractAttributeConfigurationProvider<InternalAttributeProviderConfigMap, InternalAttributeProviderConfig> {
+    extends AbstractAttributeConfigurationProvider<InternalAttributeProviderConfig, InternalAttributeProviderConfigMap> {
 
-    public InternalAttributeConfigurationProvider() {
-        super(SystemKeys.AUTHORITY_INTERNAL);
+    public InternalAttributeConfigurationProvider(
+        ProviderConfigRepository<InternalAttributeProviderConfig> registrationRepository
+    ) {
+        super(SystemKeys.AUTHORITY_INTERNAL, registrationRepository);
         setDefaultConfigMap(new InternalAttributeProviderConfigMap());
     }
 
     @Override
     protected InternalAttributeProviderConfig buildConfig(ConfigurableAttributeProvider cp) {
-        return new InternalAttributeProviderConfig(cp, getConfigMap(cp.getConfiguration()));
+        return new InternalAttributeProviderConfig(
+            cp,
+            getSettingsMap(cp.getSettings()),
+            getConfigMap(cp.getConfiguration())
+        );
     }
 }

@@ -79,10 +79,12 @@ public class SamlEditableUserAccount extends AbstractEditableAccount {
         super(SystemKeys.AUTHORITY_SAML, null, null, null);
     }
 
+    @Deprecated
     public SamlEditableUserAccount(String provider, String uuid) {
         super(SystemKeys.AUTHORITY_SAML, provider, null, uuid);
     }
 
+    @Deprecated
     public SamlEditableUserAccount(String authority, String provider, String uuid) {
         super(authority, provider, null, uuid);
     }

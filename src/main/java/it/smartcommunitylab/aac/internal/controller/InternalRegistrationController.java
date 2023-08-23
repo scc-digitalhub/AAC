@@ -27,7 +27,7 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.credentials.provider.AccountCredentialsService;
+import it.smartcommunitylab.aac.credentials.provider.CredentialsService;
 import it.smartcommunitylab.aac.internal.InternalIdentityServiceAuthority;
 import it.smartcommunitylab.aac.internal.dto.UserRegistrationBean;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
@@ -283,7 +283,7 @@ public class InternalRegistrationController {
         //        }
 
         // fetch password service if available
-        AccountCredentialsService<?, ?, ?, ?> cs = idp.getCredentialsService(SystemKeys.AUTHORITY_PASSWORD);
+        CredentialsService<?, ?, ?, ?> cs = idp.getCredentialsService(SystemKeys.AUTHORITY_PASSWORD);
         if (cs != null) {
             PasswordCredentialsService service = (PasswordCredentialsService) cs;
             // expose password policy by passing idp config
@@ -333,7 +333,7 @@ public class InternalRegistrationController {
             model.addAttribute("displayName", realm);
 
             // fetch password service if available
-            AccountCredentialsService<?, ?, ?, ?> cs = idp.getCredentialsService(SystemKeys.AUTHORITY_PASSWORD);
+            CredentialsService<?, ?, ?, ?> cs = idp.getCredentialsService(SystemKeys.AUTHORITY_PASSWORD);
             PasswordCredentialsService service = null;
             if (cs != null) {
                 service = (PasswordCredentialsService) cs;

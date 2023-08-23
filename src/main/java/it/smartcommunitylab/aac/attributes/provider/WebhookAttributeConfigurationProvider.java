@@ -19,19 +19,26 @@ package it.smartcommunitylab.aac.attributes.provider;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.base.AbstractAttributeConfigurationProvider;
 import it.smartcommunitylab.aac.attributes.model.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import org.springframework.stereotype.Service;
 
 @Service
 public class WebhookAttributeConfigurationProvider
-    extends AbstractAttributeConfigurationProvider<WebhookAttributeProviderConfigMap, WebhookAttributeProviderConfig> {
+    extends AbstractAttributeConfigurationProvider<WebhookAttributeProviderConfig, WebhookAttributeProviderConfigMap> {
 
-    public WebhookAttributeConfigurationProvider() {
-        super(SystemKeys.AUTHORITY_WEBHOOK);
+    public WebhookAttributeConfigurationProvider(
+        ProviderConfigRepository<WebhookAttributeProviderConfig> registrationRepository
+    ) {
+        super(SystemKeys.AUTHORITY_WEBHOOK, registrationRepository);
         setDefaultConfigMap(new WebhookAttributeProviderConfigMap());
     }
 
     @Override
     protected WebhookAttributeProviderConfig buildConfig(ConfigurableAttributeProvider cp) {
-        return new WebhookAttributeProviderConfig(cp, getConfigMap(cp.getConfiguration()));
+        return new WebhookAttributeProviderConfig(
+            cp,
+            getSettingsMap(cp.getSettings()),
+            getConfigMap(cp.getConfiguration())
+        );
     }
 }

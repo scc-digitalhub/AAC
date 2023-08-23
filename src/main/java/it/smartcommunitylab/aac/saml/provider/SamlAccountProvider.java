@@ -19,7 +19,7 @@ package it.smartcommunitylab.aac.saml.provider;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.base.AbstractAccountProvider;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
-import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
+import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional

@@ -20,5 +20,5 @@ import it.smartcommunitylab.aac.attributes.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 
-public interface AttributeConfigurationProvider<M extends ConfigMap, C extends AttributeProviderConfig<M>>
-    extends ConfigurationProvider<M, ConfigurableAttributeProvider, C> {}
+public interface AttributeConfigurationProvider<C extends AttributeProviderConfig<M>, M extends ConfigMap>
+    extends ConfigurationProvider<C, ConfigurableAttributeProvider, AttributeProviderSettingsMap, M> {}

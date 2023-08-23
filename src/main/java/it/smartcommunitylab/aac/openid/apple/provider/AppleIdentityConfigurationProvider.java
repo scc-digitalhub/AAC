@@ -18,17 +18,26 @@ package it.smartcommunitylab.aac.openid.apple.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.config.IdentityAuthoritiesProperties;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.identity.base.AbstractIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import org.springframework.stereotype.Service;
 
 @Service
 public class AppleIdentityConfigurationProvider
-    extends AbstractIdentityConfigurationProvider<AppleIdentityProviderConfigMap, AppleIdentityProviderConfig> {
+    extends AbstractIdentityConfigurationProvider<AppleIdentityProviderConfig, AppleIdentityProviderConfigMap> {
 
-    public AppleIdentityConfigurationProvider(IdentityAuthoritiesProperties authoritiesProperties) {
-        super(SystemKeys.AUTHORITY_APPLE);
-        if (authoritiesProperties != null && authoritiesProperties.getApple() != null) {
+    public AppleIdentityConfigurationProvider(
+        ProviderConfigRepository<AppleIdentityProviderConfig> registrationRepository,
+        IdentityAuthoritiesProperties authoritiesProperties
+    ) {
+        super(SystemKeys.AUTHORITY_APPLE, registrationRepository);
+        if (
+            authoritiesProperties != null &&
+            authoritiesProperties.getSettings() != null &&
+            authoritiesProperties.getApple() != null
+        ) {
+            setDefaultSettingsMap(authoritiesProperties.getSettings());
             setDefaultConfigMap(authoritiesProperties.getApple());
         } else {
             setDefaultConfigMap(new AppleIdentityProviderConfigMap());
@@ -37,6 +46,10 @@ public class AppleIdentityConfigurationProvider
 
     @Override
     protected AppleIdentityProviderConfig buildConfig(ConfigurableIdentityProvider cp) {
-        return new AppleIdentityProviderConfig(cp, getConfigMap(cp.getConfiguration()));
+        return new AppleIdentityProviderConfig(
+            cp,
+            getSettingsMap(cp.getSettings()),
+            getConfigMap(cp.getConfiguration())
+        );
     }
 }

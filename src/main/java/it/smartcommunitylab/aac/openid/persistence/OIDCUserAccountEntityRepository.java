@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.internal.persistence;
+package it.smartcommunitylab.aac.openid.persistence;
 
 import it.smartcommunitylab.aac.repository.CustomJpaRepository;
 import it.smartcommunitylab.aac.repository.DetachableJpaRepository;
@@ -22,22 +22,22 @@ import java.util.List;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface InternalUserAccountRepository
+public interface OIDCUserAccountEntityRepository
     extends
-        CustomJpaRepository<InternalUserAccount, InternalUserAccountId>, DetachableJpaRepository<InternalUserAccount> {
-    InternalUserAccount findByUuid(String uuid);
+        CustomJpaRepository<OIDCUserAccountEntity, OIDCUserAccountId>, DetachableJpaRepository<OIDCUserAccountEntity> {
+    OIDCUserAccountEntity findByUuid(String uuid);
 
-    List<InternalUserAccount> findByRepositoryIdAndEmail(String repositoryId, String email);
+    List<OIDCUserAccountEntity> findByRepositoryIdAndEmail(String repositoryId, String email);
 
-    InternalUserAccount findByRepositoryIdAndConfirmationKey(String repositoryId, String key);
+    List<OIDCUserAccountEntity> findByRepositoryIdAndUsername(String repositoryId, String username);
 
-    List<InternalUserAccount> findByRealm(String realm);
+    List<OIDCUserAccountEntity> findByRealm(String realm);
 
-    List<InternalUserAccount> findByRepositoryId(String repositoryId);
+    List<OIDCUserAccountEntity> findByRepositoryId(String repositoryId);
 
-    List<InternalUserAccount> findByUserId(String userId);
+    List<OIDCUserAccountEntity> findByUserId(String userId);
 
-    List<InternalUserAccount> findByUserIdAndRealm(String userId, String realm);
+    List<OIDCUserAccountEntity> findByUserIdAndRealm(String userId, String realm);
 
-    List<InternalUserAccount> findByUserIdAndRepositoryId(String userId, String repositoryId);
+    List<OIDCUserAccountEntity> findByUserIdAndRepositoryId(String userId, String repositoryId);
 }

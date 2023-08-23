@@ -25,16 +25,18 @@ import java.util.Map;
 
 /*
  * Expose provider configuration outside modules
- * TODO detach from authorities, this depends ONLY from config and repositories!
+ * attached to authorities because different authorities could share the same config/provider
  */
-public interface ConfigurationProvider<C extends ProviderConfig<S, M>, S extends ConfigMap, M extends ConfigMap> {
+public interface ConfigurationProvider<
+    P extends ProviderConfig<S, M>, C extends ConfigurableProvider<S>, S extends ConfigMap, M extends ConfigMap
+> {
     //configs are tied to an authority
     public String getAuthority();
 
     //expose the config repository
-    public ProviderConfigRepository<C> getRepository();
+    public ProviderConfigRepository<P> getRepository();
 
-    public C register(ConfigurableProvider<S> config) throws RegistrationException;
+    public P register(C config) throws RegistrationException;
 
     public void unregister(String providerId);
 
@@ -46,14 +48,14 @@ public interface ConfigurationProvider<C extends ProviderConfig<S, M>, S extends
      * Translate a configurableProvider with valid props to a valid provider config,
      * with default values set
      */
-    public C getConfig(ConfigurableProvider<S> cp);
+    public P getConfig(C cp);
 
-    public C getConfig(ConfigurableProvider<S> cp, boolean mergeDefault);
+    public P getConfig(C cp, boolean mergeDefault);
 
     /*
      * Translate a provider config to a configurable
      */
-    public ConfigurableProvider<S> getConfigurable(C providerConfig);
+    public C getConfigurable(P providerConfig);
 
     /*
      * Expose and translate to valid configMap

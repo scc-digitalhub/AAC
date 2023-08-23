@@ -40,7 +40,7 @@ import it.smartcommunitylab.aac.webauthn.model.CredentialCreationInfo;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnEditableUserCredential;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationRequest;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationStartRequest;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredential;
+import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserCredential;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnRegistrationRpService;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserCredentialsService;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserHandleService;

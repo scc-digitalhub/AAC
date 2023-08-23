@@ -27,24 +27,30 @@ public class WebhookAttributeProviderConfig extends AbstractAttributeProviderCon
         SystemKeys.RESOURCE_PROVIDER + SystemKeys.ID_SEPARATOR + WebhookAttributeProviderConfigMap.RESOURCE_TYPE;
 
     public WebhookAttributeProviderConfig(String provider, String realm) {
-        super(SystemKeys.AUTHORITY_WEBHOOK, provider, realm, new WebhookAttributeProviderConfigMap());
+        super(
+            SystemKeys.AUTHORITY_WEBHOOK,
+            provider,
+            realm,
+            new AttributeProviderSettingsMap(),
+            new WebhookAttributeProviderConfigMap()
+        );
     }
 
     public WebhookAttributeProviderConfig(
         ConfigurableAttributeProvider cp,
+        AttributeProviderSettingsMap settingsMap,
         WebhookAttributeProviderConfigMap configMap
     ) {
-        super(cp, configMap);
+        super(cp, settingsMap, configMap);
     }
-
-    /**
-     * Private constructor for JPA and other serialization tools.
-     *
-     * We need to implement this to enable deserialization of resources via
-     * reflection
-     */
-    @SuppressWarnings("unused")
-    private WebhookAttributeProviderConfig() {
-        super(SystemKeys.AUTHORITY_WEBHOOK, (String) null, (String) null, new WebhookAttributeProviderConfigMap());
-    }
+    // /**
+    //  * Private constructor for JPA and other serialization tools.
+    //  *
+    //  * We need to implement this to enable deserialization of resources via
+    //  * reflection
+    //  */
+    // @SuppressWarnings("unused")
+    // private WebhookAttributeProviderConfig() {
+    //     super(SystemKeys.AUTHORITY_WEBHOOK, (String) null, (String) null, new WebhookAttributeProviderConfigMap());
+    // }
 }

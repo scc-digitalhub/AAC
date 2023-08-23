@@ -25,18 +25,16 @@ import it.smartcommunitylab.aac.common.NoSuchCredentialException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
-import it.smartcommunitylab.aac.credentials.model.ConfigurableCredentialsProvider;
 import it.smartcommunitylab.aac.credentials.model.EditableUserCredentials;
 import it.smartcommunitylab.aac.credentials.model.UserCredentials;
 import it.smartcommunitylab.aac.credentials.persistence.UserCredentialsService;
-import it.smartcommunitylab.aac.credentials.provider.AccountCredentialsService;
+import it.smartcommunitylab.aac.credentials.provider.CredentialsService;
+import it.smartcommunitylab.aac.credentials.provider.CredentialsServiceSettingsMap;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -50,8 +48,8 @@ public abstract class AbstractCredentialsService<
     M extends AbstractConfigMap,
     C extends AbstractCredentialsServiceConfig<M>
 >
-    extends AbstractConfigurableResourceProvider<UC, ConfigurableCredentialsProvider, M, C>
-    implements AccountCredentialsService<UC, EC, M, C>, InitializingBean {
+    extends AbstractConfigurableResourceProvider<UC, C, CredentialsServiceSettingsMap, M>
+    implements CredentialsService<UC, EC, M, C>, InitializingBean {
 
     protected static final String STATUS_ACTIVE = CredentialsStatus.ACTIVE.getValue();
     protected static final String STATUS_INACTIVE = CredentialsStatus.INACTIVE.getValue();
@@ -110,27 +108,9 @@ public abstract class AbstractCredentialsService<
      * Credentials
      * for credentials API
      */
-    @Override
-    public Collection<UC> listCredentials(String accountId) {
-        logger.debug("list credentials for account {}", String.valueOf(accountId));
-
-        // fetch all
-        return credentialsService
-            .findCredentialsByAccount(repositoryId, accountId)
-            .stream()
-            .map(p -> {
-                // map to ourselves
-                p.setProvider(getProvider());
-
-                // clear value for extra safety
-                p.eraseCredentials();
-                return p;
-            })
-            .collect(Collectors.toList());
-    }
 
     @Override
-    public Collection<UC> listCredentialsByUser(String userId) {
+    public Collection<UC> listCredentials(String userId) {
         logger.debug("list credentials for user {}", String.valueOf(userId));
 
         // fetch all
@@ -326,30 +306,7 @@ public abstract class AbstractCredentialsService<
     }
 
     @Override
-    public void deleteCredentials(String accountId) {
-        logger.debug("delete all credentials for account {}", String.valueOf(accountId));
-
-        // fetch all to collect ids
-        Collection<UC> credentials = credentialsService.findCredentialsByAccount(repositoryId, accountId);
-
-        // delete in batch
-        Set<String> ids = credentials.stream().map(p -> p.getId()).collect(Collectors.toSet());
-        credentialsService.deleteAllCredentials(repositoryId, ids);
-
-        if (resourceService != null) {
-            // remove resources
-            try {
-                // delete in batch
-                Set<String> uuids = credentials.stream().map(p -> p.getUuid()).collect(Collectors.toSet());
-                resourceService.deleteAllResourceEntities(uuids);
-            } catch (RuntimeException re) {
-                logger.error("error removing resources: {}", re.getMessage());
-            }
-        }
-    }
-
-    @Override
-    public void deleteCredentialsByUser(String userId) {
+    public void deleteCredentials(String userId) {
         logger.debug("delete all credentials for user {}", String.valueOf(userId));
 
         // fetch all to collect ids
@@ -376,14 +333,6 @@ public abstract class AbstractCredentialsService<
      * Implementations *may* support editable credentials
      * TODO split
      */
-    public Collection<EC> listEditableCredentials(String accountId) {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public Collection<EC> listEditableCredentialsByUser(String userId) {
-        return Collections.emptyList();
-    }
 
     @Override
     public EC getEditableCredential(String credentialId) throws NoSuchCredentialException {
@@ -391,19 +340,14 @@ public abstract class AbstractCredentialsService<
     }
 
     @Override
-    public EC registerEditableCredential(String accountId, EditableUserCredentials credentials)
+    public EC registerCredential(String userId, EditableUserCredentials credentials)
         throws RegistrationException, NoSuchUserException {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public EC editEditableCredential(String credentialId, EditableUserCredentials credentials)
+    public EC editCredential(String userId, EditableUserCredentials credentials)
         throws RegistrationException, NoSuchCredentialException {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void deleteEditableCredential(@NotNull String credentialId) throws NoSuchCredentialException {
         throw new UnsupportedOperationException();
     }
 }

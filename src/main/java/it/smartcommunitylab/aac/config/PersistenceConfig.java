@@ -35,12 +35,6 @@ import it.smartcommunitylab.aac.claims.ExtractorsRegistry;
 import it.smartcommunitylab.aac.claims.InMemoryExtractorsRegistry;
 import it.smartcommunitylab.aac.claims.ResourceClaimsExtractorProvider;
 import it.smartcommunitylab.aac.claims.ScopeClaimsExtractorProvider;
-import it.smartcommunitylab.aac.core.persistence.AttributeProviderEntity;
-import it.smartcommunitylab.aac.core.persistence.AttributeProviderEntityRepository;
-import it.smartcommunitylab.aac.core.persistence.IdentityProviderEntity;
-import it.smartcommunitylab.aac.core.persistence.IdentityProviderEntityRepository;
-import it.smartcommunitylab.aac.core.persistence.TemplateProviderEntity;
-import it.smartcommunitylab.aac.core.persistence.TemplateProviderEntityRepository;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.AutoJDBCProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.ConfigurableProviderEntityService;
@@ -59,14 +53,14 @@ import it.smartcommunitylab.aac.openid.service.OIDCUserAccountService;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
 import it.smartcommunitylab.aac.password.service.InternalPasswordUserCredentialsService;
-import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
-import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
+import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
+import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountEntityRepository;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
 import it.smartcommunitylab.aac.saml.service.SamlJpaUserAccountService;
 import it.smartcommunitylab.aac.scope.InMemoryScopeRegistry;
 import it.smartcommunitylab.aac.scope.ScopeProvider;
 import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfig;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredentialsRepository;
+import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredentialsEntityRepository;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsServiceConfig;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnConfigTranslatorRepository;
@@ -250,7 +244,7 @@ public class PersistenceConfig {
 
     @Bean
     public UserAccountService<SamlUserAccount> samlUserAccountService(
-        SamlUserAccountRepository accountRepository,
+        SamlUserAccountEntityRepository accountRepository,
         SubjectService subjectService
     ) {
         return new SamlJpaUserAccountService(accountRepository, subjectService);
@@ -273,7 +267,7 @@ public class PersistenceConfig {
 
     @Bean
     public WebAuthnUserCredentialsService webAuthnCredentialsService(
-        WebAuthnUserCredentialsRepository credentialsRepository
+        WebAuthnUserCredentialsEntityRepository credentialsRepository
     ) {
         return new WebAuthnUserCredentialsService(credentialsRepository);
     }

@@ -18,17 +18,26 @@ package it.smartcommunitylab.aac.internal.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.config.IdentityAuthoritiesProperties;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.identity.base.AbstractIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import org.springframework.stereotype.Service;
 
 @Service
 public class InternalIdentityProviderConfigurationProvider
-    extends AbstractIdentityConfigurationProvider<InternalIdentityProviderConfigMap, InternalIdentityProviderConfig> {
+    extends AbstractIdentityConfigurationProvider<InternalIdentityProviderConfig, InternalIdentityProviderConfigMap> {
 
-    public InternalIdentityProviderConfigurationProvider(IdentityAuthoritiesProperties authoritiesProperties) {
-        super(SystemKeys.AUTHORITY_INTERNAL);
-        if (authoritiesProperties != null && authoritiesProperties.getInternal() != null) {
+    public InternalIdentityProviderConfigurationProvider(
+        ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository,
+        IdentityAuthoritiesProperties authoritiesProperties
+    ) {
+        super(SystemKeys.AUTHORITY_INTERNAL, registrationRepository);
+        if (
+            authoritiesProperties != null &&
+            authoritiesProperties.getSettings() != null &&
+            authoritiesProperties.getInternal() != null
+        ) {
+            setDefaultSettingsMap(authoritiesProperties.getSettings());
             setDefaultConfigMap(authoritiesProperties.getInternal());
         } else {
             setDefaultConfigMap(new InternalIdentityProviderConfigMap());
@@ -38,6 +47,10 @@ public class InternalIdentityProviderConfigurationProvider
     @Override
     protected InternalIdentityProviderConfig buildConfig(ConfigurableIdentityProvider cp) {
         // build configMap and then config
-        return new InternalIdentityProviderConfig(cp, getConfigMap(cp.getConfiguration()));
+        return new InternalIdentityProviderConfig(
+            cp,
+            getSettingsMap(cp.getSettings()),
+            getConfigMap(cp.getConfiguration())
+        );
     }
 }

@@ -22,7 +22,6 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
-import it.smartcommunitylab.aac.credentials.model.ConfigurableCredentialsProvider;
 import it.smartcommunitylab.aac.credentials.model.EditableUserCredentials;
 import it.smartcommunitylab.aac.credentials.model.UserCredentials;
 import java.util.Collection;
@@ -34,13 +33,13 @@ import org.springframework.lang.Nullable;
  * which is handled by a given account service in the same realm
  */
 
-public interface AccountCredentialsService<
+public interface CredentialsService<
     R extends UserCredentials,
     E extends EditableUserCredentials,
     M extends ConfigMap,
     C extends CredentialsServiceConfig<M>
 >
-    extends ConfigurableResourceProvider<R, ConfigurableCredentialsProvider, M, C> {
+    extends ConfigurableResourceProvider<R, C, CredentialsServiceSettingsMap, M> {
     /*
      * (user) editable credentials
      * User can manage their credentials via a simplified (and unified) view.
@@ -49,34 +48,30 @@ public interface AccountCredentialsService<
      *
      * TODO split service in 2: core and editable
      */
-    public Collection<E> listEditableCredentials(@NotNull String accountId);
-
-    public Collection<E> listEditableCredentialsByUser(@NotNull String userId);
+    // public Collection<E> listEditableCredentials(@NotNull String userId);
 
     public E getEditableCredential(@NotNull String credentialId) throws NoSuchCredentialException;
 
-    public E registerEditableCredential(@NotNull String accountId, @NotNull EditableUserCredentials credentials)
+    public E registerCredential(@NotNull String userId, @NotNull EditableUserCredentials credentials)
         throws RegistrationException, NoSuchUserException;
 
-    public E editEditableCredential(@NotNull String credentialId, @NotNull EditableUserCredentials credentials)
+    public E editCredential(@NotNull String credentialId, @NotNull EditableUserCredentials credentials)
         throws RegistrationException, NoSuchCredentialException;
 
-    public void deleteEditableCredential(@NotNull String credentialId) throws NoSuchCredentialException;
+    // public void deleteEditableCredential(@NotNull String credentialId) throws NoSuchCredentialException;
 
     /*
      * Manage account credentials
      * Real models used for authentication purposes, exposed via services and API
      */
 
-    public Collection<R> listCredentials(@NotNull String accountId);
-
-    public Collection<R> listCredentialsByUser(@NotNull String userId);
+    public Collection<R> listCredentials(@NotNull String userId);
 
     public R findCredential(@NotNull String credentialId);
 
     public R getCredential(@NotNull String credentialId) throws NoSuchCredentialException;
 
-    public R addCredential(@NotNull String accountId, @Nullable String credentialId, @NotNull UserCredentials uc)
+    public R addCredential(@NotNull String userId, @Nullable String credentialId, @NotNull UserCredentials uc)
         throws NoSuchUserException, RegistrationException;
 
     public R setCredential(@NotNull String credentialId, @NotNull UserCredentials credentials)
@@ -89,9 +84,7 @@ public interface AccountCredentialsService<
 
     public void deleteCredential(@NotNull String credentialId) throws NoSuchCredentialException;
 
-    public void deleteCredentials(@NotNull String accountId);
-
-    public void deleteCredentialsByUser(@NotNull String userId);
+    public void deleteCredentials(@NotNull String userId);
 
     //    /*
     //     * Action urls

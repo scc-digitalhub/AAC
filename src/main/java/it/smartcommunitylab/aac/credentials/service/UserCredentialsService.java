@@ -26,7 +26,7 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.persistence.ResourceEntity;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.credentials.model.UserCredentials;
-import it.smartcommunitylab.aac.credentials.provider.AccountCredentialsService;
+import it.smartcommunitylab.aac.credentials.provider.CredentialsService;
 import it.smartcommunitylab.aac.users.persistence.UserEntity;
 import it.smartcommunitylab.aac.users.service.UserEntityService;
 import java.util.Collection;
@@ -70,7 +70,7 @@ public class UserCredentialsService {
         }
 
         // fetch service
-        AccountCredentialsService<?, ?, ?, ?> service = credentialsServiceAuthorityService
+        CredentialsService<?, ?, ?, ?> service = credentialsServiceAuthorityService
             .getAuthority(res.getAuthority())
             .getProvider(res.getProvider());
 
@@ -92,7 +92,7 @@ public class UserCredentialsService {
         logger.debug("get user credentials {} via provider {}:{}", credentialId, authorityId, providerId);
 
         // fetch service
-        AccountCredentialsService<?, ?, ?, ?> service = credentialsServiceAuthorityService
+        CredentialsService<?, ?, ?, ?> service = credentialsServiceAuthorityService
             .getAuthority(res.getAuthority())
             .getProvider(res.getProvider());
 
@@ -194,7 +194,7 @@ public class UserCredentialsService {
         String realm = ue.getRealm();
 
         // collect from all providers for the same realm
-        List<AccountCredentialsService<?, ?, ?, ?>> services = credentialsServiceAuthorityService
+        List<CredentialsService<?, ?, ?, ?>> services = credentialsServiceAuthorityService
             .getAuthorities()
             .stream()
             .flatMap(e -> e.getProvidersByRealm(realm).stream())
@@ -275,7 +275,7 @@ public class UserCredentialsService {
         }
 
         // fetch service
-        AccountCredentialsService<?, ?, ?, ?> service = credentialsServiceAuthorityService
+        CredentialsService<?, ?, ?, ?> service = credentialsServiceAuthorityService
             .getAuthority(authority)
             .getProvider(providerId);
 
@@ -301,7 +301,7 @@ public class UserCredentialsService {
         logger.debug("update user credentials {} via provider {}:{}", credentialId, authorityId, providerId);
 
         // fetch service
-        AccountCredentialsService<?, ?, ?, ?> service = credentialsServiceAuthorityService
+        CredentialsService<?, ?, ?, ?> service = credentialsServiceAuthorityService
             .getAuthority(authorityId)
             .getProvider(providerId);
 
@@ -323,7 +323,7 @@ public class UserCredentialsService {
         logger.debug("revoke user credentials {} via provider {}:{}", credentialId, authorityId, providerId);
 
         // fetch service
-        AccountCredentialsService<?, ?, ?, ?> service = credentialsServiceAuthorityService
+        CredentialsService<?, ?, ?, ?> service = credentialsServiceAuthorityService
             .getAuthority(authorityId)
             .getProvider(providerId);
 
@@ -345,7 +345,7 @@ public class UserCredentialsService {
         logger.debug("delete user credentials {} via provider {}:{}", credentialId, authorityId, providerId);
 
         // fetch service
-        AccountCredentialsService<?, ?, ?, ?> service = credentialsServiceAuthorityService
+        CredentialsService<?, ?, ?, ?> service = credentialsServiceAuthorityService
             .getAuthority(authorityId)
             .getProvider(providerId);
 
@@ -362,7 +362,7 @@ public class UserCredentialsService {
         String realm = ue.getRealm();
 
         // collect from all providers for the same realm
-        List<AccountCredentialsService<?, ?, ?, ?>> services = credentialsServiceAuthorityService
+        List<CredentialsService<?, ?, ?, ?>> services = credentialsServiceAuthorityService
             .getAuthorities()
             .stream()
             .flatMap(e -> e.getProvidersByRealm(realm).stream())

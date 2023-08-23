@@ -13,9 +13,9 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  ******************************************************************************/
+
 package it.smartcommunitylab.aac.config;
 
-//import com.mchange.v2.c3p0.ComboPooledDataSource;
 import com.zaxxer.hikari.HikariDataSource;
 import it.smartcommunitylab.aac.repository.IsolationSupportHibernateJpaDialect;
 import java.beans.PropertyVetoException;

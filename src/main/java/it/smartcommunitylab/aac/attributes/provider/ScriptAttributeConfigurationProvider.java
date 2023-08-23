@@ -19,19 +19,26 @@ package it.smartcommunitylab.aac.attributes.provider;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.base.AbstractAttributeConfigurationProvider;
 import it.smartcommunitylab.aac.attributes.model.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ScriptAttributeConfigurationProvider
-    extends AbstractAttributeConfigurationProvider<ScriptAttributeProviderConfigMap, ScriptAttributeProviderConfig> {
+    extends AbstractAttributeConfigurationProvider<ScriptAttributeProviderConfig, ScriptAttributeProviderConfigMap> {
 
-    public ScriptAttributeConfigurationProvider() {
-        super(SystemKeys.AUTHORITY_SCRIPT);
+    public ScriptAttributeConfigurationProvider(
+        ProviderConfigRepository<ScriptAttributeProviderConfig> registrationRepository
+    ) {
+        super(SystemKeys.AUTHORITY_SCRIPT, registrationRepository);
         setDefaultConfigMap(new ScriptAttributeProviderConfigMap());
     }
 
     @Override
     protected ScriptAttributeProviderConfig buildConfig(ConfigurableAttributeProvider cp) {
-        return new ScriptAttributeProviderConfig(cp, getConfigMap(cp.getConfiguration()));
+        return new ScriptAttributeProviderConfig(
+            cp,
+            getSettingsMap(cp.getSettings()),
+            getConfigMap(cp.getConfiguration())
+        );
     }
 }

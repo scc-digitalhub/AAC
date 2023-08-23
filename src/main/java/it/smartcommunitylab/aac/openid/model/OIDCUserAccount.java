@@ -14,126 +14,72 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.openid.persistence;
+package it.smartcommunitylab.aac.openid.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.base.AbstractUserAccount;
 import it.smartcommunitylab.aac.model.SubjectStatus;
-import it.smartcommunitylab.aac.repository.HashMapSerializableConverter;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
-import javax.persistence.Column;
-import javax.persistence.Convert;
-import javax.persistence.Entity;
-import javax.persistence.EntityListeners;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.Lob;
-import javax.persistence.Table;
+import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.util.StringUtils;
 
-@Entity
-@IdClass(OIDCUserAccountId.class)
-@Table(name = "oidc_users")
-@EntityListeners(AuditingEntityListener.class)
+@Valid
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(Include.ALWAYS)
 public class OIDCUserAccount extends AbstractUserAccount {
 
     private static final long serialVersionUID = SystemKeys.AAC_OIDC_SERIAL_VERSION;
     public static final String RESOURCE_TYPE =
         SystemKeys.RESOURCE_ACCOUNT + SystemKeys.ID_SEPARATOR + SystemKeys.AUTHORITY_OIDC;
 
-    @Id
     @NotBlank
-    @Column(name = "repository_id", length = 128)
     private String repositoryId;
 
     // subject identifier from external provider
-    @Id
     @NotBlank
-    @Column(name = "subject", length = 128)
     private String subject;
 
     // unique uuid (subject entity)
     @NotBlank
-    @Column(unique = true, length = 128)
     private String uuid;
 
-    // reference to user
-    @NotNull
-    @Column(name = "user_id", length = 128)
-    private String userId;
-
-    @NotBlank
-    @Column(length = 128)
-    private String realm;
-
     // login
-    @Column(length = 32)
     private String status;
 
     // attributes
-    @Column(name = "username", length = 128)
     private String username;
-
     private String issuer;
-
     private String email;
-
-    @Column(name = "email_verified")
     private Boolean emailVerified;
-
     private String name;
-
-    @Column(name = "given_name")
     private String givenName;
-
-    @Column(name = "family_name")
     private String familyName;
-
-    @Column(length = 32)
     private String lang;
-
-    @Column(name = "picture_uri")
     private String picture;
 
-    // audit
-    @CreatedDate
-    @Column(name = "created_date")
-    private Date createDate;
-
-    @LastModifiedDate
-    @Column(name = "last_modified_date")
-    private Date modifiedDate;
-
-    @Lob
-    @Column(name = "attributes")
-    @JsonIgnore
-    @Convert(converter = HashMapSerializableConverter.class)
     private Map<String, Serializable> attributes;
 
-    public OIDCUserAccount() {
-        super(SystemKeys.AUTHORITY_OIDC, null);
+    // audit
+    private Date createDate;
+    private Date modifiedDate;
+
+    public OIDCUserAccount(String provider, String realm, String uuid) {
+        super(SystemKeys.AUTHORITY_OIDC, provider, realm, uuid);
     }
 
-    public OIDCUserAccount(String authority) {
-        super(authority, null);
+    public OIDCUserAccount(String authority, String provider, String realm, String uuid) {
+        super(authority, provider, realm, uuid);
     }
 
     @Override
     public String getType() {
         return RESOURCE_TYPE;
-    }
-
-    @Override
-    public String getAccountId() {
-        return subject;
     }
 
     @Override
@@ -171,8 +117,12 @@ public class OIDCUserAccount extends AbstractUserAccount {
      * fields
      */
 
-    public void setUsername(String username) {
-        this.username = username;
+    public String getRepositoryId() {
+        return repositoryId;
+    }
+
+    public void setRepositoryId(String repositoryId) {
+        this.repositoryId = repositoryId;
     }
 
     public String getSubject() {
@@ -183,32 +133,8 @@ public class OIDCUserAccount extends AbstractUserAccount {
         this.subject = subject;
     }
 
-    public String getRepositoryId() {
-        return repositoryId;
-    }
-
-    public void setRepositoryId(String repositoryId) {
-        this.repositoryId = repositoryId;
-    }
-
     public void setUuid(String uuid) {
         this.uuid = uuid;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public String getRealm() {
-        return realm;
-    }
-
-    public void setRealm(String realm) {
-        this.realm = realm;
     }
 
     public String getStatus() {
@@ -217,6 +143,10 @@ public class OIDCUserAccount extends AbstractUserAccount {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getIssuer() {
@@ -283,6 +213,14 @@ public class OIDCUserAccount extends AbstractUserAccount {
         this.picture = picture;
     }
 
+    public Map<String, Serializable> getAttributes() {
+        return attributes;
+    }
+
+    public void setAttributes(Map<String, Serializable> attributes) {
+        this.attributes = attributes;
+    }
+
     public Date getCreateDate() {
         return createDate;
     }
@@ -297,14 +235,6 @@ public class OIDCUserAccount extends AbstractUserAccount {
 
     public void setModifiedDate(Date modifiedDate) {
         this.modifiedDate = modifiedDate;
-    }
-
-    public Map<String, Serializable> getAttributes() {
-        return attributes;
-    }
-
-    public void setAttributes(Map<String, Serializable> attributes) {
-        this.attributes = attributes;
     }
 
     @Override

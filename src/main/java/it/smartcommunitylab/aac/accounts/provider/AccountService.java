@@ -33,8 +33,6 @@ public interface AccountService<
     /*
      * Editable accounts from this provider
      *
-     * accountId is local to provider.
-     * Editable account are user-editable
      */
     public E getEditableAccount(String userId, String accountId) throws NoSuchUserException;
 
@@ -47,8 +45,6 @@ public interface AccountService<
     /*
      * Manage accounts from this provider
      *
-     * accountId is local to provider.
-     * Editable account are user-editable
      */
     public U createAccount(@Nullable String userId, @Nullable String accountId, UserAccount account)
         throws NoSuchUserException, RegistrationException;

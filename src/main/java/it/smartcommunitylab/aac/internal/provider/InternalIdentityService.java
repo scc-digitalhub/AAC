@@ -25,7 +25,7 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.credentials.CredentialsServiceAuthority;
 import it.smartcommunitylab.aac.credentials.model.UserCredentials;
-import it.smartcommunitylab.aac.credentials.provider.AccountCredentialsService;
+import it.smartcommunitylab.aac.credentials.provider.CredentialsService;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityService;
 import it.smartcommunitylab.aac.identity.model.UserIdentity;
 import it.smartcommunitylab.aac.identity.provider.IdentityService;
@@ -111,7 +111,7 @@ public class InternalIdentityService
     }
 
     @Override
-    public Collection<AccountCredentialsService<?, ?, ?, ?>> getCredentialsServices() {
+    public Collection<CredentialsService<?, ?, ?, ?>> getCredentialsServices() {
         if (credentialsServiceAuthorities == null) {
             return Collections.emptyList();
         }
@@ -131,9 +131,9 @@ public class InternalIdentityService
     }
 
     @Override
-    public AccountCredentialsService<?, ?, ?, ?> getCredentialsService(String authority)
+    public CredentialsService<?, ?, ?, ?> getCredentialsService(String authority)
         throws NoSuchProviderException {
-        AccountCredentialsService<?, ?, ?, ?> cs = getCredentialsServices()
+        CredentialsService<?, ?, ?, ?> cs = getCredentialsServices()
             .stream()
             .filter(s -> s.getAuthority().equals(authority))
             .findFirst()
@@ -310,7 +310,7 @@ public class InternalIdentityService
             // register credentials
             if (reg.getCredentials() != null) {
                 for (UserCredentials uc : reg.getCredentials()) {
-                    AccountCredentialsService<?, ?, ?, ?> cs = getCredentialsServices()
+                    CredentialsService<?, ?, ?, ?> cs = getCredentialsServices()
                         .stream()
                         .filter(a -> a.getAuthority().equals(uc.getAuthority()))
                         .findFirst()
@@ -336,7 +336,7 @@ public class InternalIdentityService
             }
 
             for (UserCredentials uc : credentials) {
-                AccountCredentialsService<?, ?, ?, ?> cs = getCredentialsServices()
+                CredentialsService<?, ?, ?, ?> cs = getCredentialsServices()
                     .stream()
                     .filter(a -> a.getAuthority().equals(uc.getAuthority()))
                     .findFirst()
@@ -389,7 +389,7 @@ public class InternalIdentityService
         List<UserCredentials> credentials = new ArrayList<>();
         if (reg.getCredentials() != null) {
             for (UserCredentials uc : reg.getCredentials()) {
-                AccountCredentialsService<?, ?, ?, ?> cs = getCredentialsServices()
+                CredentialsService<?, ?, ?, ?> cs = getCredentialsServices()
                     .stream()
                     .filter(a -> a.getAuthority().equals(uc.getAuthority()))
                     .findFirst()

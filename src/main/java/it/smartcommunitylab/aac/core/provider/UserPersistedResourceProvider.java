@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.core.model;
+package it.smartcommunitylab.aac.core.provider;
 
-import it.smartcommunitylab.aac.credentials.model.UserCredentials;
-import it.smartcommunitylab.aac.identity.model.UserIdentity;
-import java.util.Collection;
-import org.springframework.security.core.CredentialsContainer;
+import it.smartcommunitylab.aac.core.model.UserResource;
 
-@Deprecated
-public interface UserCredentialsIdentity extends UserIdentity, CredentialsContainer {
-    // credentials
-    public Collection<UserCredentials> getCredentials();
+/*
+ * A provider for resources of a given type, for a specific authority
+ */
+public interface UserPersistedResourceProvider<R extends UserResource>
+    extends UserResourceProvider<R>, PersistedResourceProvider<R> {
+    /*
+     * Resources for the user
+     */
+    public void deleteResourcesByUser(String userId);
 }

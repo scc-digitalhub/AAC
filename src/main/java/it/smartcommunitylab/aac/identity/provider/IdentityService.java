@@ -25,7 +25,7 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
-import it.smartcommunitylab.aac.credentials.provider.AccountCredentialsService;
+import it.smartcommunitylab.aac.credentials.provider.CredentialsService;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityService;
 import it.smartcommunitylab.aac.identity.model.UserIdentity;
 import java.util.Collection;
@@ -51,9 +51,9 @@ public interface IdentityService<
 
     public AccountService<U, E, ?, ?> getAccountService() throws NoSuchProviderException;
 
-    public AccountCredentialsService<?, ?, ?, ?> getCredentialsService(String authority) throws NoSuchProviderException;
+    public CredentialsService<?, ?, ?, ?> getCredentialsService(String authority) throws NoSuchProviderException;
 
-    public Collection<AccountCredentialsService<?, ?, ?, ?>> getCredentialsServices();
+    public Collection<CredentialsService<?, ?, ?, ?>> getCredentialsServices();
 
     //    public AttributeService<?, ?> getAttributeService();
 

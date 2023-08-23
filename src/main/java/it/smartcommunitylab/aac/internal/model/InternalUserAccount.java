@@ -14,68 +14,44 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.internal.persistence;
+package it.smartcommunitylab.aac.internal.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.base.AbstractUserAccount;
 import it.smartcommunitylab.aac.model.SubjectStatus;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EntityListeners;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.Table;
+import javax.validation.Valid;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.util.StringUtils;
 
-@Entity
-@IdClass(InternalUserAccountId.class)
-@Table(name = "internal_users")
-@EntityListeners(AuditingEntityListener.class)
+@Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(Include.ALWAYS)
 public class InternalUserAccount extends AbstractUserAccount implements CredentialsContainer {
 
     private static final long serialVersionUID = SystemKeys.AAC_INTERNAL_SERIAL_VERSION;
     public static final String RESOURCE_TYPE =
         SystemKeys.RESOURCE_ACCOUNT + SystemKeys.ID_SEPARATOR + SystemKeys.AUTHORITY_INTERNAL;
 
-    // account id
-    @Id
     @NotBlank
-    @Column(name = "repository_id", length = 128)
     private String repositoryId;
 
-    @Id
+    // account id
     @NotBlank
-    @Column(name = "username", length = 128)
     private String username;
 
     // unique uuid (subject entity)
     @NotBlank
-    @Column(unique = true, length = 128)
     private String uuid;
 
-    // user id
-    @NotNull
-    @Column(name = "user_id", length = 128)
-    private String userId;
-
-    @NotBlank
-    @Column(length = 128)
-    private String realm;
-
     // login
-    @Column(length = 16)
     private String status;
 
     // attributes
@@ -84,34 +60,25 @@ public class InternalUserAccount extends AbstractUserAccount implements Credenti
 
     private String name;
     private String surname;
-
-    @Column(length = 32)
     private String lang;
 
     // registration
     private boolean confirmed;
 
-    @Column(name = "confirmation_deadline")
+    //TODO move confirmation to dedicated model
     private Date confirmationDeadline;
-
-    @Column(name = "confirmation_key", unique = true, nullable = true)
     private String confirmationKey;
 
     // audit
-    @CreatedDate
-    @Column(name = "created_date")
     private Date createDate;
-
-    @LastModifiedDate
-    @Column(name = "last_modified_date")
     private Date modifiedDate;
 
-    public InternalUserAccount() {
-        super(SystemKeys.AUTHORITY_INTERNAL, null);
+    public InternalUserAccount(String provider, String realm, String uuid) {
+        super(SystemKeys.AUTHORITY_INTERNAL, provider, realm, uuid);
     }
 
-    public InternalUserAccount(String authority) {
-        super(authority, null);
+    public InternalUserAccount(String authority, String provider, String realm, String uuid) {
+        super(authority, provider, realm, uuid);
     }
 
     @Override
@@ -119,10 +86,10 @@ public class InternalUserAccount extends AbstractUserAccount implements Credenti
         return RESOURCE_TYPE;
     }
 
-    @Override
-    public String getAccountId() {
-        return username;
-    }
+    // @Override
+    // public String getAccountId() {
+    //     return username;
+    // }
 
     @Override
     public String getUuid() {
@@ -155,33 +122,15 @@ public class InternalUserAccount extends AbstractUserAccount implements Credenti
         return true;
     }
 
+    @Override
+    public void eraseCredentials() {
+        this.confirmationKey = null;
+        this.confirmationDeadline = null;
+    }
+
     /*
      * fields
      */
-
-    public String getRealm() {
-        return realm;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public void setUuid(String uuid) {
-        this.uuid = uuid;
-    }
-
-    public void setRealm(String realm) {
-        this.realm = realm;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
 
     public String getRepositoryId() {
         return repositoryId;
@@ -189,6 +138,14 @@ public class InternalUserAccount extends AbstractUserAccount implements Credenti
 
     public void setRepositoryId(String repositoryId) {
         this.repositoryId = repositoryId;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
     }
 
     public String getStatus() {
@@ -269,11 +226,6 @@ public class InternalUserAccount extends AbstractUserAccount implements Credenti
 
     public void setModifiedDate(Date modifiedDate) {
         this.modifiedDate = modifiedDate;
-    }
-
-    @Override
-    public void eraseCredentials() {
-        this.confirmationKey = null;
     }
 
     @Override

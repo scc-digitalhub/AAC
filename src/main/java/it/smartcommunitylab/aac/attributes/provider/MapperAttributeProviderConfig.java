@@ -28,23 +28,33 @@ public class MapperAttributeProviderConfig extends AbstractAttributeProviderConf
         SystemKeys.RESOURCE_PROVIDER + SystemKeys.ID_SEPARATOR + MapperAttributeProviderConfigMap.RESOURCE_TYPE;
 
     public MapperAttributeProviderConfig(String provider, String realm) {
-        super(SystemKeys.AUTHORITY_MAPPER, provider, realm, new MapperAttributeProviderConfigMap());
+        super(
+            SystemKeys.AUTHORITY_MAPPER,
+            provider,
+            realm,
+            new AttributeProviderSettingsMap(),
+            new MapperAttributeProviderConfigMap()
+        );
     }
 
-    public MapperAttributeProviderConfig(ConfigurableAttributeProvider cp, MapperAttributeProviderConfigMap configMap) {
-        super(cp, configMap);
+    public MapperAttributeProviderConfig(
+        ConfigurableAttributeProvider cp,
+        AttributeProviderSettingsMap settingsMap,
+        MapperAttributeProviderConfigMap configMap
+    ) {
+        super(cp, settingsMap, configMap);
     }
 
-    /**
-     * Private constructor for JPA and other serialization tools.
-     *
-     * We need to implement this to enable deserialization of resources via
-     * reflection
-     */
-    @SuppressWarnings("unused")
-    private MapperAttributeProviderConfig() {
-        super(SystemKeys.AUTHORITY_MAPPER, (String) null, (String) null, new MapperAttributeProviderConfigMap());
-    }
+    // /**
+    //  * Private constructor for JPA and other serialization tools.
+    //  *
+    //  * We need to implement this to enable deserialization of resources via
+    //  * reflection
+    //  */
+    // @SuppressWarnings("unused")
+    // private MapperAttributeProviderConfig() {
+    //     super(SystemKeys.AUTHORITY_MAPPER, (String) null, (String) null, new MapperAttributeProviderConfigMap());
+    // }
 
     public String getMapperType() {
         return configMap.getType() != null ? configMap.getType() : DefaultAttributesMapper.TYPE;

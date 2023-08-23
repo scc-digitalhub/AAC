@@ -18,22 +18,27 @@ package it.smartcommunitylab.aac.identity.base;
 
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.base.provider.AbstractConfigurationProvider;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.identity.provider.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderConfigurationProvider;
+import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
 
 public abstract class AbstractIdentityConfigurationProvider<
-    M extends AbstractConfigMap, C extends AbstractIdentityProviderConfig<M>
+    P extends AbstractIdentityProviderConfig<M>, M extends AbstractConfigMap
 >
-    extends AbstractConfigurationProvider<M, ConfigurableIdentityProvider, C>
-    implements IdentityProviderConfigurationProvider<M, C> {
+    extends AbstractConfigurationProvider<P, ConfigurableIdentityProvider, IdentityProviderSettingsMap, M>
+    implements IdentityProviderConfigurationProvider<P, M> {
 
-    protected AbstractIdentityConfigurationProvider(String authority) {
-        super(authority);
+    protected AbstractIdentityConfigurationProvider(
+        String authority,
+        ProviderConfigRepository<P> registrationRepository
+    ) {
+        super(authority, registrationRepository);
+        setDefaultSettingsMap(new IdentityProviderSettingsMap());
     }
 
     @Override
-    public ConfigurableIdentityProvider getConfigurable(C providerConfig) {
+    protected ConfigurableIdentityProvider buildConfigurable(P providerConfig) {
         ConfigurableIdentityProvider cp = new ConfigurableIdentityProvider(
             providerConfig.getAuthority(),
             providerConfig.getProvider(),
@@ -44,16 +49,8 @@ public abstract class AbstractIdentityConfigurationProvider<
         cp.setTitleMap(providerConfig.getTitleMap());
         cp.setDescriptionMap(providerConfig.getDescriptionMap());
 
-        cp.setLinkable(providerConfig.getLinkable());
-        String persistenceValue = providerConfig.getPersistence() != null
-            ? providerConfig.getPersistence().getValue()
-            : null;
-        cp.setPersistence(persistenceValue);
-        cp.setEvents(providerConfig.getEvents());
-        cp.setPosition(providerConfig.getPosition());
-
+        cp.setSettings(getConfiguration(providerConfig.getSettingsMap()));
         cp.setConfiguration(getConfiguration(providerConfig.getConfigMap()));
-        cp.setHookFunctions(providerConfig.getHookFunctions());
 
         // provider config are active by definition
         cp.setEnabled(true);

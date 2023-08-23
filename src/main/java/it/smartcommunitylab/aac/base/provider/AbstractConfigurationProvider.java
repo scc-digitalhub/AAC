@@ -43,9 +43,12 @@ import org.springframework.validation.DataBinder;
 import org.springframework.validation.SmartValidator;
 
 public abstract class AbstractConfigurationProvider<
-    C extends AbstractProviderConfig<S, M>, S extends AbstractSettingsMap, M extends AbstractConfigMap
+    P extends AbstractProviderConfig<S, M>,
+    C extends ConfigurableProvider<S>,
+    S extends AbstractSettingsMap,
+    M extends AbstractConfigMap
 >
-    implements ConfigurationProvider<C, S, M> {
+    implements ConfigurationProvider<P, C, S, M> {
 
     protected static final ObjectMapper mapper = new ObjectMapper()
         .addMixIn(AbstractSettingsMap.class, NoTypes.class)
@@ -59,14 +62,14 @@ public abstract class AbstractConfigurationProvider<
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     protected final String authority;
-    protected final ProviderConfigRepository<C> registrationRepository;
+    protected final ProviderConfigRepository<P> registrationRepository;
 
     protected SmartValidator validator;
 
     protected S defaultSettingsMap;
     protected M defaultConfigMap;
 
-    protected AbstractConfigurationProvider(String authority, ProviderConfigRepository<C> registrationRepository) {
+    protected AbstractConfigurationProvider(String authority, ProviderConfigRepository<P> registrationRepository) {
         Assert.hasText(authority, "authority id  is mandatory");
         Assert.notNull(registrationRepository, "provider registration repository is mandatory");
 
@@ -98,7 +101,25 @@ public abstract class AbstractConfigurationProvider<
         this.validator = validator;
     }
 
-    protected abstract C buildConfig(ConfigurableProvider cp);
+    protected abstract C buildConfigurable(P pc);
+
+    protected abstract P buildConfig(C cp);
+
+    // protected C buildConfig(C cp) {
+    //     try {
+    //         Type tc = ((ParameterizedType) this.getClass().getGenericSuperclass()).getActualTypeArguments()[0];
+    //         Type ts = ((ParameterizedType) this.getClass().getGenericSuperclass()).getActualTypeArguments()[1];
+    //         Type tm = ((ParameterizedType) this.getClass().getGenericSuperclass()).getActualTypeArguments()[2];
+
+    //         C c = (C) tc
+    //             .getClass()
+    //             .getDeclaredConstructor(String.class, (Class<?>) ts, (Class<?>) tm)
+    //             .newInstance(cp.getSettings(), cp.getConfiguration());
+    //         return c;
+    //     } catch (Exception e) {
+    //         return null;
+    //     }
+    // }
 
     @Override
     public String getAuthority() {
@@ -106,7 +127,12 @@ public abstract class AbstractConfigurationProvider<
     }
 
     @Override
-    public C getConfig(ConfigurableProvider cp, boolean mergeDefault) {
+    public ProviderConfigRepository<P> getRepository() {
+        return this.registrationRepository;
+    }
+
+    @Override
+    public P getConfig(C cp, boolean mergeDefault) {
         if (mergeDefault && defaultConfigMap != null) {
             // merge configMap with default on missing values
             Map<String, Serializable> map = new HashMap<>();
@@ -126,8 +152,13 @@ public abstract class AbstractConfigurationProvider<
     }
 
     @Override
-    public C getConfig(ConfigurableProvider cp) {
+    public P getConfig(C cp) {
         return getConfig(cp, true);
+    }
+
+    @Override
+    public C getConfigurable(P providerConfig) {
+        return buildConfigurable(providerConfig);
     }
 
     @Override
@@ -158,7 +189,7 @@ public abstract class AbstractConfigurationProvider<
         return m;
     }
 
-    protected Map<String, Serializable> getConfiguration(M configMap) {
+    protected Map<String, Serializable> getConfiguration(ConfigMap configMap) {
         if (configMap == null) {
             return Collections.emptyMap();
         }
@@ -178,7 +209,7 @@ public abstract class AbstractConfigurationProvider<
     // }
 
     @Override
-    public C register(ConfigurableProvider cp) throws RegistrationException {
+    public P register(C cp) throws RegistrationException {
         // we support only matching provider as resource providers
         if (cp != null && getAuthority().equals(cp.getAuthority())) {
             String providerId = cp.getProvider();
@@ -191,7 +222,7 @@ public abstract class AbstractConfigurationProvider<
 
             try {
                 // check if exists or id clashes with another provider from a different realm
-                C e = registrationRepository.findByProviderId(providerId);
+                P e = registrationRepository.findByProviderId(providerId);
                 if (e != null) {
                     if (!realm.equals(e.getRealm())) {
                         // name clash
@@ -211,7 +242,7 @@ public abstract class AbstractConfigurationProvider<
                 }
 
                 // build config
-                C providerConfig = getConfig(cp);
+                P providerConfig = getConfig(cp);
                 if (logger.isTraceEnabled()) {
                     logger.trace(
                         "provider active config v{}: {}",
@@ -244,7 +275,7 @@ public abstract class AbstractConfigurationProvider<
 
     @Override
     public void unregister(String providerId) {
-        C registration = registrationRepository.findByProviderId(providerId);
+        P registration = registrationRepository.findByProviderId(providerId);
 
         if (registration != null) {
             // can't unregister system providers, check

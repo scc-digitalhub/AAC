@@ -14,32 +14,32 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.credentials.base;
+package it.smartcommunitylab.aac.accounts.base;
 
+import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountService;
+import it.smartcommunitylab.aac.accounts.provider.AccountServiceConfigurationProvider;
+import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.base.provider.AbstractConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.credentials.model.ConfigurableCredentialsProvider;
-import it.smartcommunitylab.aac.credentials.provider.CredentialsServiceConfigurationProvider;
-import it.smartcommunitylab.aac.credentials.provider.CredentialsServiceSettingsMap;
 
-public abstract class AbstractCredentialsConfigurationProvider<
-    P extends AbstractCredentialsServiceConfig<M>, M extends AbstractConfigMap
+public abstract class AbstractAccountServiceConfigurationProvider<
+    P extends AbstractAccountServiceConfig<M>, M extends AbstractConfigMap
 >
-    extends AbstractConfigurationProvider<P, ConfigurableCredentialsProvider, CredentialsServiceSettingsMap, M>
-    implements CredentialsServiceConfigurationProvider<P, M> {
+    extends AbstractConfigurationProvider<P, ConfigurableAccountService, AccountServiceSettingsMap, M>
+    implements AccountServiceConfigurationProvider<P, M> {
 
-    protected AbstractCredentialsConfigurationProvider(
+    protected AbstractAccountServiceConfigurationProvider(
         String authority,
         ProviderConfigRepository<P> registrationRepository
     ) {
         super(authority, registrationRepository);
-        setDefaultSettingsMap(new CredentialsServiceSettingsMap());
+        setDefaultSettingsMap(new AccountServiceSettingsMap());
     }
 
     @Override
-    protected ConfigurableCredentialsProvider buildConfigurable(P providerConfig) {
-        ConfigurableCredentialsProvider cp = new ConfigurableCredentialsProvider(
+    protected ConfigurableAccountService buildConfigurable(P providerConfig) {
+        ConfigurableAccountService cp = new ConfigurableAccountService(
             providerConfig.getAuthority(),
             providerConfig.getProvider(),
             providerConfig.getRealm()

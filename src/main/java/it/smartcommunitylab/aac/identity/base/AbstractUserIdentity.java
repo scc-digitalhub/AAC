@@ -19,6 +19,7 @@ package it.smartcommunitylab.aac.identity.base;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import it.smartcommunitylab.aac.accounts.base.AbstractUserAccount;
 import it.smartcommunitylab.aac.base.model.AbstractBaseUserResource;
 import it.smartcommunitylab.aac.identity.model.UserIdentity;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
@@ -49,5 +50,9 @@ public abstract class AbstractUserIdentity extends AbstractBaseUserResource impl
     }
 
     // uuid is mandatory
-    public abstract String getUuid();
+    public String getUuid() {
+        return getAccount() != null ? getAccount().getUuid() : null;
+    }
+
+    public abstract AbstractUserAccount getAccount();
 }

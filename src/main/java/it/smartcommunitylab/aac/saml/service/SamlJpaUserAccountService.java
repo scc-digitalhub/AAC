@@ -28,8 +28,6 @@ import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountEntity;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountEntityRepository;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountId;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredentialEntity;
-
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.validation.constraints.NotNull;
@@ -65,12 +63,7 @@ public class SamlJpaUserAccountService implements UserAccountService<SamlUserAcc
         logger.debug("find account for repositoryId {}", String.valueOf(repositoryId));
 
         List<SamlUserAccountEntity> accounts = accountRepository.findByRepositoryId(repositoryId);
-        return accounts
-            .stream()
-            .map(a -> {
-                return to(a);
-            })
-            .collect(Collectors.toList());
+        return accounts.stream().map(a -> to(a)).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -78,12 +71,7 @@ public class SamlJpaUserAccountService implements UserAccountService<SamlUserAcc
         logger.debug("find account for realm {}", String.valueOf(realm));
 
         List<SamlUserAccountEntity> accounts = accountRepository.findByRealm(realm);
-        return accounts
-            .stream()
-            .map(a -> {
-                return to(a);
-            })
-            .collect(Collectors.toList());
+        return accounts.stream().map(a -> to(a)).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -113,12 +101,7 @@ public class SamlJpaUserAccountService implements UserAccountService<SamlUserAcc
         );
 
         List<SamlUserAccountEntity> accounts = accountRepository.findByRepositoryIdAndUsername(repository, username);
-        return accounts
-            .stream()
-            .map(a -> {
-                return to(a);
-            })
-            .collect(Collectors.toList());
+        return accounts.stream().map(a -> to(a)).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -126,12 +109,7 @@ public class SamlJpaUserAccountService implements UserAccountService<SamlUserAcc
         logger.debug("find account with email {} in repository {}", String.valueOf(email), String.valueOf(repository));
 
         List<SamlUserAccountEntity> accounts = accountRepository.findByRepositoryIdAndEmail(repository, email);
-        return accounts
-            .stream()
-            .map(a -> {
-                return to(a);
-            })
-            .collect(Collectors.toList());
+        return accounts.stream().map(a -> to(a)).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -153,12 +131,7 @@ public class SamlJpaUserAccountService implements UserAccountService<SamlUserAcc
         logger.debug("find account for user {} in repository {}", String.valueOf(userId), String.valueOf(repository));
 
         List<SamlUserAccountEntity> accounts = accountRepository.findByUserIdAndRepositoryId(userId, repository);
-        return accounts
-            .stream()
-            .map(a -> {
-                return to(a);
-            })
-            .collect(Collectors.toList());
+        return accounts.stream().map(a -> to(a)).collect(Collectors.toList());
     }
 
     @Override
@@ -223,8 +196,14 @@ public class SamlJpaUserAccountService implements UserAccountService<SamlUserAcc
             account.setSurname(reg.getSurname());
             account.setLang(reg.getLang());
 
+            account.setAttributes(reg.getAttributes());
+
             // set account as active
             account.setStatus(SubjectStatus.ACTIVE.getValue());
+
+            //copy audit info for import/export
+            account.setCreateDate(reg.getCreateDate());
+            account.setModifiedDate(reg.getModifiedDate());
 
             // note: use flush because we detach the entity!
             account = accountRepository.saveAndFlush(account);
@@ -267,8 +246,8 @@ public class SamlJpaUserAccountService implements UserAccountService<SamlUserAcc
         }
 
         try {
-            // support subjectId update
-            account.setSubjectId(reg.getSubjectId());
+            // DISABLED support subjectId update
+            // account.setSubjectId(reg.getSubjectId());
 
             // DISABLED support uuid change if provided
             //            if (StringUtils.hasText(reg.getUuid())) {
@@ -286,6 +265,8 @@ public class SamlJpaUserAccountService implements UserAccountService<SamlUserAcc
             account.setName(reg.getName());
             account.setSurname(reg.getSurname());
             account.setLang(reg.getLang());
+
+            account.setAttributes(reg.getAttributes());
 
             // update account status
             account.setStatus(reg.getStatus());
@@ -338,7 +319,6 @@ public class SamlJpaUserAccountService implements UserAccountService<SamlUserAcc
         List<SamlUserAccountEntity> accounts = accountRepository.findByUserIdAndRepositoryId(userId, repository);
         accountRepository.deleteAllInBatch(accounts);
     }
-    }
 
     /*
      * Helpers
@@ -353,6 +333,7 @@ public class SamlJpaUserAccountService implements UserAccountService<SamlUserAcc
         account.setSubjectId(entity.getSubjectId());
 
         account.setUserId(entity.getUserId());
+        account.setStatus(entity.getStatus());
 
         account.setIssuer(entity.getIssuer());
         account.setUsername(entity.getUsername());
@@ -361,7 +342,11 @@ public class SamlJpaUserAccountService implements UserAccountService<SamlUserAcc
         account.setName(entity.getName());
         account.setSurname(entity.getSurname());
         account.setLang(entity.getLang());
-        account.setStatus(entity.getStatus());
+
+        account.setAttributes(entity.getAttributes());
+
+        account.setCreateDate(entity.getCreateDate());
+        account.setModifiedDate(entity.getModifiedDate());
 
         return account;
     }

@@ -48,4 +48,9 @@ public abstract class AbstractBaseUserResource extends AbstractBaseResource impl
     public String getUserId() {
         return userId;
     }
+
+    // resources can be relinked to a different user
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
 }

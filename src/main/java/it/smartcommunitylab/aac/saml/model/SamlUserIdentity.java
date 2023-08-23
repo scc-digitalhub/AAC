@@ -19,7 +19,6 @@ package it.smartcommunitylab.aac.saml.model;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.identity.base.AbstractUserIdentity;
-import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -39,19 +38,15 @@ public class SamlUserIdentity extends AbstractUserIdentity {
     private final SamlUserAccount account;
 
     // attribute sets
-    protected Set<UserAttributes> attributes;
+    private Set<UserAttributes> attributes;
 
     public SamlUserIdentity(String authority, String provider, String realm, SamlUserAccount account) {
-        super(authority, provider);
+        super(authority, provider, realm, account.getUuid(), account.getUserId());
         Assert.notNull(account, "account can not be null");
 
         this.account = account;
         this.principal = null;
         this.attributes = Collections.emptySet();
-
-        setUserId(account.getUserId());
-        setUuid(account.getUuid());
-        setRealm(realm);
     }
 
     public SamlUserIdentity(
@@ -61,16 +56,12 @@ public class SamlUserIdentity extends AbstractUserIdentity {
         SamlUserAccount account,
         SamlUserAuthenticatedPrincipal principal
     ) {
-        super(authority, provider);
+        super(authority, provider, realm, account.getUuid(), account.getUserId());
         Assert.notNull(account, "account can not be null");
 
         this.account = account;
         this.principal = principal;
         this.attributes = Collections.emptySet();
-
-        setUserId(account.getUserId());
-        setUuid(account.getUuid());
-        setRealm(realm);
     }
 
     @Override

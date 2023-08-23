@@ -19,6 +19,7 @@ package it.smartcommunitylab.aac.openid.apple.provider;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.base.AbstractAccountServiceConfig;
 import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountService;
+import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
 
 public class AppleAccountServiceConfig extends AbstractAccountServiceConfig<AppleIdentityProviderConfigMap> {
 
@@ -33,13 +34,24 @@ public class AppleAccountServiceConfig extends AbstractAccountServiceConfig<Appl
         SystemKeys.AUTHORITY_APPLE;
 
     public AppleAccountServiceConfig(String provider, String realm) {
-        super(SystemKeys.AUTHORITY_APPLE, provider, realm, new AppleIdentityProviderConfigMap());
+        super(
+            SystemKeys.AUTHORITY_APPLE,
+            provider,
+            realm,
+            new AccountServiceSettingsMap(),
+            new AppleIdentityProviderConfigMap()
+        );
     }
 
-    public AppleAccountServiceConfig(ConfigurableAccountService cp, AppleIdentityProviderConfigMap configMap) {
-        super(cp, configMap);
+    public AppleAccountServiceConfig(
+        ConfigurableAccountService cp,
+        AccountServiceSettingsMap settingsMap,
+        AppleIdentityProviderConfigMap configMap
+    ) {
+        super(cp, settingsMap, configMap);
     }
 
+    @Override
     public String getRepositoryId() {
         // not configurable for now
         return getProvider();

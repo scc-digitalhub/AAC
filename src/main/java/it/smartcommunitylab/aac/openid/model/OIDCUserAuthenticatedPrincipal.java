@@ -60,11 +60,9 @@ public class OIDCUserAuthenticatedPrincipal extends AbstractUserAuthenticatedPri
         String userId,
         String subject
     ) {
-        super(authority, provider);
+        super(authority, provider, realm, subject, userId);
         Assert.hasText(subject, "subject can not be null or empty");
         this.subject = subject;
-        setRealm(realm);
-        setUserId(userId);
     }
 
     @Override

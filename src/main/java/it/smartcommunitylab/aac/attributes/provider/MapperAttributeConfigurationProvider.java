@@ -19,19 +19,26 @@ package it.smartcommunitylab.aac.attributes.provider;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.base.AbstractAttributeConfigurationProvider;
 import it.smartcommunitylab.aac.attributes.model.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import org.springframework.stereotype.Service;
 
 @Service
 public class MapperAttributeConfigurationProvider
-    extends AbstractAttributeConfigurationProvider<MapperAttributeProviderConfigMap, MapperAttributeProviderConfig> {
+    extends AbstractAttributeConfigurationProvider<MapperAttributeProviderConfig, MapperAttributeProviderConfigMap> {
 
-    public MapperAttributeConfigurationProvider() {
-        super(SystemKeys.AUTHORITY_MAPPER);
+    public MapperAttributeConfigurationProvider(
+        ProviderConfigRepository<MapperAttributeProviderConfig> registrationRepository
+    ) {
+        super(SystemKeys.AUTHORITY_MAPPER, registrationRepository);
         setDefaultConfigMap(new MapperAttributeProviderConfigMap());
     }
 
     @Override
     protected MapperAttributeProviderConfig buildConfig(ConfigurableAttributeProvider cp) {
-        return new MapperAttributeProviderConfig(cp, getConfigMap(cp.getConfiguration()));
+        return new MapperAttributeProviderConfig(
+            cp,
+            getSettingsMap(cp.getSettings()),
+            getConfigMap(cp.getConfiguration())
+        );
     }
 }

@@ -27,21 +27,30 @@ public class ScriptAttributeProviderConfig extends AbstractAttributeProviderConf
         SystemKeys.RESOURCE_PROVIDER + SystemKeys.ID_SEPARATOR + ScriptAttributeProviderConfigMap.RESOURCE_TYPE;
 
     public ScriptAttributeProviderConfig(String provider, String realm) {
-        super(SystemKeys.AUTHORITY_SCRIPT, provider, realm, new ScriptAttributeProviderConfigMap());
+        super(
+            SystemKeys.AUTHORITY_SCRIPT,
+            provider,
+            realm,
+            new AttributeProviderSettingsMap(),
+            new ScriptAttributeProviderConfigMap()
+        );
     }
 
-    public ScriptAttributeProviderConfig(ConfigurableAttributeProvider cp, ScriptAttributeProviderConfigMap configMap) {
-        super(cp, configMap);
+    public ScriptAttributeProviderConfig(
+        ConfigurableAttributeProvider cp,
+        AttributeProviderSettingsMap settingsMap,
+        ScriptAttributeProviderConfigMap configMap
+    ) {
+        super(cp, settingsMap, configMap);
     }
-
-    /**
-     * Private constructor for JPA and other serialization tools.
-     *
-     * We need to implement this to enable deserialization of resources via
-     * reflection
-     */
-    @SuppressWarnings("unused")
-    private ScriptAttributeProviderConfig() {
-        super(SystemKeys.AUTHORITY_SCRIPT, (String) null, (String) null, new ScriptAttributeProviderConfigMap());
-    }
+    // /**
+    //  * Private constructor for JPA and other serialization tools.
+    //  *
+    //  * We need to implement this to enable deserialization of resources via
+    //  * reflection
+    //  */
+    // @SuppressWarnings("unused")
+    // private ScriptAttributeProviderConfig() {
+    //     super(SystemKeys.AUTHORITY_SCRIPT, (String) null, (String) null, new ScriptAttributeProviderConfigMap());
+    // }
 }

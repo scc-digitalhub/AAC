@@ -18,6 +18,7 @@ package it.smartcommunitylab.aac.credentials.provider;
 
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
+import it.smartcommunitylab.aac.credentials.model.ConfigurableCredentialsProvider;
 
 public interface CredentialsServiceConfigurationProvider<C extends CredentialsServiceConfig<M>, M extends ConfigMap>
-    extends ConfigurationProvider<C, CredentialsServiceSettingsMap, M> {}
+    extends ConfigurationProvider<C, ConfigurableCredentialsProvider, CredentialsServiceSettingsMap, M> {}

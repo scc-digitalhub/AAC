@@ -30,9 +30,6 @@ import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserCredential;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserCredentialsService;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserHandleService;
 import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
@@ -101,21 +98,6 @@ public class WebAuthnIdentityCredentialsService extends AbstractProvider<WebAuth
     }
 
     @Transactional(readOnly = true)
-    public List<WebAuthnUserCredential> findCredentialsByUsername(String username) throws NoSuchUserException {
-        InternalUserAccount account = accountService.findAccountById(repositoryId, username);
-        if (account == null) {
-            throw new NoSuchUserException();
-        }
-
-        // fetch all active credentials
-        return credentialsService
-            .findCredentialsByAccount(repositoryId, username)
-            .stream()
-            .filter(c -> STATUS_ACTIVE.equals(c.getStatus()))
-            .collect(Collectors.toList());
-    }
-
-    @Transactional(readOnly = true)
     public WebAuthnUserCredential findCredential(String userHandle, String credentialId) throws NoSuchUserException {
         InternalUserAccount account = accountService.findAccountByUuid(getUuidFromUserHandle(userHandle));
         if (account == null) {
@@ -158,26 +140,25 @@ public class WebAuthnIdentityCredentialsService extends AbstractProvider<WebAuth
         c = credentialsService.updateCredentials(repositoryId, c.getId(), c);
         return c;
     }
+    // public void deleteCredentialsByUsername(String username) {
+    //     logger.debug("delete all credentials for account {}", String.valueOf(username));
 
-    public void deleteCredentialsByUsername(String username) {
-        logger.debug("delete all credentials for account {}", String.valueOf(username));
+    //     // fetch all to collect ids
+    //     List<WebAuthnUserCredential> passwords = credentialsService.findCredentialsByAccount(repositoryId, username);
 
-        // fetch all to collect ids
-        List<WebAuthnUserCredential> passwords = credentialsService.findCredentialsByAccount(repositoryId, username);
+    //     // delete in batch
+    //     Set<String> ids = passwords.stream().map(p -> p.getId()).collect(Collectors.toSet());
+    //     credentialsService.deleteAllCredentials(repositoryId, ids);
 
-        // delete in batch
-        Set<String> ids = passwords.stream().map(p -> p.getId()).collect(Collectors.toSet());
-        credentialsService.deleteAllCredentials(repositoryId, ids);
-
-        if (resourceService != null) {
-            // remove resources
-            try {
-                // delete in batch
-                Set<String> uuids = passwords.stream().map(p -> p.getUuid()).collect(Collectors.toSet());
-                resourceService.deleteAllResourceEntities(uuids);
-            } catch (RuntimeException re) {
-                logger.error("error removing resources: {}", re.getMessage());
-            }
-        }
-    }
+    //     if (resourceService != null) {
+    //         // remove resources
+    //         try {
+    //             // delete in batch
+    //             Set<String> uuids = passwords.stream().map(p -> p.getUuid()).collect(Collectors.toSet());
+    //             resourceService.deleteAllResourceEntities(uuids);
+    //         } catch (RuntimeException re) {
+    //             logger.error("error removing resources: {}", re.getMessage());
+    //         }
+    //     }
+    // }
 }

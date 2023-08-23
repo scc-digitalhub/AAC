@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import it.smartcommunitylab.aac.accounts.model.UserAccount;
 import it.smartcommunitylab.aac.base.model.AbstractBaseUserResource;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
+import it.smartcommunitylab.aac.openid.model.OIDCUserAccount;
 import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
 import java.io.Serializable;
 import java.util.Map;

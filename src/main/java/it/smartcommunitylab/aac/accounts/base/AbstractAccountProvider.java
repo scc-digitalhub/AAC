@@ -77,6 +77,19 @@ public abstract class AbstractAccountProvider<U extends AbstractUserAccount>
 
     @Override
     @Transactional(readOnly = true)
+    public List<U> listAccounts() {
+        List<U> accounts = accountService.findAccounts(repositoryId);
+
+        // map to our authority
+        accounts.forEach(a -> {
+            a.setAuthority(getAuthority());
+            a.setProvider(getProvider());
+        });
+        return accounts;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<U> listAccounts(String userId) {
         List<U> accounts = accountService.findAccountsByUser(repositoryId, userId);
 

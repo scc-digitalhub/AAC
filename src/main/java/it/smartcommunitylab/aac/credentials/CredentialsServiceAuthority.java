@@ -21,11 +21,11 @@ import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.credentials.model.ConfigurableCredentialsProvider;
 import it.smartcommunitylab.aac.credentials.model.EditableUserCredentials;
 import it.smartcommunitylab.aac.credentials.model.UserCredentials;
-import it.smartcommunitylab.aac.credentials.provider.AccountCredentialsService;
+import it.smartcommunitylab.aac.credentials.provider.CredentialsService;
 import it.smartcommunitylab.aac.credentials.provider.CredentialsServiceConfig;
 
 public interface CredentialsServiceAuthority<
-    S extends AccountCredentialsService<R, E, M, C>,
+    S extends CredentialsService<R, E, M, C>,
     R extends UserCredentials,
     E extends EditableUserCredentials,
     M extends ConfigMap,

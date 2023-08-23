@@ -18,30 +18,55 @@ package it.smartcommunitylab.aac.openid.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.config.IdentityAuthoritiesProperties;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.identity.base.AbstractIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class OIDCIdentityConfigurationProvider
-    extends AbstractIdentityConfigurationProvider<OIDCIdentityProviderConfigMap, OIDCIdentityProviderConfig> {
+    extends AbstractIdentityConfigurationProvider<OIDCIdentityProviderConfig, OIDCIdentityProviderConfigMap> {
 
     @Autowired
-    public OIDCIdentityConfigurationProvider(IdentityAuthoritiesProperties authoritiesProperties) {
-        this(SystemKeys.AUTHORITY_OIDC, new OIDCIdentityProviderConfigMap());
-        if (authoritiesProperties != null && authoritiesProperties.getOidc() != null) {
+    public OIDCIdentityConfigurationProvider(
+        ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository,
+        IdentityAuthoritiesProperties authoritiesProperties
+    ) {
+        this(
+            SystemKeys.AUTHORITY_OIDC,
+            registrationRepository,
+            new IdentityProviderSettingsMap(),
+            new OIDCIdentityProviderConfigMap()
+        );
+        if (
+            authoritiesProperties != null &&
+            authoritiesProperties.getSettings() != null &&
+            authoritiesProperties.getOidc() != null
+        ) {
+            setDefaultSettingsMap(authoritiesProperties.getSettings());
             setDefaultConfigMap(authoritiesProperties.getOidc());
         }
     }
 
-    public OIDCIdentityConfigurationProvider(String authority, OIDCIdentityProviderConfigMap configMap) {
-        super(authority);
+    public OIDCIdentityConfigurationProvider(
+        String authority,
+        ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository,
+        IdentityProviderSettingsMap settingsMap,
+        OIDCIdentityProviderConfigMap configMap
+    ) {
+        super(authority, registrationRepository);
+        setDefaultSettingsMap(settingsMap);
         setDefaultConfigMap(configMap);
     }
 
     @Override
     protected OIDCIdentityProviderConfig buildConfig(ConfigurableIdentityProvider cp) {
-        return new OIDCIdentityProviderConfig(cp, getConfigMap(cp.getConfiguration()));
+        return new OIDCIdentityProviderConfig(
+            cp,
+            getSettingsMap(cp.getSettings()),
+            getConfigMap(cp.getConfiguration())
+        );
     }
 }
