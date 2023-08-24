@@ -30,6 +30,7 @@ import it.smartcommunitylab.aac.core.SessionManager;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.core.model.Client;
 import it.smartcommunitylab.aac.core.service.SubjectService;
+import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.service.IdentityProviderService;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
@@ -855,12 +856,9 @@ public class ClientManager {
             .stream()
             .map(cp -> {
                 // clear config and reserved info
-                cp.setEvents(null);
-                cp.setPersistence(null);
-                cp.setSchema(null);
+                cp.setSettings(null);
                 cp.setConfiguration(null);
-                cp.setHookFunctions(null);
-
+                cp.setSchema(null);
                 return cp;
             })
             .collect(Collectors.toList());

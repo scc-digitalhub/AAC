@@ -45,11 +45,11 @@ import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountEntityRe
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeProviderConfig;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.service.InternalJpaUserAccountService;
-import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfig;
-import it.smartcommunitylab.aac.openid.model.OIDCUserAccount;
-import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountEntityRepository;
-import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
-import it.smartcommunitylab.aac.openid.service.OIDCJpaUserAccountService;
+import it.smartcommunitylab.aac.oidc.apple.provider.AppleIdentityProviderConfig;
+import it.smartcommunitylab.aac.oidc.model.OIDCUserAccount;
+import it.smartcommunitylab.aac.oidc.persistence.OIDCUserAccountEntityRepository;
+import it.smartcommunitylab.aac.oidc.provider.OIDCIdentityProviderConfig;
+import it.smartcommunitylab.aac.oidc.service.OIDCJpaUserAccountService;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
 import it.smartcommunitylab.aac.password.service.InternalPasswordUserCredentialsService;

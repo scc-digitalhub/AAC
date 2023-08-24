@@ -18,7 +18,7 @@ package it.smartcommunitylab.aac.common;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.internal.auth.InternalAuthenticationException;
-import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticationException;
+import it.smartcommunitylab.aac.oidc.auth.OIDCAuthenticationException;
 import it.smartcommunitylab.aac.saml.auth.SamlAuthenticationException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.util.Assert;

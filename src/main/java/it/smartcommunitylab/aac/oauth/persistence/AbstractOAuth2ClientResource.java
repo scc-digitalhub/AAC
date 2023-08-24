@@ -53,6 +53,12 @@ public abstract class AbstractOAuth2ClientResource implements ClientResource, Se
     }
 
     @Override
+    public String getProvider() {
+        //return hardcoded system provider
+        return SystemKeys.AUTHORITY_OAUTH2;
+    }
+
+    @Override
     public String getRealm() {
         return realm;
     }
@@ -65,7 +71,6 @@ public abstract class AbstractOAuth2ClientResource implements ClientResource, Se
     public void setClientId(String clientId) {
         this.clientId = clientId;
     }
-
     // // resource is globally unique and addressable
     // // ie given to an external actor he should be able to find the authority and
     // // then the provider to request this resource

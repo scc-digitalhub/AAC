@@ -30,8 +30,8 @@ import it.smartcommunitylab.aac.attributes.provider.ScriptAttributeProviderConfi
 import it.smartcommunitylab.aac.attributes.provider.WebhookAttributeProviderConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
-import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfigMap;
-import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
+import it.smartcommunitylab.aac.oidc.apple.provider.AppleIdentityProviderConfigMap;
+import it.smartcommunitylab.aac.oidc.provider.OIDCIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.repository.SchemaGeneratorFactory;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfigMap;

@@ -30,8 +30,8 @@ import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.base.provider.config.AbstractProviderConfig;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountServiceConfig;
 import it.smartcommunitylab.aac.model.PersistenceMode;
-import it.smartcommunitylab.aac.openid.apple.provider.AppleAccountServiceConfig;
-import it.smartcommunitylab.aac.openid.provider.OIDCAccountServiceConfig;
+import it.smartcommunitylab.aac.oidc.apple.provider.AppleAccountServiceConfig;
+import it.smartcommunitylab.aac.oidc.provider.OIDCAccountServiceConfig;
 import it.smartcommunitylab.aac.saml.provider.SamlAccountServiceConfig;
 import org.springframework.util.StringUtils;
 

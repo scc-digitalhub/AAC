@@ -23,7 +23,7 @@ import it.smartcommunitylab.aac.accounts.base.AbstractUserAccount;
 import it.smartcommunitylab.aac.base.model.AbstractBaseUserResource;
 import it.smartcommunitylab.aac.identity.model.UserIdentity;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
-import it.smartcommunitylab.aac.openid.model.OIDCUserIdentity;
+import it.smartcommunitylab.aac.oidc.model.OIDCUserIdentity;
 import it.smartcommunitylab.aac.saml.model.SamlUserIdentity;
 
 /*

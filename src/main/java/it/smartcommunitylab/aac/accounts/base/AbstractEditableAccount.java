@@ -25,7 +25,7 @@ import it.smartcommunitylab.aac.accounts.model.EditableUserAccount;
 import it.smartcommunitylab.aac.base.model.AbstractBaseResource;
 import it.smartcommunitylab.aac.base.model.AbstractBaseUserResource;
 import it.smartcommunitylab.aac.internal.model.InternalEditableUserAccount;
-import it.smartcommunitylab.aac.openid.model.OIDCEditableUserAccount;
+import it.smartcommunitylab.aac.oidc.model.OIDCEditableUserAccount;
 import it.smartcommunitylab.aac.repository.JsonSchemaIgnore;
 import it.smartcommunitylab.aac.repository.SchemaAnnotationIntrospector;
 import it.smartcommunitylab.aac.repository.SchemaGeneratorFactory;
