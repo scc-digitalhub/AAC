@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac;
 
 import it.smartcommunitylab.aac.bootstrap.AACBootstrap;
-import it.smartcommunitylab.aac.config.DatabasePropertiesListener;
+import it.smartcommunitylab.aac.config.OverridePropertiesListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -37,7 +37,7 @@ public class AACMain {
 
     public static void main(String[] args) {
         SpringApplication app = new SpringApplication(AACMain.class);
-        app.addListeners(new DatabasePropertiesListener());
+        app.addListeners(new OverridePropertiesListener());
         app.run(args);
     }
 
