@@ -38,7 +38,7 @@ import it.smartcommunitylab.aac.webauthn.model.AttestationResponse;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationRequest;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationResponse;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationStartRequest;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredential;
+import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserCredential;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsService;
 import it.smartcommunitylab.aac.webauthn.store.WebAuthnRegistrationRequestStore;
 import java.io.IOException;

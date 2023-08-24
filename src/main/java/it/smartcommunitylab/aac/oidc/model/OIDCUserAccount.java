@@ -88,6 +88,12 @@ public class OIDCUserAccount extends AbstractUserAccount {
     }
 
     @Override
+    public String getAccountId() {
+        //local id is subject
+        return subject;
+    }
+
+    @Override
     public String getUsername() {
         return username;
     }

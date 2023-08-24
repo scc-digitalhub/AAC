@@ -18,10 +18,11 @@ package it.smartcommunitylab.aac.oidc;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.AccountServiceAuthority;
-import it.smartcommunitylab.aac.accounts.base.AbstractEditableAccount;
 import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountService;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
+import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
 import it.smartcommunitylab.aac.base.authorities.AbstractProviderAuthority;
+import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.core.service.TranslatorProviderConfigRepository;
@@ -37,9 +38,8 @@ import org.springframework.util.Assert;
 
 @Service
 public class OIDCAccountServiceAuthority
-    extends AbstractProviderAuthority<OIDCAccountService, OIDCUserAccount, ConfigurableAccountService, OIDCIdentityProviderConfigMap, OIDCAccountServiceConfig>
-    implements
-        AccountServiceAuthority<OIDCAccountService, OIDCUserAccount, AbstractEditableAccount, OIDCIdentityProviderConfigMap, OIDCAccountServiceConfig> {
+    extends AbstractProviderAuthority<OIDCAccountService, OIDCAccountServiceConfig>
+    implements AccountServiceAuthority<OIDCAccountService, OIDCAccountServiceConfig, OIDCIdentityProviderConfigMap> {
 
     // account service
     private final UserAccountService<OIDCUserAccount> accountService;
@@ -64,10 +64,10 @@ public class OIDCAccountServiceAuthority
         this.accountService = userAccountService;
     }
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_ACCOUNT;
-    }
+    // @Override
+    // public String getType() {
+    //     return SystemKeys.RESOURCE_ACCOUNT;
+    // }
 
     @Autowired
     public void setResourceService(ResourceEntityService resourceService) {
@@ -94,5 +94,10 @@ public class OIDCAccountServiceAuthority
             super(externalRepository);
             setConverter(new OIDCAccountServiceConfigConverter());
         }
+    }
+
+    @Override
+    public ConfigurationProvider<OIDCAccountServiceConfig, ConfigurableAccountService, AccountServiceSettingsMap, OIDCIdentityProviderConfigMap> getConfigurationProvider() {
+        return null;
     }
 }

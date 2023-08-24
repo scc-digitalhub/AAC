@@ -125,7 +125,7 @@ public class WebAuthnCredentialsController {
         // NOTE: credentials are listed by user not account
         // TODO implement picker for account when more than one available
         String userId = user.getSubjectId();
-        Collection<WebAuthnUserCredential> credentials = service.listCredentialsByUser(userId);
+        Collection<WebAuthnUserCredential> credentials = service.listCredentials(userId);
         model.addAttribute("credentials", credentials);
 
         // build url
@@ -162,12 +162,13 @@ public class WebAuthnCredentialsController {
             }
 
             // check user matches
-            boolean matches = user
-                .getIdentities()
-                .stream()
-                .filter(i -> (i.getAccount() instanceof InternalUserAccount))
-                .map(i -> i.getAccount().getAccountId())
-                .anyMatch(u -> cred.getAccountId().equals(u));
+            boolean matches = user.getSubjectId().equals(cred.getUserId());
+            // boolean matches = user
+            //     .getIdentities()
+            //     .stream()
+            //     .filter(i -> (i.getAccount() instanceof InternalUserAccount))
+            //     .map(i -> i.getAccount().getAccountId())
+            //     .anyMatch(u -> cred.getAccountId().equals(u));
             if (!matches) {
                 throw new IllegalArgumentException("invalid credential");
             }

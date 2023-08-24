@@ -92,10 +92,10 @@ public class OIDCAccountPrincipalConverter
         this.alwaysTrustEmailAddress = alwaysTrustEmailAddress;
     }
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_ACCOUNT;
-    }
+    // @Override
+    // public String getType() {
+    //     return SystemKeys.RESOURCE_ACCOUNT;
+    // }
 
     @Override
     public OIDCUserAccount convertAccount(UserAuthenticatedPrincipal userPrincipal, String userId) {
@@ -158,13 +158,11 @@ public class OIDCAccountPrincipalConverter
         String picture = clean(oidcAttributes.get(OpenIdAttributesSet.PICTURE));
 
         // build model from scratch
-        OIDCUserAccount account = new OIDCUserAccount(getAuthority());
+        // NOTE: this is detached and thus has NO id
+        OIDCUserAccount account = new OIDCUserAccount(getAuthority(), getProvider(), getRealm(), null);
         account.setRepositoryId(repositoryId);
-        account.setProvider(getProvider());
-
         account.setSubject(subject);
         account.setUserId(userId);
-        account.setRealm(getRealm());
 
         account.setUsername(username);
         account.setIssuer(issuer);

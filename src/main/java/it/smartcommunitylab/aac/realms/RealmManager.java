@@ -63,7 +63,7 @@ import it.smartcommunitylab.aac.templates.service.TemplateProviderService;
 import it.smartcommunitylab.aac.templates.service.TemplateService;
 import it.smartcommunitylab.aac.users.UserManager;
 import it.smartcommunitylab.aac.users.service.UserService;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredential;
+import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserCredential;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;

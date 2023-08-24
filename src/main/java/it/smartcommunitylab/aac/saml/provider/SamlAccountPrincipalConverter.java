@@ -82,10 +82,10 @@ public class SamlAccountPrincipalConverter
         this.samlMapper = new SamlAttributesMapper();
     }
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_ACCOUNT;
-    }
+    // @Override
+    // public String getType() {
+    //     return SystemKeys.RESOURCE_ACCOUNT;
+    // }
 
     @Override
     public SamlUserAccount convertAccount(UserAuthenticatedPrincipal userPrincipal, String userId) {
@@ -142,13 +142,11 @@ public class SamlAccountPrincipalConverter
         }
 
         // build model from scratch
-        SamlUserAccount account = new SamlUserAccount(getAuthority());
+        // NOTE: this is detached and thus has NO id
+        SamlUserAccount account = new SamlUserAccount(getAuthority(), getProvider(), getRealm(), null);
         account.setRepositoryId(repositoryId);
-        account.setProvider(getProvider());
-
         account.setSubjectId(subjectId);
         account.setUserId(userId);
-        account.setRealm(getRealm());
 
         account.setUsername(username);
         account.setIssuer(issuer);

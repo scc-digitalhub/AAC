@@ -18,6 +18,7 @@ package it.smartcommunitylab.aac.saml;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.AccountServiceAuthority;
+import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountService;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
 import it.smartcommunitylab.aac.base.authorities.AbstractProviderAuthority;
@@ -90,7 +91,7 @@ public class SamlAccountServiceAuthority
     }
 
     @Override
-    public ConfigurationProvider<SamlAccountServiceConfig, AccountServiceSettingsMap, SamlIdentityProviderConfigMap> getConfigurationProvider() {
+    public ConfigurationProvider<SamlAccountServiceConfig, ConfigurableAccountService, AccountServiceSettingsMap, SamlIdentityProviderConfigMap> getConfigurationProvider() {
         return null;
     }
 }

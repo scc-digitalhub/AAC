@@ -37,7 +37,7 @@ import org.springframework.util.Assert;
 
 @Service
 public class WebAuthnIdentityAuthority
-    extends AbstractIdentityProviderAuthority<WebAuthnIdentityProvider, InternalUserIdentity, WebAuthnIdentityProviderConfigMap, WebAuthnIdentityProviderConfig> {
+    extends AbstractIdentityProviderAuthority<WebAuthnIdentityProvider, InternalUserIdentity, WebAuthnIdentityProviderConfig, WebAuthnIdentityProviderConfigMap> {
 
     public static final String AUTHORITY_URL = "/auth/webauthn/";
 

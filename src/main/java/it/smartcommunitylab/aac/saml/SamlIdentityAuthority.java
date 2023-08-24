@@ -36,7 +36,7 @@ import org.springframework.util.Assert;
 
 @Service
 public class SamlIdentityAuthority
-    extends AbstractIdentityProviderAuthority<SamlIdentityProvider, SamlUserIdentity, SamlIdentityProviderConfigMap, SamlIdentityProviderConfig> {
+    extends AbstractIdentityProviderAuthority<SamlIdentityProvider, SamlUserIdentity, SamlIdentityProviderConfig, SamlIdentityProviderConfigMap> {
 
     public static final String AUTHORITY_URL = "/auth/" + SystemKeys.AUTHORITY_SAML + "/";
 

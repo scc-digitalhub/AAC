@@ -86,6 +86,12 @@ public class SamlUserAccount extends AbstractUserAccount {
     }
 
     @Override
+    public String getAccountId() {
+        //local id is subjectId
+        return subjectId;
+    }
+
+    @Override
     public String getUsername() {
         return username;
     }

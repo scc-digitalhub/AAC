@@ -97,6 +97,12 @@ public class InternalUserAccount extends AbstractUserAccount implements Credenti
     }
 
     @Override
+    public String getAccountId() {
+        //local id is username
+        return username;
+    }
+
+    @Override
     public String getUsername() {
         return username;
     }

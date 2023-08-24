@@ -68,10 +68,10 @@ public class OIDCSubjectResolver extends AbstractProvider<OIDCUserAccount> imple
         this.isLinkable = isLinkable;
     }
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_SUBJECT;
-    }
+    // @Override
+    // public String getType() {
+    //     return SystemKeys.RESOURCE_SUBJECT;
+    // }
 
     @Transactional(readOnly = true)
     public Subject resolveBySubject(String sub) {

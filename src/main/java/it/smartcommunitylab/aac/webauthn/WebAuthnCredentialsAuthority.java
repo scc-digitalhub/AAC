@@ -19,7 +19,6 @@ package it.smartcommunitylab.aac.webauthn;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.core.provider.config.ConfigurableProviderImpl;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.credentials.base.AbstractCredentialsAuthority;
 import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
@@ -42,7 +41,7 @@ import org.springframework.util.Assert;
  */
 @Service
 public class WebAuthnCredentialsAuthority
-    extends AbstractCredentialsAuthority<WebAuthnCredentialsService, WebAuthnUserCredential, WebAuthnEditableUserCredential, WebAuthnIdentityProviderConfigMap, WebAuthnCredentialsServiceConfig> {
+    extends AbstractCredentialsAuthority<WebAuthnCredentialsService, WebAuthnUserCredential, WebAuthnEditableUserCredential, InternalUserAccount, WebAuthnCredentialsServiceConfig, WebAuthnIdentityProviderConfigMap> {
 
     public static final String AUTHORITY_URL = "/auth/webauthn/";
 
@@ -98,9 +97,8 @@ public class WebAuthnCredentialsAuthority
 
         return service;
     }
-
-    @Override
-    public WebAuthnCredentialsServiceConfig registerProvider(ConfigurableProviderImpl cp) {
-        throw new IllegalArgumentException("direct registration not supported");
-    }
+    // @Override
+    // public WebAuthnCredentialsServiceConfig registerProvider(ConfigurableProviderImpl cp) {
+    //     throw new IllegalArgumentException("direct registration not supported");
+    // }
 }

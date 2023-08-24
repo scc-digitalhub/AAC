@@ -64,10 +64,10 @@ public class SamlSubjectResolver extends AbstractProvider<SamlUserAccount> imple
         this.repositoryId = providerId;
     }
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_SUBJECT;
-    }
+    // @Override
+    // public String getType() {
+    //     return SystemKeys.RESOURCE_SUBJECT;
+    // }
 
     @Transactional(readOnly = true)
     public Subject resolveBySubjectId(String subjectId) {

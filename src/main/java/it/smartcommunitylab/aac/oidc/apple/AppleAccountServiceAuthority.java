@@ -18,10 +18,11 @@ package it.smartcommunitylab.aac.oidc.apple;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.AccountServiceAuthority;
-import it.smartcommunitylab.aac.accounts.base.AbstractEditableAccount;
 import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountService;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
+import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
 import it.smartcommunitylab.aac.base.authorities.AbstractProviderAuthority;
+import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.core.service.TranslatorProviderConfigRepository;
@@ -37,7 +38,7 @@ import org.springframework.util.Assert;
 
 @Service
 public class AppleAccountServiceAuthority
-    extends AbstractProviderAuthority<AppleAccountService, OIDCUserAccount, ConfigurableAccountService, AppleIdentityProviderConfigMap, AppleAccountServiceConfig>
+    extends AbstractProviderAuthority<AppleAccountService, AppleAccountServiceConfig>
     implements AccountServiceAuthority<AppleAccountService, AppleAccountServiceConfig, AppleIdentityProviderConfigMap> {
 
     // account service
@@ -59,10 +60,10 @@ public class AppleAccountServiceAuthority
         this.resourceService = resourceService;
     }
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_ACCOUNT;
-    }
+    // @Override
+    // public String getType() {
+    //     return SystemKeys.RESOURCE_ACCOUNT;
+    // }
 
     protected AppleAccountService buildProvider(AppleAccountServiceConfig config) {
         AppleAccountService service = new AppleAccountService(
@@ -85,5 +86,10 @@ public class AppleAccountServiceAuthority
             super(externalRepository);
             setConverter(new AppleAccountServiceConfigConverter());
         }
+    }
+
+    @Override
+    public ConfigurationProvider<AppleAccountServiceConfig, ConfigurableAccountService, AccountServiceSettingsMap, AppleIdentityProviderConfigMap> getConfigurationProvider() {
+        return null;
     }
 }

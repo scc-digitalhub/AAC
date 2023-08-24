@@ -189,7 +189,7 @@ public class WebAuthnCredentialsService
         }
 
         // create a new credential in repository for the result
-        WebAuthnUserCredential credential = new WebAuthnUserCredential();
+        WebAuthnUserCredential credential = new WebAuthnUserCredential(getRealm(), null);
         credential.setUsername(username);
         credential.setCredentialId(result.getKeyId().getId().getBase64Url());
         credential.setUserHandle(userHandle);
@@ -308,12 +308,11 @@ public class WebAuthnCredentialsService
         }
 
         // build model
-        c = new WebAuthnUserCredential();
+        c = new WebAuthnUserCredential(getRealm(), null);
         c.setRepositoryId(repositoryId);
 
         c.setUsername(account.getUsername());
         c.setUserId(account.getUserId());
-        c.setRealm(account.getRealm());
 
         c.setUserHandle(userHandle);
 
@@ -364,11 +363,12 @@ public class WebAuthnCredentialsService
         }
 
         // fetch user
-        String accountId = cred.getAccountId();
-        InternalUserAccount account = accountService.findAccountById(repositoryId, accountId);
-        if (account == null) {
-            throw new NoSuchCredentialException();
-        }
+        //DISABLED, TODO check for USER not account
+        // String accountId = cred.getAccountId();
+        // InternalUserAccount account = accountService.findAccountById(repositoryId, accountId);
+        // if (account == null) {
+        //     throw new NoSuchCredentialException();
+        // }
 
         // update only allowed fields
         cred.setDisplayName(reg.getDisplayName());
@@ -403,19 +403,19 @@ public class WebAuthnCredentialsService
         return ed;
     }
 
-    @Override
-    public Collection<WebAuthnEditableUserCredential> listEditableCredentials(String accountId) {
-        // fetch ALL active
-        List<WebAuthnUserCredential> credentials = credentialService
-            .findCredentialsByAccount(repositoryId, accountId)
-            .stream()
-            .filter(c -> STATUS_ACTIVE.equals(c.getStatus()))
-            .collect(Collectors.toList());
+    // @Override
+    // public Collection<WebAuthnEditableUserCredential> listEditableCredentials(String accountId) {
+    //     // fetch ALL active
+    //     List<WebAuthnUserCredential> credentials = credentialService
+    //         .findCredentialsByAccount(repositoryId, accountId)
+    //         .stream()
+    //         .filter(c -> STATUS_ACTIVE.equals(c.getStatus()))
+    //         .collect(Collectors.toList());
 
-        return credentials.stream().map(c -> toEditable(c)).collect(Collectors.toList());
-    }
+    //     return credentials.stream().map(c -> toEditable(c)).collect(Collectors.toList());
+    // }
 
-    @Override
+    // @Override
     public Collection<WebAuthnEditableUserCredential> listEditableCredentialsByUser(String userId) {
         // fetch ALL active
         List<WebAuthnUserCredential> credentials = credentialService
@@ -434,13 +434,13 @@ public class WebAuthnCredentialsService
         return toEditable(cred);
     }
 
-    @Override
+    // @Override
     public void deleteEditableCredential(String credentialId) throws NoSuchCredentialException {
         deleteCredential(credentialId);
     }
 
     @Override
-    public WebAuthnEditableUserCredential editEditableCredential(String credentialId, EditableUserCredentials uc)
+    public WebAuthnEditableUserCredential editCredential(String credentialId, EditableUserCredentials uc)
         throws RegistrationException, NoSuchCredentialException {
         if (uc == null) {
             throw new RegistrationException();
@@ -465,11 +465,12 @@ public class WebAuthnCredentialsService
         }
 
         // fetch user
-        String accountId = cred.getAccountId();
-        InternalUserAccount account = accountService.findAccountById(repositoryId, accountId);
-        if (account == null) {
-            throw new NoSuchCredentialException();
-        }
+        //DISABLED, TODO check for USER not account
+        // String accountId = cred.getAccountId();
+        // InternalUserAccount account = accountService.findAccountById(repositoryId, accountId);
+        // if (account == null) {
+        //     throw new NoSuchCredentialException();
+        // }
 
         // update only allowed fields
         cred.setDisplayName(displayName);
