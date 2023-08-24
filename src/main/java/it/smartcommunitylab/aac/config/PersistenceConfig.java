@@ -35,6 +35,7 @@ import it.smartcommunitylab.aac.claims.ExtractorsRegistry;
 import it.smartcommunitylab.aac.claims.InMemoryExtractorsRegistry;
 import it.smartcommunitylab.aac.claims.ResourceClaimsExtractorProvider;
 import it.smartcommunitylab.aac.claims.ScopeClaimsExtractorProvider;
+import it.smartcommunitylab.aac.core.persistence.ProviderEntityRepository;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.AutoJDBCProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.ConfigurableProviderEntityService;
@@ -273,25 +274,32 @@ public class PersistenceConfig {
     }
 
     @Bean
-    public ConfigurableProviderEntityService<AttributeProviderEntity> attributeProviderEntityService(
-        AttributeProviderEntityRepository attributeProviderRepository
+    public ConfigurableProviderEntityService providerEntityService(
+        ProviderEntityRepository attributeProviderRepository
     ) {
-        return new ConfigurableProviderEntityService<>(attributeProviderRepository);
+        return new ConfigurableProviderEntityService(attributeProviderRepository);
     }
 
-    @Bean
-    public ConfigurableProviderEntityService<IdentityProviderEntity> identityProviderEntityService(
-        IdentityProviderEntityRepository identityProviderRepository
-    ) {
-        return new ConfigurableProviderEntityService<>(identityProviderRepository);
-    }
+    // @Bean
+    // public ConfigurableProviderEntityService<AttributeProviderEntity> attributeProviderEntityService(
+    //     AttributeProviderEntityRepository attributeProviderRepository
+    // ) {
+    //     return new ConfigurableProviderEntityService<>(attributeProviderRepository);
+    // }
 
-    @Bean
-    public ConfigurableProviderEntityService<TemplateProviderEntity> templateProviderEntityService(
-        TemplateProviderEntityRepository templateProviderRepository
-    ) {
-        return new ConfigurableProviderEntityService<>(templateProviderRepository);
-    }
+    // @Bean
+    // public ConfigurableProviderEntityService<IdentityProviderEntity> identityProviderEntityService(
+    //     IdentityProviderEntityRepository identityProviderRepository
+    // ) {
+    //     return new ConfigurableProviderEntityService<>(identityProviderRepository);
+    // }
+
+    // @Bean
+    // public ConfigurableProviderEntityService<TemplateProviderEntity> templateProviderEntityService(
+    //     TemplateProviderEntityRepository templateProviderRepository
+    // ) {
+    //     return new ConfigurableProviderEntityService<>(templateProviderRepository);
+    // }
 
     @Bean
     public AutoJdbcAttributeStore attributeStore() {

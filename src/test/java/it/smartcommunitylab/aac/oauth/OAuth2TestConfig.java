@@ -21,7 +21,7 @@ import it.smartcommunitylab.aac.dto.RealmConfig;
 import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.oauth.client.OAuth2ClientConfigMap;
 import it.smartcommunitylab.aac.oauth.model.ClientRegistration;
-import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
+import it.smartcommunitylab.aac.password.model.InternalUserPassword;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -83,7 +83,12 @@ public final class OAuth2TestConfig {
             .getCredentials()
             .stream()
             .filter(c -> (c instanceof InternalUserPassword))
-            .collect(Collectors.toMap(c -> c.getAccountId(), c -> ((InternalUserPassword) c).getPassword()));
+            .collect(
+                Collectors.toMap(
+                    c -> ((InternalUserPassword) c).getUsername(),
+                    c -> ((InternalUserPassword) c).getPassword()
+                )
+            );
 
         this.users =
             rc

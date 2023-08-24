@@ -652,9 +652,9 @@ public class UserService {
             throw new IllegalArgumentException("realm mismatch");
         }
 
-        if (!cap.getAttributeSets().contains(setId)) {
-            throw new IllegalArgumentException("set not enabled for this provider");
-        }
+        // if (!cap.getAttributeSets().contains(setId)) {
+        //     throw new IllegalArgumentException("set not enabled for this provider");
+        // }
 
         // fetch active
         AttributeProvider<?, ?, ?> ap = attributeProviderAuthorityService

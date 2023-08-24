@@ -331,7 +331,7 @@ public class BaseIdentityProviderController implements InitializingBean {
         }
 
         // load from authority
-        IdentityProviderAuthority<?, ?, ?, ?> authority = authorityService.getAuthority(provider.getAuthority());
+        IdentityProviderAuthority<?, ?, ?> authority = authorityService.getAuthority(provider.getAuthority());
         IdentityProvider<?, ?, ?, ?, ?> idp = authority.getProvider(providerId);
 
         if (idp == null) {

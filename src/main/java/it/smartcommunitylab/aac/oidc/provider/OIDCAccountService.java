@@ -18,7 +18,6 @@ package it.smartcommunitylab.aac.oidc.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.base.AbstractAccountService;
-import it.smartcommunitylab.aac.accounts.base.AbstractEditableAccount;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.oidc.model.OIDCEditableUserAccount;
@@ -27,7 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 public class OIDCAccountService
-    extends AbstractAccountService<OIDCUserAccount, AbstractEditableAccount, OIDCAccountServiceConfig, OIDCIdentityProviderConfigMap> {
+    extends AbstractAccountService<OIDCUserAccount, OIDCEditableUserAccount, OIDCAccountServiceConfig, OIDCIdentityProviderConfigMap> {
 
     public OIDCAccountService(
         String providerId,

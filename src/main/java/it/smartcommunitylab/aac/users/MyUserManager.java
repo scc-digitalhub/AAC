@@ -322,9 +322,7 @@ public class MyUserManager {
         }
 
         // execute
-        return passwordCredentialsAuthority
-            .getProviderByRealm(realm)
-            .registerEditableCredential(account.getAccountId(), reg);
+        return passwordCredentialsAuthority.getProviderByRealm(realm).registerCredential(account.getAccountId(), reg);
     }
 
     public InternalEditableUserPassword updateMyPassword(String id, InternalEditableUserPassword reg)
@@ -342,7 +340,7 @@ public class MyUserManager {
         }
 
         // execute
-        return service.editEditableCredential(id, reg);
+        return service.editCredential(id, reg);
     }
 
     public void deleteMyPassword(String id)
@@ -487,7 +485,7 @@ public class MyUserManager {
         }
 
         // execute
-        return service.editEditableCredential(id, reg);
+        return service.editCredential(id, reg);
     }
 
     public void deleteMyWebAuthnCredential(String id)
@@ -713,11 +711,9 @@ public class MyUserManager {
             .filter(cp -> idps.contains(cp.getProvider()))
             .map(cp -> {
                 // clear config and reserved info
-                cp.setEvents(null);
-                cp.setPersistence(null);
-                cp.setSchema(null);
+                cp.setSettings(null);
                 cp.setConfiguration(null);
-                cp.setHookFunctions(null);
+                cp.setSchema(null);
 
                 return cp;
             })

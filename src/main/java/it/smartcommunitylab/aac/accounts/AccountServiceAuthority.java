@@ -26,7 +26,9 @@ import it.smartcommunitylab.aac.core.authorities.ConfigurableProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 
 public interface AccountServiceAuthority<
-    S extends AccountService<? extends UserAccount, ? extends EditableUserAccount, M, P>,
+    S extends AccountService<U, E, M, P>,
+    U extends UserAccount,
+    E extends EditableUserAccount,
     P extends AccountServiceConfig<M>,
     M extends ConfigMap
 >

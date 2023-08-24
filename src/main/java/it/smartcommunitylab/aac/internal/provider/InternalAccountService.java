@@ -22,6 +22,7 @@ import it.smartcommunitylab.aac.accounts.model.EditableUserAccount;
 import it.smartcommunitylab.aac.accounts.model.UserAccount;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.accounts.provider.AccountService;
+import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
 import it.smartcommunitylab.aac.base.provider.AbstractConfigurableResourceProvider;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.DuplicatedDataException;
@@ -39,6 +40,7 @@ import it.smartcommunitylab.aac.users.persistence.UserEntity;
 import it.smartcommunitylab.aac.users.service.UserEntityService;
 import it.smartcommunitylab.aac.utils.MailService;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,7 +57,7 @@ import org.springframework.util.StringUtils;
 
 @Transactional
 public class InternalAccountService
-    extends AbstractConfigurableResourceProvider<InternalUserAccount, ConfigurableAccountService, InternalIdentityProviderConfigMap, InternalAccountServiceConfig>
+    extends AbstractConfigurableResourceProvider<InternalUserAccount, InternalAccountServiceConfig, AccountServiceSettingsMap, InternalIdentityProviderConfigMap>
     implements
         AccountService<InternalUserAccount, InternalEditableUserAccount, InternalIdentityProviderConfigMap, InternalAccountServiceConfig> {
 
@@ -119,6 +121,19 @@ public class InternalAccountService
     @Transactional(readOnly = true)
     public List<InternalUserAccount> listAccounts(String userId) {
         List<InternalUserAccount> accounts = userAccountService.findAccountsByUser(repositoryId, userId);
+
+        // map to our authority
+        accounts.forEach(a -> {
+            a.setAuthority(getAuthority());
+            a.setProvider(getProvider());
+        });
+        return accounts;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Collection<InternalUserAccount> listAccounts() {
+        List<InternalUserAccount> accounts = userAccountService.findAccounts(repositoryId);
 
         // map to our authority
         accounts.forEach(a -> {
@@ -245,7 +260,7 @@ public class InternalAccountService
     }
 
     @Override
-    public void deleteAccount(String username) throws NoSuchUserException {
+    public void deleteAccount(String username) {
         logger.debug("delete account with username {}", String.valueOf(username));
 
         InternalUserAccount account = findAccountByUsername(username);
@@ -323,7 +338,7 @@ public class InternalAccountService
 
         // registration is create but user-initiated
         // build model
-        InternalUserAccount ua = new InternalUserAccount();
+        InternalUserAccount ua = new InternalUserAccount(getProvider(), getRealm(), null);
         ua.setRepositoryId(repositoryId);
         ua.setUsername(reg.getUsername());
         ua.setEmail(reg.getEmail());
@@ -437,13 +452,12 @@ public class InternalAccountService
         }
 
         // create new account
-        account = new InternalUserAccount();
+        account = new InternalUserAccount(getProvider(), getRealm(), null);
         account.setRepositoryId(repositoryId);
         account.setUsername(username);
         account.setUuid(uuid);
 
         account.setUserId(userId);
-        account.setRealm(realm);
 
         // set account as active
         account.setStatus(SubjectStatus.ACTIVE.getValue());
@@ -526,7 +540,7 @@ public class InternalAccountService
 
         // edit is update but user-initiated
         // build model
-        InternalUserAccount ua = new InternalUserAccount();
+        InternalUserAccount ua = new InternalUserAccount(getProvider(), getRealm(), null);
         ua.setRepositoryId(repositoryId);
         ua.setUsername(reg.getUsername());
         ua.setEmail(reg.getEmail());
@@ -960,6 +974,7 @@ public class InternalAccountService
     private InternalEditableUserAccount toEditableAccount(InternalUserAccount account) {
         // build editable model
         InternalEditableUserAccount ea = new InternalEditableUserAccount(
+            getAuthority(),
             getProvider(),
             getRealm(),
             account.getUserId(),

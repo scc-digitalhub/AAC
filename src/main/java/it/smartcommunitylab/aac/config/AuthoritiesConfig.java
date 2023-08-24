@@ -16,13 +16,19 @@
 
 package it.smartcommunitylab.aac.config;
 
+import it.smartcommunitylab.aac.accounts.model.UserAccount;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.accounts.service.AccountServiceAuthorityService;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
+import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.InMemoryProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.identity.IdentityProviderAuthority;
+import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.identity.model.UserIdentity;
+import it.smartcommunitylab.aac.identity.provider.IdentityProvider;
+import it.smartcommunitylab.aac.identity.provider.IdentityProviderConfig;
 import it.smartcommunitylab.aac.identity.service.IdentityProviderAuthorityService;
 import it.smartcommunitylab.aac.oidc.OIDCAccountServiceAuthority;
 import it.smartcommunitylab.aac.oidc.OIDCIdentityAuthority;
@@ -56,9 +62,12 @@ public class AuthoritiesConfig {
     @Autowired
     private AccountServiceAuthorityService accountServiceAuthorityService;
 
+    @Autowired
+    private ProviderConfigRepository<OIDCIdentityProviderConfig> oidcRegistrationRepository;
+
     @Bean
     public IdentityProviderAuthorityService identityProviderAuthorityService(
-        Collection<IdentityProviderAuthority<?, ?, ?, ?>> authorities,
+        Collection<IdentityProviderAuthority<? extends IdentityProvider<? extends UserIdentity, ? extends UserAccount, ? extends UserAuthenticatedPrincipal, ? extends ConfigMap, ? extends IdentityProviderConfig<? extends ConfigMap>>, ? extends IdentityProviderConfig<? extends ConfigMap>, ? extends ConfigMap>> authorities,
         IdentityAuthoritiesProperties authsProps
     ) {
         // build a service with default from autowiring
@@ -81,6 +90,8 @@ public class AuthoritiesConfig {
                         OIDCIdentityProviderConfigMap configMap = authProp.getOidc();
                         OIDCIdentityConfigurationProvider configProvider = new OIDCIdentityConfigurationProvider(
                             id,
+                            oidcRegistrationRepository,
+                            authsProps.getSettings(),
                             configMap
                         );
 

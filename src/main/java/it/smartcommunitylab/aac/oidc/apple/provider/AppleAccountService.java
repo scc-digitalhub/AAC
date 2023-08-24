@@ -18,14 +18,14 @@ package it.smartcommunitylab.aac.oidc.apple.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.base.AbstractAccountService;
-import it.smartcommunitylab.aac.accounts.base.AbstractEditableAccount;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
+import it.smartcommunitylab.aac.oidc.model.OIDCEditableUserAccount;
 import it.smartcommunitylab.aac.oidc.model.OIDCUserAccount;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 public class AppleAccountService
-    extends AbstractAccountService<OIDCUserAccount, AbstractEditableAccount, AppleAccountServiceConfig, AppleIdentityProviderConfigMap> {
+    extends AbstractAccountService<OIDCUserAccount, OIDCEditableUserAccount, AppleAccountServiceConfig, AppleIdentityProviderConfigMap> {
 
     public AppleAccountService(
         String providerId,

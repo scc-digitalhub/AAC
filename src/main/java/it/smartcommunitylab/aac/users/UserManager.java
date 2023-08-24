@@ -341,10 +341,9 @@ public class UserManager {
         }
 
         // build only base account for registration
-        InternalUserAccount reg = new InternalUserAccount();
+        InternalUserAccount reg = new InternalUserAccount(provider, realm, null);
         reg.setUsername(emailAddress);
         reg.setEmail(emailAddress);
-        reg.setRealm(realm);
 
         try {
             // create internal account

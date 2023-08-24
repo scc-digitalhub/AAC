@@ -26,6 +26,7 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.authorities.ConfigurableProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
+import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.realms.service.RealmService;
@@ -292,10 +293,10 @@ public abstract class ConfigurableProviderManager<
      * Configuration schemas
      */
 
-    // public ConfigurableProperties getConfigurableProperties(String realm, String authority)
-    //     throws NoSuchAuthorityException {
-    //     return providerService.getConfigurableProperties(authority);
-    // }
+    public ConfigurableProperties getConfigurableProperties(String realm, String authority)
+        throws NoSuchAuthorityException {
+        return providerService.getConfigurableProperties(authority);
+    }
 
     public JsonSchema getConfigurationSchema(String realm, String authority) throws NoSuchAuthorityException {
         return providerService.getConfigurationSchema(authority);

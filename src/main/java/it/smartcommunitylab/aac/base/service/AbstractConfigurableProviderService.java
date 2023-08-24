@@ -28,6 +28,7 @@ import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.authorities.ConfigurableAuthorityService;
 import it.smartcommunitylab.aac.core.authorities.ConfigurableProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
+import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
 import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
@@ -385,11 +386,11 @@ public abstract class AbstractConfigurableProviderService<C extends Configurable
      * Configuration schemas
      */
 
-    // @Transactional(readOnly = true)
-    // public ConfigurableProperties getConfigurableProperties(String authority) throws NoSuchAuthorityException {
-    //     ConfigurationProvider<?, ?, ?> configProvider = getConfigurationProvider(authority);
-    //     return configProvider.getDefaultConfigMap();
-    // }
+    @Transactional(readOnly = true)
+    public ConfigurableProperties getConfigurableProperties(String authority) throws NoSuchAuthorityException {
+        ConfigurationProvider<?, ?, ?, ?> configProvider = getConfigurationProvider(authority);
+        return configProvider.getDefaultConfigMap();
+    }
 
     @Transactional(readOnly = true)
     public JsonSchema getSettingsSchema(String authority) throws NoSuchAuthorityException {

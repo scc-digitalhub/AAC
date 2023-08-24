@@ -46,7 +46,7 @@ import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.SubjectStatus;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientAppService;
 import it.smartcommunitylab.aac.password.auth.UsernamePasswordAuthenticationToken;
-import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
+import it.smartcommunitylab.aac.password.model.InternalUserPassword;
 import it.smartcommunitylab.aac.realms.service.RealmService;
 import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
 import it.smartcommunitylab.aac.services.Service;
@@ -241,7 +241,7 @@ public class AACBootstrap {
         bootstrapConfigurableProviders(attributeProviderService, slug);
     }
 
-    private void bootstrapConfigurableProviders(AbstractConfigurableProviderService<?, ?, ?> service, String realm) {
+    private void bootstrapConfigurableProviders(AbstractConfigurableProviderService<?, ?> service, String realm) {
         // register in parallel via thread-pool
         service
             .listProviders(realm)
@@ -286,9 +286,8 @@ public class AACBootstrap {
             user = userEntityService.addUser(userId, realm, username, email);
 
             // register account
-            account = new InternalUserAccount();
+            account = new InternalUserAccount(repositoryId, realm, null);
             account.setProvider(realm);
-            account.setRealm(realm);
             account.setUsername(username);
             account.setUserId(userId);
             account.setEmail(email);
@@ -320,13 +319,11 @@ public class AACBootstrap {
             user = userEntityService.activateUser(userId);
 
             // always reset password
-            internalUserPasswordService.deleteAllCredentialsByAccount(repositoryId, username);
-            InternalUserPassword pass = new InternalUserPassword();
-            pass.setId(UUID.randomUUID().toString());
+            internalUserPasswordService.deleteAllCredentialsByUser(repositoryId, userId);
+            InternalUserPassword pass = new InternalUserPassword(realm, UUID.randomUUID().toString());
             pass.setProvider(repositoryId);
             pass.setUsername(username);
             pass.setUserId(account.getUserId());
-            pass.setRealm(account.getRealm());
             pass.setPassword(hasher.createHash(password));
             pass.setChangeOnFirstAccess(false);
             internalUserPasswordService.addCredentials(repositoryId, pass.getId(), pass);
@@ -824,9 +821,6 @@ public class AACBootstrap {
                                     return;
                                 }
 
-                                // enforce realm
-                                u.setRealm(slug);
-
                                 // validate id
                                 if (!StringUtils.hasText(u.getAccountId())) {
                                     // we ask id to be provided otherwise we would create a new one every time
@@ -1077,13 +1071,10 @@ public class AACBootstrap {
                                     return;
                                 }
 
-                                // enforce realm
-                                c.setRealm(slug);
-
                                 // validate account id
-                                if (!StringUtils.hasText(c.getAccountId())) {
-                                    logger.error("error creating credentials, missing account id");
-                                    throw new IllegalArgumentException("missing account id");
+                                if (!StringUtils.hasText(c.getUserId())) {
+                                    logger.error("error creating credentials, missing user id");
+                                    throw new IllegalArgumentException("missing user id");
                                 }
 
                                 // validate id
@@ -1106,7 +1097,7 @@ public class AACBootstrap {
                                     String providerId = c.getProvider();
 
                                     // we skip account check
-                                    String accountId = c.getAccountId();
+                                    String userId = c.getUserId();
 
                                     // set status as active by default
                                     if (!StringUtils.hasText(c.getStatus())) {
@@ -1133,11 +1124,11 @@ public class AACBootstrap {
                                         }
 
                                         logger.debug(
-                                            "add {} credentials {} for realm {} account {}",
+                                            "add {} credentials {} for realm {} user {}",
                                             authority,
                                             id,
                                             slug,
-                                            accountId
+                                            userId
                                         );
 
                                         // create as new
@@ -1145,7 +1136,7 @@ public class AACBootstrap {
                                             userCredentialsService.createUserCredentials(
                                                 authority,
                                                 providerId,
-                                                accountId,
+                                                userId,
                                                 id,
                                                 c
                                             );
@@ -1157,11 +1148,11 @@ public class AACBootstrap {
                                         }
 
                                         logger.debug(
-                                            "update {} credentials {} for realm {} account {}",
+                                            "update {} credentials {} for realm {} user {}",
                                             credentials.getAuthority(),
                                             id,
                                             slug,
-                                            accountId
+                                            userId
                                         );
 
                                         // update
@@ -1176,17 +1167,16 @@ public class AACBootstrap {
                                                 String.valueOf(credentials)
                                             );
                                         }
-
-                                        // register as resource if missing
-                                        if (resourceService.findResourceEntity(credentials.getUuid()) == null) {
-                                            resourceService.addResourceEntity(
-                                                credentials.getUuid(),
-                                                SystemKeys.RESOURCE_CREDENTIALS,
-                                                credentials.getAuthority(),
-                                                credentials.getProvider(),
-                                                credentials.getAccountId()
-                                            );
-                                        }
+                                        // // register as resource if missing
+                                        // if (resourceService.findResourceEntity(credentials.getId()) == null) {
+                                        //     resourceService.addResourceEntity(
+                                        //         credentials.getUuid(),
+                                        //         SystemKeys.RESOURCE_CREDENTIALS,
+                                        //         credentials.getAuthority(),
+                                        //         credentials.getProvider(),
+                                        //         credentials.getAccountId()
+                                        //     );
+                                        // }
                                     }
                                     //                            // TODO refactor with a single method
                                     //                            // TODO refactor password services over repo

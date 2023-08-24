@@ -259,13 +259,13 @@ public class UserCredentialsService {
     public UserCredentials createUserCredentials(
         String authority,
         String providerId,
-        String accountId,
+        String userId,
         @Nullable String credentialId,
         UserCredentials reg
     ) throws NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
         logger.debug(
             "create user {} credentials {} via provider {}",
-            StringUtils.trimAllWhitespace(String.valueOf(accountId)),
+            StringUtils.trimAllWhitespace(String.valueOf(userId)),
             StringUtils.trimAllWhitespace(String.valueOf(credentialId)),
             StringUtils.trimAllWhitespace(providerId)
         );
@@ -280,7 +280,7 @@ public class UserCredentialsService {
             .getProvider(providerId);
 
         // execute
-        return service.addCredential(accountId, credentialId, reg);
+        return service.addCredential(userId, credentialId, reg);
     }
 
     @Transactional(readOnly = false)
@@ -368,7 +368,7 @@ public class UserCredentialsService {
             .flatMap(e -> e.getProvidersByRealm(realm).stream())
             .collect(Collectors.toList());
 
-        services.forEach(s -> s.deleteCredentialsByUser(userId));
+        services.forEach(s -> s.deleteCredentials(userId));
     }
 
     /*

@@ -161,7 +161,7 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
             throw new IllegalArgumentException("provider is not active");
         }
 
-        AttributeProvider<?, ?> ap = attributeProviderAuthorityService
+        AttributeProvider<?, ?, ?> ap = attributeProviderAuthorityService
             .getAuthority(provider.getAuthority())
             .getProvider(providerId);
 
