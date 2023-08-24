@@ -18,7 +18,12 @@ package it.smartcommunitylab.aac.templates.service;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.service.AbstractConfigurableAuthorityService;
+import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.templates.TemplateProviderAuthority;
+import it.smartcommunitylab.aac.templates.model.Template;
+import it.smartcommunitylab.aac.templates.provider.TemplateProvider;
+import it.smartcommunitylab.aac.templates.provider.TemplateProviderConfig;
+import it.smartcommunitylab.aac.templates.provider.TemplateProviderSettingsMap;
 import java.util.Collection;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
@@ -26,10 +31,12 @@ import org.springframework.util.Assert;
 
 @Service
 public class TemplateProviderAuthorityService
-    extends AbstractConfigurableAuthorityService<TemplateProviderAuthority<?, ?, ?, ?>>
+    extends AbstractConfigurableAuthorityService<TemplateProviderAuthority<? extends TemplateProvider<? extends Template, ? extends ConfigMap, ? extends TemplateProviderConfig<? extends ConfigMap>>, ? extends Template, ? extends TemplateProviderConfig<? extends ConfigMap>, ? extends ConfigMap>, TemplateProviderSettingsMap>
     implements InitializingBean {
 
-    public TemplateProviderAuthorityService(Collection<TemplateProviderAuthority<?, ?, ?, ?>> authorities) {
+    public TemplateProviderAuthorityService(
+        Collection<TemplateProviderAuthority<? extends TemplateProvider<? extends Template, ? extends ConfigMap, ? extends TemplateProviderConfig<? extends ConfigMap>>, ? extends Template, ? extends TemplateProviderConfig<? extends ConfigMap>, ? extends ConfigMap>> authorities
+    ) {
         super(SystemKeys.RESOURCE_TEMPLATE);
         this.setAuthorities(authorities);
     }

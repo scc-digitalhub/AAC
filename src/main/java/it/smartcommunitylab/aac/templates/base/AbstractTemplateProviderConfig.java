@@ -26,10 +26,10 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.base.provider.config.AbstractProviderConfig;
 import it.smartcommunitylab.aac.templates.model.ConfigurableTemplateProvider;
+import it.smartcommunitylab.aac.templates.model.Language;
 import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfig;
 import it.smartcommunitylab.aac.templates.provider.TemplateProviderConfig;
 import it.smartcommunitylab.aac.templates.provider.TemplateProviderSettingsMap;
-import it.smartcommunitylab.aac.templates.service.LanguageService;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.TreeSet;
@@ -65,10 +65,10 @@ public abstract class AbstractTemplateProviderConfig<M extends AbstractConfigMap
     }
 
     @Override
-    public Set<String> getLanguages() {
+    public Set<Language> getLanguages() {
         return !CollectionUtils.isEmpty(settingsMap.getLanguages())
             ? settingsMap.getLanguages()
-            : new TreeSet<>(Arrays.asList(LanguageService.LANGUAGES));
+            : new TreeSet<>(Arrays.asList(Language.values()));
     }
 
     @Override

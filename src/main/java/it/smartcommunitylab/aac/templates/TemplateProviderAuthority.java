@@ -26,7 +26,7 @@ import it.smartcommunitylab.aac.templates.provider.TemplateProviderConfig;
 import it.smartcommunitylab.aac.templates.provider.TemplateProviderSettingsMap;
 
 public interface TemplateProviderAuthority<
-    S extends TemplateProvider<T, M, C>, T extends Template, M extends ConfigMap, C extends TemplateProviderConfig<M>
+    S extends TemplateProvider<T, M, C>, T extends Template, C extends TemplateProviderConfig<M>, M extends ConfigMap
 >
     extends ConfigurableProviderAuthority<S, ConfigurableTemplateProvider, C, TemplateProviderSettingsMap, M> {
     public S findProviderByRealm(String realm);

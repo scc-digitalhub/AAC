@@ -18,26 +18,33 @@ package it.smartcommunitylab.aac.templates.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.provider.AbstractConfigurationProvider;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.templates.model.ConfigurableTemplateProvider;
 import org.springframework.stereotype.Service;
 
 @Service
 public class RealmTemplateProviderConfigurationProvider
-    extends AbstractConfigurationProvider<TemplateProviderConfigMap, ConfigurableTemplateProvider, RealmTemplateProviderConfig>
-    implements TemplateProviderConfigurationProvider<TemplateProviderConfigMap, RealmTemplateProviderConfig> {
+    extends AbstractConfigurationProvider<RealmTemplateProviderConfig, ConfigurableTemplateProvider, TemplateProviderSettingsMap, TemplateProviderConfigMap>
+    implements TemplateProviderConfigurationProvider<RealmTemplateProviderConfig, TemplateProviderConfigMap> {
 
-    public RealmTemplateProviderConfigurationProvider() {
-        super(SystemKeys.AUTHORITY_TEMPLATE);
+    public RealmTemplateProviderConfigurationProvider(
+        ProviderConfigRepository<RealmTemplateProviderConfig> registrationRepository
+    ) {
+        super(SystemKeys.AUTHORITY_TEMPLATE, registrationRepository);
         setDefaultConfigMap(new TemplateProviderConfigMap());
     }
 
     @Override
     protected RealmTemplateProviderConfig buildConfig(ConfigurableTemplateProvider cp) {
-        return new RealmTemplateProviderConfig(cp, getConfigMap(cp.getConfiguration()));
+        return new RealmTemplateProviderConfig(
+            cp,
+            getSettingsMap(cp.getSettings()),
+            getConfigMap(cp.getConfiguration())
+        );
     }
 
     @Override
-    public ConfigurableTemplateProvider getConfigurable(RealmTemplateProviderConfig providerConfig) {
+    public ConfigurableTemplateProvider buildConfigurable(RealmTemplateProviderConfig providerConfig) {
         ConfigurableTemplateProvider cp = new ConfigurableTemplateProvider(
             providerConfig.getAuthority(),
             providerConfig.getProvider(),
@@ -47,9 +54,7 @@ public class RealmTemplateProviderConfigurationProvider
         cp.setTitleMap(providerConfig.getTitleMap());
         cp.setDescriptionMap(providerConfig.getDescriptionMap());
 
-        cp.setLanguages(providerConfig.getLanguages());
-        cp.setCustomStyle(providerConfig.getCustomStyle());
-
+        cp.setSettings(getConfiguration(providerConfig.getSettingsMap()));
         cp.setConfiguration(getConfiguration(providerConfig.getConfigMap()));
 
         // provider config are active by definition

@@ -114,7 +114,6 @@ public class LanguageHandlerInterceptor implements HandlerInterceptor {
                     // load realm languages
                     templateAuthority
                         .getProviderByRealm(realm)
-                        .getConfig()
                         .getLanguages()
                         .forEach(l -> {
                             Locale loc = StringUtils.parseLocale(l);

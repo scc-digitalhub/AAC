@@ -30,6 +30,7 @@ import it.smartcommunitylab.aac.templates.model.TemplateModel;
 import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfig;
 import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfigurationProvider;
 import it.smartcommunitylab.aac.templates.provider.TemplateProviderConfigMap;
+import it.smartcommunitylab.aac.templates.provider.TemplateProviderSettingsMap;
 import it.smartcommunitylab.aac.templates.service.TemplateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,9 +38,9 @@ import org.springframework.util.Assert;
 
 @Service
 public class InternalTemplateAuthority
-    extends AbstractSingleConfigurableProviderAuthority<InternalTemplateProvider, TemplateModel, ConfigurableTemplateProvider, TemplateProviderConfigMap, RealmTemplateProviderConfig>
+    extends AbstractSingleConfigurableProviderAuthority<InternalTemplateProvider, ConfigurableTemplateProvider, RealmTemplateProviderConfig, TemplateProviderSettingsMap, TemplateProviderConfigMap>
     implements
-        TemplateProviderAuthority<InternalTemplateProvider, TemplateModel, TemplateProviderConfigMap, RealmTemplateProviderConfig> {
+        TemplateProviderAuthority<InternalTemplateProvider, TemplateModel, RealmTemplateProviderConfig, TemplateProviderConfigMap> {
 
     // services
     private final TemplateService templateService;
@@ -57,10 +58,10 @@ public class InternalTemplateAuthority
         this.templateService = templateService;
     }
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_TEMPLATE;
-    }
+    // @Override
+    // public String getType() {
+    //     return SystemKeys.RESOURCE_TEMPLATE;
+    // }
 
     @Autowired
     public void setConfigProvider(RealmTemplateProviderConfigurationProvider configProvider) {
@@ -96,11 +97,12 @@ public class InternalTemplateAuthority
                 RealmTemplateProviderConfig c = new RealmTemplateProviderConfig(
                     SystemKeys.AUTHORITY_INTERNAL,
                     config.getProvider(),
-                    config.getRealm(),
-                    config.getConfigMap()
+                    config.getRealm()
                 );
-                c.setCustomStyle(config.getCustomStyle());
-                c.setLanguages(c.getLanguages());
+
+                c.setSettingsMap(config.getSettingsMap());
+                c.setConfigMap(config.getConfigMap());
+                c.setVersion(config.getVersion());
 
                 return c;
             });

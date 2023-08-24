@@ -37,7 +37,7 @@ import org.springframework.util.Assert;
 public class TemplateAuthority
     extends AbstractSingleConfigurableProviderAuthority<TemplateTemplateProvider, ConfigurableTemplateProvider, RealmTemplateProviderConfig, TemplateProviderSettingsMap, TemplateProviderConfigMap>
     implements
-        TemplateProviderAuthority<TemplateTemplateProvider, TemplateModel, TemplateProviderConfigMap, RealmTemplateProviderConfig> {
+        TemplateProviderAuthority<TemplateTemplateProvider, TemplateModel, RealmTemplateProviderConfig, TemplateProviderConfigMap> {
 
     // services
     private final TemplateService templateService;
@@ -62,10 +62,10 @@ public class TemplateAuthority
         openIdResource = provider.getResource();
     }
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_TEMPLATE;
-    }
+    // @Override
+    // public String getType() {
+    //     return SystemKeys.RESOURCE_TEMPLATE;
+    // }
 
     @Autowired
     public void setConfigProvider(RealmTemplateProviderConfigurationProvider configProvider) {

@@ -40,7 +40,7 @@ public class ConfigurableTemplateProvider extends ConfigurableProviderImpl<Templ
      * reflection
      */
     @SuppressWarnings("unused")
-    private ConfigurableTemplateProvider() {
+    public ConfigurableTemplateProvider() {
         super(SystemKeys.RESOURCE_TEMPLATE, null, null, null);
     }
 }

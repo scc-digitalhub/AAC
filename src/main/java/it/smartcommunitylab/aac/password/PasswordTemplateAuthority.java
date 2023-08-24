@@ -27,6 +27,7 @@ import it.smartcommunitylab.aac.templates.model.TemplateModel;
 import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfig;
 import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfigurationProvider;
 import it.smartcommunitylab.aac.templates.provider.TemplateProviderConfigMap;
+import it.smartcommunitylab.aac.templates.provider.TemplateProviderSettingsMap;
 import it.smartcommunitylab.aac.templates.service.TemplateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -34,9 +35,9 @@ import org.springframework.util.Assert;
 
 @Service
 public class PasswordTemplateAuthority
-    extends AbstractSingleConfigurableProviderAuthority<PasswordTemplateProvider, TemplateModel, ConfigurableTemplateProvider, TemplateProviderConfigMap, RealmTemplateProviderConfig>
+    extends AbstractSingleConfigurableProviderAuthority<PasswordTemplateProvider, ConfigurableTemplateProvider, RealmTemplateProviderConfig, TemplateProviderSettingsMap, TemplateProviderConfigMap>
     implements
-        TemplateProviderAuthority<PasswordTemplateProvider, TemplateModel, TemplateProviderConfigMap, RealmTemplateProviderConfig> {
+        TemplateProviderAuthority<PasswordTemplateProvider, TemplateModel, RealmTemplateProviderConfig, TemplateProviderConfigMap> {
 
     // services
     private final TemplateService templateService;
@@ -54,10 +55,10 @@ public class PasswordTemplateAuthority
         this.templateService = templateService;
     }
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_TEMPLATE;
-    }
+    // @Override
+    // public String getType() {
+    //     return SystemKeys.RESOURCE_TEMPLATE;
+    // }
 
     @Autowired
     public void setConfigProvider(RealmTemplateProviderConfigurationProvider configProvider) {
@@ -93,11 +94,12 @@ public class PasswordTemplateAuthority
                 RealmTemplateProviderConfig c = new RealmTemplateProviderConfig(
                     SystemKeys.AUTHORITY_PASSWORD,
                     config.getProvider(),
-                    config.getRealm(),
-                    config.getConfigMap()
+                    config.getRealm()
                 );
-                c.setCustomStyle(config.getCustomStyle());
-                c.setLanguages(c.getLanguages());
+
+                c.setSettingsMap(config.getSettingsMap());
+                c.setConfigMap(config.getConfigMap());
+                c.setVersion(config.getVersion());
 
                 return c;
             });

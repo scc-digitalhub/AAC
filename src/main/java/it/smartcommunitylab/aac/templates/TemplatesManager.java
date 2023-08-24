@@ -18,7 +18,6 @@ package it.smartcommunitylab.aac.templates;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.common.InvalidDataException;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
@@ -28,13 +27,10 @@ import it.smartcommunitylab.aac.core.ConfigurableProviderManager;
 import it.smartcommunitylab.aac.templates.model.ConfigurableTemplateProvider;
 import it.smartcommunitylab.aac.templates.model.Template;
 import it.smartcommunitylab.aac.templates.model.TemplateModel;
-import it.smartcommunitylab.aac.templates.service.LanguageService;
 import it.smartcommunitylab.aac.templates.service.TemplateProviderAuthorityService;
 import it.smartcommunitylab.aac.templates.service.TemplateProviderService;
 import it.smartcommunitylab.aac.templates.service.TemplateService;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.jsoup.Jsoup;
@@ -97,9 +93,10 @@ public class TemplatesManager
         }
 
         // check if languages are set, otherwise use default
-        if (provider.getLanguages() == null || provider.getLanguages().isEmpty()) {
-            provider.setLanguages(new HashSet<>(Arrays.asList(LanguageService.LANGUAGES)));
-        }
+        //DISABLED, should merge with default config if needed
+        // if (provider.getLanguages() == null || provider.getLanguages().isEmpty()) {
+        //     provider.setLanguages(new HashSet<>(Arrays.asList(LanguageService.LANGUAGES)));
+        // }
 
         return provider;
     }
@@ -107,27 +104,22 @@ public class TemplatesManager
     @Override
     public ConfigurableTemplateProvider addProvider(String realm, ConfigurableTemplateProvider provider)
         throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
-        // validate language
-        // TODO refactor
-        if (provider.getLanguages() != null) {
-            Collection<String> languages = provider.getLanguages();
-            if (!Arrays.asList(LanguageService.LANGUAGES).containsAll(languages)) {
-                throw new InvalidDataException("language");
-            }
-        }
-
         // validate style
         // TODO add css validator
-        if (provider.getCustomStyle() != null) {
+        if (provider.getSettings() != null && provider.getSettings().containsKey("customStyle")) {
+            String customStyle = String.valueOf(provider.getSettings().get("customStyle"));
+            if ("null".equals(customStyle)) {
+                customStyle = "";
+            }
             // use wholetext to avoid escaping ><& etc.
             // this could break the final document
             // TODO use a proper CSS parser
-            Document dirty = Jsoup.parseBodyFragment(provider.getCustomStyle());
+            Document dirty = Jsoup.parseBodyFragment(customStyle);
             Cleaner cleaner = new Cleaner(Safelist.none());
             Document clean = cleaner.clean(dirty);
 
             String style = clean.body().wholeText();
-            provider.setCustomStyle(style);
+            provider.getSettings().put("customStyle", style);
         }
 
         ConfigurableTemplateProvider cp = super.addProvider(realm, provider);
@@ -143,27 +135,22 @@ public class TemplatesManager
         String providerId,
         ConfigurableTemplateProvider provider
     ) throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
-        // validate language
-        // TODO refactor
-        if (provider.getLanguages() != null) {
-            Collection<String> languages = provider.getLanguages();
-            if (!Arrays.asList(LanguageService.LANGUAGES).containsAll(languages)) {
-                throw new InvalidDataException("language");
-            }
-        }
-
         // validate style
         // TODO add css validator
-        if (provider.getCustomStyle() != null) {
+        if (provider.getSettings() != null && provider.getSettings().containsKey("customStyle")) {
+            String customStyle = String.valueOf(provider.getSettings().get("customStyle"));
+            if ("null".equals(customStyle)) {
+                customStyle = "";
+            }
             // use wholetext to avoid escaping ><& etc.
             // this could break the final document
             // TODO use a proper CSS parser
-            Document dirty = Jsoup.parseBodyFragment(provider.getCustomStyle());
+            Document dirty = Jsoup.parseBodyFragment(customStyle);
             Cleaner cleaner = new Cleaner(Safelist.none());
             Document clean = cleaner.clean(dirty);
 
             String style = clean.body().wholeText();
-            provider.setCustomStyle(style);
+            provider.getSettings().put("customStyle", style);
         }
 
         ConfigurableTemplateProvider cp = super.updateProvider(realm, providerId, provider);

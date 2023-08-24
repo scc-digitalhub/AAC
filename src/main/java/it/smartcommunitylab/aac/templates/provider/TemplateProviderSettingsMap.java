@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.model.AbstractSettingsMap;
+import it.smartcommunitylab.aac.templates.model.Language;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
@@ -37,14 +38,14 @@ public class TemplateProviderSettingsMap extends AbstractSettingsMap {
     public static final String RESOURCE_TYPE =
         SystemKeys.RESOURCE_SETTINGS + SystemKeys.ID_SEPARATOR + SystemKeys.RESOURCE_TEMPLATE_PROVIDER;
 
-    private Set<String> languages;
+    private Set<Language> languages;
     private String customStyle;
 
-    public Set<String> getLanguages() {
+    public Set<Language> getLanguages() {
         return languages;
     }
 
-    public void setLanguages(Set<String> languages) {
+    public void setLanguages(Set<Language> languages) {
         this.languages = languages;
     }
 

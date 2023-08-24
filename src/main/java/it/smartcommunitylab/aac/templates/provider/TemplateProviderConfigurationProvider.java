@@ -20,5 +20,5 @@ import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 import it.smartcommunitylab.aac.templates.model.ConfigurableTemplateProvider;
 
-public interface TemplateProviderConfigurationProvider<M extends ConfigMap, C extends TemplateProviderConfig<M>>
-    extends ConfigurationProvider<M, ConfigurableTemplateProvider, C> {}
+public interface TemplateProviderConfigurationProvider<C extends TemplateProviderConfig<M>, M extends ConfigMap>
+    extends ConfigurationProvider<C, ConfigurableTemplateProvider, TemplateProviderSettingsMap, M> {}
