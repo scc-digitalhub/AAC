@@ -106,6 +106,7 @@ public class LanguageHandlerInterceptor implements HandlerInterceptor {
                 modelAndView.addObject("language", language);
 
                 UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(request.getRequestURL().toString());
+                builder.query(request.getQueryString());
 
                 List<LanguageValue> languages = new ArrayList<>();
                 try {
@@ -121,16 +122,7 @@ public class LanguageHandlerInterceptor implements HandlerInterceptor {
                             }
 
                             // build url with param
-                            Map<String,String[]> parameterMap = new HashMap<>(request.getParameterMap());
-                            parameterMap.remove("lang");
-
-                            MultiValueMap<String, String> parameterMVMap = new LinkedMultiValueMap<>();
-                            for (Map.Entry<String, String[]> entry : parameterMap.entrySet()) {
-                                parameterMVMap.put(entry.getKey(), Arrays.asList(entry.getValue()));
-                            }
-
-                            builder.replaceQueryParams(parameterMVMap);
-                            builder.queryParam("lang", l);
+                            builder.replaceQueryParam("lang", l);
                             String url = builder.build().toString();
                             String label = loc.getDisplayLanguage(locale);
                             LanguageValue lv = new LanguageValue();
