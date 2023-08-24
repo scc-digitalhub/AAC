@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.base.provider.config.AbstractProviderConfig;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityService;
@@ -37,28 +38,31 @@ import org.springframework.util.StringUtils;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(Include.ALWAYS)
 public abstract class AbstractIdentityServiceConfig<M extends AbstractConfigMap>
-    extends AbstractProviderConfig<M, ConfigurableIdentityService>
+    extends AbstractProviderConfig<AccountServiceSettingsMap, M>
     implements IdentityServiceConfig<M> {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
-    protected String repositoryId;
-
-    protected AbstractIdentityServiceConfig(String authority, String provider, String realm, M configMap) {
-        super(authority, provider, realm, configMap);
+    protected AbstractIdentityServiceConfig(
+        String authority,
+        String provider,
+        String realm,
+        AccountServiceSettingsMap settingsMap,
+        M configMap
+    ) {
+        super(authority, provider, realm, settingsMap, configMap);
     }
 
-    protected AbstractIdentityServiceConfig(ConfigurableIdentityService cp, M configMap) {
-        super(cp, configMap);
-        this.repositoryId = cp.getRepositoryId();
+    protected AbstractIdentityServiceConfig(
+        ConfigurableIdentityService cp,
+        AccountServiceSettingsMap settingsMap,
+        M configMap
+    ) {
+        super(cp, settingsMap, configMap);
     }
 
     public String getRepositoryId() {
         // if undefined always use realm as default repository id
-        return StringUtils.hasText(repositoryId) ? repositoryId : getRealm();
-    }
-
-    public void setRepositoryId(String repositoryId) {
-        this.repositoryId = repositoryId;
+        return StringUtils.hasText(settingsMap.getRepositoryId()) ? settingsMap.getRepositoryId() : getRealm();
     }
 }

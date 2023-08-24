@@ -20,14 +20,14 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
+import it.smartcommunitylab.aac.core.provider.config.ConfigurableProviderImpl;
 import javax.validation.Valid;
 
 @Valid
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ConfigurableIdentityService extends AbstractConfigurableProvider {
-
-    private String repositoryId;
+public class ConfigurableIdentityService extends ConfigurableProviderImpl<AccountServiceSettingsMap> {
 
     public ConfigurableIdentityService(String authority, String provider, String realm) {
         super(authority, provider, realm, SystemKeys.RESOURCE_IDENTITY);
@@ -40,15 +40,7 @@ public class ConfigurableIdentityService extends AbstractConfigurableProvider {
      * reflection
      */
     @SuppressWarnings("unused")
-    private ConfigurableIdentityService() {
+    public ConfigurableIdentityService() {
         this((String) null, (String) null, (String) null);
-    }
-
-    public String getRepositoryId() {
-        return repositoryId;
-    }
-
-    public void setRepositoryId(String repositoryId) {
-        this.repositoryId = repositoryId;
     }
 }

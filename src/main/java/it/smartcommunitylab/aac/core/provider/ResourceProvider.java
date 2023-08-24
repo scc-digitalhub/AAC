@@ -30,4 +30,8 @@ public interface ResourceProvider<R extends Resource> {
     public String getAuthority();
 
     public String getRealm();
+
+    default String getProvider() {
+        return getId();
+    }
 }

@@ -16,27 +16,27 @@
 
 package it.smartcommunitylab.aac.identity.base;
 
+import it.smartcommunitylab.aac.accounts.base.AbstractUserAccount;
 import it.smartcommunitylab.aac.base.authorities.AbstractSingleConfigurableProviderAuthority;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.identity.IdentityProviderAuthority;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.identity.provider.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderConfigurationProvider;
+import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
 import org.springframework.util.Assert;
 
 public abstract class AbstractSingleProviderIdentityAuthority<
-    S extends AbstractIdentityProvider<I, ?, ?, M, C>,
-    I extends AbstractUserIdentity,
-    M extends AbstractConfigMap,
-    C extends AbstractIdentityProviderConfig<M>
+    P extends AbstractIdentityProvider<? extends AbstractUserIdentity, ? extends AbstractUserAccount, ? extends AbstractUserAuthenticatedPrincipal, M, C>,
+    C extends AbstractIdentityProviderConfig<M>,
+    M extends AbstractConfigMap
 >
-    extends AbstractSingleConfigurableProviderAuthority<S, I, ConfigurableIdentityProvider, M, C>
-    implements IdentityProviderAuthority<S, I, M, C> {
+    extends AbstractSingleConfigurableProviderAuthority<P, ConfigurableIdentityProvider, C, IdentityProviderSettingsMap, M>
+    implements IdentityProviderAuthority<P, C, M> {
 
     // configuration provider
-    protected IdentityProviderConfigurationProvider<M, C> configProvider;
+    protected IdentityProviderConfigurationProvider<C, M> configProvider;
 
     protected AbstractSingleProviderIdentityAuthority(
         String authorityId,
@@ -57,11 +57,11 @@ public abstract class AbstractSingleProviderIdentityAuthority<
     // }
 
     @Override
-    public IdentityProviderConfigurationProvider<M, C> getConfigurationProvider() {
+    public IdentityProviderConfigurationProvider<C, M> getConfigurationProvider() {
         return configProvider;
     }
 
-    public void setConfigProvider(IdentityProviderConfigurationProvider<M, C> configProvider) {
+    public void setConfigProvider(IdentityProviderConfigurationProvider<C, M> configProvider) {
         Assert.notNull(configProvider, "config provider is mandatory");
         this.configProvider = configProvider;
     }

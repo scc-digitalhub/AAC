@@ -40,4 +40,8 @@ public interface UserAttributes extends AttributeSet, UserResource {
     default String getType() {
         return SystemKeys.RESOURCE_ATTRIBUTES;
     }
+
+    default String getAttributesId() {
+        return getId();
+    }
 }

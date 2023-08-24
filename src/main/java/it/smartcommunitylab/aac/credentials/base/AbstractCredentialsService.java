@@ -42,14 +42,14 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 public abstract class AbstractCredentialsService<
-    UC extends AbstractUserCredentials,
-    EC extends AbstractEditableUserCredentials,
+    R extends AbstractUserCredentials,
+    E extends AbstractEditableUserCredentials,
     U extends AbstractUserAccount,
     M extends AbstractConfigMap,
     C extends AbstractCredentialsServiceConfig<M>
 >
-    extends AbstractConfigurableResourceProvider<UC, C, CredentialsServiceSettingsMap, M>
-    implements CredentialsService<UC, EC, M, C>, InitializingBean {
+    extends AbstractConfigurableResourceProvider<R, C, CredentialsServiceSettingsMap, M>
+    implements CredentialsService<R, E, M, C>, InitializingBean {
 
     protected static final String STATUS_ACTIVE = CredentialsStatus.ACTIVE.getValue();
     protected static final String STATUS_INACTIVE = CredentialsStatus.INACTIVE.getValue();
@@ -59,7 +59,7 @@ public abstract class AbstractCredentialsService<
 
     // services
     protected final UserAccountService<U> accountService;
-    protected final UserCredentialsService<UC> credentialsService;
+    protected final UserCredentialsService<R> credentialsService;
     protected ResourceEntityService resourceService;
 
     // provider configuration
@@ -69,7 +69,7 @@ public abstract class AbstractCredentialsService<
         String authority,
         String providerId,
         UserAccountService<U> userAccountService,
-        UserCredentialsService<UC> credentialsService,
+        UserCredentialsService<R> credentialsService,
         C providerConfig,
         String realm
     ) {
@@ -110,7 +110,7 @@ public abstract class AbstractCredentialsService<
      */
 
     @Override
-    public Collection<UC> listCredentials(String userId) {
+    public Collection<R> listCredentials(String userId) {
         logger.debug("list credentials for user {}", String.valueOf(userId));
 
         // fetch all
@@ -129,10 +129,10 @@ public abstract class AbstractCredentialsService<
     }
 
     @Override
-    public UC findCredential(String credentialsId) {
+    public R findCredential(String credentialsId) {
         logger.debug("find credential {}", String.valueOf(credentialsId));
 
-        UC cred = credentialsService.findCredentialsById(repositoryId, credentialsId);
+        R cred = credentialsService.findCredentialsById(repositoryId, credentialsId);
         if (cred == null) {
             return null;
         }
@@ -147,10 +147,10 @@ public abstract class AbstractCredentialsService<
     }
 
     @Override
-    public UC getCredential(String credentialsId) throws NoSuchCredentialException {
+    public R getCredential(String credentialsId) throws NoSuchCredentialException {
         logger.debug("get credential {}", String.valueOf(credentialsId));
 
-        UC cred = findCredential(credentialsId);
+        R cred = findCredential(credentialsId);
         if (cred == null) {
             throw new NoSuchCredentialException();
         }
@@ -159,7 +159,7 @@ public abstract class AbstractCredentialsService<
     }
 
     @Override
-    public UC addCredential(String accountId, String credentialId, UserCredentials uc)
+    public R addCredential(String accountId, String credentialId, UserCredentials uc)
         throws NoSuchUserException, RegistrationException {
         logger.debug(
             "add credential for account {} with id {}",
@@ -175,10 +175,10 @@ public abstract class AbstractCredentialsService<
         }
 
         // cast and handle errors
-        UC reg = null;
+        R reg = null;
         try {
             @SuppressWarnings("unchecked")
-            UC u = (UC) uc;
+            R u = (R) uc;
             reg = u;
         } catch (ClassCastException e) {
             logger.error("Wrong credentials class: " + e.getMessage());
@@ -200,7 +200,7 @@ public abstract class AbstractCredentialsService<
             id = UUID.randomUUID().toString();
         }
 
-        UC cred = credentialsService.addCredentials(repositoryId, id, reg);
+        R cred = credentialsService.addCredentials(repositoryId, id, reg);
 
         if (resourceService != null) {
             // register
@@ -223,7 +223,7 @@ public abstract class AbstractCredentialsService<
     }
 
     @Override
-    public UC setCredential(String credentialsId, UserCredentials uc)
+    public R setCredential(String credentialsId, UserCredentials uc)
         throws RegistrationException, NoSuchCredentialException {
         logger.debug("set credential {}", String.valueOf(credentialsId));
         if (logger.isTraceEnabled()) {
@@ -235,17 +235,17 @@ public abstract class AbstractCredentialsService<
         }
 
         // cast and handle errors
-        UC reg = null;
+        R reg = null;
         try {
             @SuppressWarnings("unchecked")
-            UC u = (UC) uc;
+            R u = (R) uc;
             reg = u;
         } catch (ClassCastException e) {
             logger.error("Wrong credentials class: " + e.getMessage());
             throw new IllegalArgumentException("unsupported credential");
         }
 
-        UC cred = credentialsService.findCredentialsById(repositoryId, credentialsId);
+        R cred = credentialsService.findCredentialsById(repositoryId, credentialsId);
         if (cred == null) {
             throw new NoSuchCredentialException();
         }
@@ -263,10 +263,10 @@ public abstract class AbstractCredentialsService<
     }
 
     @Override
-    public UC revokeCredential(String credentialsId) throws NoSuchCredentialException, RegistrationException {
+    public R revokeCredential(String credentialsId) throws NoSuchCredentialException, RegistrationException {
         logger.debug("revoke credential {}", String.valueOf(credentialsId));
 
-        UC cred = credentialsService.findCredentialsById(repositoryId, credentialsId);
+        R cred = credentialsService.findCredentialsById(repositoryId, credentialsId);
         if (cred == null) {
             throw new NoSuchCredentialException();
         }
@@ -291,7 +291,7 @@ public abstract class AbstractCredentialsService<
     public void deleteCredential(String credentialsId) throws NoSuchCredentialException {
         logger.debug("delete credential {}", String.valueOf(credentialsId));
 
-        UC cred = credentialsService.findCredentialsById(repositoryId, credentialsId);
+        R cred = credentialsService.findCredentialsById(repositoryId, credentialsId);
         if (cred == null) {
             throw new NoSuchCredentialException();
         }
@@ -310,7 +310,7 @@ public abstract class AbstractCredentialsService<
         logger.debug("delete all credentials for user {}", String.valueOf(userId));
 
         // fetch all to collect ids
-        Collection<UC> credentials = credentialsService.findCredentialsByUser(repositoryId, userId);
+        Collection<R> credentials = credentialsService.findCredentialsByUser(repositoryId, userId);
 
         // delete in batch
         Set<String> ids = credentials.stream().map(p -> p.getId()).collect(Collectors.toSet());
@@ -335,18 +335,18 @@ public abstract class AbstractCredentialsService<
      */
 
     @Override
-    public EC getEditableCredential(String credentialId) throws NoSuchCredentialException {
+    public E getEditableCredential(String credentialId) throws NoSuchCredentialException {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public EC registerCredential(String userId, EditableUserCredentials credentials)
+    public E registerCredential(String userId, EditableUserCredentials credentials)
         throws RegistrationException, NoSuchUserException {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public EC editCredential(String userId, EditableUserCredentials credentials)
+    public E editCredential(String userId, EditableUserCredentials credentials)
         throws RegistrationException, NoSuchCredentialException {
         throw new UnsupportedOperationException();
     }

@@ -42,4 +42,8 @@ public interface UserAuthenticatedPrincipal extends AuthenticatedPrincipal, User
     default String getType() {
         return SystemKeys.RESOURCE_PRINCIPAL;
     }
+
+    public default String getPrincipalId() {
+        return getId();
+    }
 }

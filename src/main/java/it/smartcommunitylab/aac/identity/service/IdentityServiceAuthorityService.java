@@ -17,7 +17,8 @@
 package it.smartcommunitylab.aac.identity.service;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.service.AbstractAuthorityService;
+import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
+import it.smartcommunitylab.aac.base.service.AbstractConfigurableAuthorityService;
 import it.smartcommunitylab.aac.identity.IdentityServiceAuthority;
 import java.util.Collection;
 import org.springframework.beans.factory.InitializingBean;
@@ -26,11 +27,11 @@ import org.springframework.util.Assert;
 
 @Service
 public class IdentityServiceAuthorityService
-    extends AbstractAuthorityService<IdentityServiceAuthority<?, ?, ?, ?, ?, ?>>
+    extends AbstractConfigurableAuthorityService<IdentityServiceAuthority<?, ?, ?, ?, ?, ?>, AccountServiceSettingsMap>
     implements InitializingBean {
 
     public IdentityServiceAuthorityService(Collection<IdentityServiceAuthority<?, ?, ?, ?, ?, ?>> authorities) {
-        super(SystemKeys.RESOURCE_USER);
+        super(SystemKeys.RESOURCE_IDENTITY);
         this.setAuthorities(authorities);
     }
 

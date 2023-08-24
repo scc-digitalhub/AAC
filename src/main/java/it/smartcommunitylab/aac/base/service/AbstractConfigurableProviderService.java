@@ -57,9 +57,7 @@ import org.springframework.validation.DataBinder;
 import org.springframework.validation.SmartValidator;
 
 @Transactional
-public abstract class AbstractConfigurableProviderService<
-    C extends ConfigurableProvider<S>, S extends AbstractSettingsMap
->
+public abstract class AbstractConfigurableProviderService<C extends ConfigurableProvider<S>, S extends ConfigMap>
     implements ConfigurableProviderService<C>, InitializingBean {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -67,7 +65,7 @@ public abstract class AbstractConfigurableProviderService<
     protected final String type;
 
     protected final ConfigurableProviderEntityService providerService;
-    protected final ConfigurableAuthorityService<? extends ConfigurableProviderAuthority<?, ? extends ConfigurableProvider<S>, ? extends ProviderConfig<S, ?>, S, ?>, S> authorityService;
+    protected final ConfigurableAuthorityService<? extends ConfigurableProviderAuthority<?, ? extends ConfigurableProvider<S>, ? extends ProviderConfig<S, ?>, S, ?>> authorityService;
 
     // keep a local map for system providers since these are not in db
     // key is providerId
@@ -80,7 +78,7 @@ public abstract class AbstractConfigurableProviderService<
 
     protected AbstractConfigurableProviderService(
         String type,
-        ConfigurableAuthorityService<? extends ConfigurableProviderAuthority<?, ? extends ConfigurableProvider<S>, ? extends ProviderConfig<S, ?>, S, ?>, S> providerAuthorityService,
+        ConfigurableAuthorityService<? extends ConfigurableProviderAuthority<?, ? extends ConfigurableProvider<S>, ? extends ProviderConfig<S, ?>, S, ?>> providerAuthorityService,
         ConfigurableProviderEntityService providerService,
         Supplier<C> factory
     ) {
@@ -351,12 +349,12 @@ public abstract class AbstractConfigurableProviderService<
         C cp = getProvider(providerId);
 
         //fetch config provider from authority
-        ConfigurationProvider<?, ?, S, ? extends ConfigMap> configProvider = getConfigurationProvider(
-            cp.getAuthority()
-        );
-
-        // always register and pop up errors
-        configProvider.register(cp);
+        ConfigurationProvider<? extends ProviderConfig<S, ?>, ? extends ConfigurableProvider<S>, S, ?> configProvider =
+            authorityService.getAuthority(cp.getAuthority()).getConfigurationProvider();
+        if (configProvider != null) {
+            // always register and pop up errors
+            configProvider.register(cp);
+        }
     }
 
     public void unregisterProvider(String providerId)

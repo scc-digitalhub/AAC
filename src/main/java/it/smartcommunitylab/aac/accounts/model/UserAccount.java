@@ -34,6 +34,10 @@ public interface UserAccount extends UserResource {
 
     public boolean isLocked();
 
+    //expose uuid
+    //TODO remove
+    public String getUuid();
+
     default String getType() {
         return SystemKeys.RESOURCE_ACCOUNT;
     }

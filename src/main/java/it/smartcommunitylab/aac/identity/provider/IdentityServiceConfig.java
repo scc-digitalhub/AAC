@@ -16,9 +16,10 @@
 
 package it.smartcommunitylab.aac.identity.provider;
 
+import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.provider.config.ProviderConfig;
 
-public interface IdentityServiceConfig<M extends ConfigMap> extends ProviderConfig<M> {
+public interface IdentityServiceConfig<M extends ConfigMap> extends ProviderConfig<AccountServiceSettingsMap, M> {
     public String getRepositoryId();
 }

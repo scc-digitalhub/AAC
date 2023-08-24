@@ -36,6 +36,7 @@ public abstract class AbstractProvider<R extends Resource> implements ResourcePr
         return authority;
     }
 
+    @Override
     public String getProvider() {
         return provider;
     }

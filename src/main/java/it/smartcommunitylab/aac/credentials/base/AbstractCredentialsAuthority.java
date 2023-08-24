@@ -16,28 +16,29 @@
 
 package it.smartcommunitylab.aac.credentials.base;
 
+import it.smartcommunitylab.aac.accounts.base.AbstractUserAccount;
 import it.smartcommunitylab.aac.base.authorities.AbstractSingleConfigurableProviderAuthority;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.credentials.CredentialsServiceAuthority;
 import it.smartcommunitylab.aac.credentials.model.ConfigurableCredentialsProvider;
-import it.smartcommunitylab.aac.credentials.model.EditableUserCredentials;
-import it.smartcommunitylab.aac.credentials.provider.CredentialsService;
 import it.smartcommunitylab.aac.credentials.provider.CredentialsServiceConfigurationProvider;
+import it.smartcommunitylab.aac.credentials.provider.CredentialsServiceSettingsMap;
 import org.springframework.util.Assert;
 
 public abstract class AbstractCredentialsAuthority<
-    S extends CredentialsService<R, E, M, C>,
+    S extends AbstractCredentialsService<R, E, U, M, C>,
     R extends AbstractUserCredentials,
-    E extends EditableUserCredentials,
-    M extends AbstractConfigMap,
-    C extends AbstractCredentialsServiceConfig<M>
+    E extends AbstractEditableUserCredentials,
+    U extends AbstractUserAccount,
+    C extends AbstractCredentialsServiceConfig<M>,
+    M extends AbstractConfigMap
 >
-    extends AbstractSingleConfigurableProviderAuthority<S, R, ConfigurableCredentialsProvider, M, C>
+    extends AbstractSingleConfigurableProviderAuthority<S, ConfigurableCredentialsProvider, C, CredentialsServiceSettingsMap, M>
     implements CredentialsServiceAuthority<S, R, E, M, C> {
 
     // configuration provider
-    protected CredentialsServiceConfigurationProvider<M, C> configProvider;
+    protected CredentialsServiceConfigurationProvider<C, M> configProvider;
 
     protected AbstractCredentialsAuthority(String authorityId, ProviderConfigRepository<C> registrationRepository) {
         super(authorityId, registrationRepository);
@@ -55,11 +56,11 @@ public abstract class AbstractCredentialsAuthority<
     // }
 
     @Override
-    public CredentialsServiceConfigurationProvider<M, C> getConfigurationProvider() {
+    public CredentialsServiceConfigurationProvider<C, M> getConfigurationProvider() {
         return configProvider;
     }
 
-    public void setConfigProvider(CredentialsServiceConfigurationProvider<M, C> configProvider) {
+    public void setConfigProvider(CredentialsServiceConfigurationProvider<C, M> configProvider) {
         Assert.notNull(configProvider, "config provider is mandatory");
         this.configProvider = configProvider;
     }

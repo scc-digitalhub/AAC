@@ -66,6 +66,7 @@ public abstract class AbstractUserAuthenticatedPrincipal
         super(authority, provider, realm, id, userId);
     }
 
+    @Override
     public abstract String getPrincipalId();
 
     @Override

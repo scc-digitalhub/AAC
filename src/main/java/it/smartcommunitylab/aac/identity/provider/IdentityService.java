@@ -20,13 +20,13 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.model.EditableUserAccount;
 import it.smartcommunitylab.aac.accounts.model.UserAccount;
 import it.smartcommunitylab.aac.accounts.provider.AccountService;
+import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
 import it.smartcommunitylab.aac.credentials.provider.CredentialsService;
-import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityService;
 import it.smartcommunitylab.aac.identity.model.UserIdentity;
 import java.util.Collection;
 import org.springframework.lang.Nullable;
@@ -35,6 +35,7 @@ import org.springframework.lang.Nullable;
  * Identity service are r/w repositories for local users.
  *
  * Accounts managed by services are eventually used by IdentityProviders
+ * TODO drop
  */
 
 public interface IdentityService<
@@ -44,7 +45,7 @@ public interface IdentityService<
     M extends ConfigMap,
     C extends IdentityServiceConfig<M>
 >
-    extends ConfigurableResourceProvider<I, ConfigurableIdentityService, M, C> {
+    extends ConfigurableResourceProvider<I, C, AccountServiceSettingsMap, M> {
     /*
      * Services
      */

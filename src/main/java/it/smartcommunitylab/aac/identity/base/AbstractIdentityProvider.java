@@ -18,7 +18,6 @@ package it.smartcommunitylab.aac.identity.base;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.base.AbstractUserAccount;
-import it.smartcommunitylab.aac.accounts.model.UserAccount;
 import it.smartcommunitylab.aac.accounts.provider.AccountProvider;
 import it.smartcommunitylab.aac.accounts.provider.AccountService;
 import it.smartcommunitylab.aac.attributes.model.UserAttributes;
@@ -27,15 +26,11 @@ import it.smartcommunitylab.aac.base.provider.AbstractConfigurableResourceProvid
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
-import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
-import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.identity.model.UserIdentity;
 import it.smartcommunitylab.aac.identity.provider.AccountPrincipalConverter;
 import it.smartcommunitylab.aac.identity.provider.IdentityAttributeProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityProvider;
-import it.smartcommunitylab.aac.identity.provider.IdentityProviderConfig;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
 import java.util.ArrayList;
 import java.util.Collection;

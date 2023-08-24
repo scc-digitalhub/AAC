@@ -66,25 +66,25 @@ public abstract class AbstractOAuth2ClientResource implements ClientResource, Se
         this.clientId = clientId;
     }
 
-    // resource is globally unique and addressable
-    // ie given to an external actor he should be able to find the authority and
-    // then the provider to request this resource
-    @Override
-    public String getResourceId() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(getAuthority()).append(SystemKeys.ID_SEPARATOR);
-        sb.append(getId());
+    // // resource is globally unique and addressable
+    // // ie given to an external actor he should be able to find the authority and
+    // // then the provider to request this resource
+    // @Override
+    // public String getResourceId() {
+    //     StringBuilder sb = new StringBuilder();
+    //     sb.append(getAuthority()).append(SystemKeys.ID_SEPARATOR);
+    //     sb.append(getId());
 
-        return sb.toString();
-    }
+    //     return sb.toString();
+    // }
 
-    @Override
-    public String getUrn() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(SystemKeys.URN_PROTOCOL).append(SystemKeys.URN_SEPARATOR);
-        sb.append(getType()).append(SystemKeys.URN_SEPARATOR);
-        sb.append(getResourceId());
+    // @Override
+    // public String getUrn() {
+    //     StringBuilder sb = new StringBuilder();
+    //     sb.append(SystemKeys.URN_PROTOCOL).append(SystemKeys.URN_SEPARATOR);
+    //     sb.append(getType()).append(SystemKeys.URN_SEPARATOR);
+    //     sb.append(getResourceId());
 
-        return sb.toString();
-    }
+    //     return sb.toString();
+    // }
 }

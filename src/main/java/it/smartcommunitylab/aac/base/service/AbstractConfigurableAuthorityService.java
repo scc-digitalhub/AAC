@@ -29,7 +29,7 @@ public abstract class AbstractConfigurableAuthorityService<
     S extends ConfigMap
 >
     extends AbstractAuthorityService<A>
-    implements ConfigurableAuthorityService<A, S> {
+    implements ConfigurableAuthorityService<A> {
 
     protected AbstractConfigurableAuthorityService(String type) {
         super(type);

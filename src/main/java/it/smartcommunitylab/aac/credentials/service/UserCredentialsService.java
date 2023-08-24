@@ -201,7 +201,7 @@ public class UserCredentialsService {
             .collect(Collectors.toList());
         List<UserCredentials> creds = services
             .stream()
-            .flatMap(s -> s.listCredentialsByUser(userId).stream())
+            .flatMap(s -> s.listCredentials(userId).stream())
             .collect(Collectors.toList());
 
         return creds;
