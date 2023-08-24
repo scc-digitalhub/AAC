@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.identity.base;
 
+import com.fasterxml.jackson.databind.JavaType;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.base.provider.AbstractConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
@@ -35,6 +36,16 @@ public abstract class AbstractIdentityConfigurationProvider<
     ) {
         super(authority, registrationRepository);
         setDefaultSettingsMap(new IdentityProviderSettingsMap());
+    }
+
+    @Override
+    protected JavaType extractSettingsType() {
+        return mapper.getTypeFactory().constructSimpleType(IdentityProviderSettingsMap.class, null);
+    }
+
+    @Override
+    protected JavaType extractConfigType() {
+        return _extractJavaType(1);
     }
 
     @Override

@@ -43,14 +43,16 @@ public class WebhookAttributeProviderConfig extends AbstractAttributeProviderCon
     ) {
         super(cp, settingsMap, configMap);
     }
-    // /**
-    //  * Private constructor for JPA and other serialization tools.
-    //  *
-    //  * We need to implement this to enable deserialization of resources via
-    //  * reflection
-    //  */
-    // @SuppressWarnings("unused")
-    // private WebhookAttributeProviderConfig() {
-    //     super(SystemKeys.AUTHORITY_WEBHOOK, (String) null, (String) null, new WebhookAttributeProviderConfigMap());
-    // }
+
+    /**
+     * Private constructor for JPA and other serialization tools.
+     *
+     * We need to implement this to enable deserialization of resources via
+     * reflection
+     */
+
+    @SuppressWarnings("unused")
+    private WebhookAttributeProviderConfig() {
+        super();
+    }
 }

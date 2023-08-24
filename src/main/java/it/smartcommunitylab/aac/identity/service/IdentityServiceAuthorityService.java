@@ -25,13 +25,15 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
+//TODO drop whole identity service
 @Service
 public class IdentityServiceAuthorityService
     extends AbstractConfigurableAuthorityService<IdentityServiceAuthority<?, ?, ?, ?, ?, ?>, AccountServiceSettingsMap>
     implements InitializingBean {
 
     public IdentityServiceAuthorityService(Collection<IdentityServiceAuthority<?, ?, ?, ?, ?, ?>> authorities) {
-        super(SystemKeys.RESOURCE_IDENTITY);
+        //TODO change key
+        super(SystemKeys.RESOURCE_USER);
         this.setAuthorities(authorities);
     }
 

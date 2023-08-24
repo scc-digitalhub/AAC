@@ -23,7 +23,7 @@ import java.util.function.Supplier;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.util.Assert;
 
-public class ProviderEntityConverter<C extends ConfigurableProvider<? extends ConfigMap>>
+public class ProviderEntityConverter<C extends ConfigurableProvider<S>, S extends ConfigMap>
     implements Converter<ProviderEntity, C> {
 
     private final Supplier<C> factory;

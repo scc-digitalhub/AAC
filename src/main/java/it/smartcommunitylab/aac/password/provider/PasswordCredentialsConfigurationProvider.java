@@ -23,7 +23,7 @@ import it.smartcommunitylab.aac.credentials.base.AbstractCredentialsConfiguratio
 import it.smartcommunitylab.aac.credentials.model.ConfigurableCredentialsProvider;
 import org.springframework.stereotype.Service;
 
-@Service
+// @Service
 public class PasswordCredentialsConfigurationProvider
     extends AbstractCredentialsConfigurationProvider<PasswordCredentialsServiceConfig, PasswordIdentityProviderConfigMap> {
 

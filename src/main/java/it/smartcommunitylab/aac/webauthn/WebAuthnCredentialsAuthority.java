@@ -31,8 +31,8 @@ import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsService;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsServiceConfig;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfigMap;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnRegistrationRpService;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnJpaUserCredentialsService;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnRegistrationRpService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -74,11 +74,11 @@ public class WebAuthnCredentialsAuthority
         this.rpService = rpService;
     }
 
-    @Autowired
-    public void setConfigProvider(WebAuthnCredentialsConfigurationProvider configProvider) {
-        Assert.notNull(configProvider, "config provider is mandatory");
-        this.configProvider = configProvider;
-    }
+    // @Autowired
+    // public void setConfigProvider(WebAuthnCredentialsConfigurationProvider configProvider) {
+    //     Assert.notNull(configProvider, "config provider is mandatory");
+    //     this.configProvider = configProvider;
+    // }
 
     @Autowired
     public void setResourceService(ResourceEntityService resourceService) {

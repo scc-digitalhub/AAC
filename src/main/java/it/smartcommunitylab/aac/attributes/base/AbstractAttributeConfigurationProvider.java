@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.attributes.base;
 
+import com.fasterxml.jackson.databind.JavaType;
 import it.smartcommunitylab.aac.attributes.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.attributes.provider.AttributeConfigurationProvider;
 import it.smartcommunitylab.aac.attributes.provider.AttributeProviderSettingsMap;
@@ -34,6 +35,16 @@ public abstract class AbstractAttributeConfigurationProvider<
         ProviderConfigRepository<P> registrationRepository
     ) {
         super(authority, registrationRepository);
+    }
+
+    @Override
+    protected JavaType extractSettingsType() {
+        return mapper.getTypeFactory().constructSimpleType(AttributeProviderSettingsMap.class, null);
+    }
+
+    @Override
+    protected JavaType extractConfigType() {
+        return _extractJavaType(1);
     }
 
     @Override

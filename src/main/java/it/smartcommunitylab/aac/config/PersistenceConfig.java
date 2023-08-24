@@ -273,13 +273,6 @@ public class PersistenceConfig {
         return new WebAuthnJpaUserCredentialsService(credentialsRepository);
     }
 
-    @Bean
-    public ConfigurableProviderEntityService providerEntityService(
-        ProviderEntityRepository attributeProviderRepository
-    ) {
-        return new ConfigurableProviderEntityService(attributeProviderRepository);
-    }
-
     // @Bean
     // public ConfigurableProviderEntityService<AttributeProviderEntity> attributeProviderEntityService(
     //     AttributeProviderEntityRepository attributeProviderRepository

@@ -70,6 +70,17 @@ public abstract class AbstractAccountServiceConfig<M extends AbstractConfigMap>
         super(cp, settingsMap, configMap);
     }
 
+    /**
+     * Private constructor for JPA and other serialization tools.
+     *
+     * We need to implement this to enable deserialization of resources via
+     * reflection
+     */
+    @SuppressWarnings("unused")
+    protected AbstractAccountServiceConfig() {
+        super();
+    }
+
     public String getRepositoryId() {
         // if undefined always use realm as default repository id
         return StringUtils.hasText(settingsMap.getRepositoryId()) ? settingsMap.getRepositoryId() : getRealm();

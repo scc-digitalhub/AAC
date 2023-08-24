@@ -64,6 +64,7 @@ public class ConfigurableProviderImpl<S extends ConfigMap> implements Configurab
     @NotBlank
     private String realm;
 
+    //TODO replace with Boolean to allow null
     private boolean enabled;
 
     //TODO replace with status (ENUM)

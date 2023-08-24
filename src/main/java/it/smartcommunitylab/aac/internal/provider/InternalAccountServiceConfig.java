@@ -53,6 +53,18 @@ public class InternalAccountServiceConfig extends AbstractAccountServiceConfig<I
         super(cp, settingsMap, configMap);
     }
 
+    /**
+     * Private constructor for JPA and other serialization tools.
+     *
+     * We need to implement this to enable deserialization of resources via
+     * reflection
+     */
+
+    @SuppressWarnings("unused")
+    private InternalAccountServiceConfig() {
+        super();
+    }
+
     public String getRepositoryId() {
         // not configurable for now
         return getRealm();

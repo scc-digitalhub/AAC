@@ -45,16 +45,17 @@ public class MapperAttributeProviderConfig extends AbstractAttributeProviderConf
         super(cp, settingsMap, configMap);
     }
 
-    // /**
-    //  * Private constructor for JPA and other serialization tools.
-    //  *
-    //  * We need to implement this to enable deserialization of resources via
-    //  * reflection
-    //  */
-    // @SuppressWarnings("unused")
-    // private MapperAttributeProviderConfig() {
-    //     super(SystemKeys.AUTHORITY_MAPPER, (String) null, (String) null, new MapperAttributeProviderConfigMap());
-    // }
+    /**
+     * Private constructor for JPA and other serialization tools.
+     *
+     * We need to implement this to enable deserialization of resources via
+     * reflection
+     */
+
+    @SuppressWarnings("unused")
+    private MapperAttributeProviderConfig() {
+        super();
+    }
 
     public String getMapperType() {
         return configMap.getType() != null ? configMap.getType() : DefaultAttributesMapper.TYPE;

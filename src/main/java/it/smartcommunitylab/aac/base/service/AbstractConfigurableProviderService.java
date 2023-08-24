@@ -19,7 +19,6 @@ package it.smartcommunitylab.aac.base.service;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.model.AbstractSettingsMap;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
@@ -66,7 +65,7 @@ public abstract class AbstractConfigurableProviderService<C extends Configurable
     protected final String type;
 
     protected final ConfigurableProviderEntityService providerService;
-    protected final ConfigurableAuthorityService<? extends ConfigurableProviderAuthority<?, ? extends ConfigurableProvider<S>, ? extends ProviderConfig<S, ?>, S, ?>> authorityService;
+    protected final ConfigurableAuthorityService<? extends ConfigurableProviderAuthority<?, C, ? extends ProviderConfig<S, ?>, S, ? extends ConfigMap>> authorityService;
 
     // keep a local map for system providers since these are not in db
     // key is providerId
@@ -79,7 +78,7 @@ public abstract class AbstractConfigurableProviderService<C extends Configurable
 
     protected AbstractConfigurableProviderService(
         String type,
-        ConfigurableAuthorityService<? extends ConfigurableProviderAuthority<?, ? extends ConfigurableProvider<S>, ? extends ProviderConfig<S, ?>, S, ?>> providerAuthorityService,
+        ConfigurableAuthorityService<? extends ConfigurableProviderAuthority<?, C, ? extends ProviderConfig<S, ?>, S, ?>> providerAuthorityService,
         ConfigurableProviderEntityService providerService,
         Supplier<C> factory
     ) {
@@ -350,7 +349,7 @@ public abstract class AbstractConfigurableProviderService<C extends Configurable
         C cp = getProvider(providerId);
 
         //fetch config provider from authority
-        ConfigurationProvider<? extends ProviderConfig<S, ?>, ? extends ConfigurableProvider<S>, S, ?> configProvider =
+        ConfigurationProvider<? extends ProviderConfig<S, ?>, C, S, ? extends ConfigMap> configProvider =
             authorityService.getAuthority(cp.getAuthority()).getConfigurationProvider();
         if (configProvider != null) {
             // always register and pop up errors

@@ -51,6 +51,18 @@ public class AppleAccountServiceConfig extends AbstractAccountServiceConfig<Appl
         super(cp, settingsMap, configMap);
     }
 
+    /**
+     * Private constructor for JPA and other serialization tools.
+     *
+     * We need to implement this to enable deserialization of resources via
+     * reflection
+     */
+
+    @SuppressWarnings("unused")
+    private AppleAccountServiceConfig() {
+        super();
+    }
+
     @Override
     public String getRepositoryId() {
         // not configurable for now

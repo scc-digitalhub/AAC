@@ -75,6 +75,18 @@ public abstract class AbstractIdentityProviderConfig<M extends AbstractConfigMap
         super(cp, settingsMap, configMap);
     }
 
+    /**
+     * Private constructor for JPA and other serialization tools.
+     *
+     * We need to implement this to enable deserialization of resources via
+     * reflection
+     */
+
+    @SuppressWarnings("unused")
+    protected AbstractIdentityProviderConfig() {
+        super();
+    }
+
     public boolean isLinkable() {
         // by default providers are linkable
         return settingsMap.getLinkable() != null ? settingsMap.getLinkable().booleanValue() : true;

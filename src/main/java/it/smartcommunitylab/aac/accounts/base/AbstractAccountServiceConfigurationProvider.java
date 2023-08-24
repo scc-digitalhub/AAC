@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.accounts.base;
 
+import com.fasterxml.jackson.databind.JavaType;
 import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountService;
 import it.smartcommunitylab.aac.accounts.provider.AccountServiceConfigurationProvider;
 import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
@@ -35,6 +36,16 @@ public abstract class AbstractAccountServiceConfigurationProvider<
     ) {
         super(authority, registrationRepository);
         setDefaultSettingsMap(new AccountServiceSettingsMap());
+    }
+
+    @Override
+    protected JavaType extractSettingsType() {
+        return mapper.getTypeFactory().constructSimpleType(AccountServiceSettingsMap.class, null);
+    }
+
+    @Override
+    protected JavaType extractConfigType() {
+        return _extractJavaType(1);
     }
 
     @Override

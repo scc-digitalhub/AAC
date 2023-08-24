@@ -74,11 +74,11 @@ public class PasswordCredentialsAuthority
         this.passwordService = passwordService;
     }
 
-    @Autowired
-    public void setConfigProvider(PasswordCredentialsConfigurationProvider configProvider) {
-        Assert.notNull(configProvider, "config provider is mandatory");
-        this.configProvider = configProvider;
-    }
+    // @Autowired
+    // public void setConfigProvider(PasswordCredentialsConfigurationProvider configProvider) {
+    //     Assert.notNull(configProvider, "config provider is mandatory");
+    //     this.configProvider = configProvider;
+    // }
 
     @Autowired
     public void setMailService(MailService mailService) {

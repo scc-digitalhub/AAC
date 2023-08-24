@@ -49,6 +49,18 @@ public class WebAuthnIdentityProviderConfig extends AbstractIdentityProviderConf
         super(cp, settingsMap, configMap);
     }
 
+    /**
+     * Private constructor for JPA and other serialization tools.
+     *
+     * We need to implement this to enable deserialization of resources via
+     * reflection
+     */
+
+    @SuppressWarnings("unused")
+    private WebAuthnIdentityProviderConfig() {
+        super();
+    }
+
     public String getRepositoryId() {
         // not configurable for now
         return getRealm();

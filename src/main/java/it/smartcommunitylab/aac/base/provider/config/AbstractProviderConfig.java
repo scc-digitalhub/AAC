@@ -69,7 +69,7 @@ public abstract class AbstractProviderConfig<S extends AbstractSettingsMap, M ex
      * reflection
      */
     @SuppressWarnings("unused")
-    private AbstractProviderConfig() {
+    protected AbstractProviderConfig() {
         this((String) null, (String) null, (String) null, null, null);
     }
 

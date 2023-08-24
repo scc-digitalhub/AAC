@@ -71,6 +71,17 @@ public abstract class AbstractAttributeProviderConfig<M extends AbstractConfigMa
         super(cp, settingsMap, configMap);
     }
 
+    /**
+     * Private constructor for JPA and other serialization tools.
+     *
+     * We need to implement this to enable deserialization of resources via
+     * reflection
+     */
+    @SuppressWarnings("unused")
+    protected AbstractAttributeProviderConfig() {
+        super();
+    }
+
     public Set<String> getAttributeSets() {
         return settingsMap.getAttributeSets() != null ? settingsMap.getAttributeSets() : Collections.emptySet();
     }

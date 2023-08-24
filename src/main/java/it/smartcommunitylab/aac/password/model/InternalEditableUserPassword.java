@@ -76,9 +76,9 @@ public class InternalEditableUserPassword extends AbstractEditableUserCredential
 
     private String curPassword;
 
-    // public InternalEditableUserPassword() {
-    //     super(SystemKeys.AUTHORITY_PASSWORD, null, null);
-    // }
+    private InternalEditableUserPassword() {
+        super(SystemKeys.AUTHORITY_PASSWORD, null, null, null);
+    }
 
     public InternalEditableUserPassword(String realm, String id) {
         super(SystemKeys.AUTHORITY_PASSWORD, null, realm, id);

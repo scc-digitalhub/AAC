@@ -43,14 +43,16 @@ public class ScriptAttributeProviderConfig extends AbstractAttributeProviderConf
     ) {
         super(cp, settingsMap, configMap);
     }
-    // /**
-    //  * Private constructor for JPA and other serialization tools.
-    //  *
-    //  * We need to implement this to enable deserialization of resources via
-    //  * reflection
-    //  */
-    // @SuppressWarnings("unused")
-    // private ScriptAttributeProviderConfig() {
-    //     super(SystemKeys.AUTHORITY_SCRIPT, (String) null, (String) null, new ScriptAttributeProviderConfigMap());
-    // }
+
+    /**
+     * Private constructor for JPA and other serialization tools.
+     *
+     * We need to implement this to enable deserialization of resources via
+     * reflection
+     */
+
+    @SuppressWarnings("unused")
+    private ScriptAttributeProviderConfig() {
+        super();
+    }
 }

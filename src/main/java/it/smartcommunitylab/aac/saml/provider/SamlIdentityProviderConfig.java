@@ -65,6 +65,18 @@ public class SamlIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         super(cp, settingsMap, configMap);
     }
 
+    /**
+     * Private constructor for JPA and other serialization tools.
+     *
+     * We need to implement this to enable deserialization of resources via
+     * reflection
+     */
+
+    @SuppressWarnings("unused")
+    private SamlIdentityProviderConfig() {
+        super();
+    }
+
     public String getRepositoryId() {
         // not configurable, always isolate saml providers
         return getProvider();

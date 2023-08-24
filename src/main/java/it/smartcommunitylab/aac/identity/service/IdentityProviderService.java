@@ -64,6 +64,7 @@ public class IdentityProviderService
             SystemKeys.REALM_SYSTEM
         );
         internalConfig.setVersion(1);
+        internalConfig.setEnabled(true);
         logger.debug("configure internal idp for system realm");
         systemProviders.put(internalConfig.getProvider(), internalConfig);
 
@@ -73,6 +74,7 @@ public class IdentityProviderService
             SystemKeys.REALM_SYSTEM
         );
         internalPasswordIdpConfig.setVersion(1);
+        internalPasswordIdpConfig.setEnabled(true);
         logger.debug("configure internal password idp for system realm");
         systemProviders.put(internalPasswordIdpConfig.getProvider(), internalPasswordIdpConfig);
     }

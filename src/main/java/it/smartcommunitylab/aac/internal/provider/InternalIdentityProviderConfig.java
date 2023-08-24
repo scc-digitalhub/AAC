@@ -47,19 +47,16 @@ public class InternalIdentityProviderConfig extends AbstractIdentityProviderConf
         super(cp, settingsMap, configMap);
     }
 
-    // /**
-    //  * Private constructor for JPA and other serialization tools.
-    //  *
-    //  * We need to implement this to enable deserialization of resources via
-    //  * reflection
-    //  */
-    // @SuppressWarnings("unused")
-    // private InternalIdentityProviderConfig() {
-    //     this(
-    //         new ConfigurableIdentityProvider((String) null, (String) null, (String) null),
-    //         (InternalIdentityProviderConfigMap) null
-    //     );
-    // }
+    /**
+     * Private constructor for JPA and other serialization tools.
+     *
+     * We need to implement this to enable deserialization of resources via
+     * reflection
+     */
+    @SuppressWarnings("unused")
+    private InternalIdentityProviderConfig() {
+        super();
+    }
 
     public String getRepositoryId() {
         // not configurable for now

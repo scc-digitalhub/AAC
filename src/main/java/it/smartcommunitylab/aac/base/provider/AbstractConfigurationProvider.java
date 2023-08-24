@@ -76,17 +76,25 @@ public abstract class AbstractConfigurationProvider<
         this.authority = authority;
         this.registrationRepository = registrationRepository;
 
-        this.settingsType = extractType(1);
-        this.configType = extractType(2);
+        this.settingsType = extractSettingsType();
+        this.configType = extractConfigType();
 
         Assert.notNull(settingsType, "settings type could not be extracted");
         Assert.notNull(configType, "config type could not be extracted");
     }
 
-    private JavaType extractType(int pos) {
+    protected JavaType _extractJavaType(int pos) {
         // resolve generics type via subclass trick
         Type t = ((ParameterizedType) this.getClass().getGenericSuperclass()).getActualTypeArguments()[pos];
         return mapper.getTypeFactory().constructSimpleType((Class<?>) t, null);
+    }
+
+    protected JavaType extractSettingsType() {
+        return _extractJavaType(2);
+    }
+
+    protected JavaType extractConfigType() {
+        return _extractJavaType(3);
     }
 
     protected void setDefaultSettingsMap(S defaultSettingsMap) {

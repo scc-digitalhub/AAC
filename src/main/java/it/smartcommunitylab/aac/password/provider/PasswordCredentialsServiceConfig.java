@@ -56,6 +56,18 @@ public class PasswordCredentialsServiceConfig
         super(cp, settingsMap, configMap);
     }
 
+    /**
+     * Private constructor for JPA and other serialization tools.
+     *
+     * We need to implement this to enable deserialization of resources via
+     * reflection
+     */
+
+    @SuppressWarnings("unused")
+    private PasswordCredentialsServiceConfig() {
+        super();
+    }
+
     @Override
     public String getRepositoryId() {
         return configMap.getRepositoryId() != null ? configMap.getRepositoryId() : getRealm();

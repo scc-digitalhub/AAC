@@ -64,6 +64,18 @@ public abstract class AbstractTemplateProviderConfig<M extends AbstractConfigMap
         super(cp, settingsMap, configMap);
     }
 
+    /**
+     * Private constructor for JPA and other serialization tools.
+     *
+     * We need to implement this to enable deserialization of resources via
+     * reflection
+     */
+
+    @SuppressWarnings("unused")
+    protected AbstractTemplateProviderConfig() {
+        super();
+    }
+
     @Override
     public Set<Language> getLanguages() {
         return !CollectionUtils.isEmpty(settingsMap.getLanguages())

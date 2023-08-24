@@ -49,14 +49,15 @@ public class InternalAttributeProviderConfig
     public boolean isUsermode() {
         return configMap.getUsermode() != null ? configMap.getUsermode().booleanValue() : false;
     }
-    // /**
-    //  * Private constructor for JPA and other serialization tools.
-    //  *
-    //  * We need to implement this to enable deserialization of resources via
-    //  * reflection
-    //  */
-    // @SuppressWarnings("unused")
-    // private InternalAttributeProviderConfig() {
-    //     super(SystemKeys.AUTHORITY_INTERNAL, (String) null, (String) null, new InternalAttributeProviderConfigMap());
-    // }
+
+    /**
+     * Private constructor for JPA and other serialization tools.
+     *
+     * We need to implement this to enable deserialization of resources via
+     * reflection
+     */
+    @SuppressWarnings("unused")
+    private InternalAttributeProviderConfig() {
+        super();
+    }
 }

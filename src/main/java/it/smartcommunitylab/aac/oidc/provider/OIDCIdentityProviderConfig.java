@@ -58,6 +58,18 @@ public class OIDCIdentityProviderConfig extends AbstractIdentityProviderConfig<O
         super(cp, settingsMap, configMap);
     }
 
+    /**
+     * Private constructor for JPA and other serialization tools.
+     *
+     * We need to implement this to enable deserialization of resources via
+     * reflection
+     */
+
+    @SuppressWarnings("unused")
+    private OIDCIdentityProviderConfig() {
+        super();
+    }
+
     public String getRepositoryId() {
         // not configurable, always isolate oidc providers
         return getProvider();

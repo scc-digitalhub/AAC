@@ -44,11 +44,11 @@ public abstract class AbstractCredentialsAuthority<
         super(authorityId, registrationRepository);
     }
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        super.afterPropertiesSet();
-        Assert.notNull(configProvider, "config provider is mandatory");
-    }
+    // @Override
+    // public void afterPropertiesSet() throws Exception {
+    //     super.afterPropertiesSet();
+    //     Assert.notNull(configProvider, "config provider is mandatory");
+    // }
 
     // @Override
     // public String getType() {
