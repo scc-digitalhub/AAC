@@ -62,10 +62,10 @@ public class InternalAccountPrincipalConverter
         this.repositoryId = repositoryId;
     }
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_ACCOUNT;
-    }
+    // @Override
+    // public String getType() {
+    //     return SystemKeys.RESOURCE_ACCOUNT;
+    // }
 
     @Override
     public InternalUserAccount convertAccount(UserAuthenticatedPrincipal userPrincipal, String userId) {

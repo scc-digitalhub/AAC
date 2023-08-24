@@ -17,6 +17,7 @@
 package it.smartcommunitylab.aac.internal.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
 import it.smartcommunitylab.aac.base.provider.AbstractConfigurableResourceProvider;
 import it.smartcommunitylab.aac.common.MissingDataException;
 import it.smartcommunitylab.aac.common.NoSuchCredentialException;
@@ -48,7 +49,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 public class InternalIdentityService
-    extends AbstractConfigurableResourceProvider<InternalUserIdentity, ConfigurableIdentityService, InternalIdentityProviderConfigMap, InternalIdentityServiceConfig>
+    extends AbstractConfigurableResourceProvider<InternalUserIdentity, InternalIdentityServiceConfig, AccountServiceSettingsMap, InternalIdentityProviderConfigMap>
     implements
         IdentityService<InternalUserIdentity, InternalUserAccount, InternalEditableUserAccount, InternalIdentityProviderConfigMap, InternalIdentityServiceConfig>,
         InitializingBean {
@@ -141,7 +142,8 @@ public class InternalIdentityService
         return cs;
     }
 
-    protected InternalUserIdentity buildIdentity(InternalUserAccount account, Collection<UserCredentials> credentials) {
+    // protected InternalUserIdentity buildIdentity(InternalUserAccount account, Collection<UserCredentials> credentials) {
+    protected InternalUserIdentity buildIdentity(InternalUserAccount account) {
         // build identity
         InternalUserIdentity identity = new InternalUserIdentity(
             getAuthority(),
@@ -150,7 +152,6 @@ public class InternalIdentityService
             account,
             null
         );
-        identity.setCredentials(credentials);
 
         return identity;
     }
@@ -177,7 +178,7 @@ public class InternalIdentityService
         }
 
         // build identity without attributes or principal
-        InternalUserIdentity identity = buildIdentity(account, Collections.emptyList());
+        InternalUserIdentity identity = buildIdentity(account);
         if (logger.isTraceEnabled()) {
             logger.trace("identity: {}", String.valueOf(identity));
         }
@@ -207,16 +208,16 @@ public class InternalIdentityService
             throw new NoSuchUserException();
         }
 
-        if (loadCredentials) {
-            List<UserCredentials> credentials = new ArrayList<>();
-            getCredentialsServices()
-                .stream()
-                .forEach(s -> {
-                    credentials.addAll(s.listCredentialsByUser(username));
-                });
+        // if (loadCredentials) {
+        //     List<UserCredentials> credentials = new ArrayList<>();
+        //     getCredentialsServices()
+        //         .stream()
+        //         .forEach(s -> {
+        //             credentials.addAll(s.listCredentialsByUser(username));
+        //         });
 
-            identity.setCredentials(credentials);
-        }
+        //     identity.setCredentials(credentials);
+        // }
 
         return identity;
     }
@@ -239,7 +240,7 @@ public class InternalIdentityService
 
         List<InternalUserIdentity> identities = new ArrayList<>();
         for (InternalUserAccount account : accounts) {
-            InternalUserIdentity identity = buildIdentity(account, null);
+            InternalUserIdentity identity = buildIdentity(account);
             if (logger.isTraceEnabled()) {
                 logger.trace("identity: {}", String.valueOf(identity));
             }
@@ -251,8 +252,11 @@ public class InternalIdentityService
     }
 
     @Override
-    public InternalUserIdentity registerIdentity(@Nullable String userId, UserIdentity registration)
-        throws NoSuchUserException, RegistrationException {
+    public InternalUserIdentity registerIdentity(
+        @Nullable String userId,
+        UserIdentity registration,
+        Collection<UserCredentials> regCredentials
+    ) throws NoSuchUserException, RegistrationException {
         if (!config.isEnableRegistration()) {
             throw new IllegalArgumentException("registration is disabled for this provider");
         }
@@ -290,6 +294,7 @@ public class InternalIdentityService
             // register account via service
             // build editable model
             InternalEditableUserAccount ea = new InternalEditableUserAccount(
+                getAuthority(),
                 getProvider(),
                 getRealm(),
                 reg.getAccount().getUserId(),
@@ -307,8 +312,8 @@ public class InternalIdentityService
             String username = account.getUsername();
 
             // register credentials
-            if (reg.getCredentials() != null) {
-                for (UserCredentials uc : reg.getCredentials()) {
+            if (regCredentials != null) {
+                for (UserCredentials uc : regCredentials) {
                     CredentialsService<?, ?, ?, ?> cs = getCredentialsServices()
                         .stream()
                         .filter(a -> a.getAuthority().equals(uc.getAuthority()))
@@ -321,7 +326,7 @@ public class InternalIdentityService
                 }
             }
 
-            InternalUserIdentity identity = buildIdentity(account, credentials);
+            InternalUserIdentity identity = buildIdentity(account);
             return identity;
         } catch (RegistrationException e) {
             // cleanup all new entities on error
@@ -355,8 +360,11 @@ public class InternalIdentityService
     }
 
     @Override
-    public InternalUserIdentity createIdentity(@Nullable String userId, UserIdentity registration)
-        throws NoSuchUserException, RegistrationException {
+    public InternalUserIdentity createIdentity(
+        @Nullable String userId,
+        UserIdentity registration,
+        Collection<UserCredentials> regCredentials
+    ) throws NoSuchUserException, RegistrationException {
         // create is always enabled
         if (registration == null) {
             throw new RegistrationException();
@@ -386,8 +394,8 @@ public class InternalIdentityService
 
         // register credentials
         List<UserCredentials> credentials = new ArrayList<>();
-        if (reg.getCredentials() != null) {
-            for (UserCredentials uc : reg.getCredentials()) {
+        if (regCredentials != null) {
+            for (UserCredentials uc : regCredentials) {
                 CredentialsService<?, ?, ?, ?> cs = getCredentialsServices()
                     .stream()
                     .filter(a -> a.getAuthority().equals(uc.getAuthority()))
@@ -399,7 +407,7 @@ public class InternalIdentityService
             }
         }
 
-        InternalUserIdentity identity = buildIdentity(account, credentials);
+        InternalUserIdentity identity = buildIdentity(account);
         return identity;
     }
 
@@ -473,7 +481,7 @@ public class InternalIdentityService
         }
 
         // remove credentials
-        getCredentialsServices().forEach(c -> c.deleteCredentialsByUser(userId));
+        getCredentialsServices().forEach(c -> c.deleteCredentials(userId));
     }
 
     @Override
@@ -485,22 +493,22 @@ public class InternalIdentityService
         } catch (NoSuchProviderException e) {
             logger.error("account provider unavailable");
         }
+        // // remove credentials matching account
+        //DISABLED credentials are associated to user
 
-        // remove credentials matching account
-
-        getCredentialsServices()
-            .forEach(c -> {
-                List<UserCredentials> creds = c
-                    .listCredentialsByUser(userId)
-                    .stream()
-                    .filter(s -> s.getAccountId().equals(username))
-                    .collect(Collectors.toList());
-                creds.forEach(s -> {
-                    try {
-                        c.deleteCredential(s.getCredentialsId());
-                    } catch (NoSuchCredentialException e) {}
-                });
-            });
+        // getCredentialsServices()
+        //     .forEach(c -> {
+        //         List<UserCredentials> creds = c
+        //             .listCredentials(userId)
+        //             .stream()
+        //             .filter(s -> s.getUserId().equals(username))
+        //             .collect(Collectors.toList());
+        //         creds.forEach(s -> {
+        //             try {
+        //                 c.deleteCredential(s.getCredentialsId());
+        //             } catch (NoSuchCredentialException e) {}
+        //         });
+        //     });
     }
 
     @Override

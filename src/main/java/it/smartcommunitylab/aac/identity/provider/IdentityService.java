@@ -26,6 +26,7 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
+import it.smartcommunitylab.aac.credentials.model.UserCredentials;
 import it.smartcommunitylab.aac.credentials.provider.CredentialsService;
 import it.smartcommunitylab.aac.identity.model.UserIdentity;
 import java.util.Collection;
@@ -78,10 +79,10 @@ public interface IdentityService<
      * userId is globally addressable
      */
 
-    public I createIdentity(@Nullable String userId, UserIdentity identity)
+    public I createIdentity(@Nullable String userId, UserIdentity identity, Collection<UserCredentials> credentials)
         throws NoSuchUserException, RegistrationException;
 
-    public I registerIdentity(@Nullable String userId, UserIdentity identity)
+    public I registerIdentity(@Nullable String userId, UserIdentity identity, Collection<UserCredentials> credentials)
         throws NoSuchUserException, RegistrationException;
 
     public I updateIdentity(String userId, String identityId, UserIdentity identity)

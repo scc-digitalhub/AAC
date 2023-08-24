@@ -27,6 +27,7 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.UserDetails;
+import it.smartcommunitylab.aac.credentials.model.UserCredentials;
 import it.smartcommunitylab.aac.credentials.provider.CredentialsService;
 import it.smartcommunitylab.aac.internal.InternalIdentityServiceAuthority;
 import it.smartcommunitylab.aac.internal.dto.UserRegistrationBean;
@@ -36,7 +37,7 @@ import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
 import it.smartcommunitylab.aac.password.model.InternalUserPassword;
 import it.smartcommunitylab.aac.password.model.PasswordPolicy;
 import it.smartcommunitylab.aac.password.provider.PasswordCredentialsService;
-import java.nio.file.ProviderNotFoundException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.Optional;
@@ -375,7 +376,12 @@ public class InternalRegistrationController {
             }
 
             // convert registration model to internal model
-            InternalUserAccount account = new InternalUserAccount();
+            InternalUserAccount account = new InternalUserAccount(
+                idp.getAuthority(),
+                idp.getProvider(),
+                idp.getRealm(),
+                null
+            );
             account.setUsername(username);
             account.setEmail(email);
             account.setName(name);
@@ -398,17 +404,17 @@ public class InternalRegistrationController {
             );
 
             // register password
+            Collection<UserCredentials> credentials = null;
             if (service != null && StringUtils.hasText(password)) {
-                InternalUserPassword pwd = new InternalUserPassword();
+                InternalUserPassword pwd = new InternalUserPassword(idp.getRealm(), null);
                 pwd.setUserId(identity.getUserId());
                 pwd.setUsername(username);
                 pwd.setPassword(password);
-
-                identity.setCredentials(Collections.singleton(pwd));
+                credentials = Collections.singleton(pwd);
             }
 
             // register
-            identity = idp.registerIdentity(subjectId, identity);
+            identity = idp.registerIdentity(subjectId, identity, credentials);
 
             model.addAttribute("account", account);
 

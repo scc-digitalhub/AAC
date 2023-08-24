@@ -17,28 +17,21 @@
 package it.smartcommunitylab.aac.internal;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.attributes.AttributeProviderAuthority;
-import it.smartcommunitylab.aac.attributes.model.ConfigurableAttributeProvider;
-import it.smartcommunitylab.aac.attributes.model.UserAttributes;
+import it.smartcommunitylab.aac.attributes.base.AbstractAttributeAuthority;
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
-import it.smartcommunitylab.aac.base.authorities.AbstractSingleConfigurableProviderAuthority;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeConfigurationProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeProviderConfig;
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeProviderConfigMap;
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeService;
 import it.smartcommunitylab.aac.internal.service.InternalAttributeEntityService;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 @Service
 public class InternalAttributeAuthority
-    extends AbstractSingleConfigurableProviderAuthority<InternalAttributeService, UserAttributes, ConfigurableAttributeProvider, InternalAttributeProviderConfigMap, InternalAttributeProviderConfig>
-    implements
-        AttributeProviderAuthority<InternalAttributeService, InternalAttributeProviderConfigMap, InternalAttributeProviderConfig>,
-        InitializingBean {
+    extends AbstractAttributeAuthority<InternalAttributeService, InternalAttributeProviderConfigMap, InternalAttributeProviderConfig> {
 
     // attributes sets service
     protected final AttributeService attributeService;
@@ -53,7 +46,7 @@ public class InternalAttributeAuthority
         InternalAttributeEntityService attributeEntityService,
         ProviderConfigRepository<InternalAttributeProviderConfig> registrationRepository
     ) {
-        super(SystemKeys.AUTHORITY_INTERNAL, registrationRepository);
+        super(SystemKeys.AUTHORITY_INTERNAL, attributeService, registrationRepository);
         Assert.notNull(attributeEntityService, "attribute entity service is mandatory");
         Assert.notNull(attributeService, "attribute service is mandatory");
 
@@ -61,10 +54,10 @@ public class InternalAttributeAuthority
         this.attributeEntityService = attributeEntityService;
     }
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_ATTRIBUTES;
-    }
+    // @Override
+    // public String getType() {
+    //     return SystemKeys.RESOURCE_ATTRIBUTES;
+    // }
 
     @Override
     public InternalAttributeConfigurationProvider getConfigurationProvider() {

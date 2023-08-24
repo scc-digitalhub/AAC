@@ -17,6 +17,7 @@
 package it.smartcommunitylab.aac.internal.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
 import it.smartcommunitylab.aac.identity.base.AbstractIdentityServiceConfig;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityService;
 
@@ -33,13 +34,24 @@ public class InternalIdentityServiceConfig extends AbstractIdentityServiceConfig
         SystemKeys.AUTHORITY_INTERNAL;
 
     public InternalIdentityServiceConfig(String provider, String realm) {
-        super(SystemKeys.AUTHORITY_INTERNAL, provider, realm, new InternalIdentityProviderConfigMap());
+        super(
+            SystemKeys.AUTHORITY_INTERNAL,
+            provider,
+            realm,
+            new AccountServiceSettingsMap(),
+            new InternalIdentityProviderConfigMap()
+        );
     }
 
-    public InternalIdentityServiceConfig(ConfigurableIdentityService cp, InternalIdentityProviderConfigMap configMap) {
-        super(cp, configMap);
+    public InternalIdentityServiceConfig(
+        ConfigurableIdentityService cp,
+        AccountServiceSettingsMap settingsMap,
+        InternalIdentityProviderConfigMap configMap
+    ) {
+        super(cp, settingsMap, configMap);
     }
 
+    @Override
     public String getRepositoryId() {
         // not configurable for now
         return getRealm();

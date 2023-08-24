@@ -56,10 +56,10 @@ public class InternalSubjectResolver
         this.repositoryId = repositoryId;
     }
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_SUBJECT;
-    }
+    // @Override
+    // public String getType() {
+    //     return SystemKeys.RESOURCE_SUBJECT;
+    // }
 
     @Override
     public Subject resolveByUsername(String username) {

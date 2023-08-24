@@ -29,15 +29,13 @@ import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigurationProvider;
 import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 @Service
 public class InternalIdentityProviderAuthority
-    extends AbstractSingleProviderIdentityAuthority<InternalIdentityProvider, InternalUserIdentity, InternalIdentityProviderConfigMap, InternalIdentityProviderConfig>
-    implements InitializingBean {
+    extends AbstractSingleProviderIdentityAuthority<InternalIdentityProvider, InternalUserIdentity, InternalIdentityProviderConfig, InternalIdentityProviderConfigMap> {
 
     public static final String AUTHORITY_URL = "/auth/internal/";
 

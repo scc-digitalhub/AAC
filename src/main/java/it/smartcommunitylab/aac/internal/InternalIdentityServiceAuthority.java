@@ -17,7 +17,9 @@
 package it.smartcommunitylab.aac.internal;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
 import it.smartcommunitylab.aac.base.authorities.AbstractProviderAuthority;
+import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.TranslatorProviderConfigRepository;
@@ -38,7 +40,7 @@ import org.springframework.util.Assert;
 
 @Service
 public class InternalIdentityServiceAuthority
-    extends AbstractProviderAuthority<InternalIdentityService, InternalUserIdentity, ConfigurableIdentityService, InternalIdentityProviderConfigMap, InternalIdentityServiceConfig>
+    extends AbstractProviderAuthority<InternalIdentityService, InternalIdentityServiceConfig>
     implements
         IdentityServiceAuthority<InternalIdentityService, InternalUserIdentity, InternalUserAccount, InternalEditableUserAccount, InternalIdentityProviderConfigMap, InternalIdentityServiceConfig> {
 
@@ -67,10 +69,10 @@ public class InternalIdentityServiceAuthority
         this.userEntityService = userEntityService;
     }
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_IDENTITY;
-    }
+    // @Override
+    // public String getType() {
+    //     return SystemKeys.RESOURCE_IDENTITY;
+    // }
 
     protected InternalIdentityService buildProvider(InternalIdentityServiceConfig config) {
         InternalIdentityService idp = new InternalIdentityService(
@@ -109,8 +111,21 @@ public class InternalIdentityServiceAuthority
 
                 // we share the same configMap
                 config.setConfigMap(source.getConfigMap());
+                config.setVersion(source.getVersion());
+
+                //build new settingsMap
+                AccountServiceSettingsMap settingsMap = new AccountServiceSettingsMap();
+                settingsMap.setPersistence(source.getPersistence());
+                settingsMap.setRepositoryId(source.getRepositoryId());
+                config.setSettingsMap(settingsMap);
+
                 return config;
             });
         }
+    }
+
+    @Override
+    public ConfigurationProvider<InternalIdentityServiceConfig, ConfigurableIdentityService, AccountServiceSettingsMap, InternalIdentityProviderConfigMap> getConfigurationProvider() {
+        return null;
     }
 }
