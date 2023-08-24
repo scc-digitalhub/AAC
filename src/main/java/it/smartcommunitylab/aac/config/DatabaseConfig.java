@@ -137,14 +137,14 @@ public class DatabaseConfig {
         bean.setJpaDialect(new IsolationSupportHibernateJpaDialect());
 
         Properties props = new Properties();
-        if (StringUtils.hasText(env.getProperty("JDBC_PLATFORM"))) {
+        props.setProperty("hibernate.hbm2ddl.auto", "update");
+
+        if (StringUtils.hasText(env.getProperty("jdbc.platform"))) {
             props.setProperty("hibernate.hbm2ddl.auto", "validate");
             props.setProperty("hibernate.ddl-auto", "validate");
-        } else {
-            props.setProperty("hibernate.hbm2ddl.auto", "update");
         }
 
-        // Create Schema.
+        // Create Schema (only for generation of sql schema).
         //        props.setProperty("javax.persistence.schema-generation.scripts.action", "create");
         //        props.setProperty("javax.persistence.schema-generation.scripts.create-target", "src/main/resources/db/sql/schema-h2.sql");
         //        props.setProperty("javax.persistence.schema-generation.create-source", "metadata");

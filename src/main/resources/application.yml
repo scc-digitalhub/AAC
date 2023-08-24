@@ -29,6 +29,7 @@ jdbc:
    user: ${JDBC_USER:ac}
    password: ${JDBC_PASS:ac}
    show-sql: false
+   platform: ${JDBC_PLATFORM:}
    
 persistence:
    repository:

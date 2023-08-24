@@ -121,7 +121,7 @@ public class AutoJDBCProviderConfigRepository<U extends AbstractProviderConfig<?
     }
 
     protected void initSchema() {
-        //        jdbcTemplate.execute(createTableSql);
+        jdbcTemplate.execute(createTableSql);
     }
 
     public void clear() {

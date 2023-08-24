@@ -16,24 +16,22 @@
 package it.smartcommunitylab.aac.config;
 
 import java.util.Properties;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.PropertiesPropertySource;
+import org.springframework.util.StringUtils;
 
-public class DatabasePropertiesListener implements ApplicationListener<ApplicationEnvironmentPreparedEvent> {
+public class OverridePropertiesListener implements ApplicationListener<ApplicationEnvironmentPreparedEvent> {
 
     public void onApplicationEvent(ApplicationEnvironmentPreparedEvent event) {
         ConfigurableEnvironment environment = event.getEnvironment();
         Properties props = new Properties();
-        if (StringUtils.isNotEmpty(environment.getProperty("JDBC_PLATFORM"))) {
-            props.put("sql.init.platform", environment.getProperty("JDBC_PLATFORM"));
-            props.put(
-                "spring.sql.init.schema-locations",
-                "classpath:db/sql/schema-" + environment.getProperty("JDBC_PLATFORM") + ".sql"
-            );
-            environment.getPropertySources().addFirst(new PropertiesPropertySource("myProps", props));
+        String jdbcPlatform = environment.getProperty("jdbc.platform");
+        if (StringUtils.hasText(jdbcPlatform)) {
+            props.put("sql.init.platform", jdbcPlatform);
+            props.put("spring.sql.init.schema-locations", "classpath:db/sql/schema-" + jdbcPlatform + ".sql");
+            environment.getPropertySources().addFirst(new PropertiesPropertySource("overrideProps", props));
         }
     }
 }
