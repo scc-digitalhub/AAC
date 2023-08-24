@@ -30,7 +30,6 @@ import it.smartcommunitylab.aac.repository.JsonSchemaIgnore;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import javax.persistence.Column;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 
@@ -77,19 +76,19 @@ public class InternalEditableUserPassword extends AbstractEditableUserCredential
 
     private String curPassword;
 
-    public InternalEditableUserPassword() {
-        super(SystemKeys.AUTHORITY_PASSWORD, null, null);
+    // public InternalEditableUserPassword() {
+    //     super(SystemKeys.AUTHORITY_PASSWORD, null, null);
+    // }
+
+    public InternalEditableUserPassword(String realm, String id) {
+        super(SystemKeys.AUTHORITY_PASSWORD, null, realm, id);
     }
 
-    public InternalEditableUserPassword(String provider, String uuid) {
-        super(SystemKeys.AUTHORITY_PASSWORD, provider, uuid);
-    }
-
-    public InternalEditableUserPassword(String provider, String realm, String userId, String uuid) {
-        super(SystemKeys.AUTHORITY_PASSWORD, provider, uuid);
-        setRealm(realm);
-        setUserId(userId);
-    }
+    // public InternalEditableUserPassword(String provider, String realm, String userId, String uuid) {
+    //     super(SystemKeys.AUTHORITY_PASSWORD, provider, uuid);
+    //     setRealm(realm);
+    //     setUserId(userId);
+    // }
 
     @Override
     public String getType() {

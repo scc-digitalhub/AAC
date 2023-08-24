@@ -104,6 +104,7 @@ public class PasswordCredentialsController {
         }
 
         String userId = identity.getUserId();
+        String realm = user.getRealm();
         UserAccount account = identity.getAccount();
 
         // fetch provider
@@ -111,7 +112,7 @@ public class PasswordCredentialsController {
 
         // for internal username is accountId
         String username = account.getAccountId();
-        InternalEditableUserPassword reg = new InternalEditableUserPassword();
+        InternalEditableUserPassword reg = new InternalEditableUserPassword(realm, null);
         reg.setUsername(username);
         //        reg.setPassword("");
         //        reg.setVerifyPassword(null);
@@ -137,7 +138,6 @@ public class PasswordCredentialsController {
         model.addAttribute("resetCode", resetCode);
 
         // load realm props
-        String realm = user.getRealm();
         model.addAttribute("realm", realm);
         model.addAttribute("displayName", realm);
 

@@ -35,7 +35,7 @@ import it.smartcommunitylab.aac.oauth.endpoint.UserApprovalEndpoint;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientService;
 import it.smartcommunitylab.aac.password.auth.InternalPasswordResetOnAccessFilter;
-import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
+import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordEntityRepository;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
 import it.smartcommunitylab.aac.tos.TosOnAccessFilter;
 import java.util.ArrayList;
@@ -89,7 +89,7 @@ public class OAuth2UserSecurityConfig {
     private IdentityProviderService idpProviderService;
 
     @Autowired
-    private InternalUserPasswordRepository passwordRepository;
+    private InternalUserPasswordEntityRepository passwordRepository;
 
     @Autowired
     private ProviderConfigRepository<PasswordIdentityProviderConfig> internalPasswordIdentityProviderConfigRepository;

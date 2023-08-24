@@ -26,9 +26,9 @@ import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.internal.auth.InternalAuthenticationException;
 import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
-import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
+import it.smartcommunitylab.aac.password.model.InternalUserPassword;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
-import it.smartcommunitylab.aac.password.service.InternalPasswordUserCredentialsService;
+import it.smartcommunitylab.aac.password.service.InternalPasswordJpaUserCredentialsService;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -74,11 +74,11 @@ public class ResetKeyAuthenticationFilter extends AbstractAuthenticationProcessi
 
     // TODO remove services and build resetPassword action url after auth success
     private final UserAccountService<InternalUserAccount> userAccountService;
-    private final InternalPasswordUserCredentialsService userPasswordService;
+    private final InternalPasswordJpaUserCredentialsService userPasswordService;
 
     public ResetKeyAuthenticationFilter(
         UserAccountService<InternalUserAccount> userAccountService,
-        InternalPasswordUserCredentialsService userPasswordService,
+        InternalPasswordJpaUserCredentialsService userPasswordService,
         ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository
     ) {
         this(userAccountService, userPasswordService, registrationRepository, DEFAULT_FILTER_URI, null);
@@ -86,7 +86,7 @@ public class ResetKeyAuthenticationFilter extends AbstractAuthenticationProcessi
 
     public ResetKeyAuthenticationFilter(
         UserAccountService<InternalUserAccount> userAccountService,
-        InternalPasswordUserCredentialsService userPasswordService,
+        InternalPasswordJpaUserCredentialsService userPasswordService,
         ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository,
         String filterProcessingUrl,
         AuthenticationEntryPoint authenticationEntryPoint

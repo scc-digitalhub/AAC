@@ -23,7 +23,7 @@ import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.crypto.InternalPasswordEncoder;
 import it.smartcommunitylab.aac.password.auth.InternalPasswordResetOnAccessFilter;
-import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
+import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordEntityRepository;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
 import it.smartcommunitylab.aac.tos.TosOnAccessFilter;
 import java.util.ArrayList;
@@ -74,7 +74,7 @@ public class SecurityConfig {
     private RealmAwarePathUriBuilder realmUriBuilder;
 
     @Autowired
-    private InternalUserPasswordRepository passwordRepository;
+    private InternalUserPasswordEntityRepository passwordRepository;
 
     @Autowired
     private ProviderConfigRepository<PasswordIdentityProviderConfig> internalPasswordIdentityProviderConfigRepository;

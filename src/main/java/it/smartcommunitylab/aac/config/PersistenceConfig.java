@@ -50,9 +50,9 @@ import it.smartcommunitylab.aac.oidc.model.OIDCUserAccount;
 import it.smartcommunitylab.aac.oidc.persistence.OIDCUserAccountEntityRepository;
 import it.smartcommunitylab.aac.oidc.provider.OIDCIdentityProviderConfig;
 import it.smartcommunitylab.aac.oidc.service.OIDCJpaUserAccountService;
-import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
+import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordEntityRepository;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
-import it.smartcommunitylab.aac.password.service.InternalPasswordUserCredentialsService;
+import it.smartcommunitylab.aac.password.service.InternalPasswordJpaUserCredentialsService;
 import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountEntityRepository;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
@@ -64,7 +64,7 @@ import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredentialsEnti
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsServiceConfig;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnConfigTranslatorRepository;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserCredentialsService;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnJpaUserCredentialsService;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collection;
@@ -259,17 +259,17 @@ public class PersistenceConfig {
     }
 
     @Bean
-    public InternalPasswordUserCredentialsService internalUserPasswordService(
-        InternalUserPasswordRepository passwordRepository
+    public InternalPasswordJpaUserCredentialsService internalUserPasswordService(
+        InternalUserPasswordEntityRepository passwordRepository
     ) {
-        return new InternalPasswordUserCredentialsService(passwordRepository);
+        return new InternalPasswordJpaUserCredentialsService(passwordRepository);
     }
 
     @Bean
-    public WebAuthnUserCredentialsService webAuthnCredentialsService(
+    public WebAuthnJpaUserCredentialsService webAuthnCredentialsService(
         WebAuthnUserCredentialsEntityRepository credentialsRepository
     ) {
-        return new WebAuthnUserCredentialsService(credentialsRepository);
+        return new WebAuthnJpaUserCredentialsService(credentialsRepository);
     }
 
     @Bean

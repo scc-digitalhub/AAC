@@ -47,7 +47,7 @@ public class PasswordTemplateProvider
             PasswordChangeTemplate.TEMPLATE,
             () -> {
                 TemplateModel m = new PasswordChangeTemplate(realm);
-                m.setModelAttribute("reg", new InternalEditableUserPassword());
+                m.setModelAttribute("reg", new InternalEditableUserPassword(getRealm(), null));
                 m.setModelAttribute("policy", new PasswordPolicy());
                 return m;
             }

@@ -42,7 +42,7 @@ import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationRequest;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationStartRequest;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserCredential;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnRegistrationRpService;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserCredentialsService;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnJpaUserCredentialsService;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserHandleService;
 import java.io.IOException;
 import java.util.Collection;
@@ -64,14 +64,14 @@ public class WebAuthnCredentialsService
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // services
-    private final WebAuthnUserCredentialsService credentialService;
+    private final WebAuthnJpaUserCredentialsService credentialService;
     private final WebAuthnUserHandleService userHandleService;
     private final WebAuthnRegistrationRpService rpService;
 
     public WebAuthnCredentialsService(
         String providerId,
         UserAccountService<InternalUserAccount> userAccountService,
-        WebAuthnUserCredentialsService credentialsService,
+        WebAuthnJpaUserCredentialsService credentialsService,
         WebAuthnRegistrationRpService rpService,
         WebAuthnCredentialsServiceConfig providerConfig,
         String realm

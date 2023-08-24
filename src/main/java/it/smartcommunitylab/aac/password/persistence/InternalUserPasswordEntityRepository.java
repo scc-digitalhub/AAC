@@ -20,19 +20,25 @@ import it.smartcommunitylab.aac.repository.CustomJpaRepository;
 import it.smartcommunitylab.aac.repository.DetachableJpaRepository;
 import java.util.List;
 
-public interface InternalUserPasswordRepository
-    extends CustomJpaRepository<InternalUserPassword, String>, DetachableJpaRepository<InternalUserPassword> {
-    List<InternalUserPassword> findByRealm(String realm);
+public interface InternalUserPasswordEntityRepository
+    extends
+        CustomJpaRepository<InternalUserPasswordEntity, String>, DetachableJpaRepository<InternalUserPasswordEntity> {
+    List<InternalUserPasswordEntity> findByRepositoryId(String repositoryId);
 
-    List<InternalUserPassword> findByRepositoryIdAndUserId(String repositoryId, String userId);
+    List<InternalUserPasswordEntity> findByRealm(String realm);
 
-    InternalUserPassword findByRepositoryIdAndUsernameAndStatusOrderByCreateDateDesc(
+    List<InternalUserPasswordEntity> findByRepositoryIdAndUserId(String repositoryId, String userId);
+
+    InternalUserPasswordEntity findByRepositoryIdAndUsernameAndStatusOrderByCreateDateDesc(
         String repositoryId,
         String username,
         String status
     );
 
-    InternalUserPassword findByRepositoryIdAndResetKey(String repositoryId, String key);
+    InternalUserPasswordEntity findByRepositoryIdAndResetKey(String repositoryId, String key);
 
-    List<InternalUserPassword> findByRepositoryIdAndUsernameOrderByCreateDateDesc(String repositoryId, String username);
+    List<InternalUserPasswordEntity> findByRepositoryIdAndUsernameOrderByCreateDateDesc(
+        String repositoryId,
+        String username
+    );
 }

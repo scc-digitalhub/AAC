@@ -29,7 +29,7 @@ import it.smartcommunitylab.aac.password.provider.PasswordIdentityConfigurationP
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProvider;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfigMap;
-import it.smartcommunitylab.aac.password.service.InternalPasswordUserCredentialsService;
+import it.smartcommunitylab.aac.password.service.InternalPasswordJpaUserCredentialsService;
 import it.smartcommunitylab.aac.utils.MailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,7 +37,7 @@ import org.springframework.util.Assert;
 
 @Service
 public class PasswordIdentityAuthority
-    extends AbstractIdentityProviderAuthority<PasswordIdentityProvider, InternalUserIdentity, PasswordIdentityProviderConfigMap, PasswordIdentityProviderConfig> {
+    extends AbstractIdentityProviderAuthority<PasswordIdentityProvider, InternalUserIdentity, PasswordIdentityProviderConfig, PasswordIdentityProviderConfigMap> {
 
     public static final String AUTHORITY_URL = "/auth/password/";
 
@@ -45,7 +45,7 @@ public class PasswordIdentityAuthority
     private final UserAccountService<InternalUserAccount> accountService;
 
     // password service
-    private final InternalPasswordUserCredentialsService passwordService;
+    private final InternalPasswordJpaUserCredentialsService passwordService;
 
     // filter provider
     private final PasswordFilterProvider filterProvider;
@@ -57,7 +57,7 @@ public class PasswordIdentityAuthority
 
     public PasswordIdentityAuthority(
         UserAccountService<InternalUserAccount> userAccountService,
-        InternalPasswordUserCredentialsService passwordService,
+        InternalPasswordJpaUserCredentialsService passwordService,
         ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository
     ) {
         super(SystemKeys.AUTHORITY_PASSWORD, registrationRepository);

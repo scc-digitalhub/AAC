@@ -557,7 +557,7 @@ public class UserService {
             .getAuthorities()
             .stream()
             .flatMap(a -> a.getProvidersByRealm(realm).stream())
-            .forEach(s -> s.deleteCredentialsByUser(subjectId));
+            .forEach(s -> s.deleteCredentials(subjectId));
 
         // delete attributes via (active) providers
         attributeProviderAuthorityService
@@ -635,7 +635,7 @@ public class UserService {
         }
 
         // fetch active
-        AttributeProvider<?, ?> ap = attributeProviderAuthorityService
+        AttributeProvider<?, ?, ?> ap = attributeProviderAuthorityService
             .getAuthority(cap.getAuthority())
             .getProvider(cap.getProvider());
 
@@ -657,7 +657,7 @@ public class UserService {
         }
 
         // fetch active
-        AttributeProvider<?, ?> ap = attributeProviderAuthorityService
+        AttributeProvider<?, ?, ?> ap = attributeProviderAuthorityService
             .getAuthority(cap.getAuthority())
             .getProvider(cap.getProvider());
 
@@ -680,9 +680,10 @@ public class UserService {
             throw new IllegalArgumentException("realm mismatch");
         }
 
-        if (!cap.getAttributeSets().contains(setId)) {
-            throw new IllegalArgumentException("set not enabled for this provider");
-        }
+        //DISABLED, enable removal even for not registered sets
+        // if (!cap.getAttributeSets().contains(setId)) {
+        //     throw new IllegalArgumentException("set not enabled for this provider");
+        // }
 
         // supports only internal
         // TODO refactor
@@ -698,12 +699,13 @@ public class UserService {
             throw new IllegalArgumentException("realm mismatch");
         }
 
-        if (!cap.getAttributeSets().contains(setId)) {
-            throw new IllegalArgumentException("set not enabled for this provider");
-        }
+        //DISABLED, enable removal even for not registered sets
+        // if (!cap.getAttributeSets().contains(setId)) {
+        //     throw new IllegalArgumentException("set not enabled for this provider");
+        // }
 
         // fetch active
-        AttributeProvider<?, ?> ap = attributeProviderAuthorityService
+        AttributeProvider<?, ?, ?> ap = attributeProviderAuthorityService
             .getAuthority(cap.getAuthority())
             .getProvider(cap.getProvider());
 
@@ -752,12 +754,12 @@ public class UserService {
     public Collection<UserAttributes> fetchUserAttributes(String subjectId, String realm) throws NoSuchUserException {
         List<UserAttributes> attributes = new ArrayList<>();
         // fetch from providers
-        Collection<AttributeProvider<?, ?>> aps = attributeProviderAuthorityService
+        Collection<AttributeProvider<?, ?, ?>> aps = attributeProviderAuthorityService
             .getAuthorities()
             .stream()
             .flatMap(a -> a.getProvidersByRealm(realm).stream())
             .collect(Collectors.toList());
-        for (AttributeProvider<?, ?> ap : aps) {
+        for (AttributeProvider<?, ?, ?> ap : aps) {
             attributes.addAll(ap.getUserAttributes(subjectId));
         }
 

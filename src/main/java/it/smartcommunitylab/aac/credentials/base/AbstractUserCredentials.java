@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import it.smartcommunitylab.aac.base.model.AbstractBaseUserResource;
 import it.smartcommunitylab.aac.credentials.model.UserCredentials;
-import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
+import it.smartcommunitylab.aac.password.model.InternalUserPassword;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserCredential;
 
 /*

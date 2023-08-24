@@ -38,7 +38,6 @@ public class WebAuthnCredentialsConfigurationProvider
             authoritiesProperties.getWebauthn() != null
         ) {
             setDefaultSettingsMap(authoritiesProperties.getSettings());
-
             setDefaultConfigMap(authoritiesProperties.getWebauthn());
         } else {
             setDefaultConfigMap(new WebAuthnIdentityProviderConfigMap());

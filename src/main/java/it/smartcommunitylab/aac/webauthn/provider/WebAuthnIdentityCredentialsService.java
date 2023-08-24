@@ -27,7 +27,7 @@ import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
 import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserCredential;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserCredentialsService;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnJpaUserCredentialsService;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserHandleService;
 import java.util.Date;
 import org.slf4j.Logger;
@@ -43,7 +43,7 @@ public class WebAuthnIdentityCredentialsService extends AbstractProvider<WebAuth
     private static final String STATUS_ACTIVE = CredentialsStatus.ACTIVE.getValue();
 
     private final UserAccountService<InternalUserAccount> accountService;
-    private final WebAuthnUserCredentialsService credentialsService;
+    private final WebAuthnJpaUserCredentialsService credentialsService;
     private final WebAuthnUserHandleService userHandleService;
 
     private final WebAuthnIdentityProviderConfig config;
@@ -54,7 +54,7 @@ public class WebAuthnIdentityCredentialsService extends AbstractProvider<WebAuth
     public WebAuthnIdentityCredentialsService(
         String providerId,
         UserAccountService<InternalUserAccount> accountService,
-        WebAuthnUserCredentialsService credentialsService,
+        WebAuthnJpaUserCredentialsService credentialsService,
         WebAuthnIdentityProviderConfig config,
         String realm
     ) {

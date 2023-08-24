@@ -39,13 +39,13 @@ import org.springframework.util.Assert;
  * We enforce detach on fetch to keep internal datasource isolated.
  */
 @Transactional
-public class WebAuthnUserCredentialsService implements UserCredentialsService<WebAuthnUserCredential> {
+public class WebAuthnJpaUserCredentialsService implements UserCredentialsService<WebAuthnUserCredential> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final WebAuthnUserCredentialsEntityRepository credentialRepository;
 
-    public WebAuthnUserCredentialsService(WebAuthnUserCredentialsEntityRepository credentialRepository) {
+    public WebAuthnJpaUserCredentialsService(WebAuthnUserCredentialsEntityRepository credentialRepository) {
         Assert.notNull(credentialRepository, "credential repository is mandatory");
         this.credentialRepository = credentialRepository;
     }

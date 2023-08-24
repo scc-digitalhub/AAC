@@ -31,8 +31,8 @@ import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
 import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.oauth.common.SecureStringKeyGenerator;
 import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
-import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
-import it.smartcommunitylab.aac.password.service.InternalPasswordUserCredentialsService;
+import it.smartcommunitylab.aac.password.model.InternalUserPassword;
+import it.smartcommunitylab.aac.password.service.InternalPasswordJpaUserCredentialsService;
 import it.smartcommunitylab.aac.utils.MailService;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
@@ -58,7 +58,7 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
     private static final String STATUS_ACTIVE = CredentialsStatus.ACTIVE.getValue();
     private static final String STATUS_INACTIVE = CredentialsStatus.INACTIVE.getValue();
 
-    private final InternalPasswordUserCredentialsService passwordService;
+    private final InternalPasswordJpaUserCredentialsService passwordService;
     private final UserAccountService<InternalUserAccount> accountService;
 
     private final PasswordIdentityProviderConfig config;
@@ -74,7 +74,7 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
     public PasswordIdentityCredentialsService(
         String providerId,
         UserAccountService<InternalUserAccount> accountService,
-        InternalPasswordUserCredentialsService passwordService,
+        InternalPasswordJpaUserCredentialsService passwordService,
         PasswordIdentityProviderConfig config,
         String realm
     ) {
@@ -118,33 +118,33 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
         this.resourceService = resourceService;
     }
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_CREDENTIALS;
-    }
+    // @Override
+    // public String getType() {
+    //     return SystemKeys.RESOURCE_CREDENTIALS;
+    // }
 
-    @Transactional(readOnly = true)
-    public List<InternalUserPassword> findPassword(String username) throws NoSuchUserException {
-        InternalUserAccount account = accountService.findAccountById(repositoryId, username);
-        if (account == null) {
-            throw new NoSuchUserException();
-        }
+    // @Transactional(readOnly = true)
+    // public List<InternalUserPassword> findPassword(String username) throws NoSuchUserException {
+    //     InternalUserAccount account = accountService.findAccountById(repositoryId, username);
+    //     if (account == null) {
+    //         throw new NoSuchUserException();
+    //     }
 
-        // fetch all active passwords
-        return passwordService
-            .findCredentialsByAccount(repositoryId, username)
-            .stream()
-            .filter(c -> STATUS_ACTIVE.equals(c.getStatus()))
-            .map(p -> {
-                // map to ourselves
-                p.setProvider(getProvider());
+    //     // fetch all active passwords
+    //     return passwordService
+    //         .findCredentialsByAccount(repositoryId, username)
+    //         .stream()
+    //         .filter(c -> STATUS_ACTIVE.equals(c.getStatus()))
+    //         .map(p -> {
+    //             // map to ourselves
+    //             p.setProvider(getProvider());
 
-                // password are encrypted, but clear value for extra safety
-                p.eraseCredentials();
-                return p;
-            })
-            .collect(Collectors.toList());
-    }
+    //             // password are encrypted, but clear value for extra safety
+    //             p.eraseCredentials();
+    //             return p;
+    //         })
+    //         .collect(Collectors.toList());
+    // }
 
     public boolean verifyPassword(String username, String password) throws NoSuchUserException {
         InternalUserAccount account = accountService.findAccountById(repositoryId, username);
@@ -152,9 +152,11 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
             throw new NoSuchUserException();
         }
 
-        // fetch ALL active + non expired credentials
+        // fetch ALL active + non expired credentials from same user
+        //NOTE: username in password should be dropped
+        String userId = account.getUserId();
         List<InternalUserPassword> credentials = passwordService
-            .findCredentialsByAccount(repositoryId, username)
+            .findCredentialsByUser(repositoryId, userId)
             .stream()
             .filter(c -> STATUS_ACTIVE.equals(c.getStatus()) && !c.isExpired())
             .collect(Collectors.toList());
@@ -171,15 +173,18 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
             });
     }
 
+    //TODO remove from here! credentials management should go via credentials services
     public InternalUserPassword resetPassword(String username) throws NoSuchUserException {
         InternalUserAccount account = accountService.findAccountById(repositoryId, username);
         if (account == null) {
             throw new NoSuchUserException();
         }
         try {
-            // fetch first active password
+            // fetch first active password from same user
+            //NOTE: username in password should be dropped
+            String userId = account.getUserId();
             InternalUserPassword pass = passwordService
-                .findCredentialsByAccount(repositoryId, username)
+                .findCredentialsByUser(repositoryId, userId)
                 .stream()
                 .filter(c -> STATUS_ACTIVE.equals(c.getStatus()))
                 .findFirst()
@@ -192,13 +197,13 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
                 String hash = hasher.createHash(value);
 
                 // create password already hashed
-                InternalUserPassword newPassword = new InternalUserPassword();
-                newPassword.setId(UUID.randomUUID().toString());
-                newPassword.setProvider(repositoryId);
+                String id = UUID.randomUUID().toString();
+                InternalUserPassword newPassword = new InternalUserPassword(getRealm(), id);
+                newPassword.setRepositoryId(repositoryId);
+                newPassword.setProvider(getProvider());
 
                 newPassword.setUsername(username);
-                newPassword.setUserId(account.getUserId());
-                newPassword.setRealm(account.getRealm());
+                newPassword.setUserId(userId);
 
                 newPassword.setPassword(hash);
                 newPassword.setChangeOnFirstAccess(true);
@@ -213,7 +218,7 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
                         SystemKeys.RESOURCE_CREDENTIALS,
                         getAuthority(),
                         getProvider(),
-                        pass.getResourceId()
+                        pass.getId()
                     );
                 }
             }
@@ -381,12 +386,16 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
         return pass;
     }
 
-    public void deletePassword(String username) throws NoSuchUserException {
+    public void deletePassword(String userId, String username) throws NoSuchUserException {
         // TODO add locking for atomic operation
-        logger.debug("delete all passwords for account {}", String.valueOf(username));
+        logger.debug("delete all passwords for user {} username {}", String.valueOf(userId), String.valueOf(username));
 
         // fetch all to collect ids
-        List<InternalUserPassword> passwords = passwordService.findCredentialsByAccount(repositoryId, username);
+        List<InternalUserPassword> passwords = passwordService
+            .findCredentialsByUser(repositoryId, userId)
+            .stream()
+            .filter(p -> p.getUsername().equals(username))
+            .collect(Collectors.toList());
 
         // delete in batch
         Set<String> ids = passwords.stream().map(p -> p.getId()).collect(Collectors.toSet());

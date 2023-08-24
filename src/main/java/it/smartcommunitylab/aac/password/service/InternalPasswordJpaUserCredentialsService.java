@@ -21,8 +21,9 @@ import it.smartcommunitylab.aac.common.NoSuchCredentialException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.credentials.persistence.UserCredentialsService;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
-import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
-import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
+import it.smartcommunitylab.aac.password.model.InternalUserPassword;
+import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordEntity;
+import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordEntityRepository;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,15 +39,23 @@ import org.springframework.util.Assert;
  * We enforce detach on fetch to keep internal datasource isolated.
  */
 @Transactional
-public class InternalPasswordUserCredentialsService implements UserCredentialsService<InternalUserPassword> {
+public class InternalPasswordJpaUserCredentialsService implements UserCredentialsService<InternalUserPassword> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final InternalUserPasswordRepository passwordRepository;
+    private final InternalUserPasswordEntityRepository passwordRepository;
 
-    public InternalPasswordUserCredentialsService(InternalUserPasswordRepository passwordRepository) {
+    public InternalPasswordJpaUserCredentialsService(InternalUserPasswordEntityRepository passwordRepository) {
         Assert.notNull(passwordRepository, "password repository is mandatory");
         this.passwordRepository = passwordRepository;
+    }
+
+    @Override
+    public Collection<InternalUserPassword> findCredentials(@NotNull String repositoryId) {
+        logger.debug("find credentials for repository {}", String.valueOf(repositoryId));
+
+        List<InternalUserPasswordEntity> credentials = passwordRepository.findByRepositoryId(repositoryId);
+        return credentials.stream().map(a -> to(a)).collect(Collectors.toList());
     }
 
     @Override
@@ -54,13 +63,8 @@ public class InternalPasswordUserCredentialsService implements UserCredentialsSe
     public List<InternalUserPassword> findCredentialsByRealm(@NotNull String realm) {
         logger.debug("find credentials for realm {}", String.valueOf(realm));
 
-        List<InternalUserPassword> passwords = passwordRepository.findByRealm(realm);
-        return passwords
-            .stream()
-            .map(a -> {
-                return passwordRepository.detach(a);
-            })
-            .collect(Collectors.toList());
+        List<InternalUserPasswordEntity> passwords = passwordRepository.findByRealm(realm);
+        return passwords.stream().map(a -> to(a)).collect(Collectors.toList());
     }
 
     @Override
@@ -68,14 +72,14 @@ public class InternalPasswordUserCredentialsService implements UserCredentialsSe
     public InternalUserPassword findCredentialsById(@NotNull String repository, @NotNull String id) {
         logger.debug("find credentials with id {} in repository {}", String.valueOf(id), String.valueOf(repository));
 
-        InternalUserPassword password = passwordRepository.findOne(id);
+        InternalUserPasswordEntity password = passwordRepository.findOne(id);
         if (password == null) {
             return null;
         }
 
         // detach the entity, we don't want modifications to be persisted via a
         // read-only interface
-        return passwordRepository.detach(password);
+        return to(password);
     }
 
     @Transactional(readOnly = true)
@@ -86,14 +90,14 @@ public class InternalPasswordUserCredentialsService implements UserCredentialsSe
             String.valueOf(repository)
         );
 
-        InternalUserPassword password = passwordRepository.findByRepositoryIdAndResetKey(repository, key);
+        InternalUserPasswordEntity password = passwordRepository.findByRepositoryIdAndResetKey(repository, key);
         if (password == null) {
             return null;
         }
 
         // detach the entity, we don't want modifications to be persisted via a
         // read-only interface
-        return passwordRepository.detach(password);
+        return to(password);
     }
 
     @Override
@@ -102,36 +106,34 @@ public class InternalPasswordUserCredentialsService implements UserCredentialsSe
         logger.debug("find credentials with uuid {}", String.valueOf(uuid));
 
         // uuid is id
-        InternalUserPassword password = passwordRepository.findOne(uuid);
+        InternalUserPasswordEntity password = passwordRepository.findOne(uuid);
         if (password == null) {
             return null;
         }
 
         // detach the entity, we don't want modifications to be persisted via a
         // read-only interface
-        return passwordRepository.detach(password);
+        return to(password);
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<InternalUserPassword> findCredentialsByAccount(@NotNull String repository, @NotNull String accountId) {
-        logger.debug(
-            "find credentials for account {} in repository {}",
-            String.valueOf(accountId),
-            String.valueOf(repository)
-        );
+    // @Override
+    // @Transactional(readOnly = true)
+    // public List<InternalUserPassword> findCredentialsByAccount(@NotNull String repository, @NotNull String accountId) {
+    //     logger.debug(
+    //         "find credentials for account {} in repository {}",
+    //         String.valueOf(accountId),
+    //         String.valueOf(repository)
+    //     );
 
-        List<InternalUserPassword> passwords = passwordRepository.findByRepositoryIdAndUsernameOrderByCreateDateDesc(
-            repository,
-            accountId
-        );
-        return passwords
-            .stream()
-            .map(a -> {
-                return passwordRepository.detach(a);
-            })
-            .collect(Collectors.toList());
-    }
+    //     List<InternalUserPasswordEntity> passwords =
+    //         passwordRepository.findByRepositoryIdAndUsernameOrderByCreateDateDesc(repository, accountId);
+    //     return passwords
+    //         .stream()
+    //         .map(a -> {
+    //             return passwordRepository.detach(a);
+    //         })
+    //         .collect(Collectors.toList());
+    // }
 
     @Override
     @Transactional(readOnly = true)
@@ -142,13 +144,8 @@ public class InternalPasswordUserCredentialsService implements UserCredentialsSe
             String.valueOf(repository)
         );
 
-        List<InternalUserPassword> passwords = passwordRepository.findByRepositoryIdAndUserId(repository, userId);
-        return passwords
-            .stream()
-            .map(a -> {
-                return passwordRepository.detach(a);
-            })
-            .collect(Collectors.toList());
+        List<InternalUserPasswordEntity> passwords = passwordRepository.findByRepositoryIdAndUserId(repository, userId);
+        return passwords.stream().map(a -> to(a)).collect(Collectors.toList());
     }
 
     @Override
@@ -169,13 +166,13 @@ public class InternalPasswordUserCredentialsService implements UserCredentialsSe
 
         try {
             // check if already registered
-            InternalUserPassword password = passwordRepository.findOne(id);
+            InternalUserPasswordEntity password = passwordRepository.findOne(id);
             if (password != null) {
                 throw new DuplicatedDataException("id");
             }
 
             // create password already hashed
-            password = new InternalUserPassword();
+            password = new InternalUserPasswordEntity();
             password.setId(id);
             password.setRepositoryId(repository);
 
@@ -196,17 +193,16 @@ public class InternalPasswordUserCredentialsService implements UserCredentialsSe
             // note: use flush because we detach the entity!
             password = passwordRepository.saveAndFlush(password);
 
-            // password are encrypted, return as is
-            password = passwordRepository.detach(password);
-
-            password.setAuthority(reg.getAuthority());
-            password.setProvider(reg.getProvider());
-
             if (logger.isTraceEnabled()) {
                 logger.trace("password: {}", String.valueOf(password));
             }
 
-            return password;
+            // password are encrypted, return as is
+            InternalUserPassword p = to(password);
+            p.setAuthority(reg.getAuthority());
+            p.setProvider(reg.getProvider());
+
+            return p;
         } catch (Exception e) {
             throw new RegistrationException(e.getMessage());
         }
@@ -227,7 +223,7 @@ public class InternalPasswordUserCredentialsService implements UserCredentialsSe
         if (logger.isTraceEnabled()) {
             logger.trace("registration: {}", String.valueOf(reg));
         }
-        InternalUserPassword password = passwordRepository.findOne(id);
+        InternalUserPasswordEntity password = passwordRepository.findOne(id);
         if (password == null) {
             throw new NoSuchCredentialException();
         }
@@ -250,17 +246,15 @@ public class InternalPasswordUserCredentialsService implements UserCredentialsSe
             // note: use flush because we detach the entity!
             password = passwordRepository.saveAndFlush(password);
 
-            // password are encrypted, return as is
-            password = passwordRepository.detach(password);
-
             if (logger.isTraceEnabled()) {
                 logger.trace("password: {}", String.valueOf(password));
             }
+            // password are encrypted, return as is
+            InternalUserPassword p = to(password);
+            p.setAuthority(reg.getAuthority());
+            p.setProvider(reg.getProvider());
 
-            password.setAuthority(reg.getAuthority());
-            password.setProvider(reg.getProvider());
-
-            return password;
+            return p;
         } catch (Exception e) {
             throw new RegistrationException(e.getMessage());
         }
@@ -268,7 +262,7 @@ public class InternalPasswordUserCredentialsService implements UserCredentialsSe
 
     @Override
     public void deleteCredentials(@NotNull String repository, @NotNull String id) {
-        InternalUserPassword password = passwordRepository.findOne(id);
+        InternalUserPasswordEntity password = passwordRepository.findOne(id);
         if (password != null) {
             logger.debug("delete password with id {} repository {}", String.valueOf(id), String.valueOf(repository));
             passwordRepository.delete(password);
@@ -289,22 +283,31 @@ public class InternalPasswordUserCredentialsService implements UserCredentialsSe
             String.valueOf(repository)
         );
 
-        List<InternalUserPassword> passwords = passwordRepository.findByRepositoryIdAndUserId(repository, userId);
+        List<InternalUserPasswordEntity> passwords = passwordRepository.findByRepositoryIdAndUserId(repository, userId);
         passwordRepository.deleteAllInBatch(passwords);
     }
 
-    @Override
-    public void deleteAllCredentialsByAccount(@NotNull String repository, @NotNull String accountId) {
-        logger.debug(
-            "delete credentials for account {} in repository {}",
-            String.valueOf(accountId),
-            String.valueOf(repository)
-        );
+    /*
+     * Helpers
+     * TODO converters?
+     */
 
-        List<InternalUserPassword> passwords = passwordRepository.findByRepositoryIdAndUsernameOrderByCreateDateDesc(
-            repository,
-            accountId
-        );
-        passwordRepository.deleteAllInBatch(passwords);
+    private InternalUserPassword to(InternalUserPasswordEntity e) {
+        InternalUserPassword c = new InternalUserPassword(e.getRealm(), e.getId());
+        c.setRepositoryId(e.getRepositoryId());
+        c.setUsername(e.getUsername());
+        c.setUserId(e.getUserId());
+
+        c.setPassword(e.getPassword());
+
+        c.setCreateDate(e.getCreateDate());
+        c.setExpirationDate(e.getExpirationDate());
+        c.setResetDeadline(e.getResetDeadline());
+        c.setResetKey(e.getResetKey());
+        c.setChangeOnFirstAccess(e.getChangeOnFirstAccess());
+
+        c.setStatus(e.getStatus());
+
+        return c;
     }
 }

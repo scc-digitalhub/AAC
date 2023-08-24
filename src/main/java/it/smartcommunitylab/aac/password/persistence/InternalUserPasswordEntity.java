@@ -16,11 +16,6 @@
 
 package it.smartcommunitylab.aac.password.persistence;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.credentials.base.AbstractUserCredentials;
-import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
 import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -39,12 +34,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
     uniqueConstraints = @UniqueConstraint(columnNames = { "repository_id", "reset_key" })
 )
 @EntityListeners(AuditingEntityListener.class)
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class InternalUserPassword extends AbstractUserCredentials {
-
-    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
-    public static final String RESOURCE_TYPE =
-        SystemKeys.RESOURCE_CREDENTIALS + SystemKeys.ID_SEPARATOR + SystemKeys.AUTHORITY_PASSWORD;
+public class InternalUserPasswordEntity {
 
     // unique uuid
     @Id
@@ -56,7 +46,7 @@ public class InternalUserPassword extends AbstractUserCredentials {
     @Column(name = "repository_id", length = 128)
     private String repositoryId;
 
-    // account id
+    // username (requires an account from the same repository for login)
     @NotBlank
     @Column(name = "username", length = 128)
     private String username;
@@ -96,96 +86,44 @@ public class InternalUserPassword extends AbstractUserCredentials {
     @Column(name = "created_date")
     private Date createDate;
 
-    public InternalUserPassword() {
-        super(SystemKeys.AUTHORITY_PASSWORD, null);
-    }
-
-    @Override
-    public String getType() {
-        return RESOURCE_TYPE;
-    }
-
-    public String getRepositoryId() {
-        return repositoryId;
-    }
-
-    @Override
     public String getId() {
         return id;
-    }
-
-    @Override
-    public String getUuid() {
-        return id;
-    }
-
-    @Override
-    public String getCredentialsId() {
-        return id;
-    }
-
-    @Override
-    public String getAccountId() {
-        return username;
-    }
-
-    @Override
-    public String getUserId() {
-        return userId;
-    }
-
-    @Override
-    @JsonIgnore
-    public String getCredentials() {
-        return password;
-    }
-
-    @Override
-    public boolean isActive() {
-        return CredentialsStatus.ACTIVE.getValue().equals(status);
-    }
-
-    public boolean isExpired() {
-        return expirationDate == null ? false : expirationDate.before(new Date());
-    }
-
-    @Override
-    public boolean isRevoked() {
-        return CredentialsStatus.REVOKED.getValue().equals(status);
-    }
-
-    public boolean isChangeOnFirstAccess() {
-        return changeOnFirstAccess != null ? changeOnFirstAccess.booleanValue() : false;
-    }
-
-    @Override
-    public String getStatus() {
-        return status;
-    }
-
-    @Override
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public String getUsername() {
-        return username;
     }
 
     public void setId(String id) {
         this.id = id;
     }
 
+    public String getRepositoryId() {
+        return repositoryId;
+    }
+
     public void setRepositoryId(String repositoryId) {
         this.repositoryId = repositoryId;
+    }
+
+    public String getUsername() {
+        return username;
     }
 
     public void setUsername(String username) {
         this.username = username;
     }
 
-    public void setAccountId(String username) {
-        this.username = username;
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public String getRealm() {
+        return realm;
+    }
+
+    public void setRealm(String realm) {
+        this.realm = realm;
     }
 
     public String getPassword() {
@@ -196,12 +134,12 @@ public class InternalUserPassword extends AbstractUserCredentials {
         this.password = password;
     }
 
-    public Date getCreateDate() {
-        return createDate;
+    public String getStatus() {
+        return status;
     }
 
-    public void setCreateDate(Date createDate) {
-        this.createDate = createDate;
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public Date getExpirationDate() {
@@ -236,22 +174,12 @@ public class InternalUserPassword extends AbstractUserCredentials {
         this.changeOnFirstAccess = changeOnFirstAccess;
     }
 
-    public String getRealm() {
-        return realm;
+    public Date getCreateDate() {
+        return createDate;
     }
 
-    public void setRealm(String realm) {
-        this.realm = realm;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    @Override
-    public void eraseCredentials() {
-        this.password = null;
-        this.resetKey = null;
+    public void setCreateDate(Date createDate) {
+        this.createDate = createDate;
     }
 
     @Override

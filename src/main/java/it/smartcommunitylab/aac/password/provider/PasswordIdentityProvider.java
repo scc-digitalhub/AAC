@@ -33,11 +33,9 @@ import it.smartcommunitylab.aac.internal.provider.InternalAttributeProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalSubjectResolver;
 import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.model.InternalPasswordUserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
-import it.smartcommunitylab.aac.password.service.InternalPasswordUserCredentialsService;
+import it.smartcommunitylab.aac.password.service.InternalPasswordJpaUserCredentialsService;
 import it.smartcommunitylab.aac.utils.MailService;
 import java.util.Collection;
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
@@ -60,7 +58,7 @@ public class PasswordIdentityProvider
     public PasswordIdentityProvider(
         String providerId,
         UserAccountService<InternalUserAccount> userAccountService,
-        InternalPasswordUserCredentialsService userPasswordService,
+        InternalPasswordJpaUserCredentialsService userPasswordService,
         PasswordIdentityProviderConfig config,
         String realm
     ) {
@@ -169,17 +167,17 @@ public class PasswordIdentityProvider
         );
         identity.setAttributes(attributes);
 
-        // if attributes then load credentials
-        if (attributes != null) {
-            try {
-                List<InternalUserPassword> passwords = passwordService.findPassword(account.getUsername());
-                passwords.forEach(p -> p.eraseCredentials());
-                identity.setCredentials(passwords);
-            } catch (NoSuchUserException e) {
-                // this should not happen
-                logger.error("no user for account {}", String.valueOf(account.getUsername()));
-            }
-        }
+        // // if attributes then load credentials
+        // if (attributes != null) {
+        //     try {
+        //         List<InternalUserPassword> passwords = passwordService.findPassword(account.getUsername());
+        //         passwords.forEach(p -> p.eraseCredentials());
+        //         identity.setCredentials(passwords);
+        //     } catch (NoSuchUserException e) {
+        //         // this should not happen
+        //         logger.error("no user for account {}", String.valueOf(account.getUsername()));
+        //     }
+        // }
 
         return identity;
     }
@@ -187,7 +185,7 @@ public class PasswordIdentityProvider
     @Override
     public void deleteIdentity(String userId, String username) throws NoSuchUserException {
         // remove all credentials
-        passwordService.deletePassword(username);
+        passwordService.deletePassword(userId, username);
         // do not remove account because we are NOT authoritative
     }
 

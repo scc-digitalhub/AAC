@@ -20,8 +20,8 @@ import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
-import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
-import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
+import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordEntity;
+import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordEntityRepository;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
 import java.io.IOException;
 import java.util.Arrays;
@@ -70,10 +70,11 @@ public class InternalPasswordResetOnAccessFilter extends OncePerRequestFilter {
     private boolean logoutAfterReset = true;
 
     private final ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository;
-    private final InternalUserPasswordRepository passwordRepository;
+    //TODO replace with proper service
+    private final InternalUserPasswordEntityRepository passwordRepository;
 
     public InternalPasswordResetOnAccessFilter(
-        InternalUserPasswordRepository passwordRepository,
+        InternalUserPasswordEntityRepository passwordRepository,
         ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository
     ) {
         Assert.notNull(passwordRepository, "password repository is mandatory");
@@ -153,11 +154,12 @@ public class InternalPasswordResetOnAccessFilter extends OncePerRequestFilter {
             // check if account has already set a password
             // we look for an active password created *after* this login
             long deadline = userAuth.getCreatedAt().getEpochSecond() * 1000;
-            InternalUserPassword pass = passwordRepository.findByRepositoryIdAndUsernameAndStatusOrderByCreateDateDesc(
-                repositoryId,
-                username,
-                "active"
-            );
+            InternalUserPasswordEntity pass =
+                passwordRepository.findByRepositoryIdAndUsernameAndStatusOrderByCreateDateDesc(
+                    repositoryId,
+                    username,
+                    "active"
+                );
             if (pass == null || pass.getCreateDate().getTime() < deadline) {
                 // require change because we still lack a valid password for post-reset login
                 targetUrl = "/changepwd/" + providerId + "/" + account.getUuid();

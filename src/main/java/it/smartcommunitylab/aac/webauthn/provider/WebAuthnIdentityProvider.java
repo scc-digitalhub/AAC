@@ -33,7 +33,7 @@ import it.smartcommunitylab.aac.internal.provider.InternalSubjectResolver;
 import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserCredential;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserCredentialsService;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnJpaUserCredentialsService;
 import java.util.Collection;
 import java.util.List;
 import org.slf4j.Logger;
@@ -58,7 +58,7 @@ public class WebAuthnIdentityProvider
     public WebAuthnIdentityProvider(
         String providerId,
         UserAccountService<InternalUserAccount> userAccountService,
-        WebAuthnUserCredentialsService userCredentialsService,
+        WebAuthnJpaUserCredentialsService userCredentialsService,
         WebAuthnIdentityProviderConfig config,
         String realm
     ) {

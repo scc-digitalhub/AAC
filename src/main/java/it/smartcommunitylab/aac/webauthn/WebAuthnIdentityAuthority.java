@@ -29,7 +29,7 @@ import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProvider;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnLoginRpService;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserCredentialsService;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnJpaUserCredentialsService;
 import it.smartcommunitylab.aac.webauthn.store.WebAuthnAssertionRequestStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -45,7 +45,7 @@ public class WebAuthnIdentityAuthority
     private final UserAccountService<InternalUserAccount> accountService;
 
     // key repository
-    private final WebAuthnUserCredentialsService credentialsService;
+    private final WebAuthnJpaUserCredentialsService credentialsService;
 
     // filter provider
     private final WebAuthnIdentityFilterProvider filterProvider;
@@ -55,7 +55,7 @@ public class WebAuthnIdentityAuthority
 
     public WebAuthnIdentityAuthority(
         UserAccountService<InternalUserAccount> userAccountService,
-        WebAuthnUserCredentialsService credentialsService,
+        WebAuthnJpaUserCredentialsService credentialsService,
         WebAuthnLoginRpService rpService,
         WebAuthnAssertionRequestStore requestStore,
         ProviderConfigRepository<WebAuthnIdentityProviderConfig> registrationRepository

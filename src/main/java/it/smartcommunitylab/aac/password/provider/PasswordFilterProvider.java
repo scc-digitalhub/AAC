@@ -24,7 +24,7 @@ import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.password.auth.ResetKeyAuthenticationFilter;
 import it.smartcommunitylab.aac.password.auth.UsernamePasswordAuthenticationFilter;
-import it.smartcommunitylab.aac.password.service.InternalPasswordUserCredentialsService;
+import it.smartcommunitylab.aac.password.service.InternalPasswordJpaUserCredentialsService;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -37,13 +37,13 @@ public class PasswordFilterProvider implements FilterProvider {
 
     private final ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository;
     private final UserAccountService<InternalUserAccount> userAccountService;
-    private final InternalPasswordUserCredentialsService userPasswordService;
+    private final InternalPasswordJpaUserCredentialsService userPasswordService;
 
     private AuthenticationManager authManager;
 
     public PasswordFilterProvider(
         UserAccountService<InternalUserAccount> userAccountService,
-        InternalPasswordUserCredentialsService userPasswordService,
+        InternalPasswordJpaUserCredentialsService userPasswordService,
         ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository
     ) {
         Assert.notNull(userAccountService, "account service is mandatory");

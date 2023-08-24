@@ -32,9 +32,9 @@ import it.smartcommunitylab.aac.crypto.PasswordHash;
 import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.password.PasswordCredentialsAuthority;
 import it.smartcommunitylab.aac.password.model.InternalEditableUserPassword;
+import it.smartcommunitylab.aac.password.model.InternalUserPassword;
 import it.smartcommunitylab.aac.password.model.PasswordPolicy;
-import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
-import it.smartcommunitylab.aac.password.service.InternalPasswordUserCredentialsService;
+import it.smartcommunitylab.aac.password.service.InternalPasswordJpaUserCredentialsService;
 import it.smartcommunitylab.aac.utils.MailService;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
@@ -45,6 +45,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.mail.MessagingException;
 import javax.validation.constraints.NotNull;
@@ -60,7 +61,7 @@ public class PasswordCredentialsService
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // services
-    private final InternalPasswordUserCredentialsService passwordService;
+    private final InternalPasswordJpaUserCredentialsService passwordService;
     private PasswordHash hasher;
     private MailService mailService;
     private RealmAwareUriBuilder uriBuilder;
@@ -68,7 +69,7 @@ public class PasswordCredentialsService
     public PasswordCredentialsService(
         String providerId,
         UserAccountService<InternalUserAccount> userAccountService,
-        InternalPasswordUserCredentialsService passwordService,
+        InternalPasswordJpaUserCredentialsService passwordService,
         PasswordCredentialsServiceConfig providerConfig,
         String realm
     ) {
@@ -107,9 +108,11 @@ public class PasswordCredentialsService
             logger.trace("verify password for account {}", String.valueOf(username));
         }
 
-        // fetch ALL active + non expired credentials
+        // fetch ALL active + non expired credentials from same user
+        //NOTE: username in password should be dropped
+        String userId = account.getUserId();
         List<InternalUserPassword> credentials = passwordService
-            .findCredentialsByAccount(repositoryId, username)
+            .findCredentialsByUser(repositoryId, userId)
             .stream()
             .filter(c -> STATUS_ACTIVE.equals(c.getStatus()) && !c.isExpired())
             .collect(Collectors.toList());
@@ -143,7 +146,8 @@ public class PasswordCredentialsService
 
         // invalidate all old active/inactive passwords up to keep number, delete others
         // note: we keep revoked passwords in DB
-        List<InternalUserPassword> oldPasswords = passwordService.findCredentialsByAccount(repositoryId, username);
+        String userId = account.getUserId();
+        List<InternalUserPassword> oldPasswords = passwordService.findCredentialsByUser(repositoryId, userId);
 
         // validate new password is NEW
         // TODO move to proper policy service when implemented
@@ -384,7 +388,7 @@ public class PasswordCredentialsService
         }
 
         // fetch user
-        String accountId = cred.getAccountId();
+        String accountId = cred.getUsername();
         InternalUserAccount account = accountService.findAccountById(repositoryId, accountId);
         if (account == null) {
             throw new NoSuchCredentialException();
@@ -428,20 +432,20 @@ public class PasswordCredentialsService
         return ed;
     }
 
-    @Override
-    public Collection<InternalEditableUserPassword> listEditableCredentials(String accountId) {
-        // TODO map MANY pass to ONE editable per user
-        // fetch ALL active
-        List<InternalUserPassword> credentials = passwordService
-            .findCredentialsByAccount(repositoryId, accountId)
-            .stream()
-            .filter(c -> STATUS_ACTIVE.equals(c.getStatus()))
-            .collect(Collectors.toList());
+    // // @Override
+    // public Collection<InternalEditableUserPassword> listEditableCredentials(String accountId) {
+    //     // TODO map MANY pass to ONE editable per user
+    //     // fetch ALL active
+    //     List<InternalUserPassword> credentials = passwordService
+    //         .findCredentialsByAccount(repositoryId, accountId)
+    //         .stream()
+    //         .filter(c -> STATUS_ACTIVE.equals(c.getStatus()))
+    //         .collect(Collectors.toList());
 
-        return credentials.stream().map(c -> toEditable(c)).collect(Collectors.toList());
-    }
+    //     return credentials.stream().map(c -> toEditable(c)).collect(Collectors.toList());
+    // }
 
-    @Override
+    // @Override
     public Collection<InternalEditableUserPassword> listEditableCredentialsByUser(String userId) {
         // TODO map MANY pass to ONE editable per user
         // fetch ALL active
@@ -463,7 +467,7 @@ public class PasswordCredentialsService
     }
 
     @Override
-    public InternalEditableUserPassword registerEditableCredential(String accountId, EditableUserCredentials uc)
+    public InternalEditableUserPassword registerCredential(String username, EditableUserCredentials uc)
         throws RegistrationException, NoSuchUserException {
         if (uc == null) {
             throw new RegistrationException();
@@ -477,7 +481,7 @@ public class PasswordCredentialsService
         InternalEditableUserPassword reg = (InternalEditableUserPassword) uc;
 
         // fetch user
-        InternalUserAccount account = accountService.findAccountById(repositoryId, accountId);
+        InternalUserAccount account = accountService.findAccountById(repositoryId, username);
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -485,7 +489,8 @@ public class PasswordCredentialsService
         // check if one password is already set
         // we require NO password for registration, otherwise we should check against
         // current for proper authorization (same as edit)
-        List<InternalUserPassword> list = passwordService.findCredentialsByAccount(repositoryId, accountId);
+        String userId = account.getUserId();
+        List<InternalUserPassword> list = passwordService.findCredentialsByUser(repositoryId, userId);
         if (!list.isEmpty()) {
             throw new AlreadyRegisteredException();
         }
@@ -507,7 +512,7 @@ public class PasswordCredentialsService
         return toEditable(cred);
     }
 
-    @Override
+    // @Override
     public void deleteEditableCredential(@NotNull String credentialId) throws NoSuchCredentialException {
         // TODO map MANY pass to ONE editable per user
         String id = credentialId;
@@ -515,7 +520,7 @@ public class PasswordCredentialsService
     }
 
     @Override
-    public InternalEditableUserPassword editEditableCredential(String credentialId, EditableUserCredentials uc)
+    public InternalEditableUserPassword editCredential(String credentialId, EditableUserCredentials uc)
         throws RegistrationException, NoSuchCredentialException {
         if (uc == null) {
             throw new RegistrationException();
@@ -546,7 +551,7 @@ public class PasswordCredentialsService
         }
 
         // fetch user
-        String accountId = cred.getAccountId();
+        String accountId = cred.getUsername();
         InternalUserAccount account = accountService.findAccountById(repositoryId, accountId);
         if (account == null) {
             throw new NoSuchCredentialException();
@@ -642,15 +647,13 @@ public class PasswordCredentialsService
             String hash = hasher.createHash(password);
 
             // create password already hashed
-            InternalUserPassword pass = new InternalUserPassword();
+            String id = UUID.randomUUID().toString();
+            InternalUserPassword pass = new InternalUserPassword(getRealm(), id);
             pass.setRepositoryId(repositoryId);
-
-            pass.setAuthority(getAuthority());
             pass.setProvider(getProvider());
 
             pass.setUsername(account.getUsername());
             pass.setUserId(account.getUserId());
-            pass.setRealm(account.getRealm());
 
             pass.setPassword(hash);
             pass.setChangeOnFirstAccess(changeOnFirstAccess);
