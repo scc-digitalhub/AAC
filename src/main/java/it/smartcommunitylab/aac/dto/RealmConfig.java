@@ -46,6 +46,7 @@ public class RealmConfig {
     // providers config
     private List<ConfigurableIdentityProvider> identityProviders;
     private List<ConfigurableAttributeProvider> attributeProviders;
+    private ConfigurableIdentityProvider idp;
     private ConfigurableTemplateProvider templates;
 
     // services
@@ -129,5 +130,13 @@ public class RealmConfig {
 
     public void setCredentials(List<AbstractUserCredentials> credentials) {
         this.credentials = credentials;
+    }
+
+    public ConfigurableIdentityProvider getIdp() {
+        return idp;
+    }
+
+    public void setIdp(ConfigurableIdentityProvider idp) {
+        this.idp = idp;
     }
 }

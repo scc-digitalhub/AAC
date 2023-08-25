@@ -81,6 +81,17 @@ public class InternalUserAccount extends AbstractUserAccount implements Credenti
         super(authority, provider, realm, uuid);
     }
 
+    /**
+     * Private constructor for JPA and other serialization tools.
+     *
+     * We need to implement this to enable deserialization of resources via
+     * reflection
+     */
+    @SuppressWarnings("unused")
+    protected InternalUserAccount() {
+        super();
+    }
+
     @Override
     public String getType() {
         return RESOURCE_TYPE;

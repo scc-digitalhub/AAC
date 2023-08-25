@@ -22,7 +22,6 @@ import it.smartcommunitylab.aac.core.model.UserResource;
 /*
  * An account used to login users into a realm, from an authority via a provider
  */
-
 public interface UserAccount extends UserResource {
     // we require at least a name
     // we should make no assumptions on the content

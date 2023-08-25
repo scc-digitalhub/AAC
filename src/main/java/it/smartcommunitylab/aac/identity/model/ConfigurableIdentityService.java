@@ -30,7 +30,7 @@ import javax.validation.Valid;
 public class ConfigurableIdentityService extends ConfigurableProviderImpl<AccountServiceSettingsMap> {
 
     public ConfigurableIdentityService(String authority, String provider, String realm) {
-        super(authority, provider, realm, SystemKeys.RESOURCE_IDENTITY);
+        super(SystemKeys.RESOURCE_USER, authority, provider, realm);
     }
 
     /**

@@ -26,9 +26,14 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountService;
+import it.smartcommunitylab.aac.attributes.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
+import it.smartcommunitylab.aac.credentials.model.ConfigurableCredentialsProvider;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityService;
+import it.smartcommunitylab.aac.templates.model.ConfigurableTemplateProvider;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,9 +47,18 @@ import org.springframework.util.StringUtils;
 @Valid
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-@JsonSubTypes({ @Type(value = ConfigurableIdentityProvider.class, name = SystemKeys.RESOURCE_IDENTITY) })
-public class ConfigurableProviderImpl<S extends ConfigMap> implements ConfigurableProvider<S> {
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
+@JsonSubTypes(
+    {
+        @Type(value = ConfigurableAccountService.class, name = SystemKeys.RESOURCE_ACCOUNT),
+        @Type(value = ConfigurableAttributeProvider.class, name = SystemKeys.RESOURCE_ATTRIBUTES),
+        @Type(value = ConfigurableCredentialsProvider.class, name = SystemKeys.RESOURCE_CREDENTIALS),
+        @Type(value = ConfigurableIdentityProvider.class, name = SystemKeys.RESOURCE_IDENTITY),
+        @Type(value = ConfigurableIdentityService.class, name = SystemKeys.RESOURCE_USER),
+        @Type(value = ConfigurableTemplateProvider.class, name = SystemKeys.RESOURCE_TEMPLATE),
+    }
+)
+public abstract class ConfigurableProviderImpl<S extends ConfigMap> implements ConfigurableProvider<S>, Serializable {
 
     //TODO evaluate ENUM for known types
     @NotBlank

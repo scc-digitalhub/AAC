@@ -46,6 +46,17 @@ public abstract class AbstractUserCredentials extends AbstractBaseUserResource i
         super(authority, provider, realm, id, userId);
     }
 
+    /**
+     * Private constructor for JPA and other serialization tools.
+     *
+     * We need to implement this to enable deserialization of resources via
+     * reflection
+     */
+    @SuppressWarnings("unused")
+    protected AbstractUserCredentials() {
+        super((String) null, (String) null, (String) null, (String) null, (String) null);
+    }
+
     @Override
     public String getId() {
         return getUuid();

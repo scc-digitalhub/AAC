@@ -75,6 +75,17 @@ public class SamlUserAccount extends AbstractUserAccount {
         super(authority, provider, realm, uuid);
     }
 
+    /**
+     * Private constructor for JPA and other serialization tools.
+     *
+     * We need to implement this to enable deserialization of resources via
+     * reflection
+     */
+    @SuppressWarnings("unused")
+    protected SamlUserAccount() {
+        super();
+    }
+
     @Override
     public String getType() {
         return RESOURCE_TYPE;

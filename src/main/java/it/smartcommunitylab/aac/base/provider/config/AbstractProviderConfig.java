@@ -16,6 +16,10 @@
 
 package it.smartcommunitylab.aac.base.provider.config;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.base.model.AbstractSettingsMap;
@@ -25,6 +29,9 @@ import java.io.Serializable;
 import java.util.Locale;
 import java.util.Map;
 
+// @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(Include.ALWAYS)
 public abstract class AbstractProviderConfig<S extends AbstractSettingsMap, M extends AbstractConfigMap>
     implements ProviderConfig<S, M>, Serializable {
 

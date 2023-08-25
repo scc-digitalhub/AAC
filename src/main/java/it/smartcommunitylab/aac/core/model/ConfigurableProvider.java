@@ -25,7 +25,9 @@ import java.util.Map;
 /*
  * Mutable configuration for resource providers
  */
-@JsonDeserialize(as = ConfigurableProviderImpl.class)
+//DISABLED deserialization annotation due to conflict with jsonSubTypes annotated on implementation
+//due to bug in jackson annotation collection this does not work
+// @JsonDeserialize(as = ConfigurableProviderImpl.class)
 public interface ConfigurableProvider<S extends ConfigMap> extends ConfigurableProperties {
     String getType();
 

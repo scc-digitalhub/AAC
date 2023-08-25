@@ -102,6 +102,17 @@ public class WebAuthnUserCredential extends AbstractUserCredentials {
         super(SystemKeys.AUTHORITY_WEBAUTHN, null, realm, id);
     }
 
+    /**
+     * Private constructor for JPA and other serialization tools.
+     *
+     * We need to implement this to enable deserialization of resources via
+     * reflection
+     */
+    @SuppressWarnings("unused")
+    protected WebAuthnUserCredential() {
+        super();
+    }
+
     @Override
     public String getType() {
         return RESOURCE_TYPE;

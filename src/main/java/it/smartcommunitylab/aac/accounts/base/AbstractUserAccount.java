@@ -19,6 +19,7 @@ package it.smartcommunitylab.aac.accounts.base;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.model.UserAccount;
 import it.smartcommunitylab.aac.base.model.AbstractBaseUserResource;
 import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
@@ -48,6 +49,17 @@ public abstract class AbstractUserAccount extends AbstractBaseUserResource imple
 
     protected AbstractUserAccount(String authority, String provider, String realm, String id, String userId) {
         super(authority, provider, realm, id, userId);
+    }
+
+    /**
+     * Private constructor for JPA and other serialization tools.
+     *
+     * We need to implement this to enable deserialization of resources via
+     * reflection
+     */
+    @SuppressWarnings("unused")
+    protected AbstractUserAccount() {
+        super((String) null, (String) null, (String) null, (String) null, (String) null);
     }
 
     @Override
