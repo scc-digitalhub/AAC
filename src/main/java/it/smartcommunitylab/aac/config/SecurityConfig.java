@@ -66,8 +66,9 @@ public class SecurityConfig {
     @Value("${application.url}")
     private String applicationURL;
 
-    private final String loginPath = "/login";
-    private final String logoutPath = "/logout";
+    private static final String LOGINPATH = "/login";
+    private static final String LOGOUTPATH = "/logout";
+    private static final String TERMSPATH = "/terms";
 
     @Autowired
     private RealmAwarePathUriBuilder realmUriBuilder;
@@ -133,11 +134,13 @@ public class SecurityConfig {
             .antMatchers("/error")
             .permitAll()
             // whitelist login pages
-            .antMatchers(loginPath, logoutPath)
+            .antMatchers(LOGINPATH, LOGOUTPATH)
             .permitAll()
-            .antMatchers("/-/{realm}/" + loginPath)
+            .antMatchers("/-/{realm}/" + LOGINPATH)
             .permitAll()
             .antMatchers("/endsession")
+            .permitAll()
+            .antMatchers("/-/{realm}/" + TERMSPATH)
             .permitAll()
             // whitelist auth providers pages (login,registration etc)
             //                .antMatchers("/auth/**").permitAll()
@@ -155,15 +158,15 @@ public class SecurityConfig {
             //                        oauth2AuthenticationEntryPoint(oauth2ClientDetailsService, loginPath),
             //                        new AntPathRequestMatcher("/oauth/**"))
             .defaultAuthenticationEntryPointFor(
-                realmAuthEntryPoint(loginPath, realmUriBuilder),
+                realmAuthEntryPoint(LOGINPATH, realmUriBuilder),
                 new AntPathRequestMatcher("/**")
             )
             .accessDeniedPage("/accesserror")
             .and()
             .logout(logout ->
                 logout
-                    .logoutUrl(logoutPath)
-                    .logoutRequestMatcher(new AntPathRequestMatcher(logoutPath))
+                    .logoutUrl(LOGOUTPATH)
+                    .logoutRequestMatcher(new AntPathRequestMatcher(LOGOUTPATH))
                     .logoutSuccessHandler(logoutSuccessHandler(realmUriBuilder))
                     .permitAll()
             )
@@ -229,7 +232,7 @@ public class SecurityConfig {
     @Bean
     public LogoutSuccessHandler logoutSuccessHandler(RealmAwarePathUriBuilder uriBuilder) {
         // TODO update dedicated, leverage OidcClientInitiatedLogoutSuccessHandler
-        ExtendedLogoutSuccessHandler handler = new ExtendedLogoutSuccessHandler(loginPath);
+        ExtendedLogoutSuccessHandler handler = new ExtendedLogoutSuccessHandler(LOGINPATH);
         handler.setRealmUriBuilder(uriBuilder);
         handler.setDefaultTargetUrl("/");
         handler.setTargetUrlParameter("target");
