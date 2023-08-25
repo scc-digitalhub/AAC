@@ -19,9 +19,11 @@ package it.smartcommunitylab.aac.config;
 import it.smartcommunitylab.aac.accounts.model.UserAccount;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.accounts.service.AccountServiceAuthorityService;
+import it.smartcommunitylab.aac.base.provider.config.AbstractProviderConfig;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.core.service.AutoJDBCProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.InMemoryProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.identity.IdentityProviderAuthority;
@@ -37,7 +39,9 @@ import it.smartcommunitylab.aac.oidc.provider.OIDCIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.oidc.provider.OIDCIdentityProviderConfig;
 import it.smartcommunitylab.aac.oidc.provider.OIDCIdentityProviderConfigMap;
 import java.util.Collection;
+import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -49,6 +53,12 @@ import org.springframework.util.StringUtils;
 @Configuration
 @Order(12)
 public class AuthoritiesConfig {
+
+    @Value("${persistence.repository.providerConfig}")
+    private String providerConfigRepository;
+
+    @Autowired
+    private DataSource dataSource;
 
     @Autowired
     private UserAccountService<OIDCUserAccount> oidcUserAccountService;
@@ -97,7 +107,7 @@ public class AuthoritiesConfig {
 
                         // build config repositories
                         ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository =
-                            new InMemoryProviderConfigRepository<>();
+                            buildProviderConfigRepository(OIDCIdentityProviderConfig.class);
                         // instantiate authority
                         OIDCIdentityAuthority auth = new OIDCIdentityAuthority(
                             id,
@@ -126,5 +136,15 @@ public class AuthoritiesConfig {
         }
 
         return service;
+    }
+
+    private <U extends AbstractProviderConfig<?, ?>> ProviderConfigRepository<U> buildProviderConfigRepository(
+        Class<U> clazz
+    ) {
+        if ("jdbc".equals(providerConfigRepository)) {
+            return new AutoJDBCProviderConfigRepository<U>(dataSource, clazz);
+        }
+
+        return new InMemoryProviderConfigRepository<U>();
     }
 }

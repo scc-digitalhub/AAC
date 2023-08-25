@@ -25,7 +25,6 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.model.AbstractSettingsMap;
 import it.smartcommunitylab.aac.model.PersistenceMode;
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.Map;
 import javax.validation.Valid;
 
@@ -68,6 +67,7 @@ public class AccountServiceSettingsMap extends AbstractSettingsMap {
     }
 
     @Override
+    @JsonIgnore
     public void setConfiguration(Map<String, Serializable> props) {
         // use mapper
         mapper.setSerializationInclusion(Include.NON_EMPTY);
@@ -76,6 +76,7 @@ public class AccountServiceSettingsMap extends AbstractSettingsMap {
     }
 
     @Override
+    @JsonIgnore
     public JsonSchema getSchema() throws JsonMappingException {
         return schemaGen.generateSchema(AccountServiceSettingsMap.class);
     }

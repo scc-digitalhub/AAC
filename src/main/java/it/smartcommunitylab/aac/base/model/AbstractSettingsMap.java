@@ -25,19 +25,13 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 import com.github.victools.jsonschema.generator.SchemaGenerator;
-import it.smartcommunitylab.aac.attributes.provider.MapperAttributeProviderConfigMap;
-import it.smartcommunitylab.aac.attributes.provider.ScriptAttributeProviderConfigMap;
-import it.smartcommunitylab.aac.attributes.provider.WebhookAttributeProviderConfigMap;
+import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
+import it.smartcommunitylab.aac.attributes.provider.AttributeProviderSettingsMap;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
+import it.smartcommunitylab.aac.credentials.provider.CredentialsServiceSettingsMap;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
-import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
-import it.smartcommunitylab.aac.oidc.apple.provider.AppleIdentityProviderConfigMap;
-import it.smartcommunitylab.aac.oidc.provider.OIDCIdentityProviderConfigMap;
-import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.repository.SchemaGeneratorFactory;
-import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfigMap;
-import it.smartcommunitylab.aac.templates.provider.TemplateProviderConfigMap;
-import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfigMap;
+import it.smartcommunitylab.aac.templates.provider.TemplateProviderSettingsMap;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -46,16 +40,11 @@ import java.util.Map;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes(
     {
+        @Type(value = AccountServiceSettingsMap.class, name = AccountServiceSettingsMap.RESOURCE_TYPE),
+        @Type(value = AttributeProviderSettingsMap.class, name = AttributeProviderSettingsMap.RESOURCE_TYPE),
+        @Type(value = CredentialsServiceSettingsMap.class, name = CredentialsServiceSettingsMap.RESOURCE_TYPE),
         @Type(value = IdentityProviderSettingsMap.class, name = IdentityProviderSettingsMap.RESOURCE_TYPE),
-        @Type(value = PasswordIdentityProviderConfigMap.class, name = PasswordIdentityProviderConfigMap.RESOURCE_TYPE),
-        @Type(value = WebAuthnIdentityProviderConfigMap.class, name = WebAuthnIdentityProviderConfigMap.RESOURCE_TYPE),
-        @Type(value = AppleIdentityProviderConfigMap.class, name = AppleIdentityProviderConfigMap.RESOURCE_TYPE),
-        @Type(value = OIDCIdentityProviderConfigMap.class, name = OIDCIdentityProviderConfigMap.RESOURCE_TYPE),
-        @Type(value = SamlIdentityProviderConfigMap.class, name = SamlIdentityProviderConfigMap.RESOURCE_TYPE),
-        @Type(value = MapperAttributeProviderConfigMap.class, name = MapperAttributeProviderConfigMap.RESOURCE_TYPE),
-        @Type(value = ScriptAttributeProviderConfigMap.class, name = ScriptAttributeProviderConfigMap.RESOURCE_TYPE),
-        @Type(value = WebhookAttributeProviderConfigMap.class, name = WebhookAttributeProviderConfigMap.RESOURCE_TYPE),
-        @Type(value = TemplateProviderConfigMap.class, name = TemplateProviderConfigMap.RESOURCE_TYPE),
+        @Type(value = TemplateProviderSettingsMap.class, name = TemplateProviderSettingsMap.RESOURCE_TYPE),
     }
 )
 public abstract class AbstractSettingsMap implements ConfigMap, Serializable {

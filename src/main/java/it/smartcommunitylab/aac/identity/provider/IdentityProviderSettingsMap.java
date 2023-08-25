@@ -145,6 +145,7 @@ public class IdentityProviderSettingsMap extends AbstractSettingsMap {
     }
 
     @Override
+    @JsonIgnore
     public void setConfiguration(Map<String, Serializable> props) {
         // use mapper
         mapper.setSerializationInclusion(Include.NON_EMPTY);
@@ -153,6 +154,7 @@ public class IdentityProviderSettingsMap extends AbstractSettingsMap {
     }
 
     @Override
+    @JsonIgnore
     public JsonSchema getSchema() throws JsonMappingException {
         return schemaGen.generateSchema(IdentityProviderSettingsMap.class);
     }

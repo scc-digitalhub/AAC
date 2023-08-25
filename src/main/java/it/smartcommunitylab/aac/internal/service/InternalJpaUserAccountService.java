@@ -395,6 +395,7 @@ public class InternalJpaUserAccountService
 
         account.setRepositoryId(entity.getRepositoryId());
         account.setUsername(entity.getUsername());
+        account.setUuid(entity.getUuid());
 
         account.setUserId(entity.getUserId());
         account.setStatus(entity.getStatus());

@@ -336,6 +336,7 @@ public class OIDCJpaUserAccountService implements UserAccountService<OIDCUserAcc
 
         account.setRepositoryId(entity.getRepositoryId());
         account.setSubject(entity.getSubject());
+        account.setUuid(entity.getUuid());
 
         account.setUserId(entity.getUserId());
         account.setStatus(entity.getStatus());

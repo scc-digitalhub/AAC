@@ -111,7 +111,7 @@ public class ConfigurableProviderEntityService {
 
         //set base
         p.setAuthority(reg.getAuthority());
-        p.setRealm(p.getRealm());
+        p.setRealm(reg.getRealm());
 
         p.setName(reg.getName());
         p.setTitleMap(reg.getTitleMap());

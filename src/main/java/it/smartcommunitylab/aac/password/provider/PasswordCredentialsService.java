@@ -311,7 +311,7 @@ public class PasswordCredentialsService
      * for credentials API
      */
     @Override
-    public InternalUserPassword addCredential(String accountId, String credentialId, UserCredentials uc)
+    public InternalUserPassword addCredential(String userId, String credentialId, UserCredentials uc)
         throws NoSuchUserException, RegistrationException {
         if (uc == null) {
             throw new RegistrationException();
@@ -335,11 +335,11 @@ public class PasswordCredentialsService
             throw new RegistrationException("invalid password");
         }
 
-        // fetch user
-        InternalUserAccount account = accountService.findAccountById(repositoryId, accountId);
-        if (account == null) {
-            throw new NoSuchUserException();
-        }
+        // // fetch user
+        // InternalUserAccount account = accountService.findAccountById(repositoryId, accountId);
+        // if (account == null) {
+        //     throw new NoSuchUserException();
+        // }
 
         // build password
         InternalUserPassword newPassword = buildPassword(account, password, reg.isChangeOnFirstAccess());

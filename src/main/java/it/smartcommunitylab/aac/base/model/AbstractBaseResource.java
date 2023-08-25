@@ -31,7 +31,7 @@ public abstract class AbstractBaseResource implements Resource {
     protected String provider;
 
     @JsonInclude
-    protected final String realm;
+    protected String realm;
 
     @JsonInclude
     protected final String id;
@@ -63,6 +63,10 @@ public abstract class AbstractBaseResource implements Resource {
 
     public void setProvider(String provider) {
         this.provider = provider;
+    }
+
+    public void setRealm(String realm) {
+        this.realm = realm;
     }
 
     // //realm is persisted, let actual classes handle

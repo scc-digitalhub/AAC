@@ -444,6 +444,10 @@ public class AACBootstrap {
                                     throw new IllegalArgumentException("missing id");
                                 }
 
+                                //by default imported providers are enabled
+                                //TODO model enabled as Boolean with null default
+                                cp.setEnabled(true);
+
                                 if (logger.isTraceEnabled()) {
                                     logger.trace("provider: {}", String.valueOf(cp));
                                 }
@@ -524,6 +528,10 @@ public class AACBootstrap {
                                     logger.error("error creating attribute provider, missing id");
                                     throw new IllegalArgumentException("missing id");
                                 }
+
+                                //by default imported providers are enabled
+                                //TODO model enabled as Boolean with null default
+                                cp.setEnabled(true);
 
                                 if (logger.isTraceEnabled()) {
                                     logger.trace("provider: {}", String.valueOf(cp));
@@ -821,6 +829,9 @@ public class AACBootstrap {
                                     return;
                                 }
 
+                                // enforce realm
+                                u.setRealm(slug);
+
                                 // validate id
                                 if (!StringUtils.hasText(u.getAccountId())) {
                                     // we ask id to be provided otherwise we would create a new one every time
@@ -910,100 +921,6 @@ public class AACBootstrap {
                                         account = userAccountService.updateUserAccount(uuid, u);
                                     }
 
-                                    //                            UserAccount account = null;
-                                    //
-                                    //                            // TODO refactor with a single method
-                                    //                            if (u instanceof InternalUserAccount) {
-                                    //                                // cast
-                                    //                                InternalUserAccount ua = (InternalUserAccount) u;
-                                    //                                // validate provider
-                                    //                                if (!StringUtils.hasText(ua.getProvider())) {
-                                    //                                    // use realm as default
-                                    //                                    providerId = slug;
-                                    //                                    ua.setProvider(slug);
-                                    //                                }
-                                    //
-                                    //                                // set confirmed by default
-                                    //                                if (!ua.isConfirmed()) {
-                                    //                                    ua.setConfirmed(true);
-                                    //                                }
-                                    //
-                                    //                                account = internalUserAccountService.findAccountById(providerId, id);
-                                    //                                if (account == null) {
-                                    //                                    logger.debug("add internal account {} for realm {}", id, slug);
-                                    //
-                                    //                                    // register account
-                                    //                                    account = internalUserAccountService.addAccount(slug, ua.getAccountId(), ua);
-                                    //                                } else {
-                                    //                                    // check again realm match over existing
-                                    //                                    if (!slug.equals(account.getRealm())) {
-                                    //                                        logger.error("error creating internal account, realm mismatch");
-                                    //                                        return;
-                                    //                                    }
-                                    //
-                                    //                                    logger.debug("update internal account {} for realm {}", id, slug);
-                                    //                                    account = internalUserAccountService.updateAccount(slug, ua.getAccountId(), ua);
-                                    //                                }
-                                    //                            }
-                                    //
-                                    //                            if (u instanceof OIDCUserAccount) {
-                                    //                                // cast
-                                    //                                OIDCUserAccount ua = (OIDCUserAccount) u;
-                                    //
-                                    //                                // validate provider
-                                    //                                if (!StringUtils.hasText(ua.getProvider())) {
-                                    //                                    // we ask id to be provided otherwise we would create a new one every time
-                                    //                                    logger.error("error creating user, missing provider");
-                                    //                                    throw new IllegalArgumentException("missing provider");
-                                    //                                }
-                                    //
-                                    //                                account = oidcUserAccountService.findAccountById(providerId, id);
-                                    //                                if (account == null) {
-                                    //                                    logger.debug("add oidc account {} for realm {}", id, slug);
-                                    //
-                                    //                                    // register account
-                                    //                                    account = oidcUserAccountService.addAccount(slug, ua.getAccountId(), ua);
-                                    //                                } else {
-                                    //                                    // check again realm match over existing
-                                    //                                    if (!slug.equals(account.getRealm())) {
-                                    //                                        logger.error("error creating oidc account, realm mismatch");
-                                    //                                        return;
-                                    //                                    }
-                                    //
-                                    //                                    logger.debug("update oidc account {} for realm {}", id, slug);
-                                    //                                    account = oidcUserAccountService.updateAccount(slug, ua.getAccountId(), ua);
-                                    //                                }
-                                    //                            }
-                                    //
-                                    //                            if (u instanceof SamlUserAccount) {
-                                    //                                // cast
-                                    //                                SamlUserAccount ua = (SamlUserAccount) u;
-                                    //
-                                    //                                // validate provider
-                                    //                                if (!StringUtils.hasText(ua.getProvider())) {
-                                    //                                    // we ask id to be provided otherwise we would create a new one every time
-                                    //                                    logger.error("error creating user, missing provider");
-                                    //                                    throw new IllegalArgumentException("missing provider");
-                                    //                                }
-                                    //
-                                    //                                account = samlUserAccountService.findAccountById(providerId, id);
-                                    //                                if (account == null) {
-                                    //                                    logger.debug("add saml account {} for realm {}", id, slug);
-                                    //
-                                    //                                    // register account
-                                    //                                    account = samlUserAccountService.addAccount(slug, ua.getAccountId(), ua);
-                                    //                                } else {
-                                    //                                    // check again realm match over existing
-                                    //                                    if (!slug.equals(account.getRealm())) {
-                                    //                                        logger.error("error creating saml account, realm mismatch");
-                                    //                                        return;
-                                    //                                    }
-                                    //
-                                    //                                    logger.debug("update saml account {} for realm {}", id, slug);
-                                    //                                    account = samlUserAccountService.updateAccount(slug, ua.getAccountId(), ua);
-                                    //                                }
-                                    //                            }
-
                                     if (account != null) {
                                         if (logger.isTraceEnabled()) {
                                             logger.trace(
@@ -1036,6 +953,8 @@ public class AACBootstrap {
                                         String.valueOf(u.getAccountId()),
                                         e.getMessage()
                                     );
+
+                                    e.printStackTrace();
                                 }
                             });
                     }
@@ -1070,6 +989,9 @@ public class AACBootstrap {
                                     logger.error("error creating credentials, realm mismatch");
                                     return;
                                 }
+
+                                // enforce realm
+                                c.setRealm(slug);
 
                                 // validate account id
                                 if (!StringUtils.hasText(c.getUserId())) {

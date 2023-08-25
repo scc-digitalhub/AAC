@@ -331,6 +331,7 @@ public class SamlJpaUserAccountService implements UserAccountService<SamlUserAcc
 
         account.setRepositoryId(entity.getRepositoryId());
         account.setSubjectId(entity.getSubjectId());
+        account.setUuid(entity.getUuid());
 
         account.setUserId(entity.getUserId());
         account.setStatus(entity.getStatus());
