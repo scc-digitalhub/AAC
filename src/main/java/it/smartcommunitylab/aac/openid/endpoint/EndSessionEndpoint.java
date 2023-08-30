@@ -202,7 +202,7 @@ public class EndSessionEndpoint {
     }
 
     @Hidden
-    @RequestMapping(value = END_SESSION_URL, method = RequestMethod.POST)
+    @RequestMapping(value = END_SESSION_CONFIRM_URL, method = RequestMethod.POST)
     public void processLogout(
         @RequestParam(value = "approve", required = false) Optional<String> approve,
         HttpServletRequest request,
