@@ -124,7 +124,7 @@ public class SamlUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
 
         // override if set
         if (StringUtils.hasText(username)) {
-            result.put("name", username);
+            result.put("username", username);
         }
 
         if (StringUtils.hasText(emailAddress)) {
