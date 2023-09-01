@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.webauthn.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -29,6 +30,7 @@ import com.yubico.webauthn.data.ByteArray;
 import com.yubico.webauthn.data.ClientRegistrationExtensionOutputs;
 import com.yubico.webauthn.data.PublicKeyCredential;
 import com.yubico.webauthn.data.PublicKeyCredentialCreationOptions;
+import com.yubico.webauthn.data.PublicKeyCredentialParameters;
 import com.yubico.webauthn.data.RelyingPartyIdentity;
 import com.yubico.webauthn.data.UserIdentity;
 import com.yubico.webauthn.exception.RegistrationFailedException;
@@ -47,6 +49,7 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -72,7 +75,10 @@ public class WebAuthnRegistrationRpService {
     @Value("${security.webauthn.origins}")
     private String[] extraOrigins;
 
+    //TODO remove account service
+    @Deprecated
     private final UserAccountService<InternalUserAccount> userAccountService;
+
     private final WebAuthnUserCredentialsEntityRepository credentialsRepository;
 
     // TODO evaluate removal and pass config as param in ops
@@ -130,6 +136,13 @@ public class WebAuthnRegistrationRpService {
                         .allowOriginPort(false)
                         .allowOriginSubdomain(false)
                         .origins(origins)
+                        //disable EdDSA since it's not provided by JCA
+                        //TODO add dependency
+                        .preferredPubkeyParams(
+                            Collections.unmodifiableList(
+                                Arrays.asList(PublicKeyCredentialParameters.ES256, PublicKeyCredentialParameters.RS256)
+                            )
+                        )
                         .build();
 
                     return rp;
@@ -168,11 +181,11 @@ public class WebAuthnRegistrationRpService {
      * confirmation link or account link via session
      */
 
-    public CredentialCreationInfo startRegistration(String registrationId, String username, String displayName)
+    public CredentialCreationInfo startRegistration(String registrationId, String userId, String displayName)
         throws NoSuchUserException, RegistrationException, NoSuchProviderException {
         logger.debug(
             "start registration for {} with provider {}",
-            StringUtils.trimAllWhitespace(username),
+            StringUtils.trimAllWhitespace(userId),
             StringUtils.trimAllWhitespace(registrationId)
         );
 
@@ -188,6 +201,14 @@ public class WebAuthnRegistrationRpService {
         //            throw new NoSuchUserException();
         //        }
 
+        // fetch user handle from the first account
+        //TODO refactor and detach userHandle from account!!
+        List<InternalUserAccount> accounts = userAccountService.findAccountsByUser(config.getRepositoryId(), userId);
+        if (accounts.isEmpty()) {
+            throw new NoSuchUserException();
+        }
+        String username = accounts.iterator().next().getUsername();
+
         Optional<ByteArray> userHandle = rp.getCredentialRepository().getUserHandleForUsername(username);
         if (userHandle.isEmpty()) {
             throw new NoSuchUserException();
@@ -197,6 +218,7 @@ public class WebAuthnRegistrationRpService {
         String userDisplayName = StringUtils.hasText(displayName) ? displayName : username;
         UserIdentity identity = UserIdentity
             .builder()
+            //name should match username
             .name(username)
             .displayName(userDisplayName)
             .id(userHandle.get())
@@ -219,11 +241,15 @@ public class WebAuthnRegistrationRpService {
 
         PublicKeyCredentialCreationOptions options = rp.startRegistration(startRegistrationOptions);
 
-        CredentialCreationInfo info = new CredentialCreationInfo();
-        info.setUserHandle(userHandle.get());
-        info.setOptions(options);
+        try {
+            CredentialCreationInfo info = new CredentialCreationInfo();
+            info.setUserHandle(userHandle.get().getBase64());
+            info.setOptions(options.toJson());
 
-        return info;
+            return info;
+        } catch (JsonProcessingException e) {
+            throw new RegistrationException(e.getMessage());
+        }
     }
 
     public RegistrationResult finishRegistration(
@@ -251,7 +277,7 @@ public class WebAuthnRegistrationRpService {
             CredentialCreationInfo info = request.getCredentialCreationInfo();
 
             // parse response
-            PublicKeyCredentialCreationOptions options = info.getOptions();
+            PublicKeyCredentialCreationOptions options = PublicKeyCredentialCreationOptions.fromJson(info.getOptions());
             RegistrationResult result = rp.finishRegistration(
                 FinishRegistrationOptions.builder().request(options).response(pkc).build()
             );
@@ -265,6 +291,8 @@ public class WebAuthnRegistrationRpService {
 
             return result;
         } catch (RegistrationFailedException e) {
+            throw new RegistrationException(e.getMessage());
+        } catch (JsonProcessingException e) {
             throw new RegistrationException(e.getMessage());
         }
     }

@@ -138,7 +138,7 @@ public class InternalPasswordResetOnAccessFilter extends OncePerRequestFilter {
             ResetKeyAuthenticationToken token = resetTokens.iterator().next();
             InternalUserAccount account = token.getAccount();
             String providerId = account.getProvider();
-            String username = account.getUsername();
+            String userId = account.getUserId();
             realm = account.getRealm();
 
             // pick provider config to resolve repositoryId
@@ -155,9 +155,9 @@ public class InternalPasswordResetOnAccessFilter extends OncePerRequestFilter {
             // we look for an active password created *after* this login
             long deadline = userAuth.getCreatedAt().getEpochSecond() * 1000;
             InternalUserPasswordEntity pass =
-                passwordRepository.findByRepositoryIdAndUsernameAndStatusOrderByCreateDateDesc(
+                passwordRepository.findByRepositoryIdAndUserIdAndStatusOrderByCreateDateDesc(
                     repositoryId,
-                    username,
+                    userId,
                     "active"
                 );
             if (pass == null || pass.getCreateDate().getTime() < deadline) {

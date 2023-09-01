@@ -29,16 +29,15 @@ public interface InternalUserPasswordEntityRepository
 
     List<InternalUserPasswordEntity> findByRepositoryIdAndUserId(String repositoryId, String userId);
 
-    InternalUserPasswordEntity findByRepositoryIdAndUsernameAndStatusOrderByCreateDateDesc(
+    InternalUserPasswordEntity findByRepositoryIdAndUserIdAndStatusOrderByCreateDateDesc(
         String repositoryId,
-        String username,
+        String userId,
         String status
     );
 
     InternalUserPasswordEntity findByRepositoryIdAndResetKey(String repositoryId, String key);
-
-    List<InternalUserPasswordEntity> findByRepositoryIdAndUsernameOrderByCreateDateDesc(
-        String repositoryId,
-        String username
-    );
+    // List<InternalUserPasswordEntity> findByRepositoryIdAndUsernameOrderByCreateDateDesc(
+    //     String repositoryId,
+    //     String username
+    // );
 }

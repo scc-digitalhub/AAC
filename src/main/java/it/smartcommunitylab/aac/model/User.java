@@ -24,6 +24,7 @@ import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.identity.model.UserIdentity;
+import it.smartcommunitylab.aac.templates.model.Language;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -63,6 +64,8 @@ public class User {
     private String username;
     private String email;
     private boolean emailVerified;
+
+    private String lang = Language.EN.getValue();
 
     // user status
     private SubjectStatus status;
@@ -277,6 +280,14 @@ public class User {
 
     public void setLoginProvider(String loginProvider) {
         this.loginProvider = loginProvider;
+    }
+
+    public String getLang() {
+        return lang;
+    }
+
+    public void setLang(String lang) {
+        this.lang = lang;
     }
 
     public Collection<UserIdentity> getIdentities() {

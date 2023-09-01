@@ -202,7 +202,7 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
                 newPassword.setRepositoryId(repositoryId);
                 newPassword.setProvider(getProvider());
 
-                newPassword.setUsername(username);
+                // newPassword.setUsername(username);
                 newPassword.setUserId(userId);
 
                 newPassword.setPassword(hash);
@@ -386,32 +386,33 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
         return pass;
     }
 
-    public void deletePassword(String userId, String username) throws NoSuchUserException {
-        // TODO add locking for atomic operation
-        logger.debug("delete all passwords for user {} username {}", String.valueOf(userId), String.valueOf(username));
+    //DISABLED, management should happen via credentialsService!
+    // public void deletePassword(String userId, String username) throws NoSuchUserException {
+    //     // TODO add locking for atomic operation
+    //     logger.debug("delete all passwords for user {} username {}", String.valueOf(userId), String.valueOf(username));
 
-        // fetch all to collect ids
-        List<InternalUserPassword> passwords = passwordService
-            .findCredentialsByUser(repositoryId, userId)
-            .stream()
-            .filter(p -> p.getUsername().equals(username))
-            .collect(Collectors.toList());
+    //     // fetch all to collect ids
+    //     List<InternalUserPassword> passwords = passwordService
+    //         .findCredentialsByUser(repositoryId, userId)
+    //         .stream()
+    //         .filter(p -> p.getUsername().equals(username))
+    //         .collect(Collectors.toList());
 
-        // delete in batch
-        Set<String> ids = passwords.stream().map(p -> p.getId()).collect(Collectors.toSet());
-        passwordService.deleteAllCredentials(repositoryId, ids);
+    //     // delete in batch
+    //     Set<String> ids = passwords.stream().map(p -> p.getId()).collect(Collectors.toSet());
+    //     passwordService.deleteAllCredentials(repositoryId, ids);
 
-        if (resourceService != null) {
-            // remove resources
-            try {
-                // delete in batch
-                Set<String> uuids = passwords.stream().map(p -> p.getUuid()).collect(Collectors.toSet());
-                resourceService.deleteAllResourceEntities(uuids);
-            } catch (RuntimeException re) {
-                logger.error("error removing resources: {}", re.getMessage());
-            }
-        }
-    }
+    //     if (resourceService != null) {
+    //         // remove resources
+    //         try {
+    //             // delete in batch
+    //             Set<String> uuids = passwords.stream().map(p -> p.getUuid()).collect(Collectors.toSet());
+    //             resourceService.deleteAllResourceEntities(uuids);
+    //         } catch (RuntimeException re) {
+    //             logger.error("error removing resources: {}", re.getMessage());
+    //         }
+    //     }
+    // }
 
     /*
      * Mail

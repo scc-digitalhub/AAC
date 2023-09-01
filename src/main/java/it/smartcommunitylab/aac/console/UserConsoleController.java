@@ -16,9 +16,11 @@
 
 package it.smartcommunitylab.aac.console;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yubico.webauthn.data.PublicKeyCredentialCreationOptions;
 import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
@@ -295,16 +297,21 @@ public class UserConsoleController {
     public ResponseEntity<WebAuthnRegistrationResponse> attestateWebAuthnCredential(
         @RequestBody(required = false) @Nullable WebAuthnEditableUserCredential reg
     )
-        throws NoSuchCredentialException, NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
+        throws NoSuchCredentialException, NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException, JsonProcessingException {
         WebAuthnRegistrationRequest request = userManager.registerMyWebAuthnCredential(reg);
 
         // store request
         String key = webAuthnRequestStore.store(request);
 
+        //rebuild key to export for client
+        PublicKeyCredentialCreationOptions publicKey = PublicKeyCredentialCreationOptions.fromJson(
+            request.getCredentialCreationInfo().getOptions()
+        );
+
         // build response
         WebAuthnRegistrationResponse response = new WebAuthnRegistrationResponse(
             key,
-            request.getCredentialCreationInfo().getOptions()
+            publicKey.toCredentialsCreateJson()
         );
 
         return ResponseEntity.ok(response);

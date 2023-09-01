@@ -72,48 +72,48 @@ public class PasswordCredentialsController {
      * via credentials service
      */
 
-    @GetMapping("/changepwd/{providerId}/{uuid}")
+    @GetMapping("/changepwd/{providerId}/{userId}")
     public String changepwd(
         @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-        @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid,
+        @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
         HttpServletRequest request,
         Model model,
         Locale locale
     ) throws NoSuchProviderException, NoSuchUserException, NoSuchRealmException {
         // first check userid vs user
         UserDetails user = authHelper.getUserDetails();
-        if (user == null) {
+        if (user == null || !user.getSubjectId().equals(userId)) {
             throw new InsufficientAuthenticationException("error.unauthenticated_user");
         }
 
-        // fetch internal identities
-        Set<UserIdentity> identities = user
-            .getIdentities()
-            .stream()
-            .filter(i -> (i instanceof InternalUserIdentity))
-            .collect(Collectors.toSet());
+        // // fetch internal identities
+        // Set<UserIdentity> identities = user
+        //     .getIdentities()
+        //     .stream()
+        //     .filter(i -> (i instanceof InternalUserIdentity))
+        //     .collect(Collectors.toSet());
 
-        // pick matching by uuid
-        UserIdentity identity = identities
-            .stream()
-            .filter(i -> i.getAccount().getUuid().equals(uuid))
-            .findFirst()
-            .orElse(null);
-        if (identity == null) {
-            throw new IllegalArgumentException("error.invalid_user");
-        }
+        // // pick matching by uuid
+        // UserIdentity identity = identities
+        //     .stream()
+        //     .filter(i -> i.getAccount().getUuid().equals(uuid))
+        //     .findFirst()
+        //     .orElse(null);
+        // if (identity == null) {
+        //     throw new IllegalArgumentException("error.invalid_user");
+        // }
 
-        String userId = identity.getUserId();
+        // String userId = identity.getUserId();
         String realm = user.getRealm();
-        UserAccount account = identity.getAccount();
+        // UserAccount account = identity.getAccount();
 
         // fetch provider
         PasswordCredentialsService service = passwordAuthority.getProvider(providerId);
 
         // for internal username is accountId
-        String username = account.getAccountId();
+        // String username = account.getAccountId();
         InternalEditableUserPassword reg = new InternalEditableUserPassword(realm, null);
-        reg.setUsername(username);
+        reg.setUserId(userId);
         //        reg.setPassword("");
         //        reg.setVerifyPassword(null);
 
@@ -122,12 +122,12 @@ public class PasswordCredentialsController {
 
         // build model
         model.addAttribute("userId", userId);
-        model.addAttribute("username", account.getUsername());
-        model.addAttribute("uuid", account.getUuid());
+        // model.addAttribute("username", account.getUsername());
+        // model.addAttribute("uuid", account.getUuid());
         model.addAttribute("reg", reg);
         model.addAttribute("policy", policy);
         model.addAttribute("accountUrl", "/account");
-        model.addAttribute("changeUrl", "/changepwd/" + providerId + "/" + uuid);
+        model.addAttribute("changeUrl", "/changepwd/" + providerId + "/" + userId);
 
         // check if session is reset code originated
         boolean resetCode = authHelper
@@ -144,10 +144,10 @@ public class PasswordCredentialsController {
         return "password/changepwd";
     }
 
-    @PostMapping("/changepwd/{providerId}/{uuid}")
+    @PostMapping("/changepwd/{providerId}/{userId}")
     public String changepwd(
         @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-        @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String uuid,
+        @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
         Model model,
         Locale locale,
         @ModelAttribute("reg") @Valid InternalEditableUserPassword reg,
@@ -157,7 +157,7 @@ public class PasswordCredentialsController {
         try {
             // first check userid vs user
             UserDetails user = authHelper.getUserDetails();
-            if (user == null) {
+            if (user == null || !user.getSubjectId().equals(userId)) {
                 throw new InsufficientAuthenticationException("error.unauthenticated_user");
             }
 
@@ -169,36 +169,36 @@ public class PasswordCredentialsController {
                 .anyMatch(e -> ResetKeyAuthenticationToken.class.isInstance(e.getToken()));
             model.addAttribute("resetCode", resetCode);
 
-            // fetch internal identities
-            Set<UserIdentity> identities = user
-                .getIdentities()
-                .stream()
-                .filter(i -> (i instanceof InternalUserIdentity))
-                .collect(Collectors.toSet());
+            // // fetch internal identities
+            // Set<UserIdentity> identities = user
+            //     .getIdentities()
+            //     .stream()
+            //     .filter(i -> (i instanceof InternalUserIdentity))
+            //     .collect(Collectors.toSet());
 
-            // pick matching by username
-            UserIdentity identity = identities
-                .stream()
-                .filter(i -> i.getAccount().getUuid().equals(uuid))
-                .findFirst()
-                .orElse(null);
-            if (identity == null) {
-                throw new IllegalArgumentException("error.invalid_user");
-            }
+            // // pick matching by username
+            // UserIdentity identity = identities
+            //     .stream()
+            //     .filter(i -> i.getAccount().getUuid().equals(uuid))
+            //     .findFirst()
+            //     .orElse(null);
+            // if (identity == null) {
+            //     throw new IllegalArgumentException("error.invalid_user");
+            // }
 
-            String userId = identity.getUserId();
-            UserAccount account = identity.getAccount();
+            // String userId = identity.getUserId();
+            // UserAccount account = identity.getAccount();
 
             // fetch provider
             PasswordCredentialsService service = passwordAuthority.getProvider(providerId);
 
             // for internal username is accountId
-            String username = account.getAccountId();
+            // String username = account.getAccountId();
 
             // get current password
             model.addAttribute("userId", userId);
-            model.addAttribute("username", username);
-            model.addAttribute("uuid", account.getUuid());
+            // model.addAttribute("username", username);
+            // model.addAttribute("uuid", account.getUuid());
 
             // expose password policy by passing idp config
             PasswordPolicy policy = service.getPasswordPolicy();
@@ -210,7 +210,7 @@ public class PasswordCredentialsController {
             }
 
             model.addAttribute("accountUrl", "/account");
-            model.addAttribute("changeUrl", "/changepwd/" + providerId + "/" + uuid);
+            model.addAttribute("changeUrl", "/changepwd/" + providerId + "/" + userId);
 
             // load realm props
             String realm = user.getRealm();
@@ -224,7 +224,7 @@ public class PasswordCredentialsController {
             if (!resetCode) {
                 // check curPassword match
                 String curPassword = reg.getCurPassword();
-                if (!service.verifyPassword(username, curPassword)) {
+                if (!service.verifyPassword(userId, curPassword)) {
                     throw new RegistrationException("wrong_password");
                 }
             }
@@ -246,7 +246,7 @@ public class PasswordCredentialsController {
             //            }
 
             // update
-            service.setPassword(username, password, false);
+            service.setPassword(userId, password, false);
 
             return "password/changepwd_success";
         } catch (RegistrationException e) {

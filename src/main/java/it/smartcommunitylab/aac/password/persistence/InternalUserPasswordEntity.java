@@ -46,10 +46,10 @@ public class InternalUserPasswordEntity {
     @Column(name = "repository_id", length = 128)
     private String repositoryId;
 
-    // username (requires an account from the same repository for login)
-    @NotBlank
-    @Column(name = "username", length = 128)
-    private String username;
+    // // username (requires an account from the same repository for login)
+    // @NotBlank
+    // @Column(name = "username", length = 128)
+    // private String username;
 
     // user id
     @NotNull
@@ -102,13 +102,13 @@ public class InternalUserPasswordEntity {
         this.repositoryId = repositoryId;
     }
 
-    public String getUsername() {
-        return username;
-    }
+    // public String getUsername() {
+    //     return username;
+    // }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
+    // public void setUsername(String username) {
+    //     this.username = username;
+    // }
 
     public String getUserId() {
         return userId;
@@ -189,8 +189,8 @@ public class InternalUserPasswordEntity {
             id +
             ", repositoryId=" +
             repositoryId +
-            ", username=" +
-            username +
+            ", userId=" +
+            userId +
             ", status=" +
             status +
             ", createDate=" +

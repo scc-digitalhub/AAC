@@ -60,7 +60,6 @@ public interface ConfigurableProvider<S extends ConfigMap> extends ConfigurableP
 
     Map<String, Serializable> getSettings();
     void setSettings(Map<String, Serializable> props);
-
-    JsonSchema getSchema();
-    void setSchema(JsonSchema schema);
+    // JsonSchema getSchema();
+    // void setSchema(JsonSchema schema);
 }

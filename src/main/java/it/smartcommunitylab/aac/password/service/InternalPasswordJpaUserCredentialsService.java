@@ -176,7 +176,7 @@ public class InternalPasswordJpaUserCredentialsService implements UserCredential
             password.setId(id);
             password.setRepositoryId(repository);
 
-            password.setUsername(reg.getUsername());
+            // password.setUsername(reg.getUsername());
             password.setUserId(reg.getUserId());
             password.setRealm(reg.getRealm());
 
@@ -230,7 +230,7 @@ public class InternalPasswordJpaUserCredentialsService implements UserCredential
 
         try {
             // set update fields
-            password.setUsername(reg.getUsername());
+            // password.setUsername(reg.getUsername());
             password.setUserId(reg.getUserId());
             password.setRealm(reg.getRealm());
 
@@ -295,7 +295,7 @@ public class InternalPasswordJpaUserCredentialsService implements UserCredential
     private InternalUserPassword to(InternalUserPasswordEntity e) {
         InternalUserPassword c = new InternalUserPassword(e.getRealm(), e.getId());
         c.setRepositoryId(e.getRepositoryId());
-        c.setUsername(e.getUsername());
+        // c.setUsername(e.getUsername());
         c.setUserId(e.getUserId());
 
         c.setPassword(e.getPassword());

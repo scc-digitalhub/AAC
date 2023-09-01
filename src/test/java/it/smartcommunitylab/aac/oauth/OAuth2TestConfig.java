@@ -85,7 +85,7 @@ public final class OAuth2TestConfig {
             .filter(c -> (c instanceof InternalUserPassword))
             .collect(
                 Collectors.toMap(
-                    c -> ((InternalUserPassword) c).getUsername(),
+                    c -> ((InternalUserPassword) c).getUserId(),
                     c -> ((InternalUserPassword) c).getPassword()
                 )
             );

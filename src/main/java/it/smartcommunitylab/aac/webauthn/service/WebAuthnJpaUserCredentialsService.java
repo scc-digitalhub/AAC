@@ -160,7 +160,7 @@ public class WebAuthnJpaUserCredentialsService implements UserCredentialsService
             credential.setId(id);
             credential.setRepositoryId(repository);
 
-            credential.setUsername(reg.getUsername());
+            // credential.setUsername(reg.getUsername());
             credential.setUserId(reg.getUserId());
             credential.setRealm(reg.getRealm());
 
@@ -218,7 +218,7 @@ public class WebAuthnJpaUserCredentialsService implements UserCredentialsService
 
         try {
             // set update fields
-            credential.setUsername(reg.getUsername());
+            // credential.setUsername(reg.getUsername());
             credential.setUserId(reg.getUserId());
             credential.setRealm(reg.getRealm());
 
@@ -291,7 +291,7 @@ public class WebAuthnJpaUserCredentialsService implements UserCredentialsService
     private WebAuthnUserCredential to(WebAuthnUserCredentialEntity e) {
         WebAuthnUserCredential c = new WebAuthnUserCredential(e.getRealm(), e.getId());
         c.setRepositoryId(e.getRepositoryId());
-        c.setUsername(e.getUsername());
+        // c.setUsername(e.getUsername());
         c.setUserId(e.getUserId());
 
         c.setUserHandle(e.getUserHandle());

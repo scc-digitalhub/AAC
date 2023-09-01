@@ -408,7 +408,7 @@ public class InternalRegistrationController {
             if (service != null && StringUtils.hasText(password)) {
                 InternalUserPassword pwd = new InternalUserPassword(idp.getRealm(), null);
                 pwd.setUserId(identity.getUserId());
-                pwd.setUsername(username);
+                // pwd.setUsername(username);
                 pwd.setPassword(password);
                 credentials = Collections.singleton(pwd);
             }

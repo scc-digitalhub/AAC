@@ -51,10 +51,6 @@ public class InternalEditableUserPassword extends AbstractEditableUserCredential
     @JsonSchemaIgnore
     private String credentialsId;
 
-    @NotBlank
-    @JsonSchemaIgnore
-    private String username;
-
     @JsonSchemaIgnore
     private PasswordPolicy policy;
 
@@ -101,14 +97,6 @@ public class InternalEditableUserPassword extends AbstractEditableUserCredential
 
     public void setCredentialsId(String credentialsId) {
         this.credentialsId = credentialsId;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
     }
 
     public String getPassword() {

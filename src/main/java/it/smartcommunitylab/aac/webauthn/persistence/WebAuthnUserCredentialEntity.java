@@ -36,7 +36,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
     name = "webauthn_credentials",
     uniqueConstraints = {
         @UniqueConstraint(columnNames = { "repository_id", "user_handle", "credential_id" }),
-        @UniqueConstraint(columnNames = { "repository_id", "username", "user_handle" }),
+        // @UniqueConstraint(columnNames = { "repository_id", "username", "user_handle" }),
     }
 )
 @EntityListeners(AuditingEntityListener.class)
@@ -53,10 +53,10 @@ public class WebAuthnUserCredentialEntity {
     @Column(name = "repository_id", length = 128)
     private String repositoryId;
 
-    // username (requires an account from the same repository for login)
-    @NotBlank
-    @Column(name = "username", length = 128)
-    private String username;
+    // // username (requires an account from the same repository for login)
+    // @NotBlank
+    // @Column(name = "username", length = 128)
+    // private String username;
 
     // user id
     @NotNull
@@ -134,13 +134,13 @@ public class WebAuthnUserCredentialEntity {
         this.repositoryId = repositoryId;
     }
 
-    public String getUsername() {
-        return username;
-    }
+    // public String getUsername() {
+    //     return username;
+    // }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
+    // public void setUsername(String username) {
+    //     this.username = username;
+    // }
 
     public String getUserId() {
         return userId;
@@ -261,8 +261,8 @@ public class WebAuthnUserCredentialEntity {
             id +
             ", repositoryId=" +
             repositoryId +
-            ", username=" +
-            username +
+            ", userId=" +
+            userId +
             ", userHandle=" +
             userHandle +
             ", displayName=" +

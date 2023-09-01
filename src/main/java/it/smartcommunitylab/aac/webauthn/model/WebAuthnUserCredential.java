@@ -42,10 +42,10 @@ public class WebAuthnUserCredential extends AbstractUserCredentials {
     @Column(name = "repository_id", length = 128)
     private String repositoryId;
 
-    // username (requires an account from the same repository for login)
-    @NotBlank
-    @Column(name = "username", length = 128)
-    private String username;
+    // // username (requires an account from the same repository for login)
+    // @NotBlank
+    // @Column(name = "username", length = 128)
+    // private String username;
 
     @NotBlank
     @Column(name = "user_handle")
@@ -163,9 +163,9 @@ public class WebAuthnUserCredential extends AbstractUserCredentials {
         return CredentialsStatus.REVOKED.getValue().equals(status);
     }
 
-    public String getUsername() {
-        return username;
-    }
+    // public String getUsername() {
+    //     return username;
+    // }
 
     public void setRepositoryId(String repositoryId) {
         this.repositoryId = repositoryId;
@@ -179,9 +179,9 @@ public class WebAuthnUserCredential extends AbstractUserCredentials {
         this.credentialId = credentialId;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
+    // public void setUsername(String username) {
+    //     this.username = username;
+    // }
 
     public String getUserHandle() {
         return userHandle;
@@ -291,8 +291,8 @@ public class WebAuthnUserCredential extends AbstractUserCredentials {
             id +
             ", repositoryId=" +
             repositoryId +
-            ", username=" +
-            username +
+            ", userId=" +
+            userId +
             ", userHandle=" +
             userHandle +
             ", displayName=" +

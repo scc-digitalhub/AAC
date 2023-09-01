@@ -35,6 +35,7 @@ import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityService;
 import it.smartcommunitylab.aac.templates.model.ConfigurableTemplateProvider;
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import javax.validation.Valid;
@@ -70,7 +71,7 @@ public abstract class ConfigurableProviderImpl<S extends ConfigMap> implements C
 
     @Size(max = 128)
     @Pattern(regexp = SystemKeys.SLUG_PATTERN)
-    @NotBlank
+    // @NotBlank
     private String provider;
 
     @Size(max = 128)
@@ -87,8 +88,8 @@ public abstract class ConfigurableProviderImpl<S extends ConfigMap> implements C
     @Size(max = 128)
     private String name;
 
-    private Map<String, String> titleMap;
-    private Map<String, String> descriptionMap;
+    private Map<String, String> titleMap = Collections.emptyMap();
+    private Map<String, String> descriptionMap = Collections.emptyMap();
 
     // configMap as raw map - should match schema
     // TODO evaluate adding configMap type as field
@@ -237,12 +238,12 @@ public abstract class ConfigurableProviderImpl<S extends ConfigMap> implements C
     //     configuration.put(key, value);
     // }
 
-    @Override
+    // @Override
     public JsonSchema getSchema() {
         return schema;
     }
 
-    @Override
+    // @Override
     public void setSchema(JsonSchema schema) {
         this.schema = schema;
     }

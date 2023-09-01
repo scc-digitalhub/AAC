@@ -44,10 +44,6 @@ public class WebAuthnEditableUserCredential extends AbstractEditableUserCredenti
 
     private String credentialsId;
 
-    @NotBlank
-    @JsonSchemaIgnore
-    private String username;
-
     @JsonSchemaIgnore
     private String userHandle;
 
@@ -77,6 +73,10 @@ public class WebAuthnEditableUserCredential extends AbstractEditableUserCredenti
         super(SystemKeys.AUTHORITY_WEBAUTHN, null, realm, id);
     }
 
+    private WebAuthnEditableUserCredential() {
+        super(SystemKeys.AUTHORITY_WEBAUTHN, (String) null, (String) null, (String) null);
+    }
+
     @Override
     public String getType() {
         return RESOURCE_TYPE;
@@ -88,14 +88,6 @@ public class WebAuthnEditableUserCredential extends AbstractEditableUserCredenti
 
     public void setCredentialsId(String credentialsId) {
         this.credentialsId = credentialsId;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
     }
 
     public String getUserHandle() {

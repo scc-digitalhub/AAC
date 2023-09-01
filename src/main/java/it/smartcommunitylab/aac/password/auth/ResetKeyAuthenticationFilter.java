@@ -184,13 +184,7 @@ public class ResetKeyAuthenticationFilter extends AbstractAuthenticationProcessi
                 throw new BadCredentialsException("invalid-key");
             }
 
-            InternalUserAccount account = userAccountService.findAccountById(repositoryId, password.getUsername());
-            if (account == null) {
-                // don't leak user does not exists
-                throw new BadCredentialsException("invalid-key");
-            }
-
-            String username = account.getUsername();
+            String userId = password.getUserId();
 
             //        HttpSession session = request.getSession(true);
             //        // user always needs to update password from here, if successful
@@ -200,7 +194,7 @@ public class ResetKeyAuthenticationFilter extends AbstractAuthenticationProcessi
             //                "/changepwd/" + providerId + "/" + account.getUuid());
 
             // build a request
-            ResetKeyAuthenticationToken authenticationRequest = new ResetKeyAuthenticationToken(username, code);
+            ResetKeyAuthenticationToken authenticationRequest = new ResetKeyAuthenticationToken(userId, code);
 
             ProviderWrappedAuthenticationToken wrappedAuthRequest = new ProviderWrappedAuthenticationToken(
                 authenticationRequest,

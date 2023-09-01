@@ -17,9 +17,10 @@
 package it.smartcommunitylab.aac.webauthn.model;
 
 import com.yubico.webauthn.RegistrationResult;
+import java.io.Serializable;
 import org.springframework.util.Assert;
 
-public class WebAuthnRegistrationRequest {
+public class WebAuthnRegistrationRequest implements Serializable {
 
     private final String userHandle;
 

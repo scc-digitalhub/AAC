@@ -16,7 +16,6 @@
 
 package it.smartcommunitylab.aac.credentials.base;
 
-import it.smartcommunitylab.aac.accounts.base.AbstractUserAccount;
 import it.smartcommunitylab.aac.base.authorities.AbstractSingleConfigurableProviderAuthority;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
@@ -27,10 +26,9 @@ import it.smartcommunitylab.aac.credentials.provider.CredentialsServiceSettingsM
 import org.springframework.util.Assert;
 
 public abstract class AbstractCredentialsAuthority<
-    S extends AbstractCredentialsService<R, E, U, M, C>,
+    S extends AbstractCredentialsService<R, E, M, C>,
     R extends AbstractUserCredentials,
     E extends AbstractEditableUserCredentials,
-    U extends AbstractUserAccount,
     C extends AbstractCredentialsServiceConfig<M>,
     M extends AbstractConfigMap
 >

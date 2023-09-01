@@ -36,9 +36,9 @@ public class InternalUserPassword extends AbstractUserCredentials {
     @NotBlank
     private String repositoryId;
 
-    // username (requires an account from the same repository for login)
-    @NotBlank
-    private String username;
+    // // username (requires an account from the same repository for login)
+    // @NotBlank
+    // private String username;
 
     // password hash
     @NotBlank
@@ -136,17 +136,17 @@ public class InternalUserPassword extends AbstractUserCredentials {
         this.status = status;
     }
 
-    public String getUsername() {
-        return username;
-    }
+    // public String getUsername() {
+    //     return username;
+    // }
 
     public void setRepositoryId(String repositoryId) {
         this.repositoryId = repositoryId;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
+    // public void setUsername(String username) {
+    //     this.username = username;
+    // }
 
     public String getPassword() {
         return password;
@@ -213,8 +213,8 @@ public class InternalUserPassword extends AbstractUserCredentials {
             id +
             ", repositoryId=" +
             repositoryId +
-            ", username=" +
-            username +
+            ", userId=" +
+            userId +
             ", status=" +
             status +
             ", createDate=" +

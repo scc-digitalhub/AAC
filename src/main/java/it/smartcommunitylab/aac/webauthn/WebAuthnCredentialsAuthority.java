@@ -24,9 +24,9 @@ import it.smartcommunitylab.aac.core.service.TranslatorProviderConfigRepository;
 import it.smartcommunitylab.aac.credentials.base.AbstractCredentialsAuthority;
 import it.smartcommunitylab.aac.credentials.provider.CredentialsServiceSettingsMap;
 import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
+import it.smartcommunitylab.aac.users.service.UserEntityService;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnEditableUserCredential;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserCredential;
-import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsConfigurationProvider;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsService;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsServiceConfig;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
@@ -44,19 +44,20 @@ import org.springframework.util.Assert;
  */
 @Service
 public class WebAuthnCredentialsAuthority
-    extends AbstractCredentialsAuthority<WebAuthnCredentialsService, WebAuthnUserCredential, WebAuthnEditableUserCredential, InternalUserAccount, WebAuthnCredentialsServiceConfig, WebAuthnIdentityProviderConfigMap> {
+    extends AbstractCredentialsAuthority<WebAuthnCredentialsService, WebAuthnUserCredential, WebAuthnEditableUserCredential, WebAuthnCredentialsServiceConfig, WebAuthnIdentityProviderConfigMap> {
 
     public static final String AUTHORITY_URL = "/auth/webauthn/";
 
     // internal account service
     private final UserAccountService<InternalUserAccount> accountService;
-    private ResourceEntityService resourceService;
 
     // key repository
     private final WebAuthnJpaUserCredentialsService credentialsService;
 
     // shared service
     private final WebAuthnRegistrationRpService rpService;
+    private UserEntityService userService;
+    private ResourceEntityService resourceService;
 
     public WebAuthnCredentialsAuthority(
         UserAccountService<InternalUserAccount> userAccountService,
@@ -81,6 +82,11 @@ public class WebAuthnCredentialsAuthority
     // }
 
     @Autowired
+    public void setUserService(UserEntityService userService) {
+        this.userService = userService;
+    }
+
+    @Autowired
     public void setResourceService(ResourceEntityService resourceService) {
         this.resourceService = resourceService;
     }
@@ -89,13 +95,14 @@ public class WebAuthnCredentialsAuthority
     public WebAuthnCredentialsService buildProvider(WebAuthnCredentialsServiceConfig config) {
         WebAuthnCredentialsService service = new WebAuthnCredentialsService(
             config.getProvider(),
-            accountService,
             credentialsService,
+            accountService,
             rpService,
             config,
             config.getRealm()
         );
 
+        service.setUserService(userService);
         service.setResourceService(resourceService);
 
         return service;

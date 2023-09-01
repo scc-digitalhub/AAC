@@ -307,8 +307,8 @@ public class MyUserManager {
             .orElse(null);
         InternalUserAccount account = null;
         if (service != null) {
-            if (StringUtils.hasText(reg.getUsername())) {
-                account = service.findAccount(reg.getUsername());
+            if (StringUtils.hasText(reg.getUserId())) {
+                account = service.findAccount(reg.getUserId());
             } else {
                 account = service.listAccounts(userId).stream().findFirst().orElse(null);
             }
@@ -399,37 +399,37 @@ public class MyUserManager {
         String userId = details.getSubjectId();
         String realm = details.getRealm();
 
-        // resolve a local account from service to enable registration *after* login
-        InternalUserAccount account = null;
-        // TODO handle multiple providers
-        InternalAccountService service = internalAccountServiceAuthority
-            .getProvidersByRealm(realm)
-            .stream()
-            .findFirst()
-            .orElse(null);
-        if (service != null) {
-            if (reg != null && StringUtils.hasText(reg.getUsername())) {
-                account = service.findAccount(reg.getUsername());
-            } else {
-                account = service.listAccounts(userId).stream().findFirst().orElse(null);
-            }
-        }
-        if (account == null) {
-            throw new RegistrationException("missing-account");
-        }
+        // // resolve a local account from service to enable registration *after* login
+        // InternalUserAccount account = null;
+        // // TODO handle multiple providers
+        // InternalAccountService service = internalAccountServiceAuthority
+        //     .getProvidersByRealm(realm)
+        //     .stream()
+        //     .findFirst()
+        //     .orElse(null);
+        // if (service != null) {
+        //     if (reg != null && StringUtils.hasText(reg.getUsername())) {
+        //         account = service.findAccount(reg.getUsername());
+        //     } else {
+        //         account = service.listAccounts(userId).stream().findFirst().orElse(null);
+        //     }
+        // }
+        // if (account == null) {
+        //     throw new RegistrationException("missing-account");
+        // }
 
-        if (!userId.equals(account.getUserId())) {
-            throw new IllegalArgumentException("user-mismatch");
-        }
+        // if (!userId.equals(account.getUserId())) {
+        //     throw new IllegalArgumentException("user-mismatch");
+        // }
 
         // generate
         WebAuthnRegistrationStartRequest req = new WebAuthnRegistrationStartRequest();
-        req.setUsername(account.getAccountId());
+        // req.setUsername(account.getAccountId());
         if (reg != null) {
             req.setDisplayName(reg.getDisplayName());
         }
 
-        return webAuthnCredentialsAuthority.getProviderByRealm(realm).startRegistration(account.getAccountId(), req);
+        return webAuthnCredentialsAuthority.getProviderByRealm(realm).startRegistration(userId, req);
     }
 
     public WebAuthnEditableUserCredential registerMyWebAuthnCredential(
@@ -441,33 +441,31 @@ public class MyUserManager {
         String userId = details.getSubjectId();
         String realm = details.getRealm();
 
-        // resolve a local account from service to enable registration *after* login
-        InternalUserAccount account = null;
-        // TODO handle multiple providers
-        InternalAccountService service = internalAccountServiceAuthority
-            .getProvidersByRealm(realm)
-            .stream()
-            .findFirst()
-            .orElse(null);
-        if (service != null) {
-            if (StringUtils.hasText(reg.getUsername())) {
-                account = service.findAccount(reg.getUsername());
-            } else {
-                account = service.listAccounts(userId).stream().findFirst().orElse(null);
-            }
-        }
-        if (account == null) {
-            throw new RegistrationException("missing-account");
-        }
+        // // resolve a local account from service to enable registration *after* login
+        // InternalUserAccount account = null;
+        // // TODO handle multiple providers
+        // InternalAccountService service = internalAccountServiceAuthority
+        //     .getProvidersByRealm(realm)
+        //     .stream()
+        //     .findFirst()
+        //     .orElse(null);
+        // if (service != null) {
+        //     if (StringUtils.hasText(reg.getUsername())) {
+        //         account = service.findAccount(reg.getUsername());
+        //     } else {
+        //         account = service.listAccounts(userId).stream().findFirst().orElse(null);
+        //     }
+        // }
+        // if (account == null) {
+        //     throw new RegistrationException("missing-account");
+        // }
 
-        if (!userId.equals(account.getUserId())) {
-            throw new IllegalArgumentException("user-mismatch");
-        }
+        // if (!userId.equals(account.getUserId())) {
+        //     throw new IllegalArgumentException("user-mismatch");
+        // }
 
         // save
-        return webAuthnCredentialsAuthority
-            .getProviderByRealm(realm)
-            .registerEditableCredential(account.getAccountId(), reg, request);
+        return webAuthnCredentialsAuthority.getProviderByRealm(realm).registerEditableCredential(userId, reg, request);
     }
 
     public WebAuthnEditableUserCredential updateMyWebAuthnCredential(String id, WebAuthnEditableUserCredential reg)

@@ -322,7 +322,7 @@ public class AACBootstrap {
             internalUserPasswordService.deleteAllCredentialsByUser(repositoryId, userId);
             InternalUserPassword pass = new InternalUserPassword(realm, UUID.randomUUID().toString());
             pass.setProvider(repositoryId);
-            pass.setUsername(username);
+            // pass.setUsername(username);
             pass.setUserId(account.getUserId());
             pass.setPassword(hasher.createHash(password));
             pass.setChangeOnFirstAccess(false);

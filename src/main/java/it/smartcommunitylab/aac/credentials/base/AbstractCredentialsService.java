@@ -17,8 +17,6 @@
 package it.smartcommunitylab.aac.credentials.base;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.accounts.base.AbstractUserAccount;
-import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.base.provider.AbstractConfigurableResourceProvider;
 import it.smartcommunitylab.aac.common.NoSuchCredentialException;
@@ -31,6 +29,8 @@ import it.smartcommunitylab.aac.credentials.persistence.UserCredentialsService;
 import it.smartcommunitylab.aac.credentials.provider.CredentialsService;
 import it.smartcommunitylab.aac.credentials.provider.CredentialsServiceSettingsMap;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
+import it.smartcommunitylab.aac.users.persistence.UserEntity;
+import it.smartcommunitylab.aac.users.service.UserEntityService;
 import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
@@ -44,7 +44,6 @@ import org.springframework.util.StringUtils;
 public abstract class AbstractCredentialsService<
     R extends AbstractUserCredentials,
     E extends AbstractEditableUserCredentials,
-    U extends AbstractUserAccount,
     M extends AbstractConfigMap,
     C extends AbstractCredentialsServiceConfig<M>
 >
@@ -58,8 +57,11 @@ public abstract class AbstractCredentialsService<
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // services
-    protected final UserAccountService<U> accountService;
     protected final UserCredentialsService<R> credentialsService;
+
+    //TODO replace with userService after refactoring userService
+    protected UserEntityService userService;
+    // protected UserService userService;
     protected ResourceEntityService resourceService;
 
     // provider configuration
@@ -68,13 +70,11 @@ public abstract class AbstractCredentialsService<
     protected AbstractCredentialsService(
         String authority,
         String providerId,
-        UserAccountService<U> userAccountService,
         UserCredentialsService<R> credentialsService,
         C providerConfig,
         String realm
     ) {
         super(authority, providerId, realm, providerConfig);
-        Assert.notNull(userAccountService, "user account service is mandatory");
         Assert.notNull(credentialsService, "credentials service is mandatory");
         Assert.notNull(providerConfig, "provider config is mandatory");
 
@@ -86,8 +86,11 @@ public abstract class AbstractCredentialsService<
             repositoryId
         );
 
-        this.accountService = userAccountService;
         this.credentialsService = credentialsService;
+    }
+
+    public void setUserService(UserEntityService userService) {
+        this.userService = userService;
     }
 
     public void setResourceService(ResourceEntityService resourceService) {
@@ -159,13 +162,9 @@ public abstract class AbstractCredentialsService<
     }
 
     @Override
-    public R addCredential(String accountId, String credentialId, UserCredentials uc)
+    public R addCredential(String userId, String credentialId, UserCredentials uc)
         throws NoSuchUserException, RegistrationException {
-        logger.debug(
-            "add credential for account {} with id {}",
-            String.valueOf(accountId),
-            String.valueOf(credentialId)
-        );
+        logger.debug("add credential for user {} with id {}", String.valueOf(userId), String.valueOf(credentialId));
         if (logger.isTraceEnabled()) {
             logger.trace("credentials: {}", String.valueOf(uc));
         }
@@ -186,9 +185,11 @@ public abstract class AbstractCredentialsService<
         }
 
         // fetch user
-        U account = accountService.findAccountById(repositoryId, accountId);
-        if (account == null) {
-            throw new NoSuchUserException();
+        if (userService != null) {
+            UserEntity u = userService.findUser(userId);
+            if (u == null) {
+                throw new NoSuchUserException();
+            }
         }
 
         // we expect model to be already validated

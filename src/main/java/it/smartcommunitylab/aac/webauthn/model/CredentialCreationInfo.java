@@ -18,27 +18,46 @@ package it.smartcommunitylab.aac.webauthn.model;
 
 import com.yubico.webauthn.data.ByteArray;
 import com.yubico.webauthn.data.PublicKeyCredentialCreationOptions;
+import java.io.Serializable;
 
-public class CredentialCreationInfo {
+public class CredentialCreationInfo implements Serializable {
 
-    private ByteArray userHandle;
+    // private ByteArray userHandle;
+    private String userHandle;
 
     // TODO handle serializable, this is NOT serializable by itself
-    private PublicKeyCredentialCreationOptions options;
+    // private PublicKeyCredentialCreationOptions options;
+    private String options;
 
-    public ByteArray getUserHandle() {
+    // public ByteArray getUserHandle() {
+    //     return userHandle;
+    // }
+
+    // public void setUserHandle(ByteArray userHandle) {
+    //     this.userHandle = userHandle;
+    // }
+
+    // public PublicKeyCredentialCreationOptions getOptions() {
+    //     return options;
+    // }
+
+    // public void setOptions(PublicKeyCredentialCreationOptions options) {
+    //     this.options = options;
+    // }
+
+    public String getUserHandle() {
         return userHandle;
     }
 
-    public void setUserHandle(ByteArray userHandle) {
+    public void setUserHandle(String userHandle) {
         this.userHandle = userHandle;
     }
 
-    public PublicKeyCredentialCreationOptions getOptions() {
+    public String getOptions() {
         return options;
     }
 
-    public void setOptions(PublicKeyCredentialCreationOptions options) {
+    public void setOptions(String options) {
         this.options = options;
     }
 

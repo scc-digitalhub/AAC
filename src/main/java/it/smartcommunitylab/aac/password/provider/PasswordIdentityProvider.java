@@ -184,8 +184,6 @@ public class PasswordIdentityProvider
 
     @Override
     public void deleteIdentity(String userId, String username) throws NoSuchUserException {
-        // remove all credentials
-        passwordService.deletePassword(userId, username);
         // do not remove account because we are NOT authoritative
     }
 

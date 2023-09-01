@@ -17,24 +17,20 @@
 package it.smartcommunitylab.aac.password;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
-import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.core.service.TranslatorProviderConfigRepository;
 import it.smartcommunitylab.aac.credentials.base.AbstractCredentialsAuthority;
 import it.smartcommunitylab.aac.credentials.provider.CredentialsServiceSettingsMap;
-import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.password.model.InternalEditableUserPassword;
 import it.smartcommunitylab.aac.password.model.InternalUserPassword;
-import it.smartcommunitylab.aac.password.provider.PasswordCredentialsConfigurationProvider;
 import it.smartcommunitylab.aac.password.provider.PasswordCredentialsService;
 import it.smartcommunitylab.aac.password.provider.PasswordCredentialsServiceConfig;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.password.service.InternalPasswordJpaUserCredentialsService;
+import it.smartcommunitylab.aac.users.service.UserEntityService;
 import it.smartcommunitylab.aac.utils.MailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -47,30 +43,25 @@ import org.springframework.util.Assert;
  */
 @Service
 public class PasswordCredentialsAuthority
-    extends AbstractCredentialsAuthority<PasswordCredentialsService, InternalUserPassword, InternalEditableUserPassword, InternalUserAccount, PasswordCredentialsServiceConfig, PasswordIdentityProviderConfigMap> {
+    extends AbstractCredentialsAuthority<PasswordCredentialsService, InternalUserPassword, InternalEditableUserPassword, PasswordCredentialsServiceConfig, PasswordIdentityProviderConfigMap> {
 
     public static final String AUTHORITY_URL = "/auth/password/";
-
-    // internal account service
-    private final UserAccountService<InternalUserAccount> accountService;
 
     // password service
     private final InternalPasswordJpaUserCredentialsService passwordService;
 
     private MailService mailService;
     private RealmAwareUriBuilder uriBuilder;
+    private UserEntityService userService;
     private ResourceEntityService resourceService;
 
     public PasswordCredentialsAuthority(
-        UserAccountService<InternalUserAccount> userAccountService,
         InternalPasswordJpaUserCredentialsService passwordService,
         ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository
     ) {
         super(SystemKeys.AUTHORITY_PASSWORD, new PasswordConfigTranslatorRepository(registrationRepository));
-        Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(passwordService, "password service is mandatory");
 
-        this.accountService = userAccountService;
         this.passwordService = passwordService;
     }
 
@@ -91,6 +82,11 @@ public class PasswordCredentialsAuthority
     }
 
     @Autowired
+    public void setUserService(UserEntityService userService) {
+        this.userService = userService;
+    }
+
+    @Autowired
     public void setResourceService(ResourceEntityService resourceService) {
         this.resourceService = resourceService;
     }
@@ -99,7 +95,6 @@ public class PasswordCredentialsAuthority
     public PasswordCredentialsService buildProvider(PasswordCredentialsServiceConfig config) {
         PasswordCredentialsService service = new PasswordCredentialsService(
             config.getProvider(),
-            accountService,
             passwordService,
             config,
             config.getRealm()
@@ -107,6 +102,7 @@ public class PasswordCredentialsAuthority
 
         service.setMailService(mailService);
         service.setUriBuilder(uriBuilder);
+        service.setUserService(userService);
         service.setResourceService(resourceService);
 
         return service;

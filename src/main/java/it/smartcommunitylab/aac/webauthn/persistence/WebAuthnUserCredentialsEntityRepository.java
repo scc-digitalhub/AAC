@@ -40,7 +40,7 @@ public interface WebAuthnUserCredentialsEntityRepository
 
     List<WebAuthnUserCredentialEntity> findByRepositoryIdAndCredentialId(String repositoryId, String credentialId);
 
-    List<WebAuthnUserCredentialEntity> findByRepositoryIdAndUsername(String repositoryId, String username);
+    // List<WebAuthnUserCredentialEntity> findByRepositoryIdAndUsername(String repositoryId, String username);
 
     List<WebAuthnUserCredentialEntity> findByRepositoryIdAndUserHandle(String repositoryId, String userHandle);
 }

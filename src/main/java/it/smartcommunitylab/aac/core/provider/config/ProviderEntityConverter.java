@@ -19,6 +19,7 @@ package it.smartcommunitylab.aac.core.provider.config;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
+import java.util.Collections;
 import java.util.function.Supplier;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.util.Assert;
@@ -48,8 +49,8 @@ public class ProviderEntityConverter<C extends ConfigurableProvider<S>, S extend
 
         //details
         cp.setName(pe.getName());
-        cp.setTitleMap(pe.getTitleMap());
-        cp.setDescriptionMap(pe.getDescriptionMap());
+        cp.setTitleMap(pe.getTitleMap() != null ? pe.getTitleMap() : Collections.emptyMap());
+        cp.setDescriptionMap(pe.getDescriptionMap() != null ? pe.getDescriptionMap() : Collections.emptyMap());
 
         return cp;
     }
