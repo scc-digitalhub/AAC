@@ -97,7 +97,7 @@ public final class OAuth2TestConfig {
                 .map(a -> {
                     UserRegistration r = new UserRegistration(a.getUserId());
                     r.setUsername(a.getUsername());
-                    r.setPassword(passwords.get(a.getAccountId()));
+                    r.setPassword(passwords.get(a.getUserId()));
                     r.setEmail(a.getEmailAddress());
                     if (a instanceof InternalUserAccount) {
                         InternalUserAccount ia = (InternalUserAccount) a;
