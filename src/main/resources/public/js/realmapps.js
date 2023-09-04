@@ -622,9 +622,21 @@ angular.module('aac.controllers.realmapps', [])
 
             //flow extensions hook
             var webHooks = {
+                "beforeUserApproval": null,
+                "afterUserApproval": null,
+                "beforeTokenGrant": null,
                 "afterTokenGrant": null
             }
             if (data.hookWebUrls != null) {
+                if ("beforeUserApproval" in data.hookWebUrls) {
+                    webHooks["beforeUserApproval"] = data.hookWebUrls["beforeUserApproval"];
+                }
+                if ("afterUserApproval" in data.hookWebUrls) {
+                    webHooks["afterUserApproval"] = data.hookWebUrls["afterUserApproval"];
+                }
+                if ("beforeTokenGrant" in data.hookWebUrls) {
+                    webHooks["beforeTokenGrant"] = data.hookWebUrls["beforeTokenGrant"];
+                }
                 if ("afterTokenGrant" in data.hookWebUrls) {
                     webHooks["afterTokenGrant"] = data.hookWebUrls["afterTokenGrant"];
                 }
@@ -740,6 +752,9 @@ angular.module('aac.controllers.realmapps', [])
             }
 
             var hookWebUrls = clientApp.hookWebUrls != null ? clientApp.hookWebUrls : {};
+            hookWebUrls["beforeUserApproval"] = $scope.webHooks["beforeUserApproval"];
+            hookWebUrls["afterUserApproval"] = $scope.webHooks["afterUserApproval"];
+            hookWebUrls["beforeTokenGrant"] = $scope.webHooks["beforeTokenGrant"];
             hookWebUrls["afterTokenGrant"] = $scope.webHooks["afterTokenGrant"];
 
             var data = {
