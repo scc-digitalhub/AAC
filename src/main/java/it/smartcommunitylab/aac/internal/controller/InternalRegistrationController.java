@@ -34,9 +34,11 @@ import it.smartcommunitylab.aac.internal.dto.UserRegistrationBean;
 import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
+import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.password.model.InternalUserPassword;
 import it.smartcommunitylab.aac.password.model.PasswordPolicy;
 import it.smartcommunitylab.aac.password.provider.PasswordCredentialsService;
+import it.smartcommunitylab.aac.realms.service.RealmService;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Locale;
@@ -265,7 +267,7 @@ public class InternalRegistrationController {
         String realm = idp.getRealm();
         Realm r = realmService.findRealm(realm);
         if (r == null) {
-            throw new ProviderNotFoundException("realm not found");
+            throw new NoSuchRealmException("realm not found");
         }
 
         model.addAttribute("realm", realm);

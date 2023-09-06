@@ -17,14 +17,9 @@
 package it.smartcommunitylab.aac.config;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.core.MyUserManager;
 import it.smartcommunitylab.aac.core.auth.ExtendedLoginUrlAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.auth.LoginUrlRequestConverter;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.core.service.IdentityProviderAuthorityService;
-import it.smartcommunitylab.aac.core.service.IdentityProviderService;
-import it.smartcommunitylab.aac.core.service.RealmService;
-import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.identity.service.IdentityProviderAuthorityService;
 import it.smartcommunitylab.aac.identity.service.IdentityProviderService;
 import it.smartcommunitylab.aac.oauth.auth.AuthorizationEndpointFilter;
@@ -37,7 +32,9 @@ import it.smartcommunitylab.aac.oauth.service.OAuth2ClientService;
 import it.smartcommunitylab.aac.password.auth.InternalPasswordResetOnAccessFilter;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordEntityRepository;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
+import it.smartcommunitylab.aac.realms.service.RealmService;
 import it.smartcommunitylab.aac.tos.TosOnAccessFilter;
+import it.smartcommunitylab.aac.users.service.UserService;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

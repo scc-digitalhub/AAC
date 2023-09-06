@@ -22,13 +22,14 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.bootstrap.BootstrapConfig;
 import it.smartcommunitylab.aac.common.NoSuchTemplateException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.core.model.ConfigurableTemplateProvider;
-import it.smartcommunitylab.aac.core.model.Template;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.dto.RealmConfig;
+import it.smartcommunitylab.aac.templates.model.ConfigurableTemplateProvider;
+import it.smartcommunitylab.aac.templates.model.Template;
 import it.smartcommunitylab.aac.templates.model.TemplateModel;
 import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfig;
 import it.smartcommunitylab.aac.templates.provider.TemplateProviderConfigMap;
+import it.smartcommunitylab.aac.templates.provider.TemplateProviderSettingsMap;
 import it.smartcommunitylab.aac.templates.service.TemplateService;
 import it.smartcommunitylab.aac.tos.provider.TosTemplateProvider;
 import it.smartcommunitylab.aac.tos.templates.TosTemplate;
@@ -85,6 +86,7 @@ public class TosTemplateTest {
             conf =
                 new RealmTemplateProviderConfig(
                     new ConfigurableTemplateProvider(SystemKeys.AUTHORITY_TEMPLATE, slug, slug),
+                    new TemplateProviderSettingsMap(),
                     new TemplateProviderConfigMap()
                 );
 
