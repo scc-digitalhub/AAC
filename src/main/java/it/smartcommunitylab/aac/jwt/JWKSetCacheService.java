@@ -17,10 +17,14 @@
  *******************************************************************************/
 package it.smartcommunitylab.aac.jwt;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.UncheckedExecutionException;
+import com.nimbusds.jose.jwk.JWKSet;
 import java.text.ParseException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
@@ -29,12 +33,6 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.util.concurrent.UncheckedExecutionException;
-import com.nimbusds.jose.jwk.JWKSet;
 
 /**
  *
@@ -47,13 +45,15 @@ import com.nimbusds.jose.jwk.JWKSet;
  */
 
 public class JWKSetCacheService {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // loading cache for external url
-    private final LoadingCache<String, JWKSet> jwksets = CacheBuilder.newBuilder()
-            .expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
-            .maximumSize(100)
-            .build(new JWKSetFetcher(HttpClientBuilder.create().useSystemProperties().build()));
+    private final LoadingCache<String, JWKSet> jwksets = CacheBuilder
+        .newBuilder()
+        .expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
+        .maximumSize(100)
+        .build(new JWKSetFetcher(HttpClientBuilder.create().useSystemProperties().build()));
 
     public JWKSet getJWKSet(String jwksUri) {
         if (!StringUtils.hasText(jwksUri)) {
@@ -69,6 +69,7 @@ public class JWKSetCacheService {
     }
 
     private class JWKSetFetcher extends CacheLoader<String, JWKSet> {
+
         private HttpComponentsClientHttpRequestFactory httpFactory;
         private RestTemplate restTemplate;
 
@@ -89,7 +90,5 @@ public class JWKSetCacheService {
                 throw new IllegalArgumentException("Unable to load JWK Set");
             }
         }
-
     }
-
 }

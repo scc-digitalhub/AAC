@@ -1,5 +1,34 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.internal.provider;
 
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.attributes.mapper.ExactAttributesMapper;
+import it.smartcommunitylab.aac.attributes.service.AttributeService;
+import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
+import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
+import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
+import it.smartcommunitylab.aac.core.model.Attribute;
+import it.smartcommunitylab.aac.core.model.AttributeSet;
+import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.internal.persistence.InternalAttributeEntity;
+import it.smartcommunitylab.aac.internal.service.InternalAttributeEntityService;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -7,23 +36,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.springframework.util.Assert;
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.attributes.mapper.ExactAttributesMapper;
-import it.smartcommunitylab.aac.attributes.service.AttributeService;
-import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
-import it.smartcommunitylab.aac.core.base.AbstractProvider;
-import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
-import it.smartcommunitylab.aac.core.model.Attribute;
-import it.smartcommunitylab.aac.core.model.AttributeSet;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.internal.persistence.InternalAttributeEntity;
-import it.smartcommunitylab.aac.internal.service.InternalAttributeEntityService;
 
-public class InternalAttributeService extends AbstractProvider
-        implements it.smartcommunitylab.aac.core.provider.AttributeService {
+public class InternalAttributeService
+    extends AbstractConfigurableProvider<UserAttributes, ConfigurableAttributeProvider, InternalAttributeProviderConfigMap, InternalAttributeProviderConfig>
+    implements
+        it.smartcommunitylab.aac.core.provider.AttributeService<InternalAttributeProviderConfigMap, InternalAttributeProviderConfig> {
 
     public static final String ATTRIBUTE_MAPPING_FUNCTION = "attributeMapping";
 
@@ -31,27 +49,19 @@ public class InternalAttributeService extends AbstractProvider
     private final AttributeService attributeService;
     private final InternalAttributeEntityService attributeEntityService;
 
-    private final InternalAttributeProviderConfig providerConfig;
-
     public InternalAttributeService(
-            String providerId,
-            AttributeService attributeService,
-            InternalAttributeEntityService attributeEntityService,
-            InternalAttributeProviderConfig config,
-            String realm) {
-        super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
-        Assert.notNull(config, "provider config is mandatory");
+        String providerId,
+        AttributeService attributeService,
+        InternalAttributeEntityService attributeEntityService,
+        InternalAttributeProviderConfig providerConfig,
+        String realm
+    ) {
+        super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm, providerConfig);
         Assert.notNull(attributeService, "attribute service is mandatory");
         Assert.notNull(attributeEntityService, "attribute entity service is mandatory");
 
         this.attributeService = attributeService;
         this.attributeEntityService = attributeEntityService;
-
-        // check configuration
-        Assert.isTrue(providerId.equals(config.getProvider()),
-                "configuration does not match this provider");
-        Assert.isTrue(realm.equals(config.getRealm()), "configuration does not match this provider");
-        this.providerConfig = config;
 
         // validate attribute sets, if empty nothing to do
         if (providerConfig.getAttributeSets().isEmpty()) {
@@ -60,25 +70,11 @@ public class InternalAttributeService extends AbstractProvider
     }
 
     @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_ATTRIBUTES;
-    }
-
-    @Override
-    public String getName() {
-        return providerConfig.getName();
-    }
-
-    @Override
-    public String getDescription() {
-        return providerConfig.getDescription();
-    }
-
-    @Override
-    public Collection<UserAttributes> convertPrincipalAttributes(UserAuthenticatedPrincipal principal,
-            String subjectId) {
-
-        if (providerConfig.getAttributeSets().isEmpty()) {
+    public Collection<UserAttributes> convertPrincipalAttributes(
+        UserAuthenticatedPrincipal principal,
+        String subjectId
+    ) {
+        if (config.getAttributeSets().isEmpty()) {
             return Collections.emptyList();
         }
 
@@ -91,34 +87,66 @@ public class InternalAttributeService extends AbstractProvider
         List<UserAttributes> result = new ArrayList<>();
 
         // build sets from stored values
-        for (String setId : providerConfig.getAttributeSets()) {
+        for (String setId : config.getAttributeSets()) {
             try {
                 AttributeSet as = attributeService.getAttributeSet(setId);
                 // fetch from store
-                List<InternalAttributeEntity> attributes = attributeEntityService.findAttributes(getProvider(),
-                        subjectId,
-                        setId);
+                List<InternalAttributeEntity> attributes = attributeEntityService.findAttributes(
+                    getProvider(),
+                    subjectId,
+                    setId
+                );
 
                 // translate to set
                 if (!attributes.isEmpty()) {
                     // TODO handle repeatable as enum
-                    Map<String, Serializable> principalAttributes = attributes.stream()
-                            .collect(Collectors.toMap(a -> a.getKey(), a -> a.getValue()));
+                    Map<String, Serializable> principalAttributes = attributes
+                        .stream()
+                        .collect(Collectors.toMap(a -> a.getKey(), a -> a.getValue()));
 
                     // use exact mapper
                     ExactAttributesMapper mapper = new ExactAttributesMapper(as);
                     AttributeSet set = mapper.mapAttributes(principalAttributes);
 
                     // build result
-                    result.add(new DefaultUserAttributesImpl(
-                            getAuthority(), getProvider(), getRealm(), subjectId,
-                            set));
+                    result.add(
+                        new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), subjectId, set)
+                    );
                 }
-            } catch (NoSuchAttributeSetException | RuntimeException e) {
-            }
+            } catch (NoSuchAttributeSetException | RuntimeException e) {}
         }
 
         return result;
+    }
+
+    @Override
+    public UserAttributes getUserAttributes(String subjectId, String setId) throws NoSuchAttributeSetException {
+        if (!config.getAttributeSets().contains(setId)) {
+            throw new IllegalArgumentException("set not enabled for this provider " + setId);
+        }
+
+        // build set from stored values
+
+        AttributeSet as = attributeService.getAttributeSet(setId);
+        // fetch from store
+        List<InternalAttributeEntity> attributes = attributeEntityService.findAttributes(
+            getProvider(),
+            subjectId,
+            setId
+        );
+
+        // translate to set
+        // TODO handle repeatable as enum
+        Map<String, Serializable> principalAttributes = attributes
+            .stream()
+            .collect(Collectors.toMap(a -> a.getKey(), a -> a.getValue()));
+
+        // use exact mapper
+        ExactAttributesMapper mapper = new ExactAttributesMapper(as);
+        AttributeSet set = mapper.mapAttributes(principalAttributes);
+
+        // build result
+        return new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), subjectId, set);
     }
 
     @Override
@@ -128,47 +156,62 @@ public class InternalAttributeService extends AbstractProvider
     }
 
     @Override
-    public void deleteAttributes(String subjectId, String setId) {
+    public void deleteUserAttributes(String subjectId, String setId) {
         // cleanup matching from store
         attributeEntityService.deleteAttribute(getProvider(), subjectId, setId);
     }
 
     @Override
-    public Collection<UserAttributes> putAttributes(String subjectId, Collection<AttributeSet> attributeSets) {
+    public Collection<UserAttributes> putUserAttributes(String subjectId, Collection<AttributeSet> attributeSets) {
         List<UserAttributes> result = new ArrayList<>();
 
         // fetch sets and validate
         for (AttributeSet as : attributeSets) {
-            if (!providerConfig.getAttributeSets().contains(as.getIdentifier())) {
-                throw new IllegalArgumentException("set not enabled for this provider " + as.getIdentifier());
-            }
-
-            // unpack and save to store
-            Collection<Attribute> attrs = as.getAttributes();
-
-            // each set will overwrite previously stored values
-            List<InternalAttributeEntity> attributes = attributeEntityService.setAttributes(getProvider(), subjectId,
-                    as.getIdentifier(), attrs);
-            // translate to set
-            if (!attributes.isEmpty()) {
-                // TODO handle repeatable as enum
-                Map<String, Serializable> principalAttributes = attributes.stream()
-                        .collect(Collectors.toMap(a -> a.getKey(), a -> a.getValue()));
-
-                // use exact mapper
-                ExactAttributesMapper mapper = new ExactAttributesMapper(as);
-                AttributeSet set = mapper.mapAttributes(principalAttributes);
-
-                // build result
-                result.add(new DefaultUserAttributesImpl(
-                        getAuthority(), getProvider(), getRealm(), subjectId,
-                        set));
-            }
-
+            AttributeSet set = setAttributes(subjectId, as);
+            // build result
+            result.add(new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), subjectId, set));
         }
 
         return result;
-
     }
 
+    @Override
+    public UserAttributes putUserAttributes(String subjectId, String setId, AttributeSet attributeSet) {
+        // check match
+        if (!attributeSet.getIdentifier().equals(setId)) {
+            throw new IllegalArgumentException("set id mismatch");
+        }
+
+        AttributeSet set = setAttributes(subjectId, attributeSet);
+
+        // build result
+        return new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), subjectId, set);
+    }
+
+    private AttributeSet setAttributes(String subjectId, AttributeSet as) {
+        if (!config.getAttributeSets().contains(as.getIdentifier())) {
+            throw new IllegalArgumentException("set not enabled for this provider " + as.getIdentifier());
+        }
+
+        // unpack and save to store
+        Collection<Attribute> attrs = as.getAttributes();
+
+        // each set will overwrite previously stored values
+        List<InternalAttributeEntity> attributes = attributeEntityService.setAttributes(
+            getProvider(),
+            subjectId,
+            as.getIdentifier(),
+            attrs
+        );
+        // translate to set
+        // TODO handle repeatable as enum
+        Map<String, Serializable> principalAttributes = attributes
+            .stream()
+            .collect(Collectors.toMap(a -> a.getKey(), a -> a.getValue()));
+
+        // use exact mapper
+        ExactAttributesMapper mapper = new ExactAttributesMapper(as);
+        AttributeSet set = mapper.mapAttributes(principalAttributes);
+        return set;
+    }
 }

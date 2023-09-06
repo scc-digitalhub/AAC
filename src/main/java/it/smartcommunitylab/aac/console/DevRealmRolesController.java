@@ -1,18 +1,42 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.console;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.oas.annotations.Hidden;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.NoSuchRoleException;
+import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.model.RealmRole;
+import it.smartcommunitylab.aac.roles.BaseRealmRolesController;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,25 +52,14 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.yaml.snakeyaml.Yaml;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import io.swagger.v3.oas.annotations.Hidden;
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.common.NoSuchRealmException;
-import it.smartcommunitylab.aac.common.NoSuchRoleException;
-import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.model.RealmRole;
-import it.smartcommunitylab.aac.roles.BaseRealmRolesController;
-
 @RestController
 @Hidden
 @RequestMapping("/console/dev")
 public class DevRealmRolesController extends BaseRealmRolesController {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final TypeReference<Map<String, List<RealmRole>>> typeRef = new TypeReference<Map<String, List<RealmRole>>>() {
-    };
+    private final TypeReference<Map<String, List<RealmRole>>> typeRef =
+        new TypeReference<Map<String, List<RealmRole>>>() {};
     private final String LIST_KEY = "roles";
 
     @Autowired
@@ -58,11 +71,11 @@ public class DevRealmRolesController extends BaseRealmRolesController {
      */
     @PutMapping("/roles/{realm}")
     public Collection<RealmRole> importRealmRoles(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestParam(required = false, defaultValue = "false") boolean reset,
-            @RequestPart(name = "yaml", required = false) @Valid String yaml,
-            @RequestPart(name = "file", required = false) @Valid MultipartFile file)
-            throws NoSuchRealmException, RegistrationException {
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @RequestParam(required = false, defaultValue = "false") boolean reset,
+        @RequestPart(name = "yaml", required = false) @Valid String yaml,
+        @RequestPart(name = "file", required = false) @Valid MultipartFile file
+    ) throws NoSuchRealmException, RegistrationException {
         logger.debug("import role(s) to realm {}", StringUtils.trimAllWhitespace(realm));
 
         if (!StringUtils.hasText(yaml) && (file == null || file.isEmpty())) {
@@ -76,9 +89,11 @@ public class DevRealmRolesController extends BaseRealmRolesController {
                     throw new IllegalArgumentException("invalid file");
                 }
 
-                if (!SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType())
-                        && !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType())
-                        && !SystemKeys.MEDIA_TYPE_XYAML.toString().equals(file.getContentType())) {
+                if (
+                    !SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType()) &&
+                    !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType()) &&
+                    !SystemKeys.MEDIA_TYPE_XYAML.toString().equals(file.getContentType())
+                ) {
                     throw new IllegalArgumentException("invalid file");
                 }
 
@@ -115,7 +130,7 @@ public class DevRealmRolesController extends BaseRealmRolesController {
                 }
 
                 if (logger.isTraceEnabled()) {
-                    logger.trace("role bean: " + String.valueOf(reg));
+                    logger.trace("role bean: {}", String.valueOf(reg));
                 }
 
                 RealmRole role = roleManager.addRealmRole(realm, reg);
@@ -123,7 +138,7 @@ public class DevRealmRolesController extends BaseRealmRolesController {
             }
 
             return roles;
-        } catch (Exception e) {
+        } catch (RuntimeException | IOException e) {
             logger.error("error importing roles: " + e.getMessage());
             if (logger.isTraceEnabled()) {
                 e.printStackTrace();
@@ -139,12 +154,15 @@ public class DevRealmRolesController extends BaseRealmRolesController {
 
     @GetMapping("/roles/{realm}/{roleId}/export")
     public void exportRealmRole(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String roleId,
-            HttpServletResponse res)
-            throws NoSuchRealmException, SystemException, IOException, NoSuchRoleException {
-        logger.debug("export role {} for realm {}",
-                StringUtils.trimAllWhitespace(roleId), StringUtils.trimAllWhitespace(realm));
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String roleId,
+        HttpServletResponse res
+    ) throws NoSuchRealmException, SystemException, IOException, NoSuchRoleException {
+        logger.debug(
+            "export role {} for realm {}",
+            StringUtils.trimAllWhitespace(roleId),
+            StringUtils.trimAllWhitespace(realm)
+        );
 
         RealmRole role = roleManager.getRealmRole(realm, roleId, true);
         String s = yamlObjectMapper.writeValueAsString(role);
@@ -157,5 +175,4 @@ public class DevRealmRolesController extends BaseRealmRolesController {
         out.flush();
         out.close();
     }
-
 }

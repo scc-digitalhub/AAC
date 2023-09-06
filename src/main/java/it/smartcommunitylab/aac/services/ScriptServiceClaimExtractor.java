@@ -1,21 +1,23 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.services;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import it.smartcommunitylab.aac.claims.Claim;
 import it.smartcommunitylab.aac.claims.ClaimsSet;
 import it.smartcommunitylab.aac.claims.DefaultClaimsSet;
@@ -32,15 +34,27 @@ import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.dto.UserProfile;
 import it.smartcommunitylab.aac.model.User;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
+
     public static final String CLAIM_MAPPING_FUNCTION = "claimMapping";
 
     private final ObjectMapper mapper = new ObjectMapper();
-    private final TypeReference<HashMap<String, Serializable>> serMapTypeRef = new TypeReference<HashMap<String, Serializable>>() {
-    };
-    private final TypeReference<ArrayList<Serializable>> serListTypeRef = new TypeReference<ArrayList<Serializable>>() {
-    };
+    private final TypeReference<HashMap<String, Serializable>> serMapTypeRef =
+        new TypeReference<HashMap<String, Serializable>>() {};
+    private final TypeReference<ArrayList<Serializable>> serListTypeRef =
+        new TypeReference<ArrayList<Serializable>>() {};
     private final Service service;
     private ScriptExecutionService executionService;
 
@@ -62,15 +76,18 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
 
     @Override
     public String getRealm() {
-//        // we return null to avoid user translation, we do it ourselves
-//        return null;
+        //        // we return null to avoid user translation, we do it ourselves
+        //        return null;
         return service.getRealm();
     }
 
-    public ClaimsSet extractUserClaims(String resourceId, User user, ClientDetails client, Collection<String> scopes,
-            Map<String, Serializable> extensions)
-            throws InvalidDefinitionException, SystemException {
-
+    public ClaimsSet extractUserClaims(
+        String resourceId,
+        User user,
+        ClientDetails client,
+        Collection<String> scopes,
+        Map<String, Serializable> extensions
+    ) throws InvalidDefinitionException, SystemException {
         if (executionService == null) {
             return null;
         }
@@ -94,9 +111,11 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
         Map<String, Serializable> map = buildUserContext(user, client, scopes, exts);
 
         // execute script
-        Map<String, Serializable> customClaims = executionService.executeFunction(CLAIM_MAPPING_FUNCTION,
-                claimMapping,
-                map);
+        Map<String, Serializable> customClaims = executionService.executeFunction(
+            CLAIM_MAPPING_FUNCTION,
+            claimMapping,
+            map
+        );
 
         // map to defined claims and build claimsSet
         List<Claim> claims = processClaims(service.getClaims(), customClaims);
@@ -110,13 +129,14 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
         claimsSet.setClaims(claims);
 
         return claimsSet;
-
     }
 
-    public ClaimsSet extractClientClaims(String resourceId, ClientDetails client, Collection<String> scopes,
-            Map<String, Serializable> extensions)
-            throws InvalidDefinitionException, SystemException {
-
+    public ClaimsSet extractClientClaims(
+        String resourceId,
+        ClientDetails client,
+        Collection<String> scopes,
+        Map<String, Serializable> extensions
+    ) throws InvalidDefinitionException, SystemException {
         if (executionService == null) {
             return null;
         }
@@ -140,9 +160,11 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
         Map<String, Serializable> map = buildClientContext(client, scopes, exts);
 
         // execute script
-        Map<String, Serializable> customClaims = executionService.executeFunction(CLAIM_MAPPING_FUNCTION,
-                claimMapping,
-                map);
+        Map<String, Serializable> customClaims = executionService.executeFunction(
+            CLAIM_MAPPING_FUNCTION,
+            claimMapping,
+            map
+        );
 
         // map to defined claims and build claimsSet
         List<Claim> claims = processClaims(service.getClaims(), customClaims);
@@ -156,11 +178,14 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
         claimsSet.setClaims(claims);
 
         return claimsSet;
-
     }
 
-    public Map<String, Serializable> buildUserContext(User user, ClientDetails client, Collection<String> scopes,
-            Map<String, Serializable> extensions) {
+    public Map<String, Serializable> buildUserContext(
+        User user,
+        ClientDetails client,
+        Collection<String> scopes,
+        Map<String, Serializable> extensions
+    ) {
         UserProfile profile = new UserProfile(user);
 
         // translate user, client and scopes to a map
@@ -175,9 +200,11 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
         return map;
     }
 
-    public Map<String, Serializable> buildClientContext(ClientDetails client, Collection<String> scopes,
-            Map<String, Serializable> extensions) {
-
+    public Map<String, Serializable> buildClientContext(
+        ClientDetails client,
+        Collection<String> scopes,
+        Map<String, Serializable> extensions
+    ) {
         // translate client and scopes to a map
         Map<String, Serializable> map = new HashMap<>();
         map.put("scopes", new ArrayList<>(scopes));
@@ -189,11 +216,14 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
         return map;
     }
 
-    private List<Claim> processClaims(Collection<ServiceClaim> serviceClaimsList,
-            Map<String, Serializable> customClaims) {
+    private List<Claim> processClaims(
+        Collection<ServiceClaim> serviceClaimsList,
+        Map<String, Serializable> customClaims
+    ) {
         List<Claim> claims = new ArrayList<>();
-        Map<String, ServiceClaim> serviceClaims = serviceClaimsList.stream()
-                .collect(Collectors.toMap(sc -> sc.getKey(), sc -> sc));
+        Map<String, ServiceClaim> serviceClaims = serviceClaimsList
+            .stream()
+            .collect(Collectors.toMap(sc -> sc.getKey(), sc -> sc));
 
         for (Map.Entry<String, Serializable> entry : customClaims.entrySet()) {
             String key = entry.getKey();
@@ -215,7 +245,6 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
                                 claims.add(cm);
                             }
                         }
-
                     } catch (IllegalArgumentException ie) {
                         // single value
                         Claim cm = parseClaim(model, entry.getValue());
@@ -230,7 +259,6 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
                         claims.add(cm);
                     }
                 }
-
             }
         }
 
@@ -241,29 +269,29 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
         AbstractClaim c = null;
         try {
             switch (model.getType()) {
-            case BOOLEAN:
-                Boolean bvalue = mapper.convertValue(value, Boolean.class);
-                c = new BooleanClaim(model.getKey(), bvalue);
-                break;
-            case NUMBER: {
-                Number nvalue = mapper.convertValue(value, Number.class);
-                c = new NumberClaim(model.getKey(), nvalue);
-                break;
-            }
-            case STRING:
-                String svalue = mapper.convertValue(value, String.class);
-                c = new StringClaim(model.getKey(), svalue);
-                break;
-            case DATE:
-                Date dvalue = mapper.convertValue(value, Date.class);
-                c = new DateClaim(model.getKey(), dvalue);
-                break;
-            case OBJECT:
-                HashMap<String, Serializable> mvalue = mapper.convertValue(value, serMapTypeRef);
-                c = new SerializableClaim(model.getKey(), mvalue);
-                break;
-            default:
-
+                case BOOLEAN:
+                    Boolean bvalue = mapper.convertValue(value, Boolean.class);
+                    c = new BooleanClaim(model.getKey(), bvalue);
+                    break;
+                case NUMBER:
+                    {
+                        Number nvalue = mapper.convertValue(value, Number.class);
+                        c = new NumberClaim(model.getKey(), nvalue);
+                        break;
+                    }
+                case STRING:
+                    String svalue = mapper.convertValue(value, String.class);
+                    c = new StringClaim(model.getKey(), svalue);
+                    break;
+                case DATE:
+                    Date dvalue = mapper.convertValue(value, Date.class);
+                    c = new DateClaim(model.getKey(), dvalue);
+                    break;
+                case OBJECT:
+                    HashMap<String, Serializable> mvalue = mapper.convertValue(value, serMapTypeRef);
+                    c = new SerializableClaim(model.getKey(), mvalue);
+                    break;
+                default:
             }
         } catch (Exception e) {
             return null;
@@ -276,5 +304,4 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
 
         return c;
     }
-
 }

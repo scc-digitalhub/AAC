@@ -1,17 +1,25 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.oauth.client;
-
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import javax.validation.Valid;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,6 +32,12 @@ import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
 import it.smartcommunitylab.aac.oauth.model.SubjectType;
 import it.smartcommunitylab.aac.oauth.model.TokenType;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import javax.validation.Valid;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -32,8 +46,8 @@ public class OAuth2ClientConfigMap implements ConfigurableProperties, Serializab
     private static final long serialVersionUID = SystemKeys.AAC_OAUTH2_SERIAL_VERSION;
 
     private static ObjectMapper mapper = new ObjectMapper();
-    private final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
-    };
+    private static final TypeReference<HashMap<String, Serializable>> typeRef =
+        new TypeReference<HashMap<String, Serializable>>() {};
 
     private Set<AuthorizationGrantType> authorizedGrantTypes;
     private Set<String> redirectUris;
@@ -51,7 +65,7 @@ public class OAuth2ClientConfigMap implements ConfigurableProperties, Serializab
     private Integer accessTokenValidity;
     private Integer refreshTokenValidity;
 
-//    private String jwks;
+    //    private String jwks;
     private String jwksUri;
 
     // additional configuration
@@ -151,8 +165,8 @@ public class OAuth2ClientConfigMap implements ConfigurableProperties, Serializab
         }
 
         return additionalConfig.getRefreshTokenRotation() != null
-                ? additionalConfig.getRefreshTokenRotation().booleanValue()
-                : false;
+            ? additionalConfig.getRefreshTokenRotation().booleanValue()
+            : false;
     }
 
     public Integer getAccessTokenValidity() {
@@ -179,13 +193,13 @@ public class OAuth2ClientConfigMap implements ConfigurableProperties, Serializab
         this.idTokenValidity = idTokenValidity;
     }
 
-//    public String getJwks() {
-//        return jwks;
-//    }
-//
-//    public void setJwks(String jwks) {
-//        this.jwks = jwks;
-//    }
+    //    public String getJwks() {
+    //        return jwks;
+    //    }
+    //
+    //    public void setJwks(String jwks) {
+    //        this.jwks = jwks;
+    //    }
 
     public String getJwksUri() {
         return jwksUri;
@@ -213,20 +227,20 @@ public class OAuth2ClientConfigMap implements ConfigurableProperties, Serializab
         this.additionalInformation = additionalInformation;
     }
 
-//    @JsonIgnore
-//    public JWKSet getJwksSet() {
-//        // read from string or load from uri
-//        // TODO
-//        if (!StringUtils.hasText(jwks)) {
-//            return null;
-//        }
-//
-//        try {
-//            return JWKSet.parse(jwks);
-//        } catch (ParseException e) {
-//            return null;
-//        }
-//    }
+    //    @JsonIgnore
+    //    public JWKSet getJwksSet() {
+    //        // read from string or load from uri
+    //        // TODO
+    //        if (!StringUtils.hasText(jwks)) {
+    //            return null;
+    //        }
+    //
+    //        try {
+    //            return JWKSet.parse(jwks);
+    //        } catch (ParseException e) {
+    //            return null;
+    //        }
+    //    }
 
     @Override
     @JsonIgnore
@@ -258,7 +272,7 @@ public class OAuth2ClientConfigMap implements ConfigurableProperties, Serializab
         this.accessTokenValidity = map.getAccessTokenValidity();
         this.refreshTokenValidity = map.getRefreshTokenValidity();
 
-//        this.jwks = map.getJwks();
+        //        this.jwks = map.getJwks();
         this.jwksUri = map.getJwksUri();
 
         // handle additional props
@@ -271,9 +285,9 @@ public class OAuth2ClientConfigMap implements ConfigurableProperties, Serializab
         if (clientInfo != null) {
             this.additionalInformation = clientInfo;
         }
-//        if(props != null && props.containsKey("additionalInformation")) {
-//            this.additionalInformation = OAuth2ClientInfo.convert(props.get("additionalInformation"));
-//        }
+        //        if(props != null && props.containsKey("additionalInformation")) {
+        //            this.additionalInformation = OAuth2ClientInfo.convert(props.get("additionalInformation"));
+        //        }
 
     }
 

@@ -1,19 +1,33 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.roles.service;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.roles.persistence.RealmRoleEntityRepository;
 import it.smartcommunitylab.aac.roles.persistence.SubjectRoleEntity;
 import it.smartcommunitylab.aac.roles.persistence.SubjectRoleEntityRepository;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 @Service
 @Transactional
@@ -22,9 +36,7 @@ public class SubjectRoleService {
     private final RealmRoleEntityRepository roleRepository;
     private final SubjectRoleEntityRepository rolesRepository;
 
-    public SubjectRoleService(
-            RealmRoleEntityRepository roleRepository,
-            SubjectRoleEntityRepository rolesRepository) {
+    public SubjectRoleService(RealmRoleEntityRepository roleRepository, SubjectRoleEntityRepository rolesRepository) {
         Assert.notNull(roleRepository, "role repository is mandatory");
         Assert.notNull(rolesRepository, "roles repository is mandatory");
 
@@ -54,9 +66,11 @@ public class SubjectRoleService {
 
     @Transactional(readOnly = true)
     public Collection<String> getRoleSubjects(String realm, String role) {
-        return rolesRepository.findByRealmAndRole(realm, role).stream()
-                .map(m -> m.getSubject())
-                .collect(Collectors.toList());
+        return rolesRepository
+            .findByRealmAndRole(realm, role)
+            .stream()
+            .map(m -> m.getSubject())
+            .collect(Collectors.toList());
     }
 
     public Collection<String> setRoleSubjects(String realm, String role, Collection<String> subjects) {
@@ -64,17 +78,24 @@ public class SubjectRoleService {
         List<SubjectRoleEntity> oldSubjects = rolesRepository.findByRealmAndRole(realm, role);
 
         // unpack and merge
-        Set<SubjectRoleEntity> newSubjects = subjects.stream().map(s -> {
-            SubjectRoleEntity gm = new SubjectRoleEntity(s);
-            gm.setRealm(realm);
-            gm.setRole(role);
-            return gm;
-        }).collect(Collectors.toSet());
+        Set<SubjectRoleEntity> newSubjects = subjects
+            .stream()
+            .map(s -> {
+                SubjectRoleEntity gm = new SubjectRoleEntity(s);
+                gm.setRealm(realm);
+                gm.setRole(role);
+                return gm;
+            })
+            .collect(Collectors.toSet());
 
-        Set<SubjectRoleEntity> toDelete = oldSubjects.stream().filter(sr -> !newSubjects.contains(sr))
-                .collect(Collectors.toSet());
-        Set<SubjectRoleEntity> toAdd = newSubjects.stream().filter(sr -> !oldSubjects.contains(sr))
-                .collect(Collectors.toSet());
+        Set<SubjectRoleEntity> toDelete = oldSubjects
+            .stream()
+            .filter(sr -> !newSubjects.contains(sr))
+            .collect(Collectors.toSet());
+        Set<SubjectRoleEntity> toAdd = newSubjects
+            .stream()
+            .filter(sr -> !oldSubjects.contains(sr))
+            .collect(Collectors.toSet());
 
         // update
         rolesRepository.deleteAllInBatch(toDelete);
@@ -100,22 +121,27 @@ public class SubjectRoleService {
 
     @Transactional(readOnly = true)
     public Collection<RealmRole> getRoles(String subjectId, String realm) {
-        return rolesRepository.findBySubjectAndRealm(subjectId, realm).stream().map(r -> toRole(r))
-                .collect(Collectors.toList());
+        return rolesRepository
+            .findBySubjectAndRealm(subjectId, realm)
+            .stream()
+            .map(r -> toRole(r))
+            .collect(Collectors.toList());
     }
 
     public Collection<RealmRole> addRoles(String subjectId, String realm, Collection<String> roles) {
-
         // fetch current roles
         List<SubjectRoleEntity> oldRoles = rolesRepository.findBySubjectAndRealm(subjectId, realm);
 
         // unpack roles
-        Set<SubjectRoleEntity> newRoles = roles.stream().map(r -> {
-            SubjectRoleEntity re = new SubjectRoleEntity(subjectId);
-            re.setRealm(realm);
-            re.setRole(r);
-            return re;
-        }).collect(Collectors.toSet());
+        Set<SubjectRoleEntity> newRoles = roles
+            .stream()
+            .map(r -> {
+                SubjectRoleEntity re = new SubjectRoleEntity(subjectId);
+                re.setRealm(realm);
+                re.setRole(r);
+                return re;
+            })
+            .collect(Collectors.toSet());
 
         // add
         Set<SubjectRoleEntity> toAdd = newRoles.stream().filter(r -> !oldRoles.contains(r)).collect(Collectors.toSet());
@@ -125,74 +151,83 @@ public class SubjectRoleService {
     }
 
     public Collection<RealmRole> setRoles(String subjectId, String realm, Collection<String> roles) {
-
         // fetch current roles
         List<SubjectRoleEntity> oldRoles = rolesRepository.findBySubjectAndRealm(subjectId, realm);
 
         // unpack roles
-        Set<SubjectRoleEntity> newRoles = roles.stream().map(r -> {
-            SubjectRoleEntity re = new SubjectRoleEntity(subjectId);
-            re.setRealm(realm);
-            re.setRole(r);
-            return re;
-        }).collect(Collectors.toSet());
+        Set<SubjectRoleEntity> newRoles = roles
+            .stream()
+            .map(r -> {
+                SubjectRoleEntity re = new SubjectRoleEntity(subjectId);
+                re.setRealm(realm);
+                re.setRole(r);
+                return re;
+            })
+            .collect(Collectors.toSet());
 
         // update
-        Set<SubjectRoleEntity> toDelete = oldRoles.stream().filter(r -> !newRoles.contains(r))
-                .collect(Collectors.toSet());
+        Set<SubjectRoleEntity> toDelete = oldRoles
+            .stream()
+            .filter(r -> !newRoles.contains(r))
+            .collect(Collectors.toSet());
         Set<SubjectRoleEntity> toAdd = newRoles.stream().filter(r -> !oldRoles.contains(r)).collect(Collectors.toSet());
 
         rolesRepository.deleteAll(toDelete);
         rolesRepository.saveAll(toAdd);
 
         return getRoles(subjectId, realm);
-
     }
 
     public Collection<RealmRole> setRoles(String subjectId, Collection<Map.Entry<String, String>> roles) {
-
         // fetch current roles
         List<SubjectRoleEntity> oldRoles = rolesRepository.findBySubject(subjectId);
 
         // unpack roles
-        Set<SubjectRoleEntity> newRoles = roles.stream().map(e -> {
-            SubjectRoleEntity re = new SubjectRoleEntity(subjectId);
-            re.setRealm(e.getKey());
-            re.setRole(e.getValue());
-            return re;
-        }).collect(Collectors.toSet());
+        Set<SubjectRoleEntity> newRoles = roles
+            .stream()
+            .map(e -> {
+                SubjectRoleEntity re = new SubjectRoleEntity(subjectId);
+                re.setRealm(e.getKey());
+                re.setRole(e.getValue());
+                return re;
+            })
+            .collect(Collectors.toSet());
 
         // update
-        Set<SubjectRoleEntity> toDelete = oldRoles.stream().filter(r -> !newRoles.contains(r))
-                .collect(Collectors.toSet());
+        Set<SubjectRoleEntity> toDelete = oldRoles
+            .stream()
+            .filter(r -> !newRoles.contains(r))
+            .collect(Collectors.toSet());
         Set<SubjectRoleEntity> toAdd = newRoles.stream().filter(r -> !oldRoles.contains(r)).collect(Collectors.toSet());
 
         rolesRepository.deleteAll(toDelete);
         rolesRepository.saveAll(toAdd);
 
         return getRoles(subjectId);
-
     }
 
     public void removeRoles(String subjectId, String realm, Collection<String> roles) {
-
         // fetch current roles
         List<SubjectRoleEntity> oldRoles = rolesRepository.findBySubjectAndRealm(subjectId, realm);
 
         // unpack roles
-        Set<SubjectRoleEntity> newRoles = roles.stream().map(r -> {
-            SubjectRoleEntity re = new SubjectRoleEntity(subjectId);
-            re.setRealm(realm);
-            re.setRole(r);
-            return re;
-        }).collect(Collectors.toSet());
+        Set<SubjectRoleEntity> newRoles = roles
+            .stream()
+            .map(r -> {
+                SubjectRoleEntity re = new SubjectRoleEntity(subjectId);
+                re.setRealm(realm);
+                re.setRole(r);
+                return re;
+            })
+            .collect(Collectors.toSet());
 
         // update
-        Set<SubjectRoleEntity> toDelete = oldRoles.stream().filter(r -> newRoles.contains(r))
-                .collect(Collectors.toSet());
+        Set<SubjectRoleEntity> toDelete = oldRoles
+            .stream()
+            .filter(r -> newRoles.contains(r))
+            .collect(Collectors.toSet());
 
         rolesRepository.deleteAll(toDelete);
-
     }
 
     public void removeRoles(String realm, String role) {
@@ -225,5 +260,4 @@ public class SubjectRoleService {
 
         return role;
     }
-
 }

@@ -1,29 +1,21 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.config;
 
-import java.beans.PropertyVetoException;
-import java.util.ArrayList;
-import java.util.List;
-import javax.sql.DataSource;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Scope;
-import org.springframework.context.annotation.ScopedProxyMode;
-import org.springframework.core.annotation.Order;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.oauth2.provider.CompositeTokenGranter;
-import org.springframework.security.oauth2.provider.OAuth2RequestFactory;
-import org.springframework.security.oauth2.provider.SecurityContextAccessor;
-import org.springframework.security.oauth2.provider.TokenGranter;
-import org.springframework.security.oauth2.provider.approval.ApprovalStore;
-import org.springframework.security.oauth2.provider.code.AuthorizationCodeServices;
-import org.springframework.security.oauth2.provider.endpoint.RedirectResolver;
-import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
-import org.springframework.web.bind.support.DefaultSessionAttributeStore;
-import org.springframework.web.bind.support.SessionAttributeStore;
-import org.springframework.web.context.WebApplicationContext;
 import it.smartcommunitylab.aac.audit.OAuth2EventListener;
 import it.smartcommunitylab.aac.claims.ClaimsService;
 import it.smartcommunitylab.aac.core.auth.DefaultSecurityContextAuthenticationHelper;
@@ -47,9 +39,9 @@ import it.smartcommunitylab.aac.oauth.request.ExtRedirectResolver;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientRegistrationServices;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientService;
+import it.smartcommunitylab.aac.oauth.store.AuthorizationRequestStore;
 import it.smartcommunitylab.aac.oauth.store.ExtTokenStore;
 import it.smartcommunitylab.aac.oauth.store.InMemoryAuthorizationRequestStore;
-import it.smartcommunitylab.aac.oauth.store.AuthorizationRequestStore;
 import it.smartcommunitylab.aac.oauth.store.jdbc.AutoJdbcApprovalStore;
 import it.smartcommunitylab.aac.oauth.store.jdbc.AutoJdbcAuthorizationCodeServices;
 import it.smartcommunitylab.aac.oauth.store.jdbc.AutoJdbcTokenStore;
@@ -68,6 +60,29 @@ import it.smartcommunitylab.aac.openid.service.OIDCTokenServices;
 import it.smartcommunitylab.aac.openid.token.IdTokenServices;
 import it.smartcommunitylab.aac.profiles.claims.OpenIdClaimsExtractorProvider;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
+import java.beans.PropertyVetoException;
+import java.util.ArrayList;
+import java.util.List;
+import javax.sql.DataSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.oauth2.provider.CompositeTokenGranter;
+import org.springframework.security.oauth2.provider.OAuth2RequestFactory;
+import org.springframework.security.oauth2.provider.SecurityContextAccessor;
+import org.springframework.security.oauth2.provider.TokenGranter;
+import org.springframework.security.oauth2.provider.approval.ApprovalStore;
+import org.springframework.security.oauth2.provider.code.AuthorizationCodeServices;
+import org.springframework.security.oauth2.provider.endpoint.RedirectResolver;
+import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
+import org.springframework.web.bind.support.DefaultSessionAttributeStore;
+import org.springframework.web.bind.support.SessionAttributeStore;
+import org.springframework.web.context.WebApplicationContext;
 
 /*
  * OAuth2 services configuration
@@ -122,12 +137,12 @@ public class OAuth2Config {
 
     @Bean
     public it.smartcommunitylab.aac.oauth.request.OAuth2RequestFactory getOAuth2RequestFactory(
-            OAuth2ClientDetailsService oauthClientDetailsService,
-            FlowExtensionsService flowExtensionsService,
-            ScopeRegistry scopeRegistry)
-            throws PropertyVetoException {
-
-        it.smartcommunitylab.aac.oauth.request.OAuth2RequestFactory requestFactory = new it.smartcommunitylab.aac.oauth.request.OAuth2RequestFactory();
+        OAuth2ClientDetailsService oauthClientDetailsService,
+        FlowExtensionsService flowExtensionsService,
+        ScopeRegistry scopeRegistry
+    ) throws PropertyVetoException {
+        it.smartcommunitylab.aac.oauth.request.OAuth2RequestFactory requestFactory =
+            new it.smartcommunitylab.aac.oauth.request.OAuth2RequestFactory();
         requestFactory.setFlowExtensionsService(flowExtensionsService);
         requestFactory.setScopeRegistry(scopeRegistry);
         requestFactory.setClientDetailsService(oauthClientDetailsService);
@@ -136,10 +151,11 @@ public class OAuth2Config {
 
     @Bean
     public it.smartcommunitylab.aac.oauth.request.OAuth2RequestValidator getOAuth2RequestValidator(
-            RedirectResolver redirectResolver,
-            ScopeRegistry scopeRegistry) {
-        it.smartcommunitylab.aac.oauth.request.OAuth2RequestValidator requestValidator = new it.smartcommunitylab.aac.oauth.request.OAuth2RequestValidator(
-                redirectResolver);
+        RedirectResolver redirectResolver,
+        ScopeRegistry scopeRegistry
+    ) {
+        it.smartcommunitylab.aac.oauth.request.OAuth2RequestValidator requestValidator =
+            new it.smartcommunitylab.aac.oauth.request.OAuth2RequestValidator(redirectResolver);
         requestValidator.setScopeRegistry(scopeRegistry);
         return requestValidator;
     }
@@ -156,8 +172,10 @@ public class OAuth2Config {
     }
 
     @Bean
-    public OAuth2ClientDetailsService getClientDetailsService(ClientEntityService clientService,
-            OAuth2ClientEntityRepository clientRepository) throws PropertyVetoException {
+    public OAuth2ClientDetailsService getClientDetailsService(
+        ClientEntityService clientService,
+        OAuth2ClientEntityRepository clientRepository
+    ) throws PropertyVetoException {
         return new OAuth2ClientDetailsService(clientService, clientRepository);
     }
 
@@ -178,9 +196,10 @@ public class OAuth2Config {
     }
 
     public ApprovalStoreUserApprovalHandler userApprovalHandler(
-            ApprovalStore approvalStore,
-            OAuth2ClientDetailsService oauthClientDetailsService,
-            ScopeRegistry scopeRegistry) {
+        ApprovalStore approvalStore,
+        OAuth2ClientDetailsService oauthClientDetailsService,
+        ScopeRegistry scopeRegistry
+    ) {
         ApprovalStoreUserApprovalHandler handler = new ApprovalStoreUserApprovalHandler();
         handler.setApprovalStore(approvalStore);
         handler.setClientDetailsService(oauthClientDetailsService);
@@ -189,9 +208,10 @@ public class OAuth2Config {
     }
 
     public ScopeApprovalHandler scopeApprovalHandler(
-            ScopeRegistry scopeRegistry,
-            it.smartcommunitylab.aac.core.service.ClientDetailsService clientDetailsService,
-            UserService userService) {
+        ScopeRegistry scopeRegistry,
+        it.smartcommunitylab.aac.core.service.ClientDetailsService clientDetailsService,
+        UserService userService
+    ) {
         ScopeApprovalHandler handler = new ScopeApprovalHandler(scopeRegistry, clientDetailsService);
         handler.setUserService(userService);
 
@@ -199,27 +219,33 @@ public class OAuth2Config {
     }
 
     public SpacesApprovalHandler spacesApprovalHandler(
-            it.smartcommunitylab.aac.core.service.ClientDetailsService clientDetailsService,
-            UserService userService) {
+        it.smartcommunitylab.aac.core.service.ClientDetailsService clientDetailsService,
+        UserService userService
+    ) {
         SpacesApprovalHandler handler = new SpacesApprovalHandler(clientDetailsService, userService);
         return handler;
     }
 
     @Bean
     public AACApprovalHandler aacApprovalHandler(
-            ApprovalStore approvalStore,
-            OAuth2ClientDetailsService oauthClientDetailsService,
-            ScopeRegistry scopeRegistry,
-            it.smartcommunitylab.aac.core.service.ClientDetailsService clientDetailsService,
-            UserService userService,
-            FlowExtensionsService flowExtensionsService) {
-        ApprovalStoreUserApprovalHandler userHandler = userApprovalHandler(approvalStore, oauthClientDetailsService,
-                scopeRegistry);
-        ScopeApprovalHandler scopeHandler = scopeApprovalHandler(scopeRegistry, clientDetailsService,
-                userService);
+        ApprovalStore approvalStore,
+        OAuth2ClientDetailsService oauthClientDetailsService,
+        ScopeRegistry scopeRegistry,
+        it.smartcommunitylab.aac.core.service.ClientDetailsService clientDetailsService,
+        UserService userService,
+        FlowExtensionsService flowExtensionsService
+    ) {
+        ApprovalStoreUserApprovalHandler userHandler = userApprovalHandler(
+            approvalStore,
+            oauthClientDetailsService,
+            scopeRegistry
+        );
+        ScopeApprovalHandler scopeHandler = scopeApprovalHandler(scopeRegistry, clientDetailsService, userService);
         SpacesApprovalHandler spacesHandler = spacesApprovalHandler(clientDetailsService, userService);
-        OAuthFlowExtensionsHandler flowExtensionsHandler = new OAuthFlowExtensionsHandler(flowExtensionsService,
-                oauthClientDetailsService);
+        OAuthFlowExtensionsHandler flowExtensionsHandler = new OAuthFlowExtensionsHandler(
+            flowExtensionsService,
+            oauthClientDetailsService
+        );
         flowExtensionsHandler.setUserService(userService);
 
         AACApprovalHandler handler = new AACApprovalHandler(userHandler);
@@ -230,15 +256,18 @@ public class OAuth2Config {
     }
 
     @Bean
-    public ClaimsTokenEnhancer claimsTokenEnhancer(ClaimsService claimsService,
-            it.smartcommunitylab.aac.core.service.ClientDetailsService clientDetailsService) {
+    public ClaimsTokenEnhancer claimsTokenEnhancer(
+        ClaimsService claimsService,
+        it.smartcommunitylab.aac.core.service.ClientDetailsService clientDetailsService
+    ) {
         return new ClaimsTokenEnhancer(claimsService, clientDetailsService);
     }
 
     @Bean
-    public JwtTokenConverter jwtTokenEnhancer(JWTService jwtService,
-            OAuth2ClientDetailsService oauth2ClientDetailsService) {
-
+    public JwtTokenConverter jwtTokenEnhancer(
+        JWTService jwtService,
+        OAuth2ClientDetailsService oauth2ClientDetailsService
+    ) {
         JwtTokenConverter converter = new JwtTokenConverter(issuer, jwtService, oauth2ClientDetailsService);
         converter.setUseJwtByDefault(oauth2UseJwt);
         return converter;
@@ -250,13 +279,15 @@ public class OAuth2Config {
     }
 
     @Bean
-    public AACTokenEnhancer aacTokenEnhancer(ClaimsTokenEnhancer claimsEnhancer,
-//            OIDCTokenEnhancer oidcEnhancer, 
-            DCRTokenEnhancer dcrTokenEnhancer,
-            JwtTokenConverter tokenConverter) {
+    public AACTokenEnhancer aacTokenEnhancer(
+        ClaimsTokenEnhancer claimsEnhancer,
+        //            OIDCTokenEnhancer oidcEnhancer,
+        DCRTokenEnhancer dcrTokenEnhancer,
+        JwtTokenConverter tokenConverter
+    ) {
         AACTokenEnhancer enhancer = new AACTokenEnhancer();
         enhancer.setClaimsEnhancer(claimsEnhancer);
-//        enhancer.setOidcEnhancer(oidcEnhancer);
+        //        enhancer.setOidcEnhancer(oidcEnhancer);
         enhancer.setDcrTokenEnhancer(dcrTokenEnhancer);
         enhancer.setTokenConverter(tokenConverter);
 
@@ -265,9 +296,11 @@ public class OAuth2Config {
 
     @Bean
     public OAuth2TokenServices getTokenServices(
-            OAuth2ClientDetailsService clientDetailsService,
-            ExtTokenStore tokenStore, ApprovalStore approvalStore,
-            AACTokenEnhancer tokenEnhancer) throws PropertyVetoException {
+        OAuth2ClientDetailsService clientDetailsService,
+        ExtTokenStore tokenStore,
+        ApprovalStore approvalStore,
+        AACTokenEnhancer tokenEnhancer
+    ) throws PropertyVetoException {
         OAuth2TokenServices tokenServices = new OAuth2TokenServices(tokenStore);
         tokenServices.setClientDetailsService(clientDetailsService);
         tokenServices.setApprovalStore(approvalStore);
@@ -280,22 +313,25 @@ public class OAuth2Config {
 
     @Bean
     public TokenGranter getTokenGranter(
-            AuthorizationServerTokenServices tokenServices,
-            OAuth2ClientDetailsService clientDetailsService,
-            AuthorizationCodeServices authorizationCodeServices,
-            OAuth2RequestFactory oAuth2RequestFactory,
-            it.smartcommunitylab.aac.core.service.ClientDetailsService clientService,
-            ScopeRegistry scopeRegistry,
-            UserService userService,
-            FlowExtensionsService flowExtensionsService,
-            OAuth2EventPublisher oauth2EventPublisher) {
-
+        AuthorizationServerTokenServices tokenServices,
+        OAuth2ClientDetailsService clientDetailsService,
+        AuthorizationCodeServices authorizationCodeServices,
+        OAuth2RequestFactory oAuth2RequestFactory,
+        it.smartcommunitylab.aac.core.service.ClientDetailsService clientService,
+        ScopeRegistry scopeRegistry,
+        UserService userService,
+        FlowExtensionsService flowExtensionsService,
+        OAuth2EventPublisher oauth2EventPublisher
+    ) {
         // build our own list of granters
         List<AbstractTokenGranter> granters = new ArrayList<>();
         // insert PKCE auth code granter as the first one to supersede basic authcode
-        PKCEAwareTokenGranter pkceTokenGranter = new PKCEAwareTokenGranter(tokenServices,
-                authorizationCodeServices,
-                clientDetailsService, oAuth2RequestFactory);
+        PKCEAwareTokenGranter pkceTokenGranter = new PKCEAwareTokenGranter(
+            tokenServices,
+            authorizationCodeServices,
+            clientDetailsService,
+            oAuth2RequestFactory
+        );
         if (oauth2PKCEAllowRefresh) {
             pkceTokenGranter.setAllowRefresh(true);
         }
@@ -304,30 +340,41 @@ public class OAuth2Config {
         granters.add(pkceTokenGranter);
 
         // auth code
-        AuthorizationCodeTokenGranter authCodeTokenGranter = new AuthorizationCodeTokenGranter(tokenServices,
-                authorizationCodeServices, clientDetailsService,
-                oAuth2RequestFactory);
+        AuthorizationCodeTokenGranter authCodeTokenGranter = new AuthorizationCodeTokenGranter(
+            tokenServices,
+            authorizationCodeServices,
+            clientDetailsService,
+            oAuth2RequestFactory
+        );
         authCodeTokenGranter.setFlowExtensionsService(flowExtensionsService);
         authCodeTokenGranter.setEventPublisher(oauth2EventPublisher);
         granters.add(authCodeTokenGranter);
 
         // refresh
-        RefreshTokenGranter refreshTokenGranter = new RefreshTokenGranter(tokenServices, clientDetailsService,
-                oAuth2RequestFactory);
+        RefreshTokenGranter refreshTokenGranter = new RefreshTokenGranter(
+            tokenServices,
+            clientDetailsService,
+            oAuth2RequestFactory
+        );
         refreshTokenGranter.setEventPublisher(oauth2EventPublisher);
         granters.add(refreshTokenGranter);
 
         // implicit
-        ImplicitTokenGranter implicitTokenGranter = new ImplicitTokenGranter(tokenServices,
-                clientDetailsService, oAuth2RequestFactory);
+        ImplicitTokenGranter implicitTokenGranter = new ImplicitTokenGranter(
+            tokenServices,
+            clientDetailsService,
+            oAuth2RequestFactory
+        );
         implicitTokenGranter.setFlowExtensionsService(flowExtensionsService);
         implicitTokenGranter.setEventPublisher(oauth2EventPublisher);
         granters.add(implicitTokenGranter);
 
         // client credentials
         ClientCredentialsTokenGranter clientCredentialsTokenGranter = new ClientCredentialsTokenGranter(
-                tokenServices,
-                clientDetailsService, oAuth2RequestFactory);
+            tokenServices,
+            clientDetailsService,
+            oAuth2RequestFactory
+        );
         if (oauth2ClientCredentialsAllowRefresh) {
             clientCredentialsTokenGranter.setAllowRefresh(true);
         }
@@ -340,8 +387,11 @@ public class OAuth2Config {
         // resource owner password
         if (authManager != null) {
             ResourceOwnerPasswordTokenGranter passwordTokenGranter = new ResourceOwnerPasswordTokenGranter(
-                    authManager, tokenServices,
-                    clientDetailsService, oAuth2RequestFactory);
+                authManager,
+                tokenServices,
+                clientDetailsService,
+                oAuth2RequestFactory
+            );
             if (!oauth2ResourceOwnerPasswordAllowRefresh) {
                 passwordTokenGranter.setAllowRefresh(false);
             }
@@ -365,25 +415,24 @@ public class OAuth2Config {
 
     @Bean
     public IdTokenServices idTokenServices(
-            OpenIdClaimsExtractorProvider claimsExtractorProvider,
-            JWTService jwtService,
-            OAuth2ClientDetailsService clientDetailsService,
-            it.smartcommunitylab.aac.core.service.ClientDetailsService clientService) {
-
-        OIDCTokenServices idTokenServices = new OIDCTokenServices(issuer, claimsExtractorProvider,
-                jwtService);
+        OpenIdClaimsExtractorProvider claimsExtractorProvider,
+        JWTService jwtService,
+        OAuth2ClientDetailsService clientDetailsService,
+        it.smartcommunitylab.aac.core.service.ClientDetailsService clientService
+    ) {
+        OIDCTokenServices idTokenServices = new OIDCTokenServices(issuer, claimsExtractorProvider, jwtService);
 
         idTokenServices.setClientService(clientService);
         idTokenServices.setClientDetailsService(clientDetailsService);
 
         return idTokenServices;
-
     }
 
     @Bean
     public ClientRegistrationServices clientRegistrationServices(
-            OAuth2ClientService clientService,
-            IdentityProviderService providerService) {
+        OAuth2ClientService clientService,
+        IdentityProviderService providerService
+    ) {
         OAuth2ClientRegistrationServices dcrServices = new OAuth2ClientRegistrationServices(clientService);
         dcrServices.setProviderService(providerService);
 
@@ -391,8 +440,7 @@ public class OAuth2Config {
     }
 
     @Bean
-    public InternalOpaqueTokenIntrospector tokenIntrospector(ExtTokenStore tokenStore,
-            SubjectService subjectService) {
+    public InternalOpaqueTokenIntrospector tokenIntrospector(ExtTokenStore tokenStore, SubjectService subjectService) {
         InternalOpaqueTokenIntrospector introspector = new InternalOpaqueTokenIntrospector(tokenStore);
         introspector.setSubjectService(subjectService);
 
@@ -403,5 +451,4 @@ public class OAuth2Config {
     public OAuth2EventListener oauth2EventListener(OAuth2ClientDetailsService clientDetailsService) {
         return new OAuth2EventListener(clientDetailsService);
     }
-
 }

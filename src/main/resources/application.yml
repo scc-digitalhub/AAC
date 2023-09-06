@@ -29,7 +29,12 @@ jdbc:
    user: ${JDBC_USER:ac}
    password: ${JDBC_PASS:ac}
    show-sql: false
-
+   
+persistence:
+   repository:
+      providerConfig: memory
+   
+   
 # AAC ADMIN USER PASSWORD
 admin:
    username: ${ADMIN_USERNAME:admin}
@@ -41,6 +46,19 @@ admin:
 
 # BASIC SECURITY PROPERTIES
 security:
+   api: 
+      cors: 
+        origins: "*"
+   console: 
+      cors: 
+        origins:
+   webauthn:
+      id:
+      origins:
+   session:
+      cookie:
+        sameSite: 
+        secure: 
    keystore: ${JWK_KEYSTORE:classpath:/keystore.jwks} 
    cache:
       jwks: no-cache, no-store, max-age=0, must-revalidate #set cacheable with "public, max-age=3600, must-revalidate, no-transform"
@@ -78,99 +96,97 @@ jwt:
 
 #EXTERNAL PROVIDERS
 authorities:
-   internal:
-      isolateData: false
-      confirmationValidity: 86400
-      enableDelete: true
-      maxSessionDuration: 86400
-      enableUpdate: true
-      enableRegistration: true
-      confirmationRequired: true
-
-   password:
-      isolateData: false
-      passwordResetValidity: 86400
-      confirmationValidity: 86400
-      enablePasswordReset: true
-      passwordSupportWhitespace: false
-      passwordRequireNumber: true
-      enablePasswordSet: true
-      passwordMaxLength: 15
-      passwordMinLength: 6
-      enableDelete: true
-      maxSessionDuration: 86400
-      enableUpdate: true
-      passwordRequireAlpha: true
-      passwordRequireUppercaseAlpha: false
-      enableRegistration: true
-      confirmationRequired: true
-      passwordRequireSpecial: false   
-      passwordKeepNumber: 1      
-#      confirmation:
-#        required: true
-#        validity: 86400
-#      password:
-#        minLength: 8
-#        maxLength: 20
-#        requireAlpha: true
-#        requireNumber: false
-#        requireSpecial: false
-#        supportWhitespace: false
-#        reset:
-#          enabled: true
-#          validity: 86400
-   oidc:
-      scope: openid,email
-      userNameAttributeName: sub
-      clientAuthenticationMethod: CLIENT_SECRET_BASIC
-      enablePkce: true
-      trustEmailAddress: true
-   apple:
-      askNameScope: true
-      askEmailScope: true
-   saml:
-      signAuthNRequest: true
-      ssoServiceBinding: HTTP-POST
-   webauthn:
-      allowUntrustedAttestation: true
-      registrationTimeout: 30
-      loginTimeout: 10
-   custom:
-    - id: google
-      name: Google
-      oidc:
-        clientName: Google
-        clientAuthenticationMethod: client_secret_basic
-        scope: openid,profile,email
-        issuerUri: https://accounts.google.com
-        userNameAttributeName: email
-        trustEmailAddress: true
+  account:
+     internal:
+        confirmationValidity: 86400
+        enableDelete: true
+        enableUpdate: true
+        enableRegistration: true
+        confirmationRequired: true    
+  credentials:
+     password:
+        passwordResetValidity: 86400
+        enablePasswordReset: true
+        passwordSupportWhitespace: false
+        passwordRequireNumber: true
+        passwordMaxLength: 15
+        passwordMinLength: 6
+        passwordRequireAlpha: true
+        passwordRequireUppercaseAlpha: false
+        passwordRequireSpecial: false   
+        passwordKeepNumber: 1      
+     webauthn:
+        allowUntrustedAttestation: true
+        registrationTimeout: 30
+  identity:
+     internal:
+        enableDelete: true
+        maxSessionDuration: 86400
+        enableUpdate: true
+        enableRegistration: true  
+     password:
+        passwordResetValidity: 86400
+        enablePasswordReset: true
+        passwordSupportWhitespace: false
+        passwordRequireNumber: true
+        passwordMaxLength: 15
+        passwordMinLength: 6
+        passwordRequireAlpha: true
+        passwordRequireUppercaseAlpha: false
+        passwordRequireSpecial: false   
+        passwordKeepNumber: 1   
+     oidc:
+        scope: openid,email
+        userNameAttributeName: sub
+        clientAuthenticationMethod: CLIENT_SECRET_BASIC
         enablePkce: true
-    - id: facebook
-      name: Facebook
-      oidc:
-        clientName: Facebook
-        clientAuthenticationMethod: client_secret_post
-        scope: public_profile,email
-        authorizationUri: https://www.facebook.com/v2.8/dialog/oauth
-        tokenUri: https://graph.facebook.com/v2.8/oauth/access_token
-        userInfoUri: https://graph.facebook.com/me?fields=id,name,email
-        userNameAttributeName: id        
-        issuerUri: https://www.facebook.com
         trustEmailAddress: true
-        enablePkce: false
-    - id: github
-      name: GitHub
-      oidc:
-        clientName: GitHub
-        clientAuthenticationMethod: client_secret_basic
-        scope: read:user
-        authorizationUri: https://github.com/login/oauth/authorize
-        tokenUri: https://github.com/login/oauth/access_token
-        userInfoUri: https://api.github.com/user
-        userNameAttributeName: id
-        trustEmailAddress: true
-        enablePkce: false      
+     apple:
+        askNameScope: true
+        askEmailScope: true
+     saml:
+        signAuthNRequest: true
+        ssoServiceBinding: HTTP-POST
+     webauthn:
+        allowUntrustedAttestation: true
+        loginTimeout: 10
+     custom:
+      - id: google
+        name: Google
+        oidc:
+          clientName: Google
+          clientAuthenticationMethod: client_secret_basic
+          scope: openid,profile,email
+          issuerUri: https://accounts.google.com
+          userNameAttributeName: email
+          trustEmailAddress: true
+          enablePkce: true
+      - id: facebook
+        name: Facebook
+        oidc:
+          clientName: Facebook
+          clientAuthenticationMethod: client_secret_post
+          scope: public_profile,email
+          authorizationUri: https://www.facebook.com/v15.0/dialog/oauth
+          tokenUri: https://graph.facebook.com/v15.0/oauth/access_token
+          userInfoUri: https://graph.facebook.com/me?fields=id,name,email
+          jwkSetUri: https://www.facebook.com/.well-known/oauth/openid/jwks/
+          userNameAttributeName: email    
+          subAttributeName: id  
+          trustEmailAddress: true
+          enablePkce: false
+      - id: github
+        name: GitHub
+        oidc:
+          clientName: GitHub
+          clientAuthenticationMethod: client_secret_basic
+          scope: read:user
+          authorizationUri: https://github.com/login/oauth/authorize
+          tokenUri: https://github.com/login/oauth/access_token
+          userInfoUri: https://api.github.com/user
+          userNameAttributeName: id
+          trustEmailAddress: true
+          enablePkce: false      
 
 
 providers:
@@ -251,6 +267,9 @@ spring:
         cache.period: 3600
    h2.console.enabled: false       
    jpa.hibernate.ddl-auto: validate
+   session:
+    store-type: jdbc
+    jdbc.initialize-schema: always   
 
 # ROLE PREFIX FOR AUTHORIZATION CHECK
 authorization:

@@ -1,15 +1,31 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.crypto;
 
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
-
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
-
+import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
+@Component
 public class PasswordHash {
 
     public static final String PBKDF2_ALGORITHM = "PBKDF2WithHmacSHA1";
@@ -50,8 +66,7 @@ public class PasswordHash {
      * @param password the password to hash
      * @return a salted PBKDF2 hash of the password
      */
-    public String createHash(String passwordString)
-            throws NoSuchAlgorithmException, InvalidKeySpecException {
+    public String createHash(String passwordString) throws NoSuchAlgorithmException, InvalidKeySpecException {
         char[] password = passwordString.toCharArray();
         byte[] salt = new byte[saltSize];
         random.nextBytes(salt);
@@ -70,7 +85,7 @@ public class PasswordHash {
      * @return true if the password is correct, false if not
      */
     public boolean validatePassword(String passwordString, String correctHash)
-            throws NoSuchAlgorithmException, InvalidKeySpecException {
+        throws NoSuchAlgorithmException, InvalidKeySpecException {
         char[] password = passwordString.toCharArray();
         // Decode the hash into its parameters
         String[] params = correctHash.split(":");
@@ -89,15 +104,14 @@ public class PasswordHash {
      * Compares two byte arrays in length-constant time. This comparison method is
      * used so that password hashes cannot be extracted from an on-line system using
      * a timing attack and then attacked off-line.
-     * 
+     *
      * @param a the first byte array
      * @param b the second byte array
      * @return true if both byte arrays are the same, false if not
      */
     private boolean slowEquals(byte[] a, byte[] b) {
         int diff = a.length ^ b.length;
-        for (int i = 0; i < a.length && i < b.length; i++)
-            diff |= a[i] ^ b[i];
+        for (int i = 0; i < a.length && i < b.length; i++) diff |= a[i] ^ b[i];
         return diff == 0;
     }
 
@@ -111,7 +125,7 @@ public class PasswordHash {
      * @return the PBDKF2 hash of the password
      */
     private byte[] pbkdf2(char[] password, String algo, byte[] salt, int iterations, int bytes)
-            throws NoSuchAlgorithmException, InvalidKeySpecException {
+        throws NoSuchAlgorithmException, InvalidKeySpecException {
         PBEKeySpec spec = new PBEKeySpec(password, salt, iterations, bytes * 8);
         SecretKeyFactory skf = SecretKeyFactory.getInstance(algo);
         return skf.generateSecret(spec).getEncoded();
@@ -141,9 +155,6 @@ public class PasswordHash {
         BigInteger bi = new BigInteger(1, array);
         String hex = bi.toString(16);
         int paddingLength = (array.length * 2) - hex.length();
-        if (paddingLength > 0)
-            return String.format("%0" + paddingLength + "d", 0) + hex;
-        else
-            return hex;
+        if (paddingLength > 0) return String.format("%0" + paddingLength + "d", 0) + hex; else return hex;
     }
 }

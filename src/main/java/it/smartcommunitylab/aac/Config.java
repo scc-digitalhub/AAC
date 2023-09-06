@@ -18,12 +18,11 @@ package it.smartcommunitylab.aac;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import org.jsoup.safety.Safelist;
 
 /**
  * Constants and methods for managing resource visibility
- * 
+ *
  * @author raman
  *
  */
@@ -31,7 +30,7 @@ public class Config {
 
     public static final String DEFAULT_LANG = "en";
 
-//	public static final long ADMIN_ID = 0l;
+    //	public static final long ADMIN_ID = 0l;
 
     /** User name attribute alias */
     public static final String USER_ATTR_NAME = "it.smartcommunitylab.aac.givenname";
@@ -46,12 +45,17 @@ public class Config {
 
     /** Authorization authorities */
     public enum AUTHORITY {
-        ROLE_USER, ROLE_CLIENT, ROLE_CLIENT_TRUSTED
-    };
+        ROLE_USER,
+        ROLE_CLIENT,
+        ROLE_CLIENT_TRUSTED,
+    }
 
     /** Claim types */
     public enum CLAIM_TYPE {
-        type_string("string"), type_number("number"), type_boolean("boolean"), type_object("object");
+        type_string("string"),
+        type_number("number"),
+        type_boolean("boolean"),
+        type_object("object");
 
         private String litType;
 
@@ -64,18 +68,18 @@ public class Config {
         }
 
         private static final Map<String, CLAIM_TYPE> lookup = new HashMap<>();
+
         static {
-            for (CLAIM_TYPE ct : CLAIM_TYPE.values())
-                lookup.put(ct.getLitType(), ct);
+            for (CLAIM_TYPE ct : CLAIM_TYPE.values()) lookup.put(ct.getLitType(), ct);
         }
 
         public static CLAIM_TYPE get(String s) {
             return lookup.get(s);
         }
-    };
+    }
 
-//	/** Requesting device type */
-//	public enum DEVICE_TYPE {MOBILE, TABLET, DESKTOP, UNKNOWN, WEBVIEW};
+    //	/** Requesting device type */
+    //	public enum DEVICE_TYPE {MOBILE, TABLET, DESKTOP, UNKNOWN, WEBVIEW};
 
     /** operation scope requiring strong 2-factor authentication */
     public static final String SCOPE_OPERATION_CONFIRMED = "operation.confirmed";
@@ -164,11 +168,11 @@ public class Config {
 
     public static final String SCOPE_DYNAMIC_CLIENT_REGISTRATION = "dcr";
 
-//	public static final String CLIENT_PARAM_SIGNED_RESPONSE_ALG = "signed_response_alg";
-//	public static final String CLIENT_PARAM_ENCRYPTED_RESPONSE_ALG = "encrypted_response_alg";
-//	public static final String CLIENT_PARAM_ENCRYPTED_RESPONSE_ENC = "encrypted_response_enc";
-//	public static final String CLIENT_PARAM_JWKS = "jwks";
-//	public static final String CLIENT_PARAM_JWKS_URI = "jwks_uri";
+    //	public static final String CLIENT_PARAM_SIGNED_RESPONSE_ALG = "signed_response_alg";
+    //	public static final String CLIENT_PARAM_ENCRYPTED_RESPONSE_ALG = "encrypted_response_alg";
+    //	public static final String CLIENT_PARAM_ENCRYPTED_RESPONSE_ENC = "encrypted_response_enc";
+    //	public static final String CLIENT_PARAM_JWKS = "jwks";
+    //	public static final String CLIENT_PARAM_JWKS_URI = "jwks_uri";
 
     public static final String CLIENT_INFO_JWT_SIGN_ALG = "jwtSignAlgorithm";
     public static final String CLIENT_INFO_JWT_ENC_ALG = "jwtEncAlgorithm";
@@ -181,11 +185,12 @@ public class Config {
 
     public static final String WELL_KNOWN_URL = "/.well-known";
 
-    public static final Safelist WHITELIST_RELAXED_NOIMG = Safelist.relaxed()
-            .removeTags("img")
-            .addTags("nav", "button", "hr")
-            .addProtocols("a", "href", "#")
-            .addAttributes(":all", "class")
-            .addAttributes(":all", "style")
-            .addAttributes(":all", "role");
+    public static final Safelist WHITELIST_RELAXED_NOIMG = Safelist
+        .relaxed()
+        .removeTags("img")
+        .addTags("nav", "button", "hr")
+        .addProtocols("a", "href", "#")
+        .addAttributes(":all", "class")
+        .addAttributes(":all", "style")
+        .addAttributes(":all", "role");
 }

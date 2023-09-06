@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2015 Fondazione Bruno Kessler
- * 
+ *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
  *    You may obtain a copy of the License at
- * 
+ *
  *        http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  *    Unless required by applicable law or agreed to in writing, software
  *    distributed under the License is distributed on an "AS IS" BASIS,
  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,6 +16,24 @@
 
 package it.smartcommunitylab.aac.console;
 
+import it.smartcommunitylab.aac.common.InvalidDefinitionException;
+import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.config.ApplicationProperties;
+import it.smartcommunitylab.aac.core.AuthenticationHelper;
+import it.smartcommunitylab.aac.core.MyUserManager;
+import it.smartcommunitylab.aac.core.UserDetails;
+import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.model.ConnectedApp;
+import it.smartcommunitylab.aac.model.SpaceRole;
+import it.smartcommunitylab.aac.profiles.ProfileManager;
+import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
+import it.smartcommunitylab.aac.profiles.model.AccountProfile;
+import it.smartcommunitylab.aac.profiles.model.BasicProfile;
+import it.smartcommunitylab.aac.profiles.model.EmailProfile;
+import it.smartcommunitylab.aac.profiles.model.OpenIdProfile;
+import it.smartcommunitylab.aac.roles.SpaceRoleManager;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,30 +46,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.servlet.ModelAndView;
 
-import it.smartcommunitylab.aac.common.InvalidDefinitionException;
-import it.smartcommunitylab.aac.common.NoSuchRealmException;
-import it.smartcommunitylab.aac.common.NoSuchUserException;
-import it.smartcommunitylab.aac.config.ApplicationProperties;
-import it.smartcommunitylab.aac.core.AuthenticationHelper;
-import it.smartcommunitylab.aac.core.MyUserManager;
-import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.dto.ConnectedAppProfile;
-import it.smartcommunitylab.aac.model.SpaceRole;
-import it.smartcommunitylab.aac.profiles.ProfileManager;
-import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
-import it.smartcommunitylab.aac.profiles.model.AccountProfile;
-import it.smartcommunitylab.aac.profiles.model.BasicProfile;
-import it.smartcommunitylab.aac.profiles.model.EmailProfile;
-import it.smartcommunitylab.aac.profiles.model.OpenIdProfile;
-import it.smartcommunitylab.aac.roles.SpaceRoleManager;
-
 /**
  * Application controller for user UI: account
- * 
+ *
  * Should handle only "current" user operations
- * 
+ *
  * @author raman
  *
  */
@@ -67,8 +66,8 @@ public class UserAccountController {
     @Autowired
     private MyUserManager userManager;
 
-//    @Autowired
-//    private InternalUserManager internalUserManager;
+    //    @Autowired
+    //    private InternalUserManager internalUserManager;
 
     @Autowired
     private ProfileManager profileManager;
@@ -97,7 +96,6 @@ public class UserAccountController {
 
         // TODO use a proper profile for UI (UserProfile..)
         return ResponseEntity.ok(user);
-
     }
 
     @GetMapping("/account/profiles")
@@ -112,14 +110,12 @@ public class UserAccountController {
         profiles.put(OpenIdProfile.IDENTIFIER, profileManager.curOpenIdProfile());
 
         return ResponseEntity.ok(profiles);
-
     }
 
     @GetMapping("/account/profile/roles")
     public ResponseEntity<Collection<SpaceRole>> mySpaceRoles()
-            throws InvalidDefinitionException, NoSuchUserException, NoSuchRealmException {
+        throws InvalidDefinitionException, NoSuchUserException, NoSuchRealmException {
         return ResponseEntity.ok(roleManager.curRoles());
-
     }
 
     @GetMapping("/account/accounts")
@@ -139,27 +135,27 @@ public class UserAccountController {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        userManager.deleteCurUser();
+        userManager.deleteMyUser();
         return ResponseEntity.ok().build();
     }
 
-//    @PostMapping("/account/profile")
-//    public ResponseEntity<BasicProfile> updateProfile(@RequestBody UserProfile profile)
-//            throws InvalidDefinitionException {
-//        UserDetails user = authHelper.getUserDetails();
-//        if (user == null) {
-//            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-//        }
-//        try {
-//            // TODO use update, the current user must exists
-//            // TODO implement update in userManager
-////            internalUserManager.updateOrCreateAccount(cur.getSubjectId(), cur.getRealm(), profile.getUsername(), profile.getPassword(), profile.getEmail(), profile.getName(), profile.getSurname(), profile.getLang(), Collections.emptySet());
-//
-//        } catch (Exception e) {
-//            return ResponseEntity.badRequest().build();
-//        }
-//        return ResponseEntity.ok(profileManager.curBasicProfile());
-//    }
+    //    @PostMapping("/account/profile")
+    //    public ResponseEntity<BasicProfile> updateProfile(@RequestBody UserProfile profile)
+    //            throws InvalidDefinitionException {
+    //        UserDetails user = authHelper.getUserDetails();
+    //        if (user == null) {
+    //            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    //        }
+    //        try {
+    //            // TODO use update, the current user must exists
+    //            // TODO implement update in userManager
+    ////            internalUserManager.updateOrCreateAccount(cur.getSubjectId(), cur.getRealm(), profile.getUsername(), profile.getPassword(), profile.getEmail(), profile.getName(), profile.getSurname(), profile.getLang(), Collections.emptySet());
+    //
+    //        } catch (Exception e) {
+    //            return ResponseEntity.badRequest().build();
+    //        }
+    //        return ResponseEntity.ok(profileManager.curBasicProfile());
+    //    }
 
     @GetMapping("/account/attributes")
     public ResponseEntity<Collection<UserAttributes>> readAttributes() {
@@ -168,57 +164,56 @@ public class UserAccountController {
     }
 
     @GetMapping("/account/connections")
-    public ResponseEntity<Collection<ConnectedAppProfile>> readConnectedApps() {
-        Collection<ConnectedAppProfile> result = userManager.getMyConnectedApps();
+    public ResponseEntity<Collection<ConnectedApp>> readConnectedApps() {
+        Collection<ConnectedApp> result = userManager.getMyConnectedApps();
         return ResponseEntity.ok(result);
     }
 
     @DeleteMapping("/account/connections/{clientId}")
-    public ResponseEntity<Collection<ConnectedAppProfile>> deleteConnectedApp(@PathVariable String clientId) {
+    public ResponseEntity<Collection<ConnectedApp>> deleteConnectedApp(@PathVariable String clientId) {
         userManager.deleteMyConnectedApp(clientId);
-        Collection<ConnectedAppProfile> result = userManager.getMyConnectedApps();
+        Collection<ConnectedApp> result = userManager.getMyConnectedApps();
         return ResponseEntity.ok(result);
     }
 
     @GetMapping("/account/providers")
     public ResponseEntity<Collection<ConfigurableIdentityProvider>> getRealmProviders()
-            throws NoSuchRealmException, NoSuchUserException {
+        throws NoSuchRealmException, NoSuchUserException {
         Collection<ConfigurableIdentityProvider> providers = userManager.getMyIdentityProviders();
         return ResponseEntity.ok(providers);
     }
-
-//    @GetMapping("/credentials/{userId}")
-//    public ModelAndView credentials(
-//            @PathVariable @Valid @Pattern(regexp = SystemKeys.ID_PATTERN) String userId)
-//            throws NoSuchProviderException, NoSuchUserException {
-//        // first check userid vs user
-//        UserDetails user = authHelper.getUserDetails();
-//        UserIdentity identity = user.getIdentity(userId);
-//
-//        if (identity == null) {
-//            throw new IllegalArgumentException("userid invalid");
-//        }
-//
-//        UserAccount account = identity.getAccount();
-//
-//        // fetch provider
-//        String providerId = identity.getProvider();
-//        IdentityService<? extends UserIdentity, ? extends UserAccount, ? extends UserCredentials> idp = authorityManager
-//                .getIdentityService(providerId);
-//
-//        // fetch credentials service if available
-//        UserCredentialsService<? extends UserCredentials> service = idp.getCredentialsService();
-//
-//        if (service == null) {
-//            throw new IllegalArgumentException("credentials are immutable");
-//        }
-//
-//        if (!service.canSet()) {
-//            throw new IllegalArgumentException("credentials are immutable");
-//        }
-//
-//        String url = service.getSetUrl() + "/" + service.getProvider() + "/" + account.getUserId();
-//        return new ModelAndView("redirect:" + url);
-//    }
+    //    @GetMapping("/credentials/{userId}")
+    //    public ModelAndView credentials(
+    //            @PathVariable @Valid @Pattern(regexp = SystemKeys.ID_PATTERN) String userId)
+    //            throws NoSuchProviderException, NoSuchUserException {
+    //        // first check userid vs user
+    //        UserDetails user = authHelper.getUserDetails();
+    //        UserIdentity identity = user.getIdentity(userId);
+    //
+    //        if (identity == null) {
+    //            throw new IllegalArgumentException("userid invalid");
+    //        }
+    //
+    //        UserAccount account = identity.getAccount();
+    //
+    //        // fetch provider
+    //        String providerId = identity.getProvider();
+    //        IdentityService<? extends UserIdentity, ? extends UserAccount, ? extends UserCredentials> idp = authorityManager
+    //                .getIdentityService(providerId);
+    //
+    //        // fetch credentials service if available
+    //        UserCredentialsService<? extends UserCredentials> service = idp.getCredentialsService();
+    //
+    //        if (service == null) {
+    //            throw new IllegalArgumentException("credentials are immutable");
+    //        }
+    //
+    //        if (!service.canSet()) {
+    //            throw new IllegalArgumentException("credentials are immutable");
+    //        }
+    //
+    //        String url = service.getSetUrl() + "/" + service.getProvider() + "/" + account.getUserId();
+    //        return new ModelAndView("redirect:" + url);
+    //    }
 
 }

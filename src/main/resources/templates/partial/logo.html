@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:fragment="header">
+</head>
+
+<body>
+   <div th:fragment="card-logo">
+      <div class="card-logo">
+         <img class="" th:src="@{/logo}" th:alt="${displayName}">
+         <h4 class="text-center" th:text="${displayName}">AAC</h4>
+      </div>
+   </div>
+</body>
+
+</html>

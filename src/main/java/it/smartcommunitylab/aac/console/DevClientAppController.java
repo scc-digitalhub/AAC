@@ -1,5 +1,42 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.console;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.oas.annotations.Hidden;
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.InvalidDefinitionException;
+import it.smartcommunitylab.aac.common.NoSuchClientException;
+import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.NoSuchResourceException;
+import it.smartcommunitylab.aac.common.NoSuchSubjectException;
+import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.controller.BaseClientAppController;
+import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
+import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.dto.FunctionValidationBean;
+import it.smartcommunitylab.aac.model.ClientApp;
+import it.smartcommunitylab.aac.model.RealmRole;
+import it.smartcommunitylab.aac.model.SpaceRole;
+import it.smartcommunitylab.aac.roles.RealmRoleManager;
+import it.smartcommunitylab.aac.roles.SpaceRoleManager;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -10,13 +47,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,35 +78,14 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.yaml.snakeyaml.Yaml;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.swagger.v3.oas.annotations.Hidden;
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.common.InvalidDefinitionException;
-import it.smartcommunitylab.aac.common.NoSuchClientException;
-import it.smartcommunitylab.aac.common.NoSuchRealmException;
-import it.smartcommunitylab.aac.common.NoSuchResourceException;
-import it.smartcommunitylab.aac.common.NoSuchSubjectException;
-import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.controller.BaseClientAppController;
-import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
-import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.dto.FunctionValidationBean;
-import it.smartcommunitylab.aac.model.ClientApp;
-import it.smartcommunitylab.aac.model.RealmRole;
-import it.smartcommunitylab.aac.model.SpaceRole;
-import it.smartcommunitylab.aac.roles.RealmRoleManager;
-import it.smartcommunitylab.aac.roles.SpaceRoleManager;
-
 @RestController
 @Hidden
 @RequestMapping("/console/dev")
 public class DevClientAppController extends BaseClientAppController {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final TypeReference<Map<String, List<ClientApp>>> typeRef = new TypeReference<Map<String, List<ClientApp>>>() {
-    };
+    private final TypeReference<Map<String, List<ClientApp>>> typeRef =
+        new TypeReference<Map<String, List<ClientApp>>>() {};
     private final String LIST_KEY = "clients";
 
     @Autowired
@@ -93,19 +107,20 @@ public class DevClientAppController extends BaseClientAppController {
 
     @GetMapping("/apps/{realm}/search")
     public Page<ClientApp> searchClientApps(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestParam(required = false) String q, Pageable pageRequest)
-            throws NoSuchRealmException {
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @RequestParam(required = false) String q,
+        Pageable pageRequest
+    ) throws NoSuchRealmException {
         return clientManager.searchClientApps(realm, q, pageRequest);
     }
 
-    @PutMapping("/realms/{realm}/apps")
+    @PutMapping("/apps/{realm}")
     public ResponseEntity<Collection<ClientApp>> importClientApp(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestParam(required = false, defaultValue = "false") boolean reset,
-            @RequestPart(name = "yaml", required = false) @Valid String yaml,
-            @RequestPart(name = "file", required = false) @Valid MultipartFile file)
-            throws NoSuchRealmException, RegistrationException {
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @RequestParam(required = false, defaultValue = "false") boolean reset,
+        @RequestPart(name = "yaml", required = false) @Valid String yaml,
+        @RequestPart(name = "file", required = false) @Valid MultipartFile file
+    ) throws NoSuchRealmException, RegistrationException {
         logger.debug("import client(s) to realm {}", StringUtils.trimAllWhitespace(realm));
 
         if (!StringUtils.hasText(yaml) && (file == null || file.isEmpty())) {
@@ -119,9 +134,11 @@ public class DevClientAppController extends BaseClientAppController {
                     throw new IllegalArgumentException("invalid file");
                 }
 
-                if (!SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType())
-                        && !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType())
-                        && !SystemKeys.MEDIA_TYPE_XYAML.toString().equals(file.getContentType())) {
+                if (
+                    !SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType()) &&
+                    !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType()) &&
+                    !SystemKeys.MEDIA_TYPE_XYAML.toString().equals(file.getContentType())
+                ) {
                     throw new IllegalArgumentException("invalid file");
                 }
 
@@ -157,23 +174,23 @@ public class DevClientAppController extends BaseClientAppController {
                 }
 
                 if (logger.isTraceEnabled()) {
-                    logger.trace("client bean: " + String.valueOf(reg));
+                    logger.trace("client bean: {}", String.valueOf(reg));
                 }
 
                 ClientApp clientApp = clientManager.registerClientApp(realm, reg);
-//                try {
-//                    // fetch also configuration schema
-//                    JsonSchema schema = clientManager.getClientConfigurationSchema(realm, clientApp.getClientId());
-//                    clientApp.setSchema(schema);
-//                } catch (NoSuchClientException | NoSuchRealmException e) {
-//                    // skip
-//                }
+                //                try {
+                //                    // fetch also configuration schema
+                //                    JsonSchema schema = clientManager.getClientConfigurationSchema(realm, clientApp.getClientId());
+                //                    clientApp.setSchema(schema);
+                //                } catch (NoSuchClientException | NoSuchRealmException e) {
+                //                    // skip
+                //                }
 
                 apps.add(clientApp);
             }
 
             return ResponseEntity.ok(apps);
-        } catch (Exception e) {
+        } catch (RuntimeException | IOException e) {
             if (logger.isTraceEnabled()) {
                 e.printStackTrace();
             }
@@ -188,16 +205,16 @@ public class DevClientAppController extends BaseClientAppController {
 
     @GetMapping("/apps/{realm}/{clientId}/export")
     public void exportClientApp(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
-            HttpServletResponse res)
-            throws NoSuchRealmException, NoSuchClientException, SystemException, IOException {
-//        Yaml yaml = YamlUtils.getInstance(true, ClientApp.class);
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
+        HttpServletResponse res
+    ) throws NoSuchRealmException, NoSuchClientException, SystemException, IOException {
+        //        Yaml yaml = YamlUtils.getInstance(true, ClientApp.class);
 
         // get client app
         ClientApp clientApp = clientManager.getClientApp(realm, clientId);
 
-//        String s = yaml.dump(clientApp);
+        //        String s = yaml.dump(clientApp);
         String s = yamlObjectMapper.writeValueAsString(clientApp);
 
         // write as file
@@ -215,11 +232,10 @@ public class DevClientAppController extends BaseClientAppController {
 
     @GetMapping("/apps/{realm}/{clientId}/oauth2/{grantType}")
     public ResponseEntity<OAuth2AccessToken> testClientAppOAuth2(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
-            @PathVariable String grantType)
-            throws NoSuchRealmException, NoSuchClientException, SystemException {
-
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
+        @PathVariable String grantType
+    ) throws NoSuchRealmException, NoSuchClientException, SystemException {
         // get client app
         ClientApp clientApp = clientManager.getClientApp(realm, clientId);
 
@@ -235,25 +251,22 @@ public class DevClientAppController extends BaseClientAppController {
 
     @PostMapping("/apps/{realm}/{clientId}/claims")
     public ResponseEntity<FunctionValidationBean> testClientAppClaims(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
-            @RequestBody @Valid @NotNull FunctionValidationBean function)
-            throws NoSuchRealmException, NoSuchClientException, SystemException, NoSuchResourceException,
-            InvalidDefinitionException {
-
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
+        @RequestBody @Valid @NotNull FunctionValidationBean function
+    )
+        throws NoSuchRealmException, NoSuchClientException, SystemException, NoSuchResourceException, InvalidDefinitionException {
         try {
             // TODO expose context personalization in UI
             function = devManager.testClientClaimMapping(realm, clientId, function);
-
         } catch (InvalidDefinitionException | RuntimeException e) {
             // translate error
             function.addError(e.getMessage());
-
-//            // wrap error
-//            Map<String, Serializable> res = new HashMap<>();
-//            res.put("error", e.getClass().getName());
-//            res.put("message", e.getMessage());
-//            return ResponseEntity.badRequest().body(res);
+            //            // wrap error
+            //            Map<String, Serializable> res = new HashMap<>();
+            //            res.put("error", e.getClass().getName());
+            //            res.put("message", e.getMessage());
+            //            return ResponseEntity.badRequest().body(res);
         }
 
         return ResponseEntity.ok(function);
@@ -265,12 +278,11 @@ public class DevClientAppController extends BaseClientAppController {
 
     @GetMapping("/apps/{realm}/{clientId}/providers")
     public ResponseEntity<Collection<ConfigurableIdentityProvider>> getAppProviders(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
-            throws NoSuchClientException, NoSuchRealmException {
-
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId
+    ) throws NoSuchClientException, NoSuchRealmException {
         // get client app
-//        ClientApp clientApp = clientManager.getClientApp(realm, clientId);
+        //        ClientApp clientApp = clientManager.getClientApp(realm, clientId);
 
         // TODO replace with registration bean when implemented
         return ResponseEntity.ok(clientManager.listIdentityProviders(realm));
@@ -282,26 +294,26 @@ public class DevClientAppController extends BaseClientAppController {
 
     @GetMapping("/apps/{realm}/{clientId}/authorities")
     public ResponseEntity<Collection<RealmGrantedAuthority>> getRealmAppAuthorities(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
-            throws NoSuchRealmException, NoSuchClientException {
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId
+    ) throws NoSuchRealmException, NoSuchClientException {
         Collection<RealmGrantedAuthority> authorities = clientManager.getAuthorities(realm, clientId);
         return ResponseEntity.ok(authorities);
     }
 
     @PutMapping("/apps/{realm}/{clientId}/authorities")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')"
-            + " or hasAuthority(#realm+':" + Config.R_ADMIN + "')")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')" + " or hasAuthority(#realm+':" + Config.R_ADMIN + "')")
     public ResponseEntity<Collection<GrantedAuthority>> updateRealmAppAuthorities(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
-            @RequestBody @Valid @NotNull Collection<RealmGrantedAuthority> roles)
-            throws NoSuchRealmException, NoSuchClientException {
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
+        @RequestBody @Valid @NotNull Collection<RealmGrantedAuthority> roles
+    ) throws NoSuchRealmException, NoSuchClientException {
         // filter roles, make sure they belong to the current realm
-        Set<String> values = roles.stream()
-                .filter(a -> a.getRealm() == null || realm.equals(a.getRealm()))
-                .map(a -> a.getRole())
-                .collect(Collectors.toSet());
+        Set<String> values = roles
+            .stream()
+            .filter(a -> a.getRealm() == null || realm.equals(a.getRealm()))
+            .map(a -> a.getRole())
+            .collect(Collectors.toSet());
 
         Collection<GrantedAuthority> authorities = clientManager.setAuthorities(realm, clientId, values);
 
@@ -314,32 +326,31 @@ public class DevClientAppController extends BaseClientAppController {
 
     @GetMapping("/apps/{realm}/{clientId}/roles")
     public ResponseEntity<Collection<RealmRole>> getClientAppRoles(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
-            throws NoSuchRealmException, NoSuchClientException {
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId
+    ) throws NoSuchRealmException, NoSuchClientException {
         try {
             Collection<RealmRole> roles = roleManager.getSubjectRoles(realm, clientId);
             return ResponseEntity.ok(roles);
         } catch (NoSuchSubjectException e) {
             throw new NoSuchClientException();
         }
-
     }
 
     @PutMapping("/apps/{realm}/{clientId}/roles")
     public ResponseEntity<Collection<RealmRole>> updateClientAppRoles(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
-            @RequestBody @Valid @NotNull Collection<RealmRole> roles)
-            throws NoSuchRealmException, NoSuchClientException {
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
+        @RequestBody @Valid @NotNull Collection<RealmRole> roles
+    ) throws NoSuchRealmException, NoSuchClientException {
         // filter roles, make sure they belong to the current realm
-        Set<RealmRole> values = roles.stream()
-                .filter(a -> a.getRealm() == null || realm.equals(a.getRealm()))
-                .collect(Collectors.toSet());
+        Set<RealmRole> values = roles
+            .stream()
+            .filter(a -> a.getRealm() == null || realm.equals(a.getRealm()))
+            .collect(Collectors.toSet());
 
         try {
-            Collection<RealmRole> result = roleManager.setSubjectRoles(realm, clientId,
-                    values);
+            Collection<RealmRole> result = roleManager.setSubjectRoles(realm, clientId, values);
             return ResponseEntity.ok(result);
         } catch (NoSuchSubjectException e) {
             throw new NoSuchClientException();
@@ -348,9 +359,9 @@ public class DevClientAppController extends BaseClientAppController {
 
     @GetMapping("/apps/{realm}/{clientId}/spaceroles")
     public ResponseEntity<Collection<SpaceRole>> getClientAppSpaceRoles(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
-            throws NoSuchRealmException, NoSuchClientException {
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId
+    ) throws NoSuchRealmException, NoSuchClientException {
         try {
             Collection<SpaceRole> roles = spaceRoleManager.getRoles(clientId);
             return ResponseEntity.ok(roles);
@@ -361,10 +372,10 @@ public class DevClientAppController extends BaseClientAppController {
 
     @PutMapping("/apps/{realm}/{clientId}/spaceroles")
     public ResponseEntity<Collection<SpaceRole>> updateClientAppSpaceRoles(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
-            @RequestBody @Valid @NotNull Collection<String> roles)
-            throws NoSuchRealmException, NoSuchClientException {
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
+        @RequestBody @Valid @NotNull Collection<String> roles
+    ) throws NoSuchRealmException, NoSuchClientException {
         try {
             Set<SpaceRole> spaceRoles = roles.stream().map(r -> SpaceRole.parse(r)).collect(Collectors.toSet());
             Collection<SpaceRole> result = spaceRoleManager.setRoles(clientId, spaceRoles);
@@ -381,9 +392,9 @@ public class DevClientAppController extends BaseClientAppController {
 
     @GetMapping("/apps/{realm}/{clientId}/approvals")
     public ResponseEntity<Collection<Approval>> getClientAppApprovals(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
-            throws NoSuchRealmException, NoSuchClientException {
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId
+    ) throws NoSuchRealmException, NoSuchClientException {
         Collection<Approval> approvals = clientManager.getApprovals(realm, clientId);
         return ResponseEntity.ok(approvals);
     }
@@ -393,14 +404,21 @@ public class DevClientAppController extends BaseClientAppController {
      */
     @GetMapping("/apps/{realm}/{clientId}/audit")
     public ResponseEntity<Collection<AuditEvent>> getClientAppAudit(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
-            @RequestParam(required = false, name = "after") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Optional<Date> after,
-            @RequestParam(required = false, name = "before") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Optional<Date> before)
-            throws NoSuchRealmException, NoSuchClientException {
-        Collection<AuditEvent> result = clientManager.getAudit(realm, clientId, after.orElse(null),
-                before.orElse(null));
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
+        @RequestParam(required = false, name = "after") @DateTimeFormat(
+            iso = DateTimeFormat.ISO.DATE_TIME
+        ) Optional<Date> after,
+        @RequestParam(required = false, name = "before") @DateTimeFormat(
+            iso = DateTimeFormat.ISO.DATE_TIME
+        ) Optional<Date> before
+    ) throws NoSuchRealmException, NoSuchClientException {
+        Collection<AuditEvent> result = clientManager.getAudit(
+            realm,
+            clientId,
+            after.orElse(null),
+            before.orElse(null)
+        );
         return ResponseEntity.ok(result);
     }
-
 }

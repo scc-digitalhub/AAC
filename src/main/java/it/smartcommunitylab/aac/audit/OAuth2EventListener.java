@@ -1,10 +1,32 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.audit;
 
+import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
+import it.smartcommunitylab.aac.oauth.event.OAuth2AuthorizationExceptionEvent;
+import it.smartcommunitylab.aac.oauth.event.OAuth2Event;
+import it.smartcommunitylab.aac.oauth.event.OAuth2TokenExceptionEvent;
+import it.smartcommunitylab.aac.oauth.event.TokenGrantEvent;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.actuate.audit.AuditEvent;
@@ -19,16 +41,7 @@ import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
-import it.smartcommunitylab.aac.oauth.event.OAuth2Event;
-import it.smartcommunitylab.aac.oauth.event.OAuth2TokenExceptionEvent;
-import it.smartcommunitylab.aac.oauth.event.OAuth2AuthorizationExceptionEvent;
-import it.smartcommunitylab.aac.oauth.event.TokenGrantEvent;
-import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
-import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
-
-public class OAuth2EventListener
-        implements ApplicationListener<OAuth2Event>, ApplicationEventPublisherAware {
+public class OAuth2EventListener implements ApplicationListener<OAuth2Event>, ApplicationEventPublisherAware {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -64,7 +77,6 @@ public class OAuth2EventListener
         } catch (Exception e) {
             logger.error(e.getMessage());
         }
-
     }
 
     private void onAuthorizationExceptionEvent(OAuth2AuthorizationExceptionEvent event) {
@@ -94,7 +106,6 @@ public class OAuth2EventListener
 
         // publish as event, listener will persist to store
         publish(audit);
-
     }
 
     private void onTokenExceptionEvent(OAuth2TokenExceptionEvent event) {
@@ -124,7 +135,6 @@ public class OAuth2EventListener
 
         // publish as event, listener will persist to store
         publish(audit);
-
     }
 
     public void onTokenGrantEvent(TokenGrantEvent event) {
@@ -133,7 +143,7 @@ public class OAuth2EventListener
             AACOAuth2AccessToken token = (AACOAuth2AccessToken) event.getToken();
             OAuth2Authentication auth = event.getAuthentication();
 
-//            String principal = auth.getName();
+            //            String principal = auth.getName();
             String principal = token.getSubject();
             if (!StringUtils.hasText(principal)) {
                 principal = auth.getName();
@@ -165,9 +175,7 @@ public class OAuth2EventListener
 
             // publish as event, listener will persist to store
             publish(audit);
-
         }
-
     }
 
     protected void publish(AuditEvent event) {
@@ -175,5 +183,4 @@ public class OAuth2EventListener
             getPublisher().publishEvent(new AuditApplicationEvent(event));
         }
     }
-
 }

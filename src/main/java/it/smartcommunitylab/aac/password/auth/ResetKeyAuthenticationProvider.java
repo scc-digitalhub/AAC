@@ -1,8 +1,28 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.password.auth;
 
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.password.provider.PasswordIdentityCredentialsService;
 import java.util.Collections;
 import java.util.Set;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -14,33 +34,41 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.provider.InternalAccountProvider;
-import it.smartcommunitylab.aac.password.service.InternalPasswordService;
-
 public class ResetKeyAuthenticationProvider implements AuthenticationProvider {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final InternalAccountProvider accountProvider;
-    private final InternalPasswordService passwordService;
+    private final UserAccountService<InternalUserAccount> userAccountService;
+    private final PasswordIdentityCredentialsService passwordService;
 
-    public ResetKeyAuthenticationProvider(String providerId,
-            InternalAccountProvider accountProvider,
-            InternalPasswordService passwordService,
-            String realm) {
+    private final String providerId;
+    private final String repositoryId;
+
+    public ResetKeyAuthenticationProvider(
+        String providerId,
+        UserAccountService<InternalUserAccount> userAccountService,
+        PasswordIdentityCredentialsService passwordService,
+        String repositoryId,
+        String realm
+    ) {
         Assert.hasText(providerId, "provider can not be null or empty");
-        Assert.notNull(accountProvider, "account provider is mandatory");
+        Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(passwordService, "password service is mandatory");
+        Assert.hasText(repositoryId, "repository id can not be null or empty");
 
-        this.accountProvider = accountProvider;
+        this.userAccountService = userAccountService;
         this.passwordService = passwordService;
+        this.providerId = providerId;
+        this.repositoryId = repositoryId;
     }
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        Assert.isInstanceOf(ResetKeyAuthenticationToken.class, authentication,
-                "Only ResetKeyAuthenticationToken is supported");
+        Assert.isInstanceOf(
+            ResetKeyAuthenticationToken.class,
+            authentication,
+            "Only ResetKeyAuthenticationToken is supported"
+        );
 
         ResetKeyAuthenticationToken authRequest = (ResetKeyAuthenticationToken) authentication;
 
@@ -52,16 +80,23 @@ public class ResetKeyAuthenticationProvider implements AuthenticationProvider {
         }
 
         try {
-            InternalUserAccount account = accountProvider.findAccountByUsername(username);
+            InternalUserAccount account = userAccountService.findAccountById(repositoryId, username);
             if (account == null) {
                 throw new BadCredentialsException("invalid request");
             }
 
-            // do confirm
-            passwordService.confirmReset(key);
-//            if (!account.isChangeOnFirstAccess()) {
-//                throw new BadCredentialsException("invalid request");
-//            }
+            // verify only, won't disable the key
+            passwordService.verifyReset(key);
+
+            // set ourselves as provider
+            account.setAuthority(SystemKeys.AUTHORITY_PASSWORD);
+            account.setProvider(providerId);
+
+            // do confirm - DISABLED
+            //            passwordService.confirmReset(key);
+            //            if (!account.isChangeOnFirstAccess()) {
+            //                throw new BadCredentialsException("invalid request");
+            //            }
 
             // always grant user role
             // we really don't have any additional role on accounts, aac roles are set on
@@ -72,18 +107,15 @@ public class ResetKeyAuthenticationProvider implements AuthenticationProvider {
             ResetKeyAuthenticationToken auth = new ResetKeyAuthenticationToken(username, key, account, authorities);
 
             return auth;
-
         } catch (Exception e) {
             logger.error(e.getMessage());
             // don't leak
             throw new BadCredentialsException("invalid request");
         }
-
     }
 
     @Override
     public boolean supports(Class<?> authentication) {
         return (ResetKeyAuthenticationToken.class.isAssignableFrom(authentication));
     }
-
 }

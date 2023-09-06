@@ -1,21 +1,35 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.oauth.model;
-
-import java.util.Set;
-
-import org.springframework.security.oauth2.provider.client.Jackson2ArrayOrStringDeserializer;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
 import it.smartcommunitylab.aac.repository.StringArraySerializer;
+import java.util.Set;
+import org.springframework.security.oauth2.provider.client.Jackson2ArrayOrStringDeserializer;
 
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ClientRegistration {
+
     @JsonProperty("client_id")
     private String clientId;
 
@@ -54,9 +68,6 @@ public class ClientRegistration {
 
     @JsonProperty("subject_type")
     private String subjectType;
-
-    @JsonProperty("token_type")
-    private String tokenType;
 
     @JsonProperty("token_endpoint_auth_method")
     private Set<String> authenticationMethods;
@@ -228,14 +239,6 @@ public class ClientRegistration {
 
     public void setSubjectType(String subjectType) {
         this.subjectType = subjectType;
-    }
-
-    public String getTokenType() {
-        return tokenType;
-    }
-
-    public void setTokenType(String tokenType) {
-        this.tokenType = tokenType;
     }
 
     public Set<String> getAuthenticationMethods() {
@@ -469,5 +472,4 @@ public class ClientRegistration {
     public void setRequestUris(Set<String> requestUris) {
         this.requestUris = requestUris;
     }
-
 }

@@ -1,13 +1,16 @@
 # syntax=docker/dockerfile:experimental
-FROM maven:3-openjdk-17 as mvn
-COPY src /tmp/src
-COPY pom.xml /tmp/pom.xml
+
+FROM maven:3-openjdk-17 as build
+COPY ./src /tmp/src
+COPY ./pom.xml /tmp/pom.xml
+COPY ./user-console /tmp/user-console
 WORKDIR /tmp
-#RUN --mount=type=bind,target=/root/.m2,source=/root/.m2,from=smartcommunitylab/aac:cache-alpine mvn package -DskipTests
-RUN mvn package -DskipTests
+RUN --mount=type=cache,target=/root/.m2,source=/root/.m2,from=smartcommunitylab/aac:cache \ 
+    --mount=type=cache,target=/tmp/user-console/node_modules,source=/root/node_modules,from=smartcommunitylab/aac:cache \
+    mvn package
 
 FROM eclipse-temurin:17-jdk-alpine as builder
-COPY --from=mvn /tmp/target/aac.jar aac.jar
+COPY --from=build /tmp/target/aac.jar aac.jar
 RUN java -Djarmode=layertools -jar aac.jar extract
 
 
@@ -30,4 +33,4 @@ COPY --chown=aac:aac --from=builder spring-boot-loader/ ${USER_HOME}
 COPY --chown=aac:aac --from=builder application/ ${USER_HOME}
 USER aac
 ENTRYPOINT ["java", "org.springframework.boot.loader.JarLauncher"]
-#ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS} -jar ${APP}"]
+

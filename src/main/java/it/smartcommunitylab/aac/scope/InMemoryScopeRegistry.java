@@ -1,5 +1,23 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.scope;
 
+import it.smartcommunitylab.aac.common.NoSuchResourceException;
+import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -8,19 +26,16 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
-
-import it.smartcommunitylab.aac.common.NoSuchResourceException;
-import it.smartcommunitylab.aac.common.NoSuchScopeException;
 
 /*
  * In-memory scope registry
  */
 
 public class InMemoryScopeRegistry implements ScopeRegistry {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // provider registry is a map with keys matching resourceIds
@@ -28,18 +43,15 @@ public class InMemoryScopeRegistry implements ScopeRegistry {
 
     // create the register and populate will all providers
     public InMemoryScopeRegistry(Collection<ScopeProvider> scopeProviders) {
-
         // register internal scopeProviders to bootstrap
         // we don't care about resourceids at bootstrap
         for (ScopeProvider sp : scopeProviders) {
             _registerProvider(sp);
         }
-
     }
 
     @Override
     public void registerScopeProvider(ScopeProvider sp) {
-
         // check if aac scope, we don't want dynamic registration of core
         String resourceId = sp.getResourceId();
         if (resourceId != null && resourceId.startsWith("aac.")) {
@@ -47,7 +59,6 @@ public class InMemoryScopeRegistry implements ScopeRegistry {
         }
 
         _registerProvider(sp);
-
     }
 
     @Override
@@ -96,7 +107,6 @@ public class InMemoryScopeRegistry implements ScopeRegistry {
         }
 
         return sp.getScopes().stream().filter(s -> s.getScope().equals(scope)).findFirst().orElse(null);
-
     }
 
     @Override
@@ -112,8 +122,7 @@ public class InMemoryScopeRegistry implements ScopeRegistry {
     @Override
     public Collection<Scope> listScopes() {
         Set<Scope> result = new HashSet<>();
-        providers.values().stream()
-                .forEach(sp -> result.addAll(sp.getScopes()));
+        providers.values().stream().forEach(sp -> result.addAll(sp.getScopes()));
 
         return result;
     }
@@ -132,10 +141,11 @@ public class InMemoryScopeRegistry implements ScopeRegistry {
      */
 
     private ScopeProvider _getProvider(String scope) {
-        Optional<ScopeProvider> provider = providers.values().stream()
-                .filter(sp -> sp.getScopes()
-                        .stream().anyMatch(s -> s.getScope().equals(scope)))
-                .findFirst();
+        Optional<ScopeProvider> provider = providers
+            .values()
+            .stream()
+            .filter(sp -> sp.getScopes().stream().anyMatch(s -> s.getScope().equals(scope)))
+            .findFirst();
 
         if (provider.isPresent()) {
             return provider.get();
@@ -161,7 +171,6 @@ public class InMemoryScopeRegistry implements ScopeRegistry {
         String resourceId = sp.getResourceId();
         logger.debug("register scope provider " + sp.toString() + " for resource " + resourceId);
         providers.put(resourceId, sp);
-
     }
 
     private boolean validateScope(Scope s) {
@@ -178,7 +187,6 @@ public class InMemoryScopeRegistry implements ScopeRegistry {
         }
 
         return true;
-
     }
 
     @Override
@@ -213,9 +221,6 @@ public class InMemoryScopeRegistry implements ScopeRegistry {
 
     @Override
     public Collection<Resource> listResources() {
-        return providers.values().stream()
-                .map(p -> p.getResource())
-                .collect(Collectors.toList());
+        return providers.values().stream().map(p -> p.getResource()).collect(Collectors.toList());
     }
-
 }

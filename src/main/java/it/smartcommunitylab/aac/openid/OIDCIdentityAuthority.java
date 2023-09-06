@@ -1,25 +1,27 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.openid;
 
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.security.oauth2.client.registration.ClientRegistration;
-import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.attributes.store.AttributeStore;
-import it.smartcommunitylab.aac.attributes.store.AutoJdbcAttributeStore;
-import it.smartcommunitylab.aac.attributes.store.InMemoryAttributeStore;
-import it.smartcommunitylab.aac.attributes.store.NullAttributeStore;
-import it.smartcommunitylab.aac.attributes.store.PersistentAttributeStore;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
-import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityAuthority;
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
-import it.smartcommunitylab.aac.core.service.SubjectService;
-import it.smartcommunitylab.aac.core.service.UserEntityService;
+import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.openid.model.OIDCUserIdentity;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
@@ -28,13 +30,15 @@ import it.smartcommunitylab.aac.openid.provider.OIDCIdentityConfigurationProvide
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProvider;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 @Service
-public class OIDCIdentityAuthority extends
-        AbstractIdentityAuthority<OIDCUserIdentity, OIDCIdentityProvider, OIDCIdentityProviderConfig, OIDCIdentityProviderConfigMap>
-        implements InitializingBean {
+public class OIDCIdentityAuthority
+    extends AbstractIdentityAuthority<OIDCIdentityProvider, OIDCUserIdentity, OIDCIdentityProviderConfigMap, OIDCIdentityProviderConfig> {
 
-    public static final String AUTHORITY_URL = "/auth/oidc/";
+    public static final String AUTHORITY_URL = "/auth/" + SystemKeys.AUTHORITY_OIDC + "/";
 
     // oidc account service
     private final UserAccountService<OIDCUserAccount> accountService;
@@ -42,43 +46,34 @@ public class OIDCIdentityAuthority extends
     // filter provider
     private final OIDCFilterProvider filterProvider;
 
-    // system attributes store
-    private final AutoJdbcAttributeStore jdbcAttributeStore;
-
     // oauth shared services
     private final OIDCClientRegistrationRepository clientRegistrationRepository;
 
     // execution service for custom attributes mapping
     private ScriptExecutionService executionService;
+    private ResourceEntityService resourceService;
 
     @Autowired
     public OIDCIdentityAuthority(
-            UserEntityService userEntityService, SubjectService subjectService,
-            UserAccountService<OIDCUserAccount> userAccountService, AutoJdbcAttributeStore jdbcAttributeStore,
-            ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository,
-            @Qualifier("oidcClientRegistrationRepository") OIDCClientRegistrationRepository clientRegistrationRepository) {
-        this(SystemKeys.AUTHORITY_OIDC, userEntityService, subjectService, userAccountService, jdbcAttributeStore,
-                registrationRepository, clientRegistrationRepository);
+        UserAccountService<OIDCUserAccount> userAccountService,
+        ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository
+    ) {
+        this(SystemKeys.AUTHORITY_OIDC, userAccountService, registrationRepository);
     }
 
     public OIDCIdentityAuthority(
-            String authorityId,
-            UserEntityService userEntityService, SubjectService subjectService,
-            UserAccountService<OIDCUserAccount> userAccountService, AutoJdbcAttributeStore jdbcAttributeStore,
-            ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository,
-            OIDCClientRegistrationRepository clientRegistrationRepository) {
-        super(authorityId, userEntityService, subjectService, registrationRepository);
+        String authorityId,
+        UserAccountService<OIDCUserAccount> userAccountService,
+        ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository
+    ) {
+        super(authorityId, registrationRepository);
         Assert.notNull(userAccountService, "account service is mandatory");
-        Assert.notNull(jdbcAttributeStore, "attribute store is mandatory");
-        Assert.notNull(clientRegistrationRepository, "client registration repository is mandatory");
 
         this.accountService = userAccountService;
-        this.jdbcAttributeStore = jdbcAttributeStore;
-        this.clientRegistrationRepository = clientRegistrationRepository;
+        this.clientRegistrationRepository = new OIDCClientRegistrationRepository(registrationRepository);
 
         // build filter provider
-        this.filterProvider = new OIDCFilterProvider(authorityId, clientRegistrationRepository,
-                registrationRepository);
+        this.filterProvider = new OIDCFilterProvider(authorityId, clientRegistrationRepository, registrationRepository);
     }
 
     @Autowired
@@ -91,9 +86,9 @@ public class OIDCIdentityAuthority extends
         this.executionService = executionService;
     }
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        super.afterPropertiesSet();
+    @Autowired
+    public void setResourceService(ResourceEntityService resourceService) {
+        this.resourceService = resourceService;
     }
 
     @Override
@@ -104,85 +99,11 @@ public class OIDCIdentityAuthority extends
     @Override
     public OIDCIdentityProvider buildProvider(OIDCIdentityProviderConfig config) {
         String id = config.getProvider();
-        AttributeStore attributeStore = getAttributeStore(id, config.getPersistence());
 
-        OIDCIdentityProvider idp = new OIDCIdentityProvider(
-                authorityId, id,
-                userEntityService, accountService, subjectService,
-                attributeStore, config, config.getRealm());
+        OIDCIdentityProvider idp = new OIDCIdentityProvider(authorityId, id, accountService, config, config.getRealm());
 
         idp.setExecutionService(executionService);
+        idp.setResourceService(resourceService);
         return idp;
     }
-
-    @Override
-    public OIDCIdentityProvider registerProvider(ConfigurableProvider cp) {
-        if (cp != null
-                && getAuthorityId().equals(cp.getAuthority())
-                && SystemKeys.RESOURCE_IDENTITY.equals(cp.getType())) {
-
-            // fetch id from config
-            String providerId = cp.getProvider();
-
-            // register and build via super
-            OIDCIdentityProvider idp = super.registerProvider(cp);
-
-            try {
-                // extract clientRegistration from config
-                ClientRegistration registration = idp.getConfig().getClientRegistration();
-
-                // add client registration to registry
-                clientRegistrationRepository.addRegistration(registration);
-
-                return idp;
-            } catch (Exception ex) {
-                // cleanup
-                clientRegistrationRepository.removeRegistration(providerId);
-
-                throw new RegistrationException("invalid provider configuration: " + ex.getMessage(), ex);
-            }
-        } else {
-            throw new IllegalArgumentException();
-        }
-
-    }
-
-    @Override
-    public void unregisterProvider(String providerId) {
-        OIDCIdentityProviderConfig registration = registrationRepository.findByProviderId(providerId);
-
-        if (registration != null) {
-            // can't unregister system providers, check
-            if (SystemKeys.REALM_SYSTEM.equals(registration.getRealm())) {
-                return;
-            }
-
-            // remove from repository to disable filters
-            clientRegistrationRepository.removeRegistration(providerId);
-
-            // someone else should have already destroyed sessions
-
-            // remove from config
-            super.unregisterProvider(providerId);
-
-        }
-
-    }
-
-    /*
-     * helpers
-     */
-
-    private AttributeStore getAttributeStore(String providerId, String persistence) {
-        // we generate a new store for each provider
-        AttributeStore store = new NullAttributeStore();
-        if (SystemKeys.PERSISTENCE_LEVEL_REPOSITORY.equals(persistence)) {
-            store = new PersistentAttributeStore(SystemKeys.AUTHORITY_OIDC, providerId, jdbcAttributeStore);
-        } else if (SystemKeys.PERSISTENCE_LEVEL_MEMORY.equals(persistence)) {
-            store = new InMemoryAttributeStore(SystemKeys.AUTHORITY_OIDC, providerId);
-        }
-
-        return store;
-    }
-
 }

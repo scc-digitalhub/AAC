@@ -1,11 +1,26 @@
-package it.smartcommunitylab.aac.claims.model;
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Pattern;
+package it.smartcommunitylab.aac.claims.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.claims.Claim;
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
 
 @Valid
 public abstract class AbstractClaim implements Claim {
@@ -13,6 +28,7 @@ public abstract class AbstractClaim implements Claim {
     @Pattern(regexp = SystemKeys.KEY_PATTERN)
     @NotBlank
     protected String key;
+
     protected String namespace;
 
     protected String name;
@@ -64,18 +80,13 @@ public abstract class AbstractClaim implements Claim {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         AbstractClaim other = (AbstractClaim) obj;
         if (key == null) {
-            if (other.key != null)
-                return false;
-        } else if (!key.equals(other.key))
-            return false;
+            if (other.key != null) return false;
+        } else if (!key.equals(other.key)) return false;
         return true;
     }
 
@@ -83,5 +94,4 @@ public abstract class AbstractClaim implements Claim {
     public String toString() {
         return "AbstractClaim [key=" + key + "]";
     }
-
 }

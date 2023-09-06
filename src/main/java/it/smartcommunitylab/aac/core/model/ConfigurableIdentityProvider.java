@@ -1,36 +1,45 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.core.model;
-
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import javax.validation.Valid;
-
-import org.springframework.boot.context.properties.ConstructorBinding;
-import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 import it.smartcommunitylab.aac.SystemKeys;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+import javax.validation.Valid;
+import org.springframework.boot.context.properties.ConstructorBinding;
+import org.springframework.util.StringUtils;
 
 @Valid
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@ConstructorBinding
 public class ConfigurableIdentityProvider extends ConfigurableProvider {
 
-    private boolean linkable;
+    private Boolean linkable;
     private String persistence;
     private String events;
     private Integer position;
 
-    private String icon;
-    private Map<String, String> actionUrls;
     @JsonIgnore
     private Map<String, String> hookFunctions = new HashMap<>();
 
@@ -39,12 +48,11 @@ public class ConfigurableIdentityProvider extends ConfigurableProvider {
         this.persistence = SystemKeys.PERSISTENCE_LEVEL_NONE;
         this.events = SystemKeys.EVENTS_LEVEL_DETAILS;
         this.linkable = true;
-
     }
 
     /**
      * Private constructor for JPA and other serialization tools.
-     * 
+     *
      * We need to implement this to enable deserialization of resources via
      * reflection
      */
@@ -53,16 +61,11 @@ public class ConfigurableIdentityProvider extends ConfigurableProvider {
         this((String) null, (String) null, (String) null);
     }
 
-    @Override
-    public void setType(String type) {
-        // not supported
-    }
-
-    public boolean isLinkable() {
+    public Boolean getLinkable() {
         return linkable;
     }
 
-    public void setLinkable(boolean linkable) {
+    public void setLinkable(Boolean linkable) {
         this.linkable = linkable;
     }
 
@@ -90,22 +93,6 @@ public class ConfigurableIdentityProvider extends ConfigurableProvider {
         this.position = position;
     }
 
-    public String getIcon() {
-        return icon;
-    }
-
-    public void setIcon(String icon) {
-        this.icon = icon;
-    }
-
-    public Map<String, String> getActionUrls() {
-        return actionUrls;
-    }
-
-    public void setActionUrls(Map<String, String> actionUrls) {
-        this.actionUrls = actionUrls;
-    }
-
     public Map<String, String> getHookFunctions() {
         return hookFunctions;
     }
@@ -119,22 +106,36 @@ public class ConfigurableIdentityProvider extends ConfigurableProvider {
         if (hookFunctions == null) {
             return null;
         }
-        return hookFunctions.entrySet().stream()
-                .filter(e -> StringUtils.hasText(e.getValue()))
-                .collect(Collectors.toMap(e -> e.getKey(), e -> {
-                    return Base64.getEncoder().withoutPadding().encodeToString(e.getValue().getBytes());
-                }));
+        return hookFunctions
+            .entrySet()
+            .stream()
+            .filter(e -> StringUtils.hasText(e.getValue()))
+            .collect(
+                Collectors.toMap(
+                    e -> e.getKey(),
+                    e -> {
+                        return Base64.getEncoder().withoutPadding().encodeToString(e.getValue().getBytes());
+                    }
+                )
+            );
     }
 
     @JsonProperty("hookFunctions")
     public void setHookFunctionsBase64(Map<String, String> hookFunctions) {
         if (hookFunctions != null) {
-            this.hookFunctions = hookFunctions.entrySet().stream()
+            this.hookFunctions =
+                hookFunctions
+                    .entrySet()
+                    .stream()
                     .filter(e -> StringUtils.hasText(e.getValue()))
-                    .collect(Collectors.toMap(e -> e.getKey(), e -> {
-                        return new String(Base64.getDecoder().decode(e.getValue().getBytes()));
-                    }));
+                    .collect(
+                        Collectors.toMap(
+                            e -> e.getKey(),
+                            e -> {
+                                return new String(Base64.getDecoder().decode(e.getValue().getBytes()));
+                            }
+                        )
+                    );
         }
     }
-
 }

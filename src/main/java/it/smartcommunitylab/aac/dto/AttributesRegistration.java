@@ -1,22 +1,34 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.dto;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-
-import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
 import it.smartcommunitylab.aac.core.model.AttributeSet;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+import org.springframework.util.StringUtils;
 
 @Valid
 @JsonInclude(Include.NON_NULL)
@@ -87,6 +99,7 @@ public class AttributesRegistration {
         @Size(max = 128)
         @NotBlank
         private String key;
+
         private String type;
         private Serializable value;
 
@@ -132,7 +145,6 @@ public class AttributesRegistration {
         public void setDescription(String description) {
             this.description = description;
         }
-
     }
 
     public static AttributesRegistration from(AttributeSet attributeSet) {
@@ -142,15 +154,19 @@ public class AttributesRegistration {
         reg.name = attributeSet.getName();
         reg.description = attributeSet.getDescription();
 
-        List<AttributeRegistration> attributes = attributeSet.getAttributes().stream().map(a -> {
-            AttributeRegistration dto = new AttributeRegistration();
-            dto.key = a.getKey();
-            dto.type = getFormType(a.getKey(), a.getType().getValue());
-            dto.name = StringUtils.hasText(a.getName()) ? a.getName() : a.getKey();
-            dto.description = a.getDescription();
+        List<AttributeRegistration> attributes = attributeSet
+            .getAttributes()
+            .stream()
+            .map(a -> {
+                AttributeRegistration dto = new AttributeRegistration();
+                dto.key = a.getKey();
+                dto.type = getFormType(a.getKey(), a.getType().getValue());
+                dto.name = StringUtils.hasText(a.getName()) ? a.getName() : a.getKey();
+                dto.description = a.getDescription();
 
-            return dto;
-        }).collect(Collectors.toList());
+                return dto;
+            })
+            .collect(Collectors.toList());
         reg.setAttributes(attributes);
 
         return reg;
@@ -171,8 +187,9 @@ public class AttributesRegistration {
 
         if ("string".equals(type) && key.toLowerCase().startsWith("email")) {
             return "email";
-        } else if ("string".equals(type)
-                && (key.toLowerCase().startsWith("tel") || key.toLowerCase().startsWith("phone"))) {
+        } else if (
+            "string".equals(type) && (key.toLowerCase().startsWith("tel") || key.toLowerCase().startsWith("phone"))
+        ) {
             return "tel";
         }
 

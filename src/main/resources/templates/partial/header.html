@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:fragment="header">
+</head>
+
+<body>
+   <div th:fragment="card-header">
+      <div class="card-header pl-4 text-muted">
+         <span>
+            <svg class="icon icon-secondary icon-sm">
+               <use th:xlink:href="@{${'/italia/svg/sprite.svg#' + icon}}"></use>
+            </svg>
+         </span>
+         <span class="ml-1" th:text="#{${title}}"></span>
+      </div>
+   </div>
+
+</body>
+
+</html>

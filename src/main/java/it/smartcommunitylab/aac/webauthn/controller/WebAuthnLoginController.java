@@ -1,5 +1,37 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.webauthn.controller;
 
+import com.yubico.webauthn.AssertionRequest;
+import io.swagger.v3.oas.annotations.Hidden;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.LoginException;
+import it.smartcommunitylab.aac.common.NoSuchProviderException;
+import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.core.RealmManager;
+import it.smartcommunitylab.aac.internal.auth.InternalAuthenticationException;
+import it.smartcommunitylab.aac.internal.model.InternalLoginProvider;
+import it.smartcommunitylab.aac.model.Realm;
+import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
+import it.smartcommunitylab.aac.webauthn.model.WebAuthnAuthenticationStartRequest;
+import it.smartcommunitylab.aac.webauthn.model.WebAuthnLoginResponse;
+import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProvider;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnLoginRpService;
+import it.smartcommunitylab.aac.webauthn.store.WebAuthnAssertionRequestStore;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -8,7 +40,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,28 +55,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import com.yubico.webauthn.AssertionRequest;
-
-import io.swagger.v3.oas.annotations.Hidden;
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.common.LoginException;
-import it.smartcommunitylab.aac.common.NoSuchProviderException;
-import it.smartcommunitylab.aac.common.NoSuchUserException;
-import it.smartcommunitylab.aac.core.RealmManager;
-import it.smartcommunitylab.aac.dto.CustomizationBean;
-import it.smartcommunitylab.aac.internal.auth.InternalAuthenticationException;
-import it.smartcommunitylab.aac.internal.model.InternalLoginProvider;
-import it.smartcommunitylab.aac.model.Realm;
-import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
-import it.smartcommunitylab.aac.webauthn.model.WebAuthnAuthenticationStartRequest;
-import it.smartcommunitylab.aac.webauthn.model.WebAuthnLoginResponse;
-import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProvider;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpService;
-import it.smartcommunitylab.aac.webauthn.store.WebAuthnAssertionRequestStore;
 
 @Controller
 @RequestMapping
 public class WebAuthnLoginController {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
@@ -55,16 +69,18 @@ public class WebAuthnLoginController {
     private RealmManager realmManager;
 
     @Autowired
-    private WebAuthnRpService rpService;
+    private WebAuthnLoginRpService rpService;
 
     @Autowired
     private WebAuthnAssertionRequestStore requestStore;
 
     @RequestMapping(value = WebAuthnIdentityAuthority.AUTHORITY_URL + "form/{providerId}", method = RequestMethod.GET)
     public String login(
-            @PathVariable("providerId") String providerId,
-            Model model,
-            HttpServletRequest req, HttpServletResponse res) throws Exception {
+        @PathVariable("providerId") String providerId,
+        Model model,
+        HttpServletRequest req,
+        HttpServletResponse res
+    ) throws Exception {
         // resolve provider
         WebAuthnIdentityProvider idp = internalAuthority.getProvider(providerId);
         model.addAttribute("providerId", providerId);
@@ -75,20 +91,20 @@ public class WebAuthnLoginController {
         Realm re = realmManager.getRealm(realm);
         String displayName = re.getName();
         Map<String, String> resources = new HashMap<>();
-        if (!realm.equals(SystemKeys.REALM_COMMON)) {
-            re = realmManager.getRealm(realm);
-            displayName = re.getName();
-            CustomizationBean gcb = re.getCustomization("global");
-            if (gcb != null) {
-                resources.putAll(gcb.getResources());
-            }
-            // disable realm login customization here,
-            // we have a per idp message where needed
-//            CustomizationBean rcb = re.getCustomization("login");
-//            if (rcb != null) {
-//                resources.putAll(rcb.getResources());
-//            }
-        }
+        //        if (!realm.equals(SystemKeys.REALM_COMMON)) {
+        //            re = realmManager.getRealm(realm);
+        //            displayName = re.getName();
+        //            CustomizationBean gcb = re.getCustomization("global");
+        //            if (gcb != null) {
+        //                resources.putAll(gcb.getResources());
+        //            }
+        //            // disable realm login customization here,
+        //            // we have a per idp message where needed
+        ////            CustomizationBean rcb = re.getCustomization("login");
+        ////            if (rcb != null) {
+        ////                resources.putAll(rcb.getResources());
+        ////            }
+        //        }
 
         model.addAttribute("displayName", displayName);
         model.addAttribute("customization", resources);
@@ -106,8 +122,7 @@ public class WebAuthnLoginController {
 
         // check errors
         // we make sure we consume only internal exceptions.
-        Exception error = (Exception) req.getSession()
-                .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        Exception error = (Exception) req.getSession().getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         if (error != null && error instanceof InternalAuthenticationException) {
             LoginException le = LoginException.translate((InternalAuthenticationException) error);
 
@@ -119,27 +134,28 @@ public class WebAuthnLoginController {
         }
 
         return "login";
-
     }
 
     /**
      * Starts a new WebAuthn authentication ceremony by generating a new Credential
      * Request Options object and returning it to the user.
-     * 
+     *
      * The challenge and the information about the ceremony are temporarily stored
      * in the session.
-     * 
+     *
      * @throws NoSuchProviderException
      * @throws NoSuchUserException
      */
     @Hidden
-    @PostMapping(value = WebAuthnIdentityAuthority.AUTHORITY_URL
-            + "assertionOptions/{providerId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(
+        value = WebAuthnIdentityAuthority.AUTHORITY_URL + "assertionOptions/{providerId}",
+        consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE
+    )
     public ResponseEntity<WebAuthnLoginResponse> generateAssertionOptions(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            @RequestBody @Valid WebAuthnAuthenticationStartRequest body)
-            throws NoSuchProviderException, NoSuchUserException {
-
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
+        @RequestBody @Valid WebAuthnAuthenticationStartRequest body
+    ) throws NoSuchProviderException, NoSuchUserException {
         try {
             // build request for user
             String username = body.getUsername();
@@ -167,5 +183,4 @@ public class WebAuthnLoginController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
-
 }

@@ -1,9 +1,24 @@
-package it.smartcommunitylab.aac.oauth.persistence;
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import java.io.Serializable;
+package it.smartcommunitylab.aac.oauth.persistence;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ClientResource;
+import java.io.Serializable;
 
 public abstract class AbstractOAuth2ClientResource implements ClientResource, Serializable {
 
@@ -13,7 +28,6 @@ public abstract class AbstractOAuth2ClientResource implements ClientResource, Se
     protected String clientId;
 
     protected AbstractOAuth2ClientResource(String realm) {
-
         this.realm = realm;
     }
 
@@ -24,7 +38,7 @@ public abstract class AbstractOAuth2ClientResource implements ClientResource, Se
 
     /**
      * Private constructor for JPA and other serialization tools.
-     * 
+     *
      * We need to implement this to enable deserialization of resources via
      * reflection
      */
@@ -73,10 +87,4 @@ public abstract class AbstractOAuth2ClientResource implements ClientResource, Se
 
         return sb.toString();
     }
-
-    @Override
-    public String getUuid() {
-        return null;
-    }
-
 }

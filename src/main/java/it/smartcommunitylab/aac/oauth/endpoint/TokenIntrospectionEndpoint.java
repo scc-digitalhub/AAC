@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2015 Fondazione Bruno Kessler
- * 
+ *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
  *    You may obtain a copy of the License at
- * 
+ *
  *        http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  *    Unless required by applicable law or agreed to in writing, software
  *    distributed under the License is distributed on an "AS IS" BASIS,
  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,6 +16,19 @@
 
 package it.smartcommunitylab.aac.oauth.endpoint;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
+import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
+import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientAuthenticationToken;
+import it.smartcommunitylab.aac.oauth.common.ServerErrorException;
+import it.smartcommunitylab.aac.oauth.model.ApplicationType;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
+import it.smartcommunitylab.aac.oauth.model.TokenIntrospection;
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
+import it.smartcommunitylab.aac.openid.scope.OpenIdScopeProvider;
+import it.smartcommunitylab.aac.profiles.scope.OpenIdProfileScopeProvider;
+import it.smartcommunitylab.aac.scope.ScopeProvider;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -23,7 +36,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,18 +64,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
-import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientAuthenticationToken;
-import it.smartcommunitylab.aac.oauth.common.ServerErrorException;
-import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
-import it.smartcommunitylab.aac.oauth.model.TokenIntrospection;
-
 /**
  * OAuth2.0 Token introspection controller as of RFC7662:
  * https://tools.ietf.org/html/rfc7662.
- * 
+ *
  * @author raman
  *
  */
@@ -69,38 +75,63 @@ import it.smartcommunitylab.aac.oauth.model.TokenIntrospection;
 @Tag(name = "OAuth 2.0 Token Introspection")
 public class TokenIntrospectionEndpoint {
 
-    public final static String TOKEN_INTROSPECTION_URL = "/oauth/introspect";
+    public static final String TOKEN_INTROSPECTION_URL = "/oauth/introspect";
+    public static final Set<String> WHITELISTED_SCOPES;
+    public static final ScopeProvider[] WHITELISTED_SCOPE_PROVIDERS = {
+        new OpenIdScopeProvider(),
+        new OpenIdProfileScopeProvider(),
+    };
+
+    static {
+        Set<String> scopes = Stream
+            .of(WHITELISTED_SCOPE_PROVIDERS)
+            .flatMap(sp -> sp.getScopes().stream())
+            .map(s -> s.getScope())
+            .collect(Collectors.toSet());
+        WHITELISTED_SCOPES = Collections.unmodifiableSet(scopes);
+    }
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Value("${jwt.issuer}")
     private String issuer;
 
-    @Value("${oauth2.introspection.permitAll}")
-    private boolean permitAll;
-
     @Autowired
     private TokenStore tokenStore;
+
+    @Autowired
+    private OAuth2ClientDetailsService clientDetailsService;
 
     /*
      * client_id should match audience, as per security considerations
      * https://tools.ietf.org/html/rfc7662#section-4
+     *
+     * we also let special introspection clients perform lookup requests on behalf
+     * of resource servers, as per recommendation:
+     *
+     * A single piece of software acting as both a client and a protected resource
+     * MAY reuse the same credentials between the token endpoint and the
+     * introspection endpoint, though doing so potentially conflates the activities
+     * of the client and protected resource portions of the software and the
+     * authorization server MAY require separate credentials for each mode.
      */
 
-//    @SuppressWarnings("unchecked")
+    //    @SuppressWarnings("unchecked")
     @Operation(summary = "Get token metadata")
     @RequestMapping(method = RequestMethod.POST, value = TOKEN_INTROSPECTION_URL)
     public ResponseEntity<TokenIntrospection> getTokenInfo(
-            @RequestParam(name = "token") String tokenValue,
-            @RequestParam(required = false, name = "token_type_hint") Optional<String> tokenTypeHint,
-            Authentication authentication) {
-
-        logger.debug("request introspection of token {} hint {}", StringUtils.trimAllWhitespace(tokenValue),
-                StringUtils.trimAllWhitespace(String.valueOf(tokenTypeHint)));
+        @RequestParam(name = "token") String tokenValue,
+        @RequestParam(required = false, name = "token_type_hint") Optional<String> tokenTypeHint,
+        Authentication authentication
+    ) {
+        logger.debug(
+            "request introspection of token {} hint {}",
+            StringUtils.trimAllWhitespace(tokenValue),
+            StringUtils.trimAllWhitespace(String.valueOf(tokenTypeHint))
+        );
 
         if (!(authentication instanceof OAuth2ClientAuthenticationToken) || !authentication.isAuthenticated()) {
-            throw new InsufficientAuthenticationException(
-                    "Invalid client authentication");
+            throw new InsufficientAuthenticationException("Invalid client authentication");
         }
 
         // clientAuth should be available
@@ -113,11 +144,14 @@ public class TokenIntrospectionEndpoint {
         }
 
         // check hint
+        // TODO add proper support
         if (tokenTypeHint.isPresent()) {
             String typeHint = tokenTypeHint.get();
             if (!"access_token".equals(typeHint) && !"refresh_token".equals(typeHint)) {
-                // unsupported token type, drop
-                throw new InvalidRequestException("invalid token type hint");
+                // unsupported token type, reset to null to ignore
+                // spec doesn't exactly define how to handle invalid types, but
+                // says that when authentication is successful we should return a proper result
+                // regardless of the type hint
             }
         }
         // as per spec this is a suggestion, if we don't find the token we need to
@@ -127,7 +161,7 @@ public class TokenIntrospectionEndpoint {
         // load refresh token if present
         OAuth2RefreshToken refreshToken = tokenStore.readRefreshToken(tokenValue);
         if (refreshToken != null) {
-            logger.trace("load auth for refresh token " + refreshToken.getValue());
+            logger.trace("load auth for refresh token {}", refreshToken.getValue());
 
             // load authentication
             OAuth2Authentication auth = tokenStore.readAuthenticationForRefreshToken(refreshToken);
@@ -139,24 +173,26 @@ public class TokenIntrospectionEndpoint {
         // as per spec, try as access_token independently of hint
         OAuth2AccessToken accessToken = tokenStore.readAccessToken(tokenValue);
         if (accessToken != null) {
-            logger.trace("load auth for access token " + accessToken.getValue());
+            logger.trace("load auth for access token {}", accessToken.getValue());
 
             // load authentication
             OAuth2Authentication auth = tokenStore.readAuthentication(accessToken);
 
-            TokenIntrospection result = introspectAccessToken(introspectClientId, auth, accessToken);
+            TokenIntrospection result = introspectAccessToken(tokenValue, introspectClientDetails, auth, accessToken);
             return ResponseEntity.ok(result);
         }
 
         // no token found
         // as per spec return a response with active=false
         return ResponseEntity.ok(new TokenIntrospection(false));
-
     }
 
-    private TokenIntrospection introspectAccessToken(String introspectClientId,
-            OAuth2Authentication auth, OAuth2AccessToken accessToken) {
-
+    private TokenIntrospection introspectAccessToken(
+        String tokenValue,
+        OAuth2ClientDetails introspectClientDetails,
+        OAuth2Authentication auth,
+        OAuth2AccessToken accessToken
+    ) {
         if (accessToken == null || auth == null) {
             throw new InvalidTokenException("invalid access token");
         }
@@ -175,16 +211,20 @@ public class TokenIntrospectionEndpoint {
             audience = Arrays.asList(aud);
         }
 
-        logger.trace("token clientId " + clientId);
-        logger.trace("client auth requesting introspection  " + introspectClientId);
+        String introspectClientId = introspectClientDetails.getClientId();
+
+        logger.trace("token client id {}", clientId);
+        logger.trace("introspection client id {}", introspectClientId);
 
         // spec-compliant: check client is either azp or in audience
         // "If the token can be used only at certain resource servers, the
         // authorization server MUST determine whether or not the token can
         // be used at the resource server making the introspection call"
-
-        // TODO remove permitAll config
-        if (!permitAll && !clientId.equals(introspectClientId) && !audience.contains(introspectClientId)) {
+        //
+        // also spec-compliant: let introspection clients pass if matching scopes
+        if (
+            !audience.contains(introspectClientId) && !isValidIntrospector(introspectClientDetails, auth, accessToken)
+        ) {
             throw new UnauthorizedClientException("client is not a valid audience");
         }
 
@@ -196,11 +236,8 @@ public class TokenIntrospectionEndpoint {
         result.setIssuer(issuer);
         result.setClientId(clientId);
 
-        // add only if requesting client is in audience
-        // TODO remove when we clear permitAll shortcut
-        if (audience.contains(introspectClientId)) {
-            result.setAudience(audience);
-        }
+        // include audience details
+        result.setAudience(audience);
 
         Set<String> scopes = request.getScope();
         result.setScope(scopes);
@@ -232,22 +269,93 @@ public class TokenIntrospectionEndpoint {
                 result.setJti(token.getToken());
                 result.setClaims(token.getClaims());
             }
+            // add access_token as phantom token to swap opaque/jwt
+            // DISABLED, requires loadByToken on repository to load in either form
+            //            if (tokenValue.equals(token.getToken())) {
+            //                // token is opaque, add jwt
+            //                // TODO
+            //            } else {
+            //                // add opaque
+            //                result.setAccessToken(token.getToken());
+            //            }
+
         }
 
         return result;
-
     }
 
-    private TokenIntrospection introspectRefreshToken(String introspectClientId,
-            OAuth2Authentication auth, OAuth2RefreshToken refreshToken) {
+    private boolean isValidIntrospector(
+        OAuth2ClientDetails introspectClientDetails,
+        OAuth2Authentication auth,
+        OAuth2AccessToken accessToken
+    ) {
+        OAuth2Request request = auth.getOAuth2Request();
+        String clientId = request.getClientId();
 
+        // same client
+        if (clientId.equals(introspectClientDetails.getClientId())) {
+            return true;
+        }
+
+        String realm = null;
+        // discover realm from token
+        if (accessToken instanceof AACOAuth2AccessToken) {
+            realm = ((AACOAuth2AccessToken) accessToken).getRealm();
+        }
+
+        if (realm == null) {
+            // discover realm from user auth
+            Authentication userAuth = auth.getUserAuthentication();
+            if (userAuth != null && userAuth instanceof UserAuthentication) {
+                realm = ((UserAuthentication) userAuth).getRealm();
+            }
+        }
+
+        if (realm == null) {
+            // pick realm from client
+            OAuth2ClientDetails clientDetails = clientDetailsService.loadClientByClientId(clientId);
+            realm = clientDetails.getRealm();
+        }
+
+        // introspection client
+        if (introspectClientDetails.getApplicationType().equals(ApplicationType.INTROSPECTION.getValue())) {
+            if (!introspectClientDetails.getRealm().equals(realm)) {
+                return false;
+            }
+
+            if (request.getScope() == null) {
+                return true;
+            }
+
+            Set<String> validScopes = introspectClientDetails.getScope();
+
+            // skip all white-listed, every other scope should be enabled
+            Set<String> scopes = request
+                .getScope()
+                .stream()
+                .filter(s -> !WHITELISTED_SCOPES.contains(s))
+                .collect(Collectors.toSet());
+
+            return scopes.stream().allMatch(s -> validScopes.contains(s));
+        }
+
+        return false;
+    }
+
+    private TokenIntrospection introspectRefreshToken(
+        String introspectClientId,
+        OAuth2Authentication auth,
+        OAuth2RefreshToken refreshToken
+    ) {
         if (refreshToken == null || auth == null) {
             throw new InvalidTokenException("invalid refresh token");
         }
 
         Date now = new Date();
-        if (refreshToken instanceof ExpiringOAuth2RefreshToken
-                && ((ExpiringOAuth2RefreshToken) refreshToken).getExpiration().before(now)) {
+        if (
+            refreshToken instanceof ExpiringOAuth2RefreshToken &&
+            ((ExpiringOAuth2RefreshToken) refreshToken).getExpiration().before(now)
+        ) {
             throw new InvalidTokenException("refresh token expired");
         }
 
@@ -291,7 +399,6 @@ public class TokenIntrospectionEndpoint {
         }
 
         return result;
-
     }
 
     @ExceptionHandler(InvalidTokenException.class)
@@ -302,7 +409,7 @@ public class TokenIntrospectionEndpoint {
 
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<TokenIntrospection> handleAuthenticationException(AuthenticationException e)
-            throws Exception {
+        throws Exception {
         ResponseEntity<TokenIntrospection> response = buildResponse(new BadClientCredentialsException());
         // handle 401 as per https://datatracker.ietf.org/doc/html/rfc6749#section-5.2
         // TODO respond with header matching authentication scheme used by client
@@ -327,5 +434,4 @@ public class TokenIntrospectionEndpoint {
         // don't leak error, token is invalid
         return ResponseEntity.ok(new TokenIntrospection(false));
     }
-
 }

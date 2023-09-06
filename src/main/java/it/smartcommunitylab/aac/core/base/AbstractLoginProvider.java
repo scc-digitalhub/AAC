@@ -1,25 +1,45 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.core.base;
 
-import org.springframework.util.Assert;
-
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.provider.LoginProvider;
+import java.util.Locale;
+import java.util.Map;
+import org.springframework.util.Assert;
 
-public abstract class AbstractLoginProvider extends AbstractProvider
-        implements LoginProvider, Comparable<LoginProvider> {
+public abstract class AbstractLoginProvider implements LoginProvider, Comparable<LoginProvider> {
 
     public static final String DEFAULT_ICON = "it-key";
     protected static final String ICON_PATH = "italia/svg/sprite.svg#";
     protected static final String TEMPLATE_PATH = "login/";
     protected static final int MAX_POSITION = 10000000;
 
+    private final String authority;
+    private final String realm;
+    private final String provider;
+
     private String template;
     private String loginUrl;
     private Integer position;
 
     private String name;
-    private String description;
+    private Map<String, String> titleMap;
+    private Map<String, String> descriptionMap;
     private String icon;
     private String iconUrl;
 
@@ -28,8 +48,10 @@ public abstract class AbstractLoginProvider extends AbstractProvider
     private ConfigurableProperties configuration;
 
     public AbstractLoginProvider(String authority, String providerId, String realm, String name) {
-        super(authority, providerId, realm);
         Assert.hasText(name, "name can not be null or empty");
+        this.authority = authority;
+        this.realm = realm;
+        this.provider = providerId;
 
         this.name = name;
 
@@ -38,9 +60,24 @@ public abstract class AbstractLoginProvider extends AbstractProvider
     }
 
     @Override
-    public final String getType() {
-        return SystemKeys.RESOURCE_LOGIN;
+    public String getAuthority() {
+        return authority;
     }
+
+    @Override
+    public String getProvider() {
+        return provider;
+    }
+
+    @Override
+    public String getRealm() {
+        return realm;
+    }
+
+    //    @Override
+    //    public final String getType() {
+    //        return SystemKeys.RESOURCE_LOGIN;
+    //    }
 
     public String getTemplate() {
         if (template == null) {
@@ -70,12 +107,36 @@ public abstract class AbstractLoginProvider extends AbstractProvider
         this.name = name;
     }
 
-    public String getDescription() {
-        return description;
+    public String getTitle(String lang) {
+        if (titleMap != null && lang != null) {
+            return titleMap.get(lang);
+        }
+
+        return name;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public String getDescription(String lang) {
+        if (descriptionMap != null && lang != null) {
+            return descriptionMap.get(lang);
+        }
+
+        return null;
+    }
+
+    public Map<String, String> getTitleMap() {
+        return titleMap;
+    }
+
+    public void setTitleMap(Map<String, String> titleMap) {
+        this.titleMap = titleMap;
+    }
+
+    public Map<String, String> getDescriptionMap() {
+        return descriptionMap;
+    }
+
+    public void setDescriptionMap(Map<String, String> descriptionMap) {
+        this.descriptionMap = descriptionMap;
     }
 
     public String getIcon() {
@@ -136,7 +197,6 @@ public abstract class AbstractLoginProvider extends AbstractProvider
         }
 
         return c;
-
     }
 
     public String getKey() {
@@ -144,8 +204,7 @@ public abstract class AbstractLoginProvider extends AbstractProvider
             return getProvider();
         }
 
-        return name.trim()
-                .replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
+        return name.trim().replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
     }
 
     public Integer getPosition() {
@@ -159,5 +218,4 @@ public abstract class AbstractLoginProvider extends AbstractProvider
     public void setPosition(Integer position) {
         this.position = position;
     }
-
 }

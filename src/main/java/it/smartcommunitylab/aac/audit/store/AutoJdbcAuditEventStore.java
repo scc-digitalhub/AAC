@@ -1,5 +1,22 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.audit.store;
 
+import it.smartcommunitylab.aac.audit.RealmAuditEvent;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -7,35 +24,35 @@ import java.time.Instant;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import javax.sql.DataSource;
-
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.support.SqlLobValue;
 import org.springframework.security.oauth2.common.util.SerializationUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.audit.RealmAuditEvent;
-
-import org.springframework.jdbc.core.support.SqlLobValue;
-
 public class AutoJdbcAuditEventStore implements AuditEventStore {
+
     private final JdbcTemplate jdbcTemplate;
     private final RowMapper<AuditEvent> rowMapper = new AuditEventRowMapper();
 
-    private static final String DEFAULT_CREATE_TABLE_STATEMENT = " CREATE TABLE IF NOT EXISTS audit (" +
-            "  time TIMESTAMP," +
-            "  principal varchar(255)," +
-            "  realm varchar(255) DEFAULT NULL," +
-            "  type varchar(255)," +
-            "  event BLOB ) ";
+    private static final String DEFAULT_CREATE_TABLE_STATEMENT =
+        " CREATE TABLE IF NOT EXISTS audit (" +
+        "  time TIMESTAMP," +
+        "  principal varchar(255)," +
+        "  realm varchar(255) DEFAULT NULL," +
+        "  type varchar(255)," +
+        "  event BLOB ) ";
 
-    private static final String DEFAULT_INSERT_STATEMENT = "insert into audit (time, principal, realm , type, event ) values (?, ?, ?, ?, ?)";
+    private static final String DEFAULT_INSERT_STATEMENT =
+        "insert into audit (time, principal, realm , type, event ) values (?, ?, ?, ?, ?)";
 
-    private static final String DEFAULT_SELECT_PRINCIPAL_STATEMENT = "select time, principal, realm , type, event from audit where principal = ?";
-    private static final String DEFAULT_SELECT_REALM_STATEMENT = "select time, principal, realm , type, event from audit where realm = ?";
+    private static final String DEFAULT_SELECT_PRINCIPAL_STATEMENT =
+        "select time, principal, realm , type, event from audit where principal = ?";
+    private static final String DEFAULT_SELECT_REALM_STATEMENT =
+        "select time, principal, realm , type, event from audit where realm = ?";
 
     private static final String DEFAULT_COUNT_PRINCIPAL_STATEMENT = "select count(*) from audit where principal = ?";
     private static final String DEFAULT_COUNT_REALM_STATEMENT = "select count(*) from audit where realm = ?";
@@ -81,13 +98,17 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
             realm = ((RealmAuditEvent) event).getRealm();
         }
 
-        jdbcTemplate.update(insertAuditEventSql,
-                new Object[] {
-                        new java.sql.Timestamp(time),
-                        principal, realm, type,
-                        new SqlLobValue(SerializationUtils.serialize(event))
-                }, new int[] { Types.TIMESTAMP, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.BLOB });
-
+        jdbcTemplate.update(
+            insertAuditEventSql,
+            new Object[] {
+                new java.sql.Timestamp(time),
+                principal,
+                realm,
+                type,
+                new SqlLobValue(SerializationUtils.serialize(event)),
+            },
+            new int[] { Types.TIMESTAMP, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.BLOB }
+        );
     }
 
     @Override
@@ -145,8 +166,7 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
     }
 
     @Override
-    public List<RealmAuditEvent> findByRealm(String realm, Instant after, Instant before,
-            String type) {
+    public List<RealmAuditEvent> findByRealm(String realm, Instant after, Instant before, String type) {
         StringBuilder query = new StringBuilder();
         query.append(selectByRealmAuditEvent);
 
@@ -171,11 +191,12 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
 
         query.append(" ").append(orderBy);
 
-        return jdbcTemplate.query(query.toString(), rowMapper, params.toArray(new Object[0])).stream()
-                .filter(e -> (e instanceof RealmAuditEvent))
-                .map(e -> (RealmAuditEvent) e)
-                .collect(Collectors.toList());
-
+        return jdbcTemplate
+            .query(query.toString(), rowMapper, params.toArray(new Object[0]))
+            .stream()
+            .filter(e -> (e instanceof RealmAuditEvent))
+            .map(e -> (RealmAuditEvent) e)
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -282,13 +303,12 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
 
         @Override
         public AuditEvent mapRow(ResultSet rs, int rowNum) throws SQLException {
-//            long time = rs.getLong("time");
-//            String principal = rs.getString("principal");
-//            String realm = rs.getString("realm");
-//            String type = rs.getString("type");
+            //            long time = rs.getLong("time");
+            //            String principal = rs.getString("principal");
+            //            String realm = rs.getString("realm");
+            //            String type = rs.getString("type");
             AuditEvent event = SerializationUtils.deserialize(rs.getBytes("event"));
             return event;
         }
     }
-
 }

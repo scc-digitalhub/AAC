@@ -16,7 +16,7 @@
                     </tr>
                 </thead>
                 <tr ng-repeat="item in audit">
-                    <td class="align-middle">{{item.timestamp.epochSecond * 1000 | date:'yyyy-MM-dd HH:mm:ss Z'}}</td>
+                    <td class="align-middle">{{item.timestamp * 1000 | date:'yyyy-MM-dd HH:mm:ss Z'}}</td>
                     <td class="align-middle">{{item.type | uppercase}}</td>
                     <td class="align-middle">
                         <div ng-if="item.type == 'USER_AUTHENTICATION_SUCCESS' && item.data.details" class="text-secondary">

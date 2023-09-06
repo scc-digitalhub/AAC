@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2015-2019 Smart Community Lab, FBK
- * 
+ *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
  *    You may obtain a copy of the License at
- * 
+ *
  *        http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  *    Unless required by applicable law or agreed to in writing, software
  *    distributed under the License is distributed on an "AS IS" BASIS,
  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,7 +17,6 @@ package it.smartcommunitylab.aac.profiles.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
 import it.smartcommunitylab.aac.SystemKeys;
 
 @JsonInclude(Include.NON_EMPTY)
@@ -32,8 +31,7 @@ public class BasicProfile extends AbstractProfile {
     private String username;
     private String email;
 
-    public BasicProfile() {
-    }
+    public BasicProfile() {}
 
     public BasicProfile(BasicProfile bp) {
         name = bp.getName();
@@ -78,21 +76,20 @@ public class BasicProfile extends AbstractProfile {
     public void setEmail(String email) {
         this.email = email;
     }
-
-//    /**
-//     * @param user
-//     * @return
-//     */
-//    public static BasicProfile fromUser(User user) {
-//        if (user == null) {
-//            return null;
-//        }
-//        BasicProfile profile = new BasicProfile();
-//        profile.setName(user.getName());
-//        profile.setSurname(user.getSurname());
-//        profile.setUserId(user.getId().toString());
-//        profile.setUsername(user.getUsername());
-//        return profile;
-//    }
+    //    /**
+    //     * @param user
+    //     * @return
+    //     */
+    //    public static BasicProfile fromUser(User user) {
+    //        if (user == null) {
+    //            return null;
+    //        }
+    //        BasicProfile profile = new BasicProfile();
+    //        profile.setName(user.getName());
+    //        profile.setSurname(user.getSurname());
+    //        profile.setUserId(user.getId().toString());
+    //        profile.setUsername(user.getUsername());
+    //        return profile;
+    //    }
 
 }

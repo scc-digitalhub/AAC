@@ -1,11 +1,32 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.oauth.endpoint;
 
+import com.nimbusds.jose.JWSAlgorithm;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
+import it.smartcommunitylab.aac.openid.endpoint.OpenIDMetadataEndpoint;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -14,21 +35,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
-import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
-import it.smartcommunitylab.aac.openid.endpoint.OpenIDMetadataEndpoint;
-
 /*
  * OAuth2 Authorization Server Metadata
  * https://tools.ietf.org/html/rfc8414
- * 
- * extends OIDC discovery metadata 
+ *
+ * extends OIDC discovery metadata
  */
 @Controller
-@Tag(name = "OAuth 2.0 Authorization Server Metadata" )
+@Tag(name = "OAuth 2.0 Authorization Server Metadata")
 public class OAuth2MetadataEndpoint {
 
     public static final String OAUTH2_CONFIGURATION_URL = Config.WELL_KNOWN_URL + "/oauth-authorization-server";
@@ -41,11 +55,12 @@ public class OAuth2MetadataEndpoint {
     @Autowired
     OpenIDMetadataEndpoint oidcMetadataEndpoint;
 
-    @Autowired
-    private JWTSigningAndValidationService signService;
-
     @Operation(summary = "Get authorization server metadata")
-    @RequestMapping(method = RequestMethod.GET, value = OAUTH2_CONFIGURATION_URL, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(
+        method = RequestMethod.GET,
+        value = OAUTH2_CONFIGURATION_URL,
+        produces = MediaType.APPLICATION_JSON_VALUE
+    )
     public @ResponseBody Map<String, Object> serverMetadata() {
         return getConfiguration();
     }
@@ -102,30 +117,45 @@ public class OAuth2MetadataEndpoint {
 
          */
         //@formatter:on
-        // load all signing alg
-        // TODO check support
 
-        List<String> signAlgorithms = signService.getAllSigningAlgsSupported().stream()
-                .map(a -> a.getName()).collect(Collectors.toList());
+        // static list of base algs supported
+        // TODO check support
+        // note: this does NOT depend on signService but on auth converters
+        List<String> authSigninAlgorithms = Stream
+            .of(
+                JWSAlgorithm.HS256,
+                JWSAlgorithm.HS384,
+                JWSAlgorithm.HS512,
+                JWSAlgorithm.RS256,
+                JWSAlgorithm.RS384,
+                JWSAlgorithm.RS512
+            )
+            .map(a -> a.getName())
+            .collect(Collectors.toList());
+
+        List<String> authMethods = Stream
+            .of(
+                AuthenticationMethod.CLIENT_SECRET_BASIC,
+                AuthenticationMethod.CLIENT_SECRET_POST,
+                AuthenticationMethod.CLIENT_SECRET_JWT,
+                AuthenticationMethod.PRIVATE_KEY_JWT
+            )
+            .map(t -> t.getValue())
+            .collect(Collectors.toList());
 
         m.put("revocation_endpoint", baseUrl + TokenRevocationEndpoint.TOKEN_REVOCATION_URL);
-
-        List<String> authMethods = Stream.of(AuthenticationMethod.CLIENT_SECRET_BASIC,
-                AuthenticationMethod.CLIENT_SECRET_POST)
-                .map(t -> t.getValue()).collect(Collectors.toList());
 
         m.put("revocation_endpoint", baseUrl + TokenRevocationEndpoint.TOKEN_REVOCATION_URL);
         m.put("revocation_endpoint_auth_methods_supported", authMethods);
-        m.put("revocation_endpoint_auth_signing_alg_values_supported", signAlgorithms);
+        m.put("revocation_endpoint_auth_signing_alg_values_supported", authSigninAlgorithms);
 
         m.put("introspection_endpoint", baseUrl + TokenIntrospectionEndpoint.TOKEN_INTROSPECTION_URL);
         m.put("introspection_endpoint_auth_methods_supported", authMethods);
-        m.put("introspection_endpoint_auth_signing_alg_values_supported", signAlgorithms);
+        m.put("introspection_endpoint_auth_signing_alg_values_supported", authSigninAlgorithms);
 
         m.put("code_challenge_methods_supported", Collections.singleton("S256")); // as per spec do not expose plain
 
         m.put("authorization_response_iss_parameter_supported", true);
         return m;
     }
-
 }

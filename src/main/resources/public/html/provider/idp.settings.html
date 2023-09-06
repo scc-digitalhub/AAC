@@ -7,15 +7,40 @@
                     required>
                 <label for="name" class="{{idp.name != '' ? 'active' : ''}}">Provider Name</label>
             </div>
-            <div class="form-group col">
-                <textarea rows="3" name="description" id="description" ng-model="idp.description"></textarea>
-                <label for="description" class="{{idp.description != '' ? 'active' : ''}}">Description</label>
+            <div class="">
+                <legend class="mb-4">Display settings</legend>
+
+                <div class="form-group col ">
+                    <div class="bootstrap-select-wrapper border-bottom-0">
+                        <label for="localization">Localization</label>
+                        <select id="localization" ng-model="selectedLanguage">
+                            <option ng-repeat="l in availableLanguages" value="{{l}}"
+                                ng-selected="selectedLanguage == l">{{l}}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group col">
+                    <input type="text" name="title" class="form-control form-control-sm" id="title"
+                        ng-model="idp.titleMap[selectedLanguage]">
+                    <label for="title" class="{{idp.titleMap[selectedLanguage] != '' ? 'active' : ''}}">Title</label>
+                </div>
+                <div class="form-group col">
+                    <textarea rows="3" name="description" id="description"
+                        ng-model="idp.descriptionMap[selectedLanguage]"></textarea>
+                    <label for="description"
+                        class="{{idp.descriptionMap[selectedLanguage] != '' ? 'active' : ''}}">Description</label>
+                </div>
+
             </div>
+
             <div class="form-group col">
                 <input type="number" name="position" class="form-control form-control-sm" id="position"
                     ng-model="idp.position" min="0">
                 <label for="position" class="{{idp.position != '' ? 'active' : ''}}">Provider position</label>
             </div>
+
+            <legend class="mb-4">Advanced settings</legend>
             <div class="form-group col ">
                 <div class="bootstrap-select-wrapper border-bottom-0">
                     <label for="persistence">Persistence*</label>

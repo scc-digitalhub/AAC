@@ -9,7 +9,7 @@
                 ui-sref="realm.appstart({realmId:app.realm, clientId:app.clientId})">Use</button>
             <button class="btn btn-primary btn-sm  text-right" ng-click="saveClientApp(app)">Save</button>
             <button class="btn btn-secondary btn-sm  text-right" ng-click="inspectDlg(app)">Inspect</button>
-            <button class="btn btn-primary btn-sm  text-right" ng-click="manageAuthoritiesDlg()" ng-if="isAdmin">Authorities</button>
+            <button class="btn btn-primary btn-sm  text-right" ng-click="manageAuthoritiesDlg()" ng-if="isRealmAdmin">Authorities</button>
             <button class="btn btn-secondary btn-sm  text-right" ng-click="exportClientApp(app)">Export</button>
             <button class="btn btn-danger btn-sm  text-right" ng-click="deleteClientAppDlg(app)">Delete</button>
         </div>

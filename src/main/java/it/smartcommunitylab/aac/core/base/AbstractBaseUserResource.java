@@ -1,40 +1,65 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.core.base;
 
-import java.io.Serializable;
-import it.smartcommunitylab.aac.SystemKeys;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import it.smartcommunitylab.aac.core.model.UserResource;
+import java.io.Serializable;
+import javax.persistence.Transient;
 
 public abstract class AbstractBaseUserResource implements UserResource, Serializable {
 
-    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
+    @JsonInclude
+    @Transient
+    private String authority;
 
-    private final String authority;
-    private final String realm;
-    private final String provider;
-    private String userId;
+    @JsonInclude
+    @Transient
+    private String provider;
 
-    protected AbstractBaseUserResource(String authority, String provider, String realm) {
+    protected AbstractBaseUserResource(String authority, String provider) {
         this.authority = authority;
-        this.realm = realm;
         this.provider = provider;
-    }
-
-    protected AbstractBaseUserResource(String authority, String provider, String realm, String userId) {
-        this.authority = authority;
-        this.realm = realm;
-        this.provider = provider;
-        this.userId = userId;
     }
 
     /**
      * Private constructor for JPA and other serialization tools.
-     * 
+     *
      * We need to implement this to enable deserialization of resources via
      * reflection
      */
     @SuppressWarnings("unused")
     private AbstractBaseUserResource() {
-        this((String) null, (String) null, (String) null);
+        this((String) null, (String) null);
+    }
+
+    public abstract void setUserId(String userId);
+
+    public abstract void setRealm(String realm);
+
+    // by default resources are associated to repositories, not providers
+    // authorityId and provider are transient: implementations should avoid
+    // persisting these attributes
+    public void setAuthority(String authority) {
+        this.authority = authority;
+    }
+
+    public void setProvider(String provider) {
+        this.provider = provider;
     }
 
     @Override
@@ -43,45 +68,7 @@ public abstract class AbstractBaseUserResource implements UserResource, Serializ
     }
 
     @Override
-    public String getRealm() {
-        return realm;
-    }
-
-    @Override
     public String getProvider() {
         return provider;
     }
-
-    @Override
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    // resource is globally unique and addressable
-    // ie given to an external actor he should be able to find the authority and
-    // then the provider to request this resource
-    @Override
-    public String getResourceId() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(getAuthority()).append(SystemKeys.ID_SEPARATOR);
-        sb.append(getProvider()).append(SystemKeys.ID_SEPARATOR);
-        sb.append(getId());
-
-        return sb.toString();
-    }
-
-    @Override
-    public String getUrn() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(SystemKeys.URN_PROTOCOL).append(SystemKeys.URN_SEPARATOR);
-        sb.append(getType()).append(SystemKeys.URN_SEPARATOR);
-        sb.append(getResourceId());
-
-        return sb.toString();
-    }
-
 }

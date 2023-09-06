@@ -19,6 +19,7 @@ var app = angular.module('dev', [
     'aac.controllers.realmroles',
     'aac.controllers.realmgroups',
     'aac.controllers.realmattributesets',
+    'aac.controllers.realmtemplates',
     'ui.ace',
     'ngSanitize'
 ]);
@@ -138,11 +139,16 @@ app.config(function ($stateProvider) {
             templateUrl: 'html/realm.scopes.html',
             controller: 'RealmScopesController',
         })
-        .state('realm.custom', {
-            url: '/custom',
-            templateUrl: 'html/realm.custom.html',
-            controller: 'RealmCustomController',
+        .state('realm.templates', {
+            url: '/templates',
+            templateUrl: 'html/realm.templates.html',
+            controller: 'RealmTemplatesController',
         })
+        .state('realm.template', {
+            url: '/template?templateId',
+            templateUrl: 'html/realm.template.html',
+            controller: 'RealmTemplateController',
+        })        
         .state('realm.audit', {
             url: '/audit',
             templateUrl: 'html/realm.audit.html',

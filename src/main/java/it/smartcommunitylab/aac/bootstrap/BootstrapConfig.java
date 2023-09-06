@@ -1,109 +1,54 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.bootstrap;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.validation.Valid;
-
-import org.springframework.boot.context.properties.NestedConfigurationProperty;
-import org.springframework.validation.annotation.Validated;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.model.ClientApp;
-import it.smartcommunitylab.aac.model.Realm;
-import it.smartcommunitylab.aac.services.Service;
+import it.smartcommunitylab.aac.dto.RealmConfig;
+import java.util.ArrayList;
+import java.util.List;
+import javax.validation.Valid;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.validation.annotation.Validated;
 
 //@Configuration
-//@PropertySource(factory = YamlPropertySourceFactory.class, ignoreResourceNotFound = true, value = "${bootstrap.file}")
-//@ConfigurationProperties(prefix = "bootstrap")
-@Validated
+//@PropertySource(factory = JacksonPropertySourceFactory.class, ignoreResourceNotFound = true, value = "${bootstrap.file}")
+//@ConfigurationProperties
+//@Validated
 @Valid
 @JsonInclude(Include.ALWAYS)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class BootstrapConfig {
 
-//    @NestedConfigurationProperty
-    private List<Realm> realms;
-
-//    @NestedConfigurationProperty
-    private List<ConfigurableProvider> providers;
-
-//    @NestedConfigurationProperty
-    private List<ClientApp> clients;
-
-    private List<Service> services;
-
-//    @NestedConfigurationProperty
-    private UsersConfig users;
+    private List<RealmConfig> realms;
 
     public BootstrapConfig() {
         this.realms = new ArrayList<>();
-        this.clients = new ArrayList<>();
-        this.providers = new ArrayList<>();
-        this.users = new UsersConfig();
     }
 
-    public List<Realm> getRealms() {
+    public List<RealmConfig> getRealms() {
         return realms;
     }
 
-    public void setRealms(List<Realm> realms) {
+    public void setRealms(List<RealmConfig> realms) {
         this.realms = realms;
     }
-
-    public List<ConfigurableProvider> getProviders() {
-        return providers;
-    }
-
-    public void setProviders(List<ConfigurableProvider> providers) {
-        this.providers = providers;
-    }
-
-    public List<ClientApp> getClients() {
-        return clients;
-    }
-
-    public void setClients(List<ClientApp> clients) {
-        this.clients = clients;
-    }
-
-    public List<Service> getServices() {
-        return services;
-    }
-
-    public void setServices(List<Service> services) {
-        this.services = services;
-    }
-
-    public UsersConfig getUsers() {
-        return users;
-    }
-
-    public void setUsers(UsersConfig users) {
-        this.users = users;
-    }
-
-    public class UsersConfig {
-        @NestedConfigurationProperty
-        private List<InternalUserAccount> internal;
-
-        public UsersConfig() {
-            this.internal = new ArrayList<>();
-        }
-
-        public List<InternalUserAccount> getInternal() {
-            return internal;
-        }
-
-        public void setInternal(List<InternalUserAccount> internal) {
-            this.internal = internal;
-        }
-
-    }
-
 }

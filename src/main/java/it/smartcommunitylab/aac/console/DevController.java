@@ -1,5 +1,48 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.console;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.oas.annotations.Hidden;
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.audit.AuditManager;
+import it.smartcommunitylab.aac.audit.RealmAuditEvent;
+import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.NoSuchSubjectException;
+import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.config.ApplicationProperties;
+import it.smartcommunitylab.aac.core.ClientManager;
+import it.smartcommunitylab.aac.core.IdentityProviderManager;
+import it.smartcommunitylab.aac.core.MyUserManager;
+import it.smartcommunitylab.aac.core.RealmManager;
+import it.smartcommunitylab.aac.core.UserDetails;
+import it.smartcommunitylab.aac.core.UserManager;
+import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
+import it.smartcommunitylab.aac.dto.RealmStats;
+import it.smartcommunitylab.aac.model.ClientApp;
+import it.smartcommunitylab.aac.model.Realm;
+import it.smartcommunitylab.aac.model.SpaceRole;
+import it.smartcommunitylab.aac.model.SpaceRoles;
+import it.smartcommunitylab.aac.oauth.endpoint.OAuth2MetadataEndpoint;
+import it.smartcommunitylab.aac.roles.SpaceRoleManager;
+import it.smartcommunitylab.aac.services.ServicesManager;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -10,7 +53,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import javax.servlet.ServletContext;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -19,7 +61,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,38 +82,10 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.thymeleaf.context.WebContext;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import io.swagger.v3.oas.annotations.Hidden;
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.audit.AuditManager;
-import it.smartcommunitylab.aac.audit.RealmAuditEvent;
-import it.smartcommunitylab.aac.common.NoSuchRealmException;
-import it.smartcommunitylab.aac.common.NoSuchSubjectException;
-import it.smartcommunitylab.aac.common.NoSuchUserException;
-import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.config.ApplicationProperties;
-import it.smartcommunitylab.aac.core.ClientManager;
-import it.smartcommunitylab.aac.core.MyUserManager;
-import it.smartcommunitylab.aac.core.ProviderManager;
-import it.smartcommunitylab.aac.core.RealmManager;
-import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.UserManager;
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
-import it.smartcommunitylab.aac.dto.CustomizationBean;
-import it.smartcommunitylab.aac.dto.RealmStats;
-import it.smartcommunitylab.aac.model.ClientApp;
-import it.smartcommunitylab.aac.model.Realm;
-import it.smartcommunitylab.aac.model.SpaceRole;
-import it.smartcommunitylab.aac.model.SpaceRoles;
-import it.smartcommunitylab.aac.oauth.endpoint.OAuth2MetadataEndpoint;
-import it.smartcommunitylab.aac.roles.SpaceRoleManager;
-import it.smartcommunitylab.aac.services.ServicesManager;
-
 @RestController
 @Hidden
 public class DevController {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Value("${application.url}")
@@ -86,20 +99,27 @@ public class DevController {
 
     @Autowired
     private RealmManager realmManager;
+
     @Autowired
     private UserManager userManager;
+
     @Autowired
-    private ProviderManager providerManager;
+    private IdentityProviderManager identityProviderManager;
+
     @Autowired
     private ClientManager clientManager;
-//    @Autowired
-//    private ScopeManager scopeManager;
+
+    //    @Autowired
+    //    private ScopeManager scopeManager;
     @Autowired
     private DevManager devManager;
+
     @Autowired
     private ServicesManager serviceManager;
+
     @Autowired
     private AuditManager auditManager;
+
     @Autowired
     private SpaceRoleManager roleManager;
 
@@ -129,24 +149,30 @@ public class DevController {
     }
 
     @GetMapping("/console/dev/realms/{realm}/well-known/oauth2")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    @PreAuthorize(
+        "hasAuthority('" +
+        Config.R_ADMIN +
+        "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')"
+    )
     public ResponseEntity<Map<String, Object>> getRealmOAuth2Metadata(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
-            throws NoSuchRealmException {
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm
+    ) throws NoSuchRealmException {
         // hack
         // TODO render proper per realm meta
         Map<String, Object> metadata = oauth2MetadataEndpoint.getAuthServerMetadata();
         return ResponseEntity.ok(metadata);
-
     }
 
     @GetMapping("/console/dev/realms/{realm}/well-known/url")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    @PreAuthorize(
+        "hasAuthority('" +
+        Config.R_ADMIN +
+        "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')"
+    )
     public ResponseEntity<Map<String, String>> getRealmBaseUrl(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            HttpServletRequest request) throws NoSuchRealmException {
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        HttpServletRequest request
+    ) throws NoSuchRealmException {
         // hack
 
         UriComponentsBuilder uri = UriComponentsBuilder.fromUriString(request.getRequestURL().toString());
@@ -162,19 +188,30 @@ public class DevController {
         metadata.put("baseUrl", baseUrl);
 
         return ResponseEntity.ok(metadata);
-
     }
 
     @GetMapping("/console/dev/realms/{realm}/stats")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')"
-            + " or hasAuthority(#realm+':" + Config.R_ADMIN + "')"
-            + " or hasAuthority(#realm+':" + Config.R_DEVELOPER + "')")
+    @PreAuthorize(
+        "hasAuthority('" +
+        Config.R_ADMIN +
+        "')" +
+        " or hasAuthority(#realm+':" +
+        Config.R_ADMIN +
+        "')" +
+        " or hasAuthority(#realm+':" +
+        Config.R_DEVELOPER +
+        "')"
+    )
     public ResponseEntity<RealmStats> getRealmStats(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            Authentication authentication)
-            throws NoSuchRealmException {
-        boolean isAdmin = authentication.getAuthorities().stream().anyMatch(
-                a -> a.getAuthority().equals(Config.R_ADMIN) || a.getAuthority().equals(realm + ":" + Config.R_ADMIN));
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        Authentication authentication
+    ) throws NoSuchRealmException {
+        boolean isAdmin = authentication
+            .getAuthorities()
+            .stream()
+            .anyMatch(a ->
+                a.getAuthority().equals(Config.R_ADMIN) || a.getAuthority().equals(realm + ":" + Config.R_ADMIN)
+            );
 
         RealmStats bean = new RealmStats();
 
@@ -190,11 +227,13 @@ public class DevController {
             Long userCount = userManager.countUsers(realm);
             bean.setUsers(userCount);
 
-            Collection<ConfigurableProvider> providers = providerManager.listProviders(realm);
+            Collection<ConfigurableIdentityProvider> providers = identityProviderManager.listProviders(realm);
             bean.setProviders(providers.size());
 
-            int activeProviders = (int) providers.stream().filter(p -> providerManager.isProviderRegistered(realm, p))
-                    .count();
+            int activeProviders = (int) providers
+                .stream()
+                .filter(p -> identityProviderManager.isProviderRegistered(realm, p))
+                .count();
             bean.setProvidersActive(activeProviders);
 
             Calendar cal = Calendar.getInstance();
@@ -205,109 +244,111 @@ public class DevController {
 
             bean.setLoginCount(auditManager.countRealmEvents(realm, "USER_AUTHENTICATION_SUCCESS", after, null));
             List<RealmAuditEvent> loginEvents = auditManager
-                    .findRealmEvents(realm, "USER_AUTHENTICATION_SUCCESS", after, null).stream()
-                    .limit(5)
-                    .map(e -> {
-                        // clear event details
-                        Map<String, Object> d = new HashMap<>(e.getData());
-                        d.remove("details");
+                .findRealmEvents(realm, "USER_AUTHENTICATION_SUCCESS", after, null)
+                .stream()
+                .limit(5)
+                .map(e -> {
+                    // clear event details
+                    Map<String, Object> d = new HashMap<>(e.getData());
+                    d.remove("details");
 
-                        return new RealmAuditEvent(e.getRealm(), e.getTimestamp(), e.getPrincipal(), e.getType(), d);
-                    })
-                    .collect(Collectors.toList());
+                    return new RealmAuditEvent(e.getRealm(), e.getTimestamp(), e.getPrincipal(), e.getType(), d);
+                })
+                .collect(Collectors.toList());
 
             bean.setLoginEvents(loginEvents);
 
             bean.setRegistrationCount(auditManager.countRealmEvents(realm, "USER_REGISTRATION", after, null));
             List<RealmAuditEvent> registrationEvents = auditManager
-                    .findRealmEvents(realm, "USER_REGISTRATION", after, null).stream()
-                    .limit(5)
-                    .map(e -> {
-                        // clear event details
-                        Map<String, Object> d = new HashMap<>(e.getData());
-                        d.remove("details");
+                .findRealmEvents(realm, "USER_REGISTRATION", after, null)
+                .stream()
+                .limit(5)
+                .map(e -> {
+                    // clear event details
+                    Map<String, Object> d = new HashMap<>(e.getData());
+                    d.remove("details");
 
-                        return new RealmAuditEvent(e.getRealm(), e.getTimestamp(), e.getPrincipal(), e.getType(), d);
-                    })
-                    .collect(Collectors.toList());
+                    return new RealmAuditEvent(e.getRealm(), e.getTimestamp(), e.getPrincipal(), e.getType(), d);
+                })
+                .collect(Collectors.toList());
             bean.setRegistrationEvents(registrationEvents);
         }
 
         return ResponseEntity.ok(bean);
     }
 
-    @PostMapping("/console/dev/realms/{realm}/custom")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
-    public void previewRealm(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestParam(required = true) @Valid @NotBlank String template,
-            @RequestBody @Valid @NotNull CustomizationBean cb,
-            HttpServletRequest req, HttpServletResponse res)
-            throws NoSuchRealmException, SystemException, IOException {
+    //    @PostMapping("/console/dev/realms/{realm}/custom")
+    //    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
+    //    public void previewRealm(
+    //            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+    //            @RequestParam(required = true) @Valid @NotBlank String template,
+    //            @RequestBody @Valid @NotNull CustomizationBean cb,
+    //            HttpServletRequest req, HttpServletResponse res)
+    //            throws NoSuchRealmException, SystemException, IOException {
+    //
+    //        WebContext ctx = new WebContext(req, res, servletContext, req.getLocale());
+    //        String s = devManager.previewRealmTemplate(realm, template, cb, ctx);
+    //
+    //        // write as file
+    //        res.setContentType("text/html");
+    //        ServletOutputStream out = res.getOutputStream();
+    //        out.write(s.getBytes(StandardCharsets.UTF_8));
+    //        out.flush();
+    //        out.close();
+    //
+    //    }
 
-        WebContext ctx = new WebContext(req, res, servletContext, req.getLocale());
-        String s = devManager.previewRealmTemplate(realm, template, cb, ctx);
+    //    /*
+    //     * Scopes and resources
+    //     */
+    //    @GetMapping("/console/dev/realms/{realm}/scopes")
+    //    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
+    //            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    //    public ResponseEntity<Collection<Scope>> listScopes(
+    //            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) {
+    //        return ResponseEntity.ok(scopeManager.listScopes());
+    //    }
+    //
+    //    @GetMapping("/console/dev/realms/{realm}/scopes/{scope:.*}")
+    //    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
+    //            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    //    public ResponseEntity<Scope> getScope(
+    //            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+    //            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SCOPE_PATTERN) String scope)
+    //            throws NoSuchScopeException {
+    //        return ResponseEntity.ok(scopeManager.getScope(scope));
+    //    }
+    //
+    //    @GetMapping("/console/dev/realms/{realm}/resources")
+    //    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
+    //            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    //    public ResponseEntity<Collection<Resource>> listResources(
+    //            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) {
+    //        return ResponseEntity.ok(scopeManager.listResources());
+    //    }
+    //
+    //    @GetMapping("/console/dev/realms/{realm}/resources/{resourceId:.*}")
+    //    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
+    //            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    //    public ResponseEntity<Resource> getResource(
+    //            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+    //            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String resourceId)
+    //            throws NoSuchResourceException {
+    //        return ResponseEntity.ok(scopeManager.getResource(resourceId));
+    //    }
 
-        // write as file
-        res.setContentType("text/html");
-        ServletOutputStream out = res.getOutputStream();
-        out.write(s.getBytes(StandardCharsets.UTF_8));
-        out.flush();
-        out.close();
-
-    }
-
-//    /*
-//     * Scopes and resources
-//     */
-//    @GetMapping("/console/dev/realms/{realm}/scopes")
-//    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
-//            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
-//    public ResponseEntity<Collection<Scope>> listScopes(
-//            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) {
-//        return ResponseEntity.ok(scopeManager.listScopes());
-//    }
-//
-//    @GetMapping("/console/dev/realms/{realm}/scopes/{scope:.*}")
-//    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
-//            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
-//    public ResponseEntity<Scope> getScope(
-//            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-//            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SCOPE_PATTERN) String scope)
-//            throws NoSuchScopeException {
-//        return ResponseEntity.ok(scopeManager.getScope(scope));
-//    }
-//
-//    @GetMapping("/console/dev/realms/{realm}/resources")
-//    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
-//            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
-//    public ResponseEntity<Collection<Resource>> listResources(
-//            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) {
-//        return ResponseEntity.ok(scopeManager.listResources());
-//    }
-//
-//    @GetMapping("/console/dev/realms/{realm}/resources/{resourceId:.*}")
-//    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
-//            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
-//    public ResponseEntity<Resource> getResource(
-//            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-//            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String resourceId)
-//            throws NoSuchResourceException {
-//        return ResponseEntity.ok(scopeManager.getResource(resourceId));
-//    }
-
-//    /*
-//     * Subjects
-//     * 
-//     * TODO evaluate permission model
-//     */
-//
-//    @GetMapping("/console/dev/subjects/{subjectId}")
-//    public ResponseEntity<Subject> getSubject(
-//            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
-//            throws NoSuchSubjectException {
-//        return ResponseEntity.ok(subjectService.getSubject(subjectId));
-//    }
+    //    /*
+    //     * Subjects
+    //     *
+    //     * TODO evaluate permission model
+    //     */
+    //
+    //    @GetMapping("/console/dev/subjects/{subjectId}")
+    //    public ResponseEntity<Subject> getSubject(
+    //            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
+    //            throws NoSuchSubjectException {
+    //        return ResponseEntity.ok(subjectService.getSubject(subjectId));
+    //    }
 
     /*
      * Spaces
@@ -315,16 +356,17 @@ public class DevController {
 
     @GetMapping("/console/dev/rolespaces")
     public ResponseEntity<Collection<SpaceRole>> getMyRoleSpacesContexts()
-            throws NoSuchRealmException, NoSuchUserException {
+        throws NoSuchRealmException, NoSuchUserException {
         return ResponseEntity.ok(roleManager.curContexts());
     }
 
     @GetMapping("/console/dev/rolespaces/users")
     public ResponseEntity<Page<SpaceRoles>> getRoleSpaceUsers(
-            @RequestParam(required = false) String context,
-            @RequestParam(required = false) String space,
-            @RequestParam(required = false) String q, Pageable pageRequest)
-            throws NoSuchRealmException, NoSuchUserException {
+        @RequestParam(required = false) String context,
+        @RequestParam(required = false) String space,
+        @RequestParam(required = false) String q,
+        Pageable pageRequest
+    ) throws NoSuchRealmException, NoSuchUserException {
         if (invalidOwner(context, space)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -333,16 +375,22 @@ public class DevController {
 
     @PostMapping("/console/dev/rolespaces/users")
     public ResponseEntity<SpaceRoles> addRoleSpaceRoles(@RequestBody @Valid @NotNull SpaceRoles roles)
-            throws NoSuchRealmException, NoSuchSubjectException {
+        throws NoSuchRealmException, NoSuchSubjectException {
         if (invalidOwner(roles.getContext(), roles.getSpace())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        Collection<SpaceRole> spaceRoles = roles.getRoles().stream()
-                .map(r -> new SpaceRole(roles.getContext(), roles.getSpace(), r))
-                .collect(Collectors.toList());
-        Collection<SpaceRole> result = roleManager.setRoles(roles.getSubject(), roles.getContext(), roles.getSpace(),
-                spaceRoles);
+        Collection<SpaceRole> spaceRoles = roles
+            .getRoles()
+            .stream()
+            .map(r -> new SpaceRole(roles.getContext(), roles.getSpace(), r))
+            .collect(Collectors.toList());
+        Collection<SpaceRole> result = roleManager.setRoles(
+            roles.getSubject(),
+            roles.getContext(),
+            roles.getSpace(),
+            spaceRoles
+        );
         roles.setRoles(result.stream().map(r -> r.getRole()).collect(Collectors.toList()));
 
         return ResponseEntity.ok(roles);
@@ -355,69 +403,68 @@ public class DevController {
         SpaceRole parentOwner = context != null ? SpaceRole.ownerOf(context) : null;
         return myRoles.stream().noneMatch(r -> r.equals(spaceOwner) || r.equals(parentOwner));
     }
-
-//    /*
-//     * REST style exception handling
-//     */
-//    @ExceptionHandler({
-//            NoSuchRealmException.class,
-//            NoSuchUserException.class,
-//            NoSuchClientException.class,
-//            NoSuchServiceException.class,
-//            NoSuchScopeException.class,
-//            NoSuchClaimException.class,
-//            NoSuchProviderException.class
-//    })
-//    public ResponseEntity<Object> handleNotFoundException(Exception ex) {
-//        HttpHeaders headers = new HttpHeaders();
-//        HttpStatus status = HttpStatus.NOT_FOUND;
-//        Map<String, Object> response = buildResponse(ex, status, null);
-//
-//        return new ResponseEntity<>(response, headers, status);
-//    }
-//
-//    @ExceptionHandler({
-//            InvalidDefinitionException.class,
-//            IllegalArgumentException.class,
-//            RegistrationException.class
-//    })
-//    public ResponseEntity<Object> handleBadRequestException(Exception ex) {
-//        HttpHeaders headers = new HttpHeaders();
-//        HttpStatus status = HttpStatus.BAD_REQUEST;
-//        Map<String, Object> response = buildResponse(ex, status, null);
-//
-//        return new ResponseEntity<>(response, headers, status);
-//    }
-//
-//    @ExceptionHandler({
-//            SystemException.class,
-//            RuntimeException.class,
-//            IOException.class
-//    })
-//    public ResponseEntity<Object> handleSystemException(Exception ex) {
-//        HttpHeaders headers = new HttpHeaders();
-//        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
-//        Map<String, Object> response = buildResponse(ex, status, null);
-//
-//        return new ResponseEntity<>(response, headers, status);
-//    }
-//
-//    private Map<String, Object> buildResponse(Exception ex, HttpStatus status, Object body) {
-//        Map<String, Object> response = new HashMap<>();
-////        response.put("timestamp", new Date())
-//        response.put("status", status.value());
-//        response.put("error", status.getReasonPhrase());
-//        response.put("message", ex.getMessage());
-//
-//        if (body != null) {
-//            response.put("description", body);
-//        }
-//
-//        logger.error("error processing request: " + ex.getMessage());
-//        ex.printStackTrace();
-//
-//        return response;
-//
-//    }
+    //    /*
+    //     * REST style exception handling
+    //     */
+    //    @ExceptionHandler({
+    //            NoSuchRealmException.class,
+    //            NoSuchUserException.class,
+    //            NoSuchClientException.class,
+    //            NoSuchServiceException.class,
+    //            NoSuchScopeException.class,
+    //            NoSuchClaimException.class,
+    //            NoSuchProviderException.class
+    //    })
+    //    public ResponseEntity<Object> handleNotFoundException(Exception ex) {
+    //        HttpHeaders headers = new HttpHeaders();
+    //        HttpStatus status = HttpStatus.NOT_FOUND;
+    //        Map<String, Object> response = buildResponse(ex, status, null);
+    //
+    //        return new ResponseEntity<>(response, headers, status);
+    //    }
+    //
+    //    @ExceptionHandler({
+    //            InvalidDefinitionException.class,
+    //            IllegalArgumentException.class,
+    //            RegistrationException.class
+    //    })
+    //    public ResponseEntity<Object> handleBadRequestException(Exception ex) {
+    //        HttpHeaders headers = new HttpHeaders();
+    //        HttpStatus status = HttpStatus.BAD_REQUEST;
+    //        Map<String, Object> response = buildResponse(ex, status, null);
+    //
+    //        return new ResponseEntity<>(response, headers, status);
+    //    }
+    //
+    //    @ExceptionHandler({
+    //            SystemException.class,
+    //            RuntimeException.class,
+    //            IOException.class
+    //    })
+    //    public ResponseEntity<Object> handleSystemException(Exception ex) {
+    //        HttpHeaders headers = new HttpHeaders();
+    //        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+    //        Map<String, Object> response = buildResponse(ex, status, null);
+    //
+    //        return new ResponseEntity<>(response, headers, status);
+    //    }
+    //
+    //    private Map<String, Object> buildResponse(Exception ex, HttpStatus status, Object body) {
+    //        Map<String, Object> response = new HashMap<>();
+    ////        response.put("timestamp", new Date())
+    //        response.put("status", status.value());
+    //        response.put("error", status.getReasonPhrase());
+    //        response.put("message", ex.getMessage());
+    //
+    //        if (body != null) {
+    //            response.put("description", body);
+    //        }
+    //
+    //        logger.error("error processing request: " + ex.getMessage());
+    //        ex.printStackTrace();
+    //
+    //        return response;
+    //
+    //    }
 
 }

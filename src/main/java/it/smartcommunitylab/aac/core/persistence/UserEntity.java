@@ -1,19 +1,32 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.core.persistence;
 
+import it.smartcommunitylab.aac.model.SubjectStatus;
 import java.util.Date;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
-
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import it.smartcommunitylab.aac.model.SubjectStatus;
 
 @Entity
 @Table(name = "users")
@@ -69,8 +82,10 @@ public class UserEntity {
     @Column(name = "last_login_provider")
     private String loginProvider;
 
-    protected UserEntity() {
-    }
+    @Column(name = "tos_accepted")
+    private Boolean tosAccepted;
+
+    protected UserEntity() {}
 
     public UserEntity(@NotNull String uuid, @NotNull String realm) {
         super();
@@ -78,13 +93,13 @@ public class UserEntity {
         this.realm = realm;
     }
 
-//    public Long getId() {
-//        return id;
-//    }
-//
-//    public void setId(Long id) {
-//        this.id = id;
-//    }
+    //    public Long getId() {
+    //        return id;
+    //    }
+    //
+    //    public void setId(Long id) {
+    //        this.id = id;
+    //    }
 
     public String getUuid() {
         return uuid;
@@ -203,4 +218,42 @@ public class UserEntity {
         return false;
     }
 
+    public Boolean getTosAccepted() {
+        return tosAccepted;
+    }
+
+    public void setTosAccepted(Boolean tosAccepted) {
+        this.tosAccepted = tosAccepted;
+    }
+
+    public boolean isTosAccepted() {
+        return tosAccepted != null ? tosAccepted.booleanValue() : false;
+    }
+
+    @Override
+    public String toString() {
+        return (
+            "UserEntity [uuid=" +
+            uuid +
+            ", realm=" +
+            realm +
+            ", username=" +
+            username +
+            ", emailAddress=" +
+            emailAddress +
+            ", emailVerified=" +
+            emailVerified +
+            ", status=" +
+            status +
+            ", expirationDate=" +
+            expirationDate +
+            ", createDate=" +
+            createDate +
+            ", modifiedDate=" +
+            modifiedDate +
+            ", tosAccepted=" +
+            tosAccepted +
+            "]"
+        );
+    }
 }

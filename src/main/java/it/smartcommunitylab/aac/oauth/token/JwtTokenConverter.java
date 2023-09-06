@@ -1,11 +1,36 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.oauth.token;
 
+import com.nimbusds.jwt.JWT;
+import com.nimbusds.jwt.JWTClaimsSet;
+import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.core.UserDetails;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
+import it.smartcommunitylab.aac.jwt.JWTService;
+import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
+import it.smartcommunitylab.aac.oauth.model.TokenType;
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -17,19 +42,9 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.security.oauth2.provider.token.TokenEnhancer;
 import org.springframework.util.Assert;
-import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTClaimsSet;
-
-import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.auth.UserAuthentication;
-import it.smartcommunitylab.aac.jwt.JWTService;
-import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
-import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
-import it.smartcommunitylab.aac.oauth.model.TokenType;
-import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 
 public class JwtTokenConverter implements TokenEnhancer {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final String issuer;
@@ -39,8 +54,11 @@ public class JwtTokenConverter implements TokenEnhancer {
 
     private boolean useJwtByDefault = true;
 
-    public JwtTokenConverter(String issuer, JWTService jwtService,
-            OAuth2ClientDetailsService oauth2ClientDetailsService) {
+    public JwtTokenConverter(
+        String issuer,
+        JWTService jwtService,
+        OAuth2ClientDetailsService oauth2ClientDetailsService
+    ) {
         Assert.hasText(issuer, "a valid issuer is required");
         Assert.notNull(jwtService, "jwt service is mandatory to sign tokens");
         Assert.notNull(oauth2ClientDetailsService, "oauth2 client details service is mandatory");
@@ -56,8 +74,14 @@ public class JwtTokenConverter implements TokenEnhancer {
 
     @Override
     public AACOAuth2AccessToken enhance(OAuth2AccessToken accessToken, OAuth2Authentication authentication) {
-        logger.debug("enhance access token " + accessToken.getTokenType() + " for " + authentication.getName()
-                + " value " + accessToken.toString());
+        logger.debug(
+            "enhance access token " +
+            accessToken.getTokenType() +
+            " for " +
+            authentication.getName() +
+            " value " +
+            accessToken.toString()
+        );
 
         OAuth2Request request = authentication.getOAuth2Request();
         String clientId = request.getClientId();
@@ -98,7 +122,6 @@ public class JwtTokenConverter implements TokenEnhancer {
             token.setResponseType(TokenType.JWT.getValue());
 
             return token;
-
         } catch (ClientRegistrationException e) {
             logger.error("non existing client: " + e.getMessage());
             throw new InvalidClientException("invalid client");
@@ -108,9 +131,12 @@ public class JwtTokenConverter implements TokenEnhancer {
         }
     }
 
-    private JWT buildJWT(OAuth2Request request, AACOAuth2AccessToken accessToken, UserDetails userDetails,
-            OAuth2ClientDetails clientDetails) {
-
+    private JWT buildJWT(
+        OAuth2Request request,
+        AACOAuth2AccessToken accessToken,
+        UserDetails userDetails,
+        OAuth2ClientDetails clientDetails
+    ) {
         logger.trace("access token used for oidc is " + accessToken);
 
         String clientId = clientDetails.getClientId();
@@ -133,11 +159,13 @@ public class JwtTokenConverter implements TokenEnhancer {
         // first add all claims from map, later we will overwrite system claims
         Map<String, Serializable> claims = accessToken.getClaims();
         // add all claims, avoiding registered
-        claims.entrySet().forEach(e -> {
-            if (!JWTClaimsSet.getRegisteredNames().contains(e.getKey())) {
-                jwtClaims.claim(e.getKey(), e.getValue());
-            }
-        });
+        claims
+            .entrySet()
+            .forEach(e -> {
+                if (!JWTClaimsSet.getRegisteredNames().contains(e.getKey())) {
+                    jwtClaims.claim(e.getKey(), e.getValue());
+                }
+            });
 
         // system claims
         jwtClaims.jwtID(tokenId);

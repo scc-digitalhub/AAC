@@ -1,44 +1,40 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.core.authorities;
 
+import it.smartcommunitylab.aac.core.model.ConfigMap;
+import it.smartcommunitylab.aac.core.model.EditableUserAccount;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
+import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
+import it.smartcommunitylab.aac.core.provider.IdentityServiceConfig;
 
-public interface IdentityServiceAuthority<I extends UserIdentity, U extends UserAccount, S extends IdentityService<I, U>>
-        extends ProviderAuthority<S> {
-//
-//    /*
-//     * identify
-//     */
-//    public String getAuthorityId();
-//
-//    public boolean hasService(String realm);
-//
-//    /*
-//     * Identity services
-//     * 
-//     * Manage identities read-write. An ids support identities (and account)
-//     * registration, update and delete and serves as the user repository for
-//     * identity providers. We don't enforce a direct relationship between ids and
-//     * idps.
-//     * 
-//     * Any given authority can expose only a single provider per realm, which acts
-//     * as authoritative
-//     */
-//    public IdentityService<? extends UserIdentity, ? extends UserAccount> getService(
-//            String realm);
-//
-//    /*
-//     * Manage providers
-//     * 
-//     * In order to change a configuration unregister to unload and then register the
-//     * new config to instantiate the service.
-//     * 
-//     */
-//    public IdentityService<? extends UserIdentity, ? extends UserAccount> registerService(
-//            String realm, ConfigurableProvider idp)
-//            throws IllegalArgumentException, RegistrationException, SystemException;
-//
-//    public void unregisterService(String realm) throws SystemException;
-
+public interface IdentityServiceAuthority<
+    S extends IdentityService<I, U, E, M, C>,
+    I extends UserIdentity,
+    U extends UserAccount,
+    E extends EditableUserAccount,
+    M extends ConfigMap,
+    C extends IdentityServiceConfig<M>
+>
+    extends ProviderAuthority<S, I> {
+    /*
+     * Filter provider exposes filters for registration in filter chain
+     */
+    public FilterProvider getFilterProvider();
 }

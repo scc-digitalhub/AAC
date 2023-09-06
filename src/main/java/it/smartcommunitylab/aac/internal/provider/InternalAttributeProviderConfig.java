@@ -1,112 +1,56 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.internal.provider;
 
-import java.io.Serializable;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
+import it.smartcommunitylab.aac.attributes.provider.ScriptAttributeProviderConfigMap;
+import it.smartcommunitylab.aac.core.base.AbstractAttributeProviderConfig;
 import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
 
-public class InternalAttributeProviderConfig extends AbstractConfigurableProvider {
+public class InternalAttributeProviderConfig
+    extends AbstractAttributeProviderConfig<InternalAttributeProviderConfigMap> {
 
-    private static ObjectMapper mapper = new ObjectMapper();
-    private final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
-    };
-
-    private String name;
-    private String description;
-
-    private Set<String> attributeSets;
-
-    // map capabilities
-    private InternalAttributeProviderConfigMap configMap;
+    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
+    public static final String RESOURCE_TYPE =
+        SystemKeys.RESOURCE_PROVIDER + SystemKeys.ID_SEPARATOR + InternalAttributeProviderConfigMap.RESOURCE_TYPE;
 
     public InternalAttributeProviderConfig(String provider, String realm) {
-        super(SystemKeys.AUTHORITY_INTERNAL, provider, realm);
-        this.configMap = new InternalAttributeProviderConfigMap();
+        super(SystemKeys.AUTHORITY_INTERNAL, provider, realm, new InternalAttributeProviderConfigMap());
     }
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_ATTRIBUTES;
+    public InternalAttributeProviderConfig(
+        ConfigurableAttributeProvider cp,
+        InternalAttributeProviderConfigMap configMap
+    ) {
+        super(cp, configMap);
     }
 
-    public String getName() {
-        return name;
+    public boolean isUsermode() {
+        return configMap.getUsermode() != null ? configMap.getUsermode().booleanValue() : false;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public Set<String> getAttributeSets() {
-        return attributeSets;
-    }
-
-    public void setAttributeSets(Set<String> attributeSets) {
-        this.attributeSets = attributeSets;
-    }
-
-    public InternalAttributeProviderConfigMap getConfigMap() {
-        return configMap;
-    }
-
-    public void setConfigMap(InternalAttributeProviderConfigMap configMap) {
-        this.configMap = configMap;
-    }
-
-    @Override
-    public Map<String, Serializable> getConfiguration() {
-        return configMap.getConfiguration();
-    }
-
-    @Override
-    public void setConfiguration(Map<String, Serializable> props) {
-        configMap = new InternalAttributeProviderConfigMap();
-        configMap.setConfiguration(props);
-    }
-
-    /*
-     * builders
+    /**
+     * Private constructor for JPA and other serialization tools.
+     *
+     * We need to implement this to enable deserialization of resources via
+     * reflection
      */
-    public static ConfigurableAttributeProvider toConfigurableProvider(InternalAttributeProviderConfig ap) {
-        ConfigurableAttributeProvider cp = new ConfigurableAttributeProvider(SystemKeys.AUTHORITY_INTERNAL,
-                ap.getProvider(),
-                ap.getRealm());
-
-        cp.setName(ap.getName());
-        cp.setDescription(ap.getDescription());
-
-        cp.setPersistence(SystemKeys.PERSISTENCE_LEVEL_REPOSITORY);
-        cp.setAttributeSets(ap.getAttributeSets());
-
-        return cp;
+    @SuppressWarnings("unused")
+    private InternalAttributeProviderConfig() {
+        super(SystemKeys.AUTHORITY_INTERNAL, (String) null, (String) null, new InternalAttributeProviderConfigMap());
     }
-
-    public static InternalAttributeProviderConfig fromConfigurableProvider(ConfigurableAttributeProvider cp) {
-        InternalAttributeProviderConfig ap = new InternalAttributeProviderConfig(cp.getProvider(), cp.getRealm());
-        ap.configMap = new InternalAttributeProviderConfigMap();
-        ap.configMap.setConfiguration(cp.getConfiguration());
-
-        ap.name = cp.getName();
-        ap.description = cp.getDescription();
-
-        ap.attributeSets = cp.getAttributeSets() != null ? cp.getAttributeSets() : Collections.emptySet();
-        return ap;
-    }
-
 }

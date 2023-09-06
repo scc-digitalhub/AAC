@@ -1,5 +1,36 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.attributes.provider;
 
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.attributes.mapper.ExactAttributesMapper;
+import it.smartcommunitylab.aac.attributes.service.AttributeService;
+import it.smartcommunitylab.aac.attributes.store.AttributeStore;
+import it.smartcommunitylab.aac.claims.ScriptExecutionService;
+import it.smartcommunitylab.aac.common.InvalidDefinitionException;
+import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
+import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
+import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
+import it.smartcommunitylab.aac.core.model.Attribute;
+import it.smartcommunitylab.aac.core.model.AttributeSet;
+import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import java.io.Serializable;
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -9,30 +40,15 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.attributes.mapper.ExactAttributesMapper;
-import it.smartcommunitylab.aac.attributes.service.AttributeService;
-import it.smartcommunitylab.aac.attributes.store.AttributeStore;
-import it.smartcommunitylab.aac.claims.ScriptExecutionService;
-import it.smartcommunitylab.aac.common.InvalidDefinitionException;
-import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
-import it.smartcommunitylab.aac.core.base.AbstractProvider;
-import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
-import it.smartcommunitylab.aac.core.model.Attribute;
-import it.smartcommunitylab.aac.core.model.AttributeSet;
-import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.core.provider.AttributeProvider;
-
-public class ScriptAttributeProvider extends AbstractProvider implements AttributeProvider {
+public class ScriptAttributeProvider
+    extends AbstractConfigurableProvider<UserAttributes, ConfigurableAttributeProvider, ScriptAttributeProviderConfigMap, ScriptAttributeProviderConfig>
+    implements AttributeProvider<ScriptAttributeProviderConfigMap, ScriptAttributeProviderConfig> {
 
     public static final String ATTRIBUTE_MAPPING_FUNCTION = "attributeMapping";
 
@@ -40,27 +56,21 @@ public class ScriptAttributeProvider extends AbstractProvider implements Attribu
     private final AttributeService attributeService;
     private final AttributeStore attributeStore;
 
-    private final ScriptAttributeProviderConfig providerConfig;
     private ScriptExecutionService executionService;
 
     public ScriptAttributeProvider(
-            String providerId,
-            AttributeService attributeService, AttributeStore attributeStore,
-            ScriptAttributeProviderConfig config,
-            String realm) {
-        super(SystemKeys.AUTHORITY_SCRIPT, providerId, realm);
-        Assert.notNull(config, "provider config is mandatory");
+        String providerId,
+        AttributeService attributeService,
+        AttributeStore attributeStore,
+        ScriptAttributeProviderConfig providerConfig,
+        String realm
+    ) {
+        super(SystemKeys.AUTHORITY_SCRIPT, providerId, realm, providerConfig);
         Assert.notNull(attributeService, "attribute service is mandatory");
         Assert.notNull(attributeStore, "attribute store is mandatory");
 
         this.attributeService = attributeService;
         this.attributeStore = attributeStore;
-
-        // check configuration
-        Assert.isTrue(providerId.equals(config.getProvider()),
-                "configuration does not match this provider");
-        Assert.isTrue(realm.equals(config.getRealm()), "configuration does not match this provider");
-        this.providerConfig = config;
 
         // validate code type
         String code = providerConfig.getConfigMap().getPlaintext();
@@ -79,39 +89,29 @@ public class ScriptAttributeProvider extends AbstractProvider implements Attribu
     }
 
     @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_ATTRIBUTES;
-    }
-
-    @Override
-    public String getName() {
-        return providerConfig.getName();
-    }
-
-    @Override
-    public String getDescription() {
-        return providerConfig.getDescription();
-    }
-
-    @Override
-    public Collection<UserAttributes> convertPrincipalAttributes(UserAuthenticatedPrincipal principal,
-            String subjectId) {
-
-        if (providerConfig.getAttributeSets().isEmpty()) {
+    public Collection<UserAttributes> convertPrincipalAttributes(
+        UserAuthenticatedPrincipal principal,
+        String subjectId
+    ) {
+        if (config.getAttributeSets().isEmpty()) {
             return Collections.emptyList();
         }
 
-        ScriptAttributeProviderConfigMap configMap = providerConfig.getConfigMap();
+        ScriptAttributeProviderConfigMap configMap = config.getConfigMap();
 
         List<UserAttributes> result = new ArrayList<>();
         Map<String, Serializable> principalAttributes = new HashMap<>();
         // get all attributes from principal
-        Map<String, String> attributes = principal.getAttributes().entrySet().stream()
-                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().toString()));
+        Map<String, String> attributes = principal
+            .getAttributes()
+            .entrySet()
+            .stream()
+            .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().toString()));
 
         // TODO handle all attributes not only strings.
-        principalAttributes.putAll(attributes.entrySet().stream()
-                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue())));
+        principalAttributes.putAll(
+            attributes.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()))
+        );
 
         // we use also name from principal
         String name = principal.getName();
@@ -125,16 +125,13 @@ public class ScriptAttributeProvider extends AbstractProvider implements Attribu
         Map<String, ExactAttributesMapper> mappers = new HashMap<>();
 
         // fetch attribute sets
-        for (String setId : providerConfig.getAttributeSets()) {
+        for (String setId : config.getAttributeSets()) {
             try {
                 AttributeSet as = attributeService.getAttributeSet(setId);
 
                 // build exact mapper
                 mappers.put(as.getIdentifier(), new ExactAttributesMapper(as));
-
-            } catch (NoSuchAttributeSetException | RuntimeException e) {
-
-            }
+            } catch (NoSuchAttributeSetException | RuntimeException e) {}
         }
 
         // execute script and parse result
@@ -142,8 +139,10 @@ public class ScriptAttributeProvider extends AbstractProvider implements Attribu
             // execute script
             String functionCode = configMap.getPlaintext();
             Map<String, Serializable> customAttributes = executionService.executeFunction(
-                    ATTRIBUTE_MAPPING_FUNCTION,
-                    functionCode, principalAttributes);
+                ATTRIBUTE_MAPPING_FUNCTION,
+                functionCode,
+                principalAttributes
+            );
 
             if (customAttributes != null) {
                 // we'll let each mapper parse the result set if present
@@ -153,13 +152,12 @@ public class ScriptAttributeProvider extends AbstractProvider implements Attribu
                         AttributeSet set = mapper.mapAttributes((Map<String, Serializable>) customAttributes.get(id));
                         if (set.getAttributes() != null && !set.getAttributes().isEmpty()) {
                             // build result
-                            result.add(new DefaultUserAttributesImpl(
-                                    getAuthority(), getProvider(), getRealm(), subjectId,
-                                    set));
+                            result.add(
+                                new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), subjectId, set)
+                            );
                         }
                     }
                 }
-
             }
         } catch (InvalidDefinitionException ex) {
             throw new RuntimeException(ex.getMessage());
@@ -192,29 +190,35 @@ public class ScriptAttributeProvider extends AbstractProvider implements Attribu
         List<UserAttributes> result = new ArrayList<>();
 
         // build sets from stored values
-        for (String setId : providerConfig.getAttributeSets()) {
+        for (String setId : config.getAttributeSets()) {
             try {
-                AttributeSet as = attributeService.getAttributeSet(setId);
-                String prefix = setId + "|";
-                // TODO handle repeatable attributes by enum
-                Map<String, Serializable> principalAttributes = attributes.entrySet().stream()
-                        .filter(e -> e.getKey().startsWith(prefix))
-                        .collect(Collectors.toMap(e -> e.getKey().substring(prefix.length()), e -> e.getValue()));
-
-                // use exact mapper
-                ExactAttributesMapper mapper = new ExactAttributesMapper(as);
-                AttributeSet set = mapper.mapAttributes(principalAttributes);
+                AttributeSet set = readAttributes(setId, attributes);
                 if (set.getAttributes() != null && !set.getAttributes().isEmpty()) {
                     // build result
-                    result.add(new DefaultUserAttributesImpl(
-                            getAuthority(), getProvider(), getRealm(), subjectId,
-                            set));
+                    result.add(
+                        new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), subjectId, set)
+                    );
                 }
-            } catch (NoSuchAttributeSetException | RuntimeException e) {
-            }
+            } catch (NoSuchAttributeSetException | RuntimeException e) {}
         }
 
         return result;
+    }
+
+    @Override
+    public UserAttributes getUserAttributes(String userId, String setId) throws NoSuchAttributeSetException {
+        if (!config.getAttributeSets().contains(setId)) {
+            return null;
+        }
+
+        // fetch from store
+        Map<String, Serializable> attributes = attributeStore.findAttributes(userId);
+        if (attributes == null || attributes.isEmpty()) {
+            return null;
+        }
+
+        AttributeSet set = readAttributes(setId, attributes);
+        return new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), userId, set);
     }
 
     @Override
@@ -223,4 +227,25 @@ public class ScriptAttributeProvider extends AbstractProvider implements Attribu
         attributeStore.deleteAttributes(subjectId);
     }
 
+    @Override
+    public void deleteUserAttributes(String userId, String setId) {
+        // nothing to do for script
+    }
+
+    private AttributeSet readAttributes(String setId, Map<String, Serializable> attributes)
+        throws NoSuchAttributeSetException {
+        AttributeSet as = attributeService.getAttributeSet(setId);
+        String prefix = setId + "|";
+        // TODO handle repeatable attributes by enum
+        Map<String, Serializable> principalAttributes = attributes
+            .entrySet()
+            .stream()
+            .filter(e -> e.getKey().startsWith(prefix))
+            .collect(Collectors.toMap(e -> e.getKey().substring(prefix.length()), e -> e.getValue()));
+
+        // use exact mapper
+        ExactAttributesMapper mapper = new ExactAttributesMapper(as);
+        AttributeSet set = mapper.mapAttributes(principalAttributes);
+        return set;
+    }
 }

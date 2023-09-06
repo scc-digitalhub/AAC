@@ -20,6 +20,12 @@
          <a class="nav-link {{activeView('basic')}}" href ng-click="switchView('basic')">Basic</a>
       </li>
       <li class="nav-item">
+         <a class="nav-link {{activeView('i18n')}}" href ng-click="switchView('i18n')">Localization</a>
+      </li>     
+      <li class="nav-item">
+         <a class="nav-link {{activeView('style')}}" href ng-click="switchView('style')">Style</a>
+      </li>             
+      <li class="nav-item">
          <a class="nav-link  {{activeView('users')}}" href ng-click="switchView('users')" ng-disabled="true">Users</a>
       </li> 
       <li class="nav-item">
@@ -31,6 +37,9 @@
       </li>
       <li class="nav-item">
          <a class="nav-link  {{activeView('audit')}}" href ng-click="switchView('audit')" ng-disabled="true">Audit</a>
+      </li>
+       <li class="nav-item">
+         <a class="nav-link  {{activeView('tos')}}" href ng-click="switchView('tos')">TOS</a>
       </li>
    </ul>
    <div class="tab-content pt-3">

@@ -1,9 +1,31 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.console;
 
+import io.swagger.v3.oas.annotations.Hidden;
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.core.RealmManager;
+import it.smartcommunitylab.aac.model.Realm;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,13 +38,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import io.swagger.v3.oas.annotations.Hidden;
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.common.NoSuchRealmException;
-import it.smartcommunitylab.aac.core.RealmManager;
-import it.smartcommunitylab.aac.model.Realm;
 
 @RestController
 @Hidden
@@ -39,26 +54,26 @@ public class AdminController {
 
     @GetMapping("/console/admin/realms/{slug}")
     public Realm getRealm(@PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String slug)
-            throws NoSuchRealmException {
+        throws NoSuchRealmException {
         return realmManager.getRealm(slug);
     }
 
     @PostMapping("/console/admin/realms")
-    public Realm addRealm(@RequestBody @Valid @NotNull Realm realm) {
+    public Realm addRealm(@RequestBody @Valid @NotNull Realm realm) throws RegistrationException {
         return realmManager.addRealm(realm);
     }
 
     @PutMapping("/console/admin/realms/{slug}")
     public Realm updateRealm(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String slug,
-            @RequestBody @Valid @NotNull Realm realm)
-            throws NoSuchRealmException {
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String slug,
+        @RequestBody @Valid @NotNull Realm realm
+    ) throws NoSuchRealmException, RegistrationException {
         return realmManager.updateRealm(slug, realm);
     }
 
     @DeleteMapping("/console/admin/realms/{slug}")
     public void deleteRealm(@PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String slug)
-            throws NoSuchRealmException {
+        throws NoSuchRealmException {
         realmManager.deleteRealm(slug, true);
     }
 }

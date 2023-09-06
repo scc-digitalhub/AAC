@@ -1,18 +1,47 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.openid.endpoint;
 
+import com.nimbusds.jwt.JWT;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.JWTParser;
+import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.core.AuthenticationHelper;
+import it.smartcommunitylab.aac.core.UserDetails;
+import it.smartcommunitylab.aac.core.auth.ExtendedLogoutSuccessHandler;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
+import it.smartcommunitylab.aac.core.model.UserAccount;
+import it.smartcommunitylab.aac.jwt.assertion.SelfAssertionValidator;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import java.io.IOException;
 import java.net.URI;
 import java.text.ParseException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Locale;
 import java.util.Optional;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.validation.constraints.Pattern;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,26 +59,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.JWTParser;
-
-import io.swagger.v3.oas.annotations.Hidden;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.common.NoSuchRealmException;
-import it.smartcommunitylab.aac.core.AuthenticationHelper;
-import it.smartcommunitylab.aac.core.RealmManager;
-import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.auth.ExtendedLogoutSuccessHandler;
-import it.smartcommunitylab.aac.core.auth.UserAuthentication;
-import it.smartcommunitylab.aac.dto.CustomizationBean;
-import it.smartcommunitylab.aac.jwt.assertion.SelfAssertionValidator;
-import it.smartcommunitylab.aac.model.Realm;
-import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
-import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
-
 /*
  * https://openid.net/specs/openid-connect-rpinitiated-1_0.html
  */
@@ -58,6 +67,7 @@ import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 @Tag(name = "OpenID Connect Session Management")
 public class EndSessionEndpoint {
 
+    public static final String END_SESSION_CONFIRM_URL = "/endsession/confirm";
     public static final String END_SESSION_URL = "/endsession";
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -66,8 +76,8 @@ public class EndSessionEndpoint {
     private static final String REDIRECT_URI_KEY = "redirectUri";
 
     // TODO
-//    @Autowired
-//    PersistentTokenBasedRememberMeServices rememberMeServices;
+    //    @Autowired
+    //    PersistentTokenBasedRememberMeServices rememberMeServices;
 
     @Autowired
     private SelfAssertionValidator validator;
@@ -84,20 +94,23 @@ public class EndSessionEndpoint {
     @Autowired
     private OAuth2ClientDetailsService clientDetailsService;
 
-    @Autowired
-    private RealmManager realmManager;
-
     @Operation(summary = "Logout with user confirmation")
-    @RequestMapping(value = END_SESSION_URL, method = RequestMethod.GET)
+    @RequestMapping(value = END_SESSION_URL, method = { RequestMethod.GET, RequestMethod.POST })
     public String endSession(
-            @RequestParam(value = "id_token_hint", required = false) @Pattern(regexp = SystemKeys.URI_PATTERN) String idTokenHint,
-            @RequestParam(value = "post_logout_redirect_uri", required = false) @Pattern(regexp = SystemKeys.URI_PATTERN) String postLogoutRedirectUri,
-            @RequestParam(value = STATE_KEY, required = false) @Pattern(regexp = SystemKeys.SPECIAL_PATTERN) String state,
-            HttpServletRequest request,
-            HttpServletResponse response,
-            HttpSession session,
-            Authentication auth, Model model) throws IOException, ServletException {
-
+        @RequestParam(value = "id_token_hint", required = false) @Pattern(
+            regexp = SystemKeys.URI_PATTERN
+        ) String idTokenHint,
+        @RequestParam(value = "post_logout_redirect_uri", required = false) @Pattern(
+            regexp = SystemKeys.URI_PATTERN
+        ) String postLogoutRedirectUri,
+        @RequestParam(value = STATE_KEY, required = false) @Pattern(regexp = SystemKeys.SPECIAL_PATTERN) String state,
+        HttpServletRequest request,
+        HttpServletResponse response,
+        HttpSession session,
+        Locale locale,
+        Authentication auth,
+        Model model
+    ) throws IOException, ServletException, NoSuchRealmException {
         // get userAuth
         UserAuthentication userAuth = authHelper.getUserAuthentication();
 
@@ -111,7 +124,6 @@ public class EndSessionEndpoint {
 
         // parse the ID token hint to see if it's valid
         if (StringUtils.hasText(idTokenHint)) {
-
             try {
                 JWT idToken = JWTParser.parse(idTokenHint);
 
@@ -143,7 +155,6 @@ public class EndSessionEndpoint {
 
                     // add to model for UI
                     model.addAttribute("client", clientDetails);
-
                 } else {
                     // not a valid token, drop request
                     throw new IllegalArgumentException("invalid id_token");
@@ -157,7 +168,6 @@ public class EndSessionEndpoint {
                 logger.debug("Invalid client", e);
                 throw new IllegalArgumentException("invalid id_token");
             }
-
         }
 
         // are we logged in or not?
@@ -170,52 +180,37 @@ public class EndSessionEndpoint {
             // display the log out confirmation page
             UserDetails userDetails = userAuth.getUser();
             // add user info
-            String userName = StringUtils.hasText(userDetails.getUsername()) ? userDetails.getUsername()
-                    : userDetails.getSubjectId();
-//            String fullName = userDetails.getFullName();
+            String userName = StringUtils.hasText(userDetails.getUsername())
+                ? userDetails.getUsername()
+                : userDetails.getSubjectId();
+            //            String fullName = userDetails.getFullName();
             model.addAttribute("fullname", userName);
-            model.addAttribute("username", userName);
+
+            // add account info
+            UserAccount account = userDetails.getIdentities().stream().findFirst().orElseThrow().getAccount();
+            model.addAttribute("account", account);
+
+            // load realm props
+            String realm = userAuth.getRealm();
+            model.addAttribute("realm", realm);
+            model.addAttribute("displayName", realm);
 
             // add form action
-            // load realm customizations
-            String realm = userAuth.getRealm();
-
-            try {
-                String displayName = null;
-                Realm re = null;
-                Map<String, String> resources = new HashMap<>();
-                if (!realm.equals(SystemKeys.REALM_COMMON)) {
-                    re = realmManager.getRealm(realm);
-                    displayName = re.getName();
-                    CustomizationBean gcb = re.getCustomization("global");
-                    if (gcb != null) {
-                        resources.putAll(gcb.getResources());
-                    }
-                    CustomizationBean lcb = re.getCustomization("endsession");
-                    if (lcb != null) {
-                        resources.putAll(lcb.getResources());
-                    }
-                }
-
-                model.addAttribute("displayName", displayName);
-                model.addAttribute("customization", resources);
-            } catch (NoSuchRealmException e) {
-                throw new IllegalArgumentException("Invalid realm");
-            }
-
-            model.addAttribute("formAction", END_SESSION_URL);
-            return "logout_confirmation";
+            model.addAttribute("formAction", END_SESSION_CONFIRM_URL);
+            return "endsession";
         }
     }
 
     @Hidden
-    @RequestMapping(value = END_SESSION_URL, method = RequestMethod.POST)
-    public void processLogout(@RequestParam(value = "approve", required = false) Optional<String> approve,
-            HttpServletRequest request,
-            HttpServletResponse response,
-            HttpSession session, Authentication auth,
-            Model model) throws IOException, ServletException {
-
+    @RequestMapping(value = END_SESSION_CONFIRM_URL, method = RequestMethod.POST)
+    public void processLogout(
+        @RequestParam(value = "approve", required = false) Optional<String> approve,
+        HttpServletRequest request,
+        HttpServletResponse response,
+        HttpSession session,
+        Authentication auth,
+        Model model
+    ) throws IOException, ServletException {
         String redirectUri = (String) session.getAttribute(REDIRECT_URI_KEY);
         String state = (String) session.getAttribute(STATE_KEY);
         String clientId = (String) session.getAttribute(CLIENT_KEY);
@@ -254,8 +249,8 @@ public class EndSessionEndpoint {
         }
 
         if (approved && auth != null) {
-//                // leverage rememberme service to clear cookie
-//                rememberMeServices.logout(request, response, auth);
+            //                // leverage rememberme service to clear cookie
+            //                rememberMeServices.logout(request, response, auth);
             // logout
             logoutHandler.logout(request, response, auth);
 
@@ -264,10 +259,8 @@ public class EndSessionEndpoint {
 
             // let logoutSuccess process request
             logoutSuccessHandler.onLogoutSuccess(request, response, auth);
-
             // TODO: hook into other logout post-processing
         } else {
-
             // if the user didn't approve, don't log out but
             // redirect as needed
 
@@ -276,23 +269,6 @@ public class EndSessionEndpoint {
             }
 
             response.sendRedirect(redirect);
-
         }
     }
-
-//    private String readParameter(Map<String, String> requestParameters, String key, String pattern)
-//            throws IllegalArgumentException {
-//        if (!requestParameters.containsKey(key)) {
-//            return null;
-//        }
-//
-//        String raw = requestParameters.get(key);
-//        if (!raw.matches(pattern)) {
-//            throw new IllegalArgumentException(key + " does not match pattern " + String.valueOf(pattern));
-//        }
-//
-//        return raw.trim();
-//
-//    }
-
 }

@@ -1,21 +1,35 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.saml.service;
 
+import it.smartcommunitylab.aac.saml.auth.Saml2AuthenticationRequestRepository;
+import it.smartcommunitylab.aac.saml.auth.SerializableSaml2AuthenticationRequestContext;
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
-import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationRequestContext;
 import org.springframework.util.Assert;
-import it.smartcommunitylab.aac.saml.auth.Saml2AuthenticationRequestRepository;
 
 public class HttpSessionSaml2AuthenticationRequestRepository
-        implements Saml2AuthenticationRequestRepository<Saml2AuthenticationRequestContext> {
+    implements Saml2AuthenticationRequestRepository<SerializableSaml2AuthenticationRequestContext> {
 
-    private static final String DEFAULT_AUTHENTICATION_REQUEST_ATTR_NAME = HttpSessionSaml2AuthenticationRequestRepository.class
-            .getName() + ".SAML2_AUTHORIZATION_REQUEST";
+    private static final String DEFAULT_AUTHENTICATION_REQUEST_ATTR_NAME =
+        HttpSessionSaml2AuthenticationRequestRepository.class.getName() + ".SAML2_SER_AUTHORIZATION_REQUEST";
 
     private final String sessionAttributeName;
 
@@ -29,7 +43,7 @@ public class HttpSessionSaml2AuthenticationRequestRepository
     }
 
     @Override
-    public Saml2AuthenticationRequestContext loadAuthenticationRequest(HttpServletRequest request) {
+    public SerializableSaml2AuthenticationRequestContext loadAuthenticationRequest(HttpServletRequest request) {
         Assert.notNull(request, "request cannot be null");
 
         String relayState = this.getRelayStateParameter(request);
@@ -37,13 +51,17 @@ public class HttpSessionSaml2AuthenticationRequestRepository
             return null;
         }
 
-        Map<String, Saml2AuthenticationRequestContext> authenticationRequests = this.getAuthenticationRequests(request);
+        Map<String, SerializableSaml2AuthenticationRequestContext> authenticationRequests =
+            this.getAuthenticationRequests(request);
         return authenticationRequests.get(relayState);
     }
 
     @Override
-    public void saveAuthenticationRequest(Saml2AuthenticationRequestContext authenticationRequest,
-            HttpServletRequest request, HttpServletResponse response) {
+    public void saveAuthenticationRequest(
+        SerializableSaml2AuthenticationRequestContext authenticationRequest,
+        HttpServletRequest request,
+        HttpServletResponse response
+    ) {
         Assert.notNull(request, "request cannot be null");
         Assert.notNull(response, "response cannot be null");
 
@@ -55,15 +73,17 @@ public class HttpSessionSaml2AuthenticationRequestRepository
         String relayState = authenticationRequest.getRelayState();
         Assert.hasText(relayState, "relayState cannot be empty");
 
-        Map<String, Saml2AuthenticationRequestContext> authenticationRequests = this.getAuthenticationRequests(request);
+        Map<String, SerializableSaml2AuthenticationRequestContext> authenticationRequests =
+            this.getAuthenticationRequests(request);
         authenticationRequests.put(relayState, authenticationRequest);
         request.getSession().setAttribute(this.sessionAttributeName, authenticationRequests);
-
     }
 
     @Override
-    public Saml2AuthenticationRequestContext removeAuthenticationRequest(HttpServletRequest request,
-            HttpServletResponse response) {
+    public SerializableSaml2AuthenticationRequestContext removeAuthenticationRequest(
+        HttpServletRequest request,
+        HttpServletResponse response
+    ) {
         Assert.notNull(request, "request cannot be null");
         Assert.notNull(response, "response cannot be null");
 
@@ -72,8 +92,9 @@ public class HttpSessionSaml2AuthenticationRequestRepository
             return null;
         }
 
-        Map<String, Saml2AuthenticationRequestContext> authenticationRequests = this.getAuthenticationRequests(request);
-        Saml2AuthenticationRequestContext originalRequest = authenticationRequests.remove(relayState);
+        Map<String, SerializableSaml2AuthenticationRequestContext> authenticationRequests =
+            this.getAuthenticationRequests(request);
+        SerializableSaml2AuthenticationRequestContext originalRequest = authenticationRequests.remove(relayState);
         if (!authenticationRequests.isEmpty()) {
             request.getSession().setAttribute(this.sessionAttributeName, authenticationRequests);
         } else {
@@ -96,12 +117,16 @@ public class HttpSessionSaml2AuthenticationRequestRepository
     }
 
     @SuppressWarnings("unchecked")
-    private Map<String, Saml2AuthenticationRequestContext> getAuthenticationRequests(HttpServletRequest request) {
+    private Map<String, SerializableSaml2AuthenticationRequestContext> getAuthenticationRequests(
+        HttpServletRequest request
+    ) {
         HttpSession session = request.getSession(false);
 
-        Map<String, Saml2AuthenticationRequestContext> authenticationRequests = (session != null)
-                ? (Map<String, Saml2AuthenticationRequestContext>) session.getAttribute(this.sessionAttributeName)
-                : null;
+        Map<String, SerializableSaml2AuthenticationRequestContext> authenticationRequests = (session != null)
+            ? (Map<String, SerializableSaml2AuthenticationRequestContext>) session.getAttribute(
+                this.sessionAttributeName
+            )
+            : null;
 
         if (authenticationRequests == null) {
             return new HashMap<>();
@@ -109,5 +134,4 @@ public class HttpSessionSaml2AuthenticationRequestRepository
 
         return authenticationRequests;
     }
-
 }

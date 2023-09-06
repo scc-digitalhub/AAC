@@ -1,8 +1,24 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.core.persistence;
 
+import it.smartcommunitylab.aac.repository.HashMapConverter;
 import java.io.Serializable;
 import java.util.Map;
-
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
@@ -11,19 +27,18 @@ import javax.persistence.Lob;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
-import it.smartcommunitylab.aac.repository.HashMapConverter;
-
 @Entity
 @Table(name = "attribute_providers")
-public class AttributeProviderEntity {
+public class AttributeProviderEntity implements ProviderEntity {
 
     @NotNull
+    @Column(name = "authority", length = 128)
     private String authority;
 
     @Id
     @NotNull
     @Column(name = "provider_id", length = 128, unique = true)
-    private String providerId;
+    private String provider;
 
     @NotNull
     @Column(length = 128)
@@ -31,10 +46,21 @@ public class AttributeProviderEntity {
 
     @NotNull
     @Column(name = "enabled")
-    private boolean enabled;
+    private Boolean enabled;
 
+    @NotNull
+    @Column(name = "name", length = 128)
     private String name;
-    private String description;
+
+    @Lob
+    @Column(name = "title_map")
+    @Convert(converter = HashMapConverter.class)
+    private Map<String, String> titleMap;
+
+    @Lob
+    @Column(name = "description_map")
+    @Convert(converter = HashMapConverter.class)
+    private Map<String, String> descriptionMap;
 
     @Column(name = "persistence_level", length = 32)
     private String persistence;
@@ -52,12 +78,13 @@ public class AttributeProviderEntity {
     @Convert(converter = HashMapConverter.class)
     private Map<String, Serializable> configurationMap;
 
-    public AttributeProviderEntity() {
+    @Column(name = "version")
+    private Integer version;
 
-    }
+    public AttributeProviderEntity() {}
 
     public AttributeProviderEntity(String providerId) {
-        this.providerId = providerId;
+        this.provider = providerId;
     }
 
     public String getAuthority() {
@@ -68,12 +95,12 @@ public class AttributeProviderEntity {
         this.authority = authority;
     }
 
-    public String getProviderId() {
-        return providerId;
+    public String getProvider() {
+        return provider;
     }
 
-    public void setProviderId(String providerId) {
-        this.providerId = providerId;
+    public void setProvider(String provider) {
+        this.provider = provider;
     }
 
     public String getRealm() {
@@ -84,16 +111,20 @@ public class AttributeProviderEntity {
         this.realm = realm;
     }
 
-//    public String getType() {
-//        return type;
-//    }
-//
-//    public void setType(String type) {
-//        this.type = type;
-//    }
+    //    public String getType() {
+    //        return type;
+    //    }
+    //
+    //    public void setType(String type) {
+    //        this.type = type;
+    //    }
 
     public boolean isEnabled() {
-        return enabled;
+        return enabled != null ? enabled.booleanValue() : false;
+    }
+
+    public Boolean getEnabled() {
+        return this.enabled;
     }
 
     public void setEnabled(boolean enabled) {
@@ -108,12 +139,20 @@ public class AttributeProviderEntity {
         this.name = name;
     }
 
-    public String getDescription() {
-        return description;
+    public Map<String, String> getTitleMap() {
+        return titleMap;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setTitleMap(Map<String, String> titleMap) {
+        this.titleMap = titleMap;
+    }
+
+    public Map<String, String> getDescriptionMap() {
+        return descriptionMap;
+    }
+
+    public void setDescriptionMap(Map<String, String> descriptionMap) {
+        this.descriptionMap = descriptionMap;
     }
 
     public String getAttributeSets() {
@@ -148,4 +187,11 @@ public class AttributeProviderEntity {
         this.configurationMap = configurationMap;
     }
 
+    public int getVersion() {
+        return version != null ? version : 0;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
+    }
 }

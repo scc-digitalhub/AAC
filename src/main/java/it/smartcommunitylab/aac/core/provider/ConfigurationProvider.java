@@ -1,32 +1,38 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.core.provider;
 
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.model.ConfigMap;
+import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import java.io.Serializable;
 import java.util.Map;
-
-import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractProviderConfig;
-import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 
 /*
  * Expose provider configuration outside modules
  */
-public interface ConfigurationProvider<T extends ConfigurableProvider, C extends AbstractProviderConfig, P extends ConfigurableProperties>
-        extends ResourceProvider {
+public interface ConfigurationProvider<
+    M extends ConfigMap, T extends ConfigurableProvider, C extends ProviderConfig<M>
+> {
+    public String getAuthority();
 
-    default public String getType() {
+    public default String getType() {
         return SystemKeys.RESOURCE_CONFIG;
-    }
-
-    default public String getRealm() {
-        // by default provider config models are static across realms
-        return null;
-    }
-
-    default public String getProvider() {
-        return getAuthority();
     }
 
     /*
@@ -41,14 +47,28 @@ public interface ConfigurationProvider<T extends ConfigurableProvider, C extends
      * Expose and translate to valid configMap
      */
 
-    public P getDefaultConfigMap();
+    public M getDefaultConfigMap();
 
-    public P getConfigMap(Map<String, Serializable> map);
+    public M getConfigMap(Map<String, Serializable> map);
+
+    /*
+     * Translate a provider config to a configurable
+     */
+    public T getConfigurable(C providerConfig);
+
+    /*
+     * Validate configuration against schema and also policies (TODO)
+     */
+    //    public boolean isConfigValid(T cp);
+    //
+    //    public boolean isConfigMapValid(M configMap);
 
     /*
      * Export the configuration schema for configMap
+     *
+     * this schema should match M but could include descriptions, localized labels
+     * etc and should be used for API doc, UI forms etc
      */
 
     public JsonSchema getSchema();
-
 }

@@ -1,18 +1,34 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.oauth.auth;
 
+import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
+import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
+import java.io.UnsupportedEncodingException;
 import java.util.Map;
-
+import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
-
+import org.springframework.data.util.Pair;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.security.oauth2.core.endpoint.PkceParameterNames;
 import org.springframework.util.StringUtils;
-
-import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
-import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
 
 public class ClientPKCEAuthenticationConverter extends OAuth2ClientAuthenticationConverter {
 
@@ -25,26 +41,29 @@ public class ClientPKCEAuthenticationConverter extends OAuth2ClientAuthenticatio
 
         // fetch and validate parameters
         Map<String, String[]> parameters = request.getParameterMap();
-        if (!parameters.containsKey(OAuth2ParameterNames.CLIENT_ID)
-                || !parameters.containsKey(PkceParameterNames.CODE_VERIFIER)
-                || !parameters.containsKey(OAuth2ParameterNames.CODE)
-                || !parameters.containsKey(OAuth2ParameterNames.GRANT_TYPE)) {
+        if (
+            !parameters.containsKey(PkceParameterNames.CODE_VERIFIER) ||
+            !parameters.containsKey(OAuth2ParameterNames.CODE) ||
+            !parameters.containsKey(OAuth2ParameterNames.GRANT_TYPE)
+        ) {
             // not a valid request
             return null;
         }
 
         // PKCE is supported for auth_code only
-        AuthorizationGrantType grantType = AuthorizationGrantType
-                .parse(request.getParameter(OAuth2ParameterNames.GRANT_TYPE));
+        AuthorizationGrantType grantType = AuthorizationGrantType.parse(
+            request.getParameter(OAuth2ParameterNames.GRANT_TYPE)
+        );
 
         if (AuthorizationGrantType.AUTHORIZATION_CODE != grantType) {
             return null;
         }
 
         // make sure we get exactly 1 value per parameter
-        if (parameters.get(OAuth2ParameterNames.CLIENT_ID).length != 1
-                || parameters.get(OAuth2ParameterNames.CODE).length != 1
-                || parameters.get(PkceParameterNames.CODE_VERIFIER).length != 1) {
+        if (
+            parameters.get(OAuth2ParameterNames.CODE).length != 1 ||
+            parameters.get(PkceParameterNames.CODE_VERIFIER).length != 1
+        ) {
             // throw oauth2 exception
             throw new OAuth2AuthenticationException(OAuth2ErrorCodes.INVALID_REQUEST);
         }
@@ -54,6 +73,22 @@ public class ClientPKCEAuthenticationConverter extends OAuth2ClientAuthenticatio
         String code = request.getParameter(OAuth2ParameterNames.CODE);
         String codeVerifier = request.getParameter(PkceParameterNames.CODE_VERIFIER);
 
+        // fallback to auth header for clientId if missing
+        if (!StringUtils.hasText(clientId)) {
+            try {
+                Pair<String, Optional<String>> basicAuth = ClientSecretBasicAuthenticationConverter.extractBasicAuth(
+                    request
+                );
+
+                if (basicAuth != null) {
+                    clientId = basicAuth.getFirst();
+                }
+            } catch (IllegalArgumentException | UnsupportedEncodingException e) {
+                // throw oauth2 exception
+                throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST), e);
+            }
+        }
+
         // validate parameters are *not* empty
         if (!StringUtils.hasText(clientId) || !StringUtils.hasText(codeVerifier)) {
             // throw oauth2 exception
@@ -61,9 +96,11 @@ public class ClientPKCEAuthenticationConverter extends OAuth2ClientAuthenticatio
         }
 
         // return our authRequest
-        return new OAuth2ClientPKCEAuthenticationToken(clientId, code, codeVerifier,
-                AuthenticationMethod.NONE.getValue());
-
+        return new OAuth2ClientPKCEAuthenticationToken(
+            clientId,
+            code,
+            codeVerifier,
+            AuthenticationMethod.NONE.getValue()
+        );
     }
-
 }

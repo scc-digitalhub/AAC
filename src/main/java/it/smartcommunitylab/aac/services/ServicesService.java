@@ -1,22 +1,25 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.services;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.DuplicatedDataException;
 import it.smartcommunitylab.aac.common.MissingDataException;
 import it.smartcommunitylab.aac.common.NoSuchClaimException;
-import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchServiceException;
 import it.smartcommunitylab.aac.common.RegistrationException;
@@ -26,12 +29,19 @@ import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.services.persistence.ServiceClaimEntity;
 import it.smartcommunitylab.aac.services.persistence.ServiceClaimRepository;
-import it.smartcommunitylab.aac.services.persistence.ServiceClientEntity;
-import it.smartcommunitylab.aac.services.persistence.ServiceClientRepository;
 import it.smartcommunitylab.aac.services.persistence.ServiceEntity;
 import it.smartcommunitylab.aac.services.persistence.ServiceEntityRepository;
 import it.smartcommunitylab.aac.services.persistence.ServiceScopeEntity;
 import it.smartcommunitylab.aac.services.persistence.ServiceScopeRepository;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 @Service
 @Transactional
@@ -40,26 +50,23 @@ public class ServicesService {
     private final ServiceEntityRepository serviceRepository;
     private final ServiceScopeRepository scopeRepository;
     private final ServiceClaimRepository claimRepository;
-    private final ServiceClientRepository clientRepository;
 
     private final SubjectService subjectService;
 
     public ServicesService(
-            ServiceEntityRepository serviceRepository,
-            ServiceScopeRepository scopeRepository,
-            ServiceClaimRepository claimRepository,
-            ServiceClientRepository clientRepository,
-            SubjectService subjectService) {
+        ServiceEntityRepository serviceRepository,
+        ServiceScopeRepository scopeRepository,
+        ServiceClaimRepository claimRepository,
+        SubjectService subjectService
+    ) {
         Assert.notNull(serviceRepository, "service repository is required");
         Assert.notNull(scopeRepository, "scope repository is required");
         Assert.notNull(claimRepository, "claim repository is required");
-        Assert.notNull(clientRepository, "client repository is required");
         Assert.notNull(subjectService, "subject service is mandatory");
 
         this.serviceRepository = serviceRepository;
         this.scopeRepository = scopeRepository;
         this.claimRepository = claimRepository;
-        this.clientRepository = clientRepository;
 
         this.subjectService = subjectService;
     }
@@ -84,7 +91,7 @@ public class ServicesService {
 
     @Transactional(readOnly = true)
     public it.smartcommunitylab.aac.services.Service getServiceByNamespace(String namespace)
-            throws NoSuchServiceException {
+        throws NoSuchServiceException {
         ServiceEntity s = serviceRepository.findByNamespace(namespace);
         if (s == null) {
             throw new NoSuchServiceException();
@@ -94,9 +101,8 @@ public class ServicesService {
 
         List<ServiceScope> scopes = listScopes(serviceId);
         List<ServiceClaim> claims = listClaims(serviceId);
-        List<ServiceClient> clients = listClients(serviceId);
 
-        return toService(s, scopes, claims, clients);
+        return toService(s, scopes, claims);
     }
 
     /*
@@ -112,9 +118,8 @@ public class ServicesService {
 
         List<ServiceScope> scopes = listScopes(serviceId);
         List<ServiceClaim> claims = listClaims(serviceId);
-        List<ServiceClient> clients = listClients(serviceId);
 
-        return toService(s, scopes, claims, clients);
+        return toService(s, scopes, claims);
     }
 
     @Transactional(readOnly = true)
@@ -136,23 +141,26 @@ public class ServicesService {
     @Transactional(readOnly = true)
     public List<it.smartcommunitylab.aac.services.Service> listServices(String realm) {
         List<ServiceEntity> services = serviceRepository.findByRealm(realm);
-        return services.stream()
-                .map(s -> {
-                    try {
-                        return toService(s, listScopes(s.getServiceId()), null, null);
-                    } catch (NoSuchServiceException e) {
-                        return null;
-                    }
-                })
-                .filter(s -> s != null)
-                .collect(Collectors.toList());
+        return services
+            .stream()
+            .map(s -> {
+                try {
+                    return toService(s, listScopes(s.getServiceId()), null);
+                } catch (NoSuchServiceException e) {
+                    return null;
+                }
+            })
+            .filter(s -> s != null)
+            .collect(Collectors.toList());
     }
 
     public it.smartcommunitylab.aac.services.Service addService(
-            String realm,
-            String serviceId, String namespace,
-            String name, String description) {
-
+        String realm,
+        String serviceId,
+        String namespace,
+        String name,
+        String description
+    ) throws RegistrationException {
         if (!StringUtils.hasText(realm)) {
             throw new MissingDataException("realm");
         }
@@ -186,10 +194,11 @@ public class ServicesService {
     }
 
     public it.smartcommunitylab.aac.services.Service updateService(
-            String serviceId,
-            String name, String description,
-            Map<String, String> claimMapping) throws NoSuchServiceException {
-
+        String serviceId,
+        String name,
+        String description,
+        Map<String, String> claimMapping
+    ) throws NoSuchServiceException {
         ServiceEntity se = serviceRepository.findOne(serviceId);
         if (se == null) {
             throw new NoSuchServiceException();
@@ -234,7 +243,6 @@ public class ServicesService {
 
         // remove subject if exists
         subjectService.deleteSubject(serviceId);
-
     }
 
     private it.smartcommunitylab.aac.services.Service toService(ServiceEntity s) {
@@ -250,12 +258,14 @@ public class ServicesService {
         return service;
     }
 
-    private it.smartcommunitylab.aac.services.Service toService(ServiceEntity s,
-            List<ServiceScope> scopes, List<ServiceClaim> claims, List<ServiceClient> clients) {
+    private it.smartcommunitylab.aac.services.Service toService(
+        ServiceEntity s,
+        List<ServiceScope> scopes,
+        List<ServiceClaim> claims
+    ) {
         it.smartcommunitylab.aac.services.Service service = toService(s);
         service.setScopes(scopes);
         service.setClaims(claims);
-        service.setClients(clients);
         return service;
     }
 
@@ -312,14 +322,18 @@ public class ServicesService {
     }
 
     public ServiceScope addScope(
-            String serviceId, String scope,
-            String name, String description,
-            ScopeType type,
-            Collection<String> claims,
-            Collection<String> roles, Collection<String> spaceRoles,
-            String approvalFunction,
-            boolean approvalRequired, boolean approvalAny) throws NoSuchServiceException, RegistrationException {
-
+        String serviceId,
+        String scope,
+        String name,
+        String description,
+        ScopeType type,
+        Collection<String> claims,
+        Collection<String> roles,
+        Collection<String> spaceRoles,
+        String approvalFunction,
+        boolean approvalRequired,
+        boolean approvalAny
+    ) throws NoSuchServiceException, RegistrationException {
         if (!StringUtils.hasText(scope)) {
             throw new IllegalArgumentException("invalid scope");
         }
@@ -358,18 +372,21 @@ public class ServicesService {
         se = scopeRepository.save(se);
 
         return ServiceScope.from(se, service.getNamespace());
-
     }
 
     public ServiceScope updateScope(
-            String serviceId, String scope,
-            String name, String description,
-            ScopeType type,
-            Collection<String> claims,
-            Collection<String> roles, Collection<String> spaceRoles,
-            String approvalFunction,
-            boolean approvalRequired, boolean approvalAny) throws NoSuchServiceException, NoSuchScopeException {
-
+        String serviceId,
+        String scope,
+        String name,
+        String description,
+        ScopeType type,
+        Collection<String> claims,
+        Collection<String> roles,
+        Collection<String> spaceRoles,
+        String approvalFunction,
+        boolean approvalRequired,
+        boolean approvalAny
+    ) throws NoSuchServiceException, NoSuchScopeException {
         if (type == null) {
             type = ScopeType.GENERIC;
         }
@@ -400,7 +417,6 @@ public class ServicesService {
         se = scopeRepository.save(se);
 
         return ServiceScope.from(se, service.getNamespace());
-
     }
 
     public void deleteScope(String serviceId, String scope) {
@@ -408,7 +424,6 @@ public class ServicesService {
         if (s != null) {
             scopeRepository.delete(s);
         }
-
     }
 
     /*
@@ -457,11 +472,13 @@ public class ServicesService {
     }
 
     public ServiceClaim addClaim(
-            String serviceId, String key,
-            String name, String description,
-            AttributeType type,
-            boolean multiple) throws NoSuchServiceException, RegistrationException {
-
+        String serviceId,
+        String key,
+        String name,
+        String description,
+        AttributeType type,
+        boolean multiple
+    ) throws NoSuchServiceException, RegistrationException {
         if (!StringUtils.hasText(key)) {
             throw new IllegalArgumentException("invalid key");
         }
@@ -493,15 +510,16 @@ public class ServicesService {
         sc = claimRepository.save(sc);
 
         return ServiceClaim.from(sc);
-
     }
 
     public ServiceClaim updateClaim(
-            String serviceId, String key,
-            String name, String description,
-            AttributeType type,
-            boolean multiple) throws NoSuchServiceException, NoSuchClaimException {
-
+        String serviceId,
+        String key,
+        String name,
+        String description,
+        AttributeType type,
+        boolean multiple
+    ) throws NoSuchServiceException, NoSuchClaimException {
         if (type == null) {
             type = AttributeType.STRING;
         }
@@ -520,7 +538,6 @@ public class ServicesService {
         sc = claimRepository.save(sc);
 
         return ServiceClaim.from(sc);
-
     }
 
     public void deleteClaim(String serviceId, String key) {
@@ -528,133 +545,30 @@ public class ServicesService {
         if (sc != null) {
             claimRepository.delete(sc);
         }
-
     }
-
-    /*
-     * Service clients
-     */
-
-    @Transactional(readOnly = true)
-    public ServiceClient getClient(String serviceId, String clientId)
-            throws NoSuchClientException, NoSuchServiceException {
-        ServiceEntity service = serviceRepository.findOne(serviceId);
-        if (service == null) {
-            throw new NoSuchServiceException();
-        }
-
-        ServiceClientEntity sc = clientRepository.findByServiceIdAndClientId(serviceId, clientId);
-        if (sc == null) {
-            throw new NoSuchClientException();
-        }
-
-        return ServiceClient.from(sc);
-    }
-
-    @Transactional(readOnly = true)
-    public ServiceClient findClient(String serviceId, String clientId) throws NoSuchClientException {
-        ServiceClientEntity sc = clientRepository.findByServiceIdAndClientId(serviceId, clientId);
-        if (sc == null) {
-            return null;
-        }
-
-        return ServiceClient.from(sc);
-    }
-
-    @Transactional(readOnly = true)
-    public List<ServiceClient> findClients(String serviceId, String type) {
-        List<ServiceClientEntity> list = clientRepository.findByServiceIdAndType(serviceId, type);
-        return list.stream().map(se -> ServiceClient.from(se)).collect(Collectors.toList());
-    }
-
-    @Transactional(readOnly = true)
-    public List<ServiceClient> listClients(String serviceId) throws NoSuchServiceException {
-        ServiceEntity service = serviceRepository.findOne(serviceId);
-        if (service == null) {
-            throw new NoSuchServiceException();
-        }
-
-        List<ServiceClientEntity> list = clientRepository.findByServiceId(serviceId);
-        return list.stream().map(se -> ServiceClient.from(se)).collect(Collectors.toList());
-    }
-
-    public ServiceClient addClient(
-            String serviceId, String clientId,
-            String type) throws NoSuchServiceException, RegistrationException {
-
-        if (!StringUtils.hasText(clientId)) {
-            throw new MissingDataException("client");
-        }
-
-        ServiceEntity service = serviceRepository.findOne(serviceId);
-        if (service == null) {
-            throw new NoSuchServiceException();
-        }
-
-        ServiceClientEntity s = clientRepository.findByServiceIdAndClientId(serviceId, clientId);
-        if (s != null) {
-            throw new DuplicatedDataException("key");
-        }
-
-        ServiceClientEntity sc = new ServiceClientEntity();
-        sc.setClientId(clientId);
-        sc.setServiceId(serviceId);
-        sc.setType(type);
-
-        sc = clientRepository.save(sc);
-
-        return ServiceClient.from(sc);
-
-    }
-
-    public ServiceClient updateClient(
-            String serviceId, String clientId,
-            String type) throws NoSuchServiceException, NoSuchClientException {
-
-        ServiceClientEntity sc = clientRepository.findByServiceIdAndClientId(serviceId, clientId);
-        if (sc == null) {
-            throw new NoSuchClientException();
-        }
-
-        sc.setType(type);
-
-        sc = clientRepository.save(sc);
-
-        return ServiceClient.from(sc);
-
-    }
-
-    public void deleteClient(String serviceId, String clientId) {
-        ServiceClientEntity sc = clientRepository.findByServiceIdAndClientId(serviceId, clientId);
-        if (sc != null) {
-            clientRepository.delete(sc);
-        }
-
-    }
-
-//    /*
-//     * Scope provider, used at bootstrap to feed registry
-//     * 
-//     * TODO reevaluate, providers should be one per service and registered
-//     */
-//
-//    @Override
-//    public String getResourceId() {
-//        return null;
-//    }
-//
-//    @Override
-//    public Collection<Scope> getScopes() {
-//        List<Scope> scopes = new ArrayList<>();
-//
-//        // fetch all services and related scopes
-//        List<ServiceEntity> services = serviceRepository.findAll();
-//        for (ServiceEntity se : services) {
-//            List<ServiceScopeEntity> list = scopeRepository.findByServiceId(se.getServiceId());
-//            scopes.addAll(list.stream().map(s -> ServiceScope.from(s, se.getNamespace())).collect(Collectors.toList()));
-//        }
-//
-//        return scopes;
-//
-//    }
+    //    /*
+    //     * Scope provider, used at bootstrap to feed registry
+    //     *
+    //     * TODO reevaluate, providers should be one per service and registered
+    //     */
+    //
+    //    @Override
+    //    public String getResourceId() {
+    //        return null;
+    //    }
+    //
+    //    @Override
+    //    public Collection<Scope> getScopes() {
+    //        List<Scope> scopes = new ArrayList<>();
+    //
+    //        // fetch all services and related scopes
+    //        List<ServiceEntity> services = serviceRepository.findAll();
+    //        for (ServiceEntity se : services) {
+    //            List<ServiceScopeEntity> list = scopeRepository.findByServiceId(se.getServiceId());
+    //            scopes.addAll(list.stream().map(s -> ServiceScope.from(s, se.getNamespace())).collect(Collectors.toList()));
+    //        }
+    //
+    //        return scopes;
+    //
+    //    }
 }

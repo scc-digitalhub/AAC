@@ -1,30 +1,42 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.core.model;
 
 /*
- * A realm scoped resource, provided by an authority 
+ * A realm scoped resource, provided by an authority
  */
 
 public interface Resource {
-
     public String getRealm();
 
     public String getAuthority();
 
     public String getProvider();
 
-    // id is local to the provider
+    // id is global across all resources (uuid)
     public String getId();
-
-    // uuid is global
-    public String getUuid();
 
     // TODO replace with proper typing <T> on resource
     public String getType();
 
-    // resource is globally unique and addressable
-    // ie given to an external actor he should be able to find the authority and
-    // then the provider to request this resource
+    // resourceId is local to (type)/authority+provider
     public String getResourceId();
 
-    public String getUrn();
+    public default String getUrn() {
+        return null;
+    }
 }

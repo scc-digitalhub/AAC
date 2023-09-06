@@ -1,4 +1,3 @@
-  
 jdbc:
   dialect: org.hibernate.dialect.H2Dialect
   driver: org.h2.Driver
@@ -7,20 +6,19 @@ jdbc:
   password: ac
 
 logging:
-   level:
-      it.smartcommunitylab.aac: TRACE
+  level:
+    it.smartcommunitylab.aac: TRACE
+    it.smartcommunitylab.aac.audit.AuthorizationEventListener: DEBUG
 
-      
-oauth2:
-   jwt: true
-      
-# DEFAULT ADMIN CLIENT  
-adminClient:
-    id: test_client
-    secret: secret
-    scopes: clientmanagement,orgmanagement,apimanagement,openid,email,profile,user.roles.me,user.roles.read,profile.basicprofile.me,profile.accountprofile.me,profile.basicprofile.all,profile.accountprofile.all
-    redirects: http://localhost:8080
+
+bootstrap:
+    apply: true
+    file: classpath:/bootstrap-test.yaml
 
 #disable actuator
 management:
-   port: -1
+  port: -1
+
+# disable spring sessions for tests
+# workaround for https://github.com/spring-projects/spring-session/issues/2037
+spring.autoconfigure.exclude: org.springframework.boot.autoconfigure.session.SessionAutoConfiguration

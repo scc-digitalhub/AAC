@@ -16,22 +16,6 @@
 
 package it.smartcommunitylab.aac.profiles.controller;
 
-import java.util.Collection;
-
-import javax.validation.Valid;
-import javax.validation.constraints.Pattern;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
-import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import it.smartcommunitylab.aac.Config;
@@ -44,6 +28,19 @@ import it.smartcommunitylab.aac.profiles.model.AccountProfile;
 import it.smartcommunitylab.aac.profiles.model.BasicProfile;
 import it.smartcommunitylab.aac.profiles.model.OpenIdProfile;
 import it.smartcommunitylab.aac.profiles.model.ProfileResponse;
+import java.util.Collection;
+import javax.validation.Valid;
+import javax.validation.constraints.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author raman
@@ -52,6 +49,7 @@ import it.smartcommunitylab.aac.profiles.model.ProfileResponse;
 @RestController
 @Tag(name = "AAC User profile")
 public class ProfileController {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
@@ -65,9 +63,9 @@ public class ProfileController {
     @PreAuthorize("hasAuthority('" + Config.R_USER + "') and hasAuthority('SCOPE_profile.'+#identifier+'.me')")
     @GetMapping(value = "/profile/{identifier}/me")
     public @ResponseBody ProfileResponse myProfiles(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String identifier,
-            BearerTokenAuthentication auth)
-            throws InvalidDefinitionException, NoSuchUserException {
+        @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String identifier,
+        BearerTokenAuthentication auth
+    ) throws InvalidDefinitionException, NoSuchUserException {
         if (auth == null) {
             logger.error("invalid authentication");
             throw new IllegalArgumentException("invalid authentication");
@@ -89,12 +87,12 @@ public class ProfileController {
      * Core profiles (legacy)
      */
 
-    @Deprecated()
+    @Deprecated
     @Operation(summary = "Get basic profile of the current user")
     @PreAuthorize("hasAuthority('" + Config.R_USER + "') and hasAuthority('SCOPE_" + Config.SCOPE_BASIC_PROFILE + "')")
     @GetMapping(value = "/basicprofile/me")
     public @ResponseBody ProfileResponse myBasicProfile(BearerTokenAuthentication auth)
-            throws InvalidDefinitionException, NoSuchUserException {
+        throws InvalidDefinitionException, NoSuchUserException {
         if (auth == null) {
             logger.error("invalid authentication");
             throw new IllegalArgumentException("invalid authentication");
@@ -112,12 +110,12 @@ public class ProfileController {
         return new ProfileResponse(subject, profile);
     }
 
-    @Deprecated()
+    @Deprecated
     @Operation(summary = "Get openid profile of the current user")
     @PreAuthorize("hasAuthority('" + Config.R_USER + "') and hasAuthority('SCOPE_" + Config.SCOPE_PROFILE + "')")
     @GetMapping(value = "/openidprofile/me")
     public @ResponseBody ProfileResponse myOpenIdProfile(BearerTokenAuthentication auth)
-            throws InvalidDefinitionException, NoSuchUserException {
+        throws InvalidDefinitionException, NoSuchUserException {
         if (auth == null) {
             logger.error("invalid authentication");
             throw new IllegalArgumentException("invalid authentication");
@@ -135,13 +133,14 @@ public class ProfileController {
         return new ProfileResponse(subject, profile);
     }
 
-    @Deprecated()
+    @Deprecated
     @Operation(summary = "Get account profiles of the current user")
-    @PreAuthorize("hasAuthority('" + Config.R_USER + "') and hasAuthority('SCOPE_" + Config.SCOPE_ACCOUNT_PROFILE
-            + "')")
+    @PreAuthorize(
+        "hasAuthority('" + Config.R_USER + "') and hasAuthority('SCOPE_" + Config.SCOPE_ACCOUNT_PROFILE + "')"
+    )
     @GetMapping(value = "/accountprofile/me")
     public @ResponseBody ProfileResponse myAccountProfiles(BearerTokenAuthentication auth)
-            throws InvalidDefinitionException, NoSuchUserException {
+        throws InvalidDefinitionException, NoSuchUserException {
         if (auth == null) {
             logger.error("invalid authentication");
             throw new IllegalArgumentException("invalid authentication");
@@ -158,5 +157,4 @@ public class ProfileController {
         Collection<AbstractProfile> profiles = profileManager.getProfiles(realm, subject, AccountProfile.IDENTIFIER);
         return new ProfileResponse(subject, profiles);
     }
-
 }

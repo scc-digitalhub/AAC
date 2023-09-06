@@ -1,89 +1,49 @@
-package it.smartcommunitylab.aac.core.provider;
-
-import java.util.Collection;
-
-import it.smartcommunitylab.aac.common.NoSuchCredentialException;
-import it.smartcommunitylab.aac.common.NoSuchUserException;
-import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.core.base.AbstractProviderConfig;
-import it.smartcommunitylab.aac.core.model.UserCredentials;
-
 /*
- * Credentials service handles credentials associated to a single user account,
- * which is exposed by a given identity service in the same realm
- * 
- * We currently expect a single ids per realm. 
- * TODO evaluate supporting multiple ids (from different authorities)
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
-public interface UserCredentialsService<C extends UserCredentials> extends ResourceProvider {
+package it.smartcommunitylab.aac.core.provider;
 
-    /*
-     * Config
-     */
-    public String getName();
+import it.smartcommunitylab.aac.common.NoSuchCredentialException;
+import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.core.model.UserCredentials;
+import java.util.Collection;
+import javax.validation.constraints.NotNull;
 
-    public String getDescription();
+public interface UserCredentialsService<C extends UserCredentials> {
+    public Collection<C> findCredentialsByRealm(@NotNull String realm);
 
-    // TODO expose config
-    public AbstractProviderConfig getConfig();
+    public C findCredentialsById(@NotNull String repository, @NotNull String id);
 
-    /*
-     * Capabilities
-     */
+    public C findCredentialsByUuid(@NotNull String uuid);
 
-//    public boolean canRead();
+    public Collection<C> findCredentialsByAccount(@NotNull String repository, @NotNull String accountId);
 
-//    public boolean canSet();
-//
-//    public boolean canReset();
-//
-//    public boolean canRevoke();
+    public Collection<C> findCredentialsByUser(@NotNull String repository, @NotNull String userId);
 
-    /*
-     * Set current credential (if only one is allowed) or all credentials
-     */
+    public C addCredentials(@NotNull String repository, @NotNull String id, @NotNull C reg)
+        throws RegistrationException;
 
-    public C getCredentials(String accountId) throws NoSuchUserException;
+    public C updateCredentials(@NotNull String repository, @NotNull String id, @NotNull C reg)
+        throws NoSuchCredentialException, RegistrationException;
 
-    public C setCredentials(String accountId, UserCredentials credentials) throws NoSuchUserException;
+    public void deleteCredentials(@NotNull String repository, @NotNull String id);
 
-    public void resetCredentials(String accountId) throws NoSuchUserException;
+    public void deleteAllCredentials(@NotNull String repository, @NotNull Collection<String> id);
 
-    public void revokeCredentials(String accountId) throws NoSuchUserException, NoSuchCredentialException;
+    public void deleteAllCredentialsByUser(@NotNull String repository, @NotNull String userId);
 
-    public void deleteCredentials(String accountId) throws NoSuchUserException;
-
-    /*
-     * Set specific credentials when more than one is allowed
-     */
-    public Collection<C> listCredentials(String accountId) throws NoSuchUserException;
-
-    public C getCredentials(String accountId, String credentialsId)
-            throws NoSuchUserException, NoSuchCredentialException;
-
-    public C setCredentials(String accountId, String credentialsId, UserCredentials credentials)
-            throws NoSuchUserException, RegistrationException, NoSuchCredentialException;
-
-    public void resetCredentials(String accountId, String credentialsId)
-            throws NoSuchUserException, NoSuchCredentialException;
-
-    public void revokeCredentials(String accountId, String credentialsId)
-            throws NoSuchUserException, NoSuchCredentialException;
-
-    public void deleteCredentials(String accountId, String credentialsId)
-            throws NoSuchUserException, NoSuchCredentialException;
-
-    /*
-     * Action urls
-     */
-    public String getSetUrl() throws NoSuchUserException;
-
-    /*
-     * At least one between resetLink or resetCredentials is required to support
-     * reset. Credentials used for login should be resettable, while those used for
-     * MFA should be removed or revoked.
-     */
-    public String getResetUrl();
-
+    public void deleteAllCredentialsByAccount(@NotNull String repository, @NotNull String account);
 }

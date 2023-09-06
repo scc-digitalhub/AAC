@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2015 Fondazione Bruno Kessler
- * 
+ *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
  *    You may obtain a copy of the License at
- * 
+ *
  *        http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  *    Unless required by applicable law or agreed to in writing, software
  *    distributed under the License is distributed on an "AS IS" BASIS,
  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,6 +16,14 @@
 
 package it.smartcommunitylab.aac.oauth.model;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import it.smartcommunitylab.aac.repository.StringArraySerializer;
+import it.smartcommunitylab.aac.repository.StringOrArraySerializer;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
@@ -25,19 +33,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
-import it.smartcommunitylab.aac.repository.StringOrArraySerializer;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
  * IETF RFC7662 Token Introspection model
- * 
+ *
  * @author raman
  *
  */
@@ -61,6 +59,8 @@ public class TokenIntrospection {
         n.add("iss");
         n.add("aud");
         n.add("azp");
+        // support access_token as jwt/opaque
+        n.add("access_token");
 
         RESERVED_CLAIM_NAMES = Collections.unmodifiableSet(n);
     }
@@ -71,7 +71,7 @@ public class TokenIntrospection {
     private String jti;
 
     @JsonProperty("scope")
-    @JsonSerialize(using = StringOrArraySerializer.class)
+    @JsonSerialize(using = StringArraySerializer.class)
     private Set<String> scope;
 
     @JsonProperty("client_id")
@@ -101,6 +101,9 @@ public class TokenIntrospection {
 
     @JsonProperty("azp")
     private String authorizedParty;
+
+    @JsonProperty("access_token")
+    private String accessToken;
 
     @JsonIgnore
     Map<String, Serializable> claims;
@@ -202,6 +205,14 @@ public class TokenIntrospection {
         this.authorizedParty = authorizedParty;
     }
 
+    public String getAccessToken() {
+        return accessToken;
+    }
+
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
+    }
+
     public boolean isActive() {
         return active;
     }
@@ -211,7 +222,10 @@ public class TokenIntrospection {
     }
 
     public void setClaims(Map<String, Serializable> claims) {
-        this.claims = claims.entrySet().stream()
+        this.claims =
+            claims
+                .entrySet()
+                .stream()
                 .filter(c -> !RESERVED_CLAIM_NAMES.contains(c.getKey()))
                 .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
     }

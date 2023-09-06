@@ -1,5 +1,25 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.services;
 
+import it.smartcommunitylab.aac.scope.Resource;
+import it.smartcommunitylab.aac.scope.Scope;
+import it.smartcommunitylab.aac.scope.ScopeApprover;
+import it.smartcommunitylab.aac.scope.ScopeProvider;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -8,14 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.springframework.util.Assert;
-
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.scope.Resource;
-import it.smartcommunitylab.aac.scope.Scope;
-import it.smartcommunitylab.aac.scope.ScopeApprover;
-import it.smartcommunitylab.aac.scope.ScopeProvider;
 
 public class ServiceScopeProvider implements ScopeProvider {
 
@@ -33,27 +46,22 @@ public class ServiceScopeProvider implements ScopeProvider {
         resource = new Resource(service.getNamespace());
         resource.setName(service.getName());
         resource.setDescription(service.getDescription());
-        
-        //add realm to resource
+
+        // add realm to resource
         resource.setRealm(service.getRealm());
 
         // build scopes
-        // include introspect client in audience
         Set<String> audience = new HashSet<>();
         audience.add(service.getNamespace());
-        if (service.getClients() != null) {
-            service.getClients().forEach(client -> {
-                if (SystemKeys.SERVICE_CLIENT_TYPE_INTROSPECT.equals(client.getType())) {
-                    audience.add(client.getClientId());
-                }
-            });
-        }
-        List<Scope> scopes = service.getScopes().stream()
-                .map(s -> {
-                    s.setAudience(audience);
-                    return s;
-                })
-                .collect(Collectors.toList());
+
+        List<Scope> scopes = service
+            .getScopes()
+            .stream()
+            .map(s -> {
+                s.setAudience(audience);
+                return s;
+            })
+            .collect(Collectors.toList());
         resource.setScopes(scopes);
     }
 
@@ -75,7 +83,6 @@ public class ServiceScopeProvider implements ScopeProvider {
 
         // we return null if no approver is defined
         return approvers.get(scope);
-
     }
 
     public void addApprover(String scope, ScopeApprover approver) {
@@ -94,5 +101,4 @@ public class ServiceScopeProvider implements ScopeProvider {
     public Resource getResource() {
         return resource;
     }
-
 }

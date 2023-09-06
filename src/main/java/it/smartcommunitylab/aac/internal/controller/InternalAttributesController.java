@@ -1,23 +1,20 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.internal.controller;
-
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.SystemKeys;
@@ -31,14 +28,30 @@ import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.dto.AttributesRegistration;
 import it.smartcommunitylab.aac.dto.AttributesRegistration.AttributeRegistration;
-import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.internal.InternalAttributeAuthority;
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeService;
 import it.smartcommunitylab.aac.model.Realm;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 @Controller
 @RequestMapping
 public class InternalAttributesController {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
@@ -59,12 +72,12 @@ public class InternalAttributesController {
     @Hidden
     @RequestMapping(value = "/attrs/internal/edit/{providerId}/{setId}", method = RequestMethod.GET)
     public String registrationPage(
-            @PathVariable("providerId") String providerId,
-            @PathVariable("setId") String setId,
-            Model model) throws NoSuchProviderException, NoSuchRealmException, NoSuchAttributeSetException {
-
+        @PathVariable("providerId") String providerId,
+        @PathVariable("setId") String setId,
+        Model model
+    ) throws NoSuchProviderException, NoSuchRealmException, NoSuchAttributeSetException {
         // resolve provider
-        InternalAttributeService as = internalAuthority.getAttributeService(providerId);
+        InternalAttributeService as = internalAuthority.getProvider(providerId);
         if (as == null) {
             throw new NoSuchProviderException();
         }
@@ -85,14 +98,14 @@ public class InternalAttributesController {
         Realm re = realmManager.getRealm(realm);
         String displayName = re.getName();
         Map<String, String> resources = new HashMap<>();
-        if (!realm.equals(SystemKeys.REALM_COMMON)) {
-            re = realmManager.getRealm(realm);
-            displayName = re.getName();
-            CustomizationBean gcb = re.getCustomization("global");
-            if (gcb != null) {
-                resources.putAll(gcb.getResources());
-            }
-        }
+        //        if (!realm.equals(SystemKeys.REALM_COMMON)) {
+        //            re = realmManager.getRealm(realm);
+        //            displayName = re.getName();
+        //            CustomizationBean gcb = re.getCustomization("global");
+        //            if (gcb != null) {
+        //                resources.putAll(gcb.getResources());
+        //            }
+        //        }
 
         model.addAttribute("displayName", displayName);
         model.addAttribute("customization", resources);
@@ -109,16 +122,17 @@ public class InternalAttributesController {
      */
     @Hidden
     @RequestMapping(value = "/attrs/internal/edit/{providerId}/{setId}", method = RequestMethod.POST)
-    public String register(Model model,
-            @PathVariable("providerId") String providerId,
-            @PathVariable("setId") String setId,
-            @ModelAttribute("reg") @Valid AttributesRegistration reg,
-            BindingResult result,
-            HttpServletRequest req) {
-
+    public String register(
+        Model model,
+        @PathVariable("providerId") String providerId,
+        @PathVariable("setId") String setId,
+        @ModelAttribute("reg") @Valid AttributesRegistration reg,
+        BindingResult result,
+        HttpServletRequest req
+    ) {
         try {
             // resolve provider
-            InternalAttributeService as = internalAuthority.getAttributeService(providerId);
+            InternalAttributeService as = internalAuthority.getProvider(providerId);
             if (as == null) {
                 throw new NoSuchProviderException();
             }
@@ -152,14 +166,14 @@ public class InternalAttributesController {
             Realm re = realmManager.getRealm(realm);
             String displayName = re.getName();
             Map<String, String> resources = new HashMap<>();
-            if (!realm.equals(SystemKeys.REALM_COMMON)) {
-                re = realmManager.getRealm(realm);
-                displayName = re.getName();
-                CustomizationBean gcb = re.getCustomization("global");
-                if (gcb != null) {
-                    resources.putAll(gcb.getResources());
-                }
-            }
+            //            if (!realm.equals(SystemKeys.REALM_COMMON)) {
+            //                re = realmManager.getRealm(realm);
+            //                displayName = re.getName();
+            //                CustomizationBean gcb = re.getCustomization("global");
+            //                if (gcb != null) {
+            //                    resources.putAll(gcb.getResources());
+            //                }
+            //            }
 
             model.addAttribute("displayName", displayName);
             model.addAttribute("customization", resources);
@@ -174,9 +188,10 @@ public class InternalAttributesController {
             }
 
             // save to provider
-
+            // TODO
+            throw new RegistrationException("not implemented");
             // WRONG, should send redirect to success page to avoid double POST
-            return "attributes/form";
+            //            return "attributes/form";
         } catch (InvalidDataException e) {
             StringBuilder msg = new StringBuilder();
             msg.append(messageSource.getMessage(e.getMessage(), null, req.getLocale()));

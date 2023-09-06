@@ -1,46 +1,54 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.repository;
-
-import java.io.IOException;
-import java.util.Map;
-
-import javax.persistence.AttributeConverter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.util.Map;
+import javax.persistence.AttributeConverter;
 
 public class NestedMapConverter implements AttributeConverter<Map<String, Map<String, String>>, String> {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final TypeReference<Map<String, Map<String, String>>> typeRef = new TypeReference<Map<String, Map<String, String>>>() {
-    };
+    private final TypeReference<Map<String, Map<String, String>>> typeRef =
+        new TypeReference<Map<String, Map<String, String>>>() {};
 
     @Override
     public String convertToDatabaseColumn(Map<String, Map<String, String>> map) {
-
         String json = null;
         if (map != null) {
             try {
                 json = objectMapper.writeValueAsString(map);
-            } catch (final JsonProcessingException e) {
-            }
+            } catch (final JsonProcessingException e) {}
         }
         return json;
     }
 
-//    @SuppressWarnings("unchecked")
+    //    @SuppressWarnings("unchecked")
     @Override
     public Map<String, Map<String, String>> convertToEntityAttribute(String json) {
-
         Map<String, Map<String, String>> map = null;
         if (json != null) {
             try {
                 map = objectMapper.readValue(json, typeRef);
-            } catch (final IOException e) {
-            }
-
+            } catch (final IOException e) {}
         }
         return map;
     }
-
 }

@@ -1,8 +1,27 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.internal.auth;
 
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityConfirmService;
 import java.util.Collections;
 import java.util.Set;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -14,34 +33,40 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.provider.InternalAccountService;
-
 public class ConfirmKeyAuthenticationProvider implements AuthenticationProvider {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-//    private final String realm;
-//    private final String providerId;
+    private final UserAccountService<InternalUserAccount> userAccountService;
+    private final InternalIdentityConfirmService confirmService;
 
-    private final InternalAccountService accountService;
+    private final String repositoryId;
 
-    public ConfirmKeyAuthenticationProvider(String providerId,
-            InternalAccountService accountService,
-            String realm) {
+    public ConfirmKeyAuthenticationProvider(
+        String providerId,
+        UserAccountService<InternalUserAccount> userAccountService,
+        InternalIdentityConfirmService confirmService,
+        String repositoryId,
+        String realm
+    ) {
         Assert.hasText(providerId, "provider can not be null or empty");
-        Assert.notNull(accountService, "account service is mandatory");
+        Assert.notNull(userAccountService, "account service is mandatory");
+        Assert.notNull(confirmService, "account confirm service is mandatory");
+        Assert.hasText(repositoryId, "repository id can not be null or empty");
 
-//        this.realm = realm;
-//        this.providerId = providerId;
+        this.userAccountService = userAccountService;
+        this.confirmService = confirmService;
 
-        this.accountService = accountService;
+        this.repositoryId = repositoryId;
     }
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        Assert.isInstanceOf(ConfirmKeyAuthenticationToken.class, authentication,
-                "Only ConfirmKeyAuthenticationToken is supported");
+        Assert.isInstanceOf(
+            ConfirmKeyAuthenticationToken.class,
+            authentication,
+            "Only ConfirmKeyAuthenticationToken is supported"
+        );
 
         ConfirmKeyAuthenticationToken authRequest = (ConfirmKeyAuthenticationToken) authentication;
 
@@ -53,13 +78,13 @@ public class ConfirmKeyAuthenticationProvider implements AuthenticationProvider 
         }
 
         try {
-            InternalUserAccount account = accountService.findAccountByUsername(username);
+            InternalUserAccount account = userAccountService.findAccountById(repositoryId, username);
             if (account == null) {
                 throw new BadCredentialsException("invalid request");
             }
 
             // do confirm
-            account = accountService.confirmAccountViaKey(key);
+            account = confirmService.confirmAccount(username, key);
             if (!account.isConfirmed()) {
                 throw new BadCredentialsException("invalid request");
             }
@@ -73,18 +98,15 @@ public class ConfirmKeyAuthenticationProvider implements AuthenticationProvider 
             ConfirmKeyAuthenticationToken auth = new ConfirmKeyAuthenticationToken(username, key, account, authorities);
 
             return auth;
-
         } catch (Exception e) {
             logger.error(e.getMessage());
             // don't leak
             throw new BadCredentialsException("invalid request");
         }
-
     }
 
     @Override
     public boolean supports(Class<?> authentication) {
         return (ConfirmKeyAuthenticationToken.class.isAssignableFrom(authentication));
     }
-
 }

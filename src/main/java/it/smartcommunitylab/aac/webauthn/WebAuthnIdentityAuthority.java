@@ -1,30 +1,43 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.webauthn;
 
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractIdentityAuthority;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.UserAccountService;
-import it.smartcommunitylab.aac.core.service.SubjectService;
-import it.smartcommunitylab.aac.core.service.UserEntityService;
+import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredentialsRepository;
-import it.smartcommunitylab.aac.webauthn.provider.WebAuthnFilterProvider;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityConfigurationProvider;
+import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityFilterProvider;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProvider;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfigMap;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpService;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnLoginRpService;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserCredentialsService;
 import it.smartcommunitylab.aac.webauthn.store.WebAuthnAssertionRequestStore;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 @Service
-public class WebAuthnIdentityAuthority extends
-        AbstractIdentityAuthority<InternalUserIdentity, WebAuthnIdentityProvider, WebAuthnIdentityProviderConfig, WebAuthnIdentityProviderConfigMap>
-        implements InitializingBean {
+public class WebAuthnIdentityAuthority
+    extends AbstractIdentityAuthority<WebAuthnIdentityProvider, InternalUserIdentity, WebAuthnIdentityProviderConfigMap, WebAuthnIdentityProviderConfig> {
 
     public static final String AUTHORITY_URL = "/auth/webauthn/";
 
@@ -32,28 +45,32 @@ public class WebAuthnIdentityAuthority extends
     private final UserAccountService<InternalUserAccount> accountService;
 
     // key repository
-    private final WebAuthnCredentialsRepository credentialsRepository;
+    private final WebAuthnUserCredentialsService credentialsService;
 
     // filter provider
-    private final WebAuthnFilterProvider filterProvider;
+    private final WebAuthnIdentityFilterProvider filterProvider;
+
+    // services
+    private ResourceEntityService resourceService;
 
     public WebAuthnIdentityAuthority(
-            UserEntityService userEntityService, SubjectService subjectService,
-            UserAccountService<InternalUserAccount> userAccountService,
-            WebAuthnCredentialsRepository credentialsRepository,
-            WebAuthnRpService rpService, WebAuthnAssertionRequestStore requestStore,
-            ProviderConfigRepository<WebAuthnIdentityProviderConfig> registrationRepository) {
-        super(SystemKeys.AUTHORITY_WEBAUTHN, userEntityService, subjectService, registrationRepository);
+        UserAccountService<InternalUserAccount> userAccountService,
+        WebAuthnUserCredentialsService credentialsService,
+        WebAuthnLoginRpService rpService,
+        WebAuthnAssertionRequestStore requestStore,
+        ProviderConfigRepository<WebAuthnIdentityProviderConfig> registrationRepository
+    ) {
+        super(SystemKeys.AUTHORITY_WEBAUTHN, registrationRepository);
         Assert.notNull(userAccountService, "account service is mandatory");
-        Assert.notNull(credentialsRepository, "credentials repository is mandatory");
+        Assert.notNull(credentialsService, "credentials service is mandatory");
         Assert.notNull(rpService, "webauthn rp service is mandatory");
         Assert.notNull(requestStore, "webauthn request store is mandatory");
 
         this.accountService = userAccountService;
-        this.credentialsRepository = credentialsRepository;
+        this.credentialsService = credentialsService;
 
         // build filter provider
-        this.filterProvider = new WebAuthnFilterProvider(rpService, registrationRepository, requestStore);
+        this.filterProvider = new WebAuthnIdentityFilterProvider(rpService, registrationRepository, requestStore);
     }
 
     @Autowired
@@ -62,25 +79,28 @@ public class WebAuthnIdentityAuthority extends
         this.configProvider = configProvider;
     }
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        super.afterPropertiesSet();
+    @Autowired
+    public void setResourceService(ResourceEntityService resourceService) {
+        this.resourceService = resourceService;
     }
 
     @Override
     public WebAuthnIdentityProvider buildProvider(WebAuthnIdentityProviderConfig config) {
         WebAuthnIdentityProvider idp = new WebAuthnIdentityProvider(
-                config.getProvider(),
-                userEntityService, accountService, subjectService,
-                credentialsRepository,
-                config, config.getRealm());
+            config.getProvider(),
+            accountService,
+            credentialsService,
+            config,
+            config.getRealm()
+        );
+
+        idp.setResourceService(resourceService);
 
         return idp;
     }
 
     @Override
-    public WebAuthnFilterProvider getFilterProvider() {
+    public WebAuthnIdentityFilterProvider getFilterProvider() {
         return filterProvider;
     }
-
 }

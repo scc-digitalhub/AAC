@@ -11,6 +11,9 @@
             <button ng-if="idp.enabled" class="btn btn-warning btn-sm  text-right" ng-click="toggleProviderState(idp)">
                 Disable
             </button>
+            <button ng-if="idp.registered" class="btn btn-secondary btn-sm  text-right" ng-click="inspectProvider(idp)">
+                Inspect
+            </button>
             <button class="btn btn-primary btn-sm  text-right" ng-click="saveProvider(idp)"
                 ng-disabled="idp.enabled">Save</button>
             <button class="btn btn-secondary btn-sm  text-right" ng-click="exportProvider(idp)">Export</button>
@@ -53,12 +56,13 @@
         <li ng-if="idp.authority == 'password'" class="nav-item">
             <a class="nav-link  {{activeView('conf.password')}}" href ng-click="switchView('conf.password')">Password
                 Configuration</a>
-        </li>   
+        </li>
         <li ng-if="idp.authority == 'webauthn'" class="nav-item">
             <a class="nav-link  {{activeView('conf.webauthn')}}" href ng-click="switchView('conf.webauthn')">WebAuthn
                 Configuration</a>
-        </li>                 
-        <li ng-if="idp.authority == 'oidc' || idp.schema.id == 'urn:jsonschema:it:smartcommunitylab:aac:openid:provider:OIDCIdentityProviderConfigMap'" class="nav-item">
+        </li>
+        <li ng-if="idp.authority == 'oidc' || idp.schema.id == 'urn:jsonschema:it:smartcommunitylab:aac:openid:provider:OIDCIdentityProviderConfigMap'"
+            class="nav-item">
             <a class="nav-link  {{activeView('conf.oidc')}}" href ng-click="switchView('conf.oidc')">OIDC
                 Configuration</a>
         </li>
@@ -69,7 +73,7 @@
         <li ng-if="idp.authority == 'apple'" class="nav-item">
             <a class="nav-link  {{activeView('conf.apple')}}" href ng-click="switchView('conf.apple')">Apple
                 Configuration</a>
-        </li>        
+        </li>
         <li class="nav-item">
             <a class="nav-link  {{activeView('hooks')}}" href ng-click="switchView('hooks')">Hooks</a>
         </li>
@@ -96,6 +100,23 @@
             <div class="modal-footer">
                 <button class="btn btn-danger btn-sm" ng-click="deleteProvider()" type="button">Delete</button>
                 <button class="btn btn-outline-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bs-modal-lg" id="inspectModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h3 class="modal-title" id="modal-title">Inspect json</h3>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <h6>Raw JSON</h6>
+                <div ui-ace="aceOption" ng-model="modObj.json"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary btn-sm" type="button" data-dismiss="modal">Close</button>
             </div>
         </div>
     </div>

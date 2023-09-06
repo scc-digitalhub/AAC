@@ -1,8 +1,25 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.core.persistence;
 
+import it.smartcommunitylab.aac.repository.HashMapBase64Converter;
+import it.smartcommunitylab.aac.repository.HashMapConverter;
 import java.util.Date;
 import java.util.Map;
-
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
@@ -11,13 +28,9 @@ import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
-
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import it.smartcommunitylab.aac.repository.HashMapBase64Converter;
-import it.smartcommunitylab.aac.repository.HashMapConverter;
 
 @Entity
 @Table(name = "clients")
@@ -26,9 +39,9 @@ public class ClientEntity {
 
     public static final String ID_PREFIX = "c_";
 
-//    @Id
-//    @GeneratedValue
-//    private Long id;
+    //    @Id
+    //    @GeneratedValue
+    //    private Long id;
 
     @Id
     @NotNull
@@ -77,22 +90,20 @@ public class ClientEntity {
     @Column(name = "last_modified_date")
     private Date modifiedDate;
 
-    protected ClientEntity() {
-
-    }
+    protected ClientEntity() {}
 
     public ClientEntity(String clientId) {
         super();
         this.clientId = clientId;
     }
 
-//    public Long getId() {
-//        return id;
-//    }
-//
-//    public void setId(Long id) {
-//        this.id = id;
-//    }
+    //    public Long getId() {
+    //        return id;
+    //    }
+    //
+    //    public void setId(Long id) {
+    //        this.id = id;
+    //    }
 
     public String getRealm() {
         return realm;
@@ -197,5 +208,4 @@ public class ClientEntity {
     public void setResourceIds(String resourceIds) {
         this.resourceIds = resourceIds;
     }
-
 }

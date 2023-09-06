@@ -1,21 +1,35 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.scope;
 
+import it.smartcommunitylab.aac.common.InvalidDefinitionException;
+import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.core.ClientDetails;
+import it.smartcommunitylab.aac.model.User;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
 import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.security.oauth2.provider.approval.Approval.ApprovalStatus;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
-import it.smartcommunitylab.aac.common.InvalidDefinitionException;
-import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.core.ClientDetails;
-import it.smartcommunitylab.aac.model.User;
 
 public class RoleScopeApprover implements ScopeApprover {
 
@@ -52,25 +66,30 @@ public class RoleScopeApprover implements ScopeApprover {
 
     @Override
     public Approval approveUserScope(String scope, User user, ClientDetails client, Collection<String> scopes)
-            throws InvalidDefinitionException, SystemException {
+        throws InvalidDefinitionException, SystemException {
         if (!this.scope.equals(scope)) {
             return null;
         }
 
-        Set<String> userRoles = user.getRealmRoles().stream().map(r -> r.getAuthority())
-                .collect(Collectors.toSet());
+        Set<String> userRoles = user.getRealmRoles().stream().map(r -> r.getAuthority()).collect(Collectors.toSet());
 
         boolean approved = false;
         if (requireAll) {
             // user needs to possess all the defined roles
-            approved = roles.stream().allMatch(a -> {
-                return userRoles.stream().allMatch(c -> matches(c, a));
-            });
+            approved =
+                roles
+                    .stream()
+                    .allMatch(a -> {
+                        return userRoles.stream().allMatch(c -> matches(c, a));
+                    });
         } else {
             // we look for at least one
-            approved = roles.stream().anyMatch(a -> {
-                return userRoles.stream().anyMatch(c -> matches(c, a));
-            });
+            approved =
+                roles
+                    .stream()
+                    .anyMatch(a -> {
+                        return userRoles.stream().anyMatch(c -> matches(c, a));
+                    });
         }
 
         ApprovalStatus approvalStatus = approved ? ApprovalStatus.APPROVED : ApprovalStatus.DENIED;
@@ -79,23 +98,23 @@ public class RoleScopeApprover implements ScopeApprover {
 
     @Override
     public Approval approveClientScope(String scope, ClientDetails client, Collection<String> scopes)
-            throws InvalidDefinitionException, SystemException {
+        throws InvalidDefinitionException, SystemException {
         if (!this.scope.equals(scope)) {
             return null;
         }
 
         // TODO update after replacing ClientDetails with Client model including roles
-//        Set<String> clientRoles = client.getRoles().stream().map(r -> r.getAuthority())
-//                .collect(Collectors.toSet());
+        //        Set<String> clientRoles = client.getRoles().stream().map(r -> r.getAuthority())
+        //                .collect(Collectors.toSet());
 
         boolean approved = false;
-//        if (requireAll) {
-//            // client needs to possess all the defined roles
-//            approved = roles.stream().allMatch(a -> clientRoles.contains(a));
-//        } else {
-//            // we look for at least one
-//            approved = roles.stream().anyMatch(a -> clientRoles.contains(a));
-//        }
+        //        if (requireAll) {
+        //            // client needs to possess all the defined roles
+        //            approved = roles.stream().allMatch(a -> clientRoles.contains(a));
+        //        } else {
+        //            // we look for at least one
+        //            approved = roles.stream().anyMatch(a -> clientRoles.contains(a));
+        //        }
 
         ApprovalStatus approvalStatus = approved ? ApprovalStatus.APPROVED : ApprovalStatus.DENIED;
         return new Approval(resourceId, client.getClientId(), scope, duration, approvalStatus);
@@ -146,9 +165,7 @@ public class RoleScopeApprover implements ScopeApprover {
             }
 
             return cmatch && rmatch;
-
         }
-
     }
 
     public boolean matchesGlob(String text, String glob) {
@@ -159,24 +176,21 @@ public class RoleScopeApprover implements ScopeApprover {
             glob = glob.substring(0, pos);
         }
 
-        if (glob.length() > text.length())
-            return false;
+        if (glob.length() > text.length()) return false;
 
         // handle the part up to the first *
-        for (int i = 0; i < glob.length(); i++)
-            if (glob.charAt(i) != '?'
-                    && !glob.substring(i, i + 1).equalsIgnoreCase(text.substring(i, i + 1)))
-                return false;
+        for (int i = 0; i < glob.length(); i++) if (
+            glob.charAt(i) != '?' && !glob.substring(i, i + 1).equalsIgnoreCase(text.substring(i, i + 1))
+        ) return false;
 
         // recurse for the part after the first *, if any
         if (rest == null) {
             return glob.length() == text.length();
         } else {
             for (int i = glob.length(); i <= text.length(); i++) {
-                if (matchesGlob(text.substring(i), rest))
-                    return true;
+                if (matchesGlob(text.substring(i), rest)) return true;
             }
             return false;
         }
     }
-};
+}

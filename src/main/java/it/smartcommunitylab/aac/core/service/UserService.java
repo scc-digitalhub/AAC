@@ -1,13 +1,56 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.core.service;
 
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
+import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
+import it.smartcommunitylab.aac.common.NoSuchProviderException;
+import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.NoSuchSubjectException;
+import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.core.UserDetails;
+import it.smartcommunitylab.aac.core.model.AttributeSet;
+import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.core.model.UserIdentity;
+import it.smartcommunitylab.aac.core.persistence.UserEntity;
+import it.smartcommunitylab.aac.core.provider.AttributeProvider;
+import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.groups.service.GroupService;
+import it.smartcommunitylab.aac.internal.InternalAttributeAuthority;
+import it.smartcommunitylab.aac.internal.provider.InternalAttributeService;
+import it.smartcommunitylab.aac.model.Group;
+import it.smartcommunitylab.aac.model.RealmRole;
+import it.smartcommunitylab.aac.model.SpaceRole;
+import it.smartcommunitylab.aac.model.Subject;
+import it.smartcommunitylab.aac.model.SubjectStatus;
+import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
+import it.smartcommunitylab.aac.roles.service.SubjectRoleService;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,48 +61,20 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.common.NoSuchProviderException;
-import it.smartcommunitylab.aac.common.NoSuchRealmException;
-import it.smartcommunitylab.aac.common.NoSuchSubjectException;
-import it.smartcommunitylab.aac.common.NoSuchUserException;
-import it.smartcommunitylab.aac.core.AuthorityManager;
-import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.authorities.AttributeAuthority;
-import it.smartcommunitylab.aac.core.model.AttributeSet;
-import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserIdentity;
-import it.smartcommunitylab.aac.core.persistence.UserEntity;
-import it.smartcommunitylab.aac.core.provider.AttributeProvider;
-import it.smartcommunitylab.aac.core.provider.AttributeService;
-import it.smartcommunitylab.aac.core.provider.IdentityProvider;
-import it.smartcommunitylab.aac.groups.service.GroupService;
-import it.smartcommunitylab.aac.model.Group;
-import it.smartcommunitylab.aac.model.RealmRole;
-import it.smartcommunitylab.aac.model.SpaceRole;
-import it.smartcommunitylab.aac.model.Subject;
-import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.model.SubjectStatus;
-import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
-import it.smartcommunitylab.aac.roles.service.SubjectRoleService;
-
 /*
  * User management
- * 
+ *
  * Uses providers and/or services exposed by authorities.
  * We don't support users managed by offline/unavailable providers
- * 
+ *
  * TODO evaluate how to handle unavailable providers
  * TODO evaluate cache on translators/fetch
- * 
+ *
  */
 @Service
 public class UserService {
 
-    @Autowired
-    private AuthorityManager authorityManager;
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // base services for users
     @Autowired
@@ -73,9 +88,21 @@ public class UserService {
 
     @Autowired
     private GroupService groupService;
-//
-//    @Autowired
-//    private IdentityProviderService identityProviderService;
+
+    @Autowired
+    private IdentityProviderAuthorityService identityProviderAuthorityService;
+
+    @Autowired
+    private AttributeProviderAuthorityService attributeProviderAuthorityService;
+
+    @Autowired
+    private AccountServiceAuthorityService accountServiceAuthorityService;
+
+    @Autowired
+    private CredentialsServiceAuthorityService credentialsServiceAuthorityService;
+
+    @Autowired
+    private InternalAttributeAuthority internalAttributeAuthority;
 
     @Autowired
     private AttributeProviderService attributeProviderService;
@@ -104,6 +131,8 @@ public class UserService {
             u.setLoginDate(ue.getLoginDate());
             u.setLoginIp(ue.getLoginIp());
             u.setLoginProvider(ue.getLoginProvider());
+            boolean tosAccepted = ue.getTosAccepted() != null ? ue.getTosAccepted().booleanValue() : false;
+            u.setTosAccepted(tosAccepted);
 
             // refresh authorities
             u.setAuthorities(fetchUserAuthorities(subjectId, realm));
@@ -120,7 +149,6 @@ public class UserService {
 
             // refresh space roles
             u.setSpaceRoles(fetchUserSpaceRoles(subjectId, realm));
-
         } catch (NoSuchUserException e) {
             // something wrong with refresh, ignore
         }
@@ -149,6 +177,8 @@ public class UserService {
             u.setLoginDate(ue.getLoginDate());
             u.setLoginIp(ue.getLoginIp());
             u.setLoginProvider(ue.getLoginProvider());
+            boolean tosAccepted = ue.getTosAccepted() != null ? ue.getTosAccepted().booleanValue() : false;
+            u.setTosAccepted(tosAccepted);
 
             // refresh authorities
             u.setAuthorities(fetchUserAuthorities(subjectId, realm));
@@ -165,7 +195,6 @@ public class UserService {
 
             // refresh space roles
             u.setSpaceRoles(fetchUserSpaceRoles(subjectId, realm));
-
         } catch (NoSuchUserException e) {
             // something wrong with refresh, ignore
         }
@@ -211,7 +240,6 @@ public class UserService {
 
             // refresh space roles
             u.setSpaceRoles(fetchUserSpaceRoles(subjectId, realm));
-
         } catch (NoSuchUserException e) {
             // something wrong with refresh, ignore
         }
@@ -241,6 +269,7 @@ public class UserService {
         // add authorities
         try {
             user.setAuthorities(fetchUserAuthorities(subjectId, realm));
+            user.setTosAccepted(u.getTosAccepted());
         } catch (NoSuchUserException e) {
             // ignore
         }
@@ -260,6 +289,12 @@ public class UserService {
         boolean emailVerified = ue.getEmailVerified() != null ? ue.getEmailVerified().booleanValue() : false;
         u.setEmailVerified(emailVerified);
 
+        if (ue.getTosAccepted() != null) {
+            u.setTosAccepted(ue.isTosAccepted());
+        } else {
+            u.setTosAccepted(null);
+        }
+
         // status
         SubjectStatus status = SubjectStatus.parse(ue.getStatus());
         u.setStatus(status);
@@ -272,17 +307,8 @@ public class UserService {
         u.setLoginIp(ue.getLoginIp());
         u.setLoginProvider(ue.getLoginProvider());
 
-        Set<UserIdentity> identities = new HashSet<>();
-
         // same realm, fetch all idps
-        // TODO we need an order criteria
-        for (IdentityProvider<UserIdentity> idp : authorityManager.fetchIdentityProviders(realm)) {
-            identities.addAll(idp.listIdentities(subjectId));
-        }
-
-        for (UserIdentity identity : identities) {
-            u.addIdentity(identity);
-        }
+        u.setIdentities(fetchUserIdentities(subjectId, realm));
 
         // add authorities
         u.setAuthorities(fetchUserAuthorities(subjectId, realm));
@@ -301,12 +327,11 @@ public class UserService {
         u.setSpaceRoles(fetchUserSpaceRoles(subjectId, realm));
 
         return u;
-
     }
 
     /*
      * Returns a model describing the given user as accessible for the given realm.
-     * 
+     *
      * For same-realm scenarios the model will be complete, while on cross-realm
      * some fields should be removed or empty.
      */
@@ -321,6 +346,12 @@ public class UserService {
         boolean emailVerified = ue.getEmailVerified() != null ? ue.getEmailVerified().booleanValue() : false;
         u.setEmailVerified(emailVerified);
 
+        if (ue.getTosAccepted() != null) {
+            u.setTosAccepted(ue.isTosAccepted());
+        } else {
+            u.setTosAccepted(null);
+        }
+
         // status
         SubjectStatus status = SubjectStatus.parse(ue.getStatus());
         u.setStatus(status);
@@ -333,31 +364,7 @@ public class UserService {
         u.setLoginIp(ue.getLoginIp());
         u.setLoginProvider(ue.getLoginProvider());
 
-        Set<UserIdentity> identities = new HashSet<>();
-
-        // fetch all identities from source realm
-        // TODO we need an order criteria
-        for (IdentityProvider<UserIdentity> idp : authorityManager.fetchIdentityProviders(realm)) {
-            identities.addAll(idp.listIdentities(subjectId));
-        }
-
-//        if (!source.equals(realm)) {
-        // DISABLED, TODO evaluate cross realm
-//            // also fetch identities from destination realm
-//            // TODO we need an order criteria
-//            for (IdentityProviderAuthority<? extends UserIdentity> ia : authorityManager
-//                    .listIdentityAuthorities()) {
-//                List<? extends IdentityProvider<? extends UserIdentity>> idps = ia
-//                        .getProviders(realm);
-//                for (IdentityProvider<? extends UserIdentity> idp : idps) {
-//                    identities.addAll(idp.listIdentities(subjectId));
-//                }
-//            }
-//        }
-
-        for (UserIdentity identity : identities) {
-            u.addIdentity(identity);
-        }
+        u.setIdentities(fetchUserIdentities(subjectId, realm));
 
         // TODO evaluate loading source realm attributes to feed translator?
 
@@ -383,12 +390,11 @@ public class UserService {
         u.setSpaceRoles(fetchUserSpaceRoles(subjectId, realm));
 
         return u;
-
     }
 
     /*
      * Lists users under the given realm
-     * 
+     *
      * TODO find a method to include users owned by different realms but
      * "accessible" from this realm.
      */
@@ -397,7 +403,6 @@ public class UserService {
         // owned by realm
         List<UserEntity> users = userService.listUsers(realm);
         return convertUsers(realm, users);
-
     }
 
     public Long countUsers(String realm) {
@@ -408,30 +413,33 @@ public class UserService {
     public Page<User> searchUsers(String realm, String q, Pageable pageRequest) {
         Page<UserEntity> page = userService.searchUsers(realm, q, pageRequest);
         return PageableExecutionUtils.getPage(
-                convertUsers(realm, page.getContent()),
-                pageRequest,
-                () -> page.getTotalElements());
+            convertUsers(realm, page.getContent()),
+            pageRequest,
+            () -> page.getTotalElements()
+        );
     }
 
     public Page<User> searchUsersWithSpec(String realm, Specification<UserEntity> spec, Pageable pageRequest) {
         Page<UserEntity> page = userService.searchUsersWithSpec(spec, pageRequest);
         return PageableExecutionUtils.getPage(
-                convertUsers(realm, page.getContent()),
-                pageRequest,
-                () -> page.getTotalElements());
+            convertUsers(realm, page.getContent()),
+            pageRequest,
+            () -> page.getTotalElements()
+        );
     }
 
     protected List<User> convertUsers(String realm, List<UserEntity> users) {
-        List<User> realmUsers = users.stream()
-                .map(u -> {
-                    try {
-                        return getUser(u.getUuid(), realm);
-                    } catch (NoSuchUserException e) {
-                        return null;
-                    }
-                })
-                .filter(u -> u != null)
-                .collect(Collectors.toList());
+        List<User> realmUsers = users
+            .stream()
+            .map(u -> {
+                try {
+                    return getUser(u.getUuid(), realm);
+                } catch (NoSuchUserException e) {
+                    return null;
+                }
+            })
+            .filter(u -> u != null)
+            .collect(Collectors.toList());
 
         // accessible from this realm
         // TODO
@@ -452,44 +460,47 @@ public class UserService {
         // with authority in realm
         List<Subject> subjects = subjectService.listSubjectsByAuthorities(realm, role);
 
-        List<UserEntity> users = subjects.stream().filter(s -> SystemKeys.RESOURCE_USER.equals(s.getType()))
-                .map(s -> userService.findUser(s.getSubjectId())).filter(s -> s != null).collect(Collectors.toList());
+        List<UserEntity> users = subjects
+            .stream()
+            .filter(s -> SystemKeys.RESOURCE_USER.equals(s.getType()))
+            .map(s -> userService.findUser(s.getSubjectId()))
+            .filter(s -> s != null)
+            .collect(Collectors.toList());
         return convertUsers(realm, users);
-
     }
 
-//    /**
-//     * Update realm roles for the specified user
-//     * 
-//     * @param slug
-//     * @param subjectId
-//     * @param roles
-//     * @throws NoSuchUserException
-//     */
-//    public Collection<RealmRole> updateRoles(String realm, String subjectId, Collection<String> roles)
-//            throws NoSuchUserException {
-//        // check role format
-//        roles.stream().forEach(r -> {
-//            if (!StringUtils.hasText(r) || !r.matches(SystemKeys.SLUG_PATTERN)) {
-//                throw new IllegalArgumentException("invalid role format, valid chars " + SystemKeys.SLUG_PATTERN);
-//            }
-//        });
-//
-//        // update
-//        List<UserRoleEntity> realmRoles = userService.updateRoles(subjectId, realm, roles);
-//        return realmRoles.stream()
-//                .map(ur -> new RealmRole(ur.getRealm(), ur.getRole()))
-//                .collect(Collectors.toList());
-//    }
-//
-//    public Collection<RealmRole> getRoles(String realm, String subjectId)
-//            throws NoSuchUserException {
-//        // fetch all authoritites for realm
-//        List<UserRoleEntity> realmRoles = userService.getRoles(subjectId, realm);
-//        return realmRoles.stream()
-//                .map(ur -> new RealmRole(ur.getRealm(), ur.getRole()))
-//                .collect(Collectors.toList());
-//    }
+    //    /**
+    //     * Update realm roles for the specified user
+    //     *
+    //     * @param slug
+    //     * @param subjectId
+    //     * @param roles
+    //     * @throws NoSuchUserException
+    //     */
+    //    public Collection<RealmRole> updateRoles(String realm, String subjectId, Collection<String> roles)
+    //            throws NoSuchUserException {
+    //        // check role format
+    //        roles.stream().forEach(r -> {
+    //            if (!StringUtils.hasText(r) || !r.matches(SystemKeys.SLUG_PATTERN)) {
+    //                throw new IllegalArgumentException("invalid role format, valid chars " + SystemKeys.SLUG_PATTERN);
+    //            }
+    //        });
+    //
+    //        // update
+    //        List<UserRoleEntity> realmRoles = userService.updateRoles(subjectId, realm, roles);
+    //        return realmRoles.stream()
+    //                .map(ur -> new RealmRole(ur.getRealm(), ur.getRole()))
+    //                .collect(Collectors.toList());
+    //    }
+    //
+    //    public Collection<RealmRole> getRoles(String realm, String subjectId)
+    //            throws NoSuchUserException {
+    //        // fetch all authoritites for realm
+    //        List<UserRoleEntity> realmRoles = userService.getRoles(subjectId, realm);
+    //        return realmRoles.stream()
+    //                .map(ur -> new RealmRole(ur.getRealm(), ur.getRole()))
+    //                .collect(Collectors.toList());
+    //    }
 
     /**
      * Remove a user from the given realm
@@ -508,14 +519,12 @@ public class UserService {
 
             // delete user
             userService.deleteUser(subjectId);
-
         } else {
             // fetch accessible
             // TODO decide policy + implement
             // CURRENTLY ONLY DROP REALM ROLES
-//            updateRoles(realm, subjectId, Collections.emptyList());
+            //            updateRoles(realm, subjectId, Collections.emptyList());
         }
-
     }
 
     @Transactional(readOnly = false)
@@ -524,48 +533,64 @@ public class UserService {
         String realm = user.getRealm();
 
         // delete identities via (active) providers
-        for (IdentityProvider<UserIdentity> idp : authorityManager.fetchIdentityProviders(realm)) {
-            // remove all identities
-            idp.deleteIdentities(subjectId);
-        }
+        identityProviderAuthorityService
+            .getAuthorities()
+            .stream()
+            .flatMap(a -> a.getProvidersByRealm(realm).stream())
+            .forEach(p -> p.deleteIdentities(subjectId));
 
-        // attributes
-        for (AttributeAuthority aa : authorityManager.listAttributeAuthorities()) {
-            List<AttributeProvider> aps = aa.getAttributeProviders(realm);
-            for (AttributeProvider ap : aps) {
-                // remove all attributes
-                ap.deleteUserAttributes(subjectId);
+        // delete accounts via (active) services
+        accountServiceAuthorityService
+            .getAuthorities()
+            .stream()
+            .flatMap(a -> a.getProvidersByRealm(realm).stream())
+            .forEach(s -> s.deleteAccounts(subjectId));
 
-            }
-        }
+        // delete credentials via (active) services
+        credentialsServiceAuthorityService
+            .getAuthorities()
+            .stream()
+            .flatMap(a -> a.getProvidersByRealm(realm).stream())
+            .forEach(s -> s.deleteCredentialsByUser(subjectId));
+
+        // delete attributes via (active) providers
+        attributeProviderAuthorityService
+            .getAuthorities()
+            .stream()
+            .flatMap(a -> a.getProvidersByRealm(realm).stream())
+            .forEach(ap -> ap.deleteUserAttributes(subjectId));
+
         // roles
         spaceRoleService.deleteRoles(subjectId);
 
         // delete user
         userService.deleteUser(subjectId);
-
     }
 
     @Transactional(readOnly = false)
-    public User blockUser(String subjectId) throws NoSuchUserException, NoSuchRealmException {
-        userService.blockUser(subjectId);
-        return getUser(subjectId);
+    public User blockUser(String userId) throws NoSuchUserException, NoSuchRealmException {
+        userService.blockUser(userId);
+        return getUser(userId);
     }
 
     @Transactional(readOnly = false)
-    public User activateUser(String subjectId) throws NoSuchUserException, NoSuchRealmException {
-        userService.activateUser(subjectId);
-        return getUser(subjectId);
+    public User activateUser(String userId) throws NoSuchUserException, NoSuchRealmException {
+        userService.activateUser(userId);
+        return getUser(userId);
     }
 
     @Transactional(readOnly = false)
-    public User inactivateUser(String subjectId) throws NoSuchUserException, NoSuchRealmException {
-        userService.inactivateUser(subjectId);
-        return getUser(subjectId);
+    public User inactivateUser(String userId) throws NoSuchUserException, NoSuchRealmException {
+        userService.inactivateUser(userId);
+        return getUser(userId);
     }
 
     // TODO user registration with authority via given provider
     // TODO user removal with authority via given provider
+
+    /*
+     * User authorities
+     */
 
     public Collection<GrantedAuthority> getUserAuthorities(String subjectId, String realm) throws NoSuchUserException {
         UserEntity u = userService.getUser(subjectId);
@@ -574,7 +599,7 @@ public class UserService {
     }
 
     public Collection<GrantedAuthority> setUserAuthorities(String subjectId, String realm, Collection<String> roles)
-            throws NoSuchUserException {
+        throws NoSuchUserException {
         UserEntity u = userService.getUser(subjectId);
 
         try {
@@ -594,76 +619,147 @@ public class UserService {
     }
 
     public Collection<UserAttributes> getUserAttributes(String subjectId, String realm, String provider)
-            throws NoSuchUserException, NoSuchProviderException {
+        throws NoSuchUserException, NoSuchProviderException, NoSuchAuthorityException {
         UserEntity u = userService.getUser(subjectId);
-        AttributeProvider ap = authorityManager.getAttributeProvider(provider);
+
+        // fetch config
+        ConfigurableAttributeProvider cap = attributeProviderService.getProvider(provider);
+        if (!cap.getRealm().equals(realm)) {
+            throw new IllegalArgumentException("realm mismatch");
+        }
+
+        // fetch active
+        AttributeProvider<?, ?> ap = attributeProviderAuthorityService
+            .getAuthority(cap.getAuthority())
+            .getProvider(cap.getProvider());
+
         return ap.getUserAttributes(u.getUuid());
     }
 
     public UserAttributes getUserAttributes(String subjectId, String realm, String provider, String setId)
-            throws NoSuchUserException, NoSuchProviderException {
+        throws NoSuchUserException, NoSuchProviderException, NoSuchAuthorityException {
         UserEntity u = userService.getUser(subjectId);
-        ConfigurableAttributeProvider cp = attributeProviderService.getProvider(provider);
-        if (!cp.getRealm().equals(realm)) {
+
+        // fetch config
+        ConfigurableAttributeProvider cap = attributeProviderService.getProvider(provider);
+        if (!cap.getRealm().equals(realm)) {
             throw new IllegalArgumentException("realm mismatch");
         }
-        if (!cp.getAttributeSets().contains(setId)) {
+
+        if (!cap.getAttributeSets().contains(setId)) {
             throw new IllegalArgumentException("set not enabled for this provider");
         }
 
-        AttributeProvider ap = authorityManager.getAttributeProvider(provider);
-        return ap.getUserAttributes(u.getUuid()).stream().filter(a -> a.getIdentifier().equals(setId)).findFirst()
-                .orElse(null);
+        // fetch active
+        AttributeProvider<?, ?> ap = attributeProviderAuthorityService
+            .getAuthority(cap.getAuthority())
+            .getProvider(cap.getProvider());
+
+        return ap
+            .getUserAttributes(u.getUuid())
+            .stream()
+            .filter(a -> a.getIdentifier().equals(setId))
+            .findFirst()
+            .orElse(null);
     }
 
-    public UserAttributes setUserAttributes(String subjectId, String realm, String provider,
-            AttributeSet attributeSet) throws NoSuchUserException, NoSuchProviderException {
+    public UserAttributes setUserAttributes(String subjectId, String realm, String provider, AttributeSet attributeSet)
+        throws NoSuchUserException, NoSuchProviderException {
         UserEntity u = userService.getUser(subjectId);
-        ConfigurableAttributeProvider cp = attributeProviderService.getProvider(provider);
-        if (!cp.getRealm().equals(realm)) {
+        String setId = attributeSet.getIdentifier();
+
+        // fetch config
+        ConfigurableAttributeProvider cap = attributeProviderService.getProvider(provider);
+        if (!cap.getRealm().equals(realm)) {
             throw new IllegalArgumentException("realm mismatch");
         }
-        String setId = attributeSet.getIdentifier();
-        if (!cp.getAttributeSets().contains(setId)) {
+
+        if (!cap.getAttributeSets().contains(setId)) {
             throw new IllegalArgumentException("set not enabled for this provider");
         }
 
-        AttributeService as = authorityManager.getAttributeService(provider);
-        return as.putAttributes(subjectId, Collections.singleton(attributeSet)).stream().findFirst().orElse(null);
+        // supports only internal
+        // TODO refactor
+        InternalAttributeService as = internalAttributeAuthority.getProvider(provider);
+        return as.putUserAttributes(subjectId, setId, attributeSet);
     }
 
     public void removeUserAttributes(String subjectId, String realm, String provider, String setId)
-            throws NoSuchProviderException {
-        ConfigurableAttributeProvider cp = attributeProviderService.getProvider(provider);
-        if (!cp.getRealm().equals(realm)) {
+        throws NoSuchProviderException, NoSuchAuthorityException, NoSuchAttributeSetException {
+        // fetch config
+        ConfigurableAttributeProvider cap = attributeProviderService.getProvider(provider);
+        if (!cap.getRealm().equals(realm)) {
             throw new IllegalArgumentException("realm mismatch");
         }
-        if (!cp.getAttributeSets().contains(setId)) {
+
+        if (!cap.getAttributeSets().contains(setId)) {
             throw new IllegalArgumentException("set not enabled for this provider");
         }
-        AttributeService as = authorityManager.getAttributeService(provider);
-        as.deleteAttributes(subjectId, setId);
+
+        // fetch active
+        AttributeProvider<?, ?> ap = attributeProviderAuthorityService
+            .getAuthority(cap.getAuthority())
+            .getProvider(cap.getProvider());
+
+        // delete single set
+        ap.deleteUserAttributes(subjectId, setId);
     }
+
+    /*
+     * User credentials
+     */
 
     /*
      * Related data
      */
 
+    public Collection<UserIdentity> fetchUserIdentities(String subjectId, String realm) throws NoSuchUserException {
+        List<UserIdentity> identities = new ArrayList<>();
+        // fetch all identities from source realm
+        // TODO we need an order criteria
+        Collection<IdentityProvider<? extends UserIdentity, ?, ?, ?, ?>> providers = identityProviderAuthorityService
+            .getAuthorities()
+            .stream()
+            .flatMap(a -> a.getProvidersByRealm(realm).stream())
+            .collect(Collectors.toList());
+        for (IdentityProvider<? extends UserIdentity, ?, ?, ?, ?> idp : providers) {
+            identities.addAll(idp.listIdentities(subjectId));
+        }
+
+        //        if (!source.equals(realm)) {
+        // DISABLED, TODO evaluate cross realm
+        //            // also fetch identities from destination realm
+        //            // TODO we need an order criteria
+        //            for (IdentityProviderAuthority<? extends UserIdentity> ia : authorityManager
+        //                    .listIdentityAuthorities()) {
+        //                List<? extends IdentityProvider<? extends UserIdentity>> idps = ia
+        //                        .getProviders(realm);
+        //                for (IdentityProvider<? extends UserIdentity> idp : idps) {
+        //                    identities.addAll(idp.listIdentities(subjectId));
+        //                }
+        //            }
+        //        }
+
+        return identities;
+    }
+
     public Collection<UserAttributes> fetchUserAttributes(String subjectId, String realm) throws NoSuchUserException {
         List<UserAttributes> attributes = new ArrayList<>();
         // fetch from providers
-        for (AttributeAuthority aa : authorityManager.listAttributeAuthorities()) {
-            List<AttributeProvider> aps = aa.getAttributeProviders(realm);
-            for (AttributeProvider ap : aps) {
-                attributes.addAll(ap.getUserAttributes(subjectId));
-            }
+        Collection<AttributeProvider<?, ?>> aps = attributeProviderAuthorityService
+            .getAuthorities()
+            .stream()
+            .flatMap(a -> a.getProvidersByRealm(realm).stream())
+            .collect(Collectors.toList());
+        for (AttributeProvider<?, ?> ap : aps) {
+            attributes.addAll(ap.getUserAttributes(subjectId));
         }
 
         return attributes;
     }
 
     public Collection<GrantedAuthority> fetchUserAuthorities(String subjectId, String realm)
-            throws NoSuchUserException {
+        throws NoSuchUserException {
         Set<GrantedAuthority> authorities = new HashSet<>();
         authorities.add(new SimpleGrantedAuthority(Config.R_USER));
 
@@ -672,11 +768,10 @@ public class UserService {
         authorities.addAll(userAuthorities);
 
         return authorities;
-
     }
 
     private Collection<RealmRole> fetchUserRealmRoles(String subjectId, String realm, Set<String> groupIds)
-            throws NoSuchUserException {
+        throws NoSuchUserException {
         // merge directly assigned roles with those assigned to groups
         Set<RealmRole> roles = new HashSet<>();
         roles.addAll(roleService.getRoles(subjectId, realm));
@@ -687,7 +782,6 @@ public class UserService {
         }
 
         return roles;
-
     }
 
     public Collection<RealmRole> fetchUserRealmRoles(String subjectId, String realm) throws NoSuchUserException {
@@ -706,4 +800,15 @@ public class UserService {
         return groupService.getSubjectGroups(subjectId, realm);
     }
 
+    public void acceptTos(String subjectId) throws NoSuchUserException {
+        userService.updateTos(subjectId, true);
+    }
+
+    public void rejectTos(String subjectId) throws NoSuchUserException {
+        userService.updateTos(subjectId, false);
+    }
+
+    public void resetTos(String subjectId) throws NoSuchUserException {
+        userService.updateTos(subjectId, null);
+    }
 }

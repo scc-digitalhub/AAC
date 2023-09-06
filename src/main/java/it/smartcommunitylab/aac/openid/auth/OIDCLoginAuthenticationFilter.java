@@ -1,14 +1,36 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.openid.auth;
 
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.auth.ProviderWrappedAuthenticationToken;
+import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
+import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.openid.OIDCIdentityAuthority;
+import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
@@ -34,17 +56,8 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.auth.ProviderWrappedAuthenticationToken;
-import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
-import it.smartcommunitylab.aac.core.auth.UserAuthentication;
-import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
-import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.openid.OIDCIdentityAuthority;
-import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
-
 /*
- * Custom oauth2 login filter, handles login via auth code 
+ * Custom oauth2 login filter, handles login via auth code
  * interacts with extended auth manager to process login requests per realm
  */
 public class OIDCLoginAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
@@ -52,6 +65,7 @@ public class OIDCLoginAuthenticationFilter extends AbstractAuthenticationProcess
     public static final String DEFAULT_FILTER_URI = OIDCIdentityAuthority.AUTHORITY_URL + "login/{registrationId}";
 
     private final RequestMatcher requestMatcher;
+    private final String authority;
 
     // we need to load client registration
     private final ClientRegistrationRepository clientRegistrationRepository;
@@ -62,24 +76,30 @@ public class OIDCLoginAuthenticationFilter extends AbstractAuthenticationProcess
     private AuthorizationRequestRepository<OAuth2AuthorizationRequest> authorizationRequestRepository;
 
     public OIDCLoginAuthenticationFilter(
-            ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository,
-            ClientRegistrationRepository clientRegistrationRepository) {
+        ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository,
+        ClientRegistrationRepository clientRegistrationRepository
+    ) {
         this(SystemKeys.AUTHORITY_OIDC, registrationRepository, clientRegistrationRepository, DEFAULT_FILTER_URI, null);
-
     }
 
     public OIDCLoginAuthenticationFilter(
-            String authority,
-            ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository,
-            ClientRegistrationRepository clientRegistrationRepository,
-            String filterProcessingUrl, AuthenticationEntryPoint authenticationEntryPoint) {
+        String authority,
+        ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository,
+        ClientRegistrationRepository clientRegistrationRepository,
+        String filterProcessingUrl,
+        AuthenticationEntryPoint authenticationEntryPoint
+    ) {
         super(filterProcessingUrl);
         Assert.hasText(authority, "authority can not be null or empty");
         Assert.notNull(registrationRepository, "provider registration repository cannot be null");
         Assert.notNull(clientRegistrationRepository, "clientRegistrationRepository cannot be null");
         Assert.hasText(filterProcessingUrl, "filterProcessesUrl must contain a URL pattern");
-        Assert.isTrue(filterProcessingUrl.contains("{registrationId}"),
-                "filterProcessesUrl must contain a {registrationId} match variable");
+        Assert.isTrue(
+            filterProcessingUrl.contains("{registrationId}"),
+            "filterProcessesUrl must contain a {registrationId} match variable"
+        );
+
+        this.authority = authority;
 
         this.registrationRepository = registrationRepository;
         this.clientRegistrationRepository = clientRegistrationRepository;
@@ -99,32 +119,35 @@ public class OIDCLoginAuthenticationFilter extends AbstractAuthenticationProcess
         setSessionAuthenticationStrategy(new ChangeSessionIdAuthenticationStrategy());
 
         // use a custom failureHandler to return to login form
-        setAuthenticationFailureHandler(new AuthenticationFailureHandler() {
-            public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
-                    AuthenticationException exception) throws IOException, ServletException {
+        setAuthenticationFailureHandler(
+            new AuthenticationFailureHandler() {
+                public void onAuthenticationFailure(
+                    HttpServletRequest request,
+                    HttpServletResponse response,
+                    AuthenticationException exception
+                ) throws IOException, ServletException {
+                    // from SimpleUrlAuthenticationFailureHandler, save exception as session
+                    HttpSession session = request.getSession(true);
+                    if (session != null) {
+                        request.getSession().setAttribute(WebAttributes.AUTHENTICATION_EXCEPTION, exception);
+                    }
 
-                // from SimpleUrlAuthenticationFailureHandler, save exception as session
-                HttpSession session = request.getSession(true);
-                if (session != null) {
-                    request.getSession().setAttribute(WebAttributes.AUTHENTICATION_EXCEPTION, exception);
+                    getAuthenticationEntryPoint().commence(request, response, exception);
                 }
-
-                getAuthenticationEntryPoint().commence(request, response, exception);
             }
-        });
-
+        );
     }
 
     public final void setAuthorizationRequestRepository(
-            AuthorizationRequestRepository<OAuth2AuthorizationRequest> authorizationRequestRepository) {
+        AuthorizationRequestRepository<OAuth2AuthorizationRequest> authorizationRequestRepository
+    ) {
         Assert.notNull(authorizationRequestRepository, "authorizationRequestRepository cannot be null");
         this.authorizationRequestRepository = authorizationRequestRepository;
     }
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
-            throws AuthenticationException {
-
+        throws AuthenticationException {
         if (!requestMatcher.matches(request)) {
             return null;
         }
@@ -164,8 +187,10 @@ public class OIDCLoginAuthenticationFilter extends AbstractAuthenticationProcess
         params.put(OAuth2ParameterNames.ERROR_URI, errorUri);
 
         // consume request via state
-        OAuth2AuthorizationRequest authorizationRequest = authorizationRequestRepository
-                .removeAuthorizationRequest(request, response);
+        OAuth2AuthorizationRequest authorizationRequest = authorizationRequestRepository.removeAuthorizationRequest(
+            request,
+            response
+        );
 
         if (authorizationRequest == null) {
             OAuth2Error oauth2Error = new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST);
@@ -186,10 +211,12 @@ public class OIDCLoginAuthenticationFilter extends AbstractAuthenticationProcess
             throw new OAuth2AuthenticationException(oauth2Error, oauth2Error.toString());
         }
 
-        String redirectUri = UriComponentsBuilder.fromHttpUrl(UrlUtils.buildFullRequestUrl(request))
-                .replaceQuery(null)
-                .build()
-                .toUriString();
+        String redirectUri = UriComponentsBuilder
+            .fromHttpUrl(UrlUtils.buildFullRequestUrl(request))
+            .replaceQuery(null)
+            .fragment(null)
+            .build()
+            .toUriString();
 
         // convert request to response
         OAuth2AuthorizationResponse authorizationResponse = convert(params, redirectUri);
@@ -198,15 +225,19 @@ public class OIDCLoginAuthenticationFilter extends AbstractAuthenticationProcess
         Object authenticationDetails = this.authenticationDetailsSource.buildDetails(request);
 
         // build login token with params
-        OAuth2LoginAuthenticationToken authenticationRequest = new OAuth2LoginAuthenticationToken(clientRegistration,
-                new OAuth2AuthorizationExchange(authorizationRequest, authorizationResponse));
+        OAuth2LoginAuthenticationToken authenticationRequest = new OAuth2LoginAuthenticationToken(
+            clientRegistration,
+            new OAuth2AuthorizationExchange(authorizationRequest, authorizationResponse)
+        );
         authenticationRequest.setDetails(authenticationDetails);
 
         // wrap auth request for multi-provider manager
         // providerId is registrationId
         ProviderWrappedAuthenticationToken wrappedAuthRequest = new ProviderWrappedAuthenticationToken(
-                authenticationRequest,
-                providerId, SystemKeys.AUTHORITY_OIDC);
+            authenticationRequest,
+            providerId,
+            authority
+        );
 
         // also collect request details
         WebAuthenticationDetails webAuthenticationDetails = new WebAuthenticationDetails(request);
@@ -214,16 +245,17 @@ public class OIDCLoginAuthenticationFilter extends AbstractAuthenticationProcess
 
         // authenticate via extended authManager
         UserAuthentication userAuthentication = (UserAuthentication) getAuthenticationManager()
-                .authenticate(wrappedAuthRequest);
+            .authenticate(wrappedAuthRequest);
 
         // return authentication to be set in security context
         return userAuthentication;
     }
 
     private boolean isAuthorizationResponse(String state, String code, String error) {
-        return (StringUtils.hasText(state) && StringUtils.hasText(code))
-                || (StringUtils.hasText(state) && StringUtils.hasText(error));
-
+        return (
+            (StringUtils.hasText(state) && StringUtils.hasText(code)) ||
+            (StringUtils.hasText(state) && StringUtils.hasText(error))
+        );
     }
 
     private static OAuth2AuthorizationResponse convert(Map<String, String> params, String redirectUri) {
@@ -232,19 +264,17 @@ public class OIDCLoginAuthenticationFilter extends AbstractAuthenticationProcess
         String state = params.get(OAuth2ParameterNames.STATE);
 
         if (StringUtils.hasText(code)) {
-            return OAuth2AuthorizationResponse.success(code)
-                    .redirectUri(redirectUri)
-                    .state(state)
-                    .build();
+            return OAuth2AuthorizationResponse.success(code).redirectUri(redirectUri).state(state).build();
         } else {
             String errorDescription = params.get(OAuth2ParameterNames.ERROR_DESCRIPTION);
             String errorUri = params.get(OAuth2ParameterNames.ERROR_URI);
-            return OAuth2AuthorizationResponse.error(errorCode)
-                    .redirectUri(redirectUri)
-                    .errorDescription(errorDescription)
-                    .errorUri(errorUri)
-                    .state(state)
-                    .build();
+            return OAuth2AuthorizationResponse
+                .error(errorCode)
+                .redirectUri(redirectUri)
+                .errorDescription(errorDescription)
+                .errorUri(errorUri)
+                .state(state)
+                .build();
         }
     }
 
@@ -255,5 +285,4 @@ public class OIDCLoginAuthenticationFilter extends AbstractAuthenticationProcess
     public void setAuthenticationEntryPoint(AuthenticationEntryPoint authenticationEntryPoint) {
         this.authenticationEntryPoint = authenticationEntryPoint;
     }
-
 }

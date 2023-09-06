@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2015 Fondazione Bruno Kessler
- * 
+ *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
  *    You may obtain a copy of the License at
- * 
+ *
  *        http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  *    Unless required by applicable law or agreed to in writing, software
  *    distributed under the License is distributed on an "AS IS" BASIS,
  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,28 +16,9 @@
 
 package it.smartcommunitylab.aac.openid.endpoint;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.MediaType;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
-
 import com.nimbusds.jose.EncryptionMethod;
 import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWSAlgorithm;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import it.smartcommunitylab.aac.Config;
@@ -53,6 +34,22 @@ import it.smartcommunitylab.aac.oauth.model.SubjectType;
 import it.smartcommunitylab.aac.openid.scope.OpenIdScopeProvider;
 import it.smartcommunitylab.aac.profiles.scope.OpenIdProfileScopeProvider;
 import it.smartcommunitylab.aac.profiles.scope.ProfileScopeProvider;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  *
@@ -62,8 +59,9 @@ import it.smartcommunitylab.aac.profiles.scope.ProfileScopeProvider;
  *
  */
 @Controller
-@Tag(name = "OpenID Connect Discovery" )
+@Tag(name = "OpenID Connect Discovery")
 public class OpenIDMetadataEndpoint {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     public static final String OPENID_CONFIGURATION_URL = Config.WELL_KNOWN_URL + "/openid-configuration";
@@ -84,7 +82,11 @@ public class OpenIDMetadataEndpoint {
     private JWTEncryptionAndDecryptionService encService;
 
     @Operation(summary = "Get OpenID provider configuration information")
-    @RequestMapping(method = RequestMethod.GET, value = OPENID_CONFIGURATION_URL, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(
+        method = RequestMethod.GET,
+        value = OPENID_CONFIGURATION_URL,
+        produces = MediaType.APPLICATION_JSON_VALUE
+    )
     public @ResponseBody Map<String, Object> providerConfiguration() {
         return getConfiguration();
     }
@@ -242,43 +244,63 @@ public class OpenIDMetadataEndpoint {
         scopes.addAll(ProfileScopeProvider.scopes.stream().map(s -> s.getScope()).collect(Collectors.toList()));
         m.put("scopes_supported", scopes);
 
-        List<String> responseTypes = Stream.of(ResponseType.CODE, ResponseType.TOKEN, ResponseType.ID_TOKEN)
-                .map(t -> t.getValue()).collect(Collectors.toList());
+        List<String> responseTypes = Stream
+            .of(ResponseType.CODE, ResponseType.TOKEN, ResponseType.ID_TOKEN)
+            .map(t -> t.getValue())
+            .collect(Collectors.toList());
         m.put("response_types_supported", responseTypes);
 
-        List<String> responseModes = Stream.of(ResponseMode.QUERY, ResponseMode.FRAGMENT, ResponseMode.FORM_POST)
-                .map(t -> t.getValue()).collect(Collectors.toList());
+        List<String> responseModes = Stream
+            .of(ResponseMode.QUERY, ResponseMode.FRAGMENT, ResponseMode.FORM_POST)
+            .map(t -> t.getValue())
+            .collect(Collectors.toList());
         m.put("response_modes_supported", responseModes);
 
         List<String> grantTypes = Stream
-                .of(AuthorizationGrantType.AUTHORIZATION_CODE, AuthorizationGrantType.IMPLICIT,
-                        AuthorizationGrantType.PASSWORD, AuthorizationGrantType.CLIENT_CREDENTIALS,
-                        AuthorizationGrantType.REFRESH_TOKEN)
-                .map(t -> t.getValue()).collect(Collectors.toList());
+            .of(
+                AuthorizationGrantType.AUTHORIZATION_CODE,
+                AuthorizationGrantType.IMPLICIT,
+                AuthorizationGrantType.PASSWORD,
+                AuthorizationGrantType.CLIENT_CREDENTIALS,
+                AuthorizationGrantType.REFRESH_TOKEN
+            )
+            .map(t -> t.getValue())
+            .collect(Collectors.toList());
         m.put("grant_types_supported", grantTypes);
 
         // unsupported
-//      m.put("acr_values_supported", ""); 
+        //      m.put("acr_values_supported", "");
 
-        List<String> subjectTypes = Stream.of(SubjectType.PUBLIC, SubjectType.PAIRWISE)
-                .map(t -> t.getValue()).collect(Collectors.toList());
+        List<String> subjectTypes = Stream
+            .of(SubjectType.PUBLIC, SubjectType.PAIRWISE)
+            .map(t -> t.getValue())
+            .collect(Collectors.toList());
         m.put("subject_types_supported", subjectTypes);
 
-        List<String> signAlgorithms = signService.getAllSigningAlgsSupported().stream()
-                .map(a -> a.getName()).collect(Collectors.toList());
-        List<String> encAlgorithms = encService.getAllEncryptionAlgsSupported().stream()
-                .map(a -> a.getName()).collect(Collectors.toList());
-        List<String> encMethods = encService.getAllEncryptionEncsSupported().stream()
-                .map(a -> a.getName()).collect(Collectors.toList());
+        List<String> signAlgorithms = signService
+            .getAllSigningAlgsSupported()
+            .stream()
+            .map(a -> a.getName())
+            .collect(Collectors.toList());
+        List<String> encAlgorithms = encService
+            .getAllEncryptionAlgsSupported()
+            .stream()
+            .map(a -> a.getName())
+            .collect(Collectors.toList());
+        List<String> encMethods = encService
+            .getAllEncryptionEncsSupported()
+            .stream()
+            .map(a -> a.getName())
+            .collect(Collectors.toList());
 
         m.put("id_token_signing_alg_values_supported", signAlgorithms);
         m.put("id_token_encryption_alg_values_supported", encAlgorithms);
         m.put("id_token_encryption_enc_values_supported", encMethods);
 
         // unsupported
-//        m.put("userinfo_signing_alg_values_supported",signAlgorithms);
-//        m.put("userinfo_encryption_alg_values_supported",encAlgorithms);
-//        m.put("userinfo_encryption_enc_values_supported",encMethods);
+        //        m.put("userinfo_signing_alg_values_supported",signAlgorithms);
+        //        m.put("userinfo_encryption_alg_values_supported",encAlgorithms);
+        //        m.put("userinfo_encryption_enc_values_supported",encMethods);
 
         // support only plaintext
         m.put("request_object_signing_alg_values_supported", Collections.singleton(JWSAlgorithm.NONE.getName()));
@@ -286,37 +308,50 @@ public class OpenIDMetadataEndpoint {
         m.put("request_object_encryption_enc_values_supported", Collections.singleton(EncryptionMethod.NONE.getName()));
 
         List<String> authMethods = Stream
-                .of(AuthenticationMethod.CLIENT_SECRET_BASIC,
-                        AuthenticationMethod.CLIENT_SECRET_POST,
-                        AuthenticationMethod.NONE)
-                .map(t -> t.getValue()).collect(Collectors.toList());
+            .of(
+                AuthenticationMethod.CLIENT_SECRET_BASIC,
+                AuthenticationMethod.CLIENT_SECRET_POST,
+                AuthenticationMethod.NONE
+            )
+            .map(t -> t.getValue())
+            .collect(Collectors.toList());
         m.put("token_endpoint_auth_methods_supported", authMethods);
 
         // unsupported
-//        m.put("token_endpoint_auth_signing_alg_values_supported",signAlgorithms);
+        //        m.put("token_endpoint_auth_signing_alg_values_supported",signAlgorithms);
 
-        m.put("display_types_supported", Collections.singleton("page"));
+        m.put("display_values_supported", Collections.singleton("page"));
         m.put("claim_types_supported", Collections.singleton("normal"));
 
         // TODO export claim names from providers
-        List<String> claimsSupported = Stream.of("sub", "iss", "auth_time",
-                "name", "given_name", "family_name",
+        List<String> claimsSupported = Stream
+            .of(
+                "sub",
+                "iss",
+                "auth_time",
+                "name",
+                "given_name",
+                "family_name",
                 "preferred_username",
-                "email", "email_verified",
-                "locale", "zoneinfo").collect(Collectors.toList());
+                "email",
+                "email_verified",
+                "locale",
+                "zoneinfo"
+            )
+            .collect(Collectors.toList());
         m.put("claims_supported", claimsSupported);
-//	          m.put("service_documentation",""); //not supported
-//	          m.put("claims_locales_supported",""); //not supported
-//	          m.put("ui_locales_supported",""); //not supported           
+        //	          m.put("service_documentation",""); //not supported
+        //	          m.put("claims_locales_supported",""); //not supported
+        //	          m.put("ui_locales_supported",""); //not supported
         m.put("claims_parameter_supported", false);
         m.put("request_parameter_supported", true);
         m.put("request_uri_parameter_supported", false);
         m.put("require_request_uri_registration", false);
-//	          m.put("op_policy_uri",""); //not supported
-//	          m.put("op_tos_uri",""); //not supported
+        //	          m.put("op_policy_uri",""); //not supported
+        //	          m.put("op_tos_uri",""); //not supported
 
         // NOTE these are OAuth2 endpoint
-//        m.put("revocation_endpoint", baseUrl + "eauth/revoke"); // token revocation endpoint
+        //        m.put("revocation_endpoint", baseUrl + "eauth/revoke"); // token revocation endpoint
 
         return m;
     }
@@ -326,7 +361,7 @@ public class OpenIDMetadataEndpoint {
         /*
          * OpenID Provider Discovery Metadata
          * https://openid.net/specs/openid-connect-session-1_0.html#OPMetadata
-         * 
+         *
          * check_session_iframe OPTIONAL. URL of an OP endpoint that provides a page to
          * support cross-origin communications for session state information with the RP
          * Client, using the HTML5 postMessage API. The page is loaded from an invisible
@@ -338,7 +373,7 @@ public class OpenIDMetadataEndpoint {
         String baseUrl = getBaseUrl();
         Map<String, Object> m = new HashMap<>();
 
-//        m.put("check_session_iframe",""); //not supported
+        //        m.put("check_session_iframe",""); //not supported
         m.put("end_session_endpoint", baseUrl + EndSessionEndpoint.END_SESSION_URL);
 
         return m;
@@ -347,11 +382,10 @@ public class OpenIDMetadataEndpoint {
     private String getBaseUrl() {
         String baseUrl = applicationURL;
 
-//        if (!baseUrl.endsWith("/")) {
-//            logger.debug("Configured baseUrl doesn't end in /, adding for discovery: {}", baseUrl);
-//            baseUrl = baseUrl.concat("/");
-//        }
+        //        if (!baseUrl.endsWith("/")) {
+        //            logger.debug("Configured baseUrl doesn't end in /, adding for discovery: {}", baseUrl);
+        //            baseUrl = baseUrl.concat("/");
+        //        }
         return baseUrl;
     }
-
 }

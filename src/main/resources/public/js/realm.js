@@ -54,7 +54,7 @@ angular.module('aac.controllers.realm', [])
          });
       }
       rService.getResources = function (slug) {
-         return $http.get('console/dev/resources/' + slug ).then(function (data) {
+         return $http.get('console/dev/resources/' + slug).then(function (data) {
             return data.data;
          });
       }
@@ -99,6 +99,22 @@ angular.module('aac.controllers.realm', [])
       }
       rService.inviteDeveloper = function (slug, invite) {
          return $http.post('console/dev/realms/' + slug + '/developers', invite).then(function (data) {
+            return data.data;
+         });
+      }
+
+      rService.getLanguages = function (slug) {
+         return $http.get('console/dev/realms/' + slug + '/languages').then(function (data) {
+            return data.data;
+         });
+      }
+      rService.getTemplatesConfig = function (slug) {
+         return $http.get('console/dev/realms/' + slug + '/templates/conf').then(function (data) {
+            return data.data;
+         });
+      }
+      rService.setTemplatesConfig = function (slug, config) {
+         return $http.put('console/dev/realms/' + slug + '/templates/conf', config).then(function (data) {
             return data.data;
          });
       }
@@ -427,7 +443,7 @@ angular.module('aac.controllers.realm', [])
       $scope.formView = 'basic';
 
       $scope.aceOption = {
-         mode: 'html',
+         mode: 'css',
          theme: 'monokai',
          maxLines: 30,
          minLines: 12,
@@ -444,7 +460,15 @@ angular.module('aac.controllers.realm', [])
 
 
       var init = function () {
-         $scope.load();
+         RealmData.getLanguages(slug)
+            .then(function (data) {
+               $scope.availableLanguages = data;
+            })
+            .then(function () {
+               $scope.load();
+            }).catch(function (err) {
+               Utils.showError('Failed to load realm : ' + err.data.message);
+            });
       };
 
       $scope.load = function () {
@@ -455,6 +479,9 @@ angular.module('aac.controllers.realm', [])
             })
             .then(function () {
                $scope.loadDevelopers();
+            })
+            .then(function() {
+               $scope.loadTemplatesConfig(); 
             })
             .catch(function (err) {
                Utils.showError('Failed to load realm : ' + err.data.message);
@@ -473,6 +500,12 @@ angular.module('aac.controllers.realm', [])
             .then(function (res) {
                $scope.reload(res);
                $scope['$parent'].refresh();
+            })
+            .then(function() {
+               return RealmData.setTemplatesConfig(slug, $scope.settingsTemplates);
+            })
+            .then(function(data) {
+               $scope.reloadTemplatesConfig(data);
                Utils.showSuccess();
             })
             .catch(function (err) {
@@ -486,7 +519,7 @@ angular.module('aac.controllers.realm', [])
       };
 
       $scope.exportRealm = function () {
-         window.open('console/dev/realms/' + $scope.realm.slug + '/export?full=1');
+         window.open('console/dev/realms/' + $scope.realm.slug + '/export?config=1');
       };
 
       $scope.deleteRealmDlg = function () {
@@ -514,7 +547,6 @@ angular.module('aac.controllers.realm', [])
          RealmData.getDevelopers(slug)
             .then(function (data) {
                $scope.users = data;
-               return data;
             })
             .catch(function (err) {
                Utils.showError('Failed to load realm : ' + err.data.message);
@@ -551,6 +583,21 @@ angular.module('aac.controllers.realm', [])
                });
 
 
+         }
+      }
+
+      $scope.loadTemplatesConfig = function () {
+         RealmData.getTemplatesConfig(slug)
+            .then(function (data) {
+               $scope.reloadTemplatesConfig(data);
+            })
+            .catch(function (err) {
+               Utils.showError('Failed to update authorities: ' + err.data.message);
+            });
+      }
+      $scope.reloadTemplatesConfig = function (data) {
+         if (data) {
+            $scope.settingsTemplates = data;
          }
       }
 

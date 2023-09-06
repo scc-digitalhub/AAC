@@ -60,6 +60,12 @@ angular.module('aac.controllers.realmproviders', [])
             }
         }
 
+        service.getIdentityProviderConfig = function (slug, providerId) {
+            return $http.get('console/dev/idps/' + slug + '/' + providerId + '/config').then(function (data) {
+                return data.data;
+            });
+        }
+
         service.importIdentityProvider = function (slug, file, yaml, reset) {
             var fd = new FormData();
             if (yaml) {
@@ -547,17 +553,16 @@ angular.module('aac.controllers.realmproviders', [])
                 .then(function (data) {
                     $scope.realmUrls = data;
                 })
-                // .then(function () {
-                //     return RealmProviders.getIdentityProviderTemplates(slug);
-                // })
-                .then(function (data) {
-                    $scope.providerTemplates = data;
-
-                    //extract 
-                    $scope.oidcProviderTemplates = $scope.providerTemplates ? $scope.providerTemplates.filter(function (pt) { return pt.authority === 'oidc' }) : [];
-                    $scope.internalProviderTemplates = $scope.providerTemplates ? $scope.providerTemplates.filter(function (pt) { return pt.authority === 'internal' }) : [];
-                    $scope.samlProviderTemplates = $scope.providerTemplates ? $scope.providerTemplates.filter(function (pt) { return pt.authority === 'saml' }) : [];
-
+                .then(function () {
+                    return RealmData.getTemplatesConfig(slug);
+                })
+                .then(function (config) {
+                    var languages = [];
+                    if (config.languages) {
+                        languages = config.languages;
+                    }
+                    $scope.availableLanguages = languages;
+                    $scope.selectedLanguage = languages[0];
                 })
                 .then(function () {
                     return RealmProviders.getIdentityProvider(slug, providerId)
@@ -578,8 +583,8 @@ angular.module('aac.controllers.realmproviders', [])
                 });
         };
 
-        var initConfiguration = function (authority, config) {
-            if (authority == 'oidc') {
+        var initConfiguration = function (authority, config, schema) {
+            if (authority == 'oidc' || (schema && schema.id == 'urn:jsonschema:it:smartcommunitylab:aac:openid:provider:OIDCIdentityProviderConfigMap')) {
                 var scopes = [];
                 toChips(config.scope).forEach(function (s) {
                     scopes.push({ 'text': s });
@@ -601,8 +606,8 @@ angular.module('aac.controllers.realmproviders', [])
 
         }
 
-        var extractConfiguration = function (authority, config) {
-            if (authority == 'oidc') {
+        var extractConfiguration = function (authority, config, schema) {
+            if (authority == 'oidc' || (schema && schema.id == 'urn:jsonschema:it:smartcommunitylab:aac:openid:provider:OIDCIdentityProviderConfigMap')) {
                 var scopes = $scope.idpOidcScope.map(function (s) {
                     if ('text' in s) {
                         return s.text;
@@ -638,7 +643,7 @@ angular.module('aac.controllers.realmproviders', [])
             $scope.idp = data;
             $scope.providerIcon = iconProvider(data);
 
-            initConfiguration(data.authority, data.configuration);
+            initConfiguration(data.authority, data.configuration, data.schema);
 
             var attributeMapping = {
                 enabled: false,
@@ -681,7 +686,7 @@ angular.module('aac.controllers.realmproviders', [])
 
         $scope.saveProvider = function (provider) {
 
-            var configuration = extractConfiguration(provider.authority, provider.configuration);
+            var configuration = extractConfiguration(provider.authority, provider.configuration, provider.schema);
 
             var hookFunctions = provider.hookFunctions;
             if ($scope.attributeMapping.code != "") {
@@ -696,7 +701,8 @@ angular.module('aac.controllers.realmproviders', [])
                 type: provider.type,
                 authority: provider.authority,
                 name: provider.name,
-                description: provider.description,
+                titleMap: provider.titleMap,
+                descriptionMap: provider.descriptionMap,
                 displayMode: provider.displayMode,
                 enabled: provider.enabled,
                 persistence: provider.persistence,
@@ -735,6 +741,24 @@ angular.module('aac.controllers.realmproviders', [])
         $scope.exportProvider = function (provider) {
             RealmProviders.exportIdentityProvider(slug, provider.provider);
         };
+
+        $scope.inspectProvider = function (provider) {
+            if (provider && provider.enabled) {
+                RealmProviders.getIdentityProviderConfig(slug, provider.provider)
+                    .then(function (res) {
+                        $scope.inspectDlg(res);
+                    })
+                    .catch(function (err) {
+                        Utils.showError(err.data.message);
+                    });
+            }
+        }
+
+        $scope.inspectDlg = function (obj) {
+            $scope.modObj = obj;
+            $scope.modObj.json = JSON.stringify(obj, null, 3);
+            $('#inspectModal').modal({ keyboard: false });
+        }
 
         $scope.applyProviderTemplate = function () {
             var configuration = $scope.idp.configuration;
@@ -799,6 +823,18 @@ angular.module('aac.controllers.realmproviders', [])
                     });
             }
         }
+
+        // $scope.toggleLang = function () {
+        //     if (lang && $scope.selectedLanguage !== lang && $scope.availableLanguages.includes(lang)) {
+        //         // switch lang
+        //         $scope.selectedLanguage = lang;
+
+        //         //switch fields content and map keys
+        //         fields.forEach(f => {
+
+        //         })
+        //     }
+        // }
 
         var iconProvider = function (ap) {
             var icons = ['facebook', 'google', 'microsoft', 'apple', 'instagram', 'github'];

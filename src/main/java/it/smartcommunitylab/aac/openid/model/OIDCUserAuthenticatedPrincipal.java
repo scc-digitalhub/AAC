@@ -1,22 +1,38 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.openid.model;
 
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.attributes.OpenIdAttributesSet;
+import it.smartcommunitylab.aac.core.base.AbstractAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.openid.OIDCKeys;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.commons.lang.ArrayUtils;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.attributes.OpenIdAttributesSet;
-import it.smartcommunitylab.aac.core.base.AbstractAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProvider;
-
 public class OIDCUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincipal {
 
     private static final long serialVersionUID = SystemKeys.AAC_OIDC_SERIAL_VERSION;
+    public static final String RESOURCE_TYPE =
+        SystemKeys.RESOURCE_PRINCIPAL + SystemKeys.ID_SEPARATOR + SystemKeys.AUTHORITY_OIDC;
 
     // subject identifier from external provider is local id
     private final String subject;
@@ -24,7 +40,11 @@ public class OIDCUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
     // link attributes
     private Boolean emailVerified;
 
+    // TODO handle serializable
     private OAuth2User principal;
+
+    private String username;
+    private String emailAddress;
 
     // locally set attributes, for example after custom mapping
     private Map<String, Serializable> attributes;
@@ -33,11 +53,33 @@ public class OIDCUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
         this(SystemKeys.AUTHORITY_OIDC, provider, realm, userId, subject);
     }
 
-    public OIDCUserAuthenticatedPrincipal(String authority, String provider, String realm, String userId,
-            String subject) {
-        super(authority, provider, realm, userId);
+    public OIDCUserAuthenticatedPrincipal(
+        String authority,
+        String provider,
+        String realm,
+        String userId,
+        String subject
+    ) {
+        super(authority, provider);
         Assert.hasText(subject, "subject can not be null or empty");
         this.subject = subject;
+        setRealm(realm);
+        setUserId(userId);
+    }
+
+    @Override
+    public String getType() {
+        return RESOURCE_TYPE;
+    }
+
+    @Override
+    public String getUsername() {
+        return StringUtils.hasText(username) ? username : subject;
+    }
+
+    @Override
+    public String getEmailAddress() {
+        return emailAddress;
     }
 
     public String getSubject() {
@@ -45,13 +87,13 @@ public class OIDCUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
     }
 
     @Override
-    public String getId() {
+    public String getPrincipalId() {
         return subject;
     }
 
     @Override
     public String getName() {
-        return username;
+        return getUsername();
     }
 
     @Override
@@ -68,25 +110,29 @@ public class OIDCUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
             // map only string attributes
             // TODO implement a mapper via script handling a json representation without
             // security related attributes
-            principal.getAttributes().entrySet().stream()
-                    .filter(e -> !ArrayUtils.contains(OIDCIdentityProvider.JWT_ATTRIBUTES, e.getKey()))
+            principal
+                .getAttributes()
+                .entrySet()
+                .stream()
+                .filter(e -> !OIDCKeys.JWT_ATTRIBUTES.contains(e.getKey()))
+                .filter(e -> (e.getValue() != null))
+                .forEach(e -> {
+                    // put if absent to pick only first value when repeated
+                    // TODO handle full mapping
+                    result.putIfAbsent(e.getKey(), e.getValue().toString());
+                });
+
+            if (isOidcUser()) {
+                ((OidcUser) principal).getClaims()
+                    .entrySet()
+                    .stream()
+                    .filter(e -> !OIDCKeys.JWT_ATTRIBUTES.contains(e.getKey()))
                     .filter(e -> (e.getValue() != null))
                     .forEach(e -> {
                         // put if absent to pick only first value when repeated
                         // TODO handle full mapping
                         result.putIfAbsent(e.getKey(), e.getValue().toString());
                     });
-
-            if (isOidcUser()) {
-                ((OidcUser) principal).getClaims()
-                        .entrySet().stream()
-                        .filter(e -> !ArrayUtils.contains(OIDCIdentityProvider.JWT_ATTRIBUTES, e.getKey()))
-                        .filter(e -> (e.getValue() != null))
-                        .forEach(e -> {
-                            // put if absent to pick only first value when repeated
-                            // TODO handle full mapping
-                            result.putIfAbsent(e.getKey(), e.getValue().toString());
-                        });
             }
         }
 
@@ -95,29 +141,26 @@ public class OIDCUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
             attributes.entrySet().forEach(e -> result.put(e.getKey(), e.getValue()));
         }
 
-        // make sure these are never overridden
-        result.put("authority", getAuthority());
-        result.put("provider", getProvider());
-        result.put("sub", subject);
-        result.put("id", subject);
-
+        // override if set
         if (StringUtils.hasText(username)) {
             result.put("name", username);
         }
 
         if (StringUtils.hasText(emailAddress)) {
-            result.put("email", emailAddress);
+            result.put(OpenIdAttributesSet.EMAIL, emailAddress);
         }
 
         if (emailVerified != null) {
             result.put(OpenIdAttributesSet.EMAIL_VERIFIED, emailVerified.booleanValue());
         }
 
-        return result;
-    }
+        // add base attributes
+        result.putAll(super.getAttributes());
 
-    public void setUuid(String uuid) {
-        this.uuid = uuid;
+        // make sure these are never overridden
+        result.put("sub", subject);
+
+        return result;
     }
 
     public OAuth2User getPrincipal() {
@@ -166,5 +209,4 @@ public class OIDCUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
     public void setEmailVerified(Boolean emailVerified) {
         this.emailVerified = emailVerified;
     }
-
 }

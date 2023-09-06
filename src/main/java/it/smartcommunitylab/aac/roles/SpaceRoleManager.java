@@ -1,16 +1,20 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.roles;
-
-import java.util.Collection;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.security.authentication.InsufficientAuthenticationException;
-import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Service;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
@@ -20,6 +24,16 @@ import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.SpaceRoles;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
+import java.util.Collection;
+import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Service;
 
 /*
  * Space roles are bound to subjects and exists under a context+space hierarchy
@@ -28,6 +42,7 @@ import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
 //TODO add permission checks
 @Service
 public class SpaceRoleManager {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
@@ -56,9 +71,11 @@ public class SpaceRoleManager {
         }
 
         String subjectId = auth.getName();
-        return roleService.getRoles(subjectId).stream().filter(r -> Config.R_PROVIDER.equals(r.getRole()))
-                .collect(Collectors.toList());
-
+        return roleService
+            .getRoles(subjectId)
+            .stream()
+            .filter(r -> Config.R_PROVIDER.equals(r.getRole()))
+            .collect(Collectors.toList());
     }
 
     public Collection<SpaceRole> getRoles(String subjectId) throws NoSuchSubjectException {
@@ -66,7 +83,7 @@ public class SpaceRoleManager {
     }
 
     public Collection<SpaceRole> addRoles(String subjectId, Collection<SpaceRole> spaceRoles)
-            throws NoSuchSubjectException {
+        throws NoSuchSubjectException {
         // check if subject exists
         Subject s = subjectService.getSubject(subjectId);
 
@@ -74,36 +91,38 @@ public class SpaceRoleManager {
         Collection<SpaceRole> myRoles = curRoles();
 
         // filter request based on permissions
-        Collection<SpaceRole> values = spaceRoles.stream().filter(r -> isOwner(myRoles, r.getContext(), r.getSpace()))
-                .collect(Collectors.toList());
+        Collection<SpaceRole> values = spaceRoles
+            .stream()
+            .filter(r -> isOwner(myRoles, r.getContext(), r.getSpace()))
+            .collect(Collectors.toList());
 
         // add only to owned context/spaces
         return roleService.addRoles(s.getSubjectId(), values);
     }
 
-//    public Collection<SpaceRole> addRoles(String subjectId, String context, String space, List<String> roles)
-//            throws NoSuchSubjectException {
-//        // check if subject exists
-//        Subject s = subjectService.getSubject(subjectId);
-//        Collection<SpaceRole> spaceRoles = roles.stream().map(r -> new SpaceRole(context, space, r))
-//                .collect(Collectors.toList());
-//
-//        return roleService.addRoles(s.getSubjectId(), spaceRoles);
-//
-//    }
+    //    public Collection<SpaceRole> addRoles(String subjectId, String context, String space, List<String> roles)
+    //            throws NoSuchSubjectException {
+    //        // check if subject exists
+    //        Subject s = subjectService.getSubject(subjectId);
+    //        Collection<SpaceRole> spaceRoles = roles.stream().map(r -> new SpaceRole(context, space, r))
+    //                .collect(Collectors.toList());
+    //
+    //        return roleService.addRoles(s.getSubjectId(), spaceRoles);
+    //
+    //    }
 
-//    public Collection<SpaceRole> setRoles(String subjectId, String context, String space, List<String> roles)
-//            throws NoSuchSubjectException {
-//        // check if subject exists
-//        Subject s = subjectService.getSubject(subjectId);
-//        Collection<SpaceRole> spaceRoles = roles.stream().map(r -> new SpaceRole(context, space, r))
-//                .collect(Collectors.toList());
-//
-//        return roleService.setRoles(s.getSubjectId(), spaceRoles);
-//    }
+    //    public Collection<SpaceRole> setRoles(String subjectId, String context, String space, List<String> roles)
+    //            throws NoSuchSubjectException {
+    //        // check if subject exists
+    //        Subject s = subjectService.getSubject(subjectId);
+    //        Collection<SpaceRole> spaceRoles = roles.stream().map(r -> new SpaceRole(context, space, r))
+    //                .collect(Collectors.toList());
+    //
+    //        return roleService.setRoles(s.getSubjectId(), spaceRoles);
+    //    }
 
     public Collection<SpaceRole> setRoles(String subjectId, Collection<SpaceRole> spaceRoles)
-            throws NoSuchSubjectException {
+        throws NoSuchSubjectException {
         // check if subject exists
         Subject s = subjectService.getSubject(subjectId);
 
@@ -112,20 +131,25 @@ public class SpaceRoleManager {
 
         // get all subject roles, we'll cleanup those not in list
         // also filter curRoles based on permission
-        Collection<SpaceRole> curRoles = roleService.getRoles(subjectId).stream()
-                .filter(r -> isOwner(myRoles, r.getContext(), r.getSpace()))
-                .collect(Collectors.toList());
+        Collection<SpaceRole> curRoles = roleService
+            .getRoles(subjectId)
+            .stream()
+            .filter(r -> isOwner(myRoles, r.getContext(), r.getSpace()))
+            .collect(Collectors.toList());
 
         // filter request based on permissions
-        Collection<SpaceRole> values = spaceRoles.stream().filter(r -> isOwner(myRoles, r.getContext(), r.getSpace()))
-                .collect(Collectors.toList());
+        Collection<SpaceRole> values = spaceRoles
+            .stream()
+            .filter(r -> isOwner(myRoles, r.getContext(), r.getSpace()))
+            .collect(Collectors.toList());
 
         // any cur roles not set will be removed
-        Collection<SpaceRole> toRemove = curRoles.stream().filter(r -> !values.contains(r))
-                .collect(Collectors.toList());
+        Collection<SpaceRole> toRemove = curRoles
+            .stream()
+            .filter(r -> !values.contains(r))
+            .collect(Collectors.toList());
         // new will be added
-        Collection<SpaceRole> toAdd = values.stream().filter(r -> !curRoles.contains(r))
-                .collect(Collectors.toList());
+        Collection<SpaceRole> toAdd = values.stream().filter(r -> !curRoles.contains(r)).collect(Collectors.toList());
 
         roleService.removeRoles(subjectId, toRemove);
         roleService.addRoles(subjectId, toAdd);
@@ -133,9 +157,12 @@ public class SpaceRoleManager {
         return roleService.getRoles(subjectId);
     }
 
-    public Collection<SpaceRole> setRoles(String subjectId, String context, String space,
-            Collection<SpaceRole> spaceRoles)
-            throws NoSuchSubjectException {
+    public Collection<SpaceRole> setRoles(
+        String subjectId,
+        String context,
+        String space,
+        Collection<SpaceRole> spaceRoles
+    ) throws NoSuchSubjectException {
         // check if subject exists
         Subject s = subjectService.getSubject(subjectId);
 
@@ -158,42 +185,44 @@ public class SpaceRoleManager {
         Collection<SpaceRole> myRoles = curRoles();
 
         // filter request based on permissions
-        Collection<SpaceRole> values = spaceRoles.stream().filter(r -> isOwner(myRoles, r.getContext(), r.getSpace()))
-                .collect(Collectors.toList());
+        Collection<SpaceRole> values = spaceRoles
+            .stream()
+            .filter(r -> isOwner(myRoles, r.getContext(), r.getSpace()))
+            .collect(Collectors.toList());
 
         // remove only from owned context/spaces
         roleService.removeRoles(s.getSubjectId(), values);
     }
 
-//    public void removeRoles(String subjectId, String context, String space, List<String> roles)
-//            throws NoSuchSubjectException {
-//        // check if subject exists
-//        Subject s = subjectService.getSubject(subjectId);
-//        Collection<SpaceRole> spaceRoles = roles.stream().map(r -> new SpaceRole(context, space, r))
-//                .collect(Collectors.toList());
-//
-//        roleService.removeRoles(s.getSubjectId(), spaceRoles);
-//    }
+    //    public void removeRoles(String subjectId, String context, String space, List<String> roles)
+    //            throws NoSuchSubjectException {
+    //        // check if subject exists
+    //        Subject s = subjectService.getSubject(subjectId);
+    //        Collection<SpaceRole> spaceRoles = roles.stream().map(r -> new SpaceRole(context, space, r))
+    //                .collect(Collectors.toList());
+    //
+    //        roleService.removeRoles(s.getSubjectId(), spaceRoles);
+    //    }
 
     public Page<SpaceRoles> searchRoles(String context, String space, String q, Pageable pageRequest) {
         return roleService.searchRoles(context, space, q, pageRequest);
     }
 
-//    public SpaceRoles setRoles(String subject, String context, String space, List<String> roles) {
-//        Collection<SpaceRole> spaceRoles = roles.stream().map(r -> new SpaceRole(context, space, r))
-//                .collect(Collectors.toList());
-//
-//        Collection<SpaceRole> oldRoles = roleService.getRoles(subject, context, space);
-//        roleService.removeRoles(subject, oldRoles);
-//        roleService.addRoles(subject, spaceRoles);
-//
-//        SpaceRoles res = new SpaceRoles();
-//        res.setSubject(subject);
-//        res.setSpace(space);
-//        res.setContext(space);
-//        res.setRoles(roles);
-//        return res;
-//    }
+    //    public SpaceRoles setRoles(String subject, String context, String space, List<String> roles) {
+    //        Collection<SpaceRole> spaceRoles = roles.stream().map(r -> new SpaceRole(context, space, r))
+    //                .collect(Collectors.toList());
+    //
+    //        Collection<SpaceRole> oldRoles = roleService.getRoles(subject, context, space);
+    //        roleService.removeRoles(subject, oldRoles);
+    //        roleService.addRoles(subject, spaceRoles);
+    //
+    //        SpaceRoles res = new SpaceRoles();
+    //        res.setSubject(subject);
+    //        res.setSpace(space);
+    //        res.setContext(space);
+    //        res.setRoles(roles);
+    //        return res;
+    //    }
 
     /*
      * Helpers
@@ -206,5 +235,4 @@ public class SpaceRoleManager {
         SpaceRole parentOwner = context != null ? SpaceRole.ownerOf(context) : null;
         return myRoles.stream().anyMatch(r -> r.equals(spaceOwner) || r.equals(parentOwner));
     }
-
 }

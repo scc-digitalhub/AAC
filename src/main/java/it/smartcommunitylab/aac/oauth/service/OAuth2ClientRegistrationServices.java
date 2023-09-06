@@ -1,16 +1,20 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.oauth.service;
-
-import java.time.Instant;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.jsoup.Jsoup;
-import org.jsoup.safety.Safelist;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.security.crypto.keygen.StringKeyGenerator;
-import org.springframework.security.oauth2.provider.ClientRegistrationException;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.core.service.IdentityProviderService;
@@ -28,22 +32,34 @@ import it.smartcommunitylab.aac.oauth.model.JWEAlgorithm;
 import it.smartcommunitylab.aac.oauth.model.JWSAlgorithm;
 import it.smartcommunitylab.aac.oauth.model.ResponseType;
 import it.smartcommunitylab.aac.oauth.model.SubjectType;
-import it.smartcommunitylab.aac.oauth.model.TokenType;
 import it.smartcommunitylab.aac.oauth.provider.ClientRegistrationServices;
 import it.smartcommunitylab.aac.oauth.request.ClientRegistrationRequest;
+import java.time.Instant;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.security.crypto.keygen.StringKeyGenerator;
+import org.springframework.security.oauth2.provider.ClientRegistrationException;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 public class OAuth2ClientRegistrationServices implements ClientRegistrationServices, InitializingBean {
 
     private static final StringKeyGenerator NAME_GENERATOR = new HumanStringKeyGenerator(4);
+    private static final StringKeyGenerator SECRET_GENERATOR = new HumanStringKeyGenerator(32);
 
     private final OAuth2ClientService clientService;
     private IdentityProviderService providerService;
     private StringKeyGenerator nameGenerator;
+    private StringKeyGenerator secretGenerator;
 
     public OAuth2ClientRegistrationServices(OAuth2ClientService clientService) {
         Assert.notNull(clientService, "client service is mandatory");
         this.clientService = clientService;
         this.nameGenerator = NAME_GENERATOR;
+        this.secretGenerator = SECRET_GENERATOR;
     }
 
     public void setProviderService(IdentityProviderService providerService) {
@@ -54,9 +70,15 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
         this.nameGenerator = nameGenerator;
     }
 
+    public void setSecretGenerator(StringKeyGenerator secretGenerator) {
+        this.secretGenerator = secretGenerator;
+    }
+
     @Override
     public void afterPropertiesSet() throws Exception {
         Assert.notNull(providerService, "provider service is required");
+        Assert.notNull(nameGenerator, "name generator is required");
+        Assert.notNull(secretGenerator, "secret generator is required");
     }
 
     @Override
@@ -71,7 +93,7 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
 
     @Override
     public ClientRegistration addRegistration(String realm, ClientRegistrationRequest request)
-            throws ClientRegistrationException {
+        throws ClientRegistrationException {
         if (!StringUtils.hasText(realm)) {
             throw new IllegalArgumentException("missing or invalid realm");
         }
@@ -92,32 +114,58 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
 
         // enable all providers for the given realm
         // we lack a way to transmit providers via client registration
-        Set<String> providers = providerService.listProviders(realm).stream().map(p -> p.getProvider())
-                .collect(Collectors.toSet());
+        Set<String> providers = providerService
+            .listProviders(realm)
+            .stream()
+            .map(p -> p.getProvider())
+            .collect(Collectors.toSet());
 
         // build a client config
         OAuth2ClientConfigMap configMap = toConfigMap(registration);
 
         // TODO read software_statement and update config
         //
+
+        // create credentials when required
+        String clientSecret = null;
+        if (
+            registration.getAuthenticationMethods().contains(AuthenticationMethod.CLIENT_SECRET_BASIC.getValue()) ||
+            registration.getAuthenticationMethods().contains(AuthenticationMethod.CLIENT_SECRET_POST.getValue()) ||
+            registration.getAuthenticationMethods().contains(AuthenticationMethod.CLIENT_SECRET_JWT.getValue())
+        ) {
+            clientSecret = secretGenerator.generateKey();
+        }
+
         // register with autogenerated clientId
         // add as new
-        OAuth2Client client = clientService.addClient(realm,
-                null,
-                name, description,
-                registration.getScope(), registration.getResourceIds(),
-                providers,
-                null, null, null,
-                null,
-                configMap.getAuthorizedGrantTypes(), configMap.getRedirectUris(),
-                configMap.getApplicationType(), configMap.getTokenType(), configMap.getSubjectType(),
-                configMap.getAuthenticationMethods(),
-                configMap.getIdTokenClaims(), configMap.getFirstParty(),
-                configMap.getAccessTokenValidity(), configMap.getRefreshTokenValidity(),
-                configMap.getIdTokenValidity(),
-                null, configMap.getJwksUri(),
-                configMap.getAdditionalConfig(),
-                configMap.getAdditionalInformation());
+        OAuth2Client client = clientService.addClient(
+            realm,
+            null,
+            name,
+            description,
+            registration.getScope(),
+            registration.getResourceIds(),
+            providers,
+            null,
+            null,
+            null,
+            clientSecret,
+            configMap.getAuthorizedGrantTypes(),
+            configMap.getRedirectUris(),
+            configMap.getApplicationType(),
+            configMap.getTokenType(),
+            configMap.getSubjectType(),
+            configMap.getAuthenticationMethods(),
+            configMap.getIdTokenClaims(),
+            configMap.getFirstParty(),
+            configMap.getAccessTokenValidity(),
+            configMap.getRefreshTokenValidity(),
+            configMap.getIdTokenValidity(),
+            null,
+            configMap.getJwksUri(),
+            configMap.getAdditionalConfig(),
+            configMap.getAdditionalInformation()
+        );
 
         if (client == null) {
             throw new ClientRegistrationException("registration error");
@@ -136,8 +184,7 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
 
     @Override
     public ClientRegistration updateRegistration(String clientId, ClientRegistrationRequest request)
-            throws ClientRegistrationException {
-
+        throws ClientRegistrationException {
         if (!StringUtils.hasText(clientId)) {
             throw new IllegalArgumentException("missing or invalid clientId");
         }
@@ -168,8 +215,11 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
 
             // enable all providers for the given realm
             // we lack a way to transmit providers via client registration
-            Set<String> providers = providerService.listProviders(realm).stream().map(p -> p.getProvider())
-                    .collect(Collectors.toSet());
+            Set<String> providers = providerService
+                .listProviders(realm)
+                .stream()
+                .map(p -> p.getProvider())
+                .collect(Collectors.toSet());
 
             // build a client config
             OAuth2ClientConfigMap configMap = toConfigMap(registration);
@@ -177,20 +227,32 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
             // TODO read software_statement and update config
             //
             // update selectively
-            client = clientService.updateClient(clientId,
-                    name, description,
-                    registration.getScope(), registration.getResourceIds(),
+            client =
+                clientService.updateClient(
+                    clientId,
+                    name,
+                    description,
+                    registration.getScope(),
+                    registration.getResourceIds(),
                     providers,
-                    client.getHookFunctions(), client.getHookWebUrls(), client.getHookUniqueSpaces(),
-                    configMap.getAuthorizedGrantTypes(), configMap.getRedirectUris(),
-                    configMap.getApplicationType(), configMap.getTokenType(), configMap.getSubjectType(),
+                    client.getHookFunctions(),
+                    client.getHookWebUrls(),
+                    client.getHookUniqueSpaces(),
+                    configMap.getAuthorizedGrantTypes(),
+                    configMap.getRedirectUris(),
+                    configMap.getApplicationType(),
+                    configMap.getTokenType(),
+                    configMap.getSubjectType(),
                     configMap.getAuthenticationMethods(),
-                    configMap.getIdTokenClaims(), configMap.getFirstParty(),
-                    configMap.getAccessTokenValidity(), configMap.getRefreshTokenValidity(),
+                    configMap.getIdTokenClaims(),
+                    configMap.getFirstParty(),
+                    configMap.getAccessTokenValidity(),
+                    configMap.getRefreshTokenValidity(),
                     configMap.getIdTokenValidity(),
                     configMap.getJwksUri(),
                     configMap.getAdditionalConfig(),
-                    configMap.getAdditionalInformation());
+                    configMap.getAdditionalInformation()
+                );
 
             ClientRegistration result = toRegistration(client);
 
@@ -203,7 +265,6 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
         } catch (NoSuchClientException e) {
             throw new ClientRegistrationException("No client with requested id: " + clientId);
         }
-
     }
 
     @Override
@@ -215,10 +276,12 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
         OAuth2ClientConfigMap configMap = new OAuth2ClientConfigMap();
 
         if (reg.getGrantType() != null) {
-            Set<AuthorizationGrantType> grantTypes = reg.getGrantType().stream()
-                    .map(t -> AuthorizationGrantType.parse(t))
-                    .filter(t -> t != null)
-                    .collect(Collectors.toSet());
+            Set<AuthorizationGrantType> grantTypes = reg
+                .getGrantType()
+                .stream()
+                .map(t -> AuthorizationGrantType.parse(t))
+                .filter(t -> t != null)
+                .collect(Collectors.toSet());
             configMap.setAuthorizedGrantTypes(grantTypes);
         }
 
@@ -227,10 +290,12 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
         }
 
         if (reg.getAuthenticationMethods() != null) {
-            Set<AuthenticationMethod> authMethods = reg.getAuthenticationMethods().stream()
-                    .map(t -> AuthenticationMethod.parse(t))
-                    .filter(t -> t != null)
-                    .collect(Collectors.toSet());
+            Set<AuthenticationMethod> authMethods = reg
+                .getAuthenticationMethods()
+                .stream()
+                .map(t -> AuthenticationMethod.parse(t))
+                .filter(t -> t != null)
+                .collect(Collectors.toSet());
             configMap.setAuthenticationMethods(authMethods);
         }
 
@@ -248,13 +313,6 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
             }
         }
 
-        if (reg.getTokenType() != null) {
-            TokenType type = TokenType.parse(reg.getTokenType());
-            if (type != null) {
-                configMap.setTokenType(type);
-            }
-        }
-
         if (reg.getIdTokenValiditySeconds() != null) {
             configMap.setIdTokenValidity(reg.getIdTokenValiditySeconds());
         }
@@ -265,15 +323,16 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
             configMap.setRefreshTokenValidity(reg.getRefreshTokenValiditySeconds());
         }
 
-//        if (reg.getJwks() != null) {
-//
-//            try {
-//                JWKSet jwks = JWKSet.parse(reg.getJwks());
-//                configMap.setJwks(jwks.toString(false));
-//            } catch (ParseException e) {
-//                // ignore invalid jwks
-//            }
-//        }
+        // TODO enable when configMap includes jwks (client refactor)
+        //        if (reg.getJwks() != null) {
+        //
+        //            try {
+        //                JWKSet jwks = JWKSet.parse(reg.getJwks());
+        //                configMap.setJwks(jwks.toString(false));
+        //            } catch (ParseException e) {
+        //                // ignore invalid jwks
+        //            }
+        //        }
 
         if (reg.getJwksUri() != null) {
             configMap.setJwksUri(reg.getJwksUri());
@@ -283,10 +342,12 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
         OAuth2ClientInfo info = new OAuth2ClientInfo();
 
         if (reg.getResponseTypes() != null) {
-            Set<ResponseType> responseTypes = reg.getResponseTypes().stream()
-                    .map(t -> ResponseType.parse(t))
-                    .filter(t -> t != null)
-                    .collect(Collectors.toSet());
+            Set<ResponseType> responseTypes = reg
+                .getResponseTypes()
+                .stream()
+                .map(t -> ResponseType.parse(t))
+                .filter(t -> t != null)
+                .collect(Collectors.toSet());
             additional.setResponseTypes(responseTypes);
         }
 
@@ -338,7 +399,6 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
         configMap.setAdditionalInformation(info);
 
         return configMap;
-
     }
 
     private ClientRegistration toRegistration(OAuth2Client client) {
@@ -352,14 +412,16 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
         OAuth2ClientConfigMap configMap = client.getConfigMap();
 
         reg.setGrantType(
-                configMap.getAuthorizedGrantTypes().stream().map(gt -> gt.getValue()).collect(Collectors.toSet()));
+            configMap.getAuthorizedGrantTypes().stream().map(gt -> gt.getValue()).collect(Collectors.toSet())
+        );
         reg.setRedirectUris(configMap.getRedirectUris());
         reg.setAuthenticationMethods(
-                configMap.getAuthenticationMethods().stream().map(gt -> gt.getValue()).collect(Collectors.toSet()));
+            configMap.getAuthenticationMethods().stream().map(gt -> gt.getValue()).collect(Collectors.toSet())
+        );
 
         reg.setApplicationType(
-                configMap.getApplicationType() != null ? configMap.getApplicationType().getValue() : null);
-        reg.setTokenType(configMap.getTokenType() != null ? configMap.getTokenType().getValue() : null);
+            configMap.getApplicationType() != null ? configMap.getApplicationType().getValue() : null
+        );
         reg.setSubjectType(configMap.getSubjectType() != null ? configMap.getSubjectType().getValue() : null);
 
         reg.setIdTokenValiditySeconds(configMap.getIdTokenValidity());
@@ -371,71 +433,66 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
         reg.setJwksUri(configMap.getJwksUri());
 
         if (configMap.getAdditionalConfig() != null) {
-            try {
-                OAuth2ClientAdditionalConfig config = configMap.getAdditionalConfig();
+            OAuth2ClientAdditionalConfig config = configMap.getAdditionalConfig();
 
-                if (config.getResponseTypes() != null) {
-                    reg.setResponseTypes(
-                            config.getResponseTypes().stream().map(t -> t.getValue()).collect(Collectors.toSet()));
-                }
-
-                // TODO handle all response config as per openid DCR
-                // jwt
-                if (config.getJwtSignAlgorithm() != null) {
-                    reg.setJwtSignAlgorithm(config.getJwtSignAlgorithm().getValue());
-                }
-                if (config.getJwtEncAlgorithm() != null) {
-                    reg.setJwtEncAlgorithm(config.getJwtEncAlgorithm().getValue());
-                }
-                if (config.getJwtEncMethod() != null) {
-                    reg.setJwtEncMethod(config.getJwtEncMethod().getValue());
-                }
-
-                // idToken
-                if (config.getIdTokenSignAlgorithm() != null) {
-                    reg.setIdTokenSignAlgorithm(config.getIdTokenSignAlgorithm().getValue());
-                }
-                if (config.getIdTokenEncAlgorithm() != null) {
-                    reg.setIdTokenEncAlgorithm(config.getIdTokenEncAlgorithm().getValue());
-                }
-                if (config.getIdTokenEncMethod() != null) {
-                    reg.setIdTokenEncMethod(config.getIdTokenEncMethod().getValue());
-                }
-
-                // userinfo
-                if (config.getUserinfoSignAlgorithm() != null) {
-                    reg.setUserinfoSignAlgorithm(config.getUserinfoSignAlgorithm().getValue());
-                }
-                if (config.getUserinfoEncAlgorithm() != null) {
-                    reg.setUserinfoEncAlgorithm(config.getUserinfoEncAlgorithm().getValue());
-                }
-                if (config.getUserinfoEncMethod() != null) {
-                    reg.setUserinfoEncMethod(config.getUserinfoEncMethod().getValue());
-                }
-
-                // requestObj
-                if (config.getRequestobjSignAlgorithm() != null) {
-                    reg.setRequestobjSignAlgorithm(config.getRequestobjSignAlgorithm().getValue());
-                }
-                if (config.getRequestobjEncAlgorithm() != null) {
-                    reg.setRequestobjEncAlgorithm(config.getRequestobjEncAlgorithm().getValue());
-                }
-                if (config.getRequestobjEncMethod() != null) {
-                    reg.setRequestobjEncMethod(config.getRequestobjEncMethod().getValue());
-                }
-
-            } catch (Exception e) {
-                // ignore additional config
+            if (config.getResponseTypes() != null) {
+                reg.setResponseTypes(
+                    config.getResponseTypes().stream().map(t -> t.getValue()).collect(Collectors.toSet())
+                );
             }
+
+            // TODO handle all response config as per openid DCR
+            // jwt
+            if (config.getJwtSignAlgorithm() != null) {
+                reg.setJwtSignAlgorithm(config.getJwtSignAlgorithm().getValue());
+            }
+            if (config.getJwtEncAlgorithm() != null) {
+                reg.setJwtEncAlgorithm(config.getJwtEncAlgorithm().getValue());
+            }
+            if (config.getJwtEncMethod() != null) {
+                reg.setJwtEncMethod(config.getJwtEncMethod().getValue());
+            }
+
+            // idToken
+            if (config.getIdTokenSignAlgorithm() != null) {
+                reg.setIdTokenSignAlgorithm(config.getIdTokenSignAlgorithm().getValue());
+            }
+            if (config.getIdTokenEncAlgorithm() != null) {
+                reg.setIdTokenEncAlgorithm(config.getIdTokenEncAlgorithm().getValue());
+            }
+            if (config.getIdTokenEncMethod() != null) {
+                reg.setIdTokenEncMethod(config.getIdTokenEncMethod().getValue());
+            }
+
+            // userinfo
+            if (config.getUserinfoSignAlgorithm() != null) {
+                reg.setUserinfoSignAlgorithm(config.getUserinfoSignAlgorithm().getValue());
+            }
+            if (config.getUserinfoEncAlgorithm() != null) {
+                reg.setUserinfoEncAlgorithm(config.getUserinfoEncAlgorithm().getValue());
+            }
+            if (config.getUserinfoEncMethod() != null) {
+                reg.setUserinfoEncMethod(config.getUserinfoEncMethod().getValue());
+            }
+
+            // requestObj
+            if (config.getRequestobjSignAlgorithm() != null) {
+                reg.setRequestobjSignAlgorithm(config.getRequestobjSignAlgorithm().getValue());
+            }
+            if (config.getRequestobjEncAlgorithm() != null) {
+                reg.setRequestobjEncAlgorithm(config.getRequestobjEncAlgorithm().getValue());
+            }
+            if (config.getRequestobjEncMethod() != null) {
+                reg.setRequestobjEncMethod(config.getRequestobjEncMethod().getValue());
+            }
+            // ignore additional config
         }
 
         // map additional info
         if (configMap.getAdditionalInformation() != null) {
             OAuth2ClientInfo info = configMap.getAdditionalInformation();
-
         }
 
         return reg;
     }
-
 }

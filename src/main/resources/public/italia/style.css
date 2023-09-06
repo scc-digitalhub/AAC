@@ -253,3 +253,12 @@ form .invalid-feedback {
    justify-content: flex-start;
 }
 
+.card-footer a {
+   color: #FFF;
+   font-weight: bold;
+}
+
+.language-switch {
+   max-width: 160px;
+}
+

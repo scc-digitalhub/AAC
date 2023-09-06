@@ -1,83 +1,49 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.saml.provider;
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.springframework.stereotype.Service;
-
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.config.AuthoritiesProperties;
+import it.smartcommunitylab.aac.config.IdentityAuthoritiesProperties;
+import it.smartcommunitylab.aac.core.base.AbstractIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.provider.IdentityConfigurationProvider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 @Service
 public class SamlIdentityConfigurationProvider
-        implements
-        IdentityConfigurationProvider<SamlIdentityProviderConfig, SamlIdentityProviderConfigMap> {
+    extends AbstractIdentityConfigurationProvider<SamlIdentityProviderConfigMap, SamlIdentityProviderConfig> {
 
-    private SamlIdentityProviderConfigMap defaultConfig;
-
-    public SamlIdentityConfigurationProvider(AuthoritiesProperties authoritiesProperties) {
+    @Autowired
+    public SamlIdentityConfigurationProvider(IdentityAuthoritiesProperties authoritiesProperties) {
+        super(SystemKeys.AUTHORITY_SAML);
         if (authoritiesProperties != null && authoritiesProperties.getSaml() != null) {
-            defaultConfig = authoritiesProperties.getSaml();
+            setDefaultConfigMap(authoritiesProperties.getSaml());
         } else {
-            defaultConfig = new SamlIdentityProviderConfigMap();
+            setDefaultConfigMap(new SamlIdentityProviderConfigMap());
         }
     }
 
-    @Override
-    public String getAuthority() {
-        return SystemKeys.AUTHORITY_SAML;
+    public SamlIdentityConfigurationProvider(String authority, SamlIdentityProviderConfigMap configMap) {
+        super(authority);
+        setDefaultConfigMap(configMap);
     }
 
     @Override
-    public SamlIdentityProviderConfig getConfig(ConfigurableIdentityProvider cp, boolean mergeDefault) {
-        if (mergeDefault) {
-            // merge configMap with default on missing values
-            Map<String, Serializable> map = new HashMap<>();
-            map.putAll(cp.getConfiguration());
-
-            Map<String, Serializable> defaultMap = defaultConfig.getConfiguration();
-            defaultMap.entrySet().forEach(e -> {
-                map.putIfAbsent(e.getKey(), e.getValue());
-            });
-
-            cp.setConfiguration(map);
-        }
-
-        return SamlIdentityProviderConfig.fromConfigurableProvider(cp);
-
+    protected SamlIdentityProviderConfig buildConfig(ConfigurableIdentityProvider cp) {
+        return new SamlIdentityProviderConfig(cp, getConfigMap(cp.getConfiguration()));
     }
-
-    @Override
-    public SamlIdentityProviderConfig getConfig(ConfigurableIdentityProvider cp) {
-        return getConfig(cp, true);
-    }
-
-    @Override
-    public SamlIdentityProviderConfigMap getDefaultConfigMap() {
-        return defaultConfig;
-    }
-
-    @Override
-    public SamlIdentityProviderConfigMap getConfigMap(Map<String, Serializable> map) {
-        // return a valid config from props
-        SamlIdentityProviderConfigMap config = new SamlIdentityProviderConfigMap();
-        config.setConfiguration(map);
-        return config;
-    }
-
-    @Override
-    public JsonSchema getSchema() {
-        try {
-            return SamlIdentityProviderConfigMap.getConfigurationSchema();
-        } catch (JsonMappingException e) {
-            return null;
-        }
-    }
-
 }

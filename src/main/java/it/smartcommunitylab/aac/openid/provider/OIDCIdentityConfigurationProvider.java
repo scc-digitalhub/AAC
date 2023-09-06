@@ -1,95 +1,47 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.openid.provider;
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.config.IdentityAuthoritiesProperties;
+import it.smartcommunitylab.aac.core.base.AbstractIdentityConfigurationProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
-
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.config.AuthoritiesProperties;
-import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.provider.IdentityConfigurationProvider;
 
 @Service
 public class OIDCIdentityConfigurationProvider
-        implements
-        IdentityConfigurationProvider<OIDCIdentityProviderConfig, OIDCIdentityProviderConfigMap> {
-
-    private final String authority;
-    private OIDCIdentityProviderConfigMap defaultConfig;
+    extends AbstractIdentityConfigurationProvider<OIDCIdentityProviderConfigMap, OIDCIdentityProviderConfig> {
 
     @Autowired
-    public OIDCIdentityConfigurationProvider(AuthoritiesProperties authoritiesProperties) {
-        this.authority = SystemKeys.AUTHORITY_OIDC;
+    public OIDCIdentityConfigurationProvider(IdentityAuthoritiesProperties authoritiesProperties) {
+        this(SystemKeys.AUTHORITY_OIDC, new OIDCIdentityProviderConfigMap());
         if (authoritiesProperties != null && authoritiesProperties.getOidc() != null) {
-            defaultConfig = authoritiesProperties.getOidc();
-        } else {
-            defaultConfig = new OIDCIdentityProviderConfigMap();
+            setDefaultConfigMap(authoritiesProperties.getOidc());
         }
-
     }
 
     public OIDCIdentityConfigurationProvider(String authority, OIDCIdentityProviderConfigMap configMap) {
-        Assert.hasText(authority, "authority id is mandatory");
-        this.authority = authority;
-        this.defaultConfig = configMap;
+        super(authority);
+        setDefaultConfigMap(configMap);
     }
 
     @Override
-    public String getAuthority() {
-        return authority;
+    protected OIDCIdentityProviderConfig buildConfig(ConfigurableIdentityProvider cp) {
+        return new OIDCIdentityProviderConfig(cp, getConfigMap(cp.getConfiguration()));
     }
-
-    @Override
-    public OIDCIdentityProviderConfig getConfig(ConfigurableIdentityProvider cp, boolean mergeDefault) {
-        if (mergeDefault) {
-            // merge configMap with default on missing values
-            Map<String, Serializable> map = new HashMap<>();
-            map.putAll(cp.getConfiguration());
-
-            Map<String, Serializable> defaultMap = defaultConfig.getConfiguration();
-            defaultMap.entrySet().forEach(e -> {
-                map.putIfAbsent(e.getKey(), e.getValue());
-            });
-
-            cp.setConfiguration(map);
-        }
-
-        return OIDCIdentityProviderConfig.fromConfigurableProvider(cp);
-
-    }
-
-    @Override
-    public OIDCIdentityProviderConfig getConfig(ConfigurableIdentityProvider cp) {
-        return getConfig(cp, true);
-    }
-
-    @Override
-    public OIDCIdentityProviderConfigMap getDefaultConfigMap() {
-        return defaultConfig;
-    }
-
-    @Override
-    public OIDCIdentityProviderConfigMap getConfigMap(Map<String, Serializable> map) {
-        // return a valid config from props
-        OIDCIdentityProviderConfigMap config = new OIDCIdentityProviderConfigMap();
-        config.setConfiguration(map);
-        return config;
-    }
-
-    @Override
-    public JsonSchema getSchema() {
-        try {
-            return OIDCIdentityProviderConfigMap.getConfigurationSchema();
-        } catch (JsonMappingException e) {
-            return null;
-        }
-    }
-
 }

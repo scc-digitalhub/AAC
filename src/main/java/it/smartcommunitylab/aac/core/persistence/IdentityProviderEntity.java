@@ -1,8 +1,25 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.core.persistence;
 
+import it.smartcommunitylab.aac.repository.HashMapBase64Converter;
+import it.smartcommunitylab.aac.repository.HashMapConverter;
 import java.io.Serializable;
 import java.util.Map;
-
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
@@ -11,44 +28,44 @@ import javax.persistence.Lob;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
-import it.smartcommunitylab.aac.repository.HashMapBase64Converter;
-import it.smartcommunitylab.aac.repository.HashMapConverter;
-
 @Entity
 @Table(name = "identity_providers")
-public class IdentityProviderEntity {
-
-//    @Id
-//    @GeneratedValue
-//    private Long id;
+public class IdentityProviderEntity implements ProviderEntity {
 
     @NotNull
+    @Column(name = "authority", length = 128)
     private String authority;
 
     @Id
     @NotNull
     @Column(name = "provider_id", length = 128, unique = true)
-    private String providerId;
+    private String provider;
 
     @NotNull
     @Column(length = 128)
     private String realm;
 
-//    @NotNull
-//    @Column(name = "provider_type")
-//    private String type;
-
     @NotNull
     @Column(name = "enabled")
-    private boolean enabled;
+    private Boolean enabled;
 
+    @NotNull
+    @Column(name = "name", length = 128)
     private String name;
-    private String description;
-    private String icon;
+
+    @Lob
+    @Column(name = "title_map")
+    @Convert(converter = HashMapConverter.class)
+    private Map<String, String> titleMap;
+
+    @Lob
+    @Column(name = "description_map")
+    @Convert(converter = HashMapConverter.class)
+    private Map<String, String> descriptionMap;
 
     @NotNull
     @Column(name = "linkable")
-    private boolean linkable = true;
+    private Boolean linkable = true;
 
     @Column(name = "persistence_level", length = 32)
     private String persistence;
@@ -71,21 +88,14 @@ public class IdentityProviderEntity {
     @Convert(converter = HashMapBase64Converter.class)
     private Map<String, String> hookFunctions;
 
-    public IdentityProviderEntity() {
+    @Column(name = "version")
+    private Integer version;
 
-    }
+    public IdentityProviderEntity() {}
 
     public IdentityProviderEntity(String providerId) {
-        this.providerId = providerId;
+        this.provider = providerId;
     }
-
-//    public Long getId() {
-//        return id;
-//    }
-//
-//    public void setId(Long id) {
-//        this.id = id;
-//    }
 
     public String getAuthority() {
         return authority;
@@ -95,12 +105,12 @@ public class IdentityProviderEntity {
         this.authority = authority;
     }
 
-    public String getProviderId() {
-        return providerId;
+    public String getProvider() {
+        return provider;
     }
 
-    public void setProviderId(String providerId) {
-        this.providerId = providerId;
+    public void setProvider(String provider) {
+        this.provider = provider;
     }
 
     public String getRealm() {
@@ -111,16 +121,12 @@ public class IdentityProviderEntity {
         this.realm = realm;
     }
 
-//    public String getType() {
-//        return type;
-//    }
-//
-//    public void setType(String type) {
-//        this.type = type;
-//    }
-
     public boolean isEnabled() {
-        return enabled;
+        return enabled != null ? enabled.booleanValue() : false;
+    }
+
+    public Boolean getEnabled() {
+        return this.enabled;
     }
 
     public void setEnabled(boolean enabled) {
@@ -128,7 +134,11 @@ public class IdentityProviderEntity {
     }
 
     public boolean isLinkable() {
-        return linkable;
+        return linkable != null ? linkable.booleanValue() : false;
+    }
+
+    public Boolean getLinkable() {
+        return this.linkable;
     }
 
     public void setLinkable(boolean linkable) {
@@ -143,20 +153,20 @@ public class IdentityProviderEntity {
         this.name = name;
     }
 
-    public String getDescription() {
-        return description;
+    public Map<String, String> getTitleMap() {
+        return titleMap;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setTitleMap(Map<String, String> titleMap) {
+        this.titleMap = titleMap;
     }
 
-    public String getIcon() {
-        return icon;
+    public Map<String, String> getDescriptionMap() {
+        return descriptionMap;
     }
 
-    public void setIcon(String icon) {
-        this.icon = icon;
+    public void setDescriptionMap(Map<String, String> descriptionMap) {
+        this.descriptionMap = descriptionMap;
     }
 
     public String getPersistence() {
@@ -199,4 +209,11 @@ public class IdentityProviderEntity {
         this.hookFunctions = hookFunctions;
     }
 
+    public int getVersion() {
+        return version != null ? version : 0;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
+    }
 }

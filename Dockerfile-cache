@@ -1,8 +1,10 @@
-FROM maven:3-jdk-8 as mvn
+FROM maven:3-openjdk-17 as mvn
 COPY ./src /tmp/src
+COPY ./user-console /tmp/user-console
 COPY ./pom.xml /tmp/pom.xml
 WORKDIR /tmp
-RUN  mvn install
+RUN mvn install -DskipTests
 
-FROM alpine
+FROM scratch
 COPY --from=mvn /root/.m2 /root/.m2
+COPY --from=mvn /tmp/user-console/node_modules /root/node_modules

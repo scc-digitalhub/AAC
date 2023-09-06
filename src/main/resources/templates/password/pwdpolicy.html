@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head></head>
+
+<body>
+   <div th:fragment="policy">
+      <p th:text="#{label.pwdpolicy.title}">Password policy</p>
+      <ul>
+         <li>
+            <em th:text="#{field.length}"> </em>
+            <em>
+               <span th:text="${policy.passwordMinLength}"></span> - <span th:text="${policy.passwordMaxLength}"></span>
+            </em>
+         </li>
+         <li th:if="${policy.passwordRequireAlpha}">
+            <em th:text="#{field.pwd.require_alpha}"></em>
+         </li>
+         <li th:if="${policy.passwordRequireUppercaseAlpha}">
+            <em th:text="#{field.pwd.require_uppercase_alpha}"></em>
+         </li>
+         <li th:if="${policy.passwordRequireNumber}">
+            <em th:text="#{field.pwd.require_number}"></em>
+         </li>
+         <li th:if="${policy.passwordRequireSpecial}">
+            <em th:text="#{field.pwd.require_special}"></em>
+         </li>
+         <li th:if="${policy.passwordSupportWhitespace}">
+            <em th:text="#{field.pwd.support_whitespaces}"></em>
+         </li>
+      </ul>
+   </div>
+
+</body>
+
+</html>
