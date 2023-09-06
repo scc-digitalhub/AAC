@@ -119,6 +119,7 @@ public abstract class AbstractTemplateProvider<
 
         m.setLanguage(language);
         if (e != null) {
+            m.setId(e.getId());            
             m.setContent(e.getContent());
         }
 
