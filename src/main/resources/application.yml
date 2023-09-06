@@ -29,6 +29,7 @@ jdbc:
    user: ${JDBC_USER:ac}
    password: ${JDBC_PASS:ac}
    show-sql: false
+   platform: ${JDBC_PLATFORM:}
    
 persistence:
    repository:
@@ -259,6 +260,7 @@ logging:
 
 # SPRING
 spring:
+   sql.init.mode: always
    messages:
       basename: resources/internal
       encoding: UTF-8
@@ -266,7 +268,6 @@ spring:
       resources:
         cache.period: 3600
    h2.console.enabled: false       
-   jpa.hibernate.ddl-auto: validate
    session:
     store-type: jdbc
     jdbc.initialize-schema: always   
