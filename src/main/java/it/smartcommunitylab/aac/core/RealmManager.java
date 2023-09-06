@@ -19,7 +19,6 @@ package it.smartcommunitylab.aac.core;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.AttributeSetsManager;
-import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
@@ -54,6 +53,7 @@ import it.smartcommunitylab.aac.model.Group;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.oauth.model.TosConfigurationMap;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.roles.RealmRoleManager;
@@ -218,7 +218,12 @@ public class RealmManager {
             oauth2ConfigMap = r.getOAuthConfiguration().getConfiguration();
         }
 
-        Realm realm = realmService.updateRealm(slug, name, r.isEditable(), r.isPublic(), oauth2ConfigMap);
+        Map<String, Serializable> tosConfigMap = null;
+        if (r.getTosConfiguration() != null) {
+            tosConfigMap = r.getTosConfiguration().getConfiguration();
+        }
+
+        Realm realm = realmService.updateRealm(slug, name, r.isEditable(), r.isPublic(), oauth2ConfigMap, tosConfigMap);
 
         return realm;
     }

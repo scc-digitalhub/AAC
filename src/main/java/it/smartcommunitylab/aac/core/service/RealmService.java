@@ -25,6 +25,7 @@ import it.smartcommunitylab.aac.core.persistence.RealmEntity;
 import it.smartcommunitylab.aac.core.persistence.RealmEntityRepository;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ConfigurationMap;
+import it.smartcommunitylab.aac.oauth.model.TosConfigurationMap;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.List;
@@ -149,7 +150,8 @@ public class RealmService implements InitializingBean {
         String name,
         boolean isEditable,
         boolean isPublic,
-        Map<String, Serializable> oauthConfigurationMap
+        Map<String, Serializable> oauthConfigurationMap,
+        Map<String, Serializable> tosConfigurationMap
     ) throws NoSuchRealmException {
         if (SystemKeys.REALM_GLOBAL.equals(slug) || SystemKeys.REALM_SYSTEM.equals(slug)) {
             throw new IllegalArgumentException("system realms are immutable");
@@ -165,6 +167,8 @@ public class RealmService implements InitializingBean {
         r.setPublic(isPublic);
 
         r.setOAuthConfigurationMap(oauthConfigurationMap);
+        r.setTosConfigurationMap(tosConfigurationMap);
+
         r = realmRepository.save(r);
 
         return toRealm(r);
@@ -247,6 +251,12 @@ public class RealmService implements InitializingBean {
             oauth2ConfigMap.setConfiguration(re.getOAuthConfigurationMap());
         }
         r.setOAuthConfiguration(oauth2ConfigMap);
+
+        TosConfigurationMap tosConfigMap = new TosConfigurationMap();
+        if (re.getTosConfigurationMap() != null) {
+            tosConfigMap.setConfiguration(re.getTosConfigurationMap());
+        }
+        r.setTosConfiguration(tosConfigMap);
 
         return r;
     }

@@ -111,6 +111,9 @@ public class User {
     // realm scoped
     private List<UserAttributes> attributes;
 
+    // terms of service.
+    private Boolean tosAccepted;
+
     public User(String subjectId, String source) {
         Assert.hasText(subjectId, "subject can not be null or empty");
         Assert.notNull(source, "source realm can not be null");
@@ -359,6 +362,18 @@ public class User {
     public void setGroups(Collection<Group> groups) {
         this.groups = new HashSet<>();
         this.groups.addAll(groups);
+    }
+
+    public Boolean getTosAccepted() {
+        return tosAccepted;
+    }
+
+    public void setTosAccepted(Boolean tosAccepted) {
+        this.tosAccepted = tosAccepted;
+    }
+
+    public boolean isTosAccepted() {
+        return tosAccepted != null ? tosAccepted.booleanValue() : false;
     }
     //    public void addSpaceRoles(Collection<SpaceRole> rr) {
     //        if (rr != null) {

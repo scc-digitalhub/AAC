@@ -67,6 +67,12 @@ public class RealmEntity {
     @Convert(converter = HashMapConverter.class)
     private Map<String, Serializable> oauthConfigurationMap;
 
+    // TODO move to termsOfServiceConfigProvider
+    @Lob
+    @Column(name = "tos_configuration_map")
+    @Convert(converter = HashMapConverter.class)
+    private Map<String, Serializable> tosConfigurationMap;
+
     public String getName() {
         return name;
     }
@@ -121,5 +127,13 @@ public class RealmEntity {
 
     public void setOAuthConfigurationMap(Map<String, Serializable> oauthConfigurationMap) {
         this.oauthConfigurationMap = oauthConfigurationMap;
+    }
+
+    public Map<String, Serializable> getTosConfigurationMap() {
+        return tosConfigurationMap;
+    }
+
+    public void setTosConfigurationMap(Map<String, Serializable> tosConfigurationMap) {
+        this.tosConfigurationMap = tosConfigurationMap;
     }
 }
