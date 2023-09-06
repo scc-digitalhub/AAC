@@ -41,6 +41,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequestMapping
 public class TosController {
 
+    public static final String TOS_TERMS = "/terms";
+    public static final String TOS_TERMS_ACCEPT = "/terms/accept";
+    public static final String TOS_TERMS_REJECT = "/terms/reject";
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
@@ -52,21 +56,23 @@ public class TosController {
     @Autowired
     private UserService userService;
 
-    @GetMapping("/-/{realm}/terms")
+    @GetMapping("/-/{realm}" + TOS_TERMS)
     public String realmTerms(@PathVariable String realm, Model model) {
         Realm realmEntity = realmService.findRealm(realm);
-
-        if (realmEntity != null) {
-            model.addAttribute("acceptUrl", "/terms/action");
-            model.addAttribute("realm", realm);
-            model.addAttribute("displayName", realm);
-            return "tos/tos_ok";
-        } else {
+        if (
+            realmEntity == null ||
+            realmEntity.getTosConfiguration() == null ||
+            !realmEntity.getTosConfiguration().isEnableTOS()
+        ) {
             throw new ProviderNotFoundException("realm not found");
         }
+
+        model.addAttribute("realm", realm);
+        model.addAttribute("displayName", realm);
+        return "tos/tos";
     }
 
-    @GetMapping("/terms")
+    @GetMapping(TOS_TERMS)
     public String terms(HttpServletRequest request, Model model, Locale locale) {
         UserDetails user = authHelper.getUserDetails();
 
@@ -77,22 +83,27 @@ public class TosController {
         String realm = user.getRealm();
         Realm realmEntity = realmService.findRealm(realm);
 
-        if (realmEntity != null) {
-            model.addAttribute("acceptUrl", "/terms/action");
-            model.addAttribute("realm", realm);
-            model.addAttribute("displayName", realm);
-
-            if (realmEntity.getTosConfiguration().isApprovedTOS()) {
-                return "tos/tos_approval";
-            }
-
-            return "tos/tos_ok";
-        } else {
+        if (
+            realmEntity == null ||
+            realmEntity.getTosConfiguration() == null ||
+            !realmEntity.getTosConfiguration().isEnableTOS()
+        ) {
             throw new ProviderNotFoundException("realm not found");
         }
+
+        model.addAttribute("acceptUrl", TOS_TERMS_ACCEPT);
+        model.addAttribute("realm", realm);
+        model.addAttribute("displayName", realm);
+        model.addAttribute("tosForm", "ok");
+
+        if (realmEntity.getTosConfiguration().isApprovedTOS()) {
+            model.addAttribute("tosForm", "accept");
+        }
+
+        return "tos/tos";
     }
 
-    @PostMapping("/terms/action")
+    @PostMapping(TOS_TERMS_ACCEPT)
     public String termsAccepted(
         @RequestParam(required = false, defaultValue = "") String approveParam,
         HttpServletRequest request,
@@ -100,22 +111,28 @@ public class TosController {
         Locale locale
     ) throws NoSuchUserException {
         UserDetails user = authHelper.getUserDetails();
-
         if (user == null) {
             throw new InsufficientAuthenticationException("error.unauthenticated_user");
         }
 
+        String realm = user.getRealm();
+        Realm realmEntity = realmService.findRealm(realm);
+        if (
+            realmEntity == null ||
+            realmEntity.getTosConfiguration() == null ||
+            !realmEntity.getTosConfiguration().isEnableTOS()
+        ) {
+            throw new ProviderNotFoundException("realm not found");
+        }
+
         request.getSession().setAttribute("termsStatus", approveParam);
 
-        if (approveParam.equals("Approve")) {
-            // user clicked "approve"
+        if (approveParam.equals("accept")) {
+            logger.debug("terms of service approved");
             userService.acceptTos(user.getSubjectId());
-            this.logger.debug("terms of service approved");
-            return "redirect:/";
-        } else if (approveParam.equals("Refuse")) {
-            // user clicked "refuse"
-            userService.refuseTos(user.getSubjectId());
-            this.logger.debug("terms of service refused");
+        } else if (approveParam.equals("reject")) {
+            logger.debug("terms of service rejected");
+            userService.rejectTos(user.getSubjectId());
         } else {
             throw new IllegalArgumentException("Need either approve or deny!");
         }
@@ -123,15 +140,12 @@ public class TosController {
         return "redirect:/";
     }
 
-    @GetMapping("/terms/refuse")
-    public String termsRefused(HttpServletRequest request, Model model, Locale locale) {
+    @GetMapping("/terms/reject")
+    public String rejectTerms(HttpServletRequest request, Model model, Locale locale) {
         UserDetails user = authHelper.getUserDetails();
-
         if (user == null) {
             throw new InsufficientAuthenticationException("error.unauthenticated_user");
         }
-
-        this.logger.debug("terms of service refused");
 
         return "tos/tos_refuse";
     }

@@ -20,12 +20,12 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.templates.model.FixedTemplateModel;
 import java.util.Arrays;
 
-public class TosOkTemplate extends FixedTemplateModel {
+public class TosTemplate extends FixedTemplateModel {
 
-    public static final String TEMPLATE = "tos_ok";
-    private static final String[] KEYS = { "tos.text" };
+    public static final String TEMPLATE = "tos";
+    public static final String[] KEYS = { "tos.text" };
 
-    public TosOkTemplate(String realm) {
-        super(SystemKeys.AUTHORITY_TEMPLATE, realm, null, TEMPLATE, Arrays.asList(KEYS));
+    public TosTemplate(String realm) {
+        super(SystemKeys.AUTHORITY_TOS, realm, null, TEMPLATE, Arrays.asList(KEYS));
     }
 }

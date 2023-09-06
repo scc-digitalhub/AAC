@@ -29,10 +29,10 @@
 
             <br />
 
-            <form action="#" th:action="${acceptUrl}" method="post">
+            <form th:fragment="form" action="#" th:action="${acceptUrl}" method="post">
                 <div class="row">
                     <div class="col-12 text-center">
-                        <button type="submit" th:name="approveParam" th:value="Approve" class="btn btn-primary" th:text="#{action.approve}" />
+                        <button type="submit" th:name="approveParam" th:value="accept" class="btn btn-primary" th:text="#{action.accept}" />
                     </div>
                 </div>
             </form>

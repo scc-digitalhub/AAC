@@ -28,6 +28,7 @@ import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.tos.controller.TosController;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -131,7 +132,7 @@ public class TosOnAccessFilter extends OncePerRequestFilter {
                         request.getSession().removeAttribute(TOS_STATUS);
                     }
 
-                    String refuseUrl = "/terms/refuse";
+                    String refuseUrl = TosController.TOS_TERMS_REJECT;
                     this.logger.debug("Redirect to {}", refuseUrl);
                     request.setAttribute(RealmAwareAuthenticationEntryPoint.REALM_URI_VARIABLE_NAME, user.getRealm());
                     this.redirectStrategy.sendRedirect(request, response, refuseUrl);
@@ -152,7 +153,7 @@ public class TosOnAccessFilter extends OncePerRequestFilter {
                         }
                     }
                 } else { // default (Null)
-                    String targetUrl = "/terms";
+                    String targetUrl = TosController.TOS_TERMS;
                     this.requestCache.saveRequest(request, response);
                     this.logger.debug("Redirect to {}", targetUrl);
                     this.redirectStrategy.sendRedirect(request, response, targetUrl);

@@ -804,7 +804,7 @@ public class UserService {
         userService.updateTos(subjectId, true);
     }
 
-    public void refuseTos(String subjectId) throws NoSuchUserException {
+    public void rejectTos(String subjectId) throws NoSuchUserException {
         userService.updateTos(subjectId, false);
     }
 

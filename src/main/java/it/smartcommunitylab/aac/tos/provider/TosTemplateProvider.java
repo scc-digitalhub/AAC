@@ -22,8 +22,7 @@ import it.smartcommunitylab.aac.templates.model.TemplateModel;
 import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfig;
 import it.smartcommunitylab.aac.templates.provider.TemplateProviderConfigMap;
 import it.smartcommunitylab.aac.templates.service.TemplateService;
-import it.smartcommunitylab.aac.tos.templates.TosApprovalTemplate;
-import it.smartcommunitylab.aac.tos.templates.TosOkTemplate;
+import it.smartcommunitylab.aac.tos.templates.TosTemplate;
 import java.util.HashMap;
 
 public class TosTemplateProvider
@@ -38,16 +37,9 @@ public class TosTemplateProvider
         super(SystemKeys.AUTHORITY_TOS, providerId, templateService, providerConfig, realm);
         factories = new HashMap<>();
         factories.put(
-            TosOkTemplate.TEMPLATE,
+            TosTemplate.TEMPLATE,
             () -> {
-                TemplateModel m = new TosOkTemplate(realm);
-                return m;
-            }
-        );
-        factories.put(
-            TosApprovalTemplate.TEMPLATE,
-            () -> {
-                TemplateModel m = new TosApprovalTemplate(realm);
+                TemplateModel m = new TosTemplate(realm);
                 return m;
             }
         );

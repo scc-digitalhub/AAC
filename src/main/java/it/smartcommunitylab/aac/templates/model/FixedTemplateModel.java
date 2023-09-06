@@ -26,7 +26,7 @@ import org.springframework.util.Assert;
 
 public class FixedTemplateModel extends TemplateModel {
 
-    public final Set<String> keys;
+    protected final Set<String> keys;
 
     public FixedTemplateModel(
         String authority,

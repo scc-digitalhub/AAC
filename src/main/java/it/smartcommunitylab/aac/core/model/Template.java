@@ -32,6 +32,8 @@ public interface Template extends Resource {
 
     public String get(String key);
 
+    public Map<String, String> getContent();
+
     default String getType() {
         return SystemKeys.RESOURCE_TEMPLATE;
     }

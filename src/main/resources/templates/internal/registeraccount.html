@@ -96,6 +96,12 @@
             </div>
          </div>
 
+         <div class="row" th:if="${tosUrl} != null">
+            <div class="col-md-12 form-group">
+               <div th:utext="#{label.registeraccount.tos_x(${tosUrl})}"></div>
+            </div>
+         </div>
+
          <div class="row">
             <div class="col-6 text-right">
                <button class="btn btn-primary" th:text="#{action.signup}"></button>
