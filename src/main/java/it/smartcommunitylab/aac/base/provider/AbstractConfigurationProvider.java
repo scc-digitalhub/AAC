@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 import org.springframework.validation.DataBinder;
 import org.springframework.validation.SmartValidator;
@@ -105,7 +106,8 @@ public abstract class AbstractConfigurationProvider<
         this.defaultConfigMap = defaultConfigMap;
     }
 
-    protected void setValidator(SmartValidator validator) {
+    @Autowired
+    public void setValidator(SmartValidator validator) {
         this.validator = validator;
     }
 

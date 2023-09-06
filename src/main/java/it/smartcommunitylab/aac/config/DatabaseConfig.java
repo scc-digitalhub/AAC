@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
@@ -110,8 +111,28 @@ public class DatabaseConfig {
     //        return bean;
     //    }
 
-    @Bean
-    public HikariDataSource getDataSource() throws PropertyVetoException {
+    @Bean(name = "jdbcDataSource")
+    public HikariDataSource jdbcDataSource() throws PropertyVetoException {
+        HikariDataSource bean = new HikariDataSource();
+
+        bean.setDriverClassName(env.getProperty("jdbc.driver"));
+        bean.setJdbcUrl(env.getProperty("jdbc.url"));
+        bean.setUsername(env.getProperty("jdbc.user"));
+        bean.setPassword(env.getProperty("jdbc.password"));
+
+        //
+        //        bean.setAcquireIncrement(5);
+        //        bean.setIdleConnectionTestPeriod(60);
+        //        bean.setMaxPoolSize(100);
+        //        bean.setMaxStatements(50);
+        bean.setMinimumIdle(10);
+
+        return bean;
+    }
+
+    @Primary
+    @Bean(name = "jpaDataSource")
+    public HikariDataSource jpaDataSource() throws PropertyVetoException {
         HikariDataSource bean = new HikariDataSource();
 
         bean.setDriverClassName(env.getProperty("jdbc.driver"));
@@ -133,7 +154,7 @@ public class DatabaseConfig {
     public LocalContainerEntityManagerFactoryBean getEntityManagerFactory() throws PropertyVetoException {
         LocalContainerEntityManagerFactoryBean bean = new LocalContainerEntityManagerFactoryBean();
         bean.setPersistenceUnitName("aac");
-        bean.setDataSource(getDataSource());
+        bean.setDataSource(jpaDataSource());
 
         HibernateJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
         adapter.setDatabasePlatform(env.getProperty("jdbc.dialect"));

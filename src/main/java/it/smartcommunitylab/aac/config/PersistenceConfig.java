@@ -40,6 +40,8 @@ import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.AutoJDBCProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.ConfigurableProviderEntityService;
 import it.smartcommunitylab.aac.core.service.InMemoryProviderConfigRepository;
+import it.smartcommunitylab.aac.core.service.JpaProviderConfigRepository;
+import it.smartcommunitylab.aac.core.service.ProviderConfigEntityService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountEntityRepository;
@@ -103,7 +105,11 @@ public class PersistenceConfig {
     private Boolean sessionCookieSecure;
 
     @Autowired
-    private DataSource dataSource;
+    @Qualifier("jdbcDataSource")
+    private DataSource jdbcDataSource;
+
+    @Autowired
+    private ProviderConfigEntityService providerConfigEntityService;
 
     /*
      * Object mappers
@@ -296,7 +302,7 @@ public class PersistenceConfig {
 
     @Bean
     public AutoJdbcAttributeStore attributeStore() {
-        return new AutoJdbcAttributeStore(dataSource);
+        return new AutoJdbcAttributeStore(jdbcDataSource);
     }
 
     @Bean(name = "scopeRegistry")
@@ -400,7 +406,9 @@ public class PersistenceConfig {
         Class<U> clazz
     ) {
         if ("jdbc".equals(providerConfigRepository)) {
-            return new AutoJDBCProviderConfigRepository<U>(dataSource, clazz);
+            return new AutoJDBCProviderConfigRepository<U>(jdbcDataSource, clazz);
+        } else if ("jpa".equals(providerConfigRepository)) {
+            return new JpaProviderConfigRepository<U>(providerConfigEntityService, clazz);
         }
 
         return new InMemoryProviderConfigRepository<U>();

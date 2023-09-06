@@ -25,6 +25,8 @@ import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.AutoJDBCProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.InMemoryProviderConfigRepository;
+import it.smartcommunitylab.aac.core.service.JpaProviderConfigRepository;
+import it.smartcommunitylab.aac.core.service.ProviderConfigEntityService;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.identity.IdentityProviderAuthority;
 import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
@@ -41,6 +43,7 @@ import it.smartcommunitylab.aac.oidc.provider.OIDCIdentityProviderConfigMap;
 import java.util.Collection;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -58,7 +61,11 @@ public class AuthoritiesConfig {
     private String providerConfigRepository;
 
     @Autowired
-    private DataSource dataSource;
+    @Qualifier("jdbcDataSource")
+    private DataSource jdbcDataSource;
+
+    @Autowired
+    private ProviderConfigEntityService providerConfigEntityService;
 
     @Autowired
     private UserAccountService<OIDCUserAccount> oidcUserAccountService;
@@ -142,7 +149,9 @@ public class AuthoritiesConfig {
         Class<U> clazz
     ) {
         if ("jdbc".equals(providerConfigRepository)) {
-            return new AutoJDBCProviderConfigRepository<U>(dataSource, clazz);
+            return new AutoJDBCProviderConfigRepository<U>(jdbcDataSource, clazz);
+        } else if ("jpa".equals(providerConfigRepository)) {
+            return new JpaProviderConfigRepository<U>(providerConfigEntityService, clazz);
         }
 
         return new InMemoryProviderConfigRepository<U>();

@@ -16,6 +16,8 @@
 
 package it.smartcommunitylab.aac.core.service;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.cbor.databind.CBORMapper;
@@ -41,11 +43,14 @@ import org.springframework.security.oauth2.common.util.DefaultSerializationStrat
 import org.springframework.security.oauth2.common.util.SerializationStrategy;
 import org.springframework.security.oauth2.common.util.SerializationUtils;
 import org.springframework.security.oauth2.common.util.WhitelistedSerializationStrategy;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-@Transactional
+//should execute in Propagation.REQUIRES_NEW but breaks transaction manager
+//TODO resolve, we create this bean manually thus no proxy for transactions
+// @Transactional(propagation = Propagation.REQUIRED)
 public class AutoJDBCProviderConfigRepository<U extends AbstractProviderConfig<?, ?>>
     implements ProviderConfigRepository<U> {
 
@@ -107,6 +112,10 @@ public class AutoJDBCProviderConfigRepository<U extends AbstractProviderConfig<?
         //        rowMapper = new ConfigRowMapper(serializer);
 
         CBORMapper cborMapper = new CBORMapper();
+        //serialize only fields and ignore all getter/setters to avoid any processing
+        cborMapper.setVisibility(PropertyAccessor.ALL, Visibility.NONE);
+        cborMapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
+
         this.rowMapper = new CBORConfigRowMapper(cborMapper, className);
         this.mapper = cborMapper;
 
